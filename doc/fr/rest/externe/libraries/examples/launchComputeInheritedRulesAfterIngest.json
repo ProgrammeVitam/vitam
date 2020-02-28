@@ -1,0 +1,9 @@
+{
+  "$query": [
+    {
+      "$eq": {
+        "#opi": "aeeaaaaaagfex4j4aaqcqalmjv7flpiaaaaq"
+      }
+    }
+  ]
+}

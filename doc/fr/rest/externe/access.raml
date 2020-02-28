@@ -60,12 +60,18 @@ documentation:
     description: |
       Requête qui retourne des résultats contenant des Unités d'archives.
       La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+
+      Permissions requises:
+        - units:read
     is: [AccessTraits.AccessUnitResponse]
   post:
     description: |
       Requête qui retourne des résultats contenant des Unités d'archives. La requête utilise POST avec X-Http-Method-Override: GET
       La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
       Sans le Header, le point d'API est utilisé pour mettre à jour en masse les métadonnées descriptives des unités archivistiques. Possibilité de remplacer une chaîne de caractères par une autre vià l'opération $setregex.
+
+      Permissions requises:
+        - units:update
     is: [AccessTraits.AccessUnitResponse, StandardTraits.OverrideGet]
     headers:
       X-Http-Method-Override:
@@ -95,6 +101,9 @@ documentation:
       description: |
         Requête qui déclanche la mise à jour de masse des métadonnées de gestion d'unités d'archives.
         La requête utilise un POJO spécifique pour effectuer la mise à jour des éléments de gestion.
+
+        Permissions requises:
+          - units:rules:update
       is: [AccessTraits.UnitBatchUpdateResponse]
 
   /computedInheritedRules:
@@ -104,9 +113,27 @@ documentation:
     post:
       description: |
         Request that will launch the computation
+
+        Permissions requises:
+          - computeInheritedRules:action
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: true
+      is: [AccessTraits.UnitComputedInheritedRulesResponse]
     delete:
       description: |
         Request that will delete the computation
+
+        Permissions requises:
+          - computeInheritedRules:delete
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: true
+      is: [AccessTraits.UnitComputedInheritedRulesDeleteResponse]
 
   /{idu}:
     uriParameters:
@@ -121,19 +148,17 @@ documentation:
       description: |
        Requête qui retourne une Unité d'archive.
        La requête utilise le langage de requête DSL de type **recherche unitaire (GET BY ID)** de Vitam en entrée et retourne une liste d'Unités d'archives contenant 1 seul résultat selon le DSL Vitam en cas de succès.
+
+       Permissions requises :
+        - units:id:read:json
       is: [AccessTraits.AccessUniqueUnitResponse]
-    post:
-      description: |
-        Requête qui retourne une Unité d'archives. La requête utilise POST avec X-Http-Method-Override: GET
-        La requête utilise le langage de requête DSL de type **recherche unitaire  (GET BY ID)** de Vitam en entrée et retourne une liste d'Unités d'archives contenant 1 seul résultat selon le DSL Vitam en cas de succès.
-      is: [AccessTraits.AccessUniqueUnitResponse, StandardTraits.OverrideGet]
-      headers:
-        X-Http-Method-Override:
-          required: true
     put:
       description: |
         Requête qui modifie une Unité d'archive.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
+
+        Permissions requises:
+          - units:id:update
       is: [AccessTraits.AccessUpdateUnitResponse]
 
     /objects:
@@ -146,6 +171,12 @@ documentation:
           Requête qui retourne le résultat contenant un Object d'archives : ses métadonnées ou un de ses objets binaires.
           Dans le cas des métadonnées, la requête utilise le langage de requête DSL de type **recherche unitaire (GET BY ID)** de Vitam en entrée.
           'Accept' header est 'application/octet-stream' (objet binaire) ou 'application/json' (métadonnées)
+
+          Permissions requises:
+            - units:id:objects:read:json
+
+            ou
+            - units:id:objects:read:binary
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse]
         headers:
           Accept:
@@ -174,6 +205,9 @@ documentation:
     description: |
       Requête qui retourne des résultats contenant des Unités d'archives ainsi que leurs règles de gestion héritées.
       La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives avec leurs règles de gestion selon le DSL Vitam en cas de succès.
+
+      Permissions requises:
+        - unitsWithInheritedRules:read
     is: [AccessTraits.AccessUnitWithInheritedRulesResponse]
 
 /dipexport:
@@ -186,6 +220,9 @@ documentation:
     description: |
           response : JSON asynchronous state / HTTP CODE 202 or  500 for Internal Server Error
           La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée.
+
+          Permissions requises:
+            - dipexport:create
     is: [AccessTraits.DipCreationResponseAsync]
 
   /{id}/dip/:
@@ -204,6 +241,9 @@ documentation:
       description: |
         Requête qui retourne les résultats composés des métadonnées et des objets binaires dans un fichier zip
         'Accept' header est 'application/octet-stream'
+
+        Permissions requises:
+          - dipexport:id:dip:read
       responses:
         202:
           description: Returns the generated zip file
@@ -264,6 +304,9 @@ documentation:
     description: |
           response : JSON asynchronous state / HTTP CODE (202, 200)  or  (412, 500 else)
           La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée.
+
+          Permissions requises:
+            - transfers:create
     is: [AccessTraits.TransferCreationResponseAsync]
 
   /{id}/sip/:
@@ -273,7 +316,7 @@ documentation:
           description: Identifiant de l'opération du transfert d'archives.
     displayName: Téléchargement du SIP
     description: |
-      Télécharger le SIP généré par l'opération passée en paramètre
+      Télécharger le SIP généré par l'opération passée en paramètre.
     get:
       headers:
         Accept:
@@ -281,7 +324,10 @@ documentation:
           enum: [ "application/octet-stream" ]
       description: |
         Requête qui retourne un SIP au format ZIP
-        'Accept' header est 'application/octet-stream'
+        'Accept' header est 'application/octet-stream'.
+
+        Permissions requises:
+          - transfers:id:sip:read
       responses:
         202:
           description: Returns the generated SIP file
@@ -300,6 +346,9 @@ documentation:
     description: |
       Requête qui retourne des résultats contenant des Groupes d'objets.
       La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam et peut utiliser l'opérateur $subobject (Voir documentation DSL) en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+
+      Permissions requises:
+        - objects:read
     is: [AccessTraits.AccessGOTResponse]
     body:
       application/json:
@@ -334,6 +383,9 @@ documentation:
           enum: [ "application/json" ]
       description: |
         Exécute une opération d'analyse d'élimination des unités archivistiques.
+
+        Permissions requises :
+          - elimination:analysis
       is: [AccessTraits.EliminationResponseAsync]
       responses:
         200:
@@ -356,6 +408,9 @@ documentation:
           enum: [ "application/json" ]
       description: |
         Exécute une opération d'élimination définitive des unités archivistiques.
+
+        Permissions requises:
+          - elimination:action
       is: [AccessTraits.EliminationResponseAsync]
       responses:
         200:
@@ -394,9 +449,12 @@ documentation:
             type: string
             example: "2018-11-14"
         example: !include libraries/examples/storage-accesslog-query.json
-    description:
+    description: |
         Lancer la récupération des journaux sous la forme d'un ZIP contenant des fichiers de log au format Json Lines.
         La requête prend en paramètre un objet Json pouvant contenir une date de début (StartDate) ou de fin (EndDate) pour filtrer les journaux.
+
+        Permissions requises:
+          - storageaccesslog:read:binary
     responses:
         200:
           description: Success
@@ -418,6 +476,9 @@ documentation:
         enum: [ "application/json" ]
     description: |
       Exécute une opération de préservation sur (une ou) les unités archivistiques.
+
+      Permissions requises:
+        - preservation:update
     is: [AccessTraits.PreservationResponseAsync]
     responses:
       200:
@@ -443,7 +504,10 @@ documentation:
         required: true
         enum: [ "application/json" ]
     description: |
-      Démarage du traitement de l'ATR adressé par le SAE cible dans le cas d'un transfert
+      Démarage du traitement de l'ATR adressé par le SAE cible dans le cas d'un transfert.
+
+      Permissions requises:
+        - transfers:reply
     is: [AccessTraits.TransferReplyResponseAsync]
     responses:
       200:
@@ -469,3 +533,32 @@ documentation:
   get:
     is: [ StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
+
+/reclassification:
+  displayName: Mise à jour d'arborescence
+  description: API qui définit les requêtes liées à la mise à jour d'arborescence des unités archivistiques
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    description: Lancement d'une ou plusieurs modifications d'arborescence d'unité archivistiques
+    body:
+      application/json:
+        description: |
+          Requête spécifiant les unités archivistiques à déplacer dans l'arborescence (ajout/suppression de parents - Tableau de DSL au format RECLASSIFICATION_QUERY).
+          Chaque DSL utilise des mots clés spécifique dans la partie $action et cible une ou plusieurs unités archivistiques parents dans la partie $query.
+          L'opérateur $add permet d'ajouter un parent à l'unité archivistique ciblée. L'opérateur $pull permet de retirer un parent à l'unité archivistique cible.
+          Seul le champs #unitups doit être modifié grâce à cette requête.
+
+          Permissions requises:
+            - reclassification:update
+        type: array
+        example: !include libraries/examples/reclassification.json
+    responses:
+      202:
+        description: Succès
