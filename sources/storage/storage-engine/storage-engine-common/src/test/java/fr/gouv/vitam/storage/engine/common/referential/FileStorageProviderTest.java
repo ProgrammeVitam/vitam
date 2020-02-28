@@ -147,7 +147,7 @@ public class FileStorageProviderTest {
         assertEquals(2, offerReferences.size());
         assertEquals((Integer) 2, strategy.getCopy());
         assertFalse(strategy.isStorageOfferEnabled(""));
-        final StorageOffer offer = fsProvider.getStorageOfferForHA("inactiveOffer", true);
+        final StorageOffer offer = fsProvider.getStorageOffer("inactiveOffer", true);
         assertNotNull(offer);
         assertFalse(offer.isEnabled());
         assertTrue("inactiveOffer".equals(offer.getId()));

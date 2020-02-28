@@ -24,41 +24,79 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.common.referential;
+package fr.gouv.vitam.storage.engine.common.model.request;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import org.junit.Test;
+import java.util.List;
 
 /**
- *
+ * Offer diff request model
  */
-public class StorageOfferProviderFactoryTest {
+public class OfferDiffRequest {
 
-    @Test
-    public void testGetDefaultProvider() throws Exception {
-        assertNotNull(StorageOfferProviderFactory.getDefaultProvider());
-        assertTrue(StorageOfferProviderFactory.getDefaultProvider() instanceof FileStorageProvider);
+    /**
+     * the identifier of the first offer to compare.
+     */
+    @JsonProperty("offer1")
+    private String offer1;
+
+    /**
+     * the identifier of the second offer to compare.
+     */
+    @JsonProperty("offer2")
+    private String offer2;
+
+    /**
+     * containerToSync.
+     */
+    @JsonProperty("container")
+    private String container;
+
+    /**
+     * tenantId
+     */
+    @JsonProperty("tenantId")
+    private Integer tenantId;
+
+    public OfferDiffRequest() {
+        // Empty constructor for deserialization
     }
 
-    @Test
-    public void testGetProvider() throws Exception {
-        StorageOfferProvider provider = StorageOfferProviderFactory.getDefaultProvider();
-        assertNotNull(provider);
-        assertTrue(provider instanceof FileStorageProvider);
-        StorageOffer disabledOffer = provider.getStorageOffer("inactiveOffer", true);
-        assertFalse(disabledOffer.isEnabled());
-        assertTrue(disabledOffer.getId().equals("inactiveOffer"));
+    public String getOffer1() {
+        return offer1;
+    }
 
-        try {
-            provider.getStorageOffer("inactiveOffer", false);
-            fail("Expecting storage exception");
-        }catch(StorageNotFoundException ex){
-        }
+    public OfferDiffRequest setOffer1(String offer1) {
+        this.offer1 = offer1;
+        return this;
+    }
+
+    public String getOffer2() {
+        return offer2;
+    }
+
+    public OfferDiffRequest setOffer2(String offer2) {
+        this.offer2 = offer2;
+        return this;
+    }
+
+    public String getContainer() {
+        return container;
+    }
+
+    public OfferDiffRequest setContainer(String container) {
+        this.container = container;
+        return this;
+    }
+
+    public Integer getTenantId() {
+        return tenantId;
+    }
+
+    public OfferDiffRequest setTenantId(Integer tenantId) {
+        this.tenantId = tenantId;
+        return this;
     }
 }

@@ -24,37 +24,71 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.common.referential;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import org.junit.Test;
+package fr.gouv.vitam.storage.engine.server.offerdiff;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.json.JsonHandler;
 
-/**
- *
- */
-public class StorageOfferHACapabilityProviderFactoryTest {
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
-    @Test
-    public void testGetProvider() throws Exception {
-        StorageOfferHACapabilityProvider  provider = StorageOfferHACapabilityProviderFactory.getDefaultProvider();
-        assertNotNull(provider);
-        assertTrue(provider instanceof FileStorageProvider);
-        StorageOffer disabledOffer = provider.getStorageOfferForHA("inactiveOffer", true);
-        assertFalse(disabledOffer.isEnabled());
-        assertTrue(disabledOffer.getId().equals("inactiveOffer"));
+public class ReportWriter implements AutoCloseable {
 
-        try {
-            provider.getStorageOfferForHA("inactiveOffer", false);
-            fail("Expecting storage exception");
-        }catch(StorageNotFoundException ex){
-        }
+    private final OutputStream outputStream;
+    private final Writer writer;
+
+    private long totalObjectCount;
+    private long errorCount;
+
+    private boolean isEmpty = true;
+    private boolean isClosed = false;
+
+    public ReportWriter(File tempFile) throws IOException {
+        this.outputStream = new FileOutputStream(tempFile);
+        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
     }
 
+    public void reportMatchingObject(String objectId) {
+        this.totalObjectCount++;
+    }
+
+    public void reportObjectMismatch(String objectId, Long sizeOffer1, Long sizeOffer2) throws IOException {
+        this.totalObjectCount++;
+        this.errorCount++;
+        if (!isEmpty) {
+            writer.append("\n");
+        }
+        isEmpty = false;
+
+        writer.append(JsonHandler.unprettyPrint(
+            new ReportEntry()
+                .setObjectId(objectId)
+                .setSizeInOffer1(sizeOffer1)
+                .setSizeInOffer2(sizeOffer2)
+        ));
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (isClosed) {
+            return;
+        }
+        writer.flush();
+        writer.close();
+        outputStream.close();
+        isClosed = true;
+    }
+
+    public long getTotalObjectCount() {
+        return totalObjectCount;
+    }
+
+    public long getErrorCount() {
+        return errorCount;
+    }
 }

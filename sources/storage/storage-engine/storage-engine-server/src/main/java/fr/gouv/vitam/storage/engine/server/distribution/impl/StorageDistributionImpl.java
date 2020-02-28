@@ -121,7 +121,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -941,16 +940,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode createContainer(String strategyId) throws UnsupportedOperationException {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-
-    @Override
     public CloseableIterator<ObjectEntry> listContainerObjects(String strategyId, DataCategory category)
         throws StorageException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
@@ -975,25 +966,32 @@ public class StorageDistributionImpl implements StorageDistribution {
                 throw new StorageTechnicalException("No offer found");
             }
 
-            final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.get().getId());
-
-            if (offer.isAsyncRead()) {
-                throw new StorageTechnicalException("AsyncRead offer (" + offerReference.get().getId() +
-                    ") found. AsyncOffer not allowed for direct read");
-            }
-
-            final Driver driver = retrieveDriverInternal(offerReference.get().getId());
-            try (Connection connection = driver.connect(offer.getId())) {
-                StorageListRequest request = new StorageListRequest(tenantId, category.getFolder());
-                return connection.listObjects(request);
-
-            } catch (final StorageDriverException exc) {
-                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
-                throw new StorageTechnicalException(exc);
-            }
+            return listContainerObjectsForOffer(category, offerReference.get().getId(), false);
         }
         LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
+    }
+
+    @Override
+    public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category,
+        String offerId, boolean includeDisabled) throws StorageException {
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId, includeDisabled);
+
+        if (offer.isAsyncRead()) {
+            throw new StorageTechnicalException("AsyncRead offer (" + offerId +
+                ") found. AsyncOffer not allowed for direct read");
+        }
+
+        final Driver driver = retrieveDriverInternal(offerId);
+        try (Connection connection = driver.connect(offerId)) {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            StorageListRequest request = new StorageListRequest(tenantId, category.getFolder());
+            return connection.listObjects(request);
+
+        } catch (final StorageDriverException exc) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
+            throw new StorageTechnicalException(exc);
+        }
     }
 
     @Override

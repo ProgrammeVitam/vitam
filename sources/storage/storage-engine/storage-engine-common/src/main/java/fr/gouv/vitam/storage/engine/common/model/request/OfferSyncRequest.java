@@ -29,7 +29,7 @@ package fr.gouv.vitam.storage.engine.common.model.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Description of offerSync request item model. <br/>
+ * Offer synchronization request item model.
  */
 public class OfferSyncRequest {
 
@@ -52,7 +52,7 @@ public class OfferSyncRequest {
     private Long offset;
 
     /**
-     * containerToSync.
+     * container to audit.
      */
     @JsonProperty("container")
     private String container;

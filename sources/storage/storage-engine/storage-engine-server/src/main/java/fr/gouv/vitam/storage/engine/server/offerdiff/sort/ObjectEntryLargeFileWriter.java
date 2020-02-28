@@ -24,41 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.common.referential;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import org.junit.Test;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.ObjectEntryWriter;
 
-/**
- *
- */
-public class StorageOfferProviderFactoryTest {
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
-    @Test
-    public void testGetDefaultProvider() throws Exception {
-        assertNotNull(StorageOfferProviderFactory.getDefaultProvider());
-        assertTrue(StorageOfferProviderFactory.getDefaultProvider() instanceof FileStorageProvider);
+public class ObjectEntryLargeFileWriter implements LargeFileWriter<ObjectEntry> {
+
+    private final OutputStream outputStream;
+    private final ObjectEntryWriter objectEntryWriter;
+
+    public ObjectEntryLargeFileWriter(File file) {
+        try {
+            outputStream = new FileOutputStream(file);
+            objectEntryWriter = new ObjectEntryWriter(outputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
-    @Test
-    public void testGetProvider() throws Exception {
-        StorageOfferProvider provider = StorageOfferProviderFactory.getDefaultProvider();
-        assertNotNull(provider);
-        assertTrue(provider instanceof FileStorageProvider);
-        StorageOffer disabledOffer = provider.getStorageOffer("inactiveOffer", true);
-        assertFalse(disabledOffer.isEnabled());
-        assertTrue(disabledOffer.getId().equals("inactiveOffer"));
+    @Override
+    public void writeEntry(ObjectEntry entry) throws IOException {
+        objectEntryWriter.write(entry);
+    }
 
-        try {
-            provider.getStorageOffer("inactiveOffer", false);
-            fail("Expecting storage exception");
-        }catch(StorageNotFoundException ex){
-        }
+    @Override
+    public void close() throws IOException {
+        this.objectEntryWriter.writeEof();
+        this.objectEntryWriter.close();
+        this.outputStream.close();
     }
 }
