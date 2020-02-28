@@ -67,6 +67,7 @@ public class IngestExternalImplAntivirusTest {
 
     private FormatIdentifierFactory formatIdentifierFactory = mock(FormatIdentifierFactory.class);
     private IngestInternalClientFactory ingestInternalClientFactor = mock(IngestInternalClientFactory.class);
+    private ManifestDigestValidator manifestDigestValidator = mock(ManifestDigestValidator.class);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -93,7 +94,7 @@ public class IngestExternalImplAntivirusTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS);
         config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor);
+            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor, manifestDigestValidator);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -101,7 +102,7 @@ public class IngestExternalImplAntivirusTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -114,7 +115,7 @@ public class IngestExternalImplAntivirusTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS_FIXED);
         config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor);
+            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor, manifestDigestValidator);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -122,7 +123,7 @@ public class IngestExternalImplAntivirusTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -135,7 +136,7 @@ public class IngestExternalImplAntivirusTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_UNKNOWN);
         config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor);
+            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor, manifestDigestValidator);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -143,7 +144,8 @@ public class IngestExternalImplAntivirusTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null,
+            null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 }

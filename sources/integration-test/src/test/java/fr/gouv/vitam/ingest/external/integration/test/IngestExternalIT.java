@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -50,6 +52,7 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -58,10 +61,12 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.ingest.external.client.IngestRequestParameters;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -114,6 +119,7 @@ public class IngestExternalIT extends VitamRuleRunner {
 
     private static IngestExternalClient ingestExternalClient;
     private static AdminExternalClient adminExternalClient;
+    private static AccessExternalClient accessExternalClient;
 
 
     @BeforeClass
@@ -121,6 +127,7 @@ public class IngestExternalIT extends VitamRuleRunner {
         handleBeforeClass(0, 1);
         ingestExternalClient = IngestExternalClientFactory.getInstance().getClient();
         adminExternalClient = AdminExternalClientFactory.getInstance().getClient();
+        accessExternalClient = AccessExternalClientFactory.getInstance().getClient();
 
         // TODO: 18/09/2019 should import referential from externals
         new DataLoader("integration-ingest-internal").prepareData();
@@ -267,6 +274,91 @@ public class IngestExternalIT extends VitamRuleRunner {
                         "events[*].evParentId")
             );
 
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_ingest_with_manifest_digest_ok() throws Exception {
+        try (InputStream inputStream =
+            PropertiesUtils.getResourceAsStream(INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP)) {
+            IngestRequestParameters ingestRequestParameters =
+                new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name())
+                .setManifestDigestAlgo("SHA-512")
+                .setManifestDigestValue("3112e4f4f66c70f0565b95ea270c7488f074ace3ab28f74feaa975751b424619ff429490416f1c4b630361ab16f0bb5f16d92f5a867e6f94c886464e95f82ca5");
+            RequestResponse response = ingestExternalClient
+                .ingest(
+                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract("aName3"),
+                    inputStream,
+                    ingestRequestParameters);
+
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
+            boolean process_timeout = vitamPoolingClient
+                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+
+            response = adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
+            assertThat(response.isOk()).isTrue();
+
+            RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
+                .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
+            LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>)
+                logbookOperationRequestResponse).getFirstResult();
+            String logbookOperationStr = JsonHandler.prettyPrint(JsonHandler.toJsonNode(logbookOperation));
+
+            assertThat(logbookOperationStr).contains("PROCESS_SIP_UNITARY.OK");
+            assertThat(logbookOperationStr).doesNotContain("MANIFEST_DIGEST_CHECK");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_ingest_with_invalid_manifest_digest_ko() throws Exception {
+        try (InputStream inputStream =
+            PropertiesUtils.getResourceAsStream(INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP)) {
+            IngestRequestParameters ingestRequestParameters =
+                new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name())
+                    .setManifestDigestAlgo("SHA-512")
+                    .setManifestDigestValue("BAD_DIGEST");
+            RequestResponse response = ingestExternalClient
+                .ingest(
+                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract("aName3"),
+                    inputStream,
+                    ingestRequestParameters);
+
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
+            boolean process_timeout = vitamPoolingClient
+                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+
+            RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
+                .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
+            LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>)
+                logbookOperationRequestResponse).getFirstResult();
+            String logbookOperationStr = JsonHandler.prettyPrint(JsonHandler.toJsonNode(logbookOperation));
+
+            assertThat(logbookOperationStr).contains("PROCESS_SIP_UNITARY.KO");
+            assertThat(logbookOperationStr).contains("MANIFEST_DIGEST_CHECK.KO");
         }
     }
 }
