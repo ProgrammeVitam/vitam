@@ -19,7 +19,7 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL simple au format JSON.
-        schema: DslTypes.DslSingleQuery
+        type: DslTypes.DslSingleQuery
         example: !include examples/dslQuery.json
     responses:
       200:
@@ -27,7 +27,7 @@ traits:
         body:
           application/json:
             description: Réponse DSL multiple pour Access contenant les <<resourcePathName | !uppercamelcase>>
-            schema: DslTypes.DslSingleResponse
+            type: DslTypes.DslSingleResponse
             #example: !include examples/logbookResponse.json
 
   AdminItemResponse:
@@ -41,7 +41,7 @@ traits:
         body:
           application/json:
             description: un élément de type <<resourcePathName | !uppercamelcase>>
-            schema: DslTypes.DslSingleResponse
+            type: DslTypes.DslSingleResponse
             #example: !include examples/logbookResponse.json
 
   AdminUploadFormat:
@@ -76,7 +76,7 @@ traits:
     body:
       application/json:
         description: Body contient la requête DSL unitaire de modification au format JSON.
-        schema: AccessTypes.AccessUpdateByIdQuery
+        type: AccessTypes.AccessUpdateByIdQuery
         example: !include examples/adminUpdateQuery.json
     responses:
       201:
@@ -126,7 +126,7 @@ traits:
     body:
       application/json:
         description: Contient les options de l'audit au format JSON.
-        schema: AdminTypes.AuditOptions
+        type: AdminTypes.AuditOptions
         example: !include examples/auditLaunchQuery.json
     responses:
       202:
@@ -135,7 +135,7 @@ traits:
         body:
           application/json:
             description: Audit operation accepted
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/auditResponse.json
       500:
         description: |
@@ -150,7 +150,7 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL simple au format JSON.
-        schema: DslTypes.DslSingleQuery
+        type: DslTypes.DslSingleQuery
         example: !include examples/logbookQuery.json
     responses:
       202:
@@ -159,7 +159,7 @@ traits:
         body:
           application/json:
             description: Traceability operation accepted
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/traceability.json
       500:
         description: Returns the final result of the Traceability operation in KO status
