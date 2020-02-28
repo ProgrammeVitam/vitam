@@ -118,7 +118,7 @@
 - name: add vitam patterns conf
   template:
     src: "vitam-patterns.j2"
-    dest: "/usr/share/logstash/vendor/bundle/jruby/2.3.0/gems/logstash-patterns-core-4.1.2/patterns/vitam"
+    dest: "/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-4.1.2/patterns/vitam"
     owner: "{{ logstash.user }}"
   notify:
     - restart logstash

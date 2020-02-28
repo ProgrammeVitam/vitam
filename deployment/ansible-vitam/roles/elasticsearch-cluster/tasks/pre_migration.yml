@@ -6,7 +6,7 @@
   uri:
     url: "{{ composant| client_url }}_cluster/settings"
     method: PUT
-    body: "{ \"persistent\": { \"cluster.routing.allocation.enable\": \"none\" }}"
+    body: "{ \"persistent\": { \"cluster.routing.allocation.enable\": \"primaries\" }}"
     body_format: json
     status_code: 200,201
   when: ansible_facts.services["vitam-{{ composant.cluster_name }}.service"].state == "running"
