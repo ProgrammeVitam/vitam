@@ -42,8 +42,8 @@
 - name: Configure Kibana connection to elasticsearch
   replace:
     dest: /etc/kibana/kibana.yml
-    regexp: '^#{0,1}elasticsearch\.url:.*$'
-    replace: "elasticsearch.url: \"http://{{ elasticsearch_host }}:{{ elasticsearch_port }}\""
+    regexp: '^#{0,1}elasticsearch\.hosts:.*$'
+    replace: "elasticsearch.hosts: [\"http://{{ elasticsearch_host }}:{{ elasticsearch_port }}\"]"
   notify:
     - restart kibana
 

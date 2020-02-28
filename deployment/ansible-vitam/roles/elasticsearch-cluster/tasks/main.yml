@@ -19,7 +19,7 @@
   ignore_errors: true
 
 - import_tasks: pre_migration.yml
-  when: is_installed.stdout.find('5.6.') != -1
+  when: is_installed.stdout.find('6.8.') != -1
 
 - name: Set default directory for CentOS
   set_fact:
@@ -284,4 +284,4 @@
 - meta: flush_handlers
 
 - import_tasks: post_migration.yml
-  when: is_installed.stdout.find('5.6.') != -1
+  when: is_installed.stdout.find('6.8.') != -1
