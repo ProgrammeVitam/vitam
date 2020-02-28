@@ -8,7 +8,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,6 +23,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,11 +63,11 @@ public class EndpointAuthenticationFilterTest {
     @Spy
     private EndpointAuthenticationFilter instance;
 
-    @Before
-    public void setup() {
+
+    public void setup(String user, String password) {
 
         // Instanciate Vitam configuration credentials.
-        List<BasicAuthModel> basicAuthConfig = Arrays.asList(new BasicAuthModel("adminUserName", "adminPassword"));
+        List<BasicAuthModel> basicAuthConfig = Arrays.asList(new BasicAuthModel(user, password));
 
         // mock admin basic authentication informations.
         when(configuration.getAdminBasicAuth())
@@ -77,6 +77,7 @@ public class EndpointAuthenticationFilterTest {
     @Test
     @RunWithCustomExecutor
     public void testBasicAuthentication_Success() throws Exception {
+        setup("adminUserName", "adminPassword");
 
         // Encode to Base64 format of (adminUserName:adminPassword) -> Basic YWRtaW5Vc2VyTmFtZTphZG1pblBhc3N3b3Jk
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
@@ -97,7 +98,28 @@ public class EndpointAuthenticationFilterTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testBasicAuthentication_case_sensitive() throws Exception {
+        setup("adminuserName", "adminpassword");
+
+        // Encode to Base64 format of (adminUserName:adminPassword) -> Basic YWRtaW5Vc2VyTmFtZTphZG1pblBhc3N3b3Jk
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        headers.add(HttpHeaders.AUTHORIZATION, "Basic YWRtaW5Vc2VyTmFtZTphZG1pblBhc3N3b3Jk");
+
+        // mock context headers.
+        when(containerRequestContext.getHeaders())
+            .thenReturn(headers);
+
+        // verify type and message of the thrown Exception.
+        assertThatThrownBy(() -> instance.filter(containerRequestContext))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("VitamAuthentication failed: Wrong credentials");
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testBasicAuthenticationFailed_WrongCredentials() throws Exception {
+
+        setup("adminUserName", "adminPassword");
 
         // Wrong Encode to Base64 format of (adminUserName:adminPassword)
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
@@ -118,6 +140,7 @@ public class EndpointAuthenticationFilterTest {
     @RunWithCustomExecutor
     public void testBasicAuthenticationFailed_MissingInfos() throws Exception {
 
+        setup("adminUserName", "adminPassword");
         // Wrong Encode to Base64 format of (adminUserName:adminPassword)
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         headers.add(HttpHeaders.AUTHORIZATION.toString(), "XXX YWRtaW5Vc2VyTmFtZTphZG1pblBhc3N3bXXX");
