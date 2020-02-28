@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -34,12 +34,10 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -57,7 +55,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -573,7 +571,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
 
 
-        logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        logbookLifeCyclesUnitParametersStart = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
@@ -603,7 +601,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
 
         logbookLifeCycleObjectGroupParametersStart =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
@@ -629,7 +627,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumentWhenCreateThenReturnIllegalArgumentExceptionUnitLifeCycle() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
-        final LogbookLifeCycleUnitParameters log = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleUnitParameters log = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         client.create(log);
     }
 
@@ -762,7 +760,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void givenIllegalArgumentWhenCreateThenReturnIllegalArgumentExceptionObjectGroupLifeCycle()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
-        final LogbookLifeCycleUnitParameters log = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleUnitParameters log = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         client.create(log);
     }
 
@@ -893,7 +891,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjectGroupParametersStart;
 
         logbookLifeCycleObjectGroupParametersStart =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
 
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -59,7 +59,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -192,7 +192,7 @@ public class LogBookLifeCycleUnitTest {
         final GUID ioL = GUIDFactory.newUnitGUID(0);
 
 
-        logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        logbookLifeCyclesUnitParametersStart = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.OK);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
@@ -203,7 +203,7 @@ public class LogBookLifeCycleUnitTest {
         /**
          * Bad request
          */
-        logbookLifeCyclesUnitParametersBAD = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        logbookLifeCyclesUnitParametersBAD = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
 
         logbookLifeCyclesUnitParametersBAD.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
@@ -218,7 +218,7 @@ public class LogBookLifeCycleUnitTest {
         final GUID eip2 = GUIDFactory.newWriteLogbookGUID(0);
         final GUID iop2 = GUIDFactory.newWriteLogbookGUID(0);
         final GUID ioL2 = GUIDFactory.newUnitGUID(0);
-        logbookLifeCyclesUnitParametersUpdate = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        logbookLifeCyclesUnitParametersUpdate = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersUpdate.setStatus(StatusCode.OK);
         logbookLifeCyclesUnitParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifier,
             eip2.toString());
@@ -232,10 +232,10 @@ public class LogBookLifeCycleUnitTest {
          */
 
         LogbookLifeCycleObjectGroupParametersStart =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
 
         LogbookLifeCycleObjectGroupParametersStart =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         LogbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.OK);
         LogbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());

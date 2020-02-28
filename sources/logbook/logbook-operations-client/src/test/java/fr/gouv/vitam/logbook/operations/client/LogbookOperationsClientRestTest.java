@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -59,7 +59,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -560,7 +560,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
     }
 
     private static final LogbookOperationParameters getComplete() {
-        return LogbookParametersFactory.newLogbookOperationParameters(GUIDFactory.newRequestIdGUID(0), "eventType",
+        return LogbookParameterHelper.newLogbookOperationParameters(GUIDFactory.newRequestIdGUID(0), "eventType",
             GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST, StatusCode.OK, "outcomeDetailMessage",
             GUIDFactory.newRequestIdGUID(0));
     }
@@ -568,7 +568,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumentWhenCreateThenReturnIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
-        final LogbookOperationParameters log = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookOperationParameters log = LogbookParameterHelper.newLogbookOperationParameters();
         client.create(log);
     }
 
@@ -658,7 +658,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumentWhenUpdateThenReturnIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
-        final LogbookOperationParameters log = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookOperationParameters log = LogbookParameterHelper.newLogbookOperationParameters();
         client.update(log);
     }
 
@@ -736,7 +736,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
 
         }
         final GUID eip = GUIDFactory.newEventGUID(0);
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         client.createDelegate(logbookParameters);

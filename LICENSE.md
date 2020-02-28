@@ -72,7 +72,7 @@ dispositions qu'il contient.
 
 Une liste de questions fréquemment posées se trouve sur le site web
 officiel de la famille des licences CeCILL 
-(http://www.cecill.info/index.fr.html) pour toute clarification qui
+(https://cecill.info/index.fr.html) pour toute clarification qui
 serait nécessaire.
 
 

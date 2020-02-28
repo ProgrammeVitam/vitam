@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -59,7 +59,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -219,7 +219,7 @@ public class ArchiveUnitUpdateUtils {
         StatusCode logbookOutcome, GUID objectIdentifier, String action) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid,
+        return LogbookParameterHelper.newLogbookLifeCycleUnitParameters(updateGuid,
             VitamLogbookMessages.getEventTypeLfc(action),
             eventIdentifierProcess,
             eventTypeProcess, logbookOutcome,

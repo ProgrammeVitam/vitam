@@ -1,14 +1,14 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -21,7 +21,7 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.common.external.client;
@@ -63,8 +63,6 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.cache.CacheResponseStatus;
-import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -79,8 +77,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.message.BasicTokenIterator;
 import org.apache.http.protocol.HTTP;
@@ -170,21 +166,8 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
         sslContext = (SSLContext) VitamRestEasyConfiguration.SSL_CONTEXT.getObject(config);
 
-        final HttpClientBuilder clientBuilder;
-        if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
-            CacheConfig cacheConfig = CacheConfig.custom()
-                .setMaxCacheEntries(VitamConfiguration.getMaxCacheEntries())
-                .setMaxObjectSize(8192)
-                .setSharedCache(true)
-                .build();
-            clientBuilder = CachingHttpClientBuilder.create()
-                .setCacheConfig(cacheConfig);
-            clientBuilder.useSystemProperties();
-        } else {
-            clientBuilder = HttpClientBuilder.create();
-        }
+        final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.useSystemProperties();
-
 
         final boolean disableAutomaticRetries = VitamRestEasyConfiguration.DISABLE_AUTOMATIC_RETRIES.isTrue(config);
         if (disableAutomaticRetries) {
@@ -291,36 +274,9 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
         try {
             final CloseableHttpResponse response;
-            final HttpClientContext context;
-            if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
-                context = HttpCacheContext.create();
-            } else {
-                context = HttpClientContext.create();
-            }
+            final HttpClientContext context = HttpClientContext.create();
 
             response = httpClient.execute(getHost(request), request, context);
-
-
-            if (VitamRestEasyConfiguration.CACHE_ENABLED.isTrue(config)) {
-                CacheResponseStatus responseStatus = ((HttpCacheContext) context).getCacheResponseStatus();
-                switch (responseStatus) {
-                    case CACHE_HIT:
-                        LOGGER.debug("A response was generated from the cache with " +
-                            "no requests sent upstream");
-                        break;
-                    case CACHE_MODULE_RESPONSE:
-                        LOGGER.debug("The response was generated directly by the " +
-                            "caching module");
-                        break;
-                    case CACHE_MISS:
-                        LOGGER.debug("The response came from an upstream server");
-                        break;
-                    case VALIDATED:
-                        LOGGER.debug("The response was generated from the cache " +
-                            "after validating the entry with the origin server");
-                        break;
-                }
-            }
 
             final int statusCode = response.getStatusLine().getStatusCode();
 

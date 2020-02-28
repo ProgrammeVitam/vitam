@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -33,13 +33,9 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -82,7 +78,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -111,7 +107,6 @@ import static fr.gouv.vitam.functional.administration.common.FileFormat.CREATED_
 import static fr.gouv.vitam.functional.administration.common.FileFormat.PUID;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.UPDATE_DATE;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.VERSION_PRONOM;
-import static fr.gouv.vitam.functional.administration.common.Griffin.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 
 /**
@@ -436,7 +431,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
     private LogbookOperationParameters createLogbookOperationParametersKo(GUID eip, GUID eip1) {
 
-        final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+        final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
             .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
                 LogbookTypeProcess.MASTERDATA, StatusCode.KO,
                 VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip);
@@ -457,7 +452,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         List<FileFormatModel> pronomList,
         GUID eip, GUID eip1, FormatImportReport report) throws InvalidParseOperationException {
 
-        final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+        final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
             .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
                 LogbookTypeProcess.MASTERDATA, report.getStatusCode(),
                 VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, report.getStatusCode()) + VERSION +
@@ -483,7 +478,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         GUID eip;
         try {
             eip = GUIDReader.getGUID(operationId);
-            final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
+            final LogbookOperationParameters logbookParametersStart = LogbookParameterHelper
                 .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
                     LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);

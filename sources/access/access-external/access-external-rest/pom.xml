@@ -8,6 +8,7 @@
 	</parent>
 	<artifactId>access-external-rest</artifactId>
 	<name>Access External Rest</name>
+
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -359,6 +360,21 @@
 
 					</dataSet>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<header>../../../licenses/cecill21.txt</header>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 		</plugins>

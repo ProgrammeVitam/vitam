@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -28,7 +28,6 @@ package fr.gouv.vitam.ingest.internal.client;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -48,6 +47,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -106,7 +106,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         status.add(Status.OK.getStatusCode());
         final ItemStatus itemStatus =
             new ItemStatus(id, "FakeMessage - The operation has been canceled", StatusCode.OK, status,
-                SingletonUtils.singletonMap(), null,
+                Collections.emptyMap(), null,
                 null, null);
         return new RequestResponseOK<ItemStatus>().addResult(itemStatus)
             .addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,

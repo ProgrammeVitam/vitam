@@ -185,6 +185,11 @@
             <artifactId>jaxb-runtime</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>json-schema-validator</artifactId>
+        </dependency>
+
         <!-- Keep for test case -->
 
         <!-- Metrics dependencies -->
@@ -256,6 +261,22 @@
                         <version>${jaxb2-basics.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>../../licenses/cecill21.txt</header>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
