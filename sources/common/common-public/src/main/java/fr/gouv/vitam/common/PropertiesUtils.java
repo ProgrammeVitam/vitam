@@ -92,7 +92,7 @@ public final class PropertiesUtils {
      */
     public static InputStream getResourceAsStream(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
-            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES);
         }
         InputStream stream = null;
         try {
