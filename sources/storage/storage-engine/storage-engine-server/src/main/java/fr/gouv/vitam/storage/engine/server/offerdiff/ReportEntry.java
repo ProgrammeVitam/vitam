@@ -24,25 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.common.referential;
 
-/**
- * Factory class to provide StorageOfferHACapabilityProvider implementation
- */
-public final class StorageOfferHACapabilityProviderFactory {
+package fr.gouv.vitam.storage.engine.server.offerdiff;
 
-    private static final StorageOfferHACapabilityProvider DEFAULT_STORAGE_OFFER_HA_PROVIDER = new FileStorageProvider();
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    private StorageOfferHACapabilityProviderFactory() {
-        // Do nothing
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public class ReportEntry {
+
+    @JsonProperty("objectId")
+    private String objectId;
+
+    @JsonProperty("sizeInOffer1")
+    private Long sizeInOffer1;
+
+    @JsonProperty("sizeInOffer2")
+    private Long sizeInOffer2;
+
+    public ReportEntry() {
+        // Empty construction for deserialization
     }
 
-    /**
-     * Retrieve a StorageOfferHACapabilityProvider
-     *
-     * @return the default StorageOfferProvider
-     */
-    public static StorageOfferHACapabilityProvider getDefaultProvider() {
-        return DEFAULT_STORAGE_OFFER_HA_PROVIDER;
+    public String getObjectId() {
+        return objectId;
+    }
+
+    public ReportEntry setObjectId(String objectId) {
+        this.objectId = objectId;
+        return this;
+    }
+
+    public Long getSizeInOffer1() {
+        return sizeInOffer1;
+    }
+
+    public ReportEntry setSizeInOffer1(Long sizeInOffer1) {
+        this.sizeInOffer1 = sizeInOffer1;
+        return this;
+    }
+
+    public Long getSizeInOffer2() {
+        return sizeInOffer2;
+    }
+
+    public ReportEntry setSizeInOffer2(Long sizeInOffer2) {
+        this.sizeInOffer2 = sizeInOffer2;
+        return this;
     }
 }

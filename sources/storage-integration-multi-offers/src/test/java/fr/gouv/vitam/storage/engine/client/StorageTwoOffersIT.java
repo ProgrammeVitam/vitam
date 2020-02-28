@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -55,11 +56,13 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferDiffRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffStatus;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -166,6 +169,7 @@ public class StorageTwoOffersIT {
     public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, VitamCollection.getMongoClientOptions());
 
     private static OfferSyncAdminResource offerSyncAdminResource;
+    private static OfferDiffAdminResource offerDiffAdminResource;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -199,6 +203,7 @@ public class StorageTwoOffersIT {
                 .baseUrl("http://localhost:" + SetupStorageAndOffers.storageEngineAdminPort)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
         offerSyncAdminResource = retrofit.create(OfferSyncAdminResource.class);
+        offerDiffAdminResource = retrofit.create(OfferDiffAdminResource.class);
     }
 
     @AfterClass
@@ -570,7 +575,8 @@ public class StorageTwoOffersIT {
 
         // Write 5 file in source offer tenant 1
         offerPartialSyncItem =
-            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_1);
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList())
+                .setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         for (int i = 5; i < 10; i++) {
             // Save in offer source
@@ -584,7 +590,8 @@ public class StorageTwoOffersIT {
 
         // Write 5 file in target offer tenant 0
         offerPartialSyncItem =
-            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_0);
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList())
+                .setTenantId(TENANT_0);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         for (int i = 10; i < 15; i++) {
             // Save in offer source
@@ -598,7 +605,8 @@ public class StorageTwoOffersIT {
 
         // Write 5 file in target offer tenant 1
         offerPartialSyncItem =
-            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_1);
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList())
+                .setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         for (int i = 15; i < 20; i++) {
             // Save in offer source
@@ -612,7 +620,8 @@ public class StorageTwoOffersIT {
 
         // Write 5 file in source and target offer tenant 0
         offerPartialSyncItem =
-            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_0);
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList())
+                .setTenantId(TENANT_0);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         for (int i = 20; i < 25; i++) {
             // Save in offer source
@@ -1041,6 +1050,167 @@ public class StorageTwoOffersIT {
         assertThat(offerSeq).isEqualTo(size);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void offerDiffEmptyOffers() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given : Empty offers
+
+        // When
+        Response<Void> startOfferDiff = offerDiffAdminResource.startOfferDiff(
+            new OfferDiffRequest()
+                .setOffer1(OFFER_ID)
+                .setOffer2(SECOND_OFFER_ID)
+                .setContainer(OBJECT.getCollectionName())
+                .setTenantId(TENANT_0),
+            getBasicAuthnToken()
+        ).execute();
+
+        assertThat(startOfferDiff.isSuccessful()).isTrue();
+
+        // Then
+        awaitOfferDiffTermination(60);
+
+        Response<OfferDiffStatus> offerDiffStatusResponse =
+            offerDiffAdminResource.getLastOfferDiffStatus(getBasicAuthnToken()).execute();
+        assertThat(offerDiffStatusResponse.code()).isEqualTo(200);
+        OfferDiffStatus offerDiffStatus = offerDiffStatusResponse.body();
+        assertThat(offerDiffStatus.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(offerDiffStatus.getStartDate()).isNotNull();
+        assertThat(offerDiffStatus.getEndDate()).isNotNull();
+        assertThat(offerDiffStatus.getOffer1()).isEqualTo(OFFER_ID);
+        assertThat(offerDiffStatus.getOffer2()).isEqualTo(SECOND_OFFER_ID);
+        assertThat(offerDiffStatus.getTotalObjectCount()).isEqualTo(0L);
+        assertThat(offerDiffStatus.getErrorCount()).isEqualTo(0L);
+        assertThat(offerDiffStatus.getReportFileName()).isNotNull();
+        assertThat(new File(offerDiffStatus.getReportFileName())).hasContent("");
+
+        assertThat(offerDiffStatus.getRequestId())
+            .isEqualTo(startOfferDiff.headers().get(X_REQUEST_ID));
+        assertThat(offerDiffStatus.getTenantId()).isEqualTo(TENANT_0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void offerDiffIsoOffers() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        //Given
+        for (int i = 0; i < 100; i++) {
+            String id = GUIDFactory.newGUID().getId();
+            storeObjectInOffers(id, OBJECT, id.getBytes(), OFFER_ID, SECOND_OFFER_ID);
+        }
+
+        // When
+        Response<Void> startOfferDiff = offerDiffAdminResource.startOfferDiff(
+            new OfferDiffRequest()
+                .setOffer1(OFFER_ID)
+                .setOffer2(SECOND_OFFER_ID)
+                .setContainer(OBJECT.getCollectionName())
+                .setTenantId(TENANT_0),
+            getBasicAuthnToken()
+        ).execute();
+
+        // Then
+        assertThat(startOfferDiff.isSuccessful()).isTrue();
+
+        awaitOfferDiffTermination(60);
+
+        Response<OfferDiffStatus> offerDiffStatusResponse =
+            offerDiffAdminResource.getLastOfferDiffStatus(getBasicAuthnToken()).execute();
+        assertThat(offerDiffStatusResponse.code()).isEqualTo(200);
+        OfferDiffStatus offerDiffStatus = offerDiffStatusResponse.body();
+        assertThat(offerDiffStatus.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(offerDiffStatus.getStartDate()).isNotNull();
+        assertThat(offerDiffStatus.getEndDate()).isNotNull();
+        assertThat(offerDiffStatus.getOffer1()).isEqualTo(OFFER_ID);
+        assertThat(offerDiffStatus.getOffer2()).isEqualTo(SECOND_OFFER_ID);
+        assertThat(offerDiffStatus.getTotalObjectCount()).isEqualTo(100L);
+        assertThat(offerDiffStatus.getErrorCount()).isEqualTo(0L);
+        assertThat(offerDiffStatus.getReportFileName()).isNotNull();
+        assertThat(new File(offerDiffStatus.getReportFileName())).hasContent("");
+
+        assertThat(offerDiffStatus.getRequestId())
+            .isEqualTo(startOfferDiff.headers().get(X_REQUEST_ID));
+        assertThat(offerDiffStatus.getTenantId()).isEqualTo(TENANT_0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void offerDiffMismatchingOffers() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        //Given
+        for (int i = 0; i < 100; i++) {
+            String id = GUIDFactory.newGUID().getId();
+            storeObjectInOffers(id, OBJECT, id.getBytes(), OFFER_ID, SECOND_OFFER_ID);
+        }
+
+        String idMissingFromOffer1 = "idMissingFromOffer1";
+        storeObjectInOffers(idMissingFromOffer1, OBJECT, idMissingFromOffer1.getBytes(), SECOND_OFFER_ID);
+
+        String idMissingFromOffer2 = "idMissingFromOffer2";
+        storeObjectInOffers(idMissingFromOffer2, OBJECT, idMissingFromOffer2.getBytes(), OFFER_ID);
+
+        String idMismatch = "idMismatch";
+        storeObjectInOffers(idMismatch, OBJECT, new byte[50], OFFER_ID);
+        storeObjectInOffers(idMismatch, OBJECT, new byte[10], SECOND_OFFER_ID);
+
+        // When
+        Response<Void> startOfferDiff = offerDiffAdminResource.startOfferDiff(
+            new OfferDiffRequest()
+                .setOffer1(OFFER_ID)
+                .setOffer2(SECOND_OFFER_ID)
+                .setContainer(OBJECT.getCollectionName())
+                .setTenantId(TENANT_0),
+            getBasicAuthnToken()
+        ).execute();
+
+        // Then
+        assertThat(startOfferDiff.isSuccessful()).isTrue();
+
+        awaitOfferDiffTermination(60);
+
+        Response<OfferDiffStatus> offerDiffStatusResponse =
+            offerDiffAdminResource.getLastOfferDiffStatus(getBasicAuthnToken()).execute();
+        assertThat(offerDiffStatusResponse.code()).isEqualTo(200);
+        OfferDiffStatus offerDiffStatus = offerDiffStatusResponse.body();
+        assertThat(offerDiffStatus.getStatusCode()).isEqualTo(StatusCode.WARNING);
+        assertThat(offerDiffStatus.getStartDate()).isNotNull();
+        assertThat(offerDiffStatus.getEndDate()).isNotNull();
+        assertThat(offerDiffStatus.getOffer1()).isEqualTo(OFFER_ID);
+        assertThat(offerDiffStatus.getOffer2()).isEqualTo(SECOND_OFFER_ID);
+        assertThat(offerDiffStatus.getTotalObjectCount()).isEqualTo(103L);
+        assertThat(offerDiffStatus.getErrorCount()).isEqualTo(3L);
+        assertThat(offerDiffStatus.getReportFileName()).isNotNull();
+        assertThat(new File(offerDiffStatus.getReportFileName())).hasContent("" +
+            "{\"objectId\":\"idMismatch\",\"sizeInOffer1\":50,\"sizeInOffer2\":10}\n" +
+            "{\"objectId\":\"idMissingFromOffer1\",\"sizeInOffer1\":null,\"sizeInOffer2\":19}\n" +
+            "{\"objectId\":\"idMissingFromOffer2\",\"sizeInOffer1\":19,\"sizeInOffer2\":null}");
+
+        assertThat(offerDiffStatus.getRequestId())
+            .isEqualTo(startOfferDiff.headers().get(X_REQUEST_ID));
+        assertThat(offerDiffStatus.getTenantId()).isEqualTo(TENANT_0);
+    }
+
+    private void awaitOfferDiffTermination(int timeoutInSeconds) throws IOException {
+        StopWatch stopWatch = StopWatch.createStarted();
+        boolean isRunning = true;
+        while (isRunning && stopWatch.getTime(TimeUnit.SECONDS) < timeoutInSeconds) {
+            Response offerSynchronizationRunning =
+                offerDiffAdminResource.isOfferDiffRunning(getBasicAuthnToken()).execute();
+            assertThat(offerSynchronizationRunning.code()).isEqualTo(200);
+            isRunning = Boolean.parseBoolean(offerSynchronizationRunning.headers().get("Running"));
+        }
+        if (isRunning) {
+            fail("Offer diff took too long");
+        }
+    }
+
     @AfterClass
     public static void afterClass() throws Exception {
 
@@ -1097,6 +1267,32 @@ public class StorageTwoOffersIT {
             "Content-Type: application/json"
         })
         Call<OfferSyncStatus> getLastOfferSynchronizationStatus(
+            @Header("Authorization") String basicAuthnToken);
+
+    }
+
+
+    public interface OfferDiffAdminResource {
+
+        @POST("/storage/v1/diff")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> startOfferDiff(
+            @Body OfferDiffRequest offerDiffRequest,
+            @Header("Authorization") String basicAuthnToken);
+
+
+        @HEAD("/storage/v1/diff")
+        Call<Void> isOfferDiffRunning(
+            @Header("Authorization") String basicAuthnToken);
+
+        @GET("/storage/v1/diff")
+        @Headers({
+            "Content-Type: application/json"
+        })
+        Call<OfferDiffStatus> getLastOfferDiffStatus(
             @Header("Authorization") String basicAuthnToken);
 
     }
