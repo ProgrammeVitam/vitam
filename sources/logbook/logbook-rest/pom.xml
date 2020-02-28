@@ -56,11 +56,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-            <groupId>ru.yandex.qatools.embed</groupId>
-            <artifactId>embedded-services</artifactId>
-            <scope>test</scope>
-        </dependency>
-		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
