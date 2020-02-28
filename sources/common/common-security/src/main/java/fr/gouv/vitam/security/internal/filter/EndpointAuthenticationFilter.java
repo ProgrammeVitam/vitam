@@ -27,16 +27,6 @@
 package fr.gouv.vitam.security.internal.filter;
 
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -45,11 +35,20 @@ import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+
 import static org.apache.http.client.config.AuthSchemes.BASIC;
 
 /**
  * Filter used to handle the basic authentication for REST endpoints,
- * annotated with {@link VitamAuthentication}. <br/>
+ * annotated with {@link VitamAuthentication}.
  */
 public class EndpointAuthenticationFilter implements ContainerRequestFilter {
 
@@ -110,9 +109,9 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
         List<String> decodedAuthentgInfos = Arrays.asList(decodedAuthent.split(":"));
         List<BasicAuthModel> basicAuthConfig = configuration.getAdminBasicAuth();
         if (decodedAuthentgInfos.isEmpty() || (basicAuthConfig != null &&
-            (!basicAuthConfig.get(0).getUserName().equalsIgnoreCase(decodedAuthentgInfos.get(0)) ||
+            (!basicAuthConfig.get(0).getUserName().equals(decodedAuthentgInfos.get(0)) ||
                 !basicAuthConfig.get(0).getPassword()
-                    .equalsIgnoreCase(decodedAuthentgInfos.get(1))))) {
+                    .equals(decodedAuthentgInfos.get(1))))) {
             throw new IllegalArgumentException("VitamAuthentication failed: Wrong credentials.");
 
         }
