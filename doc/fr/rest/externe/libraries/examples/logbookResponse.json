@@ -9,7 +9,7 @@
   "$context": {
     "$query":{
       "$range": {
-        "eventDateTime": {
+        "evDateTime": {
           "$gte": "2014-01-10", "$lte": "2016-03-10"
         }
       }
@@ -21,7 +21,7 @@
   [{
       "eventIdentifier": "entryId",
       "eventType": "CheckSeda",
-      "eventDateTime": "2015-07-14T17:32:05Z",
+      "evDateTime": "2015-07-14T17:32:05Z",
       "eventIdentifierProcess": "workflowId",
       "eventTypeProcess": "Ingest",
       "outcome" : "STARTED",
@@ -40,7 +40,7 @@
     {
       "eventIdentifier": "entryId",
       "eventType": "CheckSeda",
-      "eventDateTime": "2015-07-14T17:32:05Z",
+      "evDateTime": "2015-07-14T17:32:05Z",
       "eventIdentifierProcess": "workflowId",
       "eventTypeProcess": "Ingest",
       "outcome" : "OK",

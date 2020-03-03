@@ -1,7 +1,7 @@
 {
     "eventIdentifier": "entryId",
     "eventType": "EXT_OPERATION",
-    "eventDateTime": "2015-07-14T17:32:05Z",
+    "evDateTime": "2015-07-14T17:32:05Z",
     "eventIdentifierProcess": "workflowId",
     "eventTypeProcess": "EXTERNAL_LOGBOOK",
     "outcome" : "STARTED",
