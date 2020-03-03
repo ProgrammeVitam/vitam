@@ -24,6 +24,9 @@ node.name: {{ inventory_hostname }}
 # TODO: Better handling of this as we have to modify wich nodes are requested by logstash / kibana
 node.master: {{ is_master|default('true') }}
 node.data: {{ is_data|default('true') }}
+node.ingest: false
+node.ml: false
+xpack.ml.enabled: false
 #
 # Add custom attributes to the node:
 #
