@@ -1,7 +1,7 @@
 {
   "$query":
     { "$range": {
-      "eventDateTime": {
+      "evDateTime": {
         "$gte": "2014-01-10", "$lte": "2016-03-10"
       }
     }

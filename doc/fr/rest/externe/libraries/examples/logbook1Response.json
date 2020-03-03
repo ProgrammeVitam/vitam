@@ -13,7 +13,7 @@
   [{
       "eventIdentifier": "entryId",
       "eventType": "CheckSeda",
-      "eventDateTime": "2015-07-14T17:32:05Z",
+      "evDateTime": "2015-07-14T17:32:05Z",
       "eventIdentifierProcess": "workflowId",
       "eventTypeProcess": "Ingest",
       "outcome" : "STARTED",

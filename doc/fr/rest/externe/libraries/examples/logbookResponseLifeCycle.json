@@ -13,7 +13,7 @@
   [{
       "eventIdentifier": "archiveId",
       "eventType": "CheckDigest",
-      "eventDateTime": "2015-07-14T17:34:05Z",
+      "evDateTime": "2015-07-14T17:34:05Z",
       "eventIdentifierProcess": "workflowId",
       "eventTypeProcess": "Ingest",
       "outcome" : "OK - digest has been checked",
