@@ -70,6 +70,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.exceptions.ConnectionException;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -92,6 +93,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.buildContainerName;
@@ -107,8 +109,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
     private static final String MISSING_THE_BODY = "Missing the body object";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResource.class);
-    private static final String DEFAULT_OFFER_MODULE = "DEFAULT_OFFER";
-    private static final String CODE_VITAM = "code_vitam";
     public static final String RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED =
         "Caused by re-authentication call. Stream already consumed but no file created, storage engine must retry to re-put object";
     private static final String MISSING_THE_DATA_TYPE_PARAMETER = "Missing Data Type parameter";
@@ -679,5 +679,15 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 .setMessage(vitamCode.getMessage())
                 .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
             .toString()).build();
+    }
+
+    @POST
+    @Path("/compaction")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void launchOfferLogCompaction(OfferLogCompactionRequest requestParams) throws Exception {
+        if (Objects.isNull(requestParams) || requestParams.isNotValid()) {
+            throw new BadRequestException(String.format("OfferLog compaction request is empty or invalid '%s'.", requestParams));
+        }
+        defaultOfferService.compactOfferLogs(requestParams);
     }
 }

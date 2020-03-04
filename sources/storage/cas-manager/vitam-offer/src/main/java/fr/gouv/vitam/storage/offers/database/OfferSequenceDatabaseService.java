@@ -29,42 +29,26 @@ package fr.gouv.vitam.storage.offers.database;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.storage.engine.common.model.OfferSequence.COUNTER_FIELD;
 
-/**
- * Database service for access to OfferSequence collection.
- */
 public class OfferSequenceDatabaseService {
 
     public static final String BACKUP_LOG_SEQUENCE_ID = "Backup_Log_Sequence";
 
     private MongoCollection<Document> mongoCollection;
 
-    /**
-     * Constructor
-     *
-     * @param mongoDatabase mongoDatabase
-     */
-    public OfferSequenceDatabaseService(MongoDatabase mongoDatabase) {
-        this.mongoCollection = mongoDatabase.getCollection(OfferCollections.OFFER_SEQUENCE.getName());
+    public OfferSequenceDatabaseService(MongoCollection<Document> mongoCollection) {
+        this.mongoCollection = mongoCollection;
     }
 
-    /**
-     * Increments the sequence and retrieve the next sequence value
-     *
-     * @param sequenceId sequence identifier
-     * @return next sequence value
-     * @throws ContentAddressableStorageDatabaseException database error
-     */
     public long getNextSequence(String sequenceId) throws ContentAddressableStorageDatabaseException {
         return getNextSequence(sequenceId, 1L);
     }
@@ -72,7 +56,7 @@ public class OfferSequenceDatabaseService {
     public long getNextSequence(String sequenceId, long inc) throws ContentAddressableStorageDatabaseException {
         try {
             final BasicDBObject incQuery = new BasicDBObject();
-            incQuery.append("$inc", new BasicDBObject(OfferSequence.COUNTER_FIELD, inc));
+            incQuery.append("$inc", new BasicDBObject(COUNTER_FIELD, inc));
             Bson query = eq(OfferSequence.ID_FIELD, sequenceId);
             FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
             findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
@@ -80,7 +64,7 @@ public class OfferSequenceDatabaseService {
 
             Document sequence = mongoCollection.findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
             if (sequence != null) {
-                return sequence.getLong(OfferSequence.COUNTER_FIELD) + 1L - inc;
+                return sequence.getLong(COUNTER_FIELD) + 1L - inc;
             } else {
                 throw new ContentAddressableStorageDatabaseException(
                     String.format("Database Error sequence %s not found", sequenceId));

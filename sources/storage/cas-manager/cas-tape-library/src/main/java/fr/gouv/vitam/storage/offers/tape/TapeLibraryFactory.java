@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.storage.offers.tape;
 
+import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -93,14 +93,14 @@ public class TapeLibraryFactory {
     private TapeLibraryFactory() {
     }
 
-    public void initialize(TapeLibraryConfiguration configuration, MongoDbAccess mongoDbAccess) throws IOException {
+    public void initialize(TapeLibraryConfiguration configuration, MongoDatabase mongoDatabase) throws IOException {
 
-        ParametersChecker.checkParameter("All params are required", configuration, mongoDbAccess);
+        ParametersChecker.checkParameter("All params are required", configuration, mongoDatabase);
         createWorkingDirectories(configuration);
 
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
-        TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
+        TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDatabase
             .getCollection(OfferCollections.TAPE_CATALOG.getName()));
 
         tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
@@ -108,15 +108,15 @@ public class TapeLibraryFactory {
         BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
 
         ObjectReferentialRepository objectReferentialRepository =
-            new ObjectReferentialRepository(mongoDbAccess.getMongoDatabase()
+            new ObjectReferentialRepository(mongoDatabase
                 .getCollection(OfferCollections.TAPE_OBJECT_REFERENTIAL.getName()));
         ArchiveReferentialRepository archiveReferentialRepository =
-            new ArchiveReferentialRepository(mongoDbAccess.getMongoDatabase()
+            new ArchiveReferentialRepository(mongoDatabase
                 .getCollection(OfferCollections.TAPE_ARCHIVE_REFERENTIAL.getName()));
         ReadRequestReferentialRepository readRequestReferentialRepository =
-            new ReadRequestReferentialRepository(mongoDbAccess.getMongoDatabase()
+            new ReadRequestReferentialRepository(mongoDatabase
                 .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName()));
-        QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
+        QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDatabase.getCollection(
             OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
 
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(

@@ -26,47 +26,50 @@
  */
 package fr.gouv.vitam.storage.offers.database;
 
-import com.mongodb.MongoException;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
+import com.mongodb.client.MongoIterable;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.apache.commons.collections4.IteratorUtils;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OFFER_LOG;
+import static fr.gouv.vitam.storage.engine.common.model.OfferLogAction.DELETE;
+import static fr.gouv.vitam.storage.engine.common.model.OfferLogAction.WRITE;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 public class OfferLogDatabaseServiceTest {
-
-    private static final String CONTAINER_OBJECT_0 = "object_0";
-    private static final String CONTAINER_OBJECT_1 = "object_1";
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
@@ -75,314 +78,210 @@ public class OfferLogDatabaseServiceTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
-    @Mock
-    private OfferSequenceDatabaseService offerSequenceDatabaseService;
-
-    private OfferLogDatabaseService offerLogDatabaseService;
-
-    @BeforeClass
-    public static void setUpBeforeClass() {
-        for (OfferCollections o : OfferCollections.values()) {
-            o.setPrefix(PREFIX);
-            mongoRule.addCollectionToBePurged(o.getName());
-        }
-    }
+    private OfferLogDatabaseService service;
 
     @AfterClass
-    public static void afterClass() {
-        mongoRule.handleAfterClass();
-    }
-
-    @After
-    public void after() {
+    public static void after() {
+        cleanDatabase();
         mongoRule.handleAfter();
     }
 
+    private static void cleanDatabase() {
+        mongoRule.getMongoDatabase().getCollection(OFFER_LOG.getName()).deleteMany(new Document());
+        OfferCollections collectionPrefixed = OFFER_LOG;
+        collectionPrefixed.setPrefix(PREFIX);
+        mongoRule.getMongoDatabase().getCollection(collectionPrefixed.getName()).deleteMany(new Document());
+    }
+
     @Before
-    public void setUp() {
-        offerLogDatabaseService =
-            new OfferLogDatabaseService(offerSequenceDatabaseService, mongoRule.getMongoDatabase());
+    public void before() {
+        cleanDatabase();
+        service = new OfferLogDatabaseService(mongoRule.getMongoDatabase().getCollection(OFFER_LOG.getName()));
     }
 
     @Test
-    public void should_increment_sequence_when_save_twice_the_same_document()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L)
-            .thenReturn(2L);
-        // when
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(2))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+    public void should_save_one_offer_log() throws Exception {
+        // Given // When
+        service.save("containerName", "fileName", DELETE, 42);
 
-        Document firstOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
-            .find(Filters.and(Filters.eq("FileName", "object_name_0.json"), Filters.eq("Sequence", 1L)))
-            .first();
-        assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
-        assertThat(firstOfferLog.get("Sequence")).isEqualTo(1);
-        assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
-        Document secondOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
-            .find(Filters.and(Filters.eq("FileName", "object_name_0.json"), Filters.eq("Sequence", 2L)))
-            .first();
-        assertThat(secondOfferLog.get("FileName")).isEqualTo("object_name_0.json");
-        assertThat(secondOfferLog.get("Sequence")).isEqualTo(2);
-        assertThat(secondOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
+        // Then
+        OfferLog offerLog = getFirstLogFromDb();
+        assertThat(offerLog.getFileName()).isEqualTo("fileName");
+        assertThat(offerLog.getContainer()).isEqualTo("containerName");
+        assertThat(offerLog.getSequence()).isEqualTo(42);
+        assertThat(offerLog.getAction()).isEqualTo(DELETE);
     }
 
     @Test
-    public void should_increment_sequence_when_save_two_different_container_documents()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L)
-            .thenReturn(2L);
-        // when
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", OfferLogAction.WRITE);
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(2))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+    public void should_throw_error_when_cannot_save_offer_log() throws Exception {
+        // Given
+        MongoCollection<Document> collection = mock(MongoCollection.class);
+        doThrow(MongoWriteException.class).when(collection).insertOne(any());
+        OfferLogDatabaseService offerLogDatabaseService = new OfferLogDatabaseService(collection);
 
-        Document firstOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
-            .find(Filters.and(Filters.eq("FileName", "object_name_0.json"), Filters.eq("Sequence", 1L)))
-            .first();
-        assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
-        assertThat(firstOfferLog.get("Sequence")).isEqualTo(1);
-        assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
+        // When
+        ThrowingCallable save = () -> offerLogDatabaseService.save("containerName", "fileName", DELETE, 42);
 
-        Document secondOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
-            .find(Filters.and(Filters.eq("FileName", "object_name_1.json"), Filters.eq("Sequence", 2L)))
-            .first();
-        assertThat(secondOfferLog.get("FileName")).isEqualTo("object_name_1.json");
-        assertThat(secondOfferLog.get("Sequence")).isEqualTo(2);
-        assertThat(secondOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_1);
+        // Then
+        assertThatThrownBy(save).isInstanceOf(ContentAddressableStorageDatabaseException.class);
     }
 
     @Test
-    public void should_sequence_valid_when_save_with_long_sequence()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        long longSequence = Integer.MAX_VALUE + 1L;
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(longSequence);
-        // when
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(1))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+    public void should_bulk_save_offer_log() throws Exception {
+        // Given // When
+        service.bulkSave("containerName", Collections.singletonList("batman"), DELETE, 15);
 
-        Document firstOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
-            .find(Filters.and(Filters.eq("FileName", "object_name_0.json"))).first();
-        assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
-        assertThat(firstOfferLog.get("Sequence")).isEqualTo(longSequence);
-        assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
-    }
-
-
-    @Test
-    public void should_throw_ContentAddressableStorageDatabaseException_on_save_when_mongo_throws_MongoException()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        MongoDatabase mongoDatabase = Mockito.mock(MongoDatabase.class);
-        MongoCollection<Document> mongoCollection = Mockito.mock(MongoCollection.class);
-        Mockito.when(mongoDatabase.getCollection(Mockito.any())).thenReturn(mongoCollection);
-        Mockito.doThrow(new MongoException("mongo error")).when(mongoCollection).insertOne(Mockito.any(Document.class));
-        offerLogDatabaseService = new OfferLogDatabaseService(offerSequenceDatabaseService, mongoDatabase);
-
-        // when + then
-        assertThatCode(() -> {
-            offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
+        // Then
+        OfferLog offerLog = getFirstLogFromDb();
+        assertThat(offerLog.getFileName()).isEqualTo("batman");
+        assertThat(offerLog.getContainer()).isEqualTo("containerName");
+        assertThat(offerLog.getSequence()).isEqualTo(15);
+        assertThat(offerLog.getAction()).isEqualTo(DELETE);
     }
 
     @Test
-    public void should_get_two_document_when_get_offer_log_from_2_limit_2_ASC()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L)
-            .thenReturn(2L).thenReturn(3L).thenReturn(4L).thenReturn(5L);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", OfferLogAction.WRITE);
-        // when
-        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 1L, 2, Order.ASC);
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(5))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(offerLogs.size()).isEqualTo(2);
-        assertThat(offerLogs.get(0)).isNotNull();
-        assertThat(offerLogs.get(0).getSequence()).isEqualTo(1L);
-        assertThat(offerLogs.get(1)).isNotNull();
-        assertThat(offerLogs.get(1).getSequence()).isEqualTo(2L);
+    public void should_throw_error_when_cannot_bulk_save_offer_log() throws Exception {
+        // Given
+        MongoCollection<Document> collection = mock(MongoCollection.class);
+        doThrow(MongoWriteException.class).when(collection).insertMany(anyList(), any());
+        OfferLogDatabaseService offerLogDatabaseService = new OfferLogDatabaseService(collection);
+
+        // When
+        ThrowingCallable save = () -> offerLogDatabaseService.bulkSave("containerName", Collections.singletonList("robin"), DELETE, 15);
+
+        // Then
+        assertThatThrownBy(save).isInstanceOf(ContentAddressableStorageDatabaseException.class);
     }
 
     @Test
-    public void should_get_two_document_when_get_offer_log_from_2_limit_2_DESC()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L)
-            .thenReturn(2L).thenReturn(3L).thenReturn(4L).thenReturn(5L);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", OfferLogAction.WRITE);
-        // when
-        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 2L, 2, Order.DESC);
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(5))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(offerLogs.size()).isEqualTo(2);
-        assertThat(offerLogs.get(0)).isNotNull();
-        assertThat(offerLogs.get(0).getSequence()).isEqualTo(2L);
-        assertThat(offerLogs.get(1)).isNotNull();
-        assertThat(offerLogs.get(1).getSequence()).isEqualTo(1L);
+    public void should_get_descending_offer_logs() throws Exception {
+        // Given
+        service.save("container", "fileName1", DELETE, 4);
+        service.save("container", "fileName2", DELETE, 5);
+        service.save("container", "fileName3", DELETE, 6);
+        service.save("container", "fileName4", DELETE, 7);
+        service.save("containerGotham", "batman", DELETE, 1);
+
+        // When
+        Iterable<OfferLog> descendingOfferLogs = service.getDescendingOfferLogsBy("container", 6L, 3);
+
+        // Then
+        assertThat(descendingOfferLogs).hasSize(3);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(6L, 5L, 4L);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName3", "fileName2", "fileName1");
+        assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
     @Test
-    public void get_documents_when_get_offer_log_from_0_limit_N_ASC_DESC()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L)
-            .thenReturn(2L)
-            .thenReturn(3L)
-            .thenReturn(4L)
-            .thenReturn(5L);
+    public void should_get_descending_offer_logs_with_no_offset() throws Exception {
+        // Given
+        service.save("container", "fileName1", DELETE, 4);
+        service.save("container", "fileName2", DELETE, 5);
+        service.save("container", "fileName3", DELETE, 6);
+        service.save("container", "fileName4", DELETE, 7);
+        service.save("containerGotham", "batman", DELETE, 1);
 
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", OfferLogAction.WRITE);
+        // When
+        Iterable<OfferLog> descendingOfferLogs = service.getDescendingOfferLogsBy("container", null, 3);
 
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(5))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-
-        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 0L, 1, Order.DESC);
-        assertThat(offerLogs.size()).isEqualTo(0);
-
-        offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_1, 0L, 1, Order.ASC);
-        assertThat(offerLogs.size()).isEqualTo(1);
-        assertThat(offerLogs.get(0)).isNotNull();
-        assertThat(offerLogs.get(0).getSequence()).isEqualTo(4L);
-        assertThat(offerLogs.get(0).getFileName()).isEqualTo("object_name_1.json");
+        // Then
+        assertThat(descendingOfferLogs).hasSize(3);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(7L, 6L, 5L);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName4", "fileName3", "fileName2");
+        assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
     @Test
-    public void should_get_document_with_the_last_sequence_by_container_when_get_offer_log_from_null_limit_1_DESC()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+    public void should_get_ascending_offer_logs() throws Exception {
+        // Given
+        service.save("container", "fileName1", DELETE, 4);
+        service.save("container", "fileName2", DELETE, 5);
+        service.save("container", "fileName3", DELETE, 6);
+        service.save("container", "fileName4", DELETE, 7);
+        service.save("containerGotham", "batman", DELETE, 1);
 
-        // given
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L)
-            .thenReturn(2L)
-            .thenReturn(3L)
-            .thenReturn(4L)
-            .thenReturn(5L)
-            .thenReturn(6L)
-            .thenReturn(7L);
+        // When
+        Iterable<OfferLog> descendingOfferLogs = service.getAscendingOfferLogsBy("container", 5L, 3);
 
-        // saving offerLog objects
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_0.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", OfferLogAction.WRITE);
-        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", OfferLogAction.WRITE);
-
-        // when
-        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, null, 1, Order.DESC);
-
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(7))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(offerLogs.size()).isEqualTo(1);
-        assertThat(offerLogs.get(0)).isNotNull();
-        assertThat(offerLogs.get(0).getSequence()).isEqualTo(5L);
-        assertThat(offerLogs.get(0).getContainer()).isEqualTo(CONTAINER_OBJECT_0);
-        assertThat(offerLogs.get(0).getFileName()).isEqualTo("object_name_3.json");
-
-        // when
-        offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_1, null, 1, Order.DESC);
-
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(7))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(offerLogs.size()).isEqualTo(1);
-        assertThat(offerLogs.get(0)).isNotNull();
-        assertThat(offerLogs.get(0).getSequence()).isEqualTo(7L);
-        assertThat(offerLogs.get(0).getContainer()).isEqualTo(CONTAINER_OBJECT_1);
-        assertThat(offerLogs.get(0).getFileName()).isEqualTo("object_name_2.json");
+        // Then
+        assertThat(descendingOfferLogs).hasSize(3);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(5L, 6L, 7L);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName2", "fileName3", "fileName4");
+        assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
     @Test
-    public void should_have_parse_error_when_document_invalid_time() {
-        // given
-        Document documentInvalid = new Document();
-        documentInvalid.put("Sequence", 1L);
-        documentInvalid.put("FileName", "object_name_0.json");
-        documentInvalid.put("Container", CONTAINER_OBJECT_0);
-        documentInvalid.put("Time", CONTAINER_OBJECT_0);
-        mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName()).insertOne(documentInvalid);
+    public void should_get_ascending_offer_logs_with_no_offset() throws Exception {
+        // Given
+        service.save("container", "fileName1", DELETE, 4);
+        service.save("container", "fileName2", DELETE, 5);
+        service.save("container", "fileName3", DELETE, 6);
+        service.save("container", "fileName4", DELETE, 7);
+        service.save("containerGotham", "batman", DELETE, 1);
 
-        // when + then
-        assertThatCode(() -> {
-            offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 0L, 1, Order.ASC);
-        }).isInstanceOf(ContentAddressableStorageServerException.class);
+        // When
+        Iterable<OfferLog> descendingOfferLogs = service.getAscendingOfferLogsBy("container", null, 3);
+
+        // Then
+        assertThat(descendingOfferLogs).hasSize(3);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(4L, 5L, 6L);
+        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName1", "fileName2", "fileName3");
+        assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
     @Test
-    public void should_throw_ContentAddressableStorageDatabaseException_on_getOfferLog_when_mongo_throws_MongoException()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        MongoDatabase mongoDatabase = Mockito.mock(MongoDatabase.class);
-        MongoCollection<Document> mongoCollection = Mockito.mock(MongoCollection.class);
-        Mockito.when(mongoDatabase.getCollection(Mockito.any())).thenReturn(mongoCollection);
-        Mockito.when(mongoCollection.find(Mockito.any(Bson.class))).thenThrow(new MongoException("mongo error"));
-        offerLogDatabaseService = new OfferLogDatabaseService(offerSequenceDatabaseService, mongoDatabase);
+    public void should_get_expired_offer_logs()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException, InterruptedException {
+        // Given
+        OfferLogCompactionRequest request = new OfferLogCompactionRequest(2, SECONDS, 10);
 
-        // when + then
-        assertThatCode(() -> {
-            offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 0L, 1, Order.ASC);
-        }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
+        String firstFileName = "MY_FIRST_FILE";
+        service.save("Container1", firstFileName, WRITE, 1L);
+
+        TimeUnit.SECONDS.sleep(2);
+
+        service.bulkSave("Container1", Arrays.asList("file1", "file2", "file3"), WRITE, 2L);
+
+        // When
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request);
+
+        // Then
+        assertThat(logs).extracting(OfferLog::getFileName).containsOnly(firstFileName);
     }
 
     @Test
-    public void should_append_sequence_when_bulk_save()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
-        // given
-        List<String> fileNames = Arrays.asList("object_name_1.json", "object_name_2.json", "object_name_3.json");
-        long longSequence = Integer.MAX_VALUE + 10L;
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, (long)fileNames.size()))
-            .thenReturn(longSequence);
+    public void should_get_offer_logs_by_container() throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        // Given
+        OfferLogCompactionRequest request = new OfferLogCompactionRequest(0, MILLIS, 10);
 
-        // when
-        offerLogDatabaseService.bulkSave(CONTAINER_OBJECT_0, fileNames, OfferLogAction.WRITE);
+        service.save("Container1", "MY_FIRST_FILE1", WRITE, 1L);
+        service.save("Container2", "MY_FIRST_FILE2", WRITE, 2L);
+        service.save("Container1", "MY_FIRST_FILE3", WRITE, 3L);
+        service.save("Container3", "MY_FIRST_FILE4", WRITE, 4L);
+        service.save("Container1", "MY_FIRST_FILE5", WRITE, 5L);
 
-        // then
-        verify(offerSequenceDatabaseService, Mockito.times(1))
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, (long)fileNames.size());
+        // When
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request);
 
-        List<Document> documents =
-            IteratorUtils.toList(mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
-                .find(Filters.and(Filters.in("FileName", fileNames))).sort(Sorts.ascending("FileName")).iterator());
+        // Then
+        assertThat(logs).extracting(OfferLog::getContainer).containsExactly("Container3", "Container2", "Container1", "Container1", "Container1");
+    }
 
-        assertThat(documents).hasSize(fileNames.size());
-        for (int i = 0; i < fileNames.size(); i++) {
-            Document document = documents.get(i);
-            assertThat(document.get("FileName")).isEqualTo(fileNames.get(i));
-            assertThat(document.get("Sequence")).isEqualTo(longSequence + i);
-            assertThat(document.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
+    public OfferLog getFirstLogFromDb() {
+        return getOfferLogs().first();
+    }
+
+    public MongoIterable<OfferLog> getOfferLogs() {
+        return mongoRule.getMongoDatabase().getCollection(OFFER_LOG.getName())
+            .find()
+            .map(this::getOfferLog);
+    }
+
+    public OfferLog getOfferLog(Document document) {
+        try {
+            return JsonHandler.getFromString(BsonHelper.stringify(document), OfferLog.class);
+        } catch (InvalidParseOperationException e) {
+            throw new VitamRuntimeException(e);
         }
     }
 }

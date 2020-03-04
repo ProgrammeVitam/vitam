@@ -92,6 +92,7 @@ public class VitamRuleRunner {
             OfferCollections.OFFER_SEQUENCE.getName(),
             OffsetRepository.COLLECTION_NAME,
             OfferCollections.OFFER_LOG.getName(),
+            OfferCollections.COMPACTED_OFFER_LOG.getName(),
             PersonalRepository.PERSONAL_COLLECTION,
             IdentityRepository.CERTIFICATE_COLLECTION,
             PurgeObjectGroupRepository.PURGE_OBJECT_GROUP,
