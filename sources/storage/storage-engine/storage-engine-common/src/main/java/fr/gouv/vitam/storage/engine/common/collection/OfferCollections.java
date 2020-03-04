@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.common.collection;
 
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
@@ -39,6 +40,7 @@ public enum OfferCollections {
      * Global collections
      */
     OFFER_LOG(OfferLog.class, OfferLog.class.getSimpleName()),
+    COMPACTED_OFFER_LOG(CompactedOfferLog.class, CompactedOfferLog.class.getSimpleName()),
     OFFER_SEQUENCE(OfferSequence.class, OfferSequence.class.getSimpleName()),
 
     /*

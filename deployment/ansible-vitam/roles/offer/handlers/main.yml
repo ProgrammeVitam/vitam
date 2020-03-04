@@ -1,0 +1,6 @@
+---
+# handlers file for storage-engine
+- name: restart service
+  service:
+    name: "vitam-{{ vitam_component }}"
+    state: restarted

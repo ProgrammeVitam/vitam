@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -34,36 +35,41 @@ import fr.gouv.vitam.common.LocalDateUtil;
 /**
  * OfferLog.
  */
-public class OfferLog {
+public class OfferLog implements Comparable<OfferLog> {
+    public static final String SEQUENCE = "Sequence";
+    public static final String TIME = "Time";
+    public static final String CONTAINER = "Container";
+    public static final String FILENAME = "FileName";
+    public static final String ACTION = "Action";
 
     /**
      * Sequence.
      */
-    @JsonProperty("Sequence")
+    @JsonProperty(SEQUENCE)
     private long sequence;
 
     /**
      * Time.
      */
-    @JsonProperty("Time")
+    @JsonProperty(TIME)
     private LocalDateTime time;
 
     /**
      * Container name
      */
-    @JsonProperty("Container")
+    @JsonProperty(CONTAINER)
     private String container;
 
     /**
      * Filename
      */
-    @JsonProperty("FileName")
+    @JsonProperty(FILENAME)
     private String fileName;
 
     /**
      * Action
      */
-    @JsonProperty("Action")
+    @JsonProperty(ACTION)
     private OfferLogAction action;
 
     /**
@@ -194,5 +200,49 @@ public class OfferLog {
     public OfferLog setFormatVersion(OfferLogFormatVersion formatVersion) {
         this.formatVersion = formatVersion;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        OfferLog offerLog = (OfferLog) o;
+        return sequence == offerLog.sequence &&
+            Objects.equals(time, offerLog.time) &&
+            Objects.equals(container, offerLog.container) &&
+            Objects.equals(fileName, offerLog.fileName) &&
+            action == offerLog.action &&
+            formatVersion == offerLog.formatVersion;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sequence, time, container, fileName, action, formatVersion);
+    }
+
+    @Override
+    public int compareTo(OfferLog o) {
+        long diff = this.getSequence() - o.getSequence();
+        if (diff < 0) {
+            return -1;
+        }
+        if (diff > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "OfferLog{" +
+            "sequence=" + sequence +
+            ", time=" + time +
+            ", container='" + container + '\'' +
+            ", fileName='" + fileName + '\'' +
+            ", action=" + action +
+            ", formatVersion=" + formatVersion +
+            '}';
     }
 }

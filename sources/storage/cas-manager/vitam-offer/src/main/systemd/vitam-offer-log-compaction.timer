@@ -1,0 +1,9 @@
+[Unit]
+Description=Vitam offer log compaction timer
+
+[Timer]
+OnCalendar=*-*-* *:00:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

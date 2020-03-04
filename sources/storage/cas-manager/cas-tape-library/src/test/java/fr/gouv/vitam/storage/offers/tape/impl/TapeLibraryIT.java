@@ -97,7 +97,6 @@ public class TapeLibraryIT {
     public static final long TIMEOUT_IN_MILLISECONDS = 60000L;
     public static final Integer SLOT_INDEX = 10;
     public static final Integer DRIVE_INDEX = 2;
-    private static MongoDbAccess mongoDbAccess;
 
     @ClassRule
     public static TempFolderRule tempFolderRule = new TempFolderRule();
@@ -123,8 +122,7 @@ public class TapeLibraryIT {
         configuration.setInputTarStorageFolder(inputFileStorageFolder);
         configuration.setOutputTarStorageFolder(tempFolderRule.newFolder().getAbsolutePath());
         tapeLibraryFactory = TapeLibraryFactory.getInstance();
-        mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        tapeLibraryFactory.initialize(configuration, mongoDbAccess);
+        tapeLibraryFactory.initialize(configuration, mongoRule.getMongoDatabase());
 
         eraseAllTapes();
     }
@@ -524,12 +522,12 @@ public class TapeLibraryIT {
 
             // read file from tape with given position
             ReadRequestReferentialRepository readRequestReferentialRepository = new ReadRequestReferentialRepository(
-                mongoDbAccess.getMongoDatabase()
+                mongoRule.getMongoDatabase()
                     .getCollection(
                         OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName() + "_" + GUIDFactory.newGUID().getId())
             );
 
-            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoRule.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_CATALOG.getName()));
 
             TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.cas.container.builder;
 
+import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.cas.container.swift.OpenstackSwift;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -79,7 +80,7 @@ public class StoreContextBuilder {
      * openstack-swift if it is configured
      */
     public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration,
-        MongoDbAccess mongoDBAccess)
+        MongoDatabase mongoDatabase)
         throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
 
         if (StorageProvider.SWIFT_AUTH_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
@@ -98,7 +99,7 @@ public class StoreContextBuilder {
             return new AmazonS3V1(configuration);
         } else if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             TapeLibraryFactory tapeLibraryFactory = TapeLibraryFactory.getInstance();
-            tapeLibraryFactory.initialize(configuration.getTapeLibraryConfiguration(), mongoDBAccess);
+            tapeLibraryFactory.initialize(configuration.getTapeLibraryConfiguration(), mongoDatabase);
             return tapeLibraryFactory.getTapeLibraryContentAddressableStorage();
         } else {
             // by default file system
