@@ -27,168 +27,154 @@
 package fr.gouv.vitam.storage.offers.database;
 
 import com.mongodb.MongoException;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.Sorts;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.collection.CloseableIterable;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 
+import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lte;
+import static fr.gouv.vitam.storage.engine.common.model.OfferLog.ACTION;
+import static fr.gouv.vitam.storage.engine.common.model.OfferLog.CONTAINER;
+import static fr.gouv.vitam.storage.engine.common.model.OfferLog.FILENAME;
+import static fr.gouv.vitam.storage.engine.common.model.OfferLog.SEQUENCE;
+import static fr.gouv.vitam.storage.engine.common.model.OfferLog.TIME;
 
-/**
- * Database service for access to OfferLog collection.
- */
 public class OfferLogDatabaseService {
+    private final MongoCollection<Document> mongoCollection;
 
-    private static final String SEQUENCE = "Sequence";
-    private static final String CONTAINER = "Container";
-
-    private MongoCollection<Document> mongoCollection;
-
-    private OfferSequenceDatabaseService offerSequenceDatabaseService;
-
-    /**
-     * Constructor
-     *
-     * @param offerSequenceDatabaseService offerSequenceService
-     * @param mongoDatabase mongoDatabase
-     */
-    public OfferLogDatabaseService(OfferSequenceDatabaseService offerSequenceDatabaseService,
-        MongoDatabase mongoDatabase) {
-        this.mongoCollection = mongoDatabase.getCollection(OfferCollections.OFFER_LOG.getName());
-        this.offerSequenceDatabaseService = offerSequenceDatabaseService;
+    public OfferLogDatabaseService(MongoCollection<Document> mongoCollection) {
+        this.mongoCollection = mongoCollection;
     }
 
-    /**
-     * Save on offerLog.
-     *
-     * @param containerName name of the container
-     * @param fileName file name
-     * @param action action
-     * @throws ContentAddressableStorageServerException parsing error
-     * @throws ContentAddressableStorageDatabaseException database error
-     */
-    public void save(String containerName, String fileName, OfferLogAction action)
+    public void save(String containerName, String fileName, OfferLogAction action, long sequence)
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         try {
-            OfferLog offerLog = new OfferLog(containerName, fileName, action);
-            offerLog.setSequence(
-                offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID));
-            String json;
-            try {
-                json = JsonHandler.writeAsString(offerLog);
-            } catch (InvalidParseOperationException exc) {
-                throw new ContentAddressableStorageServerException("Cannot parse storage log", exc);
-            }
-            mongoCollection.insertOne(Document.parse(json));
+            OfferLog offerLog = new OfferLog(sequence, LocalDateUtil.now(), containerName, fileName, action);
+            mongoCollection.insertOne(Document.parse(JsonHandler.writeAsString(offerLog)));
         } catch (MongoException e) {
             throw new ContentAddressableStorageDatabaseException(String.format(
                 "Database Error while saving %s in OfferLog collection", fileName), e);
+        } catch (InvalidParseOperationException e) {
+            throw new ContentAddressableStorageServerException("Cannot parse storage log", e);
         }
     }
 
-    /**
-     * Save on offerLog.
-     *
-     * @param containerName name of the container
-     * @param fileNames file names
-     * @param action action
-     * @throws ContentAddressableStorageServerException parsing error
-     * @throws ContentAddressableStorageDatabaseException database error
-     */
-    public void bulkSave(String containerName, List<String> fileNames, OfferLogAction action)
+    public void bulkSave(String containerName, List<String> fileNames, OfferLogAction action, long sequence)
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         try {
-            long nextSequence = offerSequenceDatabaseService
-                .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, fileNames.size());
-
             List<Document> documents = new ArrayList<>();
             for (String fileName : fileNames) {
-                OfferLog offerLog = new OfferLog(containerName, fileName, action);
-                offerLog.setSequence(nextSequence);
-
-                String json;
-                try {
-                    json = JsonHandler.writeAsString(offerLog);
-                } catch (InvalidParseOperationException exc) {
-                    throw new ContentAddressableStorageServerException("Cannot parse storage log", exc);
-                }
-
-                documents.add(Document.parse(json));
-                nextSequence++;
+                OfferLog offerLog = new OfferLog(sequence, LocalDateUtil.now(), containerName, fileName, action);
+                documents.add(Document.parse(JsonHandler.writeAsString(offerLog)));
+                sequence++;
             }
-
             mongoCollection.insertMany(documents, new InsertManyOptions().ordered(false));
-
         } catch (MongoException e) {
             throw new ContentAddressableStorageDatabaseException(String.format(
                 "Database Error while saving %s in OfferLog collection", fileNames), e);
+        } catch (InvalidParseOperationException exc) {
+            throw new ContentAddressableStorageServerException("Cannot parse storage log", exc);
         }
     }
 
-    /**
-     * Search in offer log
-     *
-     * @param containerName container name
-     * @param offset sequence offset
-     * @param limit max number of result
-     * @param order order
-     * @return list of offer logs
-     * @throws ContentAddressableStorageDatabaseException database error
-     * @throws ContentAddressableStorageServerException parsing error
-     */
-    public List<OfferLog> searchOfferLog(String containerName, Long offset, int limit, Order order)
-        throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException {
-        try {
-            List<OfferLog> offerLog = new ArrayList<>();
-            Bson containerQuery = eq(CONTAINER, containerName);
-            Bson offsetQuery = null;
+    public CloseableIterable<OfferLog> getDescendingOfferLogsBy(String containerName, Long offset, int limit) {
+        Bson searchFilter = offset != null
+            ? and(eq(CONTAINER, containerName), lte(SEQUENCE, offset))
+            : eq(CONTAINER, containerName);
 
-            Bson sequenceSort;
-            if (Order.ASC.equals(order)) {
-                sequenceSort = Sorts.orderBy(Sorts.ascending(SEQUENCE));
-                if (offset != null) {
-                    offsetQuery = gte(SEQUENCE, offset);
-                }
-            } else {
-                sequenceSort = Sorts.orderBy(Sorts.descending(SEQUENCE));
-                if (offset != null) {
-                    offsetQuery = lte(SEQUENCE, offset);
-                }
-            }
-            Bson searchFilter = containerQuery;
-            if (offsetQuery != null) {
-                searchFilter = and(containerQuery, offsetQuery);
-            }
-            FindIterable<Document> result = mongoCollection.find(searchFilter).limit(limit).sort(sequenceSort);
-            for (Document document : result) {
-                offerLog.add(JsonHandler.getFromString(BsonHelper.stringify(document), OfferLog.class));
-            }
-            return offerLog;
-        } catch (MongoException e) {
-            throw new ContentAddressableStorageDatabaseException(String.format(
-                "Database Error while getting OfferLog for container %s", containerName), e);
+        return toCloseableIterable(
+            mongoCollection.find(searchFilter)
+                .sort(Sorts.orderBy(Sorts.descending(SEQUENCE)))
+                .limit(limit)
+                .map(this::transformDocumentToOfferLog)
+        );
+    }
+
+    public CloseableIterable<OfferLog> getAscendingOfferLogsBy(String containerName, Long offset, int limit) {
+        Bson searchFilter = offset != null
+            ? and(eq(CONTAINER, containerName), gte(SEQUENCE, offset))
+            : eq(CONTAINER, containerName);
+
+        return toCloseableIterable(
+            mongoCollection.find(searchFilter)
+                .sort(Sorts.orderBy(Sorts.ascending(SEQUENCE)))
+                .limit(limit)
+                .map(this::transformDocumentToOfferLog)
+        );
+    }
+
+    public CloseableIterable<OfferLog> getExpiredOfferLogByContainer(OfferLogCompactionRequest request) {
+        LocalDateTime expirationDate = LocalDateUtil.now()
+            .minus(request.getExpirationValue(), request.getExpirationUnit());
+
+        return toCloseableIterable(
+            mongoCollection.find(lte(TIME, LocalDateUtil.getFormattedDateForMongo(expirationDate)))
+                .sort(and(eq(CONTAINER, -1), eq(SEQUENCE, 1)))
+                .map(d -> new OfferLog(
+                        ((Number) d.get(SEQUENCE)).longValue(),
+                        LocalDateUtil.parseMongoFormattedDate(LocalDateUtil.getFormattedDateForMongo(d.getString(TIME))),
+                        d.getString(CONTAINER),
+                        d.getString(FILENAME),
+                        OfferLogAction.valueOf(d.getString(ACTION).toUpperCase())
+                    )
+                )
+        );
+    }
+
+    private OfferLog transformDocumentToOfferLog(Document document) {
+        try {
+            return JsonHandler.getFromString(BsonHelper.stringify(document), OfferLog.class);
         } catch (InvalidParseOperationException e) {
-            throw new ContentAddressableStorageServerException(
-                String.format("Parsing Error while loading offerLog from database for container %s", containerName),
-                e);
+            throw new VitamRuntimeException(e);
         }
+    }
+
+    private CloseableIterable<OfferLog> toCloseableIterable(MongoIterable<OfferLog> mongoIterable) {
+        return new CloseableIterable<>() {
+            @Override
+            public Iterator<OfferLog> iterator() {
+                return mongoIterable.iterator();
+            }
+
+            @Override
+            public void forEach(Consumer<? super OfferLog> action) {
+                mongoIterable.forEach(action);
+            }
+
+            @Override
+            public Spliterator<OfferLog> spliterator() {
+                return mongoIterable.spliterator();
+            }
+
+            @Override
+            public void close() {
+                mongoIterable.cursor()
+                    .close();
+            }
+        };
     }
 }

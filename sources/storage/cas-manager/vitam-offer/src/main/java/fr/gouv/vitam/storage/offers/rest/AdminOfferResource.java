@@ -26,39 +26,41 @@
  */
 package fr.gouv.vitam.storage.offers.rest;
 
-import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
-import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
-import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
-import fr.gouv.vitam.common.storage.constants.StorageProvider;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
-import fr.gouv.vitam.storage.offers.tape.rest.AdminTapeResource;
-import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 
-import java.util.HashSet;
-import java.util.Set;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import java.util.Objects;
 
-public class AdminOfferApplication extends ConfigurationApplication {
-    private Set<Object> singletons;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-    public AdminOfferApplication() {
-        OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
-        DefaultOfferService service = offerCommonApplication.getDefaultOfferService();
+@Path("/offer/v1")
+@ApplicationPath("webresources")
+public class AdminOfferResource extends ApplicationStatusResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOfferResource.class);
 
-        singletons = new HashSet<>();
-        singletons.add(new GenericExceptionMapper());
-        singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
-        singletons.add(new AdminOfferResource(service));
+    private DefaultOfferService defaultOfferService;
 
-        if (StorageProvider.TAPE_LIBRARY.getValue()
-            .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())) {
-            singletons.add(new AdminTapeResource());
-            singletons.add(new TapeCatalogResource());
-        }
+    public AdminOfferResource(DefaultOfferService defaultOfferService) {
+        this.defaultOfferService = defaultOfferService;
     }
 
-    @Override
-    public Set<Object> getSingletons() {
-        return singletons;
+    @POST
+    @Path("/compaction")
+    @Consumes(APPLICATION_JSON)
+    public void launchOfferLogCompaction(OfferLogCompactionRequest requestParams) throws Exception {
+        LOGGER.info("Starting offer compaction.");
+        if (Objects.isNull(requestParams) || requestParams.isNotValid()) {
+            LOGGER.info(String.format("Wrong offer log compaction request '%s'.", requestParams));
+            throw new BadRequestException(String.format("OfferLog compaction request is empty or invalid '%s'.", requestParams));
+        }
+        defaultOfferService.compactOfferLogs(requestParams);
+        LOGGER.info("End offer compaction.");
     }
 }

@@ -1,0 +1,18 @@
+---
+# vars file for offer
+vitam_component: "offer"
+vitam_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_component }}"
+vitam_folder_log: "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}"
+vitam_folder_data: "{{ vitam_defaults.folder.root_path }}/data/{{ vitam_component }}"
+
+
+# Compaction
+
+## Expiration, here offer logs 20 days old will be compacted
+expiration_value: 20
+
+## Choose one of "MILLENNIA", "HALF_DAYS", "MILLIS", "FOREVER", "MICROS", "CENTURIES", "DECADES", "YEARS", "DAYS", "SECONDS", "HOURS", "MONTHS", "WEEKS", "NANOS", "MINUTES", "ERAS"
+expiration_unit: "DAYS"
+
+## Compaction bulk size here 10 000 offers logs (at most) will be compacted
+compaction_size: 10000

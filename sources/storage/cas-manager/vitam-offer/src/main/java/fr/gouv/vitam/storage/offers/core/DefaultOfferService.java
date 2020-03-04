@@ -38,6 +38,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -192,4 +193,6 @@ public interface DefaultOfferService {
      */
     void listObjects(String containerName, ObjectListingListener objectListingListener)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+
+    void compactOfferLogs(OfferLogCompactionRequest offerLogCompactionRequest) throws Exception;
 }
