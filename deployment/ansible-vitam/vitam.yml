@@ -140,6 +140,8 @@
   roles:
     - simulate_tape
     - vitam
+    - offer
+    - timers
   vars:
     vitam_struct: "{{ vitam.storageofferdefault }}"
     password_keystore: "{{ keystores.server.offer }}"
@@ -147,6 +149,7 @@
     password_truststore: "{{ truststores.client_storage }}"
     password_grantedstore: "{{ grantedstores.client_storage }}"
     vitam_certificate_client_type: "storage"
+    timers_list: "{{ vitam_timers.offer }}"
 
 - hosts: hosts_storage_engine
   gather_facts: no

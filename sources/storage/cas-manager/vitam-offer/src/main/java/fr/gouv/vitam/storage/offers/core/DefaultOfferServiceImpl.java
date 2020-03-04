@@ -28,15 +28,12 @@ package fr.gouv.vitam.storage.offers.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Strings;
-import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
-import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.collection.CloseableIterable;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -53,13 +50,17 @@ import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.offers.database.OfferLogAndCompactedOfferLogService;
+import fr.gouv.vitam.storage.offers.database.OfferLogCompactionDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
@@ -69,56 +70,44 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * Default offer service implementation
- */
-public class DefaultOfferServiceImpl implements DefaultOfferService {
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+public class DefaultOfferServiceImpl implements DefaultOfferService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
+
+    private final AlertService alertService = new AlertServiceImpl();
 
     private final ContentAddressableStorage defaultStorage;
 
-    private OfferLogDatabaseService offerDatabaseService;
     private final ReadRequestReferentialRepository readRequestReferentialRepository;
-    private StorageConfiguration configuration;
+    private final OfferLogCompactionDatabaseService offerLogCompactionDatabaseService;
+    private final OfferLogDatabaseService offerDatabaseService;
+    private final OfferSequenceDatabaseService offerSequenceDatabaseService;
+    private final StorageConfiguration configuration;
+    private final OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService;
 
-    private AlertService alertService = new AlertServiceImpl();
+    public DefaultOfferServiceImpl(
+        ContentAddressableStorage defaultStorage,
+        ReadRequestReferentialRepository readRequestReferentialRepository,
+        OfferLogCompactionDatabaseService offerLogCompactionDatabaseService,
+        OfferLogDatabaseService offerDatabaseService,
+        OfferSequenceDatabaseService offerSequenceDatabaseService,
+        StorageConfiguration configuration,
+        OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService) {
 
-    // FIXME When the server shutdown, it should be able to close the
-    // defaultStorage (Http clients)
-    public DefaultOfferServiceImpl(OfferLogDatabaseService offerDatabaseService, MongoDbAccess mongoDBAccess)
-        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
+        this.defaultStorage = defaultStorage;
+        this.readRequestReferentialRepository = readRequestReferentialRepository;
+        this.offerLogCompactionDatabaseService = offerLogCompactionDatabaseService;
         this.offerDatabaseService = offerDatabaseService;
-
-        try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
-                StorageConfiguration.class);
-            if (!Strings.isNullOrEmpty(configuration.getStoragePath())) {
-                configuration.setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
-            }
-        } catch (final IOException exc) {
-            LOGGER.error(exc);
-            throw new ExceptionInInitializerError(exc);
-        }
-        defaultStorage = StoreContextBuilder.newStoreContext(configuration, mongoDBAccess);
-
-        if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            this.readRequestReferentialRepository =
-                new ReadRequestReferentialRepository(mongoDBAccess.getMongoDatabase()
-                    .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName()));
-        } else {
-            this.readRequestReferentialRepository = null;
-        }
+        this.offerSequenceDatabaseService = offerSequenceDatabaseService;
+        this.configuration = configuration;
+        this.offerLogAndCompactedOfferLogService = offerLogAndCompactedOfferLogService;
     }
 
     @Override
@@ -129,9 +118,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return defaultStorage.getObjectDigest(containerName, objectId, digestAlgorithm, true);
         } finally {
-            PerformanceLogger.getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), containerName, "COMPUTE_DIGEST",
-                    times.elapsed(TimeUnit.MILLISECONDS));
+            log(times, containerName, "COMPUTE_DIGEST");
         }
     }
 
@@ -142,9 +129,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return defaultStorage.getObject(containerName, objectId);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GET_OBJECT",
-                times.elapsed(TimeUnit.MILLISECONDS));
-
+            log(times, containerName, "GET_OBJECT");
         }
     }
 
@@ -168,10 +153,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 return Optional.empty();
             }
         } finally {
-            PerformanceLogger.getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), containerName, "ASYNC_GET_OBJECT",
-                    times.elapsed(TimeUnit.MILLISECONDS));
-
+            log(times, containerName, "ASYNC_GET_OBJECT");
         }
     }
 
@@ -201,10 +183,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             defaultStorage.removeReadOrderRequest(readRequestID);
         } finally {
-            PerformanceLogger.getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), readRequestID, "REMOVE_READ_ORDER_REQUEST",
-                    times.elapsed(TimeUnit.MILLISECONDS));
-
+            log(times, readRequestID, "REMOVE_READ_ORDER_REQUEST");
         }
     }
 
@@ -223,20 +202,16 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return digest;
     }
 
+    @VisibleForTesting
     void ensureContainerExists(String containerName) throws ContentAddressableStorageServerException {
         // Create container if not exists
         Stopwatch stopwatch = Stopwatch.createStarted();
         boolean existsContainer = defaultStorage.isExistingContainer(containerName);
-        PerformanceLogger
-            .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CHECK_EXISTS_CONTAINER",
-            stopwatch.elapsed(
-                TimeUnit.MILLISECONDS));
+        log(stopwatch, containerName, "INIT_CHECK_EXISTS_CONTAINER");
         if (!existsContainer) {
             stopwatch = Stopwatch.createStarted();
             defaultStorage.createContainer(containerName);
-            PerformanceLogger.getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), containerName, "INIT_CREATE_CONTAINER",
-                    stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            log(stopwatch, containerName, "INIT_CREATE_CONTAINER");
         }
     }
 
@@ -279,10 +254,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         } catch (IOException e) {
             throw new ContentAddressableStorageException("Could not read input stream", e);
         } finally {
-            PerformanceLogger
-                .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_EXISTS_PUT_OBJECT",
-                stopwatch.elapsed(
-                    TimeUnit.MILLISECONDS));
+            log(stopwatch, containerName, "CHECK_EXISTS_PUT_OBJECT");
         }
     }
 
@@ -290,11 +262,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Log in offer log
         Stopwatch times = Stopwatch.createStarted();
-        offerDatabaseService.save(containerName, objectId, OfferLogAction.WRITE);
-        PerformanceLogger
-            .getInstance()
-            .log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB", times.elapsed(
-                TimeUnit.MILLISECONDS));
+        long sequence = offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        offerDatabaseService.save(containerName, objectId, OfferLogAction.WRITE, sequence);
+        log(times, containerName, "LOG_CREATE_IN_DB");
     }
 
     private String putObject(String containerName, String objectId, InputStream objectPart, Long size,
@@ -310,10 +280,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             // Propagate the initial exception
             throw ex;
         } finally {
-            PerformanceLogger
-                .getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), containerName, "GLOBAL_PUT_OBJECT", stopwatch.elapsed(
-                    TimeUnit.MILLISECONDS));
+            log(stopwatch, containerName, "GLOBAL_PUT_OBJECT");
         }
     }
 
@@ -332,7 +299,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 for (String objectId : objectIds) {
 
                     Optional<ExactSizeInputStream> entryInputStream = multiplexedStreamReader.readNextEntry();
-                    if (!entryInputStream.isPresent()) {
+                    if (entryInputStream.isEmpty()) {
                         throw new IllegalStateException("No entry not found for object id " + objectId);
                     }
 
@@ -368,8 +335,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             return new StorageBulkPutResult(entries);
 
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
-                "BULK_PUT_OBJECTS", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            log(stopwatch, containerName, "BULK_PUT_OBJECTS");
         }
     }
 
@@ -377,9 +343,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Log in offer log
         Stopwatch times = Stopwatch.createStarted();
-        offerDatabaseService.bulkSave(containerName, objectIds, OfferLogAction.WRITE);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
-            "BULK_LOG_CREATE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
+        long sequence = offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, objectIds.size());
+        offerDatabaseService.bulkSave(containerName, objectIds, OfferLogAction.WRITE, sequence);
+        log(times, containerName, "BULK_LOG_CREATE_IN_DB");
     }
 
     @Override
@@ -399,19 +365,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             defaultStorage.createContainer(containerName);
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_CAPACITY",
-            times.elapsed(TimeUnit.MILLISECONDS));
+        log(times, containerName, "CHECK_CAPACITY");
         return containerInformation;
     }
 
-
-    /**
-     * In case not updatable containers, try
-     *
-     * @param containerName
-     * @param objectId
-     * @param type
-     */
     private void trySilentlyDeleteWormObject(String containerName, String objectId, DataCategory type) {
         if (type.canUpdate()) {
             return;
@@ -432,16 +389,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
         }
 
+        long sequence = offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
         // Log in offer
-        offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE);
-        PerformanceLogger.getInstance()
-            .log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_DELETE_IN_DB",
-                times.elapsed(TimeUnit.MILLISECONDS));
+        offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE, sequence);
+        log(times, containerName, "LOG_DELETE_IN_DB");
 
         times = Stopwatch.createStarted();
         defaultStorage.deleteObject(containerName, objectId);
-        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "DELETE_FILE",
-            times.elapsed(TimeUnit.MILLISECONDS));
+        log(times, containerName, "DELETE_FILE");
     }
 
     @Override
@@ -451,9 +406,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return new StorageMetadataResult(defaultStorage.getObjectMetadata(containerName, objectId, noCache));
         } finally {
-            PerformanceLogger.getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), containerName, "GET_METADATA",
-                    times.elapsed(TimeUnit.MILLISECONDS));
+            log(times, containerName, "GET_METADATA");
         }
     }
 
@@ -464,16 +417,108 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
-        throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException {
+    public List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order) throws ContentAddressableStorageDatabaseException {
         Stopwatch times = Stopwatch.createStarted();
         try {
-            return offerDatabaseService.searchOfferLog(containerName, offset, limit, order);
+            switch (order) {
+                case ASC:
+                    return searchAscending(containerName, offset, limit);
+                case DESC:
+                    return searchDescending(containerName, offset, limit);
+                default:
+                    throw new VitamRuntimeException("Order must be ASC or DESC, here " + order);
+            }
+        } catch (Exception e) {
+            throw new ContentAddressableStorageDatabaseException(String.format("Database Error while getting OfferLog for container %s", containerName), e);
         } finally {
-            PerformanceLogger.getInstance()
-                .log("STP_Offer_" + configuration.getProvider(), containerName, "GET_OFFER_LOGS",
-                    times.elapsed(TimeUnit.MILLISECONDS));
+            log(times, containerName, "GET_OFFER_LOGS");
+        }
+    }
 
+    private List<OfferLog> searchDescending(String containerName, Long offset, int limit) throws Exception {
+        List<OfferLog> logs = new ArrayList<>();
+        try (CloseableIterable<OfferLog> offerLogs = offerDatabaseService.getDescendingOfferLogsBy(containerName, offset, limit)) {
+            for (OfferLog log : offerLogs) {
+                logs.add(log);
+            }
+        }
+
+        if (logs.size() == limit) {
+            return logs;
+        }
+
+        try (CloseableIterable<CompactedOfferLog> offerLogsFromCompaction = offerLogCompactionDatabaseService.getDescendingOfferLogCompactionBy(containerName, getNextOffsetDescending(logs, offset))) {
+            addCompactedLogsDescending(limit, logs, offerLogsFromCompaction);
+        }
+        return logs;
+    }
+
+    private void addCompactedLogsDescending(int limit, List<OfferLog> logs, Iterable<CompactedOfferLog> offerLogsFromCompaction) {
+        for (CompactedOfferLog compaction : offerLogsFromCompaction) {
+            List<OfferLog> compactedLogs = compaction.getLogs();
+            for (int i = compactedLogs.size() - 1; i >= 0; i--) {
+                logs.add(compactedLogs.get(i));
+                if (logs.size() >= limit) {
+                    return;
+                }
+            }
+        }
+    }
+
+    private List<OfferLog> searchAscending(String containerName, Long offset, int limit) throws Exception {
+        List<OfferLog> logs = new ArrayList<>();
+        try (CloseableIterable<CompactedOfferLog> offerLogsFromCompaction = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(containerName, offset)) {
+            addCompactedLogsAscending(limit, logs, offerLogsFromCompaction);
+        }
+
+        if (logs.size() == limit) {
+            return logs;
+        }
+
+        try (CloseableIterable<OfferLog> offerLogs = offerDatabaseService.getAscendingOfferLogsBy(containerName, getNextOffsetAscending(logs, offset), getLimit(logs, limit))) {
+            for (OfferLog log : offerLogs) {
+                logs.add(log);
+            }
+        }
+
+
+        if (logs.size() == limit) {
+            return logs;
+        }
+
+        try (CloseableIterable<CompactedOfferLog> offerLogsFromCompaction = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(containerName, getNextOffsetAscending(logs, offset))) {
+            addCompactedLogsAscending(limit, logs, offerLogsFromCompaction);
+        }
+
+        return logs;
+    }
+
+    private int getLimit(List<OfferLog> logs, int limit) {
+        return limit - logs.size();
+    }
+
+    private Long getNextOffsetDescending(List<OfferLog> logs, Long offset) {
+        if (!logs.isEmpty()) {
+            return logs.get(logs.size() - 1).getSequence() - 1;
+        }
+        return offset;
+    }
+
+    private Long getNextOffsetAscending(List<OfferLog> logs, Long offset) {
+        if (!logs.isEmpty()) {
+            return logs.get(logs.size() - 1).getSequence() + 1;
+        }
+        return offset;
+    }
+
+    private void addCompactedLogsAscending(int limit, List<OfferLog> logs, Iterable<CompactedOfferLog> offerLogsFromCompaction) {
+        for (CompactedOfferLog compaction : offerLogsFromCompaction) {
+            for (OfferLog log : compaction.getLogs()) {
+                logs.add(log);
+                if (logs.size() >= limit) {
+                    return;
+                }
+            }
         }
     }
 
@@ -481,4 +526,59 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         SafeFileChecker.checkSafeFilePath(configuration.getStoragePath(), paths);
     }
 
+    @Override
+    public void compactOfferLogs(OfferLogCompactionRequest request) throws Exception {
+        Stopwatch timer = Stopwatch.createStarted();
+        try (CloseableIterable<OfferLog> expiredOfferLogsByContainer = offerDatabaseService.getExpiredOfferLogByContainer(request)) {
+            List<OfferLog> bulkToSend = new ArrayList<>();
+
+            for (OfferLog offerLog : expiredOfferLogsByContainer) {
+                if (isBulkFull(request, bulkToSend) || !isInSameContainer(offerLog, bulkToSend)) {
+                    saveOfferLogCompaction(bulkToSend);
+                    bulkToSend = new ArrayList<>();
+                }
+                bulkToSend.add(offerLog);
+            }
+
+            if (!bulkToSend.isEmpty()) {
+                saveOfferLogCompaction(bulkToSend);
+            }
+        } finally {
+            log(timer, request.toString(), "COMPACT_OFFER_LOGS");
+        }
+    }
+
+    public boolean isBulkFull(OfferLogCompactionRequest request, List<OfferLog> bulkToSend) {
+        return bulkToSend.size() >= request.getCompactionSize();
+    }
+
+    public boolean isInSameContainer(OfferLog offerLog, List<OfferLog> bulkToSend) {
+        if (bulkToSend.isEmpty()) {
+            return true;
+        }
+        return offerLog.getContainer().equals(bulkToSend.get(0).getContainer());
+    }
+
+    private void saveOfferLogCompaction(List<OfferLog> bulkToSend) {
+        OfferLog first = bulkToSend.get(0);
+        OfferLog last = bulkToSend.get(bulkToSend.size() - 1);
+
+        CompactedOfferLog compactedOfferLog = new CompactedOfferLog(
+            first.getSequence(),
+            last.getSequence(),
+            LocalDateTime.now(),
+            first.getContainer(),
+            bulkToSend
+        );
+        offerLogAndCompactedOfferLogService.almostTransactionalSaveAndDelete(compactedOfferLog, bulkToSend);
+    }
+
+    public void log(Stopwatch timer, String action, String task) {
+        PerformanceLogger.getInstance().log(
+            String.format("STP_Offer_%s", configuration.getProvider()),
+            action,
+            task,
+            timer.elapsed(MILLISECONDS)
+        );
+    }
 }

@@ -107,6 +107,10 @@ vitam_timers:
           frequency: "*-*-* 02:20:00"
         - name: vitam-metadata-purge-transfers-SIP
           frequency: "*-*-* 02:20:00"
+    offer:
+      # Compaction offer logs
+      - name: vitam-offer-log-compaction
+        frequency: "*-*-* *:00:00" # each hours
 
 ### consul ###
 # FIXME: Consul à la racine pour le moment à cause de problèmes de récursivité dans le parsing yaml
