@@ -1174,8 +1174,21 @@ public class DbRequestTest {
             .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParserMultiple2);
 
-        final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid.toString());
-        final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2.toString());
+        final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery(TITLE, VALUE_MY_TITLE + 2);
+        final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery(TITLE, VALUE_MY_TITLE);
+        // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
+        final QueryBuilder qb3 = QueryBuilders.matchPhrasePrefixQuery(MY_INT, 10);
+        // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
+        final QueryBuilder qb4 = QueryBuilders.matchPhrasePrefixQuery(MY_INT, 20);
+        final QueryBuilder qb5 = QueryBuilders.matchPhrasePrefixQuery("underscore", "undersco");
+        final QueryBuilder qb6 = QueryBuilders.matchPhrasePrefixQuery("_underscore", "undersco");
+
+        // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
+        final QueryBuilder qb7 = QueryBuilders.matchPhrasePrefixQuery("_nbc", 100);
+
+        // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
+        final QueryBuilder qb8 = QueryBuilders.matchPhrasePrefixQuery("_unitType", "obj");
+
 
         final SearchRequestBuilder request =
             esClientWithoutVitamBehavior.getClient()
@@ -1189,7 +1202,34 @@ public class DbRequestTest {
         assertEquals(1, response.getHits().getTotalHits());
         request.setQuery(qb2);
         response = request.get();
+        assertEquals(2, response.getHits().getTotalHits());
+
+        request.setQuery(qb3);
+        response = request.get();
         assertEquals(1, response.getHits().getTotalHits());
+
+
+        request.setQuery(qb4);
+        response = request.get();
+        assertEquals(1, response.getHits().getTotalHits());
+
+        request.setQuery(qb5);
+        response = request.get();
+        assertEquals(1, response.getHits().getTotalHits());
+
+
+        request.setQuery(qb6);
+        response = request.get();
+        assertEquals(1, response.getHits().getTotalHits());
+
+        request.setQuery(qb7);
+        response = request.get();
+        assertEquals(0, response.getHits().getTotalHits());
+
+        request.setQuery(qb8);
+        response = request.get();
+        assertEquals(1, response.getHits().getTotalHits());
+
     }
 
     /**
