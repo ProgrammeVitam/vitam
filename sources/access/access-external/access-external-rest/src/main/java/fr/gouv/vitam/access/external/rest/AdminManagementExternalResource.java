@@ -70,7 +70,6 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
@@ -1993,9 +1992,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             return Response.status(st).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
-            LOGGER.warn(e);
-            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
-                .build();
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
