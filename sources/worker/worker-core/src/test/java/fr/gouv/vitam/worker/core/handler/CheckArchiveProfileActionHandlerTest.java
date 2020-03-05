@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.handler;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -119,7 +118,7 @@ public class CheckArchiveProfileActionHandlerTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
 
         when(adminClient.findProfiles(any()))
-            .thenReturn(createProfileRNG());
+            .thenReturn(createProfileRNG("Profil20.rng"));
 
         Response mockResponse = new AbstractMockClient
             .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
@@ -149,7 +148,7 @@ public class CheckArchiveProfileActionHandlerTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
 
         when(adminClient.findProfiles(any()))
-            .thenReturn(createProfileRNG());
+            .thenReturn(createProfileRNG("Profil20.rng"));
 
         Response mockResponse = new AbstractMockClient
             .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
@@ -162,11 +161,41 @@ public class CheckArchiveProfileActionHandlerTest {
         assertNotNull(response.getEvDetailData());
     }
 
-    private static RequestResponse createProfileRNG() throws InvalidParseOperationException {
+    @Test
+    @RunWithCustomExecutor
+    public void givenProdileWithoutPathThenReturnResponseKO()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
+                .setCurrentStep("currentStep").setContainerName(guid.getId());
+        assertEquals(CheckArchiveProfileActionHandler.getId(), HANDLER_ID);
+
+        when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
+        when(handlerIO.getInputStreamFromWorkspace(
+            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
+            .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+
+        when(adminClient.findProfiles(any()))
+            .thenReturn(createProfileRNG(""));
+
+        Response mockResponse = new AbstractMockClient
+            .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+
+        when(adminClient.downloadProfileFile(any())).thenReturn(mockResponse);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    private static RequestResponse createProfileRNG(String path) {
         ProfileModel profile = new ProfileModel();
         profile.setIdentifier("PROFIL_0001");
         profile.setId(GUIDFactory.newProfileGUID(0).toString());
-        profile.setPath("Profil20.rng");
+        profile.setPath(path);
         profile.setFormat(ProfileFormat.RNG);
         return ClientMockResultHelper.createResponse(profile);
     }
