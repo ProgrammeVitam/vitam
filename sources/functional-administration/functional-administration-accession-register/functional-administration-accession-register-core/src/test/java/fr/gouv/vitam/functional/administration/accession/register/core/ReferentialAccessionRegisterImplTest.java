@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -208,6 +209,16 @@ public class ReferentialAccessionRegisterImplTest {
 
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
+        select = new Select();
+        select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
+        detailResponse = accessionRegisterImpl.findDetail(select.getFinalSelect());
+        assertThat(detailResponse.isOk()).isTrue();
+        assertThat(detailResponse.getResults()).hasSize(1);
+        AccessionRegisterDetail accessionRegisterDetailBeforeUpdateResult =  detailResponse.getResults().get(0);
+        assertEquals(accessionRegisterDetailBeforeUpdateResult.getStatus(), AccessionRegisterStatus.STORED_AND_UPDATED);
+        assertThat(accessionRegisterDetailBeforeUpdateResult.getEvents()).hasSize(2);
+        assertEquals(accessionRegisterDetailBeforeUpdateResult.getStatus(), AccessionRegisterStatus.STORED_AND_UPDATED);
+
         // Test idempotence of ingest
         ardm.setId(GUIDFactory.newGUID().getId());
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
@@ -260,6 +271,7 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(detail.getTotalObjectSize().getIngested()).isEqualTo(9999);
         assertThat(detail.getTotalObjectSize().getDeleted()).isEqualTo(999);
         assertThat(detail.getTotalObjectSize().getRemained()).isEqualTo(9000);
+        assertEquals(detail.getStatus(), AccessionRegisterStatus.STORED_AND_UPDATED);
 
         assertThat(detail.get(AccessionRegisterDetail.EVENTS, List.class)).hasSize(2);
 

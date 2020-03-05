@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -157,7 +158,8 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
                 .addEvent(registerValueEvent)
                 .addOperationsId(param.getContainerName())
                 .setTenant(tenantId)
-                .setLastUpdate(updateDate);
+                .setLastUpdate(updateDate)
+                .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED);
 
             adminManagementClient.createOrUpdateAccessionRegister(accessionRegisterDetailModel);
 

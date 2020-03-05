@@ -290,6 +290,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             actions.add(new IncAction(AccessionRegisterDetail.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
                 registerDetail.getObjectSize().getRemained()));
 
+            actions.add(new SetAction(AccessionRegisterDetail.STATUS, registerDetail.getStatus().name() ));
 
             RegisterValueEventModel registerValueEvent = new RegisterValueEventModel()
                 .setOperation(registerDetail.getOpc())
