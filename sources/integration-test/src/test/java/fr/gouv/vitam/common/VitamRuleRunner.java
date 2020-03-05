@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
@@ -116,8 +117,10 @@ public class VitamRuleRunner {
 
     public static void handleBeforeClass(String prefix, Integer... tenants) throws Exception {
         // ES client
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
+
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
             new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes), tenants);
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
@@ -126,7 +129,7 @@ public class VitamRuleRunner {
             new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
     }
 
-    public static void handleAfterClass(Integer... tenants) throws Exception {
+    public static void handleAfterClass(Integer... tenants) {
         MetadataCollections
             .afterTestClass(false, tenants);
         LogbookCollections
@@ -134,7 +137,7 @@ public class VitamRuleRunner {
         FunctionalAdminCollections.afterTestClass(false);
     }
 
-    public static void handleAfter(Integer... tenants) throws Exception {
+    public static void handleAfter(Integer... tenants) {
         MetadataCollections.afterTest(tenants);
         LogbookCollections.afterTest(tenants);
     }

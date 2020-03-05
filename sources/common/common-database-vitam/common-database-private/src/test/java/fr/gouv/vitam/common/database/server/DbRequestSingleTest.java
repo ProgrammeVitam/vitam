@@ -91,7 +91,6 @@ import static org.mockito.Mockito.mock;
 public class DbRequestSingleTest {
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
-    private final static String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
     @ClassRule
     public static MongoRule mongoRule =
@@ -109,7 +108,7 @@ public class DbRequestSingleTest {
     @BeforeClass
     public static void setUp() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
+        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
         List<VitamDescriptionType> descriptions = Collections.singletonList(
             new VitamDescriptionType("Title", null, text, one, true));
         VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(descriptions);
@@ -120,7 +119,7 @@ public class DbRequestSingleTest {
     }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws DatabaseException {
         mongoRule.handleAfterClass();
         elasticsearchRule.deleteIndexes();
         esClient.close();

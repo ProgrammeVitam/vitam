@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -80,14 +81,15 @@ public class VitamCollectionTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
 
         esClient = new ElasticsearchAccess(elasticsearchRule.getClusterName(), nodes);
+        esClient.createIndexAndAliasIfAliasNotExists(PREFIX + CollectionSample.class.getSimpleName(), "{}", null);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
+    public static void tearDownAfterClass() throws DatabaseException {
         mongoRule.handleAfterClass();
         elasticsearchRule.deleteIndexes();
         esClient.close();

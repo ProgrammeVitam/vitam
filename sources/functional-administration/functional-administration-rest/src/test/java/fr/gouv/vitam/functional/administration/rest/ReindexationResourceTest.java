@@ -26,21 +26,10 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static io.restassured.RestAssured.given;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -77,6 +66,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static io.restassured.RestAssured.given;
+
 public class ReindexationResourceTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
@@ -99,7 +99,6 @@ public class ReindexationResourceTest {
 
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
     private static final String TEST_ES_MAPPING_JSON = "test-es-mapping.json";
-    private static final String TYPEUNIQUE = VitamCollection.getTypeunique();
 
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
@@ -123,11 +122,11 @@ public class ReindexationResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodesEs));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
@@ -144,7 +143,7 @@ public class ReindexationResourceTest {
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.setMongoDbNodes(nodes);
-        realAdminConfig.setElasticsearchNodes(nodesEs);
+        realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
 
@@ -267,15 +266,11 @@ public class ReindexationResourceTest {
         String mapping = ElasticsearchUtil
             .transferJsonToMapping(new FileInputStream(PropertiesUtils.findFile(TEST_ES_MAPPING_JSON)));
         FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexAndAliasIfAliasNotExists(
-            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, TYPEUNIQUE, null);
+            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, null);
         String newIndex = FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexWithoutAlias(
-            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, TYPEUNIQUE, null);
+            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, null);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        /*
-         * stream = PropertiesUtils.getResourceAsStream("switch_indexes.json"); JsonNode switchOrder =
-         * JsonHandler.getFromInputStream(stream);
-         */
 
         List<SwitchIndexParameters> listSwitches = new ArrayList<>();
         SwitchIndexParameters switchParams = new SwitchIndexParameters();

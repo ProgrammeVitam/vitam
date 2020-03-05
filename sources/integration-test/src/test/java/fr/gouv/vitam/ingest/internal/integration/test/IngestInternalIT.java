@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
@@ -329,8 +330,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
         // ES client
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         esClient = new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -432,7 +433,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     @RunWithCustomExecutor
-    @Test (expected = IngestInternalClientServerException.class)
+    @Test(expected = IngestInternalClientServerException.class)
     public void testIngestInternalUploadSipWithBadFormatThenKO() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
@@ -466,7 +467,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     @RunWithCustomExecutor
-    @Test (expected = ZipFilesNameNotAllowedException.class)
+    @Test(expected = ZipFilesNameNotAllowedException.class)
     public void testIngestInternalUploadSipWithBadContentFormatThenKO() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
@@ -669,7 +670,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
                 esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
-            assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
+            assertEquals(1, elasticSearchResponse.getHits().getTotalHits().value);
             assertNotNull(elasticSearchResponse.getHits().getAt(0));
             SearchHit hit = elasticSearchResponse.getHits().iterator().next();
             assertNotNull(hit);
@@ -2569,7 +2570,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         awaitForWorkflowTerminationWithStatus(operationGuid, status, ProcessState.COMPLETED);
     }
 
-    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status, ProcessState processState) {
+    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status,
+        ProcessState processState) {
 
         waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 

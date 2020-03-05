@@ -19,16 +19,6 @@
         "http": "http://{{ ip_service }}:{{ composant.port_http }}",
         {% endif %}
         "interval": "{{ composant.consul_check_http }}s"
-      },
-      {
-        "name": "{{ composant.cluster_name }} : TCP check",
-        "notes": "Statut TCP {{ composant.cluster_name }}",
-        {% if composant.groupe=='log' %}
-        "tcp": "{{ ip_admin }}:{{ composant.port_tcp }}",
-        {% else %}
-        "tcp": "{{ ip_service }}:{{ composant.port_tcp }}",
-        {% endif %}
-        "interval": "{{ composant.consul_check_tcp }}s"
       }
     ]
   }

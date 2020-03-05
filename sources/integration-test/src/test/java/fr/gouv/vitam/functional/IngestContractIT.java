@@ -26,17 +26,9 @@
  */
 package fr.gouv.vitam.functional;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -46,6 +38,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -73,13 +66,22 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.List;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * IngestContract
  */
 public class IngestContractIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractIT.class);
     private static final Integer TENANT_ID = 0;
-    private static final String FILE_INGEST_CONTRACT_OK = "/functional-admin/ingest-contract/referential_contracts_ok.json";
+    private static final String FILE_INGEST_CONTRACT_OK =
+        "/functional-admin/ingest-contract/referential_contracts_ok.json";
 
 
     @ClassRule
@@ -107,8 +109,8 @@ public class IngestContractIT extends VitamRuleRunner {
         handleBeforeClass(0, 1);
 
         // ES client
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         esClient = new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -140,10 +142,12 @@ public class IngestContractIT extends VitamRuleRunner {
         LogbookOperationsClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_LOGBOOK);
         // When
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
+                .getClient()) {
             Response.Status status = client.importIngestContracts(
                 getFromStringAsTypeReference(JsonHandler.getFromInputStream(contract).toString(),
-                new TypeReference<List<IngestContractModel>>() {}));
+                    new TypeReference<List<IngestContractModel>>() {
+                    }));
             Select select = new Select();
             select.setQuery(QueryHelper.eq("evType", "STP_IMPORT_INGEST_CONTRACT"));
             final JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());

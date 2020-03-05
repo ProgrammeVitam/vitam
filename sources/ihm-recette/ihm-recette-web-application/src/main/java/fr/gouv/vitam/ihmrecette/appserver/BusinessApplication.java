@@ -33,10 +33,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
@@ -56,10 +53,6 @@ import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
 import fr.gouv.vitam.ihmrecette.appserver.populate.StoragePopulateImpl;
 import fr.gouv.vitam.ihmrecette.appserver.populate.UnitGraph;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -67,12 +60,9 @@ import javax.ws.rs.core.Context;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
@@ -131,9 +121,6 @@ public class BusinessApplication extends Application {
             MongoDatabase metadataDb = mongoClient.getDatabase(configuration.getMetadataDbName());
             MongoDatabase masterdataDb = mongoClient.getDatabase(configuration.getMasterdataDbName());
             MongoDatabase logbookDb = mongoClient.getDatabase(configuration.getLogbookDbName());
-            List<ElasticsearchNode> elasticsearchNodes = configuration.getElasticsearchNodes();
-            Settings settings = ElasticsearchAccess.getSettings(configuration.getClusterName());
-            TransportClient esClient = getClient(settings, elasticsearchNodes);
 
             StoragePopulateImpl storagePopulateService;
             try (final InputStream storageYamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
@@ -143,10 +130,11 @@ public class BusinessApplication extends Application {
             }
 
 
-            MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient, storagePopulateService);
-            MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb, esClient);
+            MetadataRepository metadataRepository = new MetadataRepository(metadataDb, storagePopulateService);
+            MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb);
             LogbookRepository logbookRepository = new LogbookRepository(logbookDb);
-            MetadataStorageService metadataStorageService = new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
+            MetadataStorageService metadataStorageService =
+                new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
             UnitGraph unitGraph = new UnitGraph(metadataRepository);
             PopulateService populateService =
                 new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph,
@@ -161,27 +149,16 @@ public class BusinessApplication extends Application {
                 new FunctionAdministrationOntologyLoader()
             );
 
-            final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration, ontologyLoader);
+            final WebApplicationResourceDelete deleteResource =
+                new WebApplicationResourceDelete(configuration, ontologyLoader);
             final WebApplicationResource resource =
-                    new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
-                            PaginationHelper.getInstance(), DslQueryHelper.getInstance(), populateService);
+                new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
+                    PaginationHelper.getInstance(), DslQueryHelper.getInstance(), populateService);
             singletons.add(deleteResource);
             singletons.add(resource);
 
-        } catch (IOException | VitamException e) {
+        } catch (IOException e) {
             throw new VitamRuntimeException(e);
-        }
-    }
-
-    private TransportClient getClient(Settings settings, List<ElasticsearchNode> nodes) throws VitamException {
-        try (final TransportClient clientNew = new PreBuiltTransportClient(settings)) {
-            for (final ElasticsearchNode node : nodes) {
-                clientNew.addTransportAddress(
-                    new TransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
-            }
-            return clientNew;
-        } catch (final UnknownHostException e) {
-            throw new VitamException(e);
         }
     }
 

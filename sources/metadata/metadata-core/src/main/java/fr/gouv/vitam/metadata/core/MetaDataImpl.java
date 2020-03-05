@@ -116,9 +116,10 @@ import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
-import org.elasticsearch.search.aggregations.metrics.sum.Sum;
-import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
+import org.elasticsearch.search.aggregations.metrics.Cardinality;
+import org.elasticsearch.search.aggregations.metrics.Sum;
+import org.elasticsearch.search.aggregations.metrics.ValueCount;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -356,7 +357,7 @@ public class MetaDataImpl {
         return new ArrayList<>();
     }
 
-    public List<Document> createAccessionRegisterSymbolic(Integer tenant) {
+    public List<Document> createAccessionRegisterSymbolic(Integer tenant) throws MetaDataExecutionException {
         Aggregations aUAccessionRegisterInfo = selectArchiveUnitAccessionRegisterInformation(tenant);
         Aggregations oGAccessionRegisterInfo = selectObjectGroupAccessionRegisterInformation(tenant);
 
@@ -483,7 +484,8 @@ public class MetaDataImpl {
             .collect(Collectors.toMap(AccessionRegisterSymbolic::getOriginatingAgency, e -> e));
     }
 
-    private Aggregations selectObjectGroupAccessionRegisterInformation(Integer tenant) {
+    private Aggregations selectObjectGroupAccessionRegisterInformation(Integer tenant)
+        throws MetaDataExecutionException {
         TermsAggregationBuilder ogs = AggregationBuilders.terms("originatingAgencies")
             .field("_sps")
             .subAggregation(AggregationBuilders.nested("nestedVersions", "_qualifiers.versions")
@@ -501,7 +503,8 @@ public class MetaDataImpl {
             .getAggregations();
     }
 
-    private Aggregations selectArchiveUnitAccessionRegisterInformation(Integer tenant) {
+    private Aggregations selectArchiveUnitAccessionRegisterInformation(Integer tenant)
+        throws MetaDataExecutionException {
         List<AggregationBuilder> aggregations = Arrays.asList(
             AggregationBuilders.terms("originatingAgency").field("_sp"),
             AggregationBuilders.terms("originatingAgencies").field("_sps")
@@ -512,7 +515,7 @@ public class MetaDataImpl {
     }
 
     public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(Integer tenant,
-        String operationId) {
+        String operationId) throws MetaDataExecutionException {
         AggregationBuilder originatingAgencyAgg = aggregationForObjectGroupAccessionRegisterByOperationId(
             operationId);
 
@@ -863,14 +866,16 @@ public class MetaDataImpl {
         ((ObjectNode) arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
     }
 
-    public void refreshUnit() throws IllegalArgumentException, VitamThreadAccessException {
+    public void refreshUnit()
+        throws IllegalArgumentException, VitamThreadAccessException, IOException, DatabaseException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.UNIT, tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), tenantId);
     }
 
-    public void refreshObjectGroup() throws IllegalArgumentException, VitamThreadAccessException {
+    public void refreshObjectGroup()
+        throws IllegalArgumentException, VitamThreadAccessException, IOException, DatabaseException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP, tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), tenantId);
     }
 
     public IndexationResult reindex(IndexParameters indexParam) {

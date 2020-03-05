@@ -2,7 +2,6 @@
     "timeRestore": false,
     "description": "",
     "title": "Composants Vitam",
-    "uiStateJSON": "{\"P-2\":{\"vis\":{\"legendOpen\":true}},\"P-7\":{\"vis\":{\"colors\":{\"ERROR\":\"#E24D42\",\"WARN\":\"#E5AC0E\"}}}}",
     "panelsJSON": "[{\"col\":1,\"id\":\"pie-logback-component\",\"panelIndex\":1,\"row\":4,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"},{\"col\":5,\"id\":\"pie-logback-error-level\",\"panelIndex\":2,\"row\":4,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"},{\"col\":9,\"id\":\"pie-logback-host\",\"panelIndex\":3,\"row\":4,\"size_x\":4,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"histo-warnings-errors\",\"panelIndex\":7,\"row\":1,\"size_x\":12,\"size_y\":3,\"type\":\"visualization\"},{\"id\":\"vitam-type-logback\",\"type\":\"search\",\"panelIndex\":8,\"size_x\":12,\"size_y\":10,\"col\":1,\"row\":8,\"columns\":[\"vitam_component\",\"log_level\",\"log_message\"],\"sort\":[\"@timestamp\",\"desc\"]}]",
     "optionsJSON": "{\"darkTheme\":false}",
     "kibanaSavedObjectMeta": {

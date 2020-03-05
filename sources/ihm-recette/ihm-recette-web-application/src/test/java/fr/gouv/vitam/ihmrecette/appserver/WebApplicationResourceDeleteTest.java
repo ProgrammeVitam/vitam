@@ -145,17 +145,17 @@ public class WebApplicationResourceDeleteTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
+        List<ElasticsearchNode> nodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
+                nodes));
 
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID, 1);
+            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes), TENANT_ID, 1);
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID, 1);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes), TENANT_ID, 1);
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -170,7 +170,7 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         VitamConfiguration.setTenants(tenantList);
 
-        realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(ElasticsearchRule.TCP_PORT);
+        realAdminConfig.getElasticsearchNodes().get(0).setHttpPort(ElasticsearchRule.PORT);
         adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 

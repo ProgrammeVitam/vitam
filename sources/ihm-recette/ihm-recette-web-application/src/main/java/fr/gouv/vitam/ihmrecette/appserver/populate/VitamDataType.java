@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+
 /**
  * The Vitam Data Type enum
  */
@@ -33,42 +37,46 @@ public enum VitamDataType {
     /**
      * Unit Data Type
      */
-    UNIT("Unit", "unit_%d"),
+    UNIT("Unit", "unit_%d", MetadataCollections.UNIT.getEsClient()),
     /**
      * LogbookLifeCycleUnit Data Type
      */
-    LFC_UNIT("LogbookLifeCycleUnit", ""),
+    LFC_UNIT("LogbookLifeCycleUnit", "", null),
     /**
      * LogbookLifeCycleObjectGroup Data Type
      */
-    LFC_GOT("LogbookLifeCycleObjectGroup", ""),
+    LFC_GOT("LogbookLifeCycleObjectGroup", "", null),
     /**
      * ObjectGroup Data Type
      */
-    GOT("ObjectGroup", "objectgroup_%d"),
+    GOT("ObjectGroup", "objectgroup_%d", MetadataCollections.OBJECTGROUP.getEsClient()),
     /**
      * FileRules Data Type
      */
-    RULES("FileRules", "filerules"),
+    RULES("FileRules", "filerules", FunctionalAdminCollections.RULES.getEsClient()),
     /**
      * AccessContract Data Type
      */
-    ACCESS_CONTRACT("AccessContract", "accesscontract"),
+    ACCESS_CONTRACT("AccessContract", "accesscontract", FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient()),
     /**
      * Agencies Data Type
      */
-    AGENCIES("Agencies", "agencies"),
+    AGENCIES("Agencies", "agencies", FunctionalAdminCollections.AGENCIES.getEsClient()),
     /**
      * AccessionRegisterSummary Data Type
      */
-    ACCESSION_REGISTER_SUMMARY("AccessionRegisterSummary", "accessionregistersummary");
+    ACCESSION_REGISTER_SUMMARY("AccessionRegisterSummary", "accessionregistersummary",
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient());
 
     private String collectionName;
     private String indexName;
+    private final ElasticsearchAccess elasticsearchAccess;
 
-    VitamDataType(String collectionName, String indexName) {
+    VitamDataType(String collectionName, String indexName,
+        ElasticsearchAccess elasticsearchAccess) {
         this.collectionName = collectionName;
         this.indexName = indexName;
+        this.elasticsearchAccess = elasticsearchAccess;
     }
 
     /**
@@ -99,4 +107,9 @@ public enum VitamDataType {
 
     void setCollectionName(String collectionName) { // NOSONAR
         this.collectionName = collectionName;
-    }}
+    }
+
+    public ElasticsearchAccess getElasticsearchAccess() {
+        return elasticsearchAccess;
+    }
+}

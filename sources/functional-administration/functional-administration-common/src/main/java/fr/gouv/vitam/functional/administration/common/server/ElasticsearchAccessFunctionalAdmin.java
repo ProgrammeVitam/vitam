@@ -29,31 +29,26 @@ package fr.gouv.vitam.functional.administration.common.server;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.IndexOptions;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import static fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil.transferJsonToMapping;
 
@@ -94,31 +89,6 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     }
 
     /**
-     * Delete one index
-     *
-     * @param collection
-     */
-    public final boolean deleteIndex(final FunctionalAdminCollections collection) {
-        try {
-            if (getClient().admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-                String indexName =
-                    getClient().admin().indices().prepareGetAliases(collection.getName().toLowerCase()).get().getAliases()
-                        .iterator().next().key;
-                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
-
-                if (!getClient().admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
-                    // TODO: 30/01/19 return false?
-                    LOGGER.error("Error on index delete");
-                }
-            }
-            return true;
-        } catch (final Exception e) {
-            LOGGER.error("Error while deleting index", e);
-            return false;
-        }
-    }
-
-    /**
      * Add a type to an index
      *
      * @param collection
@@ -126,24 +96,12 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      */
     public final Map<String, String> addIndex(final FunctionalAdminCollections collection) {
         try {
-            return super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
-                VitamCollection.getTypeunique(), null);
+            return super
+                .createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection));
         } catch (final Exception e) {
             LOGGER.error("Error while set Mapping", e);
             return new HashMap<>();
         }
-    }
-
-    /**
-     * refresh an index
-     *
-     * @param collection
-     */
-    public final void refreshIndex(final FunctionalAdminCollections collection) {
-        LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase());
-        getClient().admin().indices().prepareRefresh(collection.getName().toLowerCase())
-            .execute().actionGet();
-
     }
 
     /**
@@ -156,22 +114,18 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      */
     protected final SearchResponse search(final FunctionalAdminCollections collection, final QueryBuilder query,
         final QueryBuilder filter)
-        throws ReferentialException {
-        final String type = collection.getType();
-        final SearchRequestBuilder request =
-            getClient().prepareSearch(collection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
-                .setTypes(type).setExplain(false).setSize(GlobalDatas.LIMIT_LOAD);
-        if (filter != null) {
-            request.setQuery(query).setPostFilter(filter);
-        } else {
-            request.setQuery(query);
-        }
+        throws ReferentialException, BadRequestException {
+
         try {
-            return request.get();
-        } catch (final Exception e) {
-            LOGGER.debug(e.getMessage(), e);
+            return super
+                .search(collection.getName().toLowerCase(), null, query, filter, VitamDocument.ES_FILTER_OUT,
+                    null,
+                    0,
+                    GlobalDatas.LIMIT_LOAD, null, null, null);
+        } catch (DatabaseException e) {
             throw new ReferentialException(e);
         }
+
     }
 
     private String getMapping(FunctionalAdminCollections collection) throws IOException {

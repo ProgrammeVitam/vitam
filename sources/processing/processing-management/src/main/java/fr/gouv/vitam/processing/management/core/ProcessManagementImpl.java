@@ -581,7 +581,8 @@ public class ProcessManagementImpl implements ProcessManagement {
                 // Create & start ProcessEngine Thread
                 WorkerParameters workerParameters = WorkerParametersFactory
                     .newWorkerParameters()
-                    .setMap(processWorkflow.getParameters()) // Start with inject original process workflow parameters
+                    .setMap(
+                        processWorkflow.getParameters()) // Start with inject original process workflow parameters
                     .setUrlMetadata(urlMetadata)
                     .setUrlWorkspace(urlWorkspace)
                     .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess())
@@ -607,9 +608,10 @@ public class ProcessManagementImpl implements ProcessManagement {
                     } catch (InvalidParseOperationException e) {
                         // TODO: just log error is the good solution (here, we set to failed and unknown status on wrong
                         // persisted process) ?
-                        LOGGER.error("Cannot set UNKNONW status and FAILED execution status on workflow {}, check " +
-                                "processing datas",
-                            operationId, e);
+                        LOGGER
+                            .error("Cannot set UNKNONW status and FAILED execution status on workflow {}, check " +
+                                    "processing datas",
+                                operationId, e);
                     }
                 }
             }

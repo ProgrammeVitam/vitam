@@ -7,8 +7,8 @@
 # The primary way of configuring a node is via this file. This template lists
 # the most important settings you may want to configure for a production cluster.
 #
-# Please see the documentation for further information on configuration options:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration.html>
+# Please consult the documentation for further information on configuration options:
+# https://www.elastic.co/guide/en/elasticsearch/reference/index.html
 #
 # ---------------------------------- Cluster -----------------------------------
 #
@@ -24,6 +24,9 @@ node.name: {{ inventory_hostname }}
 # TODO: Better handling of this as we have to modify wich nodes are requested by VITAM
 node.master: {{ is_master|default('true') }}
 node.data: {{ is_data|default('true') }}
+node.ingest: false
+node.ml: false
+xpack.ml.enabled: false
 #
 # Add custom attributes to the node:
 #
@@ -66,37 +69,23 @@ network.host: {{ ip_service }}
 # Set a custom port for HTTP:
 #
 http.port: {{ composant.port_http }}
-transport.tcp.port: {{ composant.port_tcp }}
 #
-# For more information, see the documentation at:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html>
+# For more information, consult the network module documentation.
 #
 # --------------------------------- Discovery ----------------------------------
 #
-# Pass an initial list of hosts to perform discovery when new node is started:
+# Pass an initial list of hosts to perform discovery when this node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts_elasticsearch_data'] %}"{{ hostvars[host]['ip_service'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
+discovery.seed_hosts: [ {% for host in groups['hosts_elasticsearch_data'] %}"{{ hostvars[host]['ip_service'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
 #
-# Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
+# Bootstrap the cluster using an initial set of master-eligible nodes:
 #
-{% if composant.discovery_zen_minimum_master_nodes is defined %}
-discovery.zen.minimum_master_nodes: {{ composant.discovery_zen_minimum_master_nodes }}
+cluster.initial_master_nodes: [ {% for host in groups['hosts_elasticsearch_data'] %}"{{ host }}"{% if not loop.last %},{% endif %}{% endfor %} ]
 
-{% else %}
-{% if groups['hosts_elasticsearch_data']|length < 4 %}
-# for small deployments ; should be located only in "one rack_id"
-discovery.zen.minimum_master_nodes: {{ ((groups['hosts_elasticsearch_data']|length / 2)+1)| round (0, 'floor')| int }}
-
-{% else %}
-# Between ((N/2)-1) and (N/2) ; may be usefull when 2 "rooms"
-discovery.zen.minimum_master_nodes: {{ (groups['hosts_elasticsearch_data']|length / 2)| round (0, 'floor')| int }}
-
-{% endif %}
-{% endif %}
+cluster.no_master_block: all
 #
-# For more information, see the documentation at:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
+# For more information, consult the discovery and cluster formation module documentation.
 #
 # ---------------------------------- Gateway -----------------------------------
 #
@@ -127,10 +116,12 @@ indices.query.bool.max_clause_count: 10000
 indices.memory.index_buffer_size: {{ ((elasticsearch_memory_value|int)*(composant.index_buffer_size_ratio|float))|round (0, 'floor')| int }}{{ elasticsearch_memory_unit }}
 {% endif %}
 
+indices.mapping.dynamic_timeout: {{ composant.dynamic_timeout|default('30s') }}
+
 # thread_pool configuration
 thread_pool:
-    index:
-        size: {{ elasticsearch.data.thread_pool.index.size |default((ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int) }}
+    analyze:
+        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int }}
         queue_size: 5000
     get:
         size: {{ elasticsearch.data.thread_pool.get.size |default((ansible_processor_cores * ansible_processor_threads_per_core)| round (0, 'floor') | int) }}
@@ -156,9 +147,11 @@ indices.fielddata.cache.size: {{ (((elasticsearch_memory_value|int) * (composant
 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.8/circuit-breaker.html#fielddata-circuit-breaker
 indices.breaker.fielddata.limit: {{ (((elasticsearch_memory_value|int) * (composant.indices_breaker_fielddata_limit|float)) | round (0, 'floor')) | int }}{{ elasticsearch_memory_unit }}
 
-
 {% if groups['hosts_elasticsearch_data']|length > 1 %}
 # related to affinity and balancing between racks / rooms https://www.elastic.co/guide/en/elasticsearch/reference/current/allocation-awareness.html
 cluster.routing.allocation.awareness.attributes: rack_id
 node.attr.rack_id: {{ is_balancing|default(vitam_site_name) }}
 {% endif %}
+
+# FIXME this will increases risk of running into out of memory errors by overloading the node
+indices.breaker.total.use_real_memory: false

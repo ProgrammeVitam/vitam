@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
@@ -84,14 +85,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.ExternalResource;
 
 import javax.ws.rs.core.MultivaluedHashMap;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -667,8 +665,8 @@ public class VitamServerRunner extends ExternalResource {
                 .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
             return;
         }
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         SystemPropertyUtil
             .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
@@ -680,7 +678,7 @@ public class VitamServerRunner extends ExternalResource {
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realAdminConfig.setDbName(dbname);
-        realAdminConfig.setElasticsearchNodes(nodesEs);
+        realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(cluster);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
         PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
@@ -724,15 +722,15 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
 
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         SystemPropertyUtil
             .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         final File logbookConfigFile = PropertiesUtils.findFile(LOGBOOK_CONF);
         final LogbookConfiguration logbookConfiguration =
             PropertiesUtils.readYaml(logbookConfigFile, LogbookConfiguration.class);
-        logbookConfiguration.setElasticsearchNodes(nodesEs);
+        logbookConfiguration.setElasticsearchNodes(esNodes);
         logbookConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         logbookConfiguration.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
 
@@ -855,8 +853,9 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
 
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
         SystemPropertyUtil
             .set(MetadataMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
         SystemPropertyUtil
@@ -867,7 +866,7 @@ public class VitamServerRunner extends ExternalResource {
             PropertiesUtils.readYaml(metadataConfig, MetaDataConfiguration.class);
         realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realMetadataConfig.setDbName(dbname);
-        realMetadataConfig.setElasticsearchNodes(nodesEs);
+        realMetadataConfig.setElasticsearchNodes(esNodes);
         realMetadataConfig.setClusterName(cluster);
 
         PropertiesUtils.writeYaml(metadataConfig, realMetadataConfig);

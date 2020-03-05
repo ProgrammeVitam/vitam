@@ -84,11 +84,8 @@ import java.util.Set;
  */
 public class QueryToElasticsearch {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(QueryToElasticsearch.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueryToElasticsearch.class);
 
-    private static final String UNDERSCORE_UID = "_uid";
-    private static final String FUZZINESS = "AUTO";
 
     private QueryToElasticsearch() {
         // Empty constructor
@@ -154,7 +151,8 @@ public class QueryToElasticsearch {
      * @return list of order by as sort objects
      * @throws InvalidParseOperationException if the orderBy is not valid
      */
-    public static List<SortBuilder> getSorts(final AbstractParser<?> requestParser, boolean hasFullText, boolean score, DynamicParserTokens parserTokens)
+    public static List<SortBuilder> getSorts(final AbstractParser<?> requestParser, boolean hasFullText, boolean score,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final JsonNode orderby = requestParser.getRequest().getFilter()
             .get(SELECTFILTER.ORDERBY.exactToken());
@@ -182,10 +180,6 @@ public class QueryToElasticsearch {
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
             String key = entry.getKey();
-            // special case of _id
-            if (key.equals(VitamDocument.ID)) {
-                key = UNDERSCORE_UID;
-            }
             if (scoreNotAdded && score && requestParser.hasFullTextQuery() &&
                 !parserTokens.isNotAnalyzed(entry.getKey())) {
                 // First time we get an analyzed sort by
@@ -313,7 +307,8 @@ public class QueryToElasticsearch {
      * @return the compare Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder compareCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
+    private static QueryBuilder compareCommand(final QUERY query, final JsonNode content,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
@@ -326,19 +321,10 @@ public class QueryToElasticsearch {
             logCommand(query, content);
         }
 
-        // special case of _id
-        boolean isId = false;
-        if (key.equals(VitamDocument.ID)) {
-            logWarnUnsupportedIdForCommand(query, content);
-            key = UNDERSCORE_UID;
-            isId = true;
-        }
 
         JsonNode node = element.getValue();
         Object value = GlobalDatasParser.getValue(node);
-        if (isId) {
-            value = VitamCollection.getTypeunique() + "#" + value.toString();
-        }
+
         switch (query) {
             case GT:
                 return QueryBuilders.rangeQuery(key).gt(value);
@@ -361,7 +347,8 @@ public class QueryToElasticsearch {
      * @return the search Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder searchCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
+    private static QueryBuilder searchCommand(final QUERY query, final JsonNode content,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
 
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
@@ -385,8 +372,9 @@ public class QueryToElasticsearch {
      * @return the search Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder nestedSearchCommand(final QUERY query, final JsonNode content, VarNameAdapter adapter, DynamicParserTokens parserTokens)
-            throws InvalidParseOperationException {
+    private static QueryBuilder nestedSearchCommand(final QUERY query, final JsonNode content, VarNameAdapter adapter,
+        DynamicParserTokens parserTokens)
+        throws InvalidParseOperationException {
 
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
@@ -406,7 +394,8 @@ public class QueryToElasticsearch {
         JsonNode subQueryJson = content.fields().next().getValue();
         Query subQuery;
         try {
-            subQuery = QueryParserHelper.query(subQueryJson.fields().next().getKey(), subQueryJson.fields().next().getValue(), adapter);
+            subQuery = QueryParserHelper
+                .query(subQueryJson.fields().next().getKey(), subQueryJson.fields().next().getValue(), adapter);
         } catch (InvalidCreateOperationException e) {
             throw new InvalidParseOperationException("$subobject query is not valid");
         }
@@ -421,7 +410,8 @@ public class QueryToElasticsearch {
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder matchCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
+    private static QueryBuilder matchCommand(final QUERY query, final JsonNode content,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
 
         final JsonNode max = ((ObjectNode) content).remove(QUERYARGS.MAX_EXPANSIONS.exactToken());
@@ -613,7 +603,8 @@ public class QueryToElasticsearch {
      * @return the range Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder rangeCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
+    private static QueryBuilder rangeCommand(final QUERY query, final JsonNode content,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
@@ -631,7 +622,7 @@ public class QueryToElasticsearch {
         }
 
         final RangeQueryBuilder range = QueryBuilders.rangeQuery(key);
-        for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
+        for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext(); ) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg;
             try {
@@ -673,7 +664,8 @@ public class QueryToElasticsearch {
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder regexCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
+    private static QueryBuilder regexCommand(final QUERY query, final JsonNode content,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = entry.getKey();
@@ -760,7 +752,7 @@ public class QueryToElasticsearch {
             multiple = true;
             query2 = QueryBuilders.boolQuery();
         }
-        for (final Iterator<Entry<String, JsonNode>> iterator = content.fields(); iterator.hasNext();) {
+        for (final Iterator<Entry<String, JsonNode>> iterator = content.fields(); iterator.hasNext(); ) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             String key = requestItem.getKey();
             if (VitamDocument.ID.equals(key)) {
@@ -799,7 +791,8 @@ public class QueryToElasticsearch {
      * @param content JsonNode
      * @return the wildcard Command
      */
-    private static QueryBuilder wildcardCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
+    private static QueryBuilder wildcardCommand(final QUERY query, final JsonNode content,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = entry.getKey();
@@ -905,7 +898,6 @@ public class QueryToElasticsearch {
         String fieldname = content.asText();
         if (VitamDocument.ID.equals(fieldname)) {
             logWarnUnsupportedIdForCommand(query, content);
-            fieldname = UNDERSCORE_UID;
         }
         final QueryBuilder queryBuilder = QueryBuilders.existsQuery(fieldname);
         switch (query) {
@@ -943,7 +935,6 @@ public class QueryToElasticsearch {
         String fieldname = content.asText();
         if (VitamDocument.ID.equals(fieldname)) {
             logWarnUnsupportedIdForCommand(query, content);
-            fieldname = UNDERSCORE_UID;
         }
         return QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(fieldname));
     }
@@ -958,7 +949,8 @@ public class QueryToElasticsearch {
      * @return the and Or Not Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder andOrNotCommand(final QUERY query, final Query req, VarNameAdapter adapter, DynamicParserTokens parserTokens)
+    private static QueryBuilder andOrNotCommand(final QUERY query, final Query req, VarNameAdapter adapter,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
 
         logCommand(query, req.getCurrentObject());
@@ -989,7 +981,8 @@ public class QueryToElasticsearch {
      * @return list of facets
      * @throws InvalidParseOperationException if could not create ES facets
      */
-    public static List<AggregationBuilder> getFacets(final AbstractParser<?> requestParser, DynamicParserTokens parserTokens)
+    public static List<AggregationBuilder> getFacets(final AbstractParser<?> requestParser,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         List<AggregationBuilder> builders = new ArrayList<>();
         if (requestParser.getRequest() instanceof SelectMultiQuery) {
@@ -1019,7 +1012,7 @@ public class QueryToElasticsearch {
      * Add date_range es facet from facet
      *
      * @param builders es facets
-     * @param facet    facet
+     * @param facet facet
      */
     private static void dateRangeFacet(List<AggregationBuilder> builders, Facet facet) {
         JsonNode dateRange = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
@@ -1040,7 +1033,8 @@ public class QueryToElasticsearch {
         });
 
         if (dateRange.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
-            builders.add(AggregationBuilders.nested(facet.getName(), dateRange.get(FACETARGS.SUBOBJECT.exactToken()).asText())
+            builders.add(
+                AggregationBuilders.nested(facet.getName(), dateRange.get(FACETARGS.SUBOBJECT.exactToken()).asText())
                     .subAggregation(dateRangeBuilder));
             return;
         }
@@ -1052,7 +1046,7 @@ public class QueryToElasticsearch {
      * Add terms es facet from facet
      *
      * @param builders es facets
-     * @param facet    facet
+     * @param facet facet
      */
     private static void termsFacet(List<AggregationBuilder> builders, Facet facet) {
         JsonNode terms = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
@@ -1064,7 +1058,8 @@ public class QueryToElasticsearch {
         }
 
         if (terms.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
-            builders.add(AggregationBuilders.nested(facet.getName(), terms.get(FACETARGS.SUBOBJECT.exactToken()).asText())
+            builders
+                .add(AggregationBuilders.nested(facet.getName(), terms.get(FACETARGS.SUBOBJECT.exactToken()).asText())
                     .subAggregation(termsBuilder));
             return;
         }
@@ -1079,7 +1074,8 @@ public class QueryToElasticsearch {
      * @param builders es facets
      * @param facet facet
      */
-    private static void filtersFacet(List<AggregationBuilder> builders, Facet facet, VarNameAdapter adapter, DynamicParserTokens parserTokens )
+    private static void filtersFacet(List<AggregationBuilder> builders, Facet facet, VarNameAdapter adapter,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         JsonNode filtersFacetNode = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
 

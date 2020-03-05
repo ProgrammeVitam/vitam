@@ -2,7 +2,6 @@
     "timeRestore": false,
     "description": "",
     "title": "metrics-vitam-business-dashboard",
-    "uiStateJSON": "{}",
     "panelsJSON": "[{\"id\":\"metrics-vitam-business-running-workflows-visualize\",\"type\":\"visualization\",\"panelIndex\":1,\"size_x\":12,\"size_y\":7,\"col\":1,\"row\":1}]",
     "optionsJSON": "{\"darkTheme\":false}",
     "kibanaSavedObjectMeta": {

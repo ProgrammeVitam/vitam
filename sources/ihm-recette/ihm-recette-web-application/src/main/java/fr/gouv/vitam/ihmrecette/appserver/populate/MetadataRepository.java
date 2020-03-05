@@ -39,6 +39,7 @@ import com.mongodb.client.model.InsertOneModel;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -51,6 +52,7 @@ import org.bson.Document;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.FileNotFoundException;
@@ -76,7 +78,6 @@ public class MetadataRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRepository.class);
 
     private MongoDatabase metadataDb;
-    private Client transportClient;
     private ObjectMapper objectMapper;
     private final StoragePopulateImpl storagePopulateService;
     private final ExecutorService storageExecutorService
@@ -84,10 +85,8 @@ public class MetadataRepository {
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
 
-    public MetadataRepository(MongoDatabase metadataDb, Client transportClient,
-        StoragePopulateImpl storagePopulateService) {
+    public MetadataRepository(MongoDatabase metadataDb, StoragePopulateImpl storagePopulateService) {
         this.metadataDb = metadataDb;
-        this.transportClient = transportClient;
         this.storagePopulateService = storagePopulateService;
         this.objectMapper = UnitGotMapper.buildObjectMapper();
 
@@ -148,16 +147,17 @@ public class MetadataRepository {
 
         for (UnitGotModel unitGotModel : unitGotList) {
             CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-            try {
-                this.storagePopulateService.storeData(
-                    VitamConfiguration.getDefaultStrategy(),
-                    unitGotModel.getGot().getQualifiers().get(0).getVersions().get(0).getId(),
-                    PopulateService.POPULATE_FILE,
-                    DataCategory.OBJECT, unitGotModel.getUnit().getTenant()
-                );
-            } catch (StorageException | FileNotFoundException e) {
-                LOGGER.error("Can not store object of " + unitGotModel.getUnit().getId());
-            }}, storageExecutorService);
+                try {
+                    this.storagePopulateService.storeData(
+                        VitamConfiguration.getDefaultStrategy(),
+                        unitGotModel.getGot().getQualifiers().get(0).getVersions().get(0).getId(),
+                        PopulateService.POPULATE_FILE,
+                        DataCategory.OBJECT, unitGotModel.getUnit().getTenant()
+                    );
+                } catch (StorageException | FileNotFoundException e) {
+                    LOGGER.error("Can not store object of " + unitGotModel.getUnit().getId());
+                }
+            }, storageExecutorService);
 
             completableFutures.add(completableFuture);
         }
@@ -209,21 +209,20 @@ public class MetadataRepository {
      * @param tenant related tenant
      */
     private void indexDocuments(List<Document> documents, VitamDataType vitamDataType, int tenant) {
-        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
 
-        documents.forEach(document -> {
-            String id = (String) document.remove("_id");
-            String source = BsonHelper.stringify(document);
-            bulkRequestBuilder
-                .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), VitamCollection.TYPEUNIQUE, id)
-                    .setSource(source, XContentType.JSON));
-        });
+        try {
+            switch (vitamDataType) {
+                case UNIT:
+                case GOT:
+                    vitamDataType.getElasticsearchAccess()
+                        .indexEntries(vitamDataType.getIndexName(tenant), tenant, documents);
+                    break;
+                default:
+                    // Do nothing
+            }
 
-        BulkResponse bulkRes = bulkRequestBuilder.execute().actionGet();
-
-        LOGGER.info("{}", bulkRes.getItems().length);
-        if (bulkRes.hasFailures()) {
-            LOGGER.error("##### Bulk Request failure with error: " + bulkRes.buildFailureMessage());
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -266,6 +265,7 @@ public class MetadataRepository {
 
     /**
      * Find raw metadata by ids
+     *
      * @param ids the document ids
      * @param vitamDataType the metadata type
      */
@@ -275,7 +275,7 @@ public class MetadataRepository {
             Filters.in("_id", ids)
         ).forEach((Consumer<? super Document>) i -> {
             try {
-                result.put(i.getString("_id"), JsonHandler.getFromString(BsonHelper.stringify(i)) );
+                result.put(i.getString("_id"), JsonHandler.getFromString(BsonHelper.stringify(i)));
             } catch (InvalidParseOperationException e) {
                 throw new RuntimeException("Could not deserialize json", e);
             }

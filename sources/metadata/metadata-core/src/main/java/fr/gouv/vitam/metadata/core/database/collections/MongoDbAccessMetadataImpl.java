@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.ListIndexesIterable;
@@ -90,6 +91,22 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                         " and tenant :" + tenant);
             }
         }
+    }
+
+    @VisibleForTesting
+    public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
+        ElasticsearchAccessMetadata esClient) {
+        super(mongoClient, dbname, recreate);
+        this.esClient = esClient;
+
+        MetadataCollections.UNIT.initialize(getMongoDatabase(), recreate);
+        MetadataCollections.OBJECTGROUP.initialize(getMongoDatabase(), recreate);
+
+        // init Unit Mapping for ES
+        MetadataCollections.UNIT.initialize(this.esClient);
+
+        // init OG Mapping for ES
+        MetadataCollections.OBJECTGROUP.initialize(this.esClient);
     }
 
     /**
@@ -168,7 +185,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                         .getDeletedCount());
                 }
 
-                esClient.deleteIndex(MetadataCollections.UNIT, tenantId);
+                esClient.purgeIndex(MetadataCollections.UNIT.getName().toLowerCase(), tenantId);
                 Map<String, String> map = esClient.addIndex(MetadataCollections.UNIT, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(
@@ -183,9 +200,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * Delete Object Group metadata by Tenant Not check, test feature !
      *
      * @param tenantIds the list of tenants
-     * @throws DatabaseException thrown when error on delete
      */
-    public void deleteObjectGroupByTenant(Integer... tenantIds) throws DatabaseException {
+    public void deleteObjectGroupByTenant(Integer... tenantIds) {
         final long count = MetadataCollections.OBJECTGROUP.getCollection().countDocuments();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(MetadataCollections.OBJECTGROUP.getName() + " count before: " + count);
@@ -200,7 +216,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                         MetadataCollections.OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
                             .getDeletedCount());
                 }
-                esClient.deleteIndex(MetadataCollections.OBJECTGROUP, tenantId);
+                esClient.purgeIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), tenantId);
                 Map<String, String> map = esClient.addIndex(MetadataCollections.OBJECTGROUP, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(

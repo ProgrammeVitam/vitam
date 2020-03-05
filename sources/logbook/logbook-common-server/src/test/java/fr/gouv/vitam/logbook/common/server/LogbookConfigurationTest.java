@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.logbook.common.server;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import static org.junit.Assert.assertEquals;
 
 public class LogbookConfigurationTest {
 
@@ -72,12 +72,12 @@ public class LogbookConfigurationTest {
         assertEquals(WORKSPACE_URL, config1.getWorkspaceUrl());
         config1.setProcessingUrl(PROCESSING_URL);
         assertEquals(PROCESSING_URL, config1.getProcessingUrl());
-        final List<ElasticsearchNode> es_nodes = new ArrayList<>();
-        es_nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
-        assertEquals(1, config1.setElasticsearchNodes(es_nodes).getElasticsearchNodes().size());
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        assertEquals(1, config1.setElasticsearchNodes(esNodes).getElasticsearchNodes().size());
 
         final LogbookConfiguration config2 =
-            new LogbookConfiguration(mongo_nodes, DB_NAME, CLUSTER_NAME, es_nodes);
+            new LogbookConfiguration(mongo_nodes, DB_NAME, CLUSTER_NAME, esNodes);
         assertEquals(config2.getMongoDbNodes().get(0).getDbHost(), HOST);
         assertEquals(config2.getMongoDbNodes().get(0).getDbPort(), PORT);
         assertEquals(config2.getDbName(), DB_NAME);

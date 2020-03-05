@@ -2,7 +2,6 @@
     "timeRestore": false,
     "description": "",
     "title": "MongoDB ES synchro errors",
-    "uiStateJSON": "{}",
     "panelsJSON": "[{\"col\":1,\"id\":\"mongodb-es-synchro-errors-visualization\",\"panelIndex\":1,\"row\":1,\"size_x\":12,\"size_y\":3,\"type\":\"visualization\"},{\"size_x\":12,\"size_y\":4,\"panelIndex\":2,\"type\":\"search\",\"id\":\"mongodb-es-synchro-errors-search\",\"col\":1,\"row\":4,\"columns\":[\"hostname\",\"vitam_component\",\"logger\",\"log_message\"],\"sort\":[\"@timestamp\",\"desc\"]}]",
     "optionsJSON": "{\"darkTheme\":false}",
     "version": 1,

@@ -99,7 +99,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         vitamServerTestRunner.start();
         VitamConfiguration.setConnectTimeout(100);
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        elasticsearchNode = new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT);
+        elasticsearchNode = new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort());
         nodes.add(elasticsearchNode);
         databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
@@ -238,7 +238,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
         // ES
         LOGGER.warn("TEST ELASTICSEARCH KO");
-        elasticsearchNode.setTcpPort(fakePort);
+        elasticsearchNode.setHttpPort(fakePort);
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {

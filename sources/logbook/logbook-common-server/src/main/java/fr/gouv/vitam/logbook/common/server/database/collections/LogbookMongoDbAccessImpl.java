@@ -97,16 +97,13 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +183,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
-        LogbookElasticsearchAccess esClient, List<Integer> tenants, LogbookTransformData logbookTransformData, OntologyLoader ontologyLoader) {
+        LogbookElasticsearchAccess esClient, List<Integer> tenants, LogbookTransformData logbookTransformData,
+        OntologyLoader ontologyLoader) {
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
         this.logbookTransformData = logbookTransformData;
@@ -640,7 +638,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
             collection.getCollection().insertOne(vitamDocument);
 
-            // FIXME : to be refactor when other collection are indexed in ES
             if (LogbookCollections.OPERATION.equals(collection)) {
                 insertIntoElasticsearch(collection, vitamDocument);
             }
@@ -997,7 +994,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             collection.getCollection().insertOne(document);
-            // FIXME : to be refactor when other collection are indexed in ES
             if (LogbookCollections.OPERATION.equals(collection)) {
                 insertIntoElasticsearch(collection, document);
             }
@@ -1123,7 +1119,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public void deleteCollection(LogbookCollections collection) throws DatabaseException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        final long count = collection.getCollection().count(Filters.eq(VitamDocument.TENANT_ID, tenantId));
+        final long count = collection.getCollection().countDocuments(Filters.eq(VitamDocument.TENANT_ID, tenantId));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
@@ -1134,7 +1130,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }
             if (LogbookCollections.OPERATION.equals(collection)) {
-                esClient.deleteIndex(LogbookCollections.OPERATION, tenantId);
+                esClient.deleteIndexByAlias(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
                 Map<String, String> map = esClient.addIndex(LogbookCollections.OPERATION, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(
@@ -1488,17 +1484,17 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         DynamicParserTokens parserTokens =
             new DynamicParserTokens(collection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
-        List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore(), parserTokens);
+        List<SortBuilder> sorts =
+            requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore(), parserTokens);
         SearchResponse elasticSearchResponse =
             collection.getEsClient()
-                .search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens), null,
+                .search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens),
+                    null,
                     sorts, requestToEs.getFinalOffset(),
                     requestToEs.getFinalLimit());
-        if (elasticSearchResponse.status() != RestStatus.OK) {
-            return new VitamMongoCursor<>(new EmptyMongoCursor());
-        }
+
         final SearchHits hits = elasticSearchResponse.getHits();
-        if (hits.getTotalHits() == 0) {
+        if (hits.getTotalHits().value == 0) {
             return new VitamMongoCursor<>(new EmptyMongoCursor());
         }
         final Iterator<SearchHit> iterator = hits.iterator();
@@ -1513,7 +1509,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         parser.getRequest().setQuery(new NopQuery());
         return new VitamMongoCursor(
             DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(collection.getVitamCollection(), parser,
-                idsSorted, null), hits.getTotalHits(), elasticSearchResponse.getScrollId());
+                idsSorted, null), hits.getTotalHits().value, elasticSearchResponse.getScrollId());
     }
 
 
@@ -1527,20 +1523,15 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private void insertIntoElasticsearch(LogbookCollections collection, VitamDocument vitamDocument)
         throws LogbookExecutionException {
         Integer tenantId = HeaderIdHelper.getTenantId();
-        LOGGER.debug("insertToElasticsearch");
-        Map<String, String> mapIdJson = new HashMap<>();
+        LOGGER.debug("insert to elasticsearch");
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(vitamDocument);
-        final String esJson = BsonHelper.stringify(vitamDocument);
-        vitamDocument.clear();
-        mapIdJson.put(id, esJson);
-        final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, tenantId, mapIdJson);
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("Could not index " + vitamDocument + " " + collection.getName()
-                + " document" + bulkResponse.buildFailureMessage());
-            throw new LogbookExecutionException("Index Elasticsearch has errors");
+        try {
+            collection.getEsClient().indexEntry(collection.getName().toLowerCase(), tenantId, id, vitamDocument);
+        } catch (DatabaseException e) {
+            throw new LogbookExecutionException("Index to Elasticsearch has errors", e);
         }
     }
 
@@ -1559,12 +1550,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(existingDocument);
-        final String esJson = BsonHelper.stringify(existingDocument);
-        existingDocument.clear();
-        final boolean response = collection.getEsClient().updateEntryIndex(collection, tenantId, id, esJson);
-        if (!response) {
-            throw new LogbookExecutionException("Update Elasticsearch has errors");
-        }
+
+        collection.getEsClient().updateFullDocument(collection, tenantId, id, existingDocument);
     }
 
 
