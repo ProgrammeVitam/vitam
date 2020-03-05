@@ -26,11 +26,8 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -39,6 +36,9 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Accession Register Detail document
@@ -325,6 +325,15 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
+    public AccessionRegisterStatus getStatus() {
+        try {
+            return JsonHandler
+                .getFromJsonNode(JsonHandler.toJsonNode(this.get(STATUS)), AccessionRegisterStatus.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public AccessionRegisterDetail setOpc(String opc) {
         append(OPC, opc);
         return this;
@@ -357,4 +366,12 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
+    public List<RegisterValueEventModel> getEvents() {
+        try {
+            return JsonHandler
+                .getFromJsonNode(JsonHandler.toJsonNode(this.get(EVENTS)), new TypeReference<List<RegisterValueEventModel>>() { });
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

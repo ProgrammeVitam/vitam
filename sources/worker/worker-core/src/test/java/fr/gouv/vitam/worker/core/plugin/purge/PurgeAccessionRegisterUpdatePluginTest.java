@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.purge;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -57,6 +59,8 @@ import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
 
+import java.io.File;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -86,6 +90,7 @@ public class PurgeAccessionRegisterUpdatePluginTest {
     private HandlerIO handler;
 
     private WorkerParameters params;
+    private static final String ACCESSION_REGISTER_DETAIL = "EliminationAction/PurgeAccessionRegisterUpdatePlugin/accession-register.json";
 
     @Before
     public void setUp() throws Exception {
@@ -114,6 +119,8 @@ public class PurgeAccessionRegisterUpdatePluginTest {
 
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenThrow(new AdminManagementClientServerException("Simulate FATAL"));
+        RequestResponse response = new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
+        when(adminManagementClient.getAccessionRegister(any())).thenReturn(response);
 
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);
@@ -133,8 +140,18 @@ public class PurgeAccessionRegisterUpdatePluginTest {
                 .setMessage(Response.Status.CONFLICT.getReasonPhrase())
                 .setDescription("Document already exists in database");
 
+        RequestResponse response = new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
+        when(adminManagementClient.getAccessionRegister(any())).thenReturn(response);
+
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(ve);
+        File file = PropertiesUtils.getResourceFile(ACCESSION_REGISTER_DETAIL);
+        RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting = JsonHandler.getFromFileAsTypeReference(file,
+            new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
+            });
+        // When
+        when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(accessionRegisterDetailExisting);
+
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);
 
@@ -149,9 +166,17 @@ public class PurgeAccessionRegisterUpdatePluginTest {
 
         RequestResponse<AccessionRegisterDetailModel> resp = new RequestResponseOK<>();
         resp.setHttpCode(Response.Status.OK.getStatusCode());
+        RequestResponse response = new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
+        when(adminManagementClient.getAccessionRegister(any())).thenReturn(response);
 
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(resp);
+        File file = PropertiesUtils.getResourceFile(ACCESSION_REGISTER_DETAIL);
+        RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting = JsonHandler.getFromFileAsTypeReference(file,
+            new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
+            });
+        // When
+        when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(accessionRegisterDetailExisting);
 
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);

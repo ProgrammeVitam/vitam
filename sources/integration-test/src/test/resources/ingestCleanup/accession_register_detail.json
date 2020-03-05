@@ -14,7 +14,7 @@
     "EndDate": "2019-10-24T14:57:50.512",
     "StartDate": "2019-10-24T14:57:50.512",
     "LastUpdate": "2019-10-24T16:57:59.207",
-    "Status": "STORED_AND_COMPLETED",
+    "Status": "STORED_AND_UPDATED",
     "TotalObjectGroups": {
       "ingested": 3.0,
       "deleted": 3.0,

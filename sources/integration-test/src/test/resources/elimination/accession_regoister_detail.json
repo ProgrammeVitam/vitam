@@ -1,1 +1,62 @@
-[{"_id":"aehaaaaaaabvj6amaaqlaalgguejdcaaaaaq","ObjectSize":{"ingested":18.0,"deleted":6.0,"remained":12.0},"AcquisitionInformation":"Versement","LegalStatus":"Public Archive","OriginatingAgency":"RATP","SubmissionAgency":"RATP","ArchivalAgreement":"ArchivalAgreement0","EndDate":"2018-10-02T13:47:25.960","StartDate":"2018-10-02T13:47:25.960","LastUpdate":"2018-10-02T15:48:26.306","Status":"STORED_AND_COMPLETED","TotalObjectGroups":{"ingested":3.0,"deleted":1.0,"remained":2.0},"TotalUnits":{"ingested":6.0,"deleted":3.0,"remained":3.0},"TotalObjects":{"ingested":4.0,"deleted":1.0,"remained":3.0},"Opc":"aecaaaaaacbvj6amaaqlaalgguegajyaaaba","Opi":"aecaaaaaacbvj6amaaqlaalgguegajyaaaba","OpType":"INGEST","Events":[{"Opc":"aecaaaaaacbvj6amaaqlaalgguegajyaaaba","OpType":"INGEST","Gots":3,"Units":6,"Objects":4,"ObjSize":18,"CreationDate":"2018-10-02T15:47:25.961"},{"Opc":"aecaaaaaacbvj6amaaqlaalgguejs5iaaaaq","OpType":"ELIMINATION","Gots":-1,"Units":-3,"Objects":-1,"ObjSize":-6,"CreationDate":"2018-10-02T15:48:26.306"}],"OperationIds":["aecaaaaaacbvj6amaaqlaalgguegajyaaaba"],"_tenant":0,"_v":1}]
+[
+    {
+        "_id": "aehaaaaaaabvj6amaaqlaalgguejdcaaaaaq",
+        "ObjectSize": {
+            "ingested": 18.0,
+            "deleted": 6.0,
+            "remained": 12.0
+        },
+        "AcquisitionInformation": "Versement",
+        "LegalStatus": "Public Archive",
+        "OriginatingAgency": "RATP",
+        "SubmissionAgency": "RATP",
+        "ArchivalAgreement": "ArchivalAgreement0",
+        "EndDate": "2018-10-02T13:47:25.960",
+        "StartDate": "2018-10-02T13:47:25.960",
+        "LastUpdate": "2018-10-02T15:48:26.306",
+        "Status": "STORED_AND_UPDATED",
+        "TotalObjectGroups": {
+            "ingested": 3.0,
+            "deleted": 1.0,
+            "remained": 2.0
+        },
+        "TotalUnits": {
+            "ingested": 6.0,
+            "deleted": 3.0,
+            "remained": 3.0
+        },
+        "TotalObjects": {
+            "ingested": 4.0,
+            "deleted": 1.0,
+            "remained": 3.0
+        },
+        "Opc": "aecaaaaaacbvj6amaaqlaalgguegajyaaaba",
+        "Opi": "aecaaaaaacbvj6amaaqlaalgguegajyaaaba",
+        "OpType": "INGEST",
+        "Events": [
+            {
+                "Opc": "aecaaaaaacbvj6amaaqlaalgguegajyaaaba",
+                "OpType": "INGEST",
+                "Gots": 3,
+                "Units": 6,
+                "Objects": 4,
+                "ObjSize": 18,
+                "CreationDate": "2018-10-02T15:47:25.961"
+            },
+            {
+                "Opc": "aecaaaaaacbvj6amaaqlaalgguejs5iaaaaq",
+                "OpType": "ELIMINATION",
+                "Gots": -1,
+                "Units": -3,
+                "Objects": -1,
+                "ObjSize": -6,
+                "CreationDate": "2018-10-02T15:48:26.306"
+            }
+        ],
+        "OperationIds": [
+            "aecaaaaaacbvj6amaaqlaalgguegajyaaaba"
+        ],
+        "_tenant": 0,
+        "_v": 1
+    }
+]
