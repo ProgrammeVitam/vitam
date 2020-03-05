@@ -50,6 +50,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.ProfilePathFileNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
 
 import javax.ws.rs.core.Response;
@@ -77,6 +79,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
     private static final String VALIDATION_ERROR = "ValidationError";
     private static final String CAN_NOT_SEARCH_PROFILE = "Can not search profile";
     private static final String PROFILE_NOT_FOUND = "Profile not found";
+    private static final String PROFILE_PATH_NOT_FOUND = "There is no Profile path file for";
     private static final String CAN_NOT_GET_FILE_MANIFEST = "Can not get file manifest";
     private static final String FILE_NOT_FOUND = "File not found";
 
@@ -125,6 +128,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             }
 
             if (profile != null) {
+                checkProfilePath(profile);
                 Response downloadResponse = null;
                 InputStream stream = null;
                 File tmpFile;
@@ -155,27 +159,30 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(CAN_NOT_SEARCH_PROFILE, e);
-            itemStatus.increment(StatusCode.KO);
-            infoNode.put(SedaConstants.EV_DET_TECH_DATA, CAN_NOT_SEARCH_PROFILE + " " + profileIdentifier);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
+                CAN_NOT_SEARCH_PROFILE + " " + profileIdentifier, infoNode, StatusCode.KO);
         } catch (ProfileNotFoundException e) {
             LOGGER.error(PROFILE_NOT_FOUND, e);
-            itemStatus.increment(StatusCode.KO);
-            infoNode.put(SedaConstants.EV_DET_TECH_DATA, PROFILE_NOT_FOUND + " " + profileIdentifier);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
+                PROFILE_NOT_FOUND + " " + profileIdentifier, infoNode, StatusCode.KO);
+        } catch (ProfilePathFileNotFoundException e) {
+            LOGGER.error(PROFILE_PATH_NOT_FOUND, e);
+            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
+                PROFILE_PATH_NOT_FOUND + " " + profileIdentifier, infoNode, StatusCode.KO);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error(CAN_NOT_GET_FILE_MANIFEST, e);
-            infoNode.put(SedaConstants.EV_DET_TECH_DATA, CAN_NOT_GET_FILE_MANIFEST + " manifest.xml");
-            itemStatus.increment(StatusCode.FATAL);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
+                CAN_NOT_GET_FILE_MANIFEST + " manifest.xml", infoNode, StatusCode.FATAL);
         } catch (IOException | XMLStreamException e) {
             LOGGER.error(FILE_NOT_FOUND, e);
-            itemStatus.increment(StatusCode.KO);
-            infoNode.put(SedaConstants.EV_DET_TECH_DATA, FILE_NOT_FOUND + " " + profileIdentifier);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA, FILE_NOT_FOUND + " " + profileIdentifier,
+                infoNode, StatusCode.KO);
         } catch (SAXException e) {
             LOGGER.error(VALIDATION_ERROR, e);
             infoNode.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
+            String evdev = JsonHandler.unprettyPrint(infoNode);
+            itemStatus.setEvDetailData(evdev);
+            itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
             isValid = false;
         } catch (Exception e) {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
@@ -184,16 +191,28 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
         }
 
         if (isValid) {
-            itemStatus.increment(StatusCode.OK);
+            return getItemStatus(itemStatus, SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier, infoNode,
+                StatusCode.OK);
         } else {
-            itemStatus.increment(StatusCode.KO);
+            return getItemStatus(itemStatus, SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier, infoNode,
+                StatusCode.KO);
         }
+    }
 
-        infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
+    private ItemStatus getItemStatus(ItemStatus itemStatus, String logbookField, String evTechDataMessage,
+        ObjectNode infoNode, StatusCode statusCode) {
+        itemStatus.increment(statusCode);
+        infoNode.put(logbookField, evTechDataMessage);
         String evdev = JsonHandler.unprettyPrint(infoNode);
         itemStatus.setEvDetailData(evdev);
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    private void checkProfilePath(ProfileModel profile) throws ProfilePathFileNotFoundException {
+        if (StringUtils.isBlank(profile.getPath())) {
+            throw new ProfilePathFileNotFoundException("The profile path for (XSD or RNG) file not Found");
+        }
     }
 
     @Override
