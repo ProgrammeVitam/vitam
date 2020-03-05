@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -278,7 +279,7 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         try (FileOutputStream fos = new FileOutputStream(accessionRegisterFile);
             JsonLineWriter writer = new JsonLineWriter(fos)) {
 
-            if (!hasAccessionRegisterDetails()) {
+            if (!hasAccessionRegisterDetails(ingestOperationId)) {
                 LOGGER.warn("Accession register details not found...");
             } else if (accessionRegisterModel.getTotalUnits() == 0 && accessionRegisterModel.getTotalObjects() == 0) {
                 LOGGER.warn("No accession register details to update");
@@ -294,11 +295,10 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         copyDistributionFileToWorkspace(handler, accessionRegisterFile, ACCESSION_REGISTERS_JSONL);
     }
 
-    private boolean hasAccessionRegisterDetails() throws ProcessingStatusException {
+    private boolean hasAccessionRegisterDetails(String operationId) throws ProcessingStatusException {
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
             Select select = new Select();
-            select.setQuery(exists(VitamFieldsHelper.id()));
-
+            select.setQuery(QueryHelper.and().add(QueryHelper.eq(AccessionRegisterDetailModel.OPI,operationId) , exists(VitamFieldsHelper.id())));
             RequestResponse<AccessionRegisterDetailModel> accessionRegisterDetail =
                 adminManagementClient.getAccessionRegisterDetail(select.getFinalSelect());
 
