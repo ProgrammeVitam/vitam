@@ -2597,7 +2597,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         UnitReportParams params;
     }
 
-
     private static class UnitReportParams {
         @JsonProperty("id")
         String id;
@@ -2613,14 +2612,12 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String type;
     }
 
-
     private static class ObjectGroupReportEntry {
         @JsonProperty("id")
         String id;
         @JsonProperty("params")
         ObjectGroupReportParams params;
     }
-
 
     private static class ObjectGroupReportParams {
         @JsonProperty("id")
@@ -2639,7 +2636,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String type;
     }
 
-
     public interface IngestCleanupAdminService {
         @POST("/adminmanagement/v1/invalidIngestCleanup/{opi}")
         @Headers({
@@ -2650,5 +2646,4 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             @Header("X-Tenant-Id") Integer tenant,
             @Header("Authorization") String basicAuthnToken);
     }
-
 }
