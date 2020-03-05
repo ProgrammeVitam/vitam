@@ -61,5 +61,18 @@
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2116",
 		"EveryDataObjectVersion": true
+	},
+	{
+		"Name": "IC_WITH_PROFILE",
+		"Identifier": "IC_WITH_PROFILE",
+		"Description": "Contrat With Profil",
+		"Status": "ACTIVE",
+		"LastUpdate": "10/12/2016",
+		"CreationDate": "10/12/2016",
+		"ActivationDate": "10/12/2016",
+		"DeactivationDate": "10/12/2016",
+		"ArchiveProfiles": [
+			"PR-000001"
+		]
 	}
 ]
