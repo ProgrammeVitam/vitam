@@ -149,7 +149,7 @@ public class MongoDbAccessAdminImplTest {
     public static void setUpBeforeClass() throws Exception {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
@@ -257,7 +257,7 @@ public class MongoDbAccessAdminImplTest {
         // find all
         final QueryBuilder query = QueryBuilders.matchAllQuery();
         final SearchResponse requestResponse = formatCollection.getEsClient().search(formatCollection, query, null);
-        assertEquals(3, requestResponse.getHits().getTotalHits());
+        assertEquals(3, requestResponse.getHits().getTotalHits().value);
 
         // find one by id
         final Select select = new Select();
@@ -274,7 +274,7 @@ public class MongoDbAccessAdminImplTest {
         final String puid = f1.getString(FileFormat.PUID);
         final FileFormat f3 = (FileFormat) mongoAccess.getDocumentByUniqueId(puid, formatCollection, FileFormat.PUID);
         assertEquals(f3.get("#id"), f1.getId());
-        formatCollection.getEsClient().refreshIndex(formatCollection);
+        formatCollection.getEsClient().refreshIndex(formatCollection.getName().toLowerCase(), null);
         assertEquals(1, fileList.getCount());
         fileList.close();
 
@@ -315,7 +315,7 @@ public class MongoDbAccessAdminImplTest {
         final DbRequestSingle dbrequest = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
         final DbRequestResult updateResult = dbrequest.execute(update, mock(DocumentValidator.class));
         assertEquals(1, updateResult.getCount());
-        formatCollection.getEsClient().refreshIndex(formatCollection);
+        formatCollection.getEsClient().refreshIndex(formatCollection.getName().toLowerCase(), null);
         updateResult.close();
 
         final Delete delete = new Delete();
@@ -362,14 +362,14 @@ public class MongoDbAccessAdminImplTest {
         final FileRules f1 = fileList.getDocuments(FileRules.class).get(0);
         LOGGER.debug(JsonHandler.prettyPrint(f1));
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
-        rulesCollection.getEsClient().refreshIndex(rulesCollection);
+        rulesCollection.getEsClient().refreshIndex(rulesCollection.getName().toLowerCase(), null);
 
         final QueryBuilder query = QueryBuilders.matchAllQuery();
         final SearchResponse requestResponse =
             rulesCollection.getEsClient()
                 .search(rulesCollection, query, null);
         fileList.close();
-        assertEquals(2, requestResponse.getHits().getTotalHits());
+        assertEquals(2, requestResponse.getHits().getTotalHits().value);
         mongoAccess.deleteCollection(rulesCollection).close();
         assertEquals(0, collection.countDocuments());
     }

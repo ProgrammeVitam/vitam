@@ -6,6 +6,9 @@
     },
     "_tenant": {
       "type": "long"
+    },
+    "Identifier": {
+      "type": "keyword"
     }
   }
 }

@@ -32,7 +32,7 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
 public class ElasticsearchNode {
 
     private String hostName;
-    private int tcpPort;
+    private int httpPort;
 
 
     /**
@@ -44,12 +44,12 @@ public class ElasticsearchNode {
 
     /**
      * @param hostName the node host name 
-     * @param tcpPort the node tcp port
+     * @param httpPort the node tcp port
      */
-    public ElasticsearchNode(String hostName, int tcpPort) {
+    public ElasticsearchNode(String hostName, int httpPort) {
         super();
         this.hostName = hostName;
-        this.tcpPort = tcpPort;
+        this.httpPort = httpPort;
     }
 
     /**
@@ -60,10 +60,10 @@ public class ElasticsearchNode {
     }
 
     /**
-     * @return the tcpPort
+     * @return the httpPort
      */
-    public int getTcpPort() {
-        return tcpPort;
+    public int getHttpPort() {
+        return httpPort;
     }
 
     /**
@@ -77,12 +77,12 @@ public class ElasticsearchNode {
     }
 
     /**
-     * @param tcpPort the tcpPort to set
+     * @param httpPort the httpPort to set
      *
      * @return this
      */
-    public ElasticsearchNode setTcpPort(int tcpPort) {
-        this.tcpPort = tcpPort;
+    public ElasticsearchNode setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
         return this;
     }
 

@@ -6,7 +6,7 @@ After=network-online.target
 
 [Service]
 Environment=ES_HOME=/usr/share/elasticsearch
-Environment=CONF_DIR=/vitam/conf/elasticsearch-log
+Environment=ES_PATH_CONF=/vitam/conf/elasticsearch-log
 Environment=PID_DIR=/var/run/elasticsearch-log
 EnvironmentFile=-/vitam/conf/elasticsearch-log/sysconfig/elasticsearch
 

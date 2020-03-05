@@ -135,7 +135,7 @@ public class ArchiveUnitProfileServiceImplTest {
 
 
         esClient = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT)));
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())));
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             esClient, Arrays.asList(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE));
 

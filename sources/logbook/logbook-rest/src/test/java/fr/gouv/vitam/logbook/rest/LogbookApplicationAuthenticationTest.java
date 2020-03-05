@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.rest;
 
 import java.io.File;
+import java.util.List;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -68,15 +69,16 @@ public class LogbookApplicationAuthenticationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), 0, 1);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), 0, 1);
 
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        realLogbook.getElasticsearchNodes().get(0).setTcpPort(ElasticsearchRule.TCP_PORT);
+        realLogbook.getElasticsearchNodes().get(0).setHttpPort(ElasticsearchRule.PORT);
 
         File file = temporaryFolder.newFile();
         configurationFile = file.getAbsolutePath();

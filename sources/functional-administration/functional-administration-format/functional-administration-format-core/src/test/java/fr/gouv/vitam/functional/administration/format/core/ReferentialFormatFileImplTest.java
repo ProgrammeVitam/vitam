@@ -107,7 +107,6 @@ public class ReferentialFormatFileImplTest {
 
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
-    private final static String HOST_NAME = "127.0.0.1";
     static ReferentialFormatFileImpl formatFile;
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
@@ -116,7 +115,7 @@ public class ReferentialFormatFileImplTest {
     public static void setUpBeforeClass() throws Exception {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
+        esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
 

@@ -54,7 +54,6 @@ public class VitamCollection {
     private String name;
     private MongoCollection<?> collection;
     private ElasticsearchAccess esClient;
-    public static final String TYPEUNIQUE = "typeunique";
     private final boolean isMultiTenant;
     private final boolean useScore;
     private boolean createIndexByTenant = false;
@@ -62,14 +61,14 @@ public class VitamCollection {
      * Used by different parser places (isArray, score)
      */
     private static final ThreadLocal<Boolean> CONTAINS_FINALLY_MATCH =
-            new ThreadLocal<Boolean>() {
+        new ThreadLocal<Boolean>() {
 
-                @Override
-                protected Boolean initialValue() {
-                    return false;
-                }
+            @Override
+            protected Boolean initialValue() {
+                return false;
+            }
 
-            };
+        };
 
     /**
      * @return true if the real query contains match
@@ -85,14 +84,8 @@ public class VitamCollection {
         CONTAINS_FINALLY_MATCH.set(match);
     }
 
-    /**
-     * @return the typeunique
-     */
-    public static String getTypeunique() {
-        return TYPEUNIQUE;
-    }
-
-    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore, String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
+    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore, String prefix,
+        VitamDescriptionResolver vitamDescriptionResolver) {
         this.clasz = clasz;
         this.vitamDescriptionResolver = vitamDescriptionResolver;
         name = prefix + clasz.getSimpleName();
@@ -103,7 +96,7 @@ public class VitamCollection {
     /**
      * Initialize the collection
      *
-     * @param db       mongodb database
+     * @param db mongodb database
      * @param recreate boolean if recreate the database
      */
     public void initialize(final MongoDatabase db, final boolean recreate) {
@@ -180,7 +173,7 @@ public class VitamCollection {
     public static MongoClientOptions getMongoClientOptions(List<Class<?>> claszList) {
         if (claszList == null || claszList.isEmpty()) {
             final CodecRegistry codecRegistry =
-                    CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry());
+                CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry());
 
             return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
         }
@@ -190,7 +183,7 @@ public class VitamCollection {
         }
         final CodecRegistry vitamCodecRegistry = CodecRegistries.fromRegistries(codecs);
         final CodecRegistry codecRegistry =
-                CodecRegistries.fromRegistries(vitamCodecRegistry, MongoClient.getDefaultCodecRegistry());
+            CodecRegistries.fromRegistries(vitamCodecRegistry, MongoClient.getDefaultCodecRegistry());
 
         return getMongoClientOptions(codecRegistry);
     }
@@ -205,15 +198,15 @@ public class VitamCollection {
 
     private static MongoClientOptions getMongoClientOptions(CodecRegistry codecRegistry) {
         return MongoClientOptions.builder().codecRegistry(codecRegistry)
-                .connectTimeout(VitamConfiguration.getConnectTimeout())
-                .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getNumberDbClientThread())
-                .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
-                .threadsAllowedToBlockForConnectionMultiplier(
-                        VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
-                .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())
-                .writeConcern(WriteConcern.MAJORITY)
-                .readConcern(ReadConcern.MAJORITY)
-                .build();
+            .connectTimeout(VitamConfiguration.getConnectTimeout())
+            .minConnectionsPerHost(1).connectionsPerHost(VitamConfiguration.getNumberDbClientThread())
+            .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection())
+            .threadsAllowedToBlockForConnectionMultiplier(
+                VitamConfiguration.getThreadsAllowedToBlockForConnectionMultipliers())
+            .socketKeepAlive(true).socketTimeout(VitamConfiguration.getReadTimeout())
+            .writeConcern(WriteConcern.MAJORITY)
+            .readConcern(ReadConcern.MAJORITY)
+            .build();
     }
 
     /**

@@ -26,44 +26,81 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
-import org.elasticsearch.ResourceAlreadyExistsException;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.util.Asserts;
+import org.bson.Document;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.DocWriteRequest;
+import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
+import org.elasticsearch.action.admin.indices.alias.Alias;
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest.AliasActions;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
+import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.ClearScrollRequest;
+import org.elasticsearch.action.search.ClearScrollResponse;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchScrollRequest;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.support.ActiveShardCount;
+import org.elasticsearch.action.support.DefaultShardOperationFailedException;
+import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.GetAliasesResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
-import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
+import org.elasticsearch.index.reindex.ScrollableHitSource;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
@@ -74,6 +111,19 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 public class ElasticsearchAccess implements DatabaseConnection {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
+    /**
+     * default limit scroll timeout
+     */
+    public static final int DEFAULT_SCROLL_TIMEOUT = 60000;
+    /**
+     * default limit scroll size
+     */
+    public static final int DEFAULT_LIMIT_SCROLL = 100;
+
+    /**
+     * KEYWORD to activate scroll
+     */
+    public static final String SCROLL_ACTIVATE_KEYWORD = "START";
 
     /**
      * The ES Builder
@@ -81,7 +131,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     private Builder default_builder;
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
-    private AtomicReference<Client> esClient = new AtomicReference<>();
+    private AtomicReference<RestHighLevelClient> esClient = new AtomicReference<>();
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;
 
@@ -109,97 +159,490 @@ public class ElasticsearchAccess implements DatabaseConnection {
     }
 
     public void purgeIndex(String collectionName, Integer tenant) {
-        String indexName = collectionName + "_" + tenant;
+        String indexName = collectionName.toLowerCase() + "_" + tenant;
         purgeIndex(indexName);
     }
 
+    public boolean existsIndex(String indexName) throws IOException {
+        GetIndexRequest request = new GetIndexRequest(indexName.toLowerCase());
+        request.humanReadable(true);
+        request.includeDefaults(false);
+        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+        return getClient().indices().exists(request, RequestOptions.DEFAULT);
+    }
+
+    public GetAliasesResponse getAlias(String alias) throws IOException {
+        GetAliasesRequest request = new GetAliasesRequest(alias.toLowerCase());
+        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+        return getClient().indices().getAlias(request, RequestOptions.DEFAULT);
+    }
+
+
+    public boolean createIndex(String aliasName, String indexName, String mapping) throws IOException {
+
+        if (Boolean.TRUE.equals(existsIndex(indexName))) {
+            LOGGER.debug("Index (" + indexName + ") already exists");
+            return true;
+        }
+
+        CreateIndexRequest request = new CreateIndexRequest(indexName)
+            .settings(default_builder)
+            .mapping(mapping, XContentType.JSON)
+            .alias(new Alias(aliasName));
+
+        request.setTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.setMasterTimeout(
+            TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.waitForActiveShards(ActiveShardCount.DEFAULT);
+
+        CreateIndexResponse response =
+            getClient().indices().create(request, RequestOptions.DEFAULT);
+
+        boolean acknowledged = response.isAcknowledged();
+        boolean shardsAcknowledged = response.isShardsAcknowledged();
+
+        LOGGER.debug(
+            "Alias (" + aliasName + ") and index (" + indexName + ") create response acknowledged (" + acknowledged +
+                ") and shardsAcknowledged (" + shardsAcknowledged + ") ");
+
+        return acknowledged && shardsAcknowledged;
+    }
+
+    public boolean createIndex(String indexName, String mapping) throws IOException {
+
+        boolean existsIndex = existsIndex(indexName);
+
+        if (Boolean.TRUE.equals(existsIndex)) {
+            LOGGER.debug("Index (" + existsIndex + ") already exists");
+            return true;
+        }
+
+        CreateIndexRequest request = new CreateIndexRequest(indexName)
+            .settings(default_builder)
+            .mapping(mapping, XContentType.JSON);
+
+        request.setTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.setMasterTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.waitForActiveShards(ActiveShardCount.DEFAULT);
+
+        CreateIndexResponse response =
+            getClient().indices().create(request, RequestOptions.DEFAULT);
+
+        boolean acknowledged = response.isAcknowledged();
+        boolean shardsAcknowledged = response.isShardsAcknowledged();
+
+        LOGGER.debug(
+            "Index (" + indexName + ") create response : acknowledged (" + acknowledged +
+                ") and shardsAcknowledged (" + shardsAcknowledged + ") ");
+
+        return acknowledged && shardsAcknowledged;
+    }
+
+    public boolean existsAlias(String aliasName) throws IOException {
+        GetAliasesRequest request = new GetAliasesRequest(aliasName.toLowerCase());
+        request.local(true);
+        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+        return getClient().indices().existsAlias(request, RequestOptions.DEFAULT);
+    }
+
+    public boolean switchAliasIndex(String aliasName, String oldIndex, String newIndexName) throws IOException {
+        IndicesAliasesRequest request = new IndicesAliasesRequest();
+        AliasActions aliasAction =
+            new AliasActions(AliasActions.Type.ADD)
+                .index(newIndexName.toLowerCase())
+                .alias(aliasName.toLowerCase());
+        request.addAliasAction(aliasAction);
+
+        if (null != oldIndex) {
+            aliasAction =
+                new AliasActions(AliasActions.Type.REMOVE)
+                    .index(oldIndex.toLowerCase())
+                    .alias(aliasName.toLowerCase());
+            request.addAliasAction(aliasAction);
+        }
+
+        request.timeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.masterNodeTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+
+        AcknowledgedResponse response = getClient().indices().updateAliases(request, RequestOptions.DEFAULT);
+
+        return response.isAcknowledged();
+    }
+
     public void purgeIndex(String indexName) {
-        if (getClient().admin().indices().prepareExists(indexName.toLowerCase()).get().isExists()) {
-            QueryBuilder qb = matchAllQuery();
+        try {
+            String vitamIndexName = indexName.toLowerCase();
+            if (existsIndex(vitamIndexName)) {
+                DeleteByQueryRequest request = new DeleteByQueryRequest(vitamIndexName);
+                request.setConflicts("proceed");
+                request.setQuery(matchAllQuery());
+                request.setBatchSize(VitamConfiguration.getMaxElasticsearchBulk());
+                request.setScroll(TimeValue.timeValueMillis(
+                    VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
+                request.setTimeout(TimeValue.timeValueMillis(
+                    VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+                request.setRefresh(true);
 
-            SearchResponse scrollResp = getClient().prepareSearch(indexName.toLowerCase())
-                .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-                .setScroll(new TimeValue(60000))
-                .setQuery(qb)
-                .setFetchSource(false)
-                .setSize(100).get();
+                BulkByScrollResponse bulkResponse = getClient().deleteByQuery(request, RequestOptions.DEFAULT);
 
-            BulkRequestBuilder bulkRequest = getClient().prepareBulk();
+                TimeValue timeTaken = bulkResponse.getTook();
+                boolean timedOut = bulkResponse.isTimedOut();
+                long totalDocs = bulkResponse.getTotal();
+                long deletedDocs = bulkResponse.getDeleted();
+                long batches = bulkResponse.getBatches();
+                long noops = bulkResponse.getNoops();
+                long versionConflicts = bulkResponse.getVersionConflicts();
+                long bulkRetries = bulkResponse.getBulkRetries();
+                long searchRetries = bulkResponse.getSearchRetries();
+                TimeValue throttledMillis = bulkResponse.getStatus().getThrottled();
+                TimeValue throttledUntilMillis =
+                    bulkResponse.getStatus().getThrottledUntil();
 
-            do {
-                for (SearchHit hit : scrollResp.getHits().getHits()) {
-                    bulkRequest.add(getClient().prepareDelete(indexName.toLowerCase(), "typeunique", hit.getId()));
+                LOGGER.debug(
+                    "Purge index (" + indexName + ") : timeTaken (" + timeTaken + "), timedOut (" + timedOut +
+                        "), totalDocs (" + totalDocs +
+                        ")," +
+                        " deletedDocs (" + deletedDocs + "), batches (" + batches + "), noops (" + noops +
+                        "), versionConflicts (" + versionConflicts + ")" +
+                        "bulkRetries (" + bulkRetries + "), searchRetries (" + searchRetries + "),  throttledMillis(" +
+                        throttledMillis + "), throttledUntilMillis(" + throttledUntilMillis + ")");
+
+                List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures();
+                if (CollectionUtils.isNotEmpty(searchFailures)) {
+                    throw new VitamFatalRuntimeException("ES purge errors : in search phase > " + searchFailures);
                 }
 
-                scrollResp =
-                    getClient().prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
-                        .actionGet();
-            } while (scrollResp.getHits().getHits().length != 0);
+                List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures();
+                if (CollectionUtils.isNotEmpty(bulkFailures)) {
+                    throw new VitamFatalRuntimeException("ES purge errors : in bulk phase > " + bulkFailures);
+                }
 
-            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+            }
+        } catch (IOException e) {
+            throw new VitamFatalRuntimeException(e);
+        }
+    }
 
-            if (bulkRequest.request().numberOfActions() != 0) {
-                BulkResponse bulkResponse = bulkRequest.get();
+    /**
+     * refresh an index
+     *
+     * @param collectionName the working metadata collection name
+     * @param tenantId the tenant for operation
+     */
+    public final void refreshIndex(final String collectionName, Integer tenantId)
+        throws IOException, DatabaseException {
+        String index = getAliasName(collectionName, tenantId);
+        LOGGER.debug("refreshIndex: " + index);
 
+        RefreshRequest request = new RefreshRequest(index);
+        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+        RefreshResponse refreshResponse = getClient().indices().refresh(request, RequestOptions.DEFAULT);
+        LOGGER.debug("Refresh request executed with {} successfull shards", refreshResponse.getSuccessfulShards());
+
+        int failedShards = refreshResponse.getFailedShards();
+        if (failedShards > 0) {
+            DefaultShardOperationFailedException[] failures = refreshResponse.getShardFailures();
+            StringBuilder sb = new StringBuilder();
+            for (DefaultShardOperationFailedException failure : failures) {
+                sb.append(failure.toString()).append("; ");
+            }
+            throw new DatabaseException(sb.toString());
+        }
+    }
+
+
+    /**
+     * Add an entry in the ElasticSearch index
+     *
+     * @param collectionName
+     * @param tenantId
+     * @param id
+     * @param vitamDocument
+     * @return True if ok
+     */
+    public final <T extends VitamDocument> void indexEntry(final String collectionName, final Integer tenantId,
+        final String id,
+        final T vitamDocument) throws DatabaseException {
+
+        vitamDocument.remove(VitamDocument.ID);
+        vitamDocument.remove(VitamDocument.SCORE);
+
+        String source = BsonHelper.stringify(vitamDocument);
+
+        IndexRequest request = new IndexRequest(getAliasName(collectionName, tenantId))
+            .id(id)
+            .source(source, XContentType.JSON)
+            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
+            .timeout(TimeValue.timeValueSeconds(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
+            .opType(DocWriteRequest.OpType.INDEX);
+
+        IndexResponse indexResponse;
+        try {
+            indexResponse = getClient().index(request, RequestOptions.DEFAULT);
+        } catch (IOException | ElasticsearchException e) {
+            throw new DatabaseException(e);
+        } finally {
+            vitamDocument.put(VitamDocument.ID, id);
+        }
+
+        switch (indexResponse.getResult()) {
+            case CREATED:
+                break;
+            default:
+                throw new DatabaseException(String
+                    .format("Could not index document on ES. Id=%s, collection=%s, status=%s", id, collectionName,
+                        indexResponse.status()));
+        }
+    }
+
+    /**
+     * Add a set of entries in the ElasticSearch index. <br>
+     * Used in reload from scratch.
+     *
+     * @param collectionName collection of index
+     * @param tenantId tenant Id
+     * @param documents documents to index
+     * @return the listener on bulk insert
+     */
+    final public void indexEntries(final String collectionName, final Integer tenantId,
+        final Collection<? extends Document> documents) throws DatabaseException {
+
+        UnmodifiableIterator<? extends List<? extends Document>> idIterator =
+            Iterators.partition(documents.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
+
+        while (idIterator.hasNext()) {
+            BulkRequest bulkRequest = new BulkRequest();
+            List<? extends Document> docs = idIterator.next();
+            docs.forEach(document -> {
+                String id = (String) document.remove(VitamDocument.ID);
+                try {
+                    String source = BsonHelper.stringify(document);
+                    bulkRequest.add(new IndexRequest(getAliasName(collectionName, tenantId))
+                        .id(id)
+                        .opType(DocWriteRequest.OpType.INDEX)
+                        .source(source, XContentType.JSON));
+                } finally {
+                    document.put(VitamDocument.ID, id);
+                }
+            });
+
+            if (bulkRequest.numberOfActions() != 0) {
+                final BulkResponse bulkResponse;
+                try {
+                    bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+                    bulkResponse = getClient().bulk(bulkRequest, RequestOptions.DEFAULT);
+                } catch (IOException | ElasticsearchException e) {
+                    throw new DatabaseException(e);
+                }
+
+                LOGGER.debug("Written document {}", bulkResponse.getItems().length);
                 if (bulkResponse.hasFailures()) {
-                    throw new VitamRuntimeException(
-                        String.format("DatabaseException when calling purge by bulk Request %s",
-                            bulkResponse.buildFailureMessage()));
+                    LOGGER.error("##### Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+                    throw new DatabaseException(bulkResponse.buildFailureMessage());
                 }
             }
         }
     }
 
     /**
-     * Production settings, see Elasticsearch production settings
-     * https://www.elastic.co/guide/en/elasticsearch/guide/current/deploy.html.</br>
-     * </br>
-     * Additionnal on server side:</br>
-     * in sysctl "vm.swappiness = 1", "vm.max_map_count=262144"</br>
-     * in elasticsearch.yml "bootstrap.mlockall: true"
+     * Update one element fully
      *
-     * @return Settings for Elasticsearch client
+     * @param collectionName
+     * @param tenantId
+     * @param id
+     * @param vitamDocument full document to update
      */
-    public static Settings getSettings(String clusterName) {
-        return Settings.builder().put("cluster.name", clusterName)
-            .put("client.transport.sniff", true)
-            .put("client.transport.ping_timeout", "1s")
-            .put("transport.tcp.connect_timeout", "30s")
-            // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the
-            // default max value. So no configuration is needed.
-            .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-            // thread_pool.bulk.size is now boundedNumberOfProcessors() ; the default value is the maximum allowed (+1),
-            // so no configuration is needed.
-            // In addition, if the configured size is >= (1 + # of available processors), the threadpool creation fails.
-            // .put("thread_pool.bulk.size", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
-            // watcher settings are now part of X-pack (paid license) and can be configured once installed with the
-            // corresponding xpack.http.default_read_timeout
-            // .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / TOSECOND + "s")
-            .build();
+    public <T extends VitamDocument> void updateEntry(String collectionName, Integer tenantId, String id,
+        T vitamDocument)
+        throws DatabaseException {
+        try {
+            vitamDocument.remove(VitamDocument.ID);
+            final String document = BsonHelper.stringify(vitamDocument);
+
+            IndexRequest request = new IndexRequest(getAliasName(collectionName, tenantId))
+                .id(id)
+                .source(document, XContentType.JSON)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
+                .timeout(TimeValue.timeValueMillis(VitamConfiguration
+                    .getElasticSearchTimeoutWaitRequestInMilliseconds()))
+                .opType(DocWriteRequest.OpType.INDEX);
+
+            IndexResponse indexResponse;
+            try {
+                indexResponse = getClient().index(request, RequestOptions.DEFAULT);
+            } catch (IOException | ElasticsearchException e) {
+                throw new DatabaseException(e);
+            }
+
+            switch (indexResponse.getResult()) {
+                case UPDATED:
+                    break;
+                default:
+                    throw new DatabaseException(String
+                        .format("Could not update document on ES. Id=%s, collection=%s, status=%s", id, collectionName,
+                            indexResponse.status()));
+            }
+
+        } finally {
+            vitamDocument.put(VitamDocument.ID, id);
+        }
     }
 
-    private TransportClient getClient(Settings settings) throws VitamException {
-        try {
-            final TransportClient clientNew = new PreBuiltTransportClient(settings);
-            for (final ElasticsearchNode node : nodes) {
-                clientNew.addTransportAddress(
-                    new TransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
-            }
-            return clientNew;
-        } catch (final UnknownHostException e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new VitamException(e.getMessage());
+    public final SearchResponse search(final String collectionName, final Integer tenantId,
+        final QueryBuilder query)
+        throws DatabaseException, BadRequestException {
+        return search(collectionName, tenantId, query, null);
+    }
+
+    public final SearchResponse search(final String collectionName, final Integer tenantId,
+        final QueryBuilder query, final QueryBuilder filter)
+        throws DatabaseException, BadRequestException {
+        return search(collectionName, tenantId, query, filter, null, null, 0, GlobalDatas.LIMIT_LOAD);
+    }
+
+    public final SearchResponse search(final String collectionName, final Integer tenantId,
+        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
+        int offset, Integer limit)
+        throws DatabaseException, BadRequestException {
+        return search(collectionName, tenantId, query, filter, esProjection, sorts, offset, limit, null, null, null);
+    }
+
+
+    public final SearchResponse search(final String collectionName, final Integer tenantId,
+        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
+        int offset, Integer limit,
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        throws DatabaseException, BadRequestException {
+
+        SearchResponse response;
+        SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.searchSource()
+            .explain(false)
+            .query(query)
+            .size(VitamConfiguration.getElasticSearchScrollLimit());
+
+        if (null != filter) {
+            searchSourceBuilder.postFilter(filter);
         }
+
+        if (sorts != null) {
+            sorts.forEach(searchSourceBuilder::sort);
+        }
+
+        if (null != esProjection) {
+            searchSourceBuilder.fetchSource(esProjection, null);
+        }
+
+        SearchRequest searchRequest = new SearchRequest()
+            .indices(getAliasName(collectionName, tenantId))
+            .source(searchSourceBuilder)
+            .searchType(SearchType.DFS_QUERY_THEN_FETCH);
+
+
+
+        if (scrollId != null && !scrollId.isEmpty()) {
+            int limitES = (limit != null && limit > 0) ? limit : DEFAULT_LIMIT_SCROLL;
+            int scrollTimeoutES =
+                (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : DEFAULT_SCROLL_TIMEOUT;
+            searchRequest.scroll(TimeValue.timeValueMillis(scrollTimeoutES));
+            searchSourceBuilder.size(limitES);
+
+            try {
+                if (scrollId.equals(SCROLL_ACTIVATE_KEYWORD)) {
+                    response = getClient().search(searchRequest, RequestOptions.DEFAULT);
+                } else {
+                    response = getClient()
+                        .scroll(new SearchScrollRequest(scrollId).scroll(new TimeValue(scrollTimeoutES)),
+                            RequestOptions.DEFAULT);
+                }
+            } catch (IOException e) {
+                throw new DatabaseException(e);
+            }
+
+        } else {
+            if (offset != -1) {
+                searchSourceBuilder.from(offset);
+            }
+            if (limit != -1) {
+                searchSourceBuilder.size(limit);
+            }
+
+            if (facets != null && !facets.isEmpty()) {
+                facets.forEach(searchSourceBuilder::aggregation);
+            }
+
+            searchSourceBuilder.query(query);
+
+            LOGGER.debug("ESReq: {}", searchRequest);
+
+            try {
+                response = getClient().search(searchRequest, RequestOptions.DEFAULT);
+            } catch (final ElasticsearchException e) {
+                switch (e.status()) {
+                    case BAD_REQUEST:
+                        throw new BadRequestException(e);
+                    default:
+                        throw new DatabaseException(e);
+                }
+            } catch (IOException e) {
+                throw new DatabaseException(e);
+            }
+        }
+
+        switch (response.status()) {
+            case OK:
+                break;
+            default:
+                throw new DatabaseException("Error " + response.status() + " from : " + searchRequest + ":" + query);
+        }
+
+        return response;
+    }
+
+    public void clearScroll(String scrollId) throws DatabaseException {
+        ClearScrollRequest request = new ClearScrollRequest();
+        request.addScrollId(scrollId);
+        try {
+            ClearScrollResponse response =
+                getClient().clearScroll(request, RequestOptions.DEFAULT);
+
+            boolean success = response.isSucceeded();
+            int released = response.getNumFreed();
+
+            Asserts.check(success, "clear scroll" + scrollId + " ko");
+            LOGGER.debug("clear scroll " + scrollId + " > success :" + success + ", released: " + released);
+        } catch (IOException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    private RestHighLevelClient createClient() {
+        HttpHost[] hosts = new HttpHost[nodes.size()];
+        for (int i = 0; i < nodes.size(); i++) {
+            ElasticsearchNode elasticsearchNode = nodes.get(i);
+            hosts[i] = new HttpHost(elasticsearchNode.getHostName(), elasticsearchNode.getHttpPort(), "http");
+        }
+        RestClientBuilder restClientBuilder = RestClient.builder(hosts).setRequestConfigCallback(
+            requestConfigBuilder -> requestConfigBuilder
+                .setConnectionRequestTimeout(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds())
+                .setConnectTimeout(VitamConfiguration.getConnectTimeout())
+                .setSocketTimeout(VitamConfiguration.getReadTimeout()));
+        return new RestHighLevelClient(restClientBuilder);
     }
 
     /**
      * Close the ElasticSearch connection
      */
     public void close() {
-        getClient().close();
+        try {
+            getClient().close();
+        } catch (IOException e) {
+            throw new VitamFatalRuntimeException(e);
+        }
     }
 
     /**
@@ -212,17 +655,13 @@ public class ElasticsearchAccess implements DatabaseConnection {
     /**
      * @return the client
      */
-    public Client getClient() {
-        Client client = esClient.get();
+    public RestHighLevelClient getClient() {
+        RestHighLevelClient client = esClient.get();
         if (null == client) {
             synchronized (this) {
                 if (null == esClient.get()) {
-                    try {
-                        client = getClient(getSettings(clusterName));
-                        esClient.set(client);
-                    } catch (VitamException e) {
-                        throw new VitamRuntimeException("Error while get ES client", e);
-                    }
+                    client = createClient();
+                    esClient.set(client);
                 }
             }
         }
@@ -238,8 +677,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     @Override
     public boolean checkConnection() {
-        try (TransportClient clientCheck = getClient(getSettings(clusterName))) {
-            return !clientCheck.connectedNodes().isEmpty();
+        try (RestHighLevelClient clientCheck = createClient()) {
+            return !clientCheck.cluster().health(new ClusterHealthRequest(), RequestOptions.DEFAULT).isTimedOut();
         } catch (final Exception e) {
             LOGGER.warn(e);
             return false;
@@ -251,128 +690,171 @@ public class ElasticsearchAccess implements DatabaseConnection {
         return clusterName;
     }
 
-    /**
-     * Create an index and alias for a collection (if the alias does not exist)
-     *
-     * @param collectionName the name of the collection
-     * @param mapping the mapping as a string
-     * @param type the type of the collection
-     * @param tenantId the tenant on which to create the index
-     * @return key aliasName value indexName or empty
-     */
+
+    public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping) {
+        return createIndexAndAliasIfAliasNotExists(collectionName, mapping, null);
+    }
+
     public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping,
-        String type,
         Integer tenantId) {
         String indexName = getUniqueIndexName(collectionName, tenantId);
         String aliasName = getAliasName(collectionName, tenantId);
         LOGGER.debug("addIndex: {}", indexName);
-        if (!getClient().admin().indices().prepareExists(aliasName).get().isExists()) {
-            try {
+        Map<String, String> map = new HashMap<>();
+        try {
+            if (!existsAlias(aliasName)) {
                 LOGGER.debug("createIndex");
-                LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-                try {
-                    final CreateIndexResponse response = getClient().admin().indices()
-                        .prepareCreate(indexName)
-                        .setSettings(default_builder)
-                        .addMapping(type, mapping, XContentType.JSON).get();
+                LOGGER.debug("setMapping: " + indexName + "\n\t" + mapping);
 
-                    if (!response.isAcknowledged()) {
-                        LOGGER.error("Error creating index for " + type + " / collection : " + collectionName);
-                        return new HashMap<>();
-                    }
-                } catch (ResourceAlreadyExistsException e) {
-                    // Continue if index already exists
-                    LOGGER.warn(e);
-                }
+                boolean indexCreated = createIndex(aliasName, indexName, mapping);
 
-                AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
-                    .prepareAliases().addAlias(indexName, aliasName).execute().get();
-
-                if (!indAliasesResponse.isAcknowledged()) {
-                    LOGGER.error("Error creating alias for " + type + " / collection : " + collectionName);
+                if (!indexCreated) {
                     return new HashMap<>();
                 }
-            } catch (final Exception e) {
-                LOGGER.error("Error while set Mapping", e);
-                return new HashMap<>();
+                map.put(aliasName, indexName);
+            } else {
+                GetAliasesResponse aliasResponse = getAlias(aliasName);
+                for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
+                    // Assume one alias == One index
+                    // Assume one index == multiple aliases
+                    Iterator<AliasMetaData> iterator = entry.getValue().iterator();
+                    while (iterator.hasNext()) {
+                        map.put(iterator.next().getAlias(), entry.getKey());
+                    }
+                }
             }
+        } catch (final IOException e) {
+            LOGGER.error("Error while check alias existence", e);
         }
-        Map<String, String> map = new HashMap<>();
-        map.put(aliasName, indexName);
         return map;
     }
 
-    /**
-     * Create an index without a linked alias
-     *
-     * @param collectionName
-     * @param mapping
-     * @param type
-     * @param tenantId
-     * @return the newly created index Name
-     * @throws DatabaseException
-     */
-    public final String createIndexWithoutAlias(String collectionName, String mapping, String type,
+    public final String createIndexWithoutAlias(String collectionName, String mapping,
         Integer tenantId)
-        throws DatabaseException {
+        throws DatabaseException, IOException {
         String indexName = getUniqueIndexName(collectionName, tenantId);
         // Retrieve alias
         LOGGER.debug("createIndex");
-        LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-        final CreateIndexResponse response = getClient().admin().indices()
-            .prepareCreate(indexName)
-            .setSettings(default_builder)
-            .addMapping(type, mapping, XContentType.JSON).get();
-        if (!response.isAcknowledged()) {
-            String message = "Database Exception for type " + type + " / collection : " + collectionName;
+        LOGGER.debug("setMapping: " + indexName + "\n\t" + mapping);
+        boolean indexCreated = createIndex(indexName, mapping);
+
+        if (!indexCreated) {
+            String message = "Index creation exception for collection : " + collectionName;
             LOGGER.error(message);
             throw new DatabaseException(message);
         }
         return indexName;
     }
 
-    /**
-     * Switch index
-     *
-     * @param aliasName
-     * @param indexNameToSwitchWith
-     * @throws DatabaseException
-     */
     public final void switchIndex(String aliasName, String indexNameToSwitchWith)
-        throws DatabaseException {
-        GetAliasesResponse actualIndex =
-            getClient().admin().indices().getAliases(new GetAliasesRequest().aliases(aliasName))
-                .actionGet();
-        String oldIndexName = null;
-        for (Iterator<String> it = actualIndex.getAliases().keysIt(); it.hasNext(); ) {
-            oldIndexName = it.next();
-        }
+        throws DatabaseException, IOException {
 
-        if (!getClient().admin().indices().prepareExists(aliasName).get().isExists()) {
+        if (!existsAlias(aliasName)) {
             throw new DatabaseException(String.format("Alias not exist : %s", aliasName));
         }
-        // RemoveAlias to the old index and Add alias to new index
-        AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
-            .prepareAliases()
-            .removeAlias(oldIndexName, aliasName)
-            .addAlias(indexNameToSwitchWith, aliasName)
-            .execute().actionGet();
+
+        GetAliasesResponse actualIndex =
+            getClient().indices().getAlias(new GetAliasesRequest(aliasName.toLowerCase()), RequestOptions.DEFAULT);
+
+        Map<String, Set<AliasMetaData>> aliases = actualIndex.getAliases();
+
+        String oldIndexName = null;
+
+        if (!aliases.isEmpty()) {
+            oldIndexName = aliases.keySet().iterator().next();
+        }
+
+        LOGGER.debug("Alias (" + aliasName.toLowerCase() + ") map to index (" + oldIndexName + ")");
+
+        boolean aliasSwitched = switchAliasIndex(aliasName, oldIndexName, indexNameToSwitchWith);
+
         LOGGER.debug("aliasName %s", aliasName);
 
-        if (!indAliasesResponse.isAcknowledged()) {
-            final String message = "Switch Index error IndicesAliasesResponse " + indAliasesResponse.isAcknowledged();
+        if (!aliasSwitched) {
+            final String message = "Switch alias (" + aliasName + ") from index (" + oldIndexName + ") to index (" +
+                indexNameToSwitchWith + ")  error ";
             LOGGER.error(message);
             throw new DatabaseException(message);
         }
-        // TODO Remove old index 3204 ?
     }
 
-    /**
-     * Settings method
-     *
-     * @return the builder
-     * @throws IOException
-     */
+
+    public final void deleteIndexByAlias(final String collectionName, Integer tenantId) {
+
+        String aliasName = getAliasName(collectionName, tenantId);
+        GetAliasesResponse aliasResponse = null;
+        try {
+            aliasResponse = getAlias(aliasName);
+        } catch (IOException e) {
+            throw new VitamFatalRuntimeException(e);
+        }
+        for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
+            deleteIndex(entry.getKey());
+        }
+    }
+
+    public final boolean deleteIndex(final String indexFullName) {
+
+        DeleteIndexRequest request = new DeleteIndexRequest(indexFullName);
+        request
+            .timeout(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.masterNodeTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+
+        try {
+            AcknowledgedResponse deleteIndexResponse =
+                getClient().indices().delete(request, RequestOptions.DEFAULT);
+
+            return deleteIndexResponse.isAcknowledged();
+        } catch (Exception exception) {
+            if (exception instanceof ElasticsearchException &&
+                ((ElasticsearchException) exception).status() == RestStatus.NOT_FOUND) {
+                //Nothing to do
+                return true;
+            }
+            LOGGER.error("Error while deleting index", exception);
+            return false;
+        }
+    }
+
+    public void delete(String collectionName, List<String> ids, Integer tenant) throws DatabaseException {
+
+        String index = getAliasName(collectionName, tenant);
+
+
+        Iterator<List<String>> idIterator =
+            Iterators.partition(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
+
+        while (idIterator.hasNext()) {
+
+            BulkRequest bulkRequest = new BulkRequest();
+            for (String id : idIterator.next()) {
+                bulkRequest.add(new DeleteRequest(index.toLowerCase(), id));
+            }
+
+            WriteRequest.RefreshPolicy refreshPolicy = idIterator.hasNext() ?
+                WriteRequest.RefreshPolicy.NONE :
+                WriteRequest.RefreshPolicy.IMMEDIATE;
+
+            bulkRequest.setRefreshPolicy(refreshPolicy);
+
+            if (bulkRequest.numberOfActions() != 0) {
+                BulkResponse bulkResponse;
+                try {
+                    bulkResponse = getClient().bulk(bulkRequest, RequestOptions.DEFAULT);
+                } catch (IOException e) {
+                    throw new DatabaseException("Bulk delete exception", e);
+                }
+
+                if (bulkResponse.hasFailures()) {
+                    throw new DatabaseException("ES delete in error: " + bulkResponse.buildFailureMessage());
+
+                }
+            }
+        }
+    }
+
     private Builder settings() throws IOException {
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
             ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);

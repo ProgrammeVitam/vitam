@@ -39,11 +39,11 @@ public class ElasticsearchNodeTest {
     public void testElasticsearchNode() {
         final ElasticsearchNode node1 = new ElasticsearchNode(HOST, PORT);
         assertEquals(HOST, node1.getHostName());
-        assertEquals(PORT, node1.getTcpPort());
+        assertEquals(PORT, node1.getHttpPort());
 
         final ElasticsearchNode node2 = new ElasticsearchNode();
         assertEquals(HOST, node2.setHostName(HOST).getHostName());
-        assertEquals(PORT, node2.setTcpPort(PORT).getTcpPort());
+        assertEquals(PORT, node2.setHttpPort(PORT).getHttpPort());
 
     }
 
