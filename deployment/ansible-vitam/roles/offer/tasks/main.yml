@@ -39,7 +39,8 @@
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
-  when: inventory_hostname == offer_list|last
+  when: ( inventory_hostname == offer_list|last ) and ( inventory_hostname in offer_list )
+
 
 - name: Ensure offer logs compaction systemd timer is stopped either
   systemd:
@@ -47,4 +48,5 @@
     daemon_reload: "yes"
     enabled: "no"
     state: "stopped"
-  when: inventory_hostname != offer_list|last
+  when: ( inventory_hostname != offer_list|last ) and ( inventory_hostname in offer_list )
+
