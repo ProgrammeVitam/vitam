@@ -45,8 +45,6 @@ import static org.junit.Assert.assertNotNull;
 
 
 public class MongoDbAccessFactoryTest {
-    private final static String HOST_NAME = "127.0.0.1";
-
     private static final String DATABASE_HOST = "localhost";
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
@@ -66,7 +64,7 @@ public class MongoDbAccessFactoryTest {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, mongoClient.getAddress().getPort()));
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
+        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         final MetaDataConfiguration config =
             new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         VitamConfiguration.setTenants(tenantList);
