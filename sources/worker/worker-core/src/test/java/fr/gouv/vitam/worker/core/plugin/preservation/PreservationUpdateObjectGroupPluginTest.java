@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.preservation;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -414,8 +415,7 @@ public class PreservationUpdateObjectGroupPluginTest {
             .containsOnly(OK);
         assertThat(
             finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata/0")
-                .textValue())
-            .isEqualTo("rawMetadata : {plop}");
+                .textValue()).isNotEmpty();
     }
 
     @Test
@@ -627,7 +627,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         assertThat(itemStatuses).extracting(ItemStatus::isLifecycleEnable).containsOnly(false);
     }
 
-    private WorkflowBatchResults getWorkflowBatchResults(OutputPreservation... outputPreservation) {
+    private WorkflowBatchResults getWorkflowBatchResults(OutputPreservation... outputPreservation) throws InvalidParseOperationException {
         return getWorkflowBatchResults("BinaryMaster", outputPreservation);
     }
 
@@ -668,6 +668,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.of("hash"),
                 Optional.empty(),
                 Optional.of(value),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
@@ -685,6 +686,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.empty(),
                 Optional.of(format),
                 Optional.of(value),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
@@ -702,6 +704,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.of("hash"),
                 Optional.of(format),
                 Optional.of(value),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
@@ -718,6 +721,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.of("hash"),
                 Optional.of(format),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
@@ -729,9 +733,15 @@ public class PreservationUpdateObjectGroupPluginTest {
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 
-    private WorkflowBatchResults getWorkflowBatchResults(String targetUse, OutputPreservation... outputPreservation) {
-        FormatIdentifierResponse format =
-            new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
+    private WorkflowBatchResults getWorkflowBatchResults(String targetUse, OutputPreservation... outputPreservation) throws InvalidParseOperationException {
+        FormatIdentifierResponse format = new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
+        ExtractedMetadata extractedMetadata = new ExtractedMetadata();
+        OtherMetadata otherMetadata = new OtherMetadata();
+        otherMetadata.put("GPS", Collections.singletonList("40.714, -74.006"));
+        InputStream rawInputStream = getClass().getResourceAsStream("/preservation/rawMetadata_big_result.json");
+        JsonNode rawMetadata = JsonHandler.getFromInputStream(rawInputStream);
+        extractedMetadata.setRawMetadata(rawMetadata.get("rawMetadata_big_content").asText());
+        extractedMetadata.setOtherMetadata(otherMetadata);
         StoredInfoResult value = new StoredInfoResult();
         List<OutputExtra> outputExtras = Stream.of(outputPreservation).map(o ->
             new OutputExtra(
@@ -741,6 +751,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.of("hash"),
                 Optional.of(format),
                 Optional.of(value),
+                Optional.of(extractedMetadata),
                 Optional.empty()
             )
         ).collect(Collectors.toList());

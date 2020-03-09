@@ -64,6 +64,25 @@
         },
         {
           "action": {
+            "actionKey": "PRESERVATION_METADATA_SECURITY_CHECKS",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ],
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "PRESERVATION_SIEGFRIED_IDENTIFICATION",
             "behavior": "NOBLOCKING",
             "lifecycleLog": "FINAL",

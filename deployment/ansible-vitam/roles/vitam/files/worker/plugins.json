@@ -261,6 +261,9 @@
   "PRESERVATION_SIEGFRIED_IDENTIFICATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationSiegfriedPlugin"
   },
+  "PRESERVATION_METADATA_SECURITY_CHECKS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationMetadataSecurityChecks"
+  },
   "PRESERVATION_BINARY_HASH": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash"
   },

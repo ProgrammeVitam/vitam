@@ -120,7 +120,7 @@ public class PreservationStorageMetadataAndLfcTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         WorkflowBatchResult.OutputExtra outputExtra = new WorkflowBatchResult.OutputExtra(output, "binaryGUID",
-                Optional.of(12L), Optional.of("hash"), Optional.of(format), Optional.of(value), Optional.empty());
+                Optional.of(12L), Optional.of("hash"), Optional.of(format), Optional.of(value), Optional.empty(), Optional.empty());
 
         WorkflowBatchResult batchResult = WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId",
                 Collections.singletonList(outputExtra), "BinaryMaster", "other_binary_strategy");
