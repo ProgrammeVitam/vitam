@@ -142,21 +142,23 @@ public class WorkflowBatchResult {
         private final Optional<String> binaryHash;
         private final Optional<FormatIdentifierResponse> binaryFormat;
         private final Optional<StoredInfoResult> storedInfo;
+        private final Optional<ExtractedMetadata> extractedMetadata;
         private final Optional<String> error;
 
         @VisibleForTesting
-        public OutputExtra(OutputPreservation output, String binaryGUID, Optional<Long> size, Optional<String> binaryHash, Optional<FormatIdentifierResponse> binaryFormat, Optional<StoredInfoResult> storedInfo, Optional<String> error) {
+        public OutputExtra(OutputPreservation output, String binaryGUID, Optional<Long> size, Optional<String> binaryHash, Optional<FormatIdentifierResponse> binaryFormat, Optional<StoredInfoResult> storedInfo, Optional<ExtractedMetadata> extractedMetadata, Optional<String> error) {
             this.output = output;
             this.binaryGUID = binaryGUID;
             this.size = size;
             this.binaryHash = binaryHash;
             this.binaryFormat = binaryFormat;
             this.storedInfo = storedInfo;
+            this.extractedMetadata = extractedMetadata;
             this.error = error;
         }
 
         public static OutputExtra of(OutputPreservation output) {
-            return new OutputExtra(output, GUIDFactory.newGUID().getId(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+            return new OutputExtra(output, GUIDFactory.newGUID().getId(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
         }
 
         public static OutputExtra withBinaryHashAndSize(OutputExtra outputExtra, String binaryHash, long size) {
@@ -167,6 +169,7 @@ public class WorkflowBatchResult {
                 Optional.of(binaryHash),
                 outputExtra.getBinaryFormat(),
                 outputExtra.getStoredInfo(),
+                outputExtra.getExtractedMetadata(),
                 outputExtra.getError()
             );
         }
@@ -179,6 +182,7 @@ public class WorkflowBatchResult {
                 outputExtra.getBinaryHash(),
                 Optional.of(binaryFormat),
                 outputExtra.getStoredInfo(),
+                outputExtra.getExtractedMetadata(),
                 outputExtra.getError()
             );
         }
@@ -191,6 +195,20 @@ public class WorkflowBatchResult {
                 outputExtra.getBinaryHash(),
                 outputExtra.getBinaryFormat(),
                 Optional.of(storedInfo),
+                outputExtra.getExtractedMetadata(),
+                outputExtra.getError()
+            );
+        }
+
+        public static OutputExtra withExtractedMetadata(OutputExtra outputExtra, ExtractedMetadata extractedMetadata) {
+            return new OutputExtra(
+                outputExtra.getOutput(),
+                outputExtra.getBinaryGUID(),
+                outputExtra.getSize(),
+                outputExtra.getBinaryHash(),
+                outputExtra.getBinaryFormat(),
+                outputExtra.getStoredInfo(),
+                Optional.of(extractedMetadata),
                 outputExtra.getError()
             );
         }
@@ -199,6 +217,20 @@ public class WorkflowBatchResult {
             return new OutputExtra(
                 null,
                 "ERROR",
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(errorMessage)
+            );
+        }
+
+        public static OutputExtra inError(OutputPreservation output, String errorMessage) {
+            return new OutputExtra(
+                output,
+                "ERROR",
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -235,6 +267,10 @@ public class WorkflowBatchResult {
             return error;
         }
 
+        public Optional<ExtractedMetadata> getExtractedMetadata() {
+            return extractedMetadata;
+        }
+
         public boolean isOkAndGenerated() {
             return this.getOutput().getAction().equals(GENERATE) && this.getOutput().getStatus().equals(PreservationStatus.OK);
         }
@@ -249,6 +285,10 @@ public class WorkflowBatchResult {
 
         public boolean isOkAndExtracted() {
             return this.getOutput().getAction().equals(EXTRACT) && this.getOutput().getStatus().equals(PreservationStatus.OK);
+        }
+
+        public boolean isExtracted() {
+            return this.getOutput().getAction().equals(EXTRACT);
         }
     }
 }

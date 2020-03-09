@@ -58,6 +58,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
@@ -117,18 +118,20 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     }
 
     private ItemStatus updateObjectGroupModel(WorkflowBatchResult batchResult, MetaDataClient metaDataClient) {
-        List<OutputExtra> generateOkActions = batchResult.getOutputExtras()
+        List<OutputExtra> outputExtras = batchResult.getOutputExtras()
             .stream()
+            .filter(outputExtra -> !outputExtra.isInError())
+            .collect(Collectors.toList());
+
+        List<OutputExtra> generateOkActions = outputExtras.stream()
             .filter(OutputExtra::isOkAndGenerated)
             .collect(Collectors.toList());
 
-        List<OutputExtra> identifyOkActions = batchResult.getOutputExtras()
-            .stream()
+        List<OutputExtra> identifyOkActions = outputExtras.stream()
             .filter(OutputExtra::isOkAndIdentify)
             .collect(Collectors.toList());
 
-        List<OutputExtra> extractedOkActions = batchResult.getOutputExtras()
-            .stream()
+        List<OutputExtra> extractedOkActions = outputExtras.stream()
             .filter(OutputExtra::isOkAndExtracted)
             .collect(Collectors.toList());
 
@@ -141,7 +144,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             generateOkActions.stream().map(OutputExtra::getBinaryGUID),
             extractedOkActions.stream().map(OutputExtra::getBinaryGUID)
         ).flatMap(Function.identity())
-            .distinct();
+         .distinct();
 
         try {
             RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(batchResult.getGotId());
@@ -174,7 +177,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
                 .map(DbQualifiersModel::getNbc)
                 .reduce(Integer::sum);
 
-            if (!totalBinarySize.isPresent()) {
+            if (totalBinarySize.isEmpty()) {
                 throw new IllegalStateException("total binaries for objectGroup nbc is absent");
             }
 
@@ -273,9 +276,8 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             .filter(o -> o.getOutput().getInputPreservation().getName().equals(version.getId()))
             .findFirst()
             .map(outputExtra -> IDENTIFY.equals(outputExtra.getOutput().getAction())
-                ?
-                createNewVersionIdentified(outputExtra, version, differences) :
-                createNewVersionExtracted(outputExtra, version, differences))
+                ? createNewVersionIdentified(outputExtra, version, differences)
+                : createNewVersionExtracted(outputExtra, version, differences))
             .orElse(version);
     }
 
@@ -295,23 +297,22 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
     private DbVersionsModel createNewVersionExtracted(OutputExtra outputExtra, DbVersionsModel version,
         List<Difference> differences) {
-        OutputPreservation output = outputExtra.getOutput();
-        if (output.getExtractedMetadata() == null) {
+        Optional<ExtractedMetadata> extractedMetadata = outputExtra.getExtractedMetadata();
+        if (extractedMetadata.isEmpty()) {
             throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
         }
         Difference<List<Object>> diffOtherMetadataToAdd = new Difference<>(OtherMetadata.class.getSimpleName());
 
         OtherMetadata oldMetadata = version.getOtherMetadata();
         OtherMetadata newOtherMetadata = new OtherMetadata(oldMetadata);
-        OtherMetadata extractedOtherMetadata = output.getExtractedMetadata().getOtherMetadata();
-        String extractedRawMetadata = output.getExtractedMetadata().getRawMetadata();
+        OtherMetadata extractedOtherMetadata = extractedMetadata.get().getOtherMetadata();
+        String extractedRawMetadata = extractedMetadata.get().getRawMetadata();
 
         if (extractedRawMetadata != null) {
 
             if (extractedRawMetadata.length() > VitamConfiguration.getTextMaxLength()) {
                 newOtherMetadata.put(RAW_METADATA,
-                    Splitter.fixedLength(VitamConfiguration.getTextMaxLength()).splitToList(extractedRawMetadata)
-                        .stream().collect(Collectors.toList()));
+                    new ArrayList<>(Splitter.fixedLength(VitamConfiguration.getTextMaxLength()).splitToList(extractedRawMetadata)));
             } else {
                 newOtherMetadata.put(RAW_METADATA, Collections.singletonList(extractedRawMetadata));
             }

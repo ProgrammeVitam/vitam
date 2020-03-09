@@ -106,7 +106,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
-        OutputExtra outputExtra = new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("sha-42"), Optional.empty(), Optional.empty(), Optional.empty());
+        OutputExtra outputExtra = new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("sha-42"), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty());
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
             "", "other_binary_strategy"));
@@ -166,7 +167,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
-        OutputExtra outputExtra = new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("42424242424242424242"), Optional.empty(), Optional.empty(), Optional.empty());
+        OutputExtra outputExtra = new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("42424242424242424242"), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty());
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
             "", "other_binary_strategy"));
@@ -200,7 +202,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
-        OutputExtra outputExtra = new OutputExtra(output, "binaryGuid", Optional.of(32L), Optional.of("hash_42"), Optional.empty(), Optional.empty(), Optional.empty());
+        OutputExtra outputExtra = new OutputExtra(output, "binaryGuid", Optional.of(32L), Optional.of("hash_42"), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty());
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
             "", "other_binary_strategy"));
