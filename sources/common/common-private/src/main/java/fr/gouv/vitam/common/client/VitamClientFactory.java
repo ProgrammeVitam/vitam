@@ -46,12 +46,14 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.plugins.interceptors.encoding.AcceptEncodingGZIPFilter;
-import org.jboss.resteasy.plugins.interceptors.encoding.GZIPDecodingInterceptor;
-import org.jboss.resteasy.plugins.interceptors.encoding.GZIPEncodingInterceptor;
+import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
+import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
+import org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -509,16 +511,15 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     private ResteasyClientBuilder configureRestEasy(Map<VitamRestEasyConfiguration, Object> config,
         ClientHttpEngine engine) {
-        ResteasyClientBuilder clientBuilder = new ResteasyClientBuilder();
+        ResteasyClientBuilder clientBuilder = (ResteasyClientBuilder)ClientBuilder.newBuilder();
         clientBuilder.httpEngine(engine);
         clientBuilder.connectionCheckoutTimeout(
             VitamRestEasyConfiguration.CONNECTIONREQUESTTIMEOUT.getInt(config, 1000),
             TimeUnit.MILLISECONDS);
-        clientBuilder.establishConnectionTimeout(VitamRestEasyConfiguration.CONNECT_TIMEOUT.getInt(config, 1000),
+        clientBuilder.connectTimeout(VitamRestEasyConfiguration.CONNECT_TIMEOUT.getInt(config, 1000),
             TimeUnit.MILLISECONDS);
-        clientBuilder.socketTimeout(VitamRestEasyConfiguration.READ_TIMEOUT.getInt(config, 100000),
+        clientBuilder.readTimeout(VitamRestEasyConfiguration.READ_TIMEOUT.getInt(config, 100000),
             TimeUnit.MILLISECONDS);
-        clientBuilder.asyncExecutor(vitamThreadPoolExecutor);
         clientBuilder.executorService(vitamThreadPoolExecutor);
         if (isAllowGzipDecoded()) {
             clientBuilder.register(AcceptEncodingGZIPFilter.class);

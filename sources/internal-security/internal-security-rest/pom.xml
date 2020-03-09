@@ -21,11 +21,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-private</artifactId>
             <version>${project.version}</version>

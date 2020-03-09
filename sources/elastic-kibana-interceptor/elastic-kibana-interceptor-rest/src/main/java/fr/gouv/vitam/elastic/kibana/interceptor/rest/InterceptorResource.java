@@ -37,6 +37,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.Context;
@@ -96,7 +97,7 @@ public class InterceptorResource {
 
         String urlEs = getUrlEs(req);
         ResteasyWebTarget target =
-            new ResteasyClientBuilder().build().target(urlEs);
+                ((ResteasyClientBuilder)ClientBuilder.newBuilder()).build().target(urlEs);
 
         // Add Query Params to the request
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
@@ -157,7 +158,7 @@ public class InterceptorResource {
         ReplacePatternUtils replacePatternUtils = new ReplacePatternUtils(interceptorConfiguration.getWhitelist());
         String urlEs = getUrlEs(req);
         ResteasyWebTarget target =
-            new ResteasyClientBuilder().build()
+                ((ResteasyClientBuilder)ClientBuilder.newBuilder()).build()
                 .target(urlEs);
         // Query Params
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
