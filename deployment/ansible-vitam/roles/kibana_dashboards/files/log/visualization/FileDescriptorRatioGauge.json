@@ -4,6 +4,6 @@
     "title": "Ratio FileDescriptor max / FileDescriptor ouverts",
     "uiStateJSON": "{}",
     "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"filter\":[]}"
+      "searchSourceJSON": "{\"index\":\"metrics-vitam-jvm*\",\"filter\":[]}"
     }
 }
