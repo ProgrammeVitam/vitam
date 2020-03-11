@@ -4,6 +4,6 @@
     "title": "Nombre de requetes par seconde lisse sur la 1ere et la 5eme derniere minute",
     "uiStateJSON": "{\"vis\":{\"colors\":{\"average M1 rate\":\"#447EBC\",\"average M5 rate\":\"#E0752D\"}}}",
     "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"filter\":[]}"
+      "searchSourceJSON": "{\"index\":\"metrics-vitam-rest*\",\"filter\":[]}"
     }
 }

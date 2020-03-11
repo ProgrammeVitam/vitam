@@ -4,6 +4,6 @@
     "title": "metrics-vitam-business-running-workflows-visualize",
     "uiStateJSON": "{}",
     "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"filter\":[]}"
+      "searchSourceJSON": "{\"index\":\"metrics-vitam-business*\",\"filter\":[]}"
     }
 }

@@ -4,6 +4,6 @@
     "title": "TOP 10 des URI avec le temps de reponse le plus eleve",
     "uiStateJSON": "{}",
     "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"filter\":[]}"
+      "searchSourceJSON": "{\"index\":\"metrics-vitam-rest*\",\"filter\":[]}"
     }
 }
