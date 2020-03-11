@@ -5,6 +5,6 @@
     "uiStateJSON": "{\"vis\":{\"colors\":{\"hits\":\"#BF1B00\",\"Hits\":\"#E24D42\"}}}",
     "version": 1,
     "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"filter\":[]}"
+      "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"filter\":[]}"
     }
 }
