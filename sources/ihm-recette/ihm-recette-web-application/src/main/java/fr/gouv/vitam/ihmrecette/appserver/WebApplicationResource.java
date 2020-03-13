@@ -80,7 +80,6 @@ import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -122,7 +121,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Collections;
@@ -177,7 +175,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private final UserInterfaceTransactionManager userInterfaceTransactionManager;
     private final PaginationHelper paginationHelper;
     private final DslQueryHelper dslQueryHelper;
-    private final PopulateService populateService;
+    private final StorageService storageService;
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
     private List<String> secureMode;
     private FunctionalAdminAdmin functionalAdminAdmin;
@@ -190,13 +188,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig,
         UserInterfaceTransactionManager userInterfaceTransactionManager,
         PaginationHelper paginationHelper, DslQueryHelper dslQueryHelper,
-        PopulateService populateService) {
+        StorageService storageService) {
         super(new BasicVitamStatusServiceImpl());
         this.secureMode = webApplicationConfigonfig.getSecureMode();
         this.userInterfaceTransactionManager = userInterfaceTransactionManager;
         this.paginationHelper = paginationHelper;
         this.dslQueryHelper = dslQueryHelper;
-        this.populateService = populateService;
+        this.storageService = storageService;
         this.functionalAdminAdmin = webApplicationConfigonfig.getFunctionalAdminAdmin();
         LOGGER.debug("init Admin Management Resource server");
 
@@ -260,11 +258,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getStrategies(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
 
         try (final StorageClient storageClient =
-                     StorageClientFactory.getInstance().getClient()) {
+            StorageClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
             RequestResponse<StorageStrategy> requestResponse = storageClient.getStorageStrategies();
             if (requestResponse.isOk()) {
-                return Response.status(Status.OK).entity(((RequestResponseOK<StorageStrategy>) requestResponse).getResults()).build();
+                return Response.status(Status.OK)
+                    .entity(((RequestResponseOK<StorageStrategy>) requestResponse).getResults()).build();
             } else if (requestResponse instanceof VitamError) {
                 LOGGER.error(requestResponse.toString());
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(requestResponse).build();
@@ -394,7 +393,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         try {
-            return populateService
+            return storageService
                 .download(VitamThreadUtils.getVitamSession().getTenantId(), DataCategory.valueOf(dataType), strategyId,
                     offerId, uid);
         } catch (StorageTechnicalException e) {
@@ -429,7 +428,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @PathParam("uid") String uid) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
-        RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest = populateService
+        RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest = storageService
             .createReadOrderRequest(Integer.parseInt(xTenantId), strategyId, offerId, uid,
                 DataCategory.valueOf(dataType));
 
@@ -449,16 +448,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest =
-            populateService.getReadOrderRequest(Integer.parseInt(xTenantId), strategyId, offerId, readOrderId);
+            storageService.getReadOrderRequest(Integer.parseInt(xTenantId), strategyId, offerId, readOrderId);
         return readOrderRequest.toResponse();
-    }
-
-    private InputStream getErrorStream(Status badRequest, String message, VitamError vitamError) {
-        try {
-            return JsonHandler.writeToInpustream(vitamError);
-        } catch (InvalidParseOperationException e) {
-            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
-        }
     }
 
     /**
