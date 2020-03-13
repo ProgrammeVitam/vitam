@@ -26,14 +26,9 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
@@ -44,14 +39,6 @@ import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestResourc
 import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestService;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceService;
-import fr.gouv.vitam.ihmrecette.appserver.populate.LogbookRepository;
-import fr.gouv.vitam.ihmrecette.appserver.populate.MasterdataRepository;
-import fr.gouv.vitam.ihmrecette.appserver.populate.MetadataRepository;
-import fr.gouv.vitam.ihmrecette.appserver.populate.MetadataStorageService;
-import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateResource;
-import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
-import fr.gouv.vitam.ihmrecette.appserver.populate.StoragePopulateImpl;
-import fr.gouv.vitam.ihmrecette.appserver.populate.UnitGraph;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 
 import javax.servlet.ServletConfig;
@@ -116,32 +103,12 @@ public class BusinessApplication extends Application {
 
             singletons.add(new ApplicativeTestResource(applicativeTestService, testSystemSipDirectory));
 
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
-            MongoDatabase metadataDb = mongoClient.getDatabase(configuration.getMetadataDbName());
-            MongoDatabase masterdataDb = mongoClient.getDatabase(configuration.getMasterdataDbName());
-            MongoDatabase logbookDb = mongoClient.getDatabase(configuration.getLogbookDbName());
-
-            StoragePopulateImpl storagePopulateService;
+            StorageService storageService;
             try (final InputStream storageYamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
                 final StorageConfiguration storageConfiguration =
                     PropertiesUtils.readYaml(storageYamlIS, StorageConfiguration.class);
-                storagePopulateService = new StoragePopulateImpl(storageConfiguration);
+                storageService = new StorageService(storageConfiguration);
             }
-
-
-            MetadataRepository metadataRepository = new MetadataRepository(metadataDb, storagePopulateService);
-            MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb);
-            LogbookRepository logbookRepository = new LogbookRepository(logbookDb);
-            MetadataStorageService metadataStorageService =
-                new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
-            UnitGraph unitGraph = new UnitGraph(metadataRepository);
-            PopulateService populateService =
-                new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph,
-                    configuration.getIngestMaxThread(), metadataStorageService);
-            PopulateResource populateResource = new PopulateResource(populateService);
-
-            singletons.add(populateResource);
 
             CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(
                 VitamConfiguration.getOntologyCacheMaxEntries(),
@@ -153,7 +120,7 @@ public class BusinessApplication extends Application {
                 new WebApplicationResourceDelete(configuration, ontologyLoader);
             final WebApplicationResource resource =
                 new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
-                    PaginationHelper.getInstance(), DslQueryHelper.getInstance(), populateService);
+                    PaginationHelper.getInstance(), DslQueryHelper.getInstance(), storageService);
             singletons.add(deleteResource);
             singletons.add(resource);
 
