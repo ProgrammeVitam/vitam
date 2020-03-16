@@ -64,6 +64,7 @@ import static fr.gouv.vitam.storage.engine.common.model.OfferLog.SEQUENCE;
 import static fr.gouv.vitam.storage.engine.common.model.OfferLog.TIME;
 
 public class OfferLogDatabaseService {
+
     private final MongoCollection<Document> mongoCollection;
 
     public OfferLogDatabaseService(MongoCollection<Document> mongoCollection) {
@@ -133,7 +134,7 @@ public class OfferLogDatabaseService {
 
         return toCloseableIterable(
             mongoCollection.find(lte(TIME, LocalDateUtil.getFormattedDateForMongo(expirationDate)))
-                .sort(and(eq(CONTAINER, -1), eq(SEQUENCE, 1)))
+                .sort(and(eq(CONTAINER, 1), eq(SEQUENCE, 1)))
                 .map(d -> new OfferLog(
                         ((Number) d.get(SEQUENCE)).longValue(),
                         LocalDateUtil.parseMongoFormattedDate(LocalDateUtil.getFormattedDateForMongo(d.getString(TIME))),

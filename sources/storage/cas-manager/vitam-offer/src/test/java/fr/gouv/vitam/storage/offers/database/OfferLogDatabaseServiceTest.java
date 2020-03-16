@@ -264,7 +264,7 @@ public class OfferLogDatabaseServiceTest {
         Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request);
 
         // Then
-        assertThat(logs).extracting(OfferLog::getContainer).containsExactly("Container3", "Container2", "Container1", "Container1", "Container1");
+        assertThat(logs).extracting(OfferLog::getContainer).containsExactly("Container1", "Container1", "Container1", "Container2", "Container3");
     }
 
     public OfferLog getFirstLogFromDb() {
