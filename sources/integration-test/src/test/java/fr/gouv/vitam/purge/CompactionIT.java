@@ -143,7 +143,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     private static final String XML = ".xml";
 
-    private static final String OFFER_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_OFFER;
+    private static final String OFFER_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_OFFER_ADMIN;
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(
