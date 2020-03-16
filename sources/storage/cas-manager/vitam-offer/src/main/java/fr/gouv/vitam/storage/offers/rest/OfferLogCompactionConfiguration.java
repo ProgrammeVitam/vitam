@@ -27,19 +27,20 @@
 package fr.gouv.vitam.storage.offers.rest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
-public class OfferLogCompactionRequest {
+public class OfferLogCompactionConfiguration {
+    private static final int MIN_COMPACTION_SIZE = 1_000;
+    private static final int MAX_COMPACTION_SIZE = 200_000;
     private final long expirationValue;
     private final ChronoUnit expirationUnit;
     private final int compactionSize;
 
     @JsonCreator
-    public OfferLogCompactionRequest(
+    public OfferLogCompactionConfiguration(
         @JsonProperty("expirationValue") long expirationValue,
         @JsonProperty("expirationUnit") ChronoUnit expirationUnit,
         @JsonProperty("compactionSize") int compactionSize) {
@@ -48,9 +49,21 @@ public class OfferLogCompactionRequest {
         this.compactionSize = compactionSize;
     }
 
-    @JsonIgnore
-    public boolean isNotValid() {
-        return expirationValue <= 0 || compactionSize < 1000 || compactionSize > 200_000 || Objects.isNull(expirationUnit);
+    public void validateConf() {
+        if (expirationValue <= 0) {
+            throw new IllegalStateException(
+                "Invalid offer log compaction configuration. Negative expiration value " + expirationValue);
+        }
+
+        if (expirationUnit == null) {
+            throw new IllegalStateException("Invalid offer log compaction configuration. Missing expiration unit");
+        }
+
+        if (compactionSize > MAX_COMPACTION_SIZE || compactionSize < MIN_COMPACTION_SIZE) {
+            throw new IllegalStateException(
+                "Invalid offer log compaction configuration. Invalid compaction size " + compactionSize +
+                    " expected between " + MIN_COMPACTION_SIZE + " and " + MAX_COMPACTION_SIZE);
+        }
     }
 
     public long getExpirationValue() {
@@ -71,7 +84,7 @@ public class OfferLogCompactionRequest {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        OfferLogCompactionRequest that = (OfferLogCompactionRequest) o;
+        OfferLogCompactionConfiguration that = (OfferLogCompactionConfiguration) o;
         return expirationValue == that.expirationValue &&
             compactionSize == that.compactionSize &&
             expirationUnit == that.expirationUnit;
@@ -84,7 +97,7 @@ public class OfferLogCompactionRequest {
 
     @Override
     public String toString() {
-        return "OfferLogCompactionRequest{" +
+        return "OfferLogCompactionConfiguration{" +
             "expirationValue=" + expirationValue +
             ", expirationUnit=" + expirationUnit +
             ", compactionSize=" + compactionSize +

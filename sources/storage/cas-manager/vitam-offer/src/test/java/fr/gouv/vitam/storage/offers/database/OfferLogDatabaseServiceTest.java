@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.database;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoIterable;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -39,7 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -54,7 +53,6 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OFFER_LOG;
@@ -233,7 +231,7 @@ public class OfferLogDatabaseServiceTest {
     public void should_get_expired_offer_logs()
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException, InterruptedException {
         // Given
-        OfferLogCompactionRequest request = new OfferLogCompactionRequest(2, SECONDS, 10);
+        OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(2, SECONDS, 10);
 
         String firstFileName = "MY_FIRST_FILE";
         service.save("Container1", firstFileName, WRITE, 1L);
@@ -243,7 +241,8 @@ public class OfferLogDatabaseServiceTest {
         service.bulkSave("Container1", Arrays.asList("file1", "file2", "file3"), WRITE, 2L);
 
         // When
-        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request);
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request.getExpirationValue(),
+            request.getExpirationUnit());
 
         // Then
         assertThat(logs).extracting(OfferLog::getFileName).containsOnly(firstFileName);
@@ -252,7 +251,7 @@ public class OfferLogDatabaseServiceTest {
     @Test
     public void should_get_offer_logs_by_container() throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Given
-        OfferLogCompactionRequest request = new OfferLogCompactionRequest(0, MILLIS, 10);
+        OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(0, MILLIS, 10);
 
         service.save("Container1", "MY_FIRST_FILE1", WRITE, 1L);
         service.save("Container2", "MY_FIRST_FILE2", WRITE, 2L);
@@ -261,7 +260,8 @@ public class OfferLogDatabaseServiceTest {
         service.save("Container1", "MY_FIRST_FILE5", WRITE, 5L);
 
         // When
-        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request);
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request.getExpirationValue(),
+            request.getExpirationUnit());
 
         // Then
         assertThat(logs).extracting(OfferLog::getContainer).containsExactly("Container1", "Container1", "Container1", "Container2", "Container3");

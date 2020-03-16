@@ -49,7 +49,6 @@ import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 
 import java.io.InputStream;
-import java.util.HashMap;
 
 import static fr.gouv.vitam.common.storage.constants.StorageProvider.TAPE_LIBRARY;
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.COMPACTED_OFFER_LOG;
@@ -75,32 +74,47 @@ public class OfferCommonApplication {
 
             OfferConfiguration configuration = PropertiesUtils.readYaml(yamlIS, OfferConfiguration.class);
 
+            if (configuration.getOfferLogCompactionConfiguration() == null) {
+                throw new IllegalStateException("Invalid configuration. Missing offer log compaction config");
+            }
+            configuration.getOfferLogCompactionConfiguration().validateConf();
+
             MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
 
             MongoDatabase mongoDatabase = mongoClient.getDatabase(configuration.getDbName());
 
-            OfferSequenceDatabaseService offerSequenceDatabaseService = new OfferSequenceDatabaseService(mongoDatabase.getCollection(OFFER_SEQUENCE.getName()));
-            OfferLogDatabaseService offerDatabaseService = new OfferLogDatabaseService(mongoDatabase.getCollection(OFFER_LOG.getName()));
+            OfferSequenceDatabaseService offerSequenceDatabaseService =
+                new OfferSequenceDatabaseService(mongoDatabase.getCollection(OFFER_SEQUENCE.getName()));
+            OfferLogDatabaseService offerDatabaseService =
+                new OfferLogDatabaseService(mongoDatabase.getCollection(OFFER_LOG.getName()));
             OfferLogCompactionDatabaseService offerLogCompactionDatabaseService = new OfferLogCompactionDatabaseService(
                 mongoDatabase.getCollection(
-                COMPACTED_OFFER_LOG.getName())
+                    COMPACTED_OFFER_LOG.getName())
             );
-            OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService = new OfferLogAndCompactedOfferLogService(
-                mongoDatabase.getCollection(OFFER_LOG.getName()),
-                mongoDatabase.getCollection(COMPACTED_OFFER_LOG.getName())
-            );
+            OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService =
+                new OfferLogAndCompactedOfferLogService(
+                    mongoDatabase.getCollection(OFFER_LOG.getName()),
+                    mongoDatabase.getCollection(COMPACTED_OFFER_LOG.getName())
+                );
 
-            this.storageConfiguration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME), StorageConfiguration.class);
+            this.storageConfiguration =
+                PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME), StorageConfiguration.class);
             if (!Strings.isNullOrEmpty(storageConfiguration.getStoragePath())) {
-                this.storageConfiguration.setStoragePath(FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath()));
+                this.storageConfiguration
+                    .setStoragePath(FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath()));
             }
 
-            ContentAddressableStorage defaultStorage = StoreContextBuilder.newStoreContext(this.storageConfiguration, mongoDatabase);
+            ContentAddressableStorage defaultStorage =
+                StoreContextBuilder.newStoreContext(this.storageConfiguration, mongoDatabase);
 
-            ReadRequestReferentialRepository readRepository = TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())
-                ? new ReadRequestReferentialRepository(mongoDatabase.getCollection(TAPE_READ_REQUEST_REFERENTIAL.getName()))
-                : null;
+            ReadRequestReferentialRepository readRepository =
+                TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())
+                    ?
+                    new ReadRequestReferentialRepository(
+                        mongoDatabase.getCollection(TAPE_READ_REQUEST_REFERENTIAL.getName()))
+                    :
+                    null;
 
             this.defaultOfferService = new DefaultOfferServiceImpl(
                 defaultStorage,
@@ -109,6 +123,7 @@ public class OfferCommonApplication {
                 offerDatabaseService,
                 offerSequenceDatabaseService,
                 this.storageConfiguration,
+                configuration.getOfferLogCompactionConfiguration(),
                 offerLogAndCompactedOfferLogService
             );
         } catch (Exception e) {

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.mongodb.MongoWriteException;
@@ -64,7 +63,7 @@ import fr.gouv.vitam.storage.offers.database.OfferLogAndCompactedOfferLogService
 import fr.gouv.vitam.storage.offers.database.OfferLogCompactionDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
-import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -89,13 +88,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -140,6 +137,9 @@ public class DefaultOfferServiceTest {
     private static final DataCategory OBJECT_TYPE = DataCategory.OBJECT;
 
     public DefaultOfferServiceImpl offerService;
+    private ContentAddressableStorage defaultStorage;
+    private ReadRequestReferentialRepository readRequestReferentialRepository;
+    private StorageConfiguration configuration;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -174,15 +174,15 @@ public class DefaultOfferServiceTest {
         conf.put("storagePath", tempFolder.getRoot().getAbsolutePath());
         PropertiesUtils.writeYaml(confFile, conf);
 
-        StorageConfiguration configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         if (!Strings.isNullOrEmpty(configuration.getStoragePath())) {
             configuration.setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
         }
 
-        ContentAddressableStorage defaultStorage = StoreContextBuilder.newStoreContext(configuration, mongoDatabase);
+        defaultStorage = StoreContextBuilder.newStoreContext(configuration, mongoDatabase);
 
-        ReadRequestReferentialRepository readRequestReferentialRepository = null;
+        readRequestReferentialRepository = null;
         if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             readRequestReferentialRepository = new ReadRequestReferentialRepository(mongoDatabase.getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName()));
         }
@@ -194,6 +194,7 @@ public class DefaultOfferServiceTest {
             offerDatabaseService,
             offerSequenceDatabaseService,
             configuration,
+            null,
             offerLogAndCompactedOfferLogService
         );
     }
@@ -614,8 +615,10 @@ public class DefaultOfferServiceTest {
     @Test
     public void should_compact_logs_into_compaction_collection() throws Exception {
         // Given
-        OfferLogCompactionRequest request = new OfferLogCompactionRequest(1, ChronoUnit.SECONDS, 4);
-
+        OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(1, ChronoUnit.SECONDS, 4);
+        offerService = new DefaultOfferServiceImpl(defaultStorage, readRequestReferentialRepository,
+            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
+            config, offerLogAndCompactedOfferLogService);
 
         List<OfferLog> logs = Arrays.asList(
             new OfferLog(1, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE),
@@ -624,10 +627,11 @@ public class DefaultOfferServiceTest {
             new OfferLog(4, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE)
         );
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(request)).thenReturn(toCloseableIterable(logs));
+        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
+            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
 
         // When
-        offerService.compactOfferLogs(request);
+        offerService.compactOfferLogs();
 
         // Then
         verify(offerLogAndCompactedOfferLogService, times(1)).almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), eq(logs));
@@ -636,7 +640,10 @@ public class DefaultOfferServiceTest {
     @Test
     public void should_compaction_contains_4_logs() throws Exception {
         // Given
-        OfferLogCompactionRequest request = new OfferLogCompactionRequest(15, ChronoUnit.SECONDS, 4);
+        OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(15, ChronoUnit.SECONDS, 4);
+        offerService = new DefaultOfferServiceImpl(defaultStorage, readRequestReferentialRepository,
+            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
+            config, offerLogAndCompactedOfferLogService);
 
         List<OfferLog> logs = Arrays.asList(
             new OfferLog(1, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE),
@@ -645,7 +652,8 @@ public class DefaultOfferServiceTest {
             new OfferLog(4, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE)
         );
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(request)).thenReturn(toCloseableIterable(logs));
+        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
+            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
 
         CompactedOfferLog compactedOfferLogExpected = new CompactedOfferLog(1, 4, LocalDateUtil.now(), "container", logs);
         ArgumentCaptor<CompactedOfferLog> compactionSaved = ArgumentCaptor.forClass(CompactedOfferLog.class);
@@ -653,7 +661,7 @@ public class DefaultOfferServiceTest {
         doNothing().when(offerLogAndCompactedOfferLogService).almostTransactionalSaveAndDelete(compactionSaved.capture(), anyList());
 
         // When
-        offerService.compactOfferLogs(request);
+        offerService.compactOfferLogs();
 
         // Then
         verify(offerLogAndCompactedOfferLogService, times(1)).almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), eq(logs));
@@ -663,7 +671,10 @@ public class DefaultOfferServiceTest {
     @Test
     public void should_save_multiple_compaction_when_different_container() throws Exception {
         // Given
-        OfferLogCompactionRequest request = new OfferLogCompactionRequest(15, ChronoUnit.SECONDS, 4);
+        OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(15, ChronoUnit.SECONDS, 4);
+        offerService = new DefaultOfferServiceImpl(defaultStorage, readRequestReferentialRepository,
+            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
+            config, offerLogAndCompactedOfferLogService);
 
         List<OfferLog> logs1 = Arrays.asList(
             new OfferLog(1, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE),
@@ -677,7 +688,8 @@ public class DefaultOfferServiceTest {
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(request)).thenReturn(toCloseableIterable(logs));
+        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
+            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
 
         CompactedOfferLog compactedOfferLogExpected1 = new CompactedOfferLog(1, 5, LocalDateUtil.now(), "container1", logs1);
         CompactedOfferLog compactedOfferLogExpected2 = new CompactedOfferLog(2, 2, LocalDateUtil.now(), "container2", logs2);
@@ -687,7 +699,7 @@ public class DefaultOfferServiceTest {
         doNothing().when(offerLogAndCompactedOfferLogService).almostTransactionalSaveAndDelete(compactionSaved.capture(), anyList());
 
         // When
-        offerService.compactOfferLogs(request);
+        offerService.compactOfferLogs();
 
         // Then
         verify(offerLogAndCompactedOfferLogService, times(3)).almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), anyList());
@@ -700,7 +712,10 @@ public class DefaultOfferServiceTest {
     public void should_only_compact_bulk_of_2_logs() throws Exception {
         // Given
 
-        OfferLogCompactionRequest request = new OfferLogCompactionRequest(15, ChronoUnit.SECONDS, 2);
+        OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(15, ChronoUnit.SECONDS, 2);
+        offerService = new DefaultOfferServiceImpl(defaultStorage, readRequestReferentialRepository,
+            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
+            config, offerLogAndCompactedOfferLogService);
 
         OfferLog offerLog = new OfferLog(1, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE);
         OfferLog offerLog1 = new OfferLog(2, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE);
@@ -711,7 +726,8 @@ public class DefaultOfferServiceTest {
 
         List<OfferLog> logs = Arrays.asList(offerLog, offerLog1, offerLog2, offerLog3, offerLog4, offerLog5);
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(request)).thenReturn(toCloseableIterable(logs));
+        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
+            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
 
         List<OfferLog> logs1 = Arrays.asList(offerLog, offerLog1);
         List<OfferLog> logs2 = Arrays.asList(offerLog2, offerLog3);
@@ -725,7 +741,7 @@ public class DefaultOfferServiceTest {
         doNothing().when(offerLogAndCompactedOfferLogService).almostTransactionalSaveAndDelete(compactionSaved.capture(), anyList());
 
         // When
-        offerService.compactOfferLogs(request);
+        offerService.compactOfferLogs();
 
         // Then
         verify(offerLogAndCompactedOfferLogService, times(3)).almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), anyList());
@@ -738,12 +754,16 @@ public class DefaultOfferServiceTest {
     @Test
     public void should_do_nothing_when_no_logs_to_compact() throws Exception {
         // Given
-        OfferLogCompactionRequest request = new OfferLogCompactionRequest(1, ChronoUnit.SECONDS, 4);
+        OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(1, ChronoUnit.SECONDS, 4);
+        offerService = new DefaultOfferServiceImpl(defaultStorage, readRequestReferentialRepository,
+            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
+            config, offerLogAndCompactedOfferLogService);
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(request)).thenReturn(toCloseableIterable(Collections.emptyList()));
+        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
+            config.getExpirationUnit())).thenReturn(toCloseableIterable(Collections.emptyList()));
 
         // When
-        offerService.compactOfferLogs(request);
+        offerService.compactOfferLogs();
 
         // Then
         verify(offerLogAndCompactedOfferLogService, times(0)).almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), anyList());

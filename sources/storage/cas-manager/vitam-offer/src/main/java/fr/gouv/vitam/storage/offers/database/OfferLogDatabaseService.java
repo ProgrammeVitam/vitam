@@ -39,20 +39,19 @@ import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
@@ -128,9 +127,9 @@ public class OfferLogDatabaseService {
         );
     }
 
-    public CloseableIterable<OfferLog> getExpiredOfferLogByContainer(OfferLogCompactionRequest request) {
+    public CloseableIterable<OfferLog> getExpiredOfferLogByContainer(long expirationValue, ChronoUnit expirationUnit) {
         LocalDateTime expirationDate = LocalDateUtil.now()
-            .minus(request.getExpirationValue(), request.getExpirationUnit());
+            .minus(expirationValue, expirationUnit);
 
         return toCloseableIterable(
             mongoCollection.find(lte(TIME, LocalDateUtil.getFormattedDateForMongo(expirationDate)))
