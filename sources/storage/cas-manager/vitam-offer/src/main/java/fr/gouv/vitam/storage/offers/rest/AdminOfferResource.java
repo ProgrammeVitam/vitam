@@ -54,13 +54,9 @@ public class AdminOfferResource extends ApplicationStatusResource {
     @POST
     @Path("/compaction")
     @Consumes(APPLICATION_JSON)
-    public void launchOfferLogCompaction(OfferLogCompactionRequest requestParams) throws Exception {
+    public void launchOfferLogCompaction() throws Exception {
         LOGGER.info("Starting offer compaction.");
-        if (Objects.isNull(requestParams) || requestParams.isNotValid()) {
-            LOGGER.info(String.format("Wrong offer log compaction request '%s'.", requestParams));
-            throw new BadRequestException(String.format("OfferLog compaction request is empty or invalid '%s'.", requestParams));
-        }
-        defaultOfferService.compactOfferLogs(requestParams);
+        defaultOfferService.compactOfferLogs();
         LOGGER.info("End offer compaction.");
     }
 }

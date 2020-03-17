@@ -56,7 +56,7 @@
         <Set name="outputBufferSize">32768</Set>
         <Set name="requestHeaderSize">8192</Set>
         <Set name="responseHeaderSize">8192</Set>
-        <Set name="sendServerVersion">true</Set>
+        <Set name="sendServerVersion">false</Set>
         <Set name="sendDateHeader">false</Set>
         <Set name="headerCacheSize">512</Set>
 
@@ -64,33 +64,6 @@
             <Arg><New class="org.eclipse.jetty.server.ForwardedRequestCustomizer"/></Arg>
             </Call> -->
     </New>
-    <Call name="addConnector">
-        <Arg>
-            <New class="org.eclipse.jetty.server.ServerConnector">
-                <Arg name="server">
-                    <Ref refid="Server"/>
-                </Arg>
-                <Arg name="factories">
-                    <Array type="org.eclipse.jetty.server.ConnectionFactory">
-                        <Item>
-                            <New class="org.eclipse.jetty.server.HttpConnectionFactory">
-                                <Arg name="config">
-                                    <Ref refid="httpConfig"/>
-                                </Arg>
-                            </New>
-                        </Item>
-                    </Array>
-                </Arg>
-                <Set name="port">
-                    <SystemProperty name="jetty.offer.port" default="8583"/>
-                </Set>
-                <Set name="name">business</Set>
-                <Set name="idleTimeout">
-                    <Property name="http.timeout" default="99999999"/>
-                </Set><!-- 27.7 h -->
-            </New>
-        </Arg>
-    </Call>
 
     <!-- =========================================================== -->
     <!-- Set the default handler structure for the Server -->
@@ -118,6 +91,71 @@
             </Set>
         </New>
     </Set>
+
+    <!-- =========================================================== -->
+    <!-- Connector for API business            			     -->
+    <!-- Attach all ContextHanlder except Admin			     -->
+    <!-- =========================================================== -->
+
+    <New id="businessConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="server"><Ref refid="Server" /></Arg>
+        <Arg name="factories">
+            <Array type="org.eclipse.jetty.server.ConnectionFactory">
+                <Item>
+                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                        <Arg name="config"><Ref refid="httpConfig" /></Arg>
+                    </New>
+                </Item>
+            </Array>
+        </Arg>
+        <Set name="port">
+            <SystemProperty name="jetty.offer.port" default="8583"/>
+        </Set>
+        <Set name="name">business</Set>
+        <Set name="idleTimeout">
+            <Property name="http.timeout" default="86400"/>
+        </Set>
+    </New>
+
+
+    <!-- =========================================================== -->
+    <!-- Connector for API Admin            			     -->
+    <!-- Attach all ContextHanlder				     -->
+    <!-- =========================================================== -->
+
+    <New id="adminConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="server"><Ref refid="Server" /></Arg>
+        <Arg name="factories">
+            <Array type="org.eclipse.jetty.server.ConnectionFactory">
+                <Item>
+                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                        <Arg name="config"><Ref refid="httpConfig" /></Arg>
+                    </New>
+                </Item>
+            </Array>
+        </Arg>
+        <Set name="port">28194</Set>
+        <Set name="name">admin</Set>
+        <Set name="idleTimeout">
+            <Property name="http.timeout" default="86400"/>
+        </Set>
+    </New>
+
+
+
+
+    <Call name="setConnectors">
+        <Arg>
+            <Array type="org.eclipse.jetty.server.ServerConnector">
+                <Item>
+                    <Ref refid="businessConnector" />
+                </Item>
+                <Item>
+                    <Ref refid="adminConnector" />
+                </Item>
+            </Array>
+        </Arg>
+    </Call>
 
     <!-- =========================================================== -->
     <!-- extra server options -->
