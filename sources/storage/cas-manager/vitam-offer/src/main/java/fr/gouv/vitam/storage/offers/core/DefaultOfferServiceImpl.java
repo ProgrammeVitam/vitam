@@ -60,7 +60,7 @@ import fr.gouv.vitam.storage.offers.database.OfferLogAndCompactedOfferLogService
 import fr.gouv.vitam.storage.offers.database.OfferLogCompactionDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
-import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
@@ -90,6 +90,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final OfferLogDatabaseService offerDatabaseService;
     private final OfferSequenceDatabaseService offerSequenceDatabaseService;
     private final StorageConfiguration configuration;
+    private final OfferLogCompactionConfiguration offerLogCompactionConfig;
     private final OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService;
 
     public DefaultOfferServiceImpl(
@@ -99,6 +100,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         OfferLogDatabaseService offerDatabaseService,
         OfferSequenceDatabaseService offerSequenceDatabaseService,
         StorageConfiguration configuration,
+        OfferLogCompactionConfiguration offerLogCompactionConfig,
         OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService) {
 
         this.defaultStorage = defaultStorage;
@@ -107,6 +109,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         this.offerDatabaseService = offerDatabaseService;
         this.offerSequenceDatabaseService = offerSequenceDatabaseService;
         this.configuration = configuration;
+        this.offerLogCompactionConfig = offerLogCompactionConfig;
         this.offerLogAndCompactedOfferLogService = offerLogAndCompactedOfferLogService;
     }
 
@@ -527,13 +530,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public void compactOfferLogs(OfferLogCompactionRequest request) throws Exception {
+    public void compactOfferLogs() throws Exception {
         Stopwatch timer = Stopwatch.createStarted();
-        try (CloseableIterable<OfferLog> expiredOfferLogsByContainer = offerDatabaseService.getExpiredOfferLogByContainer(request)) {
+        try (CloseableIterable<OfferLog> expiredOfferLogsByContainer = offerDatabaseService.getExpiredOfferLogByContainer(
+            offerLogCompactionConfig.getExpirationValue(), offerLogCompactionConfig.getExpirationUnit())) {
             List<OfferLog> bulkToSend = new ArrayList<>();
 
             for (OfferLog offerLog : expiredOfferLogsByContainer) {
-                if (isBulkFull(request, bulkToSend) || !isInSameContainer(offerLog, bulkToSend)) {
+                if (isBulkFull(bulkToSend)
+                    || !isInSameContainer(offerLog, bulkToSend)) {
                     saveOfferLogCompaction(bulkToSend);
                     bulkToSend = new ArrayList<>();
                 }
@@ -544,12 +549,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 saveOfferLogCompaction(bulkToSend);
             }
         } finally {
-            log(timer, request.toString(), "COMPACT_OFFER_LOGS");
+            log(timer, offerLogCompactionConfig.toString(), "COMPACT_OFFER_LOGS");
         }
     }
 
-    public boolean isBulkFull(OfferLogCompactionRequest request, List<OfferLog> bulkToSend) {
-        return bulkToSend.size() >= request.getCompactionSize();
+    public boolean isBulkFull(List<OfferLog> bulkToSend) {
+        return bulkToSend.size() >= offerLogCompactionConfig.getCompactionSize();
     }
 
     public boolean isInSameContainer(OfferLog offerLog, List<OfferLog> bulkToSend) {

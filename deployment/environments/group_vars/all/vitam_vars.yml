@@ -64,13 +64,13 @@ vitam_timers:
     logbook: # all have to run on only one machine
         # Sécurisation des journaux des opérations
         - name: vitam-traceability-operations
-          frequency: "*-*-* 0/2:00:00" # each 2 hours
+          frequency: "*-*-* 0/2:00:00" # every 2 hours
         # Sécurisation des journaux du cycle de vie des groupes d'objets
         - name: vitam-traceability-lfc-objectgroup
-          frequency: "*-*-* 0/4:00:00" # each 4 hours
+          frequency: "*-*-* 0/4:00:00" # every 4 hours
         # Sécurisation des journaux du cycle de vie des unités archivistiques
         - name: vitam-traceability-lfc-unit
-          frequency: "*-*-* 0/3:00:00" # each 3 hours
+          frequency: "*-*-* 0/3:00:00" # every 3 hours
         # Audit de traçabilité
         - name: vitam-traceability-audit
           frequency: "*-*-* 00:00:00"
@@ -80,13 +80,13 @@ vitam_timers:
     storage:
         # Sauvegarde des journaux des écritures
         - name: vitam-storage-accesslog-backup
-          frequency: "*-*-* 0/4:00:00" # each 4 hours
+          frequency: "*-*-* 0/4:00:00" # every 4 hours
         # Sécurisation du journal des écritures
         - name: vitam-storage-log-backup
-          frequency: "*-*-* 0/2:00:00" # each 2 hours
+          frequency: "*-*-* 0/2:00:00" # every 2 hours
         # Log traceability
         - name: vitam-storage-log-traceability
-          frequency: "*-*-* 0/2:10:00" # each 2 hours (10 minutes)
+          frequency: "*-*-* 0/2:10:00" # every 2 hours (10 minutes)
     functional_administration:
         - name: vitam-create-accession-register-symbolic
           frequency: "*-*-* 00:00:00"
@@ -110,7 +110,7 @@ vitam_timers:
     offer:
       # Compaction offer logs
       - name: vitam-offer-log-compaction
-        frequency: "*-*-* *:00:00" # each hours
+        frequency: "*-*-* *:00:00" # every hour
 
 ### consul ###
 # FIXME: Consul à la racine pour le moment à cause de problèmes de récursivité dans le parsing yaml

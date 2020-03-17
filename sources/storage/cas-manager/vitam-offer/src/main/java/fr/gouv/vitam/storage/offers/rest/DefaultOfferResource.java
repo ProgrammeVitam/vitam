@@ -680,14 +680,4 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
             .toString()).build();
     }
-
-    @POST
-    @Path("/compaction")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void launchOfferLogCompaction(OfferLogCompactionRequest requestParams) throws Exception {
-        if (Objects.isNull(requestParams) || requestParams.isNotValid()) {
-            throw new BadRequestException(String.format("OfferLog compaction request is empty or invalid '%s'.", requestParams));
-        }
-        defaultOfferService.compactOfferLogs(requestParams);
-    }
 }

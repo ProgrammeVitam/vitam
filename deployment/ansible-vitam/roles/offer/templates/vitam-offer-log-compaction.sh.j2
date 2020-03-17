@@ -8,12 +8,12 @@ function log() {
     LEVEL=${1}
     MSG=${2}
     TIMESTAMP=$( date +"%Y-%m-%d %H:%M:%S" )
-    echo ${TIMESTAMP} [[vitam-storage-offerlogs-compactions]] [vitam-storage-offerlogs-compactions] ${LEVEL} vitam-offer-log-compaction.sh - vitam-storage-offerlogs-compactions.service : [${HOSTNAME}:vitam-storage-offerlogs-compactions.service:0] ${MSG}
+    echo ${TIMESTAMP} [[vitam-offer-log-compaction]] [vitam-offer-log-compaction] ${LEVEL} vitam-offer-log-compaction.sh - vitam-offer-log-compaction.service : [${HOSTNAME}:vitam-offer-log-compaction.service:0] ${MSG}
 }
 
 function local_curl() {
     COLLECTION=${1}
-    curl -s -X POST -H "X-Tenant-Id: {{ vitam_tenant_admin }}" -H "Content-Type: application/json" -H "Accept: application/json" --data '{"expirationValue": "{{ expiration_value }}", "compactionSize": "{{ compaction_size }}", "expirationUnit": "{{ expiration_unit }}"}' ${OFFER_LOG_URL}
+    curl -s -X POST -H "X-Tenant-Id: {{ vitam_tenant_admin }}" -H "Content-Type: application/json" -H "Accept: application/json" ${OFFER_LOG_URL}
     log "INFO" "${MSG}"
 }
 

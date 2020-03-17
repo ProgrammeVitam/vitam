@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.storage.offers.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
 /**
@@ -42,6 +43,8 @@ public class OfferConfiguration extends DbConfigurationImpl {
     private String contextPath;
     private boolean authentication;
     private String swiftProjectName;
+    @JsonProperty("offerLogCompaction")
+    private OfferLogCompactionConfiguration offerLogCompactionConfiguration;
 
     /**
      * @return the provider
@@ -192,6 +195,16 @@ public class OfferConfiguration extends DbConfigurationImpl {
      */
     public OfferConfiguration setSwiftProjectName(String swiftProjectName) {
         this.swiftProjectName = swiftProjectName;
+        return this;
+    }
+
+    public OfferLogCompactionConfiguration getOfferLogCompactionConfiguration() {
+        return offerLogCompactionConfiguration;
+    }
+
+    public OfferConfiguration setOfferLogCompactionConfiguration(
+        OfferLogCompactionConfiguration offerLogCompactionConfiguration) {
+        this.offerLogCompactionConfiguration = offerLogCompactionConfiguration;
         return this;
     }
 }
