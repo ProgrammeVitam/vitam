@@ -385,4 +385,11 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         return this;
     }
 
+    @JsonIgnore
+    @Override
+    public String getWorkflowStatusKo() {
+        return mapParameters.get(WorkerParameterName.workflowStatusKo);
+
+    }
+
 }

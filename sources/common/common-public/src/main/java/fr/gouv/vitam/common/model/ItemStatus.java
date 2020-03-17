@@ -34,6 +34,7 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.processing.StatusAggregationBehavior;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +43,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 
 /**
  * Composite Item Status
@@ -60,29 +66,26 @@ public class ItemStatus {
 
 
     @JsonProperty("itemId")
-    protected String itemId;
+    private String itemId;
     @JsonProperty("message")
     protected String message;
     @JsonProperty("globalStatus")
-    protected StatusCode globalStatus;
+    private StatusCode globalStatus;
     @JsonProperty("statusMeter")
-    protected List<Integer> statusMeter;
+    private List<Integer> statusMeter;
     @JsonProperty("data")
     protected Map<String, Object> data;
     @JsonProperty("globalState")
-    protected ProcessState globalState;
+    private ProcessState globalState;
     @JsonProperty("globalOutcomeDetailSubcode")
-    protected String globalOutcomeDetailSubcode;
+    private String globalOutcomeDetailSubcode;
     @JsonProperty("lifecycleEnable")
-    protected boolean lifecycleEnable = true;
+    private boolean lifecycleEnable = true;
 
 
     @JsonIgnore
     private String logbookTypeProcess;
 
-    /**
-     * Empty Constructor
-     */
     public ItemStatus() {
         statusMeter = new ArrayList<>();
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
@@ -94,18 +97,6 @@ public class ItemStatus {
 
     }
 
-    /**
-     * Constructor.
-     *
-     * @param message
-     * @param itemId
-     * @param statusMeter
-     * @param globalStatus
-     * @param data
-     * @param itemsStatus
-     * @param evDetailData
-     * @param globalState
-     */
     public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
@@ -255,7 +246,7 @@ public class ItemStatus {
      * @param globalStatus the globalStatus to set
      * @return this
      */
-    private ItemStatus setGlobalStatus(StatusCode globalStatus) {
+    public ItemStatus setGlobalStatus(StatusCode globalStatus) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, globalStatus);
         this.globalStatus = globalStatus;
         return this;
@@ -299,16 +290,9 @@ public class ItemStatus {
         return (Map<String, Object>) data.get(MASTER_DATA);
     }
 
-    /**
-     * @param key
-     * @param value
-     * @return this
-     */
     @JsonIgnore
     public ItemStatus setMasterData(String key, Object value) {
-        if (data.get(MASTER_DATA) == null) {
-            data.put(MASTER_DATA, new HashMap<>());
-        }
+        data.computeIfAbsent(MASTER_DATA, k -> new HashMap<>());
         ((Map) data.get(MASTER_DATA)).put(key, value);
         return this;
     }
@@ -335,12 +319,11 @@ public class ItemStatus {
         return itemsStatus;
     }
 
-    /**
-     * @param itemId
-     * @param statusDetails
-     * @return this
-     */
     public ItemStatus setItemsStatus(String itemId, ItemStatus statusDetails) {
+        return setItemsStatus(itemId, statusDetails, StatusAggregationBehavior.DEFAULT);
+    }
+
+    public ItemStatus setItemsStatus(String itemId, ItemStatus statusDetails, StatusAggregationBehavior statusAggregationBehavior) {
 
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemId, statusDetails);
         // update itemStatus
@@ -352,9 +335,15 @@ public class ItemStatus {
         }
 
         // update globalStatus
-        globalStatus = globalStatus.compareTo(statusDetails.getGlobalStatus()) > 0
-            ? globalStatus
-            : statusDetails.getGlobalStatus();
+        if (StatusAggregationBehavior.KO_CAUSES_WARNING.equals(statusAggregationBehavior)
+            && KO.equals(statusDetails.getGlobalStatus())) {
+            globalStatus = WARNING;
+        } else {
+            globalStatus = globalStatus.compareTo(statusDetails.getGlobalStatus()) > 0
+                ? globalStatus
+                : statusDetails.getGlobalStatus();
+        }
+
         // update statusMeter
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
             statusMeter.set(i, statusMeter.get(i) + statusDetails.getStatusMeter().get(i));
@@ -518,8 +507,7 @@ public class ItemStatus {
         if (!Strings.isNullOrEmpty(statusDetails.getEvDetailData()) &&
             data.containsKey(EVENT_DETAIL_DATA)) {
             try {
-                ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
-                    (String) statusDetails.getEvDetailData());
+                ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(statusDetails.getEvDetailData());
                 ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
                     (String) data.get(EVENT_DETAIL_DATA));
                 subDetailData.setAll(detailData);

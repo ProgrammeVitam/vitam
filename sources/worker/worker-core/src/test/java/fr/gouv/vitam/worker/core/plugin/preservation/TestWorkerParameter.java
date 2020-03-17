@@ -42,6 +42,7 @@ import java.util.Set;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.containerName;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.objectMetadata;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.requestId;
+import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.workflowStatusKo;
 
 public class TestWorkerParameter implements WorkerParameters {
     public final Map<String, Object> params;
@@ -251,6 +252,11 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public WorkerParameters setRequestId(String newRequestId) {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
+    public String getWorkflowStatusKo() {
         throw new IllegalStateException("Not implemented");
     }
 

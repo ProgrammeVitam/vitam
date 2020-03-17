@@ -335,4 +335,10 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      */
     WorkerParameters setRequestId(String newRequestId);
 
+    /**
+     *
+     * @return workflowStatusKo
+     */
+    String getWorkflowStatusKo();
+
 }

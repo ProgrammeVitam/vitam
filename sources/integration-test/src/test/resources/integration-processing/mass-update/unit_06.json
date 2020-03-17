@@ -1,11 +1,11 @@
 {
-  "_id" : "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq",
+  "_id" : "aeaqaaaaaagbcaacaang6ak4ts6paliaaaah",
   "_og" : "",
   "_mgt" : {
   },
   "DescriptionLevel" : "RecordGrp",
   "Title" : "sous fonds",
-  "Description" : "Unit de rattachement",
+  "Description" : "Unit de rattachement V3",
   "StartDate" : "2016-12-15T15:54:18",
   "EndDate" : "2016-12-15T15:54:18",
   "_ops" : [],
@@ -19,7 +19,7 @@
       "offer1",
       "offer2"
     ],
-    "strategyId": "default"
+    "strategyId": "offerId"
   },
   "_unitType" : "INGEST",
   "_tenant" : 0,
