@@ -108,6 +108,25 @@ indices.breaker.fielddata.limit: {{ (((elasticsearch_memory_value|int) * (compos
 
 indices.mapping.dynamic_timeout: {{ composant.dynamic_timeout|default('30s') }}
 
+# thread_pool configuration
+thread_pool:
+    analyze:
+        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int }}
+        queue_size: 5000
+    get:
+        size: {{ elasticsearch.log.thread_pool.get.size |default((ansible_processor_cores * ansible_processor_threads_per_core)| round (0, 'floor') | int) }}
+        queue_size: 1000
+    search:
+        size: {{ elasticsearch.log.thread_pool.search.size |default(((ansible_processor_cores * ansible_processor_threads_per_core * 3 / 2) + 1) | round (0, 'floor') | int) }}
+        queue_size: 1000
+    write:
+        size: {{ elasticsearch.log.thread_pool.write.size |default((ansible_processor_cores * ansible_processor_threads_per_core + 1)| round (0, 'floor') | int) }}
+        queue_size: 5000
+    warmer:
+        core: 1
+        max: {{ elasticsearch.log.thread_pool.warmer.max |default(((ansible_processor_cores * ansible_processor_threads_per_core / 2) + 0.5) | round (0, 'floor') | int) }}
+        keep_alive: 2m
+
 {% if groups['hosts_elasticsearch_log']|length > 1 %}
 # related to affinity and balancing between racks / rooms https://www.elastic.co/guide/en/elasticsearch/reference/current/allocation-awareness.html
 cluster.routing.allocation.awareness.attributes: rack_id

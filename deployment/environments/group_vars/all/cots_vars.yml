@@ -61,6 +61,18 @@ elasticsearch:
                 max_total_log_size: "1GB"
                 max_files: "10"
                 log_level: "warn"
+        # By default, is commented. Should be uncommented if ansible computes badly vCPUs number ;  values are associated vCPUs numbers ; please adapt to your configuration
+        # thread_pool:
+        #     index:
+        #         size: 2
+        #     get:
+        #         size: 2
+        #     search:
+        #         size: 2
+        #     write:
+        #         size: 2
+        #     warmer:
+        #         max: 2
     data:
         host: "elasticsearch-data.service.{{ consul_domain }}"
         # default is 0.1 (10%) and should be quite enough in most cases
