@@ -89,7 +89,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionRequest;
+import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import okhttp3.OkHttpClient;
@@ -143,7 +143,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     private static final String XML = ".xml";
 
-    private static final String OFFER_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_OFFER;
+    private static final String OFFER_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_OFFER_ADMIN;
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(
@@ -244,7 +244,7 @@ public class CompactionIT extends VitamRuleRunner {
 
             SECONDS.sleep(3);
 
-            retrofit2.Response<Void> compactOfferLog = compactionRestService.launchOfferLogCompaction(new OfferLogCompactionRequest(1, MILLIS, 1000))
+            retrofit2.Response<Void> compactOfferLog = compactionRestService.launchOfferLogCompaction()
                 .execute();
 
             assertThat(compactOfferLog.isSuccessful()).as("check request compaction successfully execute").isTrue();
@@ -418,6 +418,6 @@ public class CompactionIT extends VitamRuleRunner {
         @Headers({
             "Accept: application/json"
         })
-        Call<Void> launchOfferLogCompaction(@Body OfferLogCompactionRequest request);
+        Call<Void> launchOfferLogCompaction();
     }
 }

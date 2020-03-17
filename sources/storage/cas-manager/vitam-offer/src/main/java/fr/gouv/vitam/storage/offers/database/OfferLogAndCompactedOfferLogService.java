@@ -1,6 +1,8 @@
 package fr.gouv.vitam.storage.offers.database;
 
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.BsonHelper;
@@ -24,12 +26,15 @@ import static fr.gouv.vitam.storage.engine.common.model.OfferLog.CONTAINER;
 import static fr.gouv.vitam.storage.engine.common.model.OfferLog.SEQUENCE;
 
 public class OfferLogAndCompactedOfferLogService {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferLogAndCompactedOfferLogService.class);
+    private static final AlertService alertService = new AlertServiceImpl();
 
     private final MongoCollection<Document> offerLogCollection;
     private final MongoCollection<Document> compactedOfferLogCollection;
 
-    public OfferLogAndCompactedOfferLogService(MongoCollection<Document> offerLogCollection, MongoCollection<Document> compactedOfferLogCollection) {
+    public OfferLogAndCompactedOfferLogService(MongoCollection<Document> offerLogCollection,
+        MongoCollection<Document> compactedOfferLogCollection) {
         this.offerLogCollection = offerLogCollection;
         this.compactedOfferLogCollection = compactedOfferLogCollection;
     }
@@ -39,7 +44,14 @@ public class OfferLogAndCompactedOfferLogService {
             save(toSave);
             delete(toDelete);
         } catch (Exception e) {
-            LOGGER.error("This is a problem, it means we will have incoherent data between CompactedOfferLog and OfferLog collection. We MUST use transaction in order to have coherent data in those two collection, but 'no time' to finish this story.");
+
+            // FIXME : This is a problem, it means we will have incoherent data between CompactedOfferLog and OfferLog collection.
+            //  We MUST use transaction in order to have coherent data in those two collection, but 'no time' to finish this story.
+            //  NB : Mongodb transactions requires a replica set deployment mode. Not testable right now on dev/build environments
+            //  "com.mongodb.MongoClientException: Sessions are not supported by the MongoDB cluster to which this client is connected"
+
+            LOGGER.error("An error occurred during offer log compaction. Possible CompactedOfferLog corruption", e);
+            alertService.createAlert("An error occurred during offer log compaction. Possible CompactedOfferLog corruption");
             throw new VitamRuntimeException(e);
         }
     }
@@ -54,7 +66,9 @@ public class OfferLogAndCompactedOfferLogService {
             .map(this::transformDocumentToOfferLogCompaction)
             .first();
         if (alreadySavedOfferLogCompacted != null) {
-            throw new VitamRuntimeException(String.format("Incoherent data between CompactedOfferLog and OfferLog collection, compaction offer logs '%s' already inserted.", alreadySavedOfferLogCompacted));
+            throw new VitamRuntimeException(String.format(
+                "Incoherent data between CompactedOfferLog and OfferLog collection, compaction offer logs '%s' already inserted.",
+                alreadySavedOfferLogCompacted));
         }
         try {
             compactedOfferLogCollection.insertOne(Document.parse(JsonHandler.writeAsString(compactedOfferLog)));
