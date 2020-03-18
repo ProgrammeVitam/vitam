@@ -40,15 +40,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  */
 public class AgenciesParserTest {
-    String FILE_TO_TEST_OK = "agencies.csv";
 
     @Test
     public void readFromCsv() throws Exception {
+        String FILE_TO_TEST_OK = "agencies.csv";
         List<AgenciesModel> test =
             AgenciesParser.readFromCsv(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
-        assertThat(test).hasSize(3);
-        assertThat(test.get(0).getIdentifier()).isEqualTo("AG-000001");
-        assertThat(test.get(1).getIdentifier()).isEqualTo("AG-000002");
+        assertThat(test).hasSize(4);
+        assertThat(test.get(0).getIdentifier()).isEqualTo("AG-000000");
+        assertThat(test.get(1).getIdentifier()).isEqualTo("AG-000001");
+        assertThat(test.get(2).getIdentifier()).isEqualTo("AG-000002");
+        assertThat(test.get(3).getIdentifier()).isEqualTo("AG-000003");
     }
 
 }
