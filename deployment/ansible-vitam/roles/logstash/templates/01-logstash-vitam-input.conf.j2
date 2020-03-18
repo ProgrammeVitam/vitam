@@ -6,6 +6,7 @@ input
         add_field => [ "input", "syslog" ]
         host => "{{ ip_admin }}"
         port => 10514
+        codec => plain { charset=>"UTF-8" }
     }
 
     # Disable this input as it seems we have an infinite loop bug in logstash 2.4 with json logs
