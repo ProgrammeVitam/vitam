@@ -1,0 +1,22 @@
+[
+  {
+    "id": "default",
+    "offers": [
+      {
+        "id": "storage_id_1",
+        "referent": true,
+        "status": "ACTIVE"
+      }
+    ]
+  },
+  {
+    "id": "other_strategy",
+    "offers": [
+      {
+        "id": "storage_id_1",
+        "referent": true,
+        "status": "ACTIVE"
+      }
+    ]
+  }
+]

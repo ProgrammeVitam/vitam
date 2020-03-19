@@ -249,7 +249,6 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found version for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
             }
 
-
             List<StorageStrategy> storageStrategies = loadStorageStrategies(handler);
             DbVersionsModel dbVersionsModel = versionOptional.get();
             String strategyId = dbVersionsModel.getStorage().getStrategyId();
