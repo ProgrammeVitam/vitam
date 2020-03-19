@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
 import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -70,8 +71,12 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildTraceabilityActionPlugin;
 import fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash;
@@ -192,6 +197,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CREATE_PROBATIVE_REPORT_ENTRY";
 
     public  static final String NO_BINARY_ID = "NO_BINARY_ID";
+    private static final int STRATEGIES_IN_RANK = 0;
 
     private static final TypeReference<List<LogbookOperation>> OPERATIONS_TYPE = new TypeReference<List<LogbookOperation>>(){};
     private static final TypeReference<LogbookOperation> OPERATION_TYPE = new TypeReference<LogbookOperation>() {};
@@ -243,9 +249,13 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found version for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
             }
 
+
+            List<StorageStrategy> storageStrategies = loadStorageStrategies(handler);
             DbVersionsModel dbVersionsModel = versionOptional.get();
-            List<String> offerDigests = getOfferDigests(storageClient, dbVersionsModel);
-            if (offerDigests.isEmpty() || dbVersionsModel.getStorage().getOfferIds().size() != offerDigests.size()) {
+            String strategyId = dbVersionsModel.getStorage().getStrategyId();
+            List<String> offerIds = StorageStrategyUtils.loadOfferIds(strategyId, storageStrategies);
+            List<String> offerDigests = getOfferDigests(storageClient, dbVersionsModel.getId(), strategyId, offerIds);
+            if (offerDigests.isEmpty() || offerIds.size() != offerDigests.size()) {
                 transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion));
                 return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found storage offer digest for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
             }
@@ -311,6 +321,10 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
             return buildItemStatus(HANDLER_ID,
                 OK, EventDetails.of(String.format("Entry build for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+        } catch (StorageStrategyNotFoundException | ProcessingStatusException e) {
+            LOGGER.error(e);
+            tryTransferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, Collections.emptyList(), objectGroupId, NO_BINARY_ID, usageVersion));
+            return buildItemStatus(HANDLER_ID, FATAL, EventDetails.of(String.format("Error while using storage strategies for GOT %s.", objectGroupId)));
         } catch (Exception e) {
             LOGGER.error(e);
             tryTransferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, Collections.emptyList(), objectGroupId, NO_BINARY_ID, usageVersion));
@@ -773,10 +787,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             .collect(Collectors.toSet());
     }
 
-    private List<String> getOfferDigests(StorageClient storageClient, DbVersionsModel dbVersionsModel) throws StorageNotFoundClientException, StorageServerClientException {
-        List<String> offerIds = dbVersionsModel.getStorage().getOfferIds();
-        String strategyId = dbVersionsModel.getStorage().getStrategyId();
-        JsonNode information = storageClient.getInformation(strategyId, OBJECT, dbVersionsModel.getId(), offerIds, true);
+    private List<String> getOfferDigests(StorageClient storageClient, String objectGuid, String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
+        JsonNode information = storageClient.getInformation(strategyId, OBJECT, objectGuid, offerIds, true);
         return offerIds.stream()
             .map(information::get)
             .filter(Objects::nonNull)
@@ -910,6 +922,15 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         } catch (Exception e) {
             LOGGER.error(e);
             return false;
+        }
+    }
+    
+    private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws ProcessingStatusException {
+        try {
+            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
+            });
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load storage strategies datas", e);
         }
     }
 
