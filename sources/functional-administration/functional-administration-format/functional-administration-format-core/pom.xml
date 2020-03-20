@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>functional-administration-format</artifactId>
-		<version>3.0.1</version>
+		<version>3.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>functional-administration-format-core</artifactId>
 	<name>functional-administration-format-core</name>
