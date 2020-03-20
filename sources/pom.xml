@@ -152,7 +152,7 @@
         <awssdk.v1.version>1.11.720</awssdk.v1.version>
         
         <!-- jetty -->
-        <jetty.version>9.4.26.v20200117</jetty.version>
+        <jetty.version>9.4.27.v20200227</jetty.version>
 
         <!-- specific for IHM -->
         <frontend-maven-plugin.version>1.3</frontend-maven-plugin.version>
@@ -175,8 +175,13 @@
         <!-- other -->
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <resteasy.client.version>4.5.1.Final</resteasy.client.version>
-        <resteasy.core.version>4.5.1.Final</resteasy.core.version>
+        <resteasy.client.version>4.4.2.Final</resteasy.client.version>
+        <!--
+            Buggy RestEasy 4.5.2
+            See https://stackoverflow.com/questions/60745773/stackoverflowerror-after-upgrading-to-resteasy-4-5-x
+            See https://issues.redhat.com/browse/RESTEASY-2526
+         -->
+        <resteasy.core.version>4.4.2.Final</resteasy.core.version>
         <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
         <thaiopensource.version>20091111</thaiopensource.version>
         <guava.version>28.2-jre</guava.version>
@@ -204,7 +209,7 @@
         <diffutils.version>1.3.0</diffutils.version>
         <jaxb2.version>1.0.2</jaxb2.version>
         <jaxb.version>2.3.2</jaxb.version>
-        <httpclient.version>4.5.7</httpclient.version>
+        <httpclient.version>4.5.12</httpclient.version>
         <netty.version>4.1.45.Final</netty.version>
         <commons-compress.version>1.19</commons-compress.version>
         <easystream.version>1.2.15</easystream.version>
