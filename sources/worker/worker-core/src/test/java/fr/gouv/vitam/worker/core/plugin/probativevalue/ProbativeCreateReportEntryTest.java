@@ -45,10 +45,12 @@ import static fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateRep
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.Collections;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -201,6 +203,7 @@ public class ProbativeCreateReportEntryTest {
         File reportFile = tempFolder.newFile();
         TestHandlerIO handler = new TestHandlerIO();
         handler.setNewLocalFile(reportFile);
+        handler.addOutputResult(0, PropertiesUtils.getResourceFile("evidenceAudit/strategies_other.json"));
 
         String storageId = "storage_id_1";
         String usageVersion = "BinaryMaster_25";
@@ -209,7 +212,8 @@ public class ProbativeCreateReportEntryTest {
         ObjectNode storageInformation = createStorageInformationWithDigest(storageId, "");
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
-        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(storageInformation);
+        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true))
+            .willReturn(storageInformation);
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -237,13 +241,15 @@ public class ProbativeCreateReportEntryTest {
         File reportFile = tempFolder.newFile();
         TestHandlerIO handler = new TestHandlerIO();
         handler.setNewLocalFile(reportFile);
+        handler.addOutputResult(0, PropertiesUtils.getResourceFile("evidenceAudit/strategies_other.json"));
 
         String storageId = "storage_id_1";
         String usageVersion = "BinaryMaster_25";
         String strategyId = "other_strategy";
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
-        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true))
+            .willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
         given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(new LogbookLifecycle()));
 
         // When
