@@ -43,6 +43,7 @@ public class DbStorageModel {
     @JsonProperty("_nbc")
     private int nbc;
 
+    @Deprecated
     @JsonProperty("offerIds")
     private List<String> offerIds;
 

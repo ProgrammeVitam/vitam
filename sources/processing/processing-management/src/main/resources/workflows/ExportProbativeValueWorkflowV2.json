@@ -33,6 +33,18 @@
         },
         {
           "action": {
+            "actionKey": "PREPARE_STORAGE_STRATEGIES",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "PROBATIVE_VALUE_CREATE_DISTRIBUTION_FILE",
             "behavior": "BLOCKING"
           }
@@ -53,7 +65,13 @@
         {
           "action": {
             "actionKey": "PROBATIVE_VALUE_CREATE_PROBATIVE_REPORT_ENTRY",
-            "behavior": "NOBLOCKING"
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ]
           }
         }
       ]
