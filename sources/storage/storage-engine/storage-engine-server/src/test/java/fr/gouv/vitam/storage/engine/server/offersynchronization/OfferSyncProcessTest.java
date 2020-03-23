@@ -31,9 +31,9 @@ import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -97,8 +97,8 @@ public class OfferSyncProcessTest {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
 
         sourceOfferLogs = new ArrayList<>();
-        sourceDataFiles = new HashMap<>();
-        targetDataFiles = new HashMap<>();
+        sourceDataFiles = new ConcurrentHashMap<>();
+        targetDataFiles = new ConcurrentHashMap<>();
 
         doAnswer((args) -> {
 
