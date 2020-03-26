@@ -37,29 +37,22 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.metadata.rest.MetadataMigrationAdminResource;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -67,15 +60,12 @@ import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
-import org.apache.commons.collections4.IteratorUtils;
 import org.assertj.core.api.Assertions;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -94,17 +84,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Sorts.orderBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -115,7 +100,7 @@ public class MigrationIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(MigrationIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkspaceMain.class,
@@ -126,14 +111,12 @@ public class MigrationIT extends VitamRuleRunner {
 
 
     private static final String METADATA_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_METADATA_ADMIN;
-    private static final String ADMIN_MANAGEMENT_URL =
-        "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
+    private static final String ADMIN_MANAGEMENT_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
 
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
 
     private MetadataAdminMigrationService metadataAdminMigrationService;
-    private AccessionRegisterAdminMigrationService accessionRegisterAdminMigrationService;
 
 
     @BeforeClass
@@ -144,7 +127,7 @@ public class MigrationIT extends VitamRuleRunner {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
@@ -163,12 +146,10 @@ public class MigrationIT extends VitamRuleRunner {
             new Retrofit.Builder().client(okHttpClient).baseUrl(ADMIN_MANAGEMENT_URL)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
         metadataAdminMigrationService = retrofit_metadata.create(MetadataAdminMigrationService.class);
-        accessionRegisterAdminMigrationService =
-            retrofit_admin_management.create(AccessionRegisterAdminMigrationService.class);
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         runAfter();
         handleAfterClass(0, 1);
     }
@@ -261,10 +242,10 @@ public class MigrationIT extends VitamRuleRunner {
 
 
     class FakeObjet extends Document {
-        public FakeObjet() throws ParseException {
+        FakeObjet() throws ParseException {
             append("floatVal", 2.2f);
-            append("longVal", 2l);
-            append("longVal1", 1_000_000_000l);
+            append("longVal", 2L);
+            append("longVal1", 1_000_000_000L);
             append("intVal", -2);
             append("doubleVal", -2.2);
             append("doubleVal1", -2_000_000.2);
@@ -330,123 +311,6 @@ public class MigrationIT extends VitamRuleRunner {
         String expectedOGDataSetFile =
             "integration-metadata-migration/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
         assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedOGDataSetFile, true);
-    }
-
-
-    @Test
-    public void startAccessionRegisterMigration_failedAuthn() throws Exception {
-
-        Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = accessionRegisterAdminMigrationService.startDataMigration("BAD TOKEN").execute();
-        assertThat(response.isSuccessful()).isFalse();
-
-        Response<MetadataMigrationAdminResource.ResponseMessage>
-            responseMigrationInProgress =
-            accessionRegisterAdminMigrationService.checkDataMigrationInProgress().execute();
-        assertThat(responseMigrationInProgress.code())
-            .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test
-    public void startAccessionRegisterMigration_emptyDb() throws Exception {
-
-        Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
-        assertThat(response.isSuccessful()).isTrue();
-
-        awaitTermination();
-    }
-
-    @Test
-    public void startAccessionRegisterMigration_emptyDataSet() throws Exception {
-
-        Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
-        assertThat(response.isSuccessful()).isTrue();
-
-        awaitTermination();
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void startAccessionRegisterMigration_fullDataSet() throws Exception {
-        // Given
-        String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
-            accessionRegisterDetailDataSetFile);
-
-        String accessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(),
-            accessionRegisterSummaryDataSetFile);
-
-        // When
-        Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
-        assertThat(response.isSuccessful()).isTrue();
-        awaitTermination();
-
-        // Then
-        String expectedAccessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail_EXPECTED.json";
-        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
-            expectedAccessionRegisterDetailDataSetFile, false);
-
-        // Check persisted in ES
-        SearchResponse search = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
-            .search(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(), null,
-                QueryBuilders.matchAllQuery());
-        assertThat(search.getHits().getTotalHits().value).isEqualTo(2);
-
-        String expectedAccessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary_EXPECTED.json";
-        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(),
-            expectedAccessionRegisterSummaryDataSetFile, false);
-
-        // Check persisted in ES
-        search = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
-            .search(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase(), null,
-                QueryBuilders.matchAllQuery());
-        assertThat(search.getHits().getTotalHits().value).isEqualTo(2);
-
-
-        // Check storage
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        RestoreBackupServiceImpl restoreBackupService = new RestoreBackupServiceImpl();
-        Iterator<List<OfferLog>> listingIterator =
-            restoreBackupService
-                .getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.ACCESSION_REGISTER_DETAIL, 0L, 100,
-                    Order.ASC);
-        List<OfferLog> listing =
-            IteratorUtils.toList(listingIterator).stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-
-        assertThat(listing).hasSize(2);
-        assertThat(listing).extracting("Container", "FileName")
-            .contains(
-                tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57asp2qaaaaq.json"),
-                tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57t4pqiaaaaq.json")
-            );
-
-
-        // When purge
-        response = accessionRegisterAdminMigrationService.startDataPurge(getBasicAuthToken()).execute();
-        assertThat(response.isSuccessful()).isTrue();
-        awaitTermination();
-
-        // Then Mongo and Elasticsearch purged
-        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
-        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
-
-        search = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
-            .search(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(), null,
-                QueryBuilders.matchAllQuery());
-
-        assertThat(search.getHits().getTotalHits().value).isEqualTo(0);
-
-        search = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
-            .search(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase(), null,
-                QueryBuilders.matchAllQuery());
-
-        assertThat(search.getHits().getTotalHits().value).isEqualTo(0);
     }
 
 
@@ -522,22 +386,6 @@ public class MigrationIT extends VitamRuleRunner {
             @Header("Authorization") String basicAuthToken);
 
         @GET("/metadata/v1/migration/status")
-        Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();
-    }
-
-
-    public interface AccessionRegisterAdminMigrationService {
-
-        @POST("/adminmanagement/v1/migration/accessionregister/migrate")
-        Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
-            @Header("Authorization") String basicAuthToken);
-
-        @POST("/adminmanagement/v1/migration/accessionregister/purge")
-        Call<MetadataMigrationAdminResource.ResponseMessage> startDataPurge(
-            @Header("Authorization") String basicAuthToken);
-
-
-        @GET("/adminmanagement/v1/migration/accessionregister/status")
         Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();
     }
 }
