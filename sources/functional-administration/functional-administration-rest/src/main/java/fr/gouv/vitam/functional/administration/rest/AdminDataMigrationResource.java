@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -49,9 +48,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.migration.r7r8.AccessionRegisterMigrationService;
-import fr.gouv.vitam.functional.administration.migration.r7r8.MigrationAction;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -68,7 +64,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -93,19 +88,8 @@ public class AdminDataMigrationResource {
     private ProcessingManagementClientFactory processingManagementClientFactory;
     private WorkspaceClientFactory workspaceClientFactory;
 
-
-    private final String ACCESSION_REGISTER_MIGRATION_MIGRATE_URI = "/migration/accessionregister/migrate";
-    private final String ACCESSION_REGISTER_MIGRATION_PURGE_URI = "/migration/accessionregister/purge";
-    private final String ACCESSION_REGISTER_MIGRATION_STATUS_URI = "/migration/accessionregister/status";
-
-
-    /**
-     * Accession register migration R7 -> R8
-     */
-    private final AccessionRegisterMigrationService accessionRegisterMigrationService;
-
-    AdminDataMigrationResource(FunctionalBackupService functionalBackupService) {
-        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(), WorkspaceClientFactory.getInstance(), new AccessionRegisterMigrationService(functionalBackupService));
+    AdminDataMigrationResource() {
+        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
     }
 
     /**
@@ -114,18 +98,15 @@ public class AdminDataMigrationResource {
      * @param logbookOperationsClientFactory    logbookOperationsClientFactory
      * @param processingManagementClientFactory processingManagementClientFactory
      * @param workspaceClientFactory            workspaceClientFactory
-     * @param accessionRegisterMigrationService
      */
     @VisibleForTesting
-    public AdminDataMigrationResource(
+    private AdminDataMigrationResource(
             LogbookOperationsClientFactory logbookOperationsClientFactory,
             ProcessingManagementClientFactory processingManagementClientFactory,
-            WorkspaceClientFactory workspaceClientFactory,
-            AccessionRegisterMigrationService accessionRegisterMigrationService) {
+            WorkspaceClientFactory workspaceClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
-        this.accessionRegisterMigrationService = accessionRegisterMigrationService;
     }
 
 
@@ -152,7 +133,7 @@ public class AdminDataMigrationResource {
         return migrateTo(tenant);
     }
 
-    public Response migrateTo(Integer tenant) {
+    Response migrateTo(Integer tenant) {
         ParametersChecker.checkParameter("TenantId is mandatory", tenant);
 
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -185,100 +166,6 @@ public class AdminDataMigrationResource {
             return Response.status(INTERNAL_SERVER_ERROR)
                 .header(GlobalDataRest.X_REQUEST_ID, requestId)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
-        }
-    }
-
-
-    /**
-     * API for Accession Register migration
-     *
-     * @return the response
-     */
-    @Path(ACCESSION_REGISTER_MIGRATION_MIGRATE_URI)
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response startAccessionRegisterMigration() {
-        return handleMigrationProcess(MigrationAction.MIGRATE);
-    }
-
-    /**
-     * API for Accession Register migration
-     *
-     * @return the response
-     */
-    @Path(ACCESSION_REGISTER_MIGRATION_PURGE_URI)
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response startAccessionRegisterMigrationPurge() {
-        return handleMigrationProcess(MigrationAction.PURGE);
-    }
-
-    private Response handleMigrationProcess(MigrationAction migrationAction) {
-        try {
-
-            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
-
-            boolean started = this.accessionRegisterMigrationService.tryStartMigration(migrationAction);
-
-            if (started) {
-                LOGGER.info("Accession Register migration started successfully");
-                return Response.accepted(new ResponseMessage("OK")).build();
-            } else {
-                LOGGER.warn("Accession Register migration already in progress");
-                return Response.status(Response.Status.CONFLICT)
-                        .entity(new ResponseMessage("Accession Register migration already in progress")).build();
-            }
-        } catch (Exception e) {
-            LOGGER.error("An error occurred during Accession Register migration", e);
-            return Response.serverError().entity(new ResponseMessage(e.getMessage())).build();
-        }
-    }
-    /**
-     * API for Accession Register migration status check
-     *
-     * @return the response
-     */
-    @Path(ACCESSION_REGISTER_MIGRATION_STATUS_URI)
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response isAccessionRegisterMigrationInProgress() {
-
-        try {
-            boolean started = this.accessionRegisterMigrationService.isMigrationInProgress();
-
-            if (started) {
-                LOGGER.info("Accession Register migration still in progress");
-                return Response.ok(new ResponseMessage("Accession Register migration in progress")).build();
-            } else {
-                LOGGER.info("No active migration");
-                return Response.status(Response.Status.NOT_FOUND).entity(new ResponseMessage("No active migration"))
-                        .build();
-            }
-        } catch (Exception e) {
-            LOGGER.error("An error occurred during Accession Register migration", e);
-            return Response.serverError().entity(new ResponseMessage(e.getMessage())).build();
-        }
-    }
-
-    public static class ResponseMessage {
-
-        private String message;
-
-        public ResponseMessage(String message) {
-            this.message = message;
-        }
-
-        public ResponseMessage() {
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public String getMessage() {
-            return message;
         }
     }
 
