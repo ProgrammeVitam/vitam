@@ -49,11 +49,11 @@ import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyServ
 import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * Logbook admin Service.
+ */
 @Path("/logbook/v1")
-@Tag(name="Internal")
-@Tag(name="Logbook")
 public class LogbookAdminResource {
 
     /**

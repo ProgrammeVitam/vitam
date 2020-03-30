@@ -27,12 +27,12 @@
 package fr.gouv.vitam.batch.report.rest.resource;
 
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Path;
 
+/**
+ * AdminBatchReportResource
+ */
 @Path("/batchreport/v1")
-@Tag(name="Internal")
-@Tag(name="Batch-Report")
 public class AdminBatchReportResource extends AdminStatusResource {
 }

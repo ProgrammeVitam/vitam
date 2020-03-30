@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.security.internal.common.service.CRLService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -42,9 +41,10 @@ import javax.ws.rs.core.UriInfo;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateException;
 
+/**
+ * Admin resource for crl management
+ */
 @Path("/v1/api/crl")
-@Tag(name="Internal")
-@Tag(name="Security")
 public class AdminCRLResource {
 
     private CRLService crlService;

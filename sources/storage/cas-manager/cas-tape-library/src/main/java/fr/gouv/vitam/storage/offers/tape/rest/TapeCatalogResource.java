@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.tape.rest;
 
-import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -53,13 +52,12 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * Default tape catalog REST Resource
+ */
 @Path("/offer/v1")
-@ApplicationPath("webresources")
-@Tag(name="Internal")
-@Tag(name="Tape")
+@javax.ws.rs.ApplicationPath("webresources")
 public class TapeCatalogResource extends ApplicationStatusResource {
 
     private static final String MISSING_THE_TAPE_ID =
@@ -99,8 +97,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/{tapeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "return tape model from catalog",
-        description = "Permet de récupérer la cassette de stockage à partir du catalogue")
     public Response getTape(@PathParam("tapeId") String tapeId) {
         try {
             if (Strings.isNullOrEmpty(tapeId)) {
@@ -135,11 +131,9 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "return tapes list from catalog",
-        description = "Permet de récupérer la liste des cassettes de stockage à partir du catalogue")
     public Response getTapes(List<QueryCriteria> criteria) {
         try {
-            if (criteria == null || criteria.isEmpty()) {
+            if (criteria != null || criteria.isEmpty()) {
                 LOGGER.error(MISSING_THE_SEARCH_CRITERIA);
                 return Response.status(Status.BAD_REQUEST).build();
             }
@@ -165,8 +159,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/tapeId")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "replace tape model by id",
-        description = "Permet de remplacer entièrement une cassette de stockage à partir d'un id")
     public Response replaceTape(@PathParam("tapeId") String tapeId, TapeCatalog tapeCatalog) {
 
         try {
@@ -197,8 +189,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/tapeId")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "update tape model by id",
-        description = "Permet de modifier une cassette de stockage à partir d'un id")
     public Response updateTape(@PathParam("tapeId") String tapeId, Map<String, Object> fields) {
 
         try {
@@ -234,8 +224,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "create a tape model",
-        description = "Permet de créer une cassette de stockage")
     public Response createTape(TapeCatalog tapeCatalog) {
 
         try {

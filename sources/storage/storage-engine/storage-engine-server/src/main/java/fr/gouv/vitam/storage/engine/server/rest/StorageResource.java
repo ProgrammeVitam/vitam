@@ -89,7 +89,6 @@ import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabili
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.output.CloseShieldOutputStream;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang.BooleanUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -128,9 +127,10 @@ import java.util.Map;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.ARCHIVAL_TRANSFER_REPLY;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
+/**
+ * Storage Resource implementation
+ */
 @Path("/storage/v1")
-@Tag(name="Internal")
-@Tag(name="Storage")
 public class StorageResource extends ApplicationStatusResource implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";

@@ -42,11 +42,11 @@ import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateExcep
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.rest.service.PermissionService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * public resource to personal resource
+ */
 @Path("/v1/api/personalCertificate")
-@Tag(name="Internal")
-@Tag(name="Security")
 public class PersonalCertificateResource {
 
     private final PermissionService permissionService;

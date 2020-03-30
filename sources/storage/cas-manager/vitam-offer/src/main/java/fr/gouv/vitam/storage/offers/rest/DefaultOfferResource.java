@@ -67,11 +67,10 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang3.StringUtils;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.openstack4j.api.exceptions.ConnectionException;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -94,14 +93,16 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.buildContainerName;
 
+/**
+ * Default offer REST Resource
+ */
 @Path("/offer/v1")
-@ApplicationPath("webresources")
-@Tag(name="Internal")
-@Tag(name="Default-Offer")
+@javax.ws.rs.ApplicationPath("webresources")
 public class DefaultOfferResource extends ApplicationStatusResource {
 
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
