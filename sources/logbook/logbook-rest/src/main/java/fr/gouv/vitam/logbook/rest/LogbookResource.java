@@ -100,6 +100,7 @@ import fr.gouv.vitam.logbook.operations.core.AlertLogbookOperationsDecorator;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -124,10 +125,9 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Logbook Resource implementation
- */
 @Path("/logbook/v1")
+@Tag(name="Internal")
+@Tag(name="Logbook")
 public class LogbookResource extends ApplicationStatusResource {
 
     private static final String LOGBOOK = "logbook";

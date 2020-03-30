@@ -46,6 +46,7 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.validation.Valid;
 import javax.ws.rs.ApplicationPath;
@@ -61,11 +62,10 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * reconstruction Service.
- */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class AdminReconstructionResource {
 
     /**

@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -46,10 +47,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-/**
- * Wrapper around ContextResource to expose many services.
- */
 @Path("/v1/admin")
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class AdminContextResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminContextResource.class);

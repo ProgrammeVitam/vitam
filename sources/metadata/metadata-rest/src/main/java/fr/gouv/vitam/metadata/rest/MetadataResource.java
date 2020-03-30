@@ -63,6 +63,7 @@ import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.elasticsearch.ElasticsearchParseException;
 
 import javax.ws.rs.Consumes;
@@ -82,10 +83,9 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
-/**
- * Units resource REST API
- */
 @Path("/metadata/v1")
+@Tag(name="Internal")
+@Tag(name="Metadata")
 public class MetadataResource extends ApplicationStatusResource {
 
     private static final String CONTEXT_METADATA = "METADATA";

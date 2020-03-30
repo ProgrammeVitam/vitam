@@ -120,6 +120,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -153,10 +154,9 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.TRANSFER_REPLY;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
-/**
- * AccessResourceImpl implements AccessResource
- */
 @Path("/access-internal/v1")
+@Tag(name = "Internal")
+@Tag(name = "Access")
 public class AccessInternalResourceImpl extends ApplicationStatusResource implements AccessInternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);

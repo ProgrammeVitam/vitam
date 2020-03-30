@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.administration.preservation.PreservationScenar
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.griffin.GriffinService;
 import fr.gouv.vitam.functional.administration.griffin.PreservationScenarioService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -59,6 +60,8 @@ import static javax.ws.rs.core.Response.status;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class PreservationResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationResource.class);
 

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.bson.Document;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -72,11 +73,10 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
-/**
- * ReindexationResource
- */
 @Path("/adminmanagement/v1")
-@javax.ws.rs.ApplicationPath("webresources")
+@ApplicationPath("webresources")
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class ReindexationResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReindexationResource.class);

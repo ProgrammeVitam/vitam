@@ -53,6 +53,8 @@ import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.compress.archivers.ArchiveException;
 
 import javax.ws.rs.Consumes;
@@ -82,10 +84,9 @@ import java.util.Map;
 
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
-/**
- * The Workspace Resource.
- */
 @Path("/workspace/v1")
+@Tag(name="Internal")
+@Tag(name="Worker")
 public class WorkspaceResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceResource.class);
@@ -120,6 +121,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Create one container",
+        description = "Permet de créer un nouveau container")
     public Response createContainer(@PathParam(CONTAINER_NAME) String containerName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -151,6 +154,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Delete container by name",
+        description = "Permet de supprimer un container")
     public Response deleteContainer(@PathParam(CONTAINER_NAME) String containerName,
         @HeaderParam(GlobalDataRest.X_RECURSIVE) boolean recursive) {
         try {
@@ -180,6 +185,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/old_files")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Delete object this from container",
+        description = "Permet de supprimer un objet du container")
     public Response purgeOldFilesInContainer(@PathParam(CONTAINER_NAME) String containerName, TimeToLive timeToLive) {
 
         try {
@@ -212,6 +219,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "test if this container exists",
+        description = "Permet de tester l'existence du Container")
     public Response isExistingContainer(@PathParam(CONTAINER_NAME) String containerName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -244,6 +253,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "count binary objects for this container",
+        description = "Pour compter le nombre d'objets d'un container (hors dossiers)")
     public Response countObjects(@PathParam(CONTAINER_NAME) String containerName) {
 
         try {
@@ -278,6 +289,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/container/{containerName}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "get container informations",
+        description = "Permet d'accéder aux informations d'un container")
     public Response getContainerInformation(@PathParam(CONTAINER_NAME) String containerName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -309,6 +322,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "create operation folder",
+        description = "Permet de créer un sous dossier dans le container")
     public Response createFolder(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(FOLDER_NAME) String folderName) {
         try {
@@ -343,6 +358,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "delete operation folder",
+        description = "Permet de supprimer un sous dossier dans le container")
     public Response deleteFolder(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(FOLDER_NAME) String folderName) {
 
@@ -377,6 +394,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "test if operation folder exists",
+        description = "Permet de vérifier l'existance d'un sous dossier dans le container")
     public Response isExistingFolder(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(FOLDER_NAME) String folderName) {
         try {
@@ -414,6 +433,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Consumes({CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "upload zip or tar into that folder",
+        description = "Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique sous ce folder, incluant la création de sous-folders")
     public Response uncompressObject(InputStream stream,
         @PathParam(CONTAINER_NAME) String containerName,
         @PathParam(FOLDER_NAME) String folderName, @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType) {
@@ -473,6 +494,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "upload zip or tar into that folder",
+        description = "Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique sous ce folder, incluant la création de sous-folders")
     public Response compress(@PathParam(CONTAINER_NAME) String containerName, CompressInformation compressInformation) {
 
         try {
@@ -502,6 +525,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "get object list from folder",
+        description = "Permet de récupérer la liste des objets du dossier du container")
     public Response getUriDigitalObjectListByFolder(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(FOLDER_NAME) String folderName) {
 
@@ -544,6 +569,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "create new object in container",
+        description = "Permet de créer un nouvel objet dans le container")
     public Response putObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName) {
         try {
@@ -580,6 +607,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "create new atomic object in container",
+        description = "Permet de créer un nouvel objet atomique dans le container")
     public Response putAtomicObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName,
         @HeaderParam(GlobalDataRest.X_CONTENT_LENGTH) long size) {
@@ -618,6 +647,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "delete an object in container",
+        description = "Permet de supprimer un objet dans le container")
     public Response deleteObject(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName) {
 
@@ -652,6 +683,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(summary = "retrieve an object in container",
+        description = "Permet de récupérer un objet dans le container")
     public Response getObject(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName,
         @HeaderParam(GlobalDataRest.X_CHUNK_OFFSET) Long chunkOffset,
@@ -670,6 +703,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "retrieve an object in container as multiplexed stream",
+        description = "Permet de récupérer un objet dans le container")
     public Response getBulkObjects(@PathParam(CONTAINER_NAME) String containerName,
         List<String> objectURIs) {
 
@@ -743,6 +778,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "retrieve an object in container as json",
+        description = "Permet de récupérer un objet dans le container")
     public Response getObjectInformation(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName) throws IOException {
         JsonNode jsonResultNode;
@@ -776,6 +813,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "check if object in container exists",
+        description = "Permet de vérifier l'existance de l'objet dans le container")
     public Response computeObjectDigest(@PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName, @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String algo) {
 

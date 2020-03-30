@@ -43,11 +43,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookRepositoryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * Logbook admin Service.
- */
 @Path("/logbook/v1")
+@Tag(name="Internal")
+@Tag(name="Logbook")
 public class LogbookRawResource {
 
     /**

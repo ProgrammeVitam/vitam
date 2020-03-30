@@ -67,12 +67,12 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * This resource manage profiles create, update, find, ...
- */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class ProfileResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";

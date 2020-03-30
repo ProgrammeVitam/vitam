@@ -57,12 +57,12 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
 import fr.gouv.vitam.functional.administration.ontologies.api.impl.OntologyServiceImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * This resource manage Ontologies CRUD operations
- */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class OntologyResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";

@@ -36,11 +36,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * Admin resource for personal certificate
- */
 @Path("/v1/api/personalCertificate")
+@Tag(name="Internal")
+@Tag(name="Security")
 public class AdminPersonalCertificateResource {
 
     private PersonalCertificateService personalCertificateService;

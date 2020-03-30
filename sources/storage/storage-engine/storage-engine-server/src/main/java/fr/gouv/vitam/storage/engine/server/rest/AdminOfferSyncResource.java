@@ -43,6 +43,8 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.elasticsearch.common.Strings;
 
 import javax.ws.rs.Consumes;
@@ -56,10 +58,9 @@ import javax.ws.rs.core.Response;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
-/**
- * Offer synchronization resource.
- */
 @Path("/storage/v1")
+@Tag(name="Internal")
+@Tag(name="Admin-Offer")
 public class AdminOfferSyncResource {
 
     /**
@@ -99,7 +100,6 @@ public class AdminOfferSyncResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response startPartialSynchronization(OfferPartialSyncRequest offerPartialSyncRequest) {
         ParametersChecker.checkParameter("source offer is mandatory.", offerPartialSyncRequest.getSourceOffer());
         ParametersChecker.checkParameter("target offer is mandatory.", offerPartialSyncRequest.getTargetOffer());
@@ -178,6 +178,8 @@ public class AdminOfferSyncResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    @Operation(summary = "Start offer synchronization",
+        description = "Démarre la synchronisation des offres. Une seule synchronisation peut être démarré à la fois.")
     public Response startSynchronization(OfferSyncRequest offerSyncRequest) {
 
         ParametersChecker.checkParameter("source offer is mandatory.", offerSyncRequest.getSourceOffer());
@@ -226,6 +228,8 @@ public class AdminOfferSyncResource {
     @Path(OFFER_SYNC_URI)
     @HEAD
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    @Operation(summary = "return if offer synchronization is running",
+        description = "Permet de récupérer le status de la synchronisation des offres (en cours ou non)")
     public Response isOfferSynchronizationRunning() {
         return Response.ok().header("Running", this.offerSyncService.isRunning()).build();
     }
@@ -237,6 +241,8 @@ public class AdminOfferSyncResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    @Operation(summary = "return last offer synchronization status",
+        description = "Permet de récupérer le status de la dernière synchronisation des offres (terminée ou en cours)")
     public Response getLastOfferSynchronizationStatus() {
         OfferSyncStatus lastSynchronizationStatus = this.offerSyncService.getLastSynchronizationStatus();
 
