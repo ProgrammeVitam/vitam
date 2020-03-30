@@ -35,7 +35,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.Consumes;
@@ -94,10 +94,9 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFou
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
-/**
- * The Ingest External Resource
- */
 @Path("/ingest-external/v1")
+@Tag(name="External")
+@Tag(name="Ingest")
 public class IngestExternalResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);

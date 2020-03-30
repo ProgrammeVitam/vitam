@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.migration.DataMigrationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -42,10 +43,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-/**
- * Metadata reconstruction resource.
- */
 @Path("/metadata/v1")
+@Tag(name="Internal")
+@Tag(name="Metadata")
 public class MetadataMigrationAdminResource {
 
     /**

@@ -45,11 +45,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * Wrapper around OntologyResource to expose many services.
- */
 @Path("/v1/admin")
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class AdminOntologyResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOntologyResource.class);

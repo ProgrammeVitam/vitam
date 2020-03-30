@@ -57,21 +57,18 @@ import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerFactory;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * Worker Resource implementation
- */
 @Path("/worker/v1")
+@Tag(name="Internal")
+@Tag(name="Worker")
 public class WorkerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
 
-    /**
-     * the worker factory 
-     */
-    public final WorkerFactory WORKER_FACTORY;
-
+    private final WorkerFactory workerFactory;
     private final Worker workerMocked;
 
     /**
@@ -79,10 +76,10 @@ public class WorkerResource extends ApplicationStatusResource {
      *
      * @param pluginLoader the plugin loader
      */
-    public WorkerResource(PluginLoader pluginLoader) {
+    WorkerResource(PluginLoader pluginLoader) {
         LOGGER.info("init Worker Resource server");
         workerMocked = null;
-        WORKER_FACTORY = WorkerFactory.getInstance(pluginLoader);
+        workerFactory = WorkerFactory.getInstance(pluginLoader);
     }
 
 
@@ -95,7 +92,7 @@ public class WorkerResource extends ApplicationStatusResource {
     WorkerResource(PluginLoader pluginLoader, Worker worker) {
         LOGGER.info("init Worker Resource server");
         workerMocked = worker;
-        WORKER_FACTORY = WorkerFactory.getInstance(pluginLoader);
+        workerFactory = WorkerFactory.getInstance(pluginLoader);
     }
 
     /**
@@ -123,6 +120,8 @@ public class WorkerResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "submit a step to be launched",
+        description = "Permet de soumettre une tâche (steps + contexte + item)")
     public Response submitStep(@Context HttpHeaders headers, JsonNode descriptionStepJson) {
         HttpHeaderHelper.checkVitamHeaders(headers);
         try {
@@ -131,7 +130,7 @@ public class WorkerResource extends ApplicationStatusResource {
             final ItemStatus responses;
             DescriptionStep descriptionStep = JsonHandler.getFromJsonNode(descriptionStepJson, DescriptionStep.class);
             if (workerMocked == null) {
-                try (Worker worker = WORKER_FACTORY.create()) {
+                try (Worker worker = workerFactory.create()) {
                     responses =
                         worker.run(descriptionStep.getWorkParams(),
                             descriptionStep.getStep());

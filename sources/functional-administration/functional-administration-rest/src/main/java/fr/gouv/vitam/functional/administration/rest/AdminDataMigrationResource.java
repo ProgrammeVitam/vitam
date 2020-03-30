@@ -62,6 +62,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.POST;
@@ -76,12 +77,10 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.status;
 
-/**
- * migrationResource class
- */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-
+@Tag(name="External")
+@Tag(name="Functional-Administration")
 public class AdminDataMigrationResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminDataMigrationResource.class);
     private LogbookOperationsClientFactory logbookOperationsClientFactory;

@@ -38,6 +38,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -54,10 +55,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 
-/**
- * Process Distributor Resource implementation
- */
 @Path("/processing/v1/worker_family")
+@Tag(name="Internal")
+@Tag(name="Processing")
 public class ProcessDistributorResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
     private static final String PROCESSING_MODULE = "PROCESSING";
