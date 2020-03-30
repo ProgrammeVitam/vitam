@@ -71,13 +71,6 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -100,11 +93,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
-
 @Path("/access-external/v1")
-@Tag(name = "External")
-@Tag(name = "Access")
 public class AccessExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
 
@@ -166,22 +155,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "units:read", description = "Récupérer la liste des unités archivistiques")
-    @Operation(
-        description = "Requête qui retourne des résultats contenant des Unités d'archives. La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.",
-        requestBody = @RequestBody(description = "A SELECT MULTIPLE query.", content = @Content(examples = @ExampleObject("{\"$projection\":{\"$fields\":{\"#id\":1}}}"))),
-        parameters = {
-            @Parameter(name = "X-Access-Contract-Id", in = HEADER, description = "The contract name", required = true, example = "ACC-0001"),
-            @Parameter(name = "X-Tenant-Id", in = HEADER, description = "The tenant id", required = true, example = "1")
-        },
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Renvoie la liste des résultats d'Unités d'archives correspondant à la requête DSL", content = @Content(examples = @ExampleObject("{\"httpCode\":200,\"$hits\":{\"total\":1,\"offset\":0,\"limit\":125,\"size\":1},\"$results\":[{\"#id\":\"aeaqaaaaaahftfesaabpcalqddm7ndiaaacq\"}],\"$facetResults\":[],\"$context\":{\"$roots\":[],\"$query\":[{\"$or\":[{\"$match\":{\"Title\":\"ratp\"}},{\"$match\":{\"Title_.fr\":\"ratp\"}},{\"$match\":{\"Description\":\"ratp\"}}]}],\"$filter\":{\"$orderby\":{\"TransactedDate\":1}},\"$projection\":{\"$fields\":{\"#id\":1}},\"$facets\":[]}}"))),
-            @ApiResponse(responseCode = "412", description = "Precondition failed."),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error."),
-            @ApiResponse(responseCode = "404", description = "Not found."),
-            @ApiResponse(responseCode = "401", description = "Un authorized."),
-            @ApiResponse(responseCode = "400", description = "Bad request.")
-        }
-    )
     public Response getUnits(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -482,7 +455,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit    the id of archive unit to get
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -531,7 +504,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson the update query (null not allowed)
-     * @param idUnit    units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -594,8 +567,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers   the http header defined parameters of request
-     * @param unitId    the id of archive unit
+     * @param headers the http header defined parameters of request
+     * @param unitId the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -663,7 +636,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request
-     * @param unitId  the id of archive unit
+     * @param unitId the id of archive unit
      * @return response
      */
     @GET

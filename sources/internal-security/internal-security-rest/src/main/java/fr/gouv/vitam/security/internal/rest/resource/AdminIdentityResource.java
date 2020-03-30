@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.NotFoundException;
@@ -45,9 +44,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.security.cert.CertificateException;
 
+/**
+ * admin resource for identity
+ */
 @Path("/v1/api/identity")
-@Tag(name="Internal")
-@Tag(name="Security")
 public class AdminIdentityResource {
 
     private IdentityService identityService;

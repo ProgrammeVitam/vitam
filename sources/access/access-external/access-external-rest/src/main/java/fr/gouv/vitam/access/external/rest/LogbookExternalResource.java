@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.access.external.rest;
 
-import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -65,14 +64,14 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * Logbook external resource
+ */
 @Path("/access-external/v1")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@ApplicationPath("webresources")
-@Tag(name="External")
-@Tag(name="Access")
+@javax.ws.rs.ApplicationPath("webresources")
 public class LogbookExternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);

@@ -58,15 +58,16 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.archiveunitprofiles.api.ArchiveUnitProfileService;
 import fr.gouv.vitam.functional.administration.archiveunitprofiles.api.impl.ArchiveUnitProfileServiceImpl;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
+/**
+ * This resource manage Document Types CRUD operations
+ */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="External")
-@Tag(name="Functional-Administration")
 public class ArchiveUnitProfileResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";

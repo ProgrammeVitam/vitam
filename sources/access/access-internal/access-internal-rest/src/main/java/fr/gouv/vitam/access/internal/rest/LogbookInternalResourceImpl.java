@@ -94,9 +94,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
-import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -117,12 +115,13 @@ import java.util.concurrent.TimeUnit;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 
+/**
+ * AccessResourceImpl implements AccessResource
+ */
 @Path("/access-internal/v1")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@ApplicationPath("webresources")
-@Tag(name="Internal")
-@Tag(name="Access")
+@javax.ws.rs.ApplicationPath("webresources")
 public class LogbookInternalResourceImpl {
 
     private static final String CHECK_LOGBOOK_OP_SECURISATION = "CHECK_LOGBOOK_OP_SECURISATION";

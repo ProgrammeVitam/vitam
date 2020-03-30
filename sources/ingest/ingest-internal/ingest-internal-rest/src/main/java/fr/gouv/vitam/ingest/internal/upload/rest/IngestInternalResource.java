@@ -90,9 +90,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
-import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -113,10 +111,11 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.Queue;
 
+/**
+ * IngestInternalResource
+ */
 @Path("/ingest/v1")
-@ApplicationPath("webresources")
-@Tag(name="Internal")
-@Tag(name="Ingest")
+@javax.ws.rs.ApplicationPath("webresources")
 public class IngestInternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
