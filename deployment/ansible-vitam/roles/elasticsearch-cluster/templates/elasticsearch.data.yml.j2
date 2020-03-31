@@ -153,10 +153,13 @@ cluster.routing.allocation.awareness.attributes: rack_id
 node.attr.rack_id: {{ is_balancing|default(vitam_site_name) }}
 {% endif %}
 
-# FIXME this will increases risk of running into out of memory errors by overloading the node
 indices.breaker.total.use_real_memory: false
 
 
 # Related to https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-settings.html
 xpack.ilm.enabled: false
 indices.lifecycle.history_index_enabled: false
+
+# More tuning
+xpack.security.enabled: false
+xpack.watcher.enabled: false
