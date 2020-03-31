@@ -135,4 +135,10 @@ node.attr.rack_id: {{ is_balancing|default(vitam_site_name) }}
 
 # Related to https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-settings.html
 xpack.ilm.enabled: false
-indices.lifecycle.history_index_enabled: false
+indices.lifecycle.history_index_enabled: true
+
+indices.breaker.total.use_real_memory: false
+
+# More tuning
+xpack.security.enabled: false
+xpack.watcher.enabled: false
