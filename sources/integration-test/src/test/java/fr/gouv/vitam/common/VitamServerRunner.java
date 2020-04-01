@@ -63,6 +63,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
@@ -868,7 +869,14 @@ public class VitamServerRunner extends ExternalResource {
         realMetadataConfig.setDbName(dbname);
         realMetadataConfig.setElasticsearchNodes(esNodes);
         realMetadataConfig.setClusterName(cluster);
-
+        MappingLoader mappingLoader = null;
+        try {
+            mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
+            throw new RuntimeException(e);
+        }
+        realMetadataConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
         PropertiesUtils.writeYaml(metadataConfig, realMetadataConfig);
 
         LOGGER.warn("=== VitamServerRunner start  MetadataMain");

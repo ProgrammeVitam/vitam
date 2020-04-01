@@ -50,10 +50,8 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -64,6 +62,7 @@ import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
+import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import org.junit.Before;
@@ -82,7 +81,6 @@ import java.util.Map.Entry;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
@@ -163,7 +161,7 @@ public class MetaDataImplTest {
 
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, request,
-                100, 300, 100, 300, 100, 300);
+                100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -460,17 +458,22 @@ public class MetaDataImplTest {
     }
 
     @Test
-    public void reindexCollectionUnknownTest() {
+    public void reindexCollectionUnknownTest() throws Exception {
+        // Given
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("fakeName");
         List<Integer> tenants = new ArrayList<>();
         tenants.add(0);
         parameters.setTenants(tenants);
 
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, IndexationHelper.getInstance(),
-                request, 100, 300, 100, 300, 100, 300);
+                request, 100, 300, 100, 300, 100, 300, mappingLoader);
+        // When
         IndexationResult result = metaDataImpl.reindex(parameters);
+
+        // Then
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
         assertEquals(1, result.getIndexKO().size());

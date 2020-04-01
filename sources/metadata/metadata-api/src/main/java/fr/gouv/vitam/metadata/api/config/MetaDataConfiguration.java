@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 
 import java.util.List;
 
@@ -52,6 +53,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private int dipTimeToLiveInMinutes = 60 * 24 * 7;
     private int transfersSIPTimeToLiveInMinutes = 60 * 24 * 7;
 
+    private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
+
     /**
      * MetaDataConfiguration constructor
      *
@@ -61,12 +64,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
      * @param elasticsearchNodes elasticsearch nodes
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes) {
+        List<ElasticsearchNode> elasticsearchNodes, MappingLoader mappingLoader) {
         super(mongoDbNodes, dbName);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
+        this.elasticsearchExternalMetadataMappings = mappingLoader.getElasticsearchExternalMappings();
     }
 
     /**
@@ -81,12 +85,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
      * @param dbPassword db password
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword) {
+        List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword, MappingLoader mappingLoader) {
         super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
+        this.elasticsearchExternalMetadataMappings = mappingLoader.getElasticsearchExternalMappings();
     }
 
     /**
@@ -198,5 +203,14 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setTransfersSIPTimeToLiveInMinutes(int transfersSIPTimeToLiveInMinutes) {
         this.transfersSIPTimeToLiveInMinutes = transfersSIPTimeToLiveInMinutes;
+    }
+
+    public List<ElasticsearchExternalMetadataMapping> getElasticsearchExternalMetadataMappings() {
+        return elasticsearchExternalMetadataMappings;
+    }
+
+    public void setElasticsearchExternalMetadataMappings(
+        List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings) {
+        this.elasticsearchExternalMetadataMappings = elasticsearchExternalMetadataMappings;
     }
 }

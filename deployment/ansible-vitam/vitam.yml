@@ -171,6 +171,7 @@
   any_errors_fatal: true
   serial: 1
   roles:
+    - elasticsearch-mapping
     - vitam
     - timers
     - metadata

@@ -116,7 +116,7 @@ indices.query.bool.max_clause_count: 10000
 indices.memory.index_buffer_size: {{ ((elasticsearch_memory_value|int)*(composant.index_buffer_size_ratio|float))|round (0, 'floor')| int }}{{ elasticsearch_memory_unit }}
 {% endif %}
 
-indices.mapping.dynamic_timeout: {{ composant.dynamic_timeout|default('30s') }}
+indices.mapping.dynamic_timeout: {{ composant.dynamic_timeout |default('30s') }}
 
 # thread_pool configuration
 thread_pool:

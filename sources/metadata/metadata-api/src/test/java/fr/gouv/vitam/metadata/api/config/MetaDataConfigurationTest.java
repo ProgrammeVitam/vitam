@@ -28,6 +28,8 @@ package fr.gouv.vitam.metadata.api.config;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.api.utils.MappingLoaderTestUtils;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -47,7 +49,7 @@ public class MetaDataConfigurationTest {
 
 
     @Test
-    public void testSetterGetter() {
+    public void testSetterGetter() throws Exception {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST, PORT));
         final MetaDataConfiguration config1 = new MetaDataConfiguration();
@@ -62,12 +64,14 @@ public class MetaDataConfigurationTest {
         es_nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
         assertEquals(1, config1.setElasticsearchNodes(es_nodes).getElasticsearchNodes().size());
 
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         final MetaDataConfiguration config2 =
-            new MetaDataConfiguration(mongo_nodes, DB_NAME, CLUSTER_NAME, es_nodes);
+            new MetaDataConfiguration(mongo_nodes, DB_NAME, CLUSTER_NAME, es_nodes, mappingLoader);
         assertEquals(config2.getMongoDbNodes().get(0).getDbHost(), HOST);
         assertEquals(config2.getMongoDbNodes().get(0).getDbPort(), PORT);
         assertEquals(config2.getDbName(), DB_NAME);
         assertEquals(config2.getClusterName(), CLUSTER_NAME);
         assertEquals(config2.getElasticsearchNodes().size(), 1);
+        assertEquals(config2.getElasticsearchExternalMetadataMappings().size(),2);
     }
 }

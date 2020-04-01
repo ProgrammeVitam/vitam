@@ -32,7 +32,9 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -58,17 +60,20 @@ public class MongoDbAccessMetadataFactoryTest {
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     @Test
-    public void testCreateMetadata() {
+    public void testCreateMetadata() throws Exception {
         final List<MongoDbNode> mongoNodes = new ArrayList<>();
         mongoNodes.add(new MongoDbNode(MongoRule.MONGO_HOST, MongoRule.getDataBasePort()));
 
         List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+
         MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
+            new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
+                mappingLoader);
         VitamConfiguration.setTenants(tenantList);
-        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
+        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config, mappingLoader);
 
         assertNotNull(mongoDbAccess);
         assertThat(mongoDbAccess.getMongoDatabase().getName()).isEqualTo(MongoRule.VITAM_DB);

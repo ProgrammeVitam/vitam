@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -58,6 +60,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -88,31 +92,34 @@ public class ElasticsearchAccessMetadataTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
-        elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        elasticsearchAccessMetadata =
+            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
 
-        MetadataCollections.UNIT.getVitamCollection()
-            .setName(prefix + MetadataCollections.UNIT.getClasz().getSimpleName());
+        elasticsearchAccessMetadata.addIndex(UNIT, TENANT_ID_0);
+
+        UNIT.getVitamCollection()
+            .setName(prefix + UNIT.getClasz().getSimpleName());
         MetadataCollections.OBJECTGROUP.getVitamCollection()
             .setName(prefix + MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
 
-        elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0);
-        elasticsearchAccessMetadata.addIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0);
+        elasticsearchAccessMetadata.addIndex(UNIT, TENANT_ID_0);
+        elasticsearchAccessMetadata.addIndex(OBJECTGROUP, TENANT_ID_0);
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        elasticsearchAccessMetadata.deleteIndexByAlias(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
-        elasticsearchAccessMetadata.deleteIndexByAlias(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
+        elasticsearchAccessMetadata.deleteIndexByAlias(UNIT.getName().toLowerCase(), TENANT_ID_0);
+        elasticsearchAccessMetadata.deleteIndexByAlias(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
         elasticsearchAccessMetadata.close();
     }
 
     @After
     public void after() {
-        elasticsearchAccessMetadata.purgeIndex(MetadataCollections.UNIT.getName());
-        elasticsearchAccessMetadata.purgeIndex(MetadataCollections.OBJECTGROUP.getName());
+        elasticsearchAccessMetadata.purgeIndex(UNIT.getName());
+        elasticsearchAccessMetadata.purgeIndex(OBJECTGROUP.getName());
     }
 
     @Test
@@ -142,7 +149,7 @@ public class ElasticsearchAccessMetadataTest {
             "}";
 
         // add index
-        Map<String, String> res = elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        Map<String, String> res = elasticsearchAccessMetadata.addIndex(UNIT, TENANT_ID_0);
         assertThat(res).hasSize(1);
         assertThat(res.keySet().iterator().next()).isEqualTo(prefix + "unit_0");
 
@@ -151,16 +158,16 @@ public class ElasticsearchAccessMetadataTest {
         final String id2 = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
 
         assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, id,
+            .indexEntry(UNIT.getName().toLowerCase(), TENANT_ID_0, id,
                 JsonHandler.getFromString(unit_with_max_4,
                     Unit.class))).doesNotThrowAnyException();
 
         assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, id2,
+            .indexEntry(UNIT.getName().toLowerCase(), TENANT_ID_0, id2,
                 JsonHandler.getFromString(unit_with_max_5,
                     Unit.class))).doesNotThrowAnyException();
 
-        elasticsearchAccessMetadata.refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        elasticsearchAccessMetadata.refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         JsonNode queryNode = JsonHandler.getFromString(query);
         SelectParserMultiple parser = new SelectParserMultiple();
@@ -177,7 +184,7 @@ public class ElasticsearchAccessMetadataTest {
                 .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
             // When
             Result result = elasticsearchAccessMetadata
-                .search(MetadataCollections.UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
+                .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
                     10_000, null, "START", 0);
             // Then
             assertThat(result.getNbResult()).isEqualTo(2);
@@ -186,23 +193,23 @@ public class ElasticsearchAccessMetadataTest {
         }
 
         elasticsearchAccessMetadata
-            .delete(MetadataCollections.UNIT.getName().toLowerCase(), Lists.newArrayList(id, id2), TENANT_ID_0);
+            .delete(UNIT.getName().toLowerCase(), Lists.newArrayList(id, id2), TENANT_ID_0);
     }
 
     @Test
     public void testElasticsearchAccessMetadatas() {
         // add index
-        Map<String, String> res = elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        Map<String, String> res = elasticsearchAccessMetadata.addIndex(UNIT, TENANT_ID_0);
         assertThat(res).hasSize(1);
         assertThat(res.keySet().iterator().next()).isEqualTo(prefix + "unit_0");        // add unit
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
         assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, id,
+            .indexEntry(UNIT.getName().toLowerCase(), TENANT_ID_0, id,
                 JsonHandler.getFromString(S1, Unit.class))).doesNotThrowAnyException();
 
         // delete index
         assertThatCode(() -> elasticsearchAccessMetadata
-            .deleteIndexByAlias(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0)).doesNotThrowAnyException();
+            .deleteIndexByAlias(UNIT.getName().toLowerCase(), TENANT_ID_0)).doesNotThrowAnyException();
 
     }
 
@@ -210,13 +217,13 @@ public class ElasticsearchAccessMetadataTest {
     public void testElasticsearchUpdateAccessMetadatas() {
 
         // add index
-        Map<String, String> res = elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        Map<String, String> res = elasticsearchAccessMetadata.addIndex(UNIT, TENANT_ID_0);
         assertThat(res).hasSize(1);
         assertThat(res.keySet().iterator().next()).isEqualTo(prefix + "unit_0");
         // add unit
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
         assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, id,
+            .indexEntry(UNIT.getName().toLowerCase(), TENANT_ID_0, id,
                 JsonHandler.getFromString(S1, Unit.class))).doesNotThrowAnyException();
     }
 
@@ -225,22 +232,22 @@ public class ElasticsearchAccessMetadataTest {
         throws IOException, DatabaseException {
 
         // add index
-        Map<String, String> res = elasticsearchAccessMetadata.addIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0);
+        Map<String, String> res = elasticsearchAccessMetadata.addIndex(OBJECTGROUP, TENANT_ID_0);
         assertThat(res).hasSize(1);
         assertThat(res.keySet().iterator().next()).isEqualTo(prefix + "objectgroup_0");
 
         // add OG
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
         assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0, id,
+            .indexEntry(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0, id,
                 JsonHandler.getFromString(S1_OG, ObjectGroup.class))).doesNotThrowAnyException();
 
 
-        elasticsearchAccessMetadata.refreshIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
+        elasticsearchAccessMetadata.refreshIndex(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
 
         // delete index
         assertThatCode(() -> elasticsearchAccessMetadata
-            .deleteIndexByAlias(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0))
+            .deleteIndexByAlias(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0))
             .doesNotThrowAnyException();
 
     }
@@ -249,7 +256,7 @@ public class ElasticsearchAccessMetadataTest {
     public void testElasticsearchUpdateOGAccessMetadatas() {
 
         // add index
-        Map<String, String> res = elasticsearchAccessMetadata.addIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0);
+        Map<String, String> res = elasticsearchAccessMetadata.addIndex(OBJECTGROUP, TENANT_ID_0);
         assertThat(res).hasSize(1);
         assertThat(res.keySet().iterator().next()).isEqualTo(prefix + "objectgroup_0");
 
@@ -257,7 +264,7 @@ public class ElasticsearchAccessMetadataTest {
         final String id = GUIDFactory.newObjectGroupGUID(TENANT_ID_0).toString();
 
         assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0, id,
+            .indexEntry(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0, id,
                 JsonHandler.getFromString(S1_OG, ObjectGroup.class))).doesNotThrowAnyException();
     }
 }

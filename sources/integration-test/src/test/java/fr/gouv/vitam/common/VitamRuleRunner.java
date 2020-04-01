@@ -28,8 +28,8 @@ package fr.gouv.vitam.common;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -44,6 +44,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -57,7 +58,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -120,9 +120,10 @@ public class VitamRuleRunner {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes), tenants);
+            new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes, mappingLoader), tenants);
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
             new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes));
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,

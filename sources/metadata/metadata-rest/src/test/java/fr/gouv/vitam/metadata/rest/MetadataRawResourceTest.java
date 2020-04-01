@@ -45,10 +45,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -64,6 +65,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -96,12 +99,12 @@ public class MetadataRawResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        MetadataCollections.UNIT.getVitamCollection()
-            .setName(GUIDFactory.newGUID().getId() + MetadataCollections.UNIT.getClasz().getSimpleName());
-        mongoRule.addCollectionToBePurged(MetadataCollections.UNIT.getName());
-        MetadataCollections.OBJECTGROUP.getVitamCollection()
-            .setName(GUIDFactory.newGUID().getId() + MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
-        mongoRule.addCollectionToBePurged(MetadataCollections.OBJECTGROUP.getName());
+        UNIT.getVitamCollection()
+            .setName(GUIDFactory.newGUID().getId() + UNIT.getClasz().getSimpleName());
+        mongoRule.addCollectionToBePurged(UNIT.getName());
+        OBJECTGROUP.getVitamCollection()
+            .setName(GUIDFactory.newGUID().getId() + OBJECTGROUP.getClasz().getSimpleName());
+        mongoRule.addCollectionToBePurged(OBJECTGROUP.getName());
         junitHelper = JunitHelper.getInstance();
 
         List<ElasticsearchNode> esNodes =
@@ -109,8 +112,12 @@ public class MetadataRawResourceTest {
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
+
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
+            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
+                mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         VitamConfiguration.setTenants(tenantList);
@@ -158,7 +165,7 @@ public class MetadataRawResourceTest {
         objectGroup.put("_id", objectGroupId);
         objectGroup.set("_ops", JsonHandler.createArrayNode().add(operationId));
         objectGroup.set("_up", JsonHandler.createArrayNode().add(unitId));
-        MetadataCollections.OBJECTGROUP.getCollection().insertOne(new ObjectGroup(objectGroup));
+        OBJECTGROUP.getCollection().insertOne(new ObjectGroup(objectGroup));
         String reponseString = given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -196,7 +203,7 @@ public class MetadataRawResourceTest {
         unit.set("_ops", JsonHandler.createArrayNode().add(operationId));
         unit.set("_up", JsonHandler.createArrayNode().add(parentUnitId));
         unit.put("_nbc", 1L);
-        MetadataCollections.UNIT.getCollection().insertOne(new Unit(unit));
+        UNIT.getCollection().insertOne(new Unit(unit));
 
         String reponseString = given()
             .contentType(MediaType.APPLICATION_JSON)

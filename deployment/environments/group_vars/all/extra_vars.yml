@@ -38,6 +38,7 @@ vitam:
         # metricsunit: MINUTES
         access_retention_days: 15 # Number of days for file retention
         access_total_size_cap: "14GB" # total acceptable size
+        elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/ihm-recette/mapping"
     library:
         vitam_component: library
         host: "library.service.{{ consul_domain }}"

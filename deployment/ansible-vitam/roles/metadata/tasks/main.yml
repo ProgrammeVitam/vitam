@@ -131,4 +131,3 @@
     state: "started"
   when: ( inventory_hostname == groups["hosts_metadata"] | last ) and
     ( primary_site | lower == "true" )
-
