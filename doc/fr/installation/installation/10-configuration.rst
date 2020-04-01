@@ -183,3 +183,24 @@ Exemple du fichier ``vault-cots.yml`` ::
 
    ansible-vault rekey vault-cots.yml
 
+
+Le mapping ELasticsearch pour Unit et ObjectGroup
+=================================================
+
+Les mappings des index elasticsearch pour les collections masterdata Unit et ObjectGroup sont configurables de l'extérieur, plus spécifiquement dans le dossier |repertoire_inventory| ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/``, ce dossier contient:
+
+* ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/unit-es-mapping.json``
+* ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/og-es-mapping.json``
+
+Exemple du fichier mapping de la collection ObjectGroup :
+
+  .. literalinclude:: ../../../../deployment/ansible-vitam/roles/elasticsearch-mapping/files/og-es-mapping.json
+     :language: json
+     :linenos:
+
+.. note:: Le paramétrage de ce mapping se fait sur les deux composants ``Metadata`` et le composant extra``Ihm Recette``.
+
+.. caution::     
+    En cas de changement du mapping, il faut vailler à ce que cette mise à jour soit en accord avec l'Ontologie de :term:`VITAM`.
+
+    Le mapping est pris en compte lors de la première création des indexes. Pour une nouvelle installation de :term:`VITAM`,  les mapping seront automatiquement pris en compte. Cependant, la modification des mapping nécessite une réindexation via l'API dédiée si VITAM est déjà installé.    

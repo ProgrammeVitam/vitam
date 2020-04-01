@@ -509,6 +509,7 @@ vitam:
         # metricsunit: MINUTES
         access_retention_days: 15 # Number of days for file retention
         access_total_size_cap: "14GB" # total acceptable size
+        elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"

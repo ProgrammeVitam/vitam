@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -73,8 +74,9 @@ public class AdminMetadataApplication extends Application {
                 PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
             adminApplication = new AdminApplication();
             // Hack to instance metadatas collections
+            MappingLoader mappingLoader = new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
             MongoDbAccessMetadataImpl mongoDbAccessMetadata =
-                MongoDbAccessMetadataFactory.create(metaDataConfiguration);
+                MongoDbAccessMetadataFactory.create(metaDataConfiguration, mappingLoader);
 
             // TODO: Ugly fix as we have to change all unit test
             if (null != metaDataConfiguration.getWorkspaceUrl() && !metaDataConfiguration.getWorkspaceUrl().isEmpty()) {
@@ -92,8 +94,8 @@ public class AdminMetadataApplication extends Application {
                 metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
                 metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
-                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds()
-            );
+                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
+                mappingLoader);
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 

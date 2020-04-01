@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
@@ -66,6 +67,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -92,6 +94,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
@@ -143,13 +147,15 @@ public class MetadataResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
-                elasticsearchRule.getClusterName(), esNodes);
+                elasticsearchRule.getClusterName(), esNodes, mappingLoader);
 
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata, 0, 1);
         accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes);
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, accessFunctionalAdmin,
@@ -467,7 +473,7 @@ public class MetadataResourceTest {
 
         VitamRepositoryFactory factory = VitamRepositoryFactory.get();
         VitamMongoRepository mongo =
-            factory.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
+            factory.getVitamMongoRepository(UNIT.getVitamCollection());
         Document doc = new Document("_id", "1")
             .append("_ops", singletonList(operationId))
             .append("_tenant", 0)
@@ -477,7 +483,7 @@ public class MetadataResourceTest {
             .append("_sps", Arrays.asList("sp1", "sp2"));
         mongo.save(doc);
 
-        VitamElasticsearchRepository es = factory.getVitamESRepository(MetadataCollections.UNIT.getVitamCollection());
+        VitamElasticsearchRepository es = factory.getVitamESRepository(UNIT.getVitamCollection());
         es.save(doc);
 
         given()
@@ -497,10 +503,10 @@ public class MetadataResourceTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))));
         VitamRepositoryFactory factory = VitamRepositoryFactory.get();
         VitamMongoRepository mongo =
-            factory.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+            factory.getVitamMongoRepository(OBJECTGROUP.getVitamCollection());
         mongo.save(doc);
         VitamElasticsearchRepository es =
-            factory.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+            factory.getVitamESRepository(OBJECTGROUP.getVitamCollection());
         es.save(doc);
         String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
 

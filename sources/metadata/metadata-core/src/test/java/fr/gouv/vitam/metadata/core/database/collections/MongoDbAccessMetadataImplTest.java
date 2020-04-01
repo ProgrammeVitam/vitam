@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.FacetBucket;
@@ -47,8 +46,10 @@ import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSy
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
@@ -64,11 +65,10 @@ import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuil
 import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
-import org.elasticsearch.search.aggregations.metrics.SumAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.ParsedSum;
 import org.elasticsearch.search.aggregations.metrics.ParsedValueCount;
+import org.elasticsearch.search.aggregations.metrics.SumAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.ValueCountAggregationBuilder;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -79,6 +79,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,9 +99,7 @@ import static java.util.Locale.US;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyListOf;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -153,12 +152,14 @@ public class MongoDbAccessMetadataImplTest {
 
 
     @BeforeClass
-    public static void setupOne() throws IOException, VitamException {
+    public static void setupOne() throws Exception {
         List<ElasticsearchNode> esNodes =
             Lists
                 .newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes);
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+
+        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes, mappingLoader);
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient, 0, 1);
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
@@ -195,8 +196,8 @@ public class MongoDbAccessMetadataImplTest {
             .contains(DEFAULT_MONGO7)
             .contains(DEFAULT_MONGO8)
         ;
-        assertThat(MetadataCollections.UNIT.getName()).isEqualTo(PREFIX + "Unit");
-        assertThat(MetadataCollections.OBJECTGROUP.getName()).isEqualTo(PREFIX + "ObjectGroup");
+        assertThat(UNIT.getName()).isEqualTo(PREFIX + "Unit");
+        assertThat(OBJECTGROUP.getName()).isEqualTo(PREFIX + "ObjectGroup");
         assertThat(MongoDbAccessMetadataImpl.getUnitSize()).isEqualTo(0);
         assertThat(MongoDbAccessMetadataImpl.getObjectGroupSize()).isEqualTo(0);
     }
@@ -228,7 +229,7 @@ public class MongoDbAccessMetadataImplTest {
                 esClient, tenantList);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
 
         final String operationId = "1234";
         ArrayList<Document> units = Lists.newArrayList(
@@ -298,7 +299,7 @@ public class MongoDbAccessMetadataImplTest {
             mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
         initGotsForAccessionRegisterTest("/got_1_sp1.json", "/got_2_sp1.json", "/got_3_sp2.json",
             "/got_4_sp1_sp2.json");
 
@@ -330,7 +331,7 @@ public class MongoDbAccessMetadataImplTest {
             mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
         final String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
         initGotsForAccessionRegisterTest("/object_sp1_1.json", "/object_sp1_sp2_2.json", "/object_sp2.json",
             "/object_sp2_4.json", "/object_other_operation_id.json");
@@ -360,11 +361,11 @@ public class MongoDbAccessMetadataImplTest {
 
         VitamRepositoryFactory factory = VitamRepositoryFactory.get();
         VitamMongoRepository mongo =
-            factory.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+            factory.getVitamMongoRepository(OBJECTGROUP.getVitamCollection());
         mongo.save(objectGroups);
 
         VitamElasticsearchRepository es =
-            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+            VitamRepositoryFactory.get().getVitamESRepository(OBJECTGROUP.getVitamCollection());
         es.save(objectGroups);
     }
 
@@ -390,7 +391,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300
+            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
         );
 
         // When
@@ -423,7 +424,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300
+            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
         );
 
         // When
@@ -470,7 +471,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300
+            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
         );
 
         // When
@@ -516,7 +517,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300
+            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
         );
 
         // When
@@ -563,7 +564,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client), 100, 300, 100, 300, 100, 300
+                client), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
         );
 
         // When
@@ -603,7 +604,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300
+            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
         );
 
         // When

@@ -1,0 +1,30 @@
+---
+
+- name: Create configuration directory for es mapping files
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+    
+- name: ensure elasticsearch metadata mapping directory is present
+  file:
+    path: "{{ vitam_struct.elasticsearch_mapping_dir }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: Copy the metadata Unit and objectGroup elasticsearch mapping files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ vitam_struct.elasticsearch_mapping_dir }}/{{ item | basename }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_fileglob:
+    - "{{ role_path }}/files/*.json"
+
+
+

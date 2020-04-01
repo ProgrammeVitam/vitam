@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -73,11 +74,13 @@ public class BusinessApplication extends Application {
                 PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
 
-            MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
+            MappingLoader mappingLoader  = new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
+            MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration, mappingLoader);
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
+
             MetaDataImpl metadata = MetaDataImpl.newMetadata(
                 mongoAccessMetadata,
                 VitamConfiguration.getOntologyCacheMaxEntries(),
@@ -85,7 +88,8 @@ public class BusinessApplication extends Application {
                 metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
                 metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
-                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds()
+                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
+                mappingLoader
             );
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);

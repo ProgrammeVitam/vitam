@@ -10,6 +10,7 @@
   any_errors_fatal: true
   roles:
     - ihm-recette-data-sets
+    - elasticsearch-mapping
     - vitam
   vars:
     vitam_struct: "{{ vitam.ihm_recette }}"

@@ -57,8 +57,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -67,6 +67,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAc
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -137,6 +138,7 @@ public class WebApplicationResourceDelete {
         DbConfigurationImpl adminConfiguration;
         LogbookConfiguration logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;
+        MappingLoader mappingLoader;
         if (webApplicationConfig.isDbAuthentication()) {
             adminConfiguration =
                 new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
@@ -147,11 +149,12 @@ public class WebApplicationResourceDelete {
                     webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                     .getElasticsearchNodes(),
                     true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
+            mappingLoader = new MappingLoader(webApplicationConfig.getElasticsearchExternalMetadataMappings());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                 .getElasticsearchNodes(),
                 true, webApplicationConfig.getDbUserName(), webApplicationConfig
-                .getDbPassword());
+                .getDbPassword(), mappingLoader);
         } else {
             adminConfiguration =
                 new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
@@ -161,13 +164,14 @@ public class WebApplicationResourceDelete {
                     webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(),
                     webApplicationConfig
                         .getElasticsearchNodes());
+            mappingLoader = new MappingLoader(webApplicationConfig.getElasticsearchExternalMetadataMappings());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                .getElasticsearchNodes());
+                .getElasticsearchNodes(), mappingLoader);
         }
         mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(), webApplicationConfig.getElasticsearchNodes(), ontologyLoader);
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader);
-        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
+        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration,mappingLoader);
         LOGGER.debug("init Admin Management Resource server");
     }
 

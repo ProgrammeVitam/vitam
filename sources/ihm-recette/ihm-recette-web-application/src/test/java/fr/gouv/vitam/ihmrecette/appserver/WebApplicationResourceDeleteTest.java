@@ -69,12 +69,14 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.ihmrecette.appserver.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
@@ -151,8 +153,10 @@ public class WebApplicationResourceDeleteTest {
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 nodes));
 
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes), TENANT_ID, 1);
+            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes, mappingLoader), TENANT_ID, 1);
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes), TENANT_ID, 1);
@@ -171,6 +175,7 @@ public class WebApplicationResourceDeleteTest {
         VitamConfiguration.setTenants(tenantList);
 
         realAdminConfig.getElasticsearchNodes().get(0).setHttpPort(ElasticsearchRule.PORT);
+        realAdminConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
         adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 

@@ -59,7 +59,13 @@ La classe BusinessApplication possède les singletons qui contiennent les ressou
 Configuration
 =============
 
-Le fichier de configuration se nomme ihm-recette.conf et contient les paramètres suivants:
+Le fichier de configuration se nomme ihm-recette.conf:
+
+Fichier ``ihm-recette.conf``
+----------------------------
+
+.. literalinclude:: ../../../../../deployment/ansible-vitam/roles/vitam/templates/ihm-recette/ihm-recette.conf.j2
+   :language: text
 
 * port, serverHost, jettyConfig, tenants, secureMode
 * baseUrl, staticContent, baseUri (qui configure jetty)
@@ -67,3 +73,4 @@ Le fichier de configuration se nomme ihm-recette.conf et contient les paramètre
 * dbName, masterdataDbName, logbookDbName, metadataDbName, mongoDbNodes, clusterName, elasticsearchNodes
 * testSystemSipDirectory, testSystemReportDirectory
 * sipDirectory, performanceReportDirectory
+* elasticsearchExternalMetadataMappings (liste des collections respectivement Unit et ObjectGroup et les fichiers de mappings associés d'elasticsearch)

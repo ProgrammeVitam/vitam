@@ -36,6 +36,13 @@ elasticsearchNodes:
   httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
+# ElasticSearch External Metadata Mapping
+elasticsearchExternalMetadataMappings:
+- collection: Unit
+  mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/unit-es-mapping.json
+- collection: ObjectGroup
+  mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/og-es-mapping.json
+
 #Basic Authentication
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}

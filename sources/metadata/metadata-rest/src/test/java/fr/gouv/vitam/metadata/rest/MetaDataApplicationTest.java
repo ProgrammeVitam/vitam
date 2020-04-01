@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -45,13 +46,13 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.fail;
 
 public class MetaDataApplicationTest {
 
-    private final static String HOST_NAME = "127.0.0.1";
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
         {
@@ -88,7 +89,8 @@ public class MetaDataApplicationTest {
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", mongoClient.getAddress().getPort()));
-        config = new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        config = new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes, new MappingLoader(
+            Collections.emptyList()));
         VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
         config.setUrlProcessing("http://processing.service.consul:8203/");

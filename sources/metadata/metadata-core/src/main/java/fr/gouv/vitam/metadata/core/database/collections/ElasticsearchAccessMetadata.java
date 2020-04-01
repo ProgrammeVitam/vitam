@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -67,17 +68,17 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
 
-    public static final String MAPPING_UNIT_FILE = "/unit-es-mapping.json";
-    public static final String MAPPING_OBJECT_GROUP_FILE = "/og-es-mapping.json";
-
+    private final MappingLoader mappingLoader;
     /**
      * @param clusterName cluster name
      * @param nodes list of elasticsearch node
      * @throws VitamException if nodes list is empty
      */
-    public ElasticsearchAccessMetadata(final String clusterName, List<ElasticsearchNode> nodes)
+    public ElasticsearchAccessMetadata(final String clusterName, List<ElasticsearchNode> nodes,
+        MappingLoader mappingLoader)
         throws VitamException, IOException {
         super(clusterName, nodes);
+        this.mappingLoader = mappingLoader;
     }
 
     /**
@@ -89,7 +90,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     public final Map<String, String> addIndex(final MetadataCollections collection, Integer tenantId) {
         try {
-            return super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
+            return super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(),
+                getMapping(collection, mappingLoader),
                 tenantId);
         } catch (final Exception e) {
             LOGGER.error("Error while set Mapping", e);
@@ -288,17 +290,17 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    private String getAliasName(final MetadataCollections collection, Integer tenantId) {
-        return collection.getName().toLowerCase() + "_" + tenantId.toString();
-    }
+    private String getMapping(MetadataCollections collection,
+        MappingLoader mappingLoader)
+        throws IOException {
 
-    private String getMapping(MetadataCollections collection) throws IOException {
-        if (collection == MetadataCollections.UNIT) {
-            return ElasticsearchUtil.transferJsonToMapping(Unit.class.getResourceAsStream(MAPPING_UNIT_FILE));
-        } else if (collection == MetadataCollections.OBJECTGROUP) {
-            return ElasticsearchUtil
-                .transferJsonToMapping(ObjectGroup.class.getResourceAsStream(MAPPING_OBJECT_GROUP_FILE));
+        switch (collection) {
+            case UNIT:
+                return ElasticsearchUtil.transferJsonToMapping(mappingLoader.loadMapping(collection.name()));
+            case OBJECTGROUP:
+                return ElasticsearchUtil.transferJsonToMapping(mappingLoader.loadMapping(collection.name()));
+            default:
+                throw new IOException("The given collection is not a metadata collection");
         }
-        return "";
     }
 }

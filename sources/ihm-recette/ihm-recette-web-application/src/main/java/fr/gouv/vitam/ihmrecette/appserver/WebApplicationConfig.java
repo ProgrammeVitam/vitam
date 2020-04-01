@@ -26,10 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
+import fr.gouv.vitam.metadata.api.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.FunctionalAdminAdmin;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 
 import java.util.List;
 
@@ -54,7 +56,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String testSystemReportDirectory;
     private int ingestMaxThread;
     private FunctionalAdminAdmin functionalAdminAdmin;
-
+    private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
     /**
      * Constructor for tests
      */
@@ -71,8 +73,8 @@ public class WebApplicationConfig extends MetaDataConfiguration {
      * @param elasticsearchNodes nodes elastic search
      */
     public WebApplicationConfig(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes) {
-        super(mongoDbNodes, dbName, clusterName, elasticsearchNodes);
+        List<ElasticsearchNode> elasticsearchNodes, MappingLoader mappingLoader) {
+        super(mongoDbNodes, dbName, clusterName, elasticsearchNodes, mappingLoader);
     }
 
     /**
@@ -285,5 +287,14 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     public void setFunctionalAdminAdmin(
         FunctionalAdminAdmin functionalAdminAdmin) {
         this.functionalAdminAdmin = functionalAdminAdmin;
+    }
+
+    public List<ElasticsearchExternalMetadataMapping> getElasticsearchExternalMetadataMappings() {
+        return elasticsearchExternalMetadataMappings;
+    }
+
+    public void setElasticsearchExternalMetadataMappings(
+        List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings) {
+        this.elasticsearchExternalMetadataMappings = elasticsearchExternalMetadataMappings;
     }
 }
