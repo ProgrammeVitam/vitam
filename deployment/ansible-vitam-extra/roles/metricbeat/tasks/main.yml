@@ -18,6 +18,18 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
+- name: Check that the directories exist (must be removed when the RPM plugin will be patched)
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/metricbeat"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  with_items:
+    - log
+  tags:
+    - update_metricbeat_configuration
+
 - name: apply metricbeat configuration
   template:
     src: metricbeat.yml.j2
@@ -33,6 +45,8 @@
     state: directory
     owner: root
     mode: 0644
+  tags:
+    - update_metricbeat_configuration
 
 - name: apply metricbeat modules configuration
   template:
@@ -42,6 +56,8 @@
     mode: 0640
   with_fileglob:
     - "{{ role_path }}/templates/modules/*yml"
+  tags:
+    - update_metricbeat_configuration
 
 
 # OMA : Has to be /usr/bin/metricbeat !
