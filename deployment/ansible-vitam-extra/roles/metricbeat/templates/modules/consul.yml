@@ -1,0 +1,8 @@
+{% if consul_disabled is not defined or consul_disabled |lower != "true" %}
+- module: consul
+  metricsets:
+    - agent
+  enabled: true
+  period: 10s
+  hosts: ["{{ hostvars[inventory_hostname][consul.network] }}:8500"]
+{% endif %}
