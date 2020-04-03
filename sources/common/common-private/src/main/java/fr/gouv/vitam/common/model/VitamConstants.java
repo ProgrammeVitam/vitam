@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.model;
 
 import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -83,7 +84,7 @@ public class VitamConstants {
         try {
             URL_ENCODED_SEPARATOR = URLEncoder.encode("/", CharsetUtils.UTF_8);
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 

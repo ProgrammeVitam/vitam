@@ -26,28 +26,6 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CharsetUtils;
@@ -75,6 +53,27 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
+
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.model.VitamConstants.URL_ENCODED_SEPARATOR;
 
@@ -294,10 +293,13 @@ public class SedaUtils {
             ValidationXsdUtils.getInstance().checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
+            LOGGER.error("Manifest xml file is not valid with the XSD", e);
             return CheckSedaValidationStatus.NO_FILE;
         } catch (final XMLStreamException e) {
+            LOGGER.error("This is not an xml file", e);
             return CheckSedaValidationStatus.NOT_XML_FILE;
         } catch (final SAXException e) {
+            LOGGER.error("The xml file is not conform with XSD Schema : ", e);
             // if the cause is null, that means the file is an xml, but it does not validate the XSD
             if (e.getCause() == null) {
                 JsonNode errorNode = JsonHandler.createObjectNode().put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
@@ -345,7 +347,7 @@ public class SedaUtils {
      */
     private InputStream checkExistenceManifest()
         throws IOException, ProcessingException {
-        InputStream manifest = null;
+        InputStream manifest;
         try {
             manifest = handlerIO.getInputStreamFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
@@ -362,29 +364,12 @@ public class SedaUtils {
      * @throws ProcessingException
      * @throws UnsupportedEncodingException
      */
-    private boolean checkFolderContentNumber() throws ProcessingException, UnsupportedEncodingException {
+    private boolean checkFolderContentNumber() throws ProcessingException {
         List<URI> list = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
-        String contentName = null;
-        for (int i = 0; i < list.size(); i++) {
-            String s = list.get(i).toString();
-            if (s.contains(URL_ENCODED_SEPARATOR)) {
-                String directory = s.split(URL_ENCODED_SEPARATOR)[0];
-                if (directory.equalsIgnoreCase("content")) {
-                    if (contentName == null) {
-                        contentName = directory;
-                    } else {
-                        if (!contentName.equals(directory)) {
-                            return false;
-                        }
-                    }
-                } else {
-                    return false;
-                }
-
-            }
-        }
-
-        return true;
+        return list.stream()
+            .filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR))
+            .map(content -> content.toString().split(URL_ENCODED_SEPARATOR)[0])
+            .allMatch(x -> x.equalsIgnoreCase("content"));
     }
 
     /**
@@ -393,19 +378,11 @@ public class SedaUtils {
      * @throws ProcessingException
      * @throws UnsupportedEncodingException
      */
-    private boolean checkMultiManifest() throws ProcessingException, UnsupportedEncodingException {
+    private boolean checkMultiManifest() throws ProcessingException {
         List<URI> listURI = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
 
-        int countManifest = 0;
-        for (int i = 0; i < listURI.size(); i++) {
-            if (!listURI.get(i).toString().contains(URL_ENCODED_SEPARATOR)) {
-                countManifest++;
-                if (countManifest > 1) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return listURI.stream()
+            .filter(uri -> !uri.toString().contains(URL_ENCODED_SEPARATOR)).count() > 1;
     }
 
     /**
