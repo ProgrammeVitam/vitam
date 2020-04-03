@@ -168,7 +168,7 @@ Mise à jour des métadonnées de reconstruction (cas d'un site secondaire)
 
 Dans le cadre d'une montée de version vers R13 sur un site secondaire, il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`.
 
-Le `playbook` ajoute dans les données des collections `Offset` des bases `masterdata`, `logbook` et `metadata` du site secondaire la valeur ` "strategy" : "default" `.
+Le `playbook` ajoute dans les données des collections `Offset` des bases `masterdata`, `logbook` et `metadata` du site secondaire la valeur ``"strategy" : "default"``.
 
 La migration s'effectue, uniquement sur le site secondaire, à l'aide de la commande suivante :
 
