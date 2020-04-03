@@ -470,9 +470,8 @@ SELinux propose trois modes différents :
 La mise en oeuvre de SELinux est prise en charge par le processus de déploiement et s'effectue de la sorte : 
 
 * Isoler dans l'inventaire de déploiement les composants worker sur des hosts dédiés (ne contenant aucun autre composant :term:`VITAM`) 
-* Positionner pour ces hosts un fichier *hostvars* sous ``environments/host_vars/`` contenant la déclaration suivante : 
-.. code-block:: yaml
+* Positionner pour ces hosts un fichier *hostvars* sous ``environments/host_vars/`` contenant la déclaration suivante ::
 
-    selinux_state: "enforcing" 
+   selinux_state: "enforcing" 
 
 * Procéder à l'installation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d’installation classique décrite dans le DIN 
