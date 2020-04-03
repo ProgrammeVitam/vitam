@@ -58,14 +58,23 @@ Should be usefull: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .ba
 		b. Add new Multirun configuration
 		c. Add configuration to run in the following order: Workspace, MetaData, Logbook, InternalSecurity, Storage, DefaultOffer, ProcessManagement, BatchReport, Worker, AdminManagement, IngestInternal, IngestExternal, AccessInternal, AccessExternal, IhmDemo
 
-8. One vitam-build-repo AND vitam-deploy-cots are done without error, launch your configured multirun task in order to launch all vitam modules. 
-	1. If Some servers are not correctly launched, check in your docker cots that all vitam services are successfully launched with `systemctl -a | grep vitam`
+8. Changer la configuration des composants metadata et ihm-recette (si besoin) pour pointer vers les fichiers mappings d'elasticsearch des collections Unit et ObjectGroup comme suit : 
+   1. La liste des variables mappingPath de l'attribut elasticsearchExternalMetadataMappings:
+      elasticsearchExternalMetadataMappings:
+		- collection: Unit
+  		  mappingFile: `path/to/vitam/vitam-conf-dev/conf/metadata/mapping/unit-es-mapping.json`
+		- collection: ObjectGroup
+          mappingFile: `path/to/vitam/vitam-conf-dev/conf/metadata/mapping/og-es-mapping.json`
+    les fichiers unit-es-mapping.json et og-es-mapping.json seront de préférence (pas obligatoire) des liens symboliques vers les fichier se trouvant dans `path/to/vitam/deployment/ansible-vitam/roles/elasticsearch-mapping/files`.
+	
+9. One vitam-build-repo AND vitam-deploy-cots are done without error, launch your configured multirun task in order to launch all vitam modules. 
+	1. If Some servers are not correctly launched, check in your docker cots that all vitam services are successfully launched with `systemctl -a | grep vitam` 
 
-9. Run the `init_data_vitam.sh` file to init vitam with SecurityProfiles/Ontology/Contexts/Certificate.
+10. Run the `init_data_vitam.sh` file to init vitam with SecurityProfiles/Ontology/Contexts/Certificate.
 
-10. Run the cucumber `_init.feature` in order to initialize with necessary data like contracts.
+11. Run the cucumber `_init.feature` in order to initialize with necessary data like contracts.
 
-11. Launch mongo-express docker container:
+12. Launch mongo-express docker container:
 	1. Login to programmevitam docker repo with `docker login https://docker.programmevitam.fr` and your vitam LDAP credentials
 	2. Run mongo express with `docker run -d -p 10081:8081 --name="mongo-express" -e ME_CONFIG_MONGODB_ADMINUSERNAME="vitamdb-admin" -e ME_CONFIG_MONGODB_ADMINPASSWORD="azerty" -e ME_CONFIG_MONGODB_SERVER="172.17.0.2" --link vitam-rpm-cots-dev:mongo docker.programmevitam.fr/mongo-express`
 
