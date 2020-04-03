@@ -253,6 +253,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
             validationXsdUtils.checkWithXSD(new FileInputStream(atrFile), SedaUtils.SEDA_XSD_VERSION);
         } catch (SAXException e) {
             if (e.getCause() == null) {
+                // In case of an exception while parsing the manifest file, when the exception is thrown before parsing
+                // complete basic elements for constructing a valid ATR file, this cause errors in conformity with the
+                // XSD schema file, so we construct an ATR file using the minimum of informations to reply clients
+                // with the important errors, even with empty tags that broke the schema conformity.
                 LOGGER.error("ATR File is not valid with the XSD", e);
             }
             LOGGER.error("ATR File is not a correct xml file", e);
@@ -415,7 +419,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
                     .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()));
         } else {
-            codeListVersions.setMessageDigestAlgorithmCodeListVersion(buildCodeType(""));
+            codeListVersions
+                .setMessageDigestAlgorithmCodeListVersion(buildCodeType(""));
         }
 
         if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null &&
