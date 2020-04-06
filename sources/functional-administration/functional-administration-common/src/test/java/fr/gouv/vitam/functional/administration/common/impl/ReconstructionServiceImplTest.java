@@ -43,6 +43,7 @@ import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -57,11 +58,14 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.mockito.ArgumentMatchers.any;
@@ -313,6 +317,41 @@ public class ReconstructionServiceImplTest {
             .reconstruct(any(), tenantCaptor.capture());
     }
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void reconstructCollectionScript() throws Exception {
+
+        String scriptPath =
+            "../../../deployment/ansible-vitam/roles/functional_administration/templates/reconstruction.sh.j2";
+        String scriptFile = FileUtils.readFileToString(new File(scriptPath), StandardCharsets.US_ASCII);
+
+        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
+
+            boolean shouldBeReconstructed;
+            switch (collection) {
+                case ACCESSION_REGISTER_SUMMARY:
+                case ACCESSION_REGISTER_DETAIL:
+                case ACCESSION_REGISTER_SYMBOLIC:
+                    // Reconstruction is done via another script...
+                    shouldBeReconstructed = false;
+                    break;
+
+                case VITAM_SEQUENCE:
+                    // Recomputed while reconstruction corresponding function admin collections
+                    shouldBeReconstructed = false;
+                    break;
+
+                default:
+                    shouldBeReconstructed = true;
+                    break;
+            }
+
+            assertThat(scriptFile.contains("local_curl " + collection.name()))
+                .withFailMessage("Expected reconstruction of " + collection.name() + " to be " + shouldBeReconstructed)
+                .isEqualTo(shouldBeReconstructed);
+        }
+    }
 
     @Test
     @RunWithCustomExecutor
