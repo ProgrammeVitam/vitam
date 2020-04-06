@@ -101,10 +101,10 @@ cluster.initial_master_nodes: [ {% for host in groups['hosts_elasticsearch_log']
 action.destructive_requires_name: true
 
 # related to https://www.elastic.co/guide/en/elasticsearch/reference/7.3/modules-fielddata.html
-indices.fielddata.cache.size: {{ (((elasticsearch_memory_value|int) * (composant.indices_fielddata_cache_size|float)) | round (0, 'floor')) | int }}{{ elasticsearch_memory_unit }}
+indices.fielddata.cache.size: {{ composant.indices_fielddata_cache_size }}
 
 # related to https://www.elastic.co/guide/en/elasticsearch/reference/7.3/circuit-breaker.html#fielddata-circuit-breaker
-indices.breaker.fielddata.limit: {{ (((elasticsearch_memory_value|int) * (composant.indices_breaker_fielddata_limit|float)) | round (0, 'floor')) | int }}{{ elasticsearch_memory_unit }}
+indices.breaker.fielddata.limit: {{ composant.indices_breaker_fielddata_limit }}
 
 indices.mapping.dynamic_timeout: {{ composant.dynamic_timeout|default('30s') }}
 
