@@ -33,7 +33,13 @@
           "action": {
             "actionKey": "PRESERVATION_PREPARATION",
             "behavior": "BLOCKING",
-            "lifecycleLog": "DISABLED"
+            "lifecycleLog": "DISABLED",
+            "out": [
+              {
+                "name": "distributionFileOG",
+                "uri": "WORKSPACE:distributionFileOG.jsonl"
+              }
+            ]
           }
         }
       ]
@@ -44,7 +50,7 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
-        "element": "distributionFile.jsonl",
+        "element": "distributionFileOG.jsonl",
         "type": "ObjectGroup",
         "statusOnEmptyDistribution": "WARNING"
       },
@@ -64,9 +70,47 @@
         },
         {
           "action": {
-            "actionKey": "PRESERVATION_METADATA_SECURITY_CHECKS",
-            "behavior": "BLOCKING",
-            "lifecycleLog": "DISABLED",
+            "actionKey": "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "FINAL",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ],
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PRESERVATION_UNIT_METADATA_SECURITY_CHECKS",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "FINAL",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ],
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PRESERVATION_EXTRACTION_AU",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "FINAL",
             "in": [
               {
                 "name": "workflowBatchResults",
@@ -162,6 +206,55 @@
                 "uri": "MEMORY_SINGLE:workflowBatchResults"
               }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PRESERVATION_PREPARATION_INSERTION_AU_METADATA",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PRESERVATION_PREPARATION_INSERTION_AU_METADATA",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "DistributionFileAU",
+                "uri": "WORKSPACE:distributionFileAU.jsonl"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PRESERVATION_INSERTION_AU_METADATA",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "distributionFileAU.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PRESERVATION_INSERTION_AU_METADATA",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "FLUSH_LFC"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]

@@ -30,13 +30,14 @@ import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
-import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.batch.report.rest.resource.BatchReportResource;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
@@ -56,22 +57,15 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
+import static fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository.COLLECTION_NAME;
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
-/**
- * BusinessApplication
- */
 public class BusinessApplication extends ConfigurationApplication {
 
     private final CommonBusinessApplication commonBusinessApplication;
 
     private Set<Object> singletons;
 
-    /**
-     * Constructor
-     *
-     * @param servletConfig
-     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
@@ -101,11 +95,12 @@ public class BusinessApplication extends ConfigurationApplication {
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
             UpdateUnitReportRepository updateUnitReportRepository = new UpdateUnitReportRepository(mongoDbAccess);
             EvidenceAuditReportRepository evidenceAuditReportRepository = new EvidenceAuditReportRepository(mongoDbAccess);
+            ExtractedMetadataRepository extractedMetadataRepository = new ExtractedMetadataRepository(mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME));
             BatchReportServiceImpl batchReportServiceImpl =
                 new BatchReportServiceImpl(eliminationActionUnitRepository, purgeUnitRepository,
                     purgeObjectGroupRepository, transferReplyUnitRepository, workspaceClientFactory,
                     preservationReportRepository, auditReportRepository, updateUnitReportRepository,
-                    unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository);
+                    unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository, extractedMetadataRepository);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());

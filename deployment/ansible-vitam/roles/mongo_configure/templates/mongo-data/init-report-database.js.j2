@@ -46,3 +46,6 @@ db.InvalidUnits.dropIndex( { "processId" : 1} )
 db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
 db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
 db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
+
+// Create indexes ExtractedMetadata
+db.ExtractedMetadata.createIndex( { "processId" : 1, "tenant" : 1, "id" : 1 } )

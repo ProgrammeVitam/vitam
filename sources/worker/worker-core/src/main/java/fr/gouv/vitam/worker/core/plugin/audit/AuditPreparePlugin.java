@@ -118,7 +118,7 @@ public class AuditPreparePlugin extends ActionHandler {
             SelectMultiQuery query = generateAuditQuery(handler);
             computePreparation(query, handler, metaDataClient);
             return buildItemStatus(AUDIT_PREPARATION, StatusCode.OK, createObjectNode());
-            
+
         } catch (InvalidParseOperationException | IOException | ProcessingException e) {
             LOGGER.error(String.format("Audit action failed with status [%s]", FATAL), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
@@ -127,7 +127,7 @@ public class AuditPreparePlugin extends ActionHandler {
     }
 
     private void computePreparation(SelectMultiQuery selectMultiQuery, HandlerIO handler, MetaDataClient metaDataClient)
-            throws FileNotFoundException, IOException, InvalidParseOperationException, ProcessingException {
+        throws FileNotFoundException, IOException, InvalidParseOperationException, ProcessingException {
 
         ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
         Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
@@ -135,14 +135,14 @@ public class AuditPreparePlugin extends ActionHandler {
         Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
 
         Iterator<Pair<String, List<String>>> unitsByObjectGroupIterator = new GroupByObjectIterator(
-                gotIdUnitIdIterator);
+            gotIdUnitIdIterator);
 
         Iterator<List<Pair<String, List<String>>>> unitsByObjectGroupBulkIterator = Iterators.partition(
-                unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
+            unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
 
         File objectGroupsToAudit = handler.getNewLocalFile(OBJECT_GROUPS_TO_AUDIT_JSONL);
         try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsToAudit);
-                JsonLineWriter writer = new JsonLineWriter(outputStream)) {
+            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
             while (unitsByObjectGroupBulkIterator.hasNext()) {
                 List<Pair<String, List<String>>> bulkToProcess = unitsByObjectGroupBulkIterator.next();
                 processBulk(bulkToProcess, handler, writer);
@@ -153,20 +153,20 @@ public class AuditPreparePlugin extends ActionHandler {
     }
 
     private void processBulk(List<Pair<String, List<String>>> unitsByObjectGroupBulkIterator, HandlerIO handler,
-            JsonLineWriter writer) throws InvalidParseOperationException, IOException {
+        JsonLineWriter writer) throws InvalidParseOperationException, IOException {
 
         Map<String, List<String>> tempUnitsByObjectGroupMap = new HashMap<>();
         unitsByObjectGroupBulkIterator.forEach(item -> tempUnitsByObjectGroupMap.put(item.getKey(), item.getValue()));
 
         List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(
-                tempUnitsByObjectGroupMap.keySet());
+            tempUnitsByObjectGroupMap.keySet());
 
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
 
             List<String> unitIds = tempUnitsByObjectGroupMap.get(objectGroup.getId());
             AuditObjectGroup auditDistributionLine = createAuditDistributionLine(unitIds, objectGroup);
             writer.addEntry(new JsonLineModel(auditDistributionLine.getId(), null,
-                    JsonHandler.toJsonNode(auditDistributionLine)));
+                JsonHandler.toJsonNode(auditDistributionLine)));
 
         }
 
@@ -217,8 +217,8 @@ public class AuditPreparePlugin extends ActionHandler {
 
     private Iterator<Pair<String, String>> getGotIdUnitIdIterator(Iterator<JsonNode> iterator) {
         return IteratorUtils.transformedIterator(iterator,
-                item -> new ImmutablePair<>(item.get(OBJECT.exactToken()).asText(),
-                        item.get(ID.exactToken()).asText()));
+            item -> new ImmutablePair<>(item.get(OBJECT.exactToken()).asText(),
+                item.get(ID.exactToken()).asText()));
     }
 
     private ObjectNode getQueryProjectionToApply() {

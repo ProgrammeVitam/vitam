@@ -56,6 +56,9 @@ public class OutputPreservation {
     private DbFormatIdentificationModel formatIdentification;
     @JsonProperty("ExtractedMetadata")
     private ExtractedMetadata extractedMetadata;
+    @JsonProperty("ExtractedMetadataAU")
+    private ExtractedMetadataForAu extractedMetadataAU;
+
 
     public OutputPreservation() {
         // Empty constructor for deserialization
@@ -139,6 +142,14 @@ public class OutputPreservation {
 
     public void setExtractedMetadata(ExtractedMetadata extractedMetadata) {
         this.extractedMetadata = extractedMetadata;
+    }
+
+    public ExtractedMetadataForAu getExtractedMetadataAU() {
+        return extractedMetadataAU;
+    }
+
+    public void setExtractedMetadataAU(ExtractedMetadataForAu extractedMetadataAU) {
+        this.extractedMetadataAU = extractedMetadataAU;
     }
 
     @Override

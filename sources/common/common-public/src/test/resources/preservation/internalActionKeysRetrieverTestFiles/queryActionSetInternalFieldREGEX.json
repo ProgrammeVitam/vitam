@@ -1,0 +1,31 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$or": [
+        {
+          "$in": {
+            "operations": [
+              "Operation-Id"
+            ]
+          }
+        },
+        {
+          "$in": {
+            "#allunitups": []
+          }
+        }
+      ],
+      "$depth": 1000
+    }
+  ],
+  "$action": [
+    {
+      "$setregex": {
+        "$target": "_sedaVersion",
+        "$controlPattern": "YEAH",
+        "$updatePattern": "Toto"
+      }
+    }
+  ]
+}

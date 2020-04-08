@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import fr.gouv.vitam.common.error.ServiceName;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -55,7 +53,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 

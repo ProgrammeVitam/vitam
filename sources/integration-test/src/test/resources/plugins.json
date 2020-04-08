@@ -255,14 +255,26 @@
   "PRESERVATION_ACTION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin"
   },
+  "PRESERVATION_EXTRACTION_AU": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationExtractionAUPlugin"
+  },
   "PRESERVATION_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationFinalizationPlugin"
   },
   "PRESERVATION_SIEGFRIED_IDENTIFICATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationSiegfriedPlugin"
   },
-  "PRESERVATION_METADATA_SECURITY_CHECKS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationMetadataSecurityChecks"
+  "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationObjectGroupMetadataSecurityChecks"
+  },
+  "PRESERVATION_UNIT_METADATA_SECURITY_CHECKS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationUnitMetadataSecurityChecks"
+  },
+  "PRESERVATION_PREPARATION_INSERTION_AU_METADATA": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationInsertionAuMetadata"
+  },
+  "PRESERVATION_INSERTION_AU_METADATA": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationInsertionAuMetadata"
   },
   "PRESERVATION_BINARY_HASH": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash"

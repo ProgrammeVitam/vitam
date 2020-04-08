@@ -36,7 +36,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
@@ -53,9 +52,9 @@ import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
 import static java.util.function.Predicate.not;
 
-public class PreservationMetadataSecurityChecks extends ActionHandler {
-    public static final String ITEM_ID = "PRESERVATION_METADATA_SECURITY_CHECKS";
-    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationMetadataSecurityChecks.class);
+public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler {
+    public static final String ITEM_ID = "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS";
+    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationObjectGroupMetadataSecurityChecks.class);
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
@@ -69,10 +68,10 @@ public class PreservationMetadataSecurityChecks extends ActionHandler {
 
         for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
             List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
-                .stream()
-                .filter(OutputExtra::isOkAndExtracted)
-                .map(this::checkMetadataAndAddExtractedMetadata)
-                .collect(Collectors.toList());
+                    .stream()
+                    .filter(OutputExtra::isOkAndExtractedGot)
+                    .map(this::checkMetadataAndAddExtractedMetadata)
+                    .collect(Collectors.toList());
 
             if (outputExtras.isEmpty()) {
                 workflowBatchResults.add(workflowBatchResult);
@@ -94,25 +93,25 @@ public class PreservationMetadataSecurityChecks extends ActionHandler {
 
     private List<OutputExtra> getOutputExtrasWithoutErrors(WorkflowBatchResult workflowBatchResult, List<OutputExtra> outputExtras) {
         Stream<OutputExtra> nonExtractedOrOkOutputExtra = workflowBatchResult.getOutputExtras()
-            .stream()
-            .filter(not(OutputExtra::isOkAndExtracted));
+                .stream()
+                .filter(not(OutputExtra::isOkAndExtractedGot));
 
         Stream<OutputExtra> extractedOutputExtraSanitize = outputExtras.stream()
-            .filter(not(OutputExtra::isInError));
+                .filter(not(OutputExtra::isInError));
 
         return Stream.concat(nonExtractedOrOkOutputExtra, extractedOutputExtraSanitize)
-            .collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
         Stream<String> subBinaryItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
         String error = outputExtras.stream()
-            .filter(o -> o.getError().isPresent())
-            .map(o -> o.getError().get())
-            .collect(Collectors.joining(","));
+                .filter(o -> o.getError().isPresent())
+                .map(o -> o.getError().get())
+                .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, KO, EventDetails.of(error))
-                .disableLfc();
+                    .disableLfc();
         }
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, OK, EventDetails.of("All metadata are OK."));
@@ -122,9 +121,8 @@ public class PreservationMetadataSecurityChecks extends ActionHandler {
 
     private OutputExtra checkMetadataAndAddExtractedMetadata(OutputExtra output) {
         try {
-            ExtractedMetadata extractedMetadata = output.getOutput().getExtractedMetadata();
-            SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(extractedMetadata.getOtherMetadata()));
-            return OutputExtra.withExtractedMetadata(output, extractedMetadata);
+            SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(output.getOutput().getExtractedMetadata().getOtherMetadata()));
+            return OutputExtra.withExtractedMetadataForGot(output, output.getOutput().getExtractedMetadata());
         } catch (InvalidParseOperationException e) {
             logger.error(e);
             return OutputExtra.inError(e.getMessage());

@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.description;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -34,13 +34,10 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -50,13 +47,22 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMe
 public class MassUpdateCheck extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MassUpdateCheck.class);
     private static final String PLUGIN_NAME = "MASS_UPDATE_CHECK";
-    private static final String FORBIDDEN_PREFIX = "#";
-    private static final String FORBIDDEN_PREFIX_INTERNAL = "_";
+
+    private final InternalActionKeysRetriever internalActionKeysRetriever;
+
+    public MassUpdateCheck() {
+        this(new InternalActionKeysRetriever());
+    }
+
+    @VisibleForTesting
+    public MassUpdateCheck(InternalActionKeysRetriever internalActionKeysRetriever) {
+        this.internalActionKeysRetriever = internalActionKeysRetriever;
+    }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-            List<String> internalKeyFields = getInternalActionKeyFields(handler.getJsonFromWorkspace("query.json"));
+            List<String> internalKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(handler.getJsonFromWorkspace("query.json"));
             if (!internalKeyFields.isEmpty()) {
                 String message = String.format("Invalid DSL query: cannot contains '%s' internal field(s).", String.join(", ", internalKeyFields));
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
@@ -66,54 +72,6 @@ public class MassUpdateCheck extends ActionHandler {
         } catch (Exception e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of("Check KO unexpected error."));
-        }
-    }
-
-    private List<String> getInternalActionKeyFields(JsonNode query) {
-        JsonNode action = query.get("$action");
-        if (action == null || action.isMissingNode() || action.isNull()) {
-            return Collections.emptyList();
-        }
-        return getInternalKeyFields(action);
-    }
-
-    private List<String> getInternalKeyFields(JsonNode action) {
-        List<String> internalKeyFields = new ArrayList<>();
-
-        if (action.isObject()) {
-            Iterator<Map.Entry<String, JsonNode>> fields = action.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> field = fields.next();
-                JsonNode value = field.getValue();
-                if (value.isObject() || value.isArray()) {
-                    return getInternalKeyFields(value);
-                }
-
-                String key = field.getKey().toLowerCase();
-                addInternalFieldFromSetRegex(internalKeyFields, value, key);
-
-                if (key.startsWith(FORBIDDEN_PREFIX) || key.startsWith(FORBIDDEN_PREFIX_INTERNAL)) {
-                    internalKeyFields.add(key);
-                }
-            }
-        }
-        if (action.isArray()) {
-            Iterator<JsonNode> elements = action.elements();
-            while (elements.hasNext()) {
-                JsonNode element = elements.next();
-                if (element.isObject() || element.isArray()) {
-                    return getInternalKeyFields(element);
-                }
-            }
-        }
-
-        return internalKeyFields;
-    }
-
-    private void addInternalFieldFromSetRegex(List<String> internalKeyFields, JsonNode value, String key) {
-        // When we use '$setregex' DSL operator we must check if a forbidden field is use, so we check the value of '$target'.
-        if (key.equalsIgnoreCase("$target") && (value.asText().startsWith(FORBIDDEN_PREFIX) || value.asText().startsWith(FORBIDDEN_PREFIX_INTERNAL))) {
-            internalKeyFields.add(value.asText());
         }
     }
 }

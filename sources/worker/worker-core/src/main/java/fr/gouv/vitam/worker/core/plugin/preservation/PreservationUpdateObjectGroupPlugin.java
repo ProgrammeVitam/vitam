@@ -59,14 +59,12 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
-import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -132,7 +130,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             .collect(Collectors.toList());
 
         List<OutputExtra> extractedOkActions = outputExtras.stream()
-            .filter(OutputExtra::isOkAndExtracted)
+            .filter(OutputExtra::isOkAndExtractedGot)
             .collect(Collectors.toList());
 
         if (generateOkActions.isEmpty() && identifyOkActions.isEmpty() && extractedOkActions.isEmpty()) {
@@ -297,7 +295,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
     private DbVersionsModel createNewVersionExtracted(OutputExtra outputExtra, DbVersionsModel version,
         List<Difference> differences) {
-        Optional<ExtractedMetadata> extractedMetadata = outputExtra.getExtractedMetadata();
+        Optional<ExtractedMetadata> extractedMetadata = outputExtra.getExtractedMetadataGOT();
         if (extractedMetadata.isEmpty()) {
             throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
         }
