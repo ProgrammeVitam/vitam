@@ -56,6 +56,7 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -120,10 +121,10 @@ public class PreservationStorageMetadataAndLfcTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         WorkflowBatchResult.OutputExtra outputExtra = new WorkflowBatchResult.OutputExtra(output, "binaryGUID",
-                Optional.of(12L), Optional.of("hash"), Optional.of(format), Optional.of(value), Optional.empty(), Optional.empty());
+                Optional.of(12L), Optional.of("hash"), Optional.of(format), Optional.of(value), Optional.empty(), Optional.empty(), Optional.empty());
 
         WorkflowBatchResult batchResult = WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId",
-                Collections.singletonList(outputExtra), "BinaryMaster", "other_binary_strategy");
+                Collections.singletonList(outputExtra), "BinaryMaster", "other_binary_strategy", Collections.singletonList("unitId"));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"),
                 Collections.singletonList(batchResult));
 

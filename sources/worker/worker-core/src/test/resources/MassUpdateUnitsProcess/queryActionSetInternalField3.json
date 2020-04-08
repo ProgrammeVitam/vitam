@@ -1,0 +1,32 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$in": {
+            "operations": [
+              "Operation-Id"
+            ]
+          }
+        }
+      ],
+      "$depth": 10
+    }
+  ],
+  "$threshold": 100,
+  "$action": [
+    {
+      "$set": {
+        "foo.bar._firstExample": "an hidden id",
+        "foo.bar._secondExample.foo": "another hidden id",
+        "foo.bar.foo._thirdExample": {
+          "_fourthExample": "innerId"
+        },
+        "foo.bar.foo._fifthExample.foo": {
+          "foo._sixthExample": "innerId"
+        }
+      }
+    }
+  ]
+}

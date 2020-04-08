@@ -42,6 +42,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.EXTRACT;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.EXTRACT_AU;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 
@@ -53,10 +54,11 @@ public class WorkflowBatchResult {
     private final String sourceStrategy;
     private final String requestId;
     private final List<OutputExtra> outputExtras;
+    private final List<String> unitsForExtractionAU;
     private final StatusCode globalStatus;
 
     private WorkflowBatchResult(String gotId, String unitId, String targetUse, String requestId, List<OutputExtra> outputExtras,
-        StatusCode globalStatus, String sourceUse, String sourceStrategy) {
+                                StatusCode globalStatus, String sourceUse, String sourceStrategy, List<String> unitsForExtractionAU) {
         this.gotId = gotId;
         this.unitId = unitId;
         this.targetUse = targetUse;
@@ -65,32 +67,34 @@ public class WorkflowBatchResult {
         this.globalStatus = globalStatus;
         this.sourceUse = sourceUse;
         this.sourceStrategy = sourceStrategy;
+        this.unitsForExtractionAU = unitsForExtractionAU;
     }
 
     public static WorkflowBatchResult of(String gotId, String unitId, String targetUse, String requestId, List<OutputExtra> outputExtras,
-        String sourceUse, String sourceStrategy) {
+                                         String sourceUse, String sourceStrategy, List<String> unitsForExtractionAU) {
         return new WorkflowBatchResult(gotId, unitId, targetUse, requestId, Collections.unmodifiableList(outputExtras), WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
-            sourceUse, sourceStrategy);
+                sourceUse, sourceStrategy, unitsForExtractionAU);
     }
 
     public static WorkflowBatchResult of(WorkflowBatchResult workflowBatchResult, List<OutputExtra> outputExtras) {
         return new WorkflowBatchResult(
-            workflowBatchResult.getGotId(),
-            workflowBatchResult.getUnitId(),
-            workflowBatchResult.getTargetUse(),
-            workflowBatchResult.getRequestId(),
-            Collections.unmodifiableList(outputExtras),
-            WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
-            workflowBatchResult.getSourceUse(),
-            workflowBatchResult.getSourceStrategy());
+                workflowBatchResult.getGotId(),
+                workflowBatchResult.getUnitId(),
+                workflowBatchResult.getTargetUse(),
+                workflowBatchResult.getRequestId(),
+                Collections.unmodifiableList(outputExtras),
+                WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
+                workflowBatchResult.getSourceUse(),
+                workflowBatchResult.getSourceStrategy(),
+                workflowBatchResult.getUnitsForExtractionAU());
     }
 
     private static StatusCode globalStatusFromOutputExtras(List<OutputExtra> outputExtras) {
         List<PreservationStatus> statuses = outputExtras.stream()
-            .map(o -> o.getOutput().getStatus())
-            .map(s -> s.equals(PreservationStatus.OK) ? PreservationStatus.OK : PreservationStatus.KO)
-            .distinct()
-            .collect(Collectors.toList());
+                .map(o -> o.getOutput().getStatus())
+                .map(s -> s.equals(PreservationStatus.OK) ? PreservationStatus.OK : PreservationStatus.KO)
+                .distinct()
+                .collect(Collectors.toList());
 
         if (statuses.isEmpty()) {
             return KO;
@@ -122,7 +126,7 @@ public class WorkflowBatchResult {
     public String getSourceUse() {
         return sourceUse;
     }
-    
+
     public String getSourceStrategy() {
         return sourceStrategy;
     }
@@ -135,6 +139,11 @@ public class WorkflowBatchResult {
         return globalStatus;
     }
 
+    public List<String> getUnitsForExtractionAU() {
+        return unitsForExtractionAU;
+    }
+
+
     public static class OutputExtra {
         private final OutputPreservation output;
         private final String binaryGUID;
@@ -142,100 +151,108 @@ public class WorkflowBatchResult {
         private final Optional<String> binaryHash;
         private final Optional<FormatIdentifierResponse> binaryFormat;
         private final Optional<StoredInfoResult> storedInfo;
-        private final Optional<ExtractedMetadata> extractedMetadata;
+        private final Optional<ExtractedMetadata> extractedMetadataGOT;
+        private final Optional<ExtractedMetadataForAu> extractedMetadataAU;
         private final Optional<String> error;
 
         @VisibleForTesting
-        public OutputExtra(OutputPreservation output, String binaryGUID, Optional<Long> size, Optional<String> binaryHash, Optional<FormatIdentifierResponse> binaryFormat, Optional<StoredInfoResult> storedInfo, Optional<ExtractedMetadata> extractedMetadata, Optional<String> error) {
+        public OutputExtra(OutputPreservation output, String binaryGUID, Optional<Long> size, Optional<String> binaryHash, Optional<FormatIdentifierResponse> binaryFormat, Optional<StoredInfoResult> storedInfo, Optional<ExtractedMetadata> extractedMetadataGOT, Optional<ExtractedMetadataForAu> extractedMetadataAU, Optional<String> error) {
             this.output = output;
             this.binaryGUID = binaryGUID;
             this.size = size;
             this.binaryHash = binaryHash;
             this.binaryFormat = binaryFormat;
             this.storedInfo = storedInfo;
-            this.extractedMetadata = extractedMetadata;
+            this.extractedMetadataGOT = extractedMetadataGOT;
+            this.extractedMetadataAU = extractedMetadataAU;
             this.error = error;
         }
 
         public static OutputExtra of(OutputPreservation output) {
-            return new OutputExtra(output, GUIDFactory.newGUID().getId(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+            return new OutputExtra(output, GUIDFactory.newGUID().getId(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
         }
 
         public static OutputExtra withBinaryHashAndSize(OutputExtra outputExtra, String binaryHash, long size) {
             return new OutputExtra(
-                outputExtra.getOutput(),
-                outputExtra.getBinaryGUID(),
-                Optional.of(size),
-                Optional.of(binaryHash),
-                outputExtra.getBinaryFormat(),
-                outputExtra.getStoredInfo(),
-                outputExtra.getExtractedMetadata(),
-                outputExtra.getError()
+                    outputExtra.getOutput(),
+                    outputExtra.getBinaryGUID(),
+                    Optional.of(size),
+                    Optional.of(binaryHash),
+                    outputExtra.getBinaryFormat(),
+                    outputExtra.getStoredInfo(),
+                    outputExtra.getExtractedMetadataGOT(),
+                    outputExtra.getExtractedMetadataAU(),
+                    outputExtra.getError()
             );
         }
 
         public static OutputExtra withBinaryFormat(OutputExtra outputExtra, FormatIdentifierResponse binaryFormat) {
             return new OutputExtra(
-                outputExtra.getOutput(),
-                outputExtra.getBinaryGUID(),
-                outputExtra.getSize(),
-                outputExtra.getBinaryHash(),
-                Optional.of(binaryFormat),
-                outputExtra.getStoredInfo(),
-                outputExtra.getExtractedMetadata(),
-                outputExtra.getError()
+                    outputExtra.getOutput(),
+                    outputExtra.getBinaryGUID(),
+                    outputExtra.getSize(),
+                    outputExtra.getBinaryHash(),
+                    Optional.of(binaryFormat),
+                    outputExtra.getStoredInfo(),
+                    outputExtra.getExtractedMetadataGOT(),
+                    outputExtra.getExtractedMetadataAU(),
+                    outputExtra.getError()
             );
         }
 
         public static OutputExtra withStoredInfo(OutputExtra outputExtra, StoredInfoResult storedInfo) {
             return new OutputExtra(
-                outputExtra.getOutput(),
-                outputExtra.getBinaryGUID(),
-                outputExtra.getSize(),
-                outputExtra.getBinaryHash(),
-                outputExtra.getBinaryFormat(),
-                Optional.of(storedInfo),
-                outputExtra.getExtractedMetadata(),
-                outputExtra.getError()
+                    outputExtra.getOutput(),
+                    outputExtra.getBinaryGUID(),
+                    outputExtra.getSize(),
+                    outputExtra.getBinaryHash(),
+                    outputExtra.getBinaryFormat(),
+                    Optional.of(storedInfo),
+                    outputExtra.getExtractedMetadataGOT(),
+                    outputExtra.getExtractedMetadataAU(),
+                    outputExtra.getError()
             );
         }
 
-        public static OutputExtra withExtractedMetadata(OutputExtra outputExtra, ExtractedMetadata extractedMetadata) {
+        public static OutputExtra withExtractedMetadataForGot(OutputExtra outputExtra, ExtractedMetadata extractedMetadataGOT) {
             return new OutputExtra(
-                outputExtra.getOutput(),
-                outputExtra.getBinaryGUID(),
-                outputExtra.getSize(),
-                outputExtra.getBinaryHash(),
-                outputExtra.getBinaryFormat(),
-                outputExtra.getStoredInfo(),
-                Optional.of(extractedMetadata),
-                outputExtra.getError()
+                    outputExtra.getOutput(),
+                    outputExtra.getBinaryGUID(),
+                    outputExtra.getSize(),
+                    outputExtra.getBinaryHash(),
+                    outputExtra.getBinaryFormat(),
+                    outputExtra.getStoredInfo(),
+                    Optional.of(extractedMetadataGOT),
+                    outputExtra.getExtractedMetadataAU(),
+                    outputExtra.getError()
+            );
+        }
+
+        public static OutputExtra withExtractedMetadataForAu(OutputExtra outputExtra, ExtractedMetadataForAu extractedMetadataAU) {
+            return new OutputExtra(
+                    outputExtra.getOutput(),
+                    outputExtra.getBinaryGUID(),
+                    outputExtra.getSize(),
+                    outputExtra.getBinaryHash(),
+                    outputExtra.getBinaryFormat(),
+                    outputExtra.getStoredInfo(),
+                    outputExtra.getExtractedMetadataGOT(),
+                    Optional.of(extractedMetadataAU),
+                    outputExtra.getError()
             );
         }
 
         public static OutputExtra inError(String errorMessage) {
             return new OutputExtra(
-                null,
-                "ERROR",
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(errorMessage)
-            );
-        }
-
-        public static OutputExtra inError(OutputPreservation output, String errorMessage) {
-            return new OutputExtra(
-                output,
-                "ERROR",
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(errorMessage)
+                    null,
+                    "ERROR",
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(errorMessage)
             );
         }
 
@@ -267,8 +284,12 @@ public class WorkflowBatchResult {
             return error;
         }
 
-        public Optional<ExtractedMetadata> getExtractedMetadata() {
-            return extractedMetadata;
+        public Optional<ExtractedMetadata> getExtractedMetadataGOT() {
+            return extractedMetadataGOT;
+        }
+
+        public Optional<ExtractedMetadataForAu> getExtractedMetadataAU() {
+            return extractedMetadataAU;
         }
 
         public boolean isOkAndGenerated() {
@@ -283,12 +304,12 @@ public class WorkflowBatchResult {
             return this.getOutput().getAction().equals(IDENTIFY) && this.getOutput().getStatus().equals(PreservationStatus.OK);
         }
 
-        public boolean isOkAndExtracted() {
+        public boolean isOkAndExtractedGot() {
             return this.getOutput().getAction().equals(EXTRACT) && this.getOutput().getStatus().equals(PreservationStatus.OK);
         }
 
-        public boolean isExtracted() {
-            return this.getOutput().getAction().equals(EXTRACT);
+        public boolean isOkAndExtractedAu() {
+            return this.getOutput().getAction().equals(EXTRACT_AU) && this.getOutput().getStatus().equals(PreservationStatus.OK);
         }
     }
 }

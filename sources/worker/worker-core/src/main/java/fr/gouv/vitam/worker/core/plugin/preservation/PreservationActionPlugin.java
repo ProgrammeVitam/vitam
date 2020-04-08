@@ -69,6 +69,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -199,14 +200,14 @@ public class PreservationActionPlugin extends ActionHandler {
 
     private void createParametersBatchFile(List<PreservationDistributionLine> lines, Path batchDirectory, String requestId, String batchId)
         throws VitamException {
-        List<InputPreservation> inputPreservations = lines.stream()
+        List<InputPreservation> inputsPreservation = lines.stream()
             .map(this::mapToInput)
             .collect(Collectors.toList());
         List<ActionPreservation> preservationActions = lines.get(0).getActionPreservationList();
 
         boolean debug = lines.get(0).isDebug();
         ParametersPreservation parametersPreservation =
-            new ParametersPreservation(requestId, batchId, inputPreservations, preservationActions, debug);
+            new ParametersPreservation(requestId, batchId, inputsPreservation, preservationActions, debug);
         Path parametersPath = batchDirectory.resolve(PARAMETERS_JSON);
         JsonHandler.writeAsFile(parametersPreservation, parametersPath.toFile());
     }
@@ -254,7 +255,8 @@ public class PreservationActionPlugin extends ActionHandler {
             .stream()
             .map(OutputExtra::of)
             .collect(Collectors.toList());
-        return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras, e.getSourceUse(), e.getSourceStrategy());
+        return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras,
+                e.getSourceUse(), e.getSourceStrategy(), new ArrayList<>(e.getUnitsForExtractionAU()));
     }
 
     private void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries, Integer tenantId,

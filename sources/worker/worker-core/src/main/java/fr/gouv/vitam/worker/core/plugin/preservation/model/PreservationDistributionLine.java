@@ -30,10 +30,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 
 import java.util.List;
+import java.util.Set;
 
-/**
- * ParamsPreservationDistributionFile
- */
 public class PreservationDistributionLine {
     @JsonProperty("id")
     private String id;
@@ -63,27 +61,30 @@ public class PreservationDistributionLine {
     private String scenarioId;
     @JsonProperty("griffinIdentifier")
     private String griffinIdentifier;
+    @JsonProperty("unitsForExtractionAU")
+    private Set<String> unitsForExtractionAU;
 
     public PreservationDistributionLine() {
     }
 
     public PreservationDistributionLine(String formatId, String filename,
         List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
-        boolean debug, int timeout, String id, String targetUse, String sourceUse, String sourceStrategy, String scenarioId, String griffinIdentifier) {
+        boolean debug, int timeout, String id, String targetUse, String sourceUse, String sourceStrategy, String scenarioId, String griffinIdentifier, Set<String> unitsForExtractionAU) {
+        this.id = id;
         this.formatId = formatId;
         this.filename = filename;
         this.actionPreservationList = actionPreservationList;
         this.unitId = unitId;
-        this.griffinId = griffinId;
         this.objectId = objectId;
         this.debug = debug;
         this.timeout = timeout;
-        this.id = id;
         this.targetUse = targetUse;
         this.sourceUse = sourceUse;
         this.sourceStrategy = sourceStrategy;
+        this.griffinId = griffinId;
         this.scenarioId = scenarioId;
         this.griffinIdentifier = griffinIdentifier;
+        this.unitsForExtractionAU = unitsForExtractionAU;
     }
 
     public String getId() {
@@ -197,5 +198,13 @@ public class PreservationDistributionLine {
 
     public void setGriffinIdentifier(String griffinIdentifier) {
         this.griffinIdentifier = griffinIdentifier;
+    }
+
+    public Set<String> getUnitsForExtractionAU() {
+        return unitsForExtractionAU;
+    }
+
+    public void setUnitsForExtractionAU(Set<String> unitsForExtractionAU) {
+        this.unitsForExtractionAU = unitsForExtractionAU;
     }
 }

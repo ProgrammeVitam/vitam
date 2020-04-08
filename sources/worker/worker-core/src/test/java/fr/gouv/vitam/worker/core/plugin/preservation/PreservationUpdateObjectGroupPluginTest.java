@@ -669,6 +669,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.empty(),
                 Optional.of(value),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
@@ -686,6 +687,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.empty(),
                 Optional.of(format),
                 Optional.of(value),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty()
             )
@@ -705,6 +707,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.of(format),
                 Optional.of(value),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
@@ -722,6 +725,7 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.of(format),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
@@ -729,7 +733,7 @@ public class PreservationUpdateObjectGroupPluginTest {
 
     private WorkflowBatchResults getWorkflowBatchResults(List<OutputExtra> outputExtras) {
         WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", outputExtras, "BinaryMaster", "other_binary_strategy");
+            WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", outputExtras, "BinaryMaster", "other_binary_strategy", Collections.emptyList());
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 
@@ -752,12 +756,13 @@ public class PreservationUpdateObjectGroupPluginTest {
                 Optional.of(format),
                 Optional.of(value),
                 Optional.of(extractedMetadata),
+                Optional.empty(),
                 Optional.empty()
             )
         ).collect(Collectors.toList());
 
         WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", targetUse, "requestId", outputExtras, "BinaryMaster", "other_binary_strategy");
+            WorkflowBatchResult.of(GOT_ID, "unitId", targetUse, "requestId", outputExtras, "BinaryMaster", "other_binary_strategy", Collections.emptyList());
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 

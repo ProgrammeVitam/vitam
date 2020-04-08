@@ -30,11 +30,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -135,5 +139,39 @@ public class UpdateMultipleSchemaValidatorTest {
             JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_regex_pattern_without_updatePattern.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
             .hasMessageContaining("Dsl query is not valid");
+    }
+
+    @Test
+    public void should_internalActionKeyRetriever_tests_be_valid() throws Exception {
+        // All test case for the class fr.gouv.vitam.common.InternalActionKeysRetriever must be valid,
+        // so if changes are made in the DSL of update-mass-query-dsl-schema.json it must be change also
+        // in the InternalActionKeysRetriever class.
+
+
+        // Given
+        DslValidator dslValidator = new UpdateMultipleSchemaValidator();
+
+        List<JsonNode> testFiles = List.of(
+            JsonHandler.getFromFile(PropertiesUtils.findFile("queryActionSetInternalField.json")),
+            JsonHandler.getFromFile(PropertiesUtils.findFile("queryActionSetInternalField2.json")),
+            JsonHandler.getFromFile(PropertiesUtils.findFile("queryActionSetInternalField3.json")),
+            JsonHandler.getFromFile(PropertiesUtils.findFile("queryActionSetInternalField4.json")),
+            JsonHandler.getFromFile(PropertiesUtils.findFile("queryActionSetInternalField5.json")),
+            JsonHandler.getFromFile(PropertiesUtils.findFile("queryActionSetExternalField.json")),
+            JsonHandler.getFromFile(PropertiesUtils.findFile("queryActionSetInternalFieldREGEX.json"))
+        );
+
+        // When
+        ThrowingCallable testInternalKeysRetrieverTestFiles = () -> testFiles.forEach(
+            node -> {
+                try {
+                    dslValidator.validate(node);
+                } catch (ValidationException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            });
+
+        // Then
+        assertThatCode(testInternalKeysRetrieverTestFiles).doesNotThrowAnyException();
     }
 }

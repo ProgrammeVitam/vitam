@@ -50,14 +50,15 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -66,6 +67,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.List;
+
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * public resource to mass-report
@@ -75,19 +80,31 @@ public class BatchReportResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportResource.class);
 
     private static final String EMPTY_PROCESSID_ERROR_MESSAGE = "processId should be filed";
-    private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {};
+    private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {
+    };
     private static final TypeReference<ReportBody<EliminationActionUnitReportEntry>> reportEliminationActionUnitType =
-        new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {};
+        new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {
+        };
     private static final TypeReference<ReportBody<PurgeUnitReportEntry>> reportPurgeUnitType =
-        new TypeReference<ReportBody<PurgeUnitReportEntry>>() {};
+        new TypeReference<ReportBody<PurgeUnitReportEntry>>() {
+        };
     private static final TypeReference<ReportBody<PurgeObjectGroupReportEntry>> reportPurgeObjectGroupType =
-        new TypeReference<ReportBody<PurgeObjectGroupReportEntry>>() {};
+        new TypeReference<ReportBody<PurgeObjectGroupReportEntry>>() {
+        };
     private static final TypeReference<ReportBody<TransferReplyUnitReportEntry>> reportTransferReplyUnitType =
-        new TypeReference<ReportBody<TransferReplyUnitReportEntry>>() {};
-    private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {};
-    private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType = new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
-    private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType = new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {};
-    private final static TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>> unitComputedInheritedRuleInvalidationType = new TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>() {};
+        new TypeReference<ReportBody<TransferReplyUnitReportEntry>>() {
+        };
+    private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {
+    };
+    private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType =
+        new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {
+        };
+    private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType =
+        new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {
+        };
+    private final static TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>> unitComputedInheritedRuleInvalidationType =
+        new TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>() {
+        };
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -107,7 +124,8 @@ public class BatchReportResource extends ApplicationStatusResource {
             switch (reportType) {
                 case ELIMINATION_ACTION_UNIT:
                     ReportBody<EliminationActionUnitReportEntry> eliminationUnitReportBody = JsonHandler.getFromJsonNode(body, reportEliminationActionUnitType);
-                    batchReportServiceImpl.appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(), eliminationUnitReportBody.getEntries(), tenantId);
+                    batchReportServiceImpl
+                        .appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(), eliminationUnitReportBody.getEntries(), tenantId);
                     break;
                 case PURGE_UNIT:
                     ReportBody<PurgeUnitReportEntry> purgeUnitReportBody = JsonHandler.getFromJsonNode(body, reportPurgeUnitType);
@@ -115,11 +133,13 @@ public class BatchReportResource extends ApplicationStatusResource {
                     break;
                 case PURGE_OBJECTGROUP:
                     ReportBody<PurgeObjectGroupReportEntry> purgeObjectGroupReportBody = JsonHandler.getFromJsonNode(body, reportPurgeObjectGroupType);
-                    batchReportServiceImpl.appendPurgeObjectGroupReport(purgeObjectGroupReportBody.getProcessId(), purgeObjectGroupReportBody.getEntries(), tenantId);
+                    batchReportServiceImpl
+                        .appendPurgeObjectGroupReport(purgeObjectGroupReportBody.getProcessId(), purgeObjectGroupReportBody.getEntries(), tenantId);
                     break;
                 case TRANSFER_REPLY_UNIT:
                     ReportBody<TransferReplyUnitReportEntry> transferReplyUnitReportBody = JsonHandler.getFromJsonNode(body, reportTransferReplyUnitType);
-                    batchReportServiceImpl.appendTransferReplyUnitReport(transferReplyUnitReportBody.getProcessId(), transferReplyUnitReportBody.getEntries(), tenantId);
+                    batchReportServiceImpl
+                        .appendTransferReplyUnitReport(transferReplyUnitReportBody.getProcessId(), transferReplyUnitReportBody.getEntries(), tenantId);
                     break;
                 case PRESERVATION:
                     ReportBody<PreservationReportEntry> preservationReportBody = JsonHandler.getFromJsonNode(body, reportPreservationType);
@@ -138,8 +158,10 @@ public class BatchReportResource extends ApplicationStatusResource {
                     batchReportServiceImpl.appendEvidenceAuditReport(evidenceAuditReportBody.getProcessId(), evidenceAuditReportBody.getEntries(), tenantId);
                     break;
                 case UNIT_COMPUTED_INHERITED_RULES_INVALIDATION:
-                    ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> unitInvalidationReportEntry = JsonHandler.getFromJsonNode(body, unitComputedInheritedRuleInvalidationType);
-                    batchReportServiceImpl.appendUnitComputedInheritedRulesInvalidationReport(unitInvalidationReportEntry.getProcessId(), unitInvalidationReportEntry.getEntries(), tenantId);
+                    ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> unitInvalidationReportEntry =
+                        JsonHandler.getFromJsonNode(body, unitComputedInheritedRuleInvalidationType);
+                    batchReportServiceImpl.appendUnitComputedInheritedRulesInvalidationReport(unitInvalidationReportEntry.getProcessId(),
+                        unitInvalidationReportEntry.getEntries(), tenantId);
                     break;
                 default:
                     throw new IllegalStateException("Unsupported report type " + reportType);
@@ -164,12 +186,13 @@ public class BatchReportResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, reportInfo.getOperationSummary().getEvId());
         ParametersChecker.checkParameter("tenantId should be filed", reportInfo.getOperationSummary().getTenant());
         if (tenantId != reportInfo.getOperationSummary().getTenant()) {
-            throw new IllegalArgumentException("Tenant id in request should match header. Header: " + tenantId + ", request: " + reportInfo.getOperationSummary().getTenant() + ".");
+            throw new IllegalArgumentException(
+                "Tenant id in request should match header. Header: " + tenantId + ", request: " + reportInfo.getOperationSummary().getTenant() + ".");
         }
 
         try {
-            batchReportServiceImpl.storeReportToWorkspace(reportInfo);
-            return Response.status(Response.Status.OK).build();
+            batchReportServiceImpl.storeFileToWorkspace(reportInfo);
+            return Response.status(OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (ContentAddressableStorageServerException | IOException e) {
@@ -190,7 +213,7 @@ public class BatchReportResource extends ApplicationStatusResource {
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
             batchReportServiceImpl.exportPurgeDistinctObjectGroupOfDeletedUnits(processId, reportExportRequest.getFilename(), tenantId);
-            return Response.status(Response.Status.OK).build();
+            return Response.status(OK).build();
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e);
         }
@@ -223,7 +246,7 @@ public class BatchReportResource extends ApplicationStatusResource {
 
             batchReportServiceImpl.exportPurgeAccessionRegister(processId, reportExportRequest.getFilename(), tenantId);
 
-            return Response.status(Response.Status.OK).build();
+            return Response.status(OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             throw new BadRequestException(e);
         }
@@ -280,6 +303,30 @@ public class BatchReportResource extends ApplicationStatusResource {
 
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e);
+        }
+    }
+
+    @Path("/storeExtractedMetadataForAu")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadatas) {
+        batchReportServiceImpl.storeExtractedMetadataForAu(extractedMetadatas);
+        return Response.status(OK)
+            .build();
+    }
+
+    @Path("/createExtractedMetadataDistributionFileForAu/{processId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createExtractedMetadataDistributionFileForAu(@PathParam("processId") String processId) {
+        try {
+            batchReportServiceImpl.createExtractedMetadataDistributionFileForAu(processId, VitamThreadUtils.getVitamSession().getTenantId());
+            return Response.ok().build();
+        } catch (IOException | ContentAddressableStorageServerException e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 }

@@ -28,11 +28,11 @@ package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin.OBJECT_GROUPS_TO_PRESERVE_JSONL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,10 +42,15 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -79,20 +84,31 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 public class PreservationPreparationPluginTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private static final TypeReference<List<String>> LIST_TYPE_REFERENCE = new TypeReference<>() {};
 
-    @Mock private AdminManagementClientFactory adminManagementClientFactory;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private AdminManagementClient adminManagementClient;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Mock private MetaDataClientFactory metaDataClientFactory;
+    @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
 
-    @Mock private MetaDataClient metaDataClient;
+    @Mock
+    private AdminManagementClient adminManagementClient;
 
-    @Mock private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock private WorkspaceClient workspaceClient;
+    @Mock
+    private MetaDataClient metaDataClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
 
     private PreservationPreparationPlugin preservationPreparationPlugin;
 
@@ -153,7 +169,7 @@ public class PreservationPreparationPluginTest {
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
-        List<String> lines = IOUtils.readLines(new FileInputStream(files.get(OBJECT_GROUPS_TO_PRESERVE_JSONL)), "UTF-8");
+        List<String> lines = IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
         JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
         assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
@@ -186,7 +202,7 @@ public class PreservationPreparationPluginTest {
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
         assertThat(itemStatus.getEvDetailData())
             .isEqualTo(JsonHandler.unprettyPrint(createObjectNode().put("query", JsonHandler.unprettyPrint(finalSelect))));
-        List<String> lines = IOUtils.readLines(new FileInputStream(files.get(OBJECT_GROUPS_TO_PRESERVE_JSONL)), "UTF-8");
+        List<String> lines = IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
         JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
         assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
@@ -208,6 +224,39 @@ public class PreservationPreparationPluginTest {
         assertThat(itemStatus.getData("eventDetailData").toString()).isEqualTo(expectedEventDetailData);
 
 
+    }
+
+    @Test
+    public void should_add_in_preservation_line_the_unit_ids_related_to_this_OG() throws Exception {
+        // Given
+        HandlerIO handler = mock(HandlerIO.class);
+        WorkerParameters workerParameters = mock(WorkerParameters.class);
+
+        when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster")));
+
+        Map<String, File> files = new HashMap<>();
+        doAnswer((args) -> {
+            File file = temporaryFolder.newFile();
+            files.put(args.getArgument(0), file);
+            return file;
+        }).when(handler).getNewLocalFile(anyString());
+
+        // When
+        preservationPreparationPlugin.execute(workerParameters, handler);
+
+        // Then
+        assertThat(getFromJsonNode(getLines(files).get(4).getParams().get("unitsForExtractionAU"), LIST_TYPE_REFERENCE)).isEqualTo(Arrays.asList("aeaqaaaaaabba3ylaakt2alhphdv2lyaaabq", "aeaqaaaaaabba3ylaakt2alhphdv2kiaaabq", "aeaqaaaaaabba3ylaakt2alhphdv2laaaaaq"));
+    }
+
+    private List<JsonLineModel> getLines(Map<String, File> files) throws IOException {
+        return IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8").stream()
+            .map(l -> {
+                try {
+                    return JsonHandler.getFromString(l, JsonLineModel.class);
+                } catch (InvalidParseOperationException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            }).collect(Collectors.toList());
     }
 
     private static final String scenarioText =

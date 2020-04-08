@@ -75,6 +75,7 @@ public final class JsonHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JsonHandler.class);
     private static final String OBJECT = "object";
     private static final String REG_EXP_JSONPATH_SEPARATOR = "\\.";
+    public static final String JSON_SET_FOR_ACTION_DSL_REGEX = "[.]";
 
     /**
      * Default JsonFactory
@@ -945,7 +946,7 @@ public final class JsonHandler {
      */
     public static void setNodeInPath(ObjectNode node, String nodePath, JsonNode value, boolean canCreate)
         throws InvalidParseOperationException {
-        String[] fieldNamePath = nodePath.split("[.]");
+        String[] fieldNamePath = nodePath.split(JSON_SET_FOR_ACTION_DSL_REGEX);
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
         ObjectNode currentLevelNode = node;
         for (int i = 0, len = fieldNamePath.length - 1; i < len; i++) {

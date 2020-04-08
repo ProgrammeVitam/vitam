@@ -78,7 +78,7 @@ public class PreservationGenerateBinaryHashTest {
         output.setAction(ActionTypePreservation.ANALYSE);
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            "", ""));
+            "", "", Collections.emptyList()));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -99,7 +99,7 @@ public class PreservationGenerateBinaryHashTest {
         output.setAction(ActionTypePreservation.GENERATE);
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            "", ""));
+            "", "", Collections.emptyList()));
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(outputName));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
@@ -126,7 +126,7 @@ public class PreservationGenerateBinaryHashTest {
         output.setAction(ActionTypePreservation.GENERATE);
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            "", ""));
+            "", "", Collections.emptyList()));
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(outputName));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
@@ -149,7 +149,7 @@ public class PreservationGenerateBinaryHashTest {
         output.setAction(ActionTypePreservation.GENERATE);
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            "", ""));
+            "", "", Collections.emptyList()));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("/tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -190,7 +190,7 @@ public class PreservationGenerateBinaryHashTest {
         output.setAction(ActionTypePreservation.GENERATE);
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            "", ""));
+            "", "", Collections.emptyList()));
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(outputName));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);

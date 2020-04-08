@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+parentdir="$(dirname "$1")"
+
+cp "$parentdir/result.json" "$1/result.json"

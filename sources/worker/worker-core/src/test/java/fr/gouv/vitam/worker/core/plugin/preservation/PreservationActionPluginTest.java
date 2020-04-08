@@ -44,7 +44,9 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -135,7 +137,7 @@ public class PreservationActionPluginTest {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine("fmt/43", "photo.jpg",
             Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinId, objectId, true, 45, "gotId",
-            "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier");
+            "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier", new HashSet<>(Arrays.asList("unitId", "otherUnitIdBatman")));
         parameter.setObjectNameList(Collections.singletonList("gotId"));
         parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
 
@@ -260,7 +262,7 @@ public class PreservationActionPluginTest {
         // Given
         PreservationDistributionLine preservationDistributionLineShortTimeout = new PreservationDistributionLine("fmt/43", "photo.jpg",
             Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinInfinteLoopId, objectId, true,
-            2, "gotId", "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier");
+            2, "gotId", "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier", Collections.singleton("unitId"));
         parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLineShortTimeout)));
         given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
@@ -270,6 +272,21 @@ public class PreservationActionPluginTest {
 
         // Then
         assertThatThrownBy(throwingCallable).isInstanceOf(ProcessingException.class).hasMessageContaining("process hasn't exited");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_add_related_units_in_workflow_batch_result() throws Exception {
+        // Given
+        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
+            .willReturn(createOkResponse("image-files-with-data"));
+
+        // When
+        plugin.executeList(parameter, handler);
+
+        // Then
+        WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
+        assertThat(results.getWorkflowBatchResults().get(0).getUnitsForExtractionAU()).containsOnly("unitId", "otherUnitIdBatman");
     }
 
     private Response createOkResponse(String entity) {

@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -88,6 +89,9 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 /**
  * ReportManagementIT
@@ -411,6 +415,19 @@ public class ReportManagementIT extends VitamRuleRunner {
                 .collect(Collectors.toList()))
                 .containsExactlyInAnyOrder(expectedDeduplicatedIds.toArray(new String[0]));
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_store_Extracted_Metadata_For_Au() throws Exception {
+        // Given
+        List<ExtractedMetadata> extractedMetadata = Collections.singletonList(
+                new ExtractedMetadata("BATMAN", "processId", 0, Collections.singletonList("unitId"),
+                Collections.singletonMap("key",Collections.singletonList("value"))));
+
+        // When
+        // Then
+        assertThatCode(() -> batchReportClient.storeExtractedMetadataForAu(extractedMetadata)).doesNotThrowAnyException();
     }
 
     private ReportBody getReportBody(String processId, List<String> unitsIds) {

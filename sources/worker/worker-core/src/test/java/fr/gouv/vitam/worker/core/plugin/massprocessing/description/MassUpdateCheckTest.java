@@ -26,38 +26,45 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.description;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.util.Collections;
 
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
 public class MassUpdateCheckTest {
+    private final TestWorkerParameter EMPTY_WORKER_PARAMETER = workerParameterBuilder().build();
+    private final TestHandlerIO handlerIO = new TestHandlerIO();
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @InjectMocks
     private MassUpdateCheck massUpdateCheck;
 
-    private TestWorkerParameter EMPTY_WORKER_PARAMETER = workerParameterBuilder().build();
+    @Mock
+    private InternalActionKeysRetriever internalActionKeysRetriever;
 
     @Test
     public void should_return_KO_status_when_query_dsl_contains_internal_fields() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/queryActionSetInternalField.json"));
-
-        TestHandlerIO handlerIO = new TestHandlerIO();
-        handlerIO.setJsonFromWorkspace("query.json", query);
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode());
+        given(internalActionKeysRetriever.getInternalActionKeyFields(any())).willReturn(Collections.singletonList("_INTERNAL_FIELD"));
 
         // When
         ItemStatus itemStatus = massUpdateCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
@@ -69,28 +76,13 @@ public class MassUpdateCheckTest {
     @Test
     public void should_return_OK() throws Exception {
         // Given
-        TestHandlerIO handlerIO = new TestHandlerIO();
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/queryActionSetExternalField.json"));
-        handlerIO.setJsonFromWorkspace("query.json", query);
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode());
+        given(internalActionKeysRetriever.getInternalActionKeyFields(any())).willReturn(Collections.emptyList());
 
         // When
         ItemStatus itemStatus = massUpdateCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
-    }
-
-    @Test
-    public void should_return_KO_regex() throws Exception {
-        // Given
-        TestHandlerIO handlerIO = new TestHandlerIO();
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/queryActionSetInternalFieldREGEX.json"));
-        handlerIO.setJsonFromWorkspace("query.json", query);
-
-        // When
-        ItemStatus itemStatus = massUpdateCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
-
-        // Then
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
     }
 }

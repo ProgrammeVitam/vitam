@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
  */
 public class MetadataDocumentHelper {
 
-    private static final String STORAGE_KEY = "_storage";
-    private static final String STRATEGY_KEY = "strategyId";
+    public static final String STORAGE_KEY = "_storage";
+    public static final String STRATEGY_KEY = "strategyId";
 
     private enum ComputedGraphUnitFields {
         US("_us"),

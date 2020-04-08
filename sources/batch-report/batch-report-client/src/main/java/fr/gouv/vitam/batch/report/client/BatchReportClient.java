@@ -30,8 +30,12 @@ import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.BasicClient;
+import fr.gouv.vitam.common.model.ExtractedMetadata;
+
+import java.util.List;
 
 /**
  * BatchReportClient
@@ -84,4 +88,8 @@ public interface BatchReportClient extends BasicClient {
      */
     void cleanupReport(String processId, ReportType reportType)
         throws VitamClientInternalException;
+
+    void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata) throws VitamClientInternalException;
+
+    void createExtractedMetadataDistributionFileForAu(String processId) throws Exception;
 }

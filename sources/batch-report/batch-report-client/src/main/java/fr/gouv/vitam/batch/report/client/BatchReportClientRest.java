@@ -37,20 +37,20 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
-/**
- * BatchReportClientRest
- */
 public class BatchReportClientRest extends DefaultClient implements BatchReportClient {
 
     private static final String APPEND = "append";
@@ -59,12 +59,10 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     private static final String EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS = "purge_unit/objectgroup_export/";
     private static final String EXPORT_PURGE_ACCESSION_REGISTER = "purge/accession_register_export/";
     private static final String UNITS_AND_PROGENY_INVALIDATION = "/computedInheritedRulesInvalidation/";
+    private static final String STORE_EXTRACTED_METADATA_FOR_AU = "/storeExtractedMetadataForAu/";
+    private static final String CREATE_DISTRIBUTION_FILE_FOR_AU = "/createExtractedMetadataDistributionFileForAu/";
 
-    /**
-     * Constructor using given scheme (http)
-     *
-     * @param factory The client factory
-     */
+
     @VisibleForTesting
     BatchReportClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
@@ -149,6 +147,29 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
             .withPath(CLEANUP + "/" + reportType + "/" + processId)
             .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .withAccept(MediaType.APPLICATION_JSON_TYPE);
+        try (Response response = make(request)) {
+            check(response);
+        }
+    }
+
+    @Override
+    public void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata) throws VitamClientInternalException {
+        VitamRequestBuilder request = post()
+                .withPath(STORE_EXTRACTED_METADATA_FOR_AU)
+                .withBody(extractedMetadata)
+                .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+                .withJson();
+        try (Response response = make(request)) {
+            check(response);
+        }
+    }
+
+    @Override
+    public void createExtractedMetadataDistributionFileForAu(String processId) throws Exception {
+        VitamRequestBuilder request = get()
+            .withPath(CREATE_DISTRIBUTION_FILE_FOR_AU + processId)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
         try (Response response = make(request)) {
             check(response);
         }

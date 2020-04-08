@@ -52,5 +52,14 @@
     "LastUpdate": "2018-11-20T15:34:21.542",
     "ExecutableName": "griffin-office-normalisator",
     "ExecutableVersion": "V1.0.1"
+  },
+  {
+    "Identifier": "GRI-000042",
+    "Name": "extraction-AU",
+    "Description": "this griffin made an extraction for AU",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "griffin-extraction-au",
+    "ExecutableVersion": "v1.0.0"
   }
 ]
