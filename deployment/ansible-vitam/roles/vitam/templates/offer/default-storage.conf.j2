@@ -1,7 +1,11 @@
 provider: {{ vitam_offers[offer_conf]["provider"] }}
+
 {% if vitam_offers[offer_conf]["provider"] != "openstack-swift" %}
 storagePath: {{vitam_folder_data}}
+{% else %}
+storagePath: {{ vitam_folder_tmp }}
 {% endif %}
+
 swiftKeystoneAuthUrl: {{ vitam_offers[offer_conf]["swiftKeystoneAuthUrl"] | default("") }}
 swiftDomain: {{ vitam_offers[offer_conf]["swiftDomain"] | default("") }}
 swiftProjectName: {{ vitam_offers[offer_conf]["swiftProjectName"] | default("") }}
