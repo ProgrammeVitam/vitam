@@ -38,6 +38,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferDiffRequest;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffStatus;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -54,6 +55,7 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
  * Offer diff resource.
  */
 @Path("/storage/v1")
+@Tag(name="Admin-Offer")
 public class AdminOfferDiffResource {
 
     /**

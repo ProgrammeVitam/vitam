@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import java.util.List;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -59,12 +60,11 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.contract.core.ManagementContractImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * FormatManagementResourceImpl implements AccessResource
- */
 @Path("/adminmanagement/v1")
-@javax.ws.rs.ApplicationPath("webresources")
+@ApplicationPath("webresources")
+@Tag(name="Functional-Administration")
 public class ContractResource {
 
     private static final String ADMIN_MODULE = "ADMIN_MODULE";
@@ -74,7 +74,6 @@ public class ContractResource {
     static final String UPDATE_ACCESS_CONTRACTS_URI = "/accesscontracts";
     static final String UPDATE_INGEST_CONTRACTS_URI = "/ingestcontracts";
     static final String UPDATE_MANAGEMENT_CONTRACTS_URI = "/managementcontracts";
-
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);
     private static final String INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER =

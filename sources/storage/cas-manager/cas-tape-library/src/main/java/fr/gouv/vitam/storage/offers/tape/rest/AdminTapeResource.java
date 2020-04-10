@@ -39,35 +39,30 @@ import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
-/**
- *
- */
 @Path("/offer/v1")
-@javax.ws.rs.ApplicationPath("webresources")
+@ApplicationPath("webresources")
+@Tag(name="Tape")
 public class AdminTapeResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminTapeResource.class);
 
     private BackupFileStorage backupFileStorage;
 
-
-    /**
-     * @param backupFileStorage
-     */
     @VisibleForTesting
-    public AdminTapeResource(BackupFileStorage backupFileStorage) {
+    AdminTapeResource(BackupFileStorage backupFileStorage) {
         LOGGER.debug("AdminTapeResource initialized");
         this.backupFileStorage = backupFileStorage;
     }

@@ -237,6 +237,8 @@
         <jackson-coreutils.version>1.8</jackson-coreutils.version>
         <maven.jaxb2.version>0.14.0</maven.jaxb2.version>
         <jaxb2-basics.version>0.6.5</jaxb2-basics.version>
+        <swagger-maven-plugin.version>2.1.0</swagger-maven-plugin.version>
+        <javax.ws.rs-api.version>2.1</javax.ws.rs-api.version>
     </properties>
 
 
@@ -1019,8 +1021,81 @@
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>${swagger-maven-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>javax.ws.rs</groupId>
+                        <artifactId>javax.ws.rs-api</artifactId>
+                        <version>${javax.ws.rs-api.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>javax.servlet-api</artifactId>
+                        <version>${javax.servlet.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <outputPath>target/generated-documentation</outputPath>
+                    <outputFormat>JSONANDYAML</outputFormat>
+                    <prettyPrint>true</prettyPrint>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>phase-internal</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>resolve</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>internal</outputFileName>
+                            <resourcePackages>
+                                <package>fr.gouv.vitam.access.internal.rest</package>
+                                <package>fr.gouv.vitam.batch.report.rest.resource</package>
+                                <package>fr.gouv.vitam.ingest.internal.upload.rest</package>
+                                <package>fr.gouv.vitam.security.internal.rest.resource</package>
+                                <package>fr.gouv.vitam.logbook.rest</package>
+                                <package>fr.gouv.vitam.metadata.rest</package>
+                                <package>fr.gouv.vitam.processing.distributor.rest</package>
+                                <package>fr.gouv.vitam.processing.management.rest</package>
+                                <package>fr.gouv.vitam.storage.offers.rest</package>
+                                <package>fr.gouv.vitam.storage.offers.tape.rest</package>
+                                <package>fr.gouv.vitam.storage.engine.server.rest</package>
+                                <package>fr.gouv.vitam.worker.server.rest</package>
+                                <package>fr.gouv.vitam.workspace.rest</package>
+                            </resourcePackages>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>phase-external</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>resolve</goal>
+                        </goals>
+                        <configuration>
+                            <outputFileName>external</outputFileName>
+                            <resourcePackages>
+                                <package>fr.gouv.vitam.access.external.rest</package>
+                                <package>fr.gouv.vitam.access.external.rest.v2.rest</package>
+                                <package>fr.gouv.vitam.functional.administration.rest</package>
+                                <package>fr.gouv.vitam.ingest.external.rest</package>
+                            </resourcePackages>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2</artifactId>
+            <version>${swagger-maven-plugin.version}</version>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
         <dependencies>

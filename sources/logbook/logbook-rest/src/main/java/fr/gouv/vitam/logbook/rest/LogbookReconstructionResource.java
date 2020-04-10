@@ -51,11 +51,10 @@ import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestIt
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-/**
- * Logbook reconstruction resource.
- */
 @Path("/logbook/v1")
+@Tag(name="Logbook")
 public class LogbookReconstructionResource {
 
     /**

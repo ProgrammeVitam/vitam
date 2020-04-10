@@ -122,6 +122,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.ApplicationPath;
@@ -161,6 +162,7 @@ import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
+@Tag(name="Functional-Administration")
 public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
 
