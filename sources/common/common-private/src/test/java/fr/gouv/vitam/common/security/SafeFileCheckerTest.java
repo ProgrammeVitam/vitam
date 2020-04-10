@@ -26,10 +26,14 @@
  */
 package fr.gouv.vitam.common.security;
 
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Java6Assertions.assertThatCode;
 
 /**
  * Test Class for SafeFileChecker
@@ -38,65 +42,61 @@ import java.io.IOException;
  */
 
 public class SafeFileCheckerTest {
-    private final String ROOT_PATH = "/my.dir/app-directory";
-    private final String ROOT_MULTI_SLASH_PATH = "/mydir///app-directory";
-    private final String ROOT_DOOTED_PATH = "/..0_StorageTraceability_20180220@031002.zip";
-    private final String ROOT_PATH_INFECTED = "/mydir/./app-_directory";
-    private final String SUBPATH_SAFE = "json_good_sanity,";
-    private final String SUBPATH_INFECTED = "../..//etc/password";
-    private final String SUBPATH_INFECTED_ENCODED = "%2e%2e%2f..\\/etc/password";
-    private final String SUBPATH_INFECTED_BAD_CHARS = "myDir&,";
-    private final String VALID_FILENAME = "good-file,.report.json";
-    private final String INVALID_FILENAME = "my%2ffilename.json";
-    private final String INVALID_FILENAME_NULLED = "filename\0.json";
-    private final String INVALID_BLACKLISTED_FILENAME = "my|filena?me<.json";
+    private final String VALID_ROOT_PATH = "/mydir";
+    private final String VALID_SUBPATH = "json_good_sanity";
 
-    @Test(expected = IOException.class)
-    public void checkInvalidPathComponentFile() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_INFECTED, VALID_FILENAME);
-    }
-    @Test
-    public void checkValidMultiSlashPathComponentFile() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_MULTI_SLASH_PATH, SUBPATH_SAFE, VALID_FILENAME);
-    }
+    private static List<String> validPaths = new ArrayList<>();
+    private static List<String> invalidPaths = new ArrayList<>();
+    private static List<String> invalidFilenames = new ArrayList<>();
 
-    @Test
-    public void checkValidDotedPathComponentFile() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_DOOTED_PATH, SUBPATH_SAFE, VALID_FILENAME);
-    }
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        validPaths.add("/directory/subdirectory");
+        validPaths.add("/directory");
+        validPaths.add("/dir.ectory/subdirectory");
+        validPaths.add("/dir_ect_ory/sub.dir.ectory");
+        validPaths.add("/dir-ectory/subdirectory");
+        validPaths.add("/dir-ectory");
 
-    @Test(expected = IOException.class)
-    public void checkInvalidRootPathComponentFile() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH_INFECTED, SUBPATH_SAFE, VALID_FILENAME);
-    }
+        invalidPaths.add("filename\0.json");
+        invalidPaths.add("my&Dir");
+        invalidPaths.add("%2e%2e%2f..\\/etc/password");
+        invalidPaths.add("/mydir/./app-_directory");
+        invalidPaths.add("../../etc/password");
 
-    @Test(expected = IOException.class)
-    public void checkInvalidEncodedPathComponentFile() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_INFECTED_ENCODED);
-    }
-
-    @Test(expected = IOException.class)
-    public void checkInvalidBadCharPathComponentFile() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_INFECTED_BAD_CHARS);
+        invalidFilenames.add("my|filena?me<.json");
+        invalidFilenames.add(".file");
     }
 
     @Test
-    public void checkValidPath() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_SAFE);
+    public void checkValidSubPaths() {
+        for(String subPath : validPaths) {
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, subPath))
+                .doesNotThrowAnyException();
+        }
     }
 
-    @Test(expected = IOException.class)
-    public void checkInvalidNulledFilenamePath() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_SAFE, INVALID_FILENAME_NULLED);
+    @Test
+    public void checkValidRootPaths() {
+        for(String rootPath : validPaths) {
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(rootPath, VALID_SUBPATH))
+                .doesNotThrowAnyException();
+        }
     }
 
-    @Test(expected = IOException.class)
-    public void checkInvalidFilenamePath() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_SAFE, INVALID_FILENAME);
+    @Test
+    public void checkInvalidRootPaths() {
+        for(String rootPath : invalidPaths) {
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(rootPath, VALID_SUBPATH))
+                .isInstanceOf(IOException.class);
+        }
     }
 
-    @Test(expected = IOException.class)
-    public void checkInvalidBlackListedFilenamePath() throws IOException, VitamRuntimeException {
-        SafeFileChecker.checkSafeFilePath(ROOT_PATH, SUBPATH_SAFE, INVALID_BLACKLISTED_FILENAME);
+    @Test
+    public void checkInvalidSubPaths() {
+        for(String subPath : invalidFilenames) {
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, subPath))
+                .isInstanceOf(IOException.class);
+        }
     }
 }

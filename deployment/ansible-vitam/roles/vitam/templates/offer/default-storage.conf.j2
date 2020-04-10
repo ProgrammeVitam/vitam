@@ -3,8 +3,6 @@ provider: {{ vitam_offers[offer_conf]["provider"] }}
 
 {% if vitam_offers[offer_conf]["provider"] in ["filesystem","filesystem-hash"] %}
 storagePath: {{ vitam_folder_data }}
-{% else %}
-storagePath: {{ vitam_folder_tmp }}
 {% endif %}
 
 {% if vitam_offers[offer_conf]["provider"] in ["openstack-swift","openstack-swift-v2","openstack-swift-v3"] %}
