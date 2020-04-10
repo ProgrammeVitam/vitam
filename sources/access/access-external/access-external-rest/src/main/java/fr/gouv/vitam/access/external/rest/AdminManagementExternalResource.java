@@ -110,6 +110,7 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServer
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -151,11 +152,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
-/**
- * Admin Management External Resource
- */
 @Path("/admin-external/v1")
 @ApplicationPath("webresources")
+@Tag(name="Admin")
 public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     private static final String IDENTIFIER = "Identifier";
@@ -377,10 +376,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-                checkParameter(DOCUMENT_IS_MANDATORY, document);
-                Status status = client.importFormat(document, filename);
+            checkParameter(DOCUMENT_IS_MANDATORY, document);
+            Status status = client.importFormat(document, filename);
 
-                return Response.status(status).build();
+            return Response.status(status).build();
         } catch (final DatabaseConflictException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage())
@@ -1137,10 +1136,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findArchiveUnitProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-                SanityChecker.checkJsonAll(select);
-                RequestResponse result = client.findArchiveUnitProfiles(select);
-                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                return Response.status(st).entity(result).build();
+            SanityChecker.checkJsonAll(select);
+            RequestResponse result = client.findArchiveUnitProfiles(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
@@ -1170,9 +1169,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findContexts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-                SanityChecker.checkJsonAll(select);
-                RequestResponse result = client.findContexts(select);
-                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            SanityChecker.checkJsonAll(select);
+            RequestResponse result = client.findContexts(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);

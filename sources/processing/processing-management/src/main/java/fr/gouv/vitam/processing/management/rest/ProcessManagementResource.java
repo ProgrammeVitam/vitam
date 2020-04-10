@@ -61,6 +61,7 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.ApplicationPath;
@@ -83,12 +84,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-
-/**
- * This class is resource provider of ProcessManagement
- */
 @Path("/processing/v1")
 @ApplicationPath("webresources")
+@Tag(name="Processing")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
     private static final String WORKFLOW = "workflow";

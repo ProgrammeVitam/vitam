@@ -74,6 +74,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -85,12 +86,12 @@ import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
-
 /**
  * Lifecycle traceability audit resource
  */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
+@Tag(name="Functional-Administration")
 public class EvidenceResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
@@ -124,7 +125,6 @@ public class EvidenceResource {
         this.mongoDbAccess = mongoDbAccess;
         this.vitamCounterService = vitamCounterService;
     }
-
 
     EvidenceResource(MongoDbAccessAdminImpl mongoDbAccess, VitamCounterService vitamCounterService) {
         this.mongoDbAccess = mongoDbAccess;

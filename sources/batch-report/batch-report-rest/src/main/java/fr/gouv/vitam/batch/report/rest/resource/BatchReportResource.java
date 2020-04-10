@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -72,10 +73,8 @@ import java.util.List;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
-/**
- * public resource to mass-report
- */
 @Path("/batchreport/v1")
+@Tag(name="Batch-Report")
 public class BatchReportResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportResource.class);
 

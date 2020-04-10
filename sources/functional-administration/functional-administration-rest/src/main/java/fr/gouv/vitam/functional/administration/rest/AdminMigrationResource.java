@@ -26,12 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-/*
- * AdminMigrationResource class
- *
- */
-
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
@@ -47,6 +41,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -63,13 +58,10 @@ import java.util.Map;
 
 import static fr.gouv.vitam.common.VitamConfiguration.getTenants;
 
-/**
- * @deprecated use only for migration
- * migrationResource class
- */
+@Deprecated
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-
+@Tag(name="Functional-Administration")
 public class AdminMigrationResource {
     private HashMap<Integer, String> xrequestIds;
     private AdminDataMigrationResource adminDataMigrationResource;

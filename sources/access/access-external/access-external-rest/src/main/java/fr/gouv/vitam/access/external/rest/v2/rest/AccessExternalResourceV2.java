@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.OPTIONS;
@@ -53,10 +54,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.List;
 
-/**
- * Access External Resource
- */
 @Path("/access-external/v2")
+@Tag(name = "Access")
 public class AccessExternalResourceV2 extends ApplicationStatusResource {
 
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";

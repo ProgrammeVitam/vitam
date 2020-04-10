@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.BadRequestException;
@@ -42,6 +43,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Path("/offer/v1")
 @ApplicationPath("webresources")
+@Tag(name="Admin-Offer")
 public class AdminOfferResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOfferResource.class);
 

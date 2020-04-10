@@ -79,6 +79,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -92,12 +93,9 @@ import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
-
-/**
- * resource
- */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
+@Tag(name="Functional-Administration")
 public class ProbativeValueResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueResource.class);

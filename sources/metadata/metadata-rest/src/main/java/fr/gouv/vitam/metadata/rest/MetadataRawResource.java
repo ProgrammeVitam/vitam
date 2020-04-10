@@ -49,13 +49,12 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataRepositoryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
-/**
- * Metadata Raw resource REST API
- */
 @Path("/metadata/v1")
+@Tag(name="Metadata")
 public class MetadataRawResource {
 
     /**
