@@ -30,7 +30,7 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
 /**
- * Storage configuration Contains all configuration items for storage offers
+ * Storage configuration contains all configuration items for storage offers
  */
 public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
