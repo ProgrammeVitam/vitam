@@ -31,18 +31,16 @@ import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
-import fr.gouv.vitam.common.model.preservation.OtherMetadata;
-import fr.gouv.vitam.common.model.preservation.OtherMetadataForAu;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadataForAu;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
@@ -52,6 +50,8 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -60,16 +60,18 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.UNKNOWN;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 public class PreservationExtractionAUPluginTest {
     private final TestWorkerParameter parameter = workerParameterBuilder()
@@ -88,6 +90,9 @@ public class PreservationExtractionAUPluginTest {
 
     @Mock
     private BatchReportClient batchReportClient;
+
+    @Captor
+    ArgumentCaptor<List<ExtractedMetadata>> listArgumentCaptor;
 
     private PreservationExtractionAUPlugin plugin;
 
@@ -182,5 +187,32 @@ public class PreservationExtractionAUPluginTest {
 
         // Then
         assertThatThrownBy(shouldThrow).isInstanceOf(ProcessingException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_remove_null_values() throws Exception {
+        // Given
+        ExtractedMetadataForAu extractedMetadataForAu = new ExtractedMetadataForAu();
+        extractedMetadataForAu.put("key", Collections.singletonList("value"));
+        extractedMetadataForAu.put("yeah", null);
+
+        OutputPreservation output = new OutputPreservation();
+        output.setStatus(PreservationStatus.OK);
+        output.setAction(ActionTypePreservation.EXTRACT_AU);
+        output.setOutputName("outputName");
+        output.setExtractedMetadataAU(extractedMetadataForAu);
+        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.singletonList("unitId")));
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
+        handler.addOutputResult(0, batchResults);
+        doNothing().when(batchReportClient).storeExtractedMetadataForAu(listArgumentCaptor.capture());
+
+        // When
+        List<ItemStatus> itemStatuses = plugin.executeList(parameter, handler);
+
+        // Then
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
+        assertThat(listArgumentCaptor.getValue()).extracting(ExtractedMetadata::getMetadata).containsExactly(Map.of("key", Collections.singletonList("value")));
     }
 }

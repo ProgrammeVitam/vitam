@@ -46,6 +46,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -110,6 +111,7 @@ public class PreservationExtractionAUPlugin extends ActionHandler {
         // We sadly choose to merge value when there are several extraction for units, we select the last one.
         var extractedMetadata = outputExtras.stream()
             .flatMap(output -> output.getOutput().getExtractedMetadataAU().entrySet().stream())
+            .filter(e -> Objects.nonNull(e.getValue()))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (v1, v2) -> v2));
 
         return new ExtractedMetadata(
