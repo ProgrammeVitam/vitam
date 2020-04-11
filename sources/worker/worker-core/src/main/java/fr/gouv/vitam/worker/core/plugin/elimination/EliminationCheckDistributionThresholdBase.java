@@ -57,7 +57,7 @@ public abstract class EliminationCheckDistributionThresholdBase extends ActionHa
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
 
     EliminationCheckDistributionThresholdBase(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;

@@ -46,6 +46,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientMock;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
@@ -82,10 +83,11 @@ public class CheckStorageAvailabilityActionHandlerTest {
     private static final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
 
+    private static final SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
     private static final SedaUtils sedaUtils = mock(SedaUtils.class);
 
     private CheckStorageAvailabilityActionHandler handler =
-        new CheckStorageAvailabilityActionHandler(storageClientFactory, sedaUtils);
+        new CheckStorageAvailabilityActionHandler(storageClientFactory, sedaUtilsFactory);
 
     @Before
     public void setUp() {
@@ -101,6 +103,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         guid = GUIDFactory.newGUID();
         handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
             com.google.common.collect.Lists.newArrayList());
+        when(sedaUtilsFactory.createSedaUtils(handlerIO)).thenReturn(sedaUtils);
     }
 
     @After

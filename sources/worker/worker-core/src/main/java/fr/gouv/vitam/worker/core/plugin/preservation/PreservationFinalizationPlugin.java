@@ -50,7 +50,7 @@ public class PreservationFinalizationPlugin extends ActionHandler {
 
     private static final String PLUGIN_NAME = "PRESERVATION_FINALIZATION";
 
-    private PreservationReportService preservationReportService;
+    private final PreservationReportService preservationReportService;
 
     public PreservationFinalizationPlugin() {
         this(new PreservationReportService());

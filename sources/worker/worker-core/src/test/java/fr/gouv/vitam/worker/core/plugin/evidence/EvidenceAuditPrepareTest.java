@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -79,7 +80,7 @@ public class EvidenceAuditPrepareTest {
     @Before
     public void setUp() throws Exception {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
-        evidenceAuditPrepare = new EvidenceAuditPrepare(metaDataClientFactory);
+        evidenceAuditPrepare = new EvidenceAuditPrepare(metaDataClientFactory, null);
     }
 
     @Test

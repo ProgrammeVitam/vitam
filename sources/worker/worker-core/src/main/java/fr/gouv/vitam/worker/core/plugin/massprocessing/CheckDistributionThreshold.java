@@ -65,7 +65,7 @@ public class CheckDistributionThreshold extends ActionHandler {
     private static final String CHECK_DISTRIBUTION_THRESHOLD = "CHECK_DISTRIBUTION_THRESHOLD";
 
 
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
 
     public CheckDistributionThreshold() {
         this(MetaDataClientFactory.getInstance());

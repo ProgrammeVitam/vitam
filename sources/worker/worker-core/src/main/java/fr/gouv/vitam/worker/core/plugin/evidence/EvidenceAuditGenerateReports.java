@@ -70,7 +70,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     public static final String ZIP = "zip";
     private static final String REPORTS = "reports";
     private static final String ALTER = "alter";
-    private EvidenceAuditReportService evidenceAuditReportService;
+    private final EvidenceAuditReportService evidenceAuditReportService;
 
     @VisibleForTesting
     EvidenceAuditGenerateReports(EvidenceAuditReportService evidenceAuditReportService) {
@@ -80,6 +80,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     public EvidenceAuditGenerateReports() {
         this(new EvidenceAuditReportService());
     }
+
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException, ContentAddressableStorageServerException {

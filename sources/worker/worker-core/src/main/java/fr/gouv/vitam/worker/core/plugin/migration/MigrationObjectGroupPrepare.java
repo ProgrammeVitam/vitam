@@ -55,7 +55,7 @@ public class MigrationObjectGroupPrepare extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationObjectGroupPrepare.class);
 
     private final static String MIGRATION_OBJECT_GROUPS_LIST = "MIGRATION_OBJECT_GROUPS_LIST";
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
     private final int bachSize;
     static final String MIGRATION_OBJECT_LIST_IDS = "migrationObjectsListIds";
     private static final String REPORTS = "reports";

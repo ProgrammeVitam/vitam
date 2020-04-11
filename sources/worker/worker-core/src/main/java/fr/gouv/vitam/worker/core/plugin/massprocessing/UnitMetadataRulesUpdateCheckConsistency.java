@@ -80,7 +80,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
     /**
      * AdminManagementClientFactory
      */
-    private AdminManagementClientFactory adminManagementClientFactory;
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
     /**
      * Constructor.

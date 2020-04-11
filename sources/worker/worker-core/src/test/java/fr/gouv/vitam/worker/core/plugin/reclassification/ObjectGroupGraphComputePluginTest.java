@@ -22,21 +22,20 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class ObjectGroupGraphComputePluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Spy
     private ObjectGroupGraphComputePlugin objectGroupGraphComputePlugin;
-
 
     @Before
     public void setUp() throws Exception {
         MetaDataClientFactory metaDataClientFactory = MetaDataClientFactory.getInstance();
         metaDataClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
-        objectGroupGraphComputePlugin.setMetaDataClientFactory(metaDataClientFactory);
+        objectGroupGraphComputePlugin = spy(new ObjectGroupGraphComputePlugin(metaDataClientFactory));
     }
 
     @Test
