@@ -54,7 +54,7 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPlugin extends Genera
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(
             GenerateObjectGroupLifecycleTraceabilityActionPlugin.class);
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
     };
 
     private static final String ACTION_HANDLER_ID = "GENERATE_OG_LFC_TRACEABILITY";

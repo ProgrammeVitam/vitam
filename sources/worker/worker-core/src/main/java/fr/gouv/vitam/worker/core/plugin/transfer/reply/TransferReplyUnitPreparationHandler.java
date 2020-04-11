@@ -96,12 +96,12 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
 
     private static final String UNITS_TO_DELETE_JSONL = "units_to_delete.jsonl";
     public static final TypeReference<JsonLineModel>
-        JSON_NODE_TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+        JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {
     };
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final StorageClientFactory storageClientFactory;
-    private TransferReplyReportService transferReplyReportService;
+    private final TransferReplyReportService transferReplyReportService;
 
     /**
      * Default constructor

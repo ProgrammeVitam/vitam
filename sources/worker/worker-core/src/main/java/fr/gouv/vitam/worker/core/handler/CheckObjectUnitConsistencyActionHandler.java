@@ -61,7 +61,6 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     private static final String SUBTASK_ORPHAN = "CHECK_CONSISTENCY_ORPHAN_OBJECT";
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
-    final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
     /**
      * Empty constructor
@@ -84,8 +83,10 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         checkMandatoryIOParameter(handler);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+
         try {
-            final List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(handler, params);
+            final List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(handler, params, itemStatus);
             if (!notConformOGs.isEmpty()) {
                 itemStatus.setData("errorNumber", notConformOGs.size());
             }
@@ -103,7 +104,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
      * @param params worker parameter
      * @return list of non conform OG
      */
-    private List<String> findObjectGroupsNonReferencedByArchiveUnit(HandlerIO handlerIO, WorkerParameters params) {
+    private List<String> findObjectGroupsNonReferencedByArchiveUnit(HandlerIO handlerIO, WorkerParameters params,
+        ItemStatus itemStatus) {
         final List<String> ogList = new ArrayList<>();
 
         @SuppressWarnings("unchecked")

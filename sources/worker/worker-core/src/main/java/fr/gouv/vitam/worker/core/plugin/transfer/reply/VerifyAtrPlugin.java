@@ -85,22 +85,20 @@ public class VerifyAtrPlugin extends ActionHandler {
     private static final URL SEDA_XSD_URL = Objects.requireNonNull(VerifyAtrPlugin.class.getClassLoader().getResource(SEDA_XSD_VERSION));
     private static final URL CATALOG_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
 
-    private final Unmarshaller unmarshaller;
+    private final JAXBContext jaxbContext;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     public VerifyAtrPlugin() throws Exception {
         this(
-            JAXBContext.newInstance(ArchiveTransferReplyType.class).createUnmarshaller(),
-            getSchema(),
+            JAXBContext.newInstance(ArchiveTransferReplyType.class),
             LogbookOperationsClientFactory.getInstance()
         );
     }
 
     @VisibleForTesting
-    public VerifyAtrPlugin(Unmarshaller unmarshaller, Schema schema, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    public VerifyAtrPlugin(JAXBContext jaxbContext, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        this.jaxbContext = jaxbContext;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        this.unmarshaller = unmarshaller;
-        this.unmarshaller.setSchema(schema);
     }
 
     @Override
@@ -108,6 +106,7 @@ public class VerifyAtrPlugin extends ActionHandler {
         XMLStreamReader xmlStreamReader = null;
         try (InputStream atr = handler.getInputStreamFromWorkspace("ATR-for-transfer-reply-in-workspace.xml")) {
             xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
+            Unmarshaller unmarshaller = createUnmarshaller();
             ArchiveTransferReplyType transferReply = unmarshaller.unmarshal(xmlStreamReader, ArchiveTransferReplyType.class)
                 .getValue();
 
@@ -122,7 +121,7 @@ public class VerifyAtrPlugin extends ActionHandler {
         } catch (UnmarshalException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(e.getMessage()));
-        } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException | LogbookClientException | InvalidParseOperationException | ContentAddressableStorageServerException e) {
+        } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException | LogbookClientException | InvalidParseOperationException | ContentAddressableStorageServerException | SAXException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         } finally {
@@ -178,7 +177,13 @@ public class VerifyAtrPlugin extends ActionHandler {
         }
     }
 
-    public static Schema getSchema() throws SAXException {
+    private Unmarshaller createUnmarshaller() throws JAXBException, SAXException {
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        unmarshaller.setSchema(getSchema());
+        return unmarshaller;
+    }
+
+    static Schema getSchema() throws SAXException {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
         schemaFactory.setResourceResolver(new XMLCatalogResolver(new String[] {CATALOG_URL.toString()}, false));
         return schemaFactory.newSchema(SEDA_XSD_URL);

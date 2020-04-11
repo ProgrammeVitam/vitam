@@ -63,11 +63,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
     public static final String CALC_CHECK = "CALC_CHECK";
     private static final String EMPTY = "EMPTY";
     private static final String INVALID = "INVALID";
-    private HandlerIO handlerIO;
-    private boolean oneOrMoreMessagesDigestUpdated = false;
     private static final int ALGO_RANK = 0;
     private static final int OG_OUT_RANK = 0;
-    private boolean asyncIO = false;
 
     /**
      * Constructor
@@ -78,9 +75,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
 
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
         checkMandatoryParameters(params);
-        handlerIO = handler;
         LOGGER.debug("CheckConformityActionHandler running ...");
 
         // Set default status code to OK 
@@ -94,6 +90,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
 
             final Map<String, DataObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 
+            boolean oneOrMoreMessagesDigestUpdated = false;
             // checkMessageDigest
             final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
             if (qualifiers != null) {
@@ -103,7 +100,11 @@ public class CheckConformityActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                checkMessageDigest(binaryObjects.get(objectId), version, itemStatus);
+                                boolean messagesDigestUpdated =
+                                    checkMessageDigest(binaryObjects.get(objectId), version, itemStatus, handlerIO);
+                                if(messagesDigestUpdated) {
+                                    oneOrMoreMessagesDigestUpdated = true;
+                                }
                             }
                         }
                     }
@@ -112,7 +113,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
 
             if (oneOrMoreMessagesDigestUpdated) {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                    params.getObjectName(), jsonOG, false, asyncIO);
+                    params.getObjectName(), jsonOG, false, false);
             }
 
         } catch (ProcessingException e) {
@@ -128,7 +129,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
         return new ItemStatus(CALC_CHECK).setItemsStatus(CALC_CHECK, itemStatus);
     }
 
-    private void checkMessageDigest(DataObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
+    private boolean checkMessageDigest(DataObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus,
+        HandlerIO handlerIO)
         throws ProcessingException {
 
         InputStream inputStream = null;
@@ -154,6 +156,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
             final String vitamDigestString = vitamDigest.digestHex();
             String binaryObjectMessageDigest = binaryObject.getMessageDigest();
 
+            boolean messagesDigestUpdated = false;
+
             LOGGER.debug(
                 "DEBUG: \n\t" + binaryObject.getAlgo().getName() + " " + binaryObjectMessageDigest + "\n\t" +
                     manifestDigestString + "\n\t" + vitamDigestString);
@@ -173,7 +177,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     // update objectGroup json
                     ((ObjectNode) version).put(SedaConstants.TAG_DIGEST, vitamDigestString);
                     ((ObjectNode) version).put(SedaConstants.ALGORITHM, (String) handlerIO.getInput(ALGO_RANK));
-                    oneOrMoreMessagesDigestUpdated = true;
+                    messagesDigestUpdated = true;
                 }
 
                 // define eventDetailData
@@ -199,6 +203,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
             }
 
             itemStatus.setSubTaskStatus(binaryObject.getId(), subTaskItemStatus);
+
+            return messagesDigestUpdated;
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {
             LOGGER.error(e);

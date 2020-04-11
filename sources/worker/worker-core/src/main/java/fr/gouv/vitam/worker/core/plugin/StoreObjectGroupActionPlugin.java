@@ -58,8 +58,6 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
     private static final String SIP = "SIP/";
     private static final int OG_OUT_RANK = 0;
-    private HandlerIO handlerIO;
-    private boolean asyncIO = false;
 
     public StoreObjectGroupActionPlugin() {
         this(StorageClientFactory.getInstance());
@@ -71,10 +69,9 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters params, HandlerIO handler) {
+    public List<ItemStatus> executeList(WorkerParameters params, HandlerIO handlerIO) {
 
         checkMandatoryParameters(params);
-        handlerIO = handler;
 
         final List<ItemStatus> itemStatusList = new ArrayList<>();
         final List<Map<String, ItemStatus>> itemStatusByObjectList = new ArrayList<>();
@@ -90,7 +87,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
             // get list of object group's objects
             for (String objectName : params.getObjectNameList()) {
-                MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params.getContainerName(), objectName);
+                MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params.getContainerName(), objectName, handlerIO);
                 Map<String, ItemStatus> itemStatusByObject = new HashMap<>();
                 for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore()
                     .entrySet()) {
@@ -141,7 +138,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             for (int i = 0; i < mapOfObjectsList.size(); i++) {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                     params.getObjectNameList().get(i),
-                    mapOfObjectsList.get(i).getJsonOG(), false, asyncIO);
+                    mapOfObjectsList.get(i).getJsonOG(), false, false);
             }
 
         } catch (final ProcessingException e) {
@@ -171,7 +168,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
      * @return the list of object guid and corresponding Json
      * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
      */
-    private MapOfObjects getMapOfObjectsIdsAndUris(String containerId, String objectName)
+    private MapOfObjects getMapOfObjectsIdsAndUris(String containerId, String objectName,
+        HandlerIO handlerIO)
         throws ProcessingException {
         final MapOfObjects mapOfObjects = new MapOfObjects();
         mapOfObjects.setBinaryObjectsToStore(new HashMap<>());

@@ -81,15 +81,9 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditPrepareReport.class);
 
     private static final String EVIDENCE_AUDIT_PREPARE_REPORT = "EVIDENCE_AUDIT_PREPARE_REPORT";
-    BackupService backupService = new BackupService();
 
-    private EvidenceAuditReportService evidenceAuditReportService;
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-
-    @VisibleForTesting
-    EvidenceAuditPrepareReport(BackupService backupService) {
-        this.backupService = backupService;
-    }
+    private final EvidenceAuditReportService evidenceAuditReportService;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @VisibleForTesting
     EvidenceAuditPrepareReport(EvidenceAuditReportService evidenceAuditReportService,

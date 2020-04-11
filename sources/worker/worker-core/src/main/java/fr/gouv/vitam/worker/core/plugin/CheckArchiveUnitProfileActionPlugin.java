@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -77,26 +76,17 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
 
     private static final int GUID_MAP_RANK = 0;
 
-    private final AdminManagementClientFactory adminManagementClientFactory;
     private final UnitValidator unitValidator;
 
     /**
      * Empty constructor CheckArchiveUnitProfileActionPlugin
      */
     public CheckArchiveUnitProfileActionPlugin() {
-        this(AdminManagementClientFactory.getInstance(), MetadataValidationProvider.getInstance().getUnitValidator());
+        this(MetadataValidationProvider.getInstance().getUnitValidator());
     }
 
-    /**
-     * Empty constructor CheckArchiveUnitProfileActionPlugin
-     *
-     * @param adminManagementClientFactory
-     * @param unitValidator
-     */
     @VisibleForTesting
-    public CheckArchiveUnitProfileActionPlugin(AdminManagementClientFactory adminManagementClientFactory,
-        UnitValidator unitValidator) {
-        this.adminManagementClientFactory = adminManagementClientFactory;
+    public CheckArchiveUnitProfileActionPlugin(UnitValidator unitValidator) {
         this.unitValidator = unitValidator;
     }
 

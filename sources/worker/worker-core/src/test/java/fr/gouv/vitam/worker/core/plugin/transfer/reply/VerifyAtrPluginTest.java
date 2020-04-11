@@ -78,12 +78,16 @@ public class VerifyAtrPluginTest {
     @Mock
     private Unmarshaller unmarshaller;
 
+    @Mock
+    private JAXBContext jaxbContext;
+
     @InjectMocks
     private VerifyAtrPlugin verifyAtrPlugin;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
+        given(jaxbContext.createUnmarshaller()).willReturn(unmarshaller);
     }
 
     @Test
@@ -168,11 +172,7 @@ public class VerifyAtrPluginTest {
     @Test
     public void should_return_KO_when_ATR_not_valid_no_MOCK() throws Exception {
         // Given
-        VerifyAtrPlugin verifyAtrPlugin = new VerifyAtrPlugin(
-            JAXBContext.newInstance(ArchiveTransferReplyType.class).createUnmarshaller(),
-            getSchema(),
-            logbookOperationsClientFactory
-        );
+        VerifyAtrPlugin verifyAtrPlugin = new VerifyAtrPlugin();
         TestHandlerIO handler = new TestHandlerIO();
         handler.setInputStreamFromWorkspace(getClass().getResourceAsStream("/atr-with-cardinality-error.xml"));
 

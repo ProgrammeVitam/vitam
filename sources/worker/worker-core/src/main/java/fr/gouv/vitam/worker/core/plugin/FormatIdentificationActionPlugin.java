@@ -117,12 +117,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private static final int REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK = 1;
     private static final String UNKNOWN_FORMAT = "unknown";
 
-    private boolean metadatasUpdated = false;
-    String eventDetailData;
-    private boolean asyncIO = false;
-
-    private AdminManagementClientFactory adminManagementClientFactory;
-    private FormatIdentifierFactory formatIdentifierFactory;
+    private final AdminManagementClientFactory adminManagementClientFactory;
+    private final FormatIdentifierFactory formatIdentifierFactory;
 
     /**
      * Empty constructor
@@ -167,6 +163,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         try {
             // Get objectGroup metadatas
             final JsonNode jsonOG = (JsonNode) handlerIO.getInput(OG_INPUT_RANK);
+            boolean metadataUpdated = false;
 
             final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
 
@@ -189,6 +186,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                         executeOneObjectFromOG(handlerIO, formatIdentifier, objectId,
                                             jsonFormatIdentifier, file,
                                             version);
+
+                                    if(result.getMetadataUpdated()) {
+                                        metadataUpdated = true;
+                                    }
 
                                     // create ItemStatus for subtask
                                     ItemStatus subTaskItemStatus = new ItemStatus(FILE_FORMAT);
@@ -214,9 +215,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
                                     itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
 
-                                    if (eventDetailData != null) {
-                                        itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(eventDetailData);
-                                        eventDetailData = null;
+                                    if (result.getEventDetailData() != null) {
+                                        itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(result.getEventDetailData());
                                     }
 
                                     if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
@@ -237,9 +237,9 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 }
             }
 
-            if (metadatasUpdated) {
+            if (metadataUpdated) {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                    params.getObjectName(), jsonOG, false, asyncIO);
+                    params.getObjectName(), jsonOG, false, false);
             }
 
         } catch (final ProcessingException e) {
@@ -385,7 +385,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         }
 
         if (isMetadataLocallyUpdated) {
-            metadatasUpdated = true;
+            objectCheckFormatResult.setMetadataUpdated(true);
+
         }
 
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
@@ -484,6 +485,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         private final String objectId;
         private StatusCode status;
         private String subStatus;
+        private boolean metadataUpdated;
+        private String eventDetailData;
 
         ObjectCheckFormatResult(String objectId) {
             this.objectId = objectId;
@@ -508,6 +511,22 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
         public String getSubStatus() {
             return subStatus;
+        }
+
+        public void setMetadataUpdated(boolean metadataUpdated) {
+            this.metadataUpdated = metadataUpdated;
+        }
+
+        public boolean getMetadataUpdated() {
+            return metadataUpdated;
+        }
+
+        public String getEventDetailData() {
+            return eventDetailData;
+        }
+
+        public void setEventDetailData(String eventDetailData) {
+            this.eventDetailData = eventDetailData;
         }
     }
 
@@ -553,7 +572,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 version, diffJsonObject);
         if (diffJsonObject.size() > 0) {
             JsonNode wrappingDiffJsonObject = JsonHandler.createObjectNode().set("diff", diffJsonObject);
-            eventDetailData = JsonHandler.unprettyPrint(wrappingDiffJsonObject);
+            objectCheckFormatResult.setEventDetailData(JsonHandler.unprettyPrint(wrappingDiffJsonObject));
         }
         // Reassign new format
         ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);

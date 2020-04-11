@@ -146,7 +146,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         UnitValidator unitValidator = new UnitValidator(
             new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300),
             new CachedSchemaValidatorLoader(100, 300));
-        plugin = new CheckArchiveUnitProfileActionPlugin(adminManagementClientFactory, unitValidator);
+        plugin = new CheckArchiveUnitProfileActionPlugin(unitValidator);
 
         String objectId = "objectId";
         handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
