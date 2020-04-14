@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -316,6 +318,22 @@ public class ProfileServiceImplTest {
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestFilledPath() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_filled_path.json");
+        final List<ProfileModel> profileModelList =
+                JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
+                });
+        final RequestResponse response = profileService.createProfiles(profileModelList);
+
+        assertThat(response.isOk()).isFalse();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+            .isEqualTo(ProfileServiceImpl.PATH_SHOULD_NOT_BE_FILLED);
     }
 
     @Test
@@ -609,5 +627,40 @@ public class ProfileServiceImplTest {
         RequestResponse response = profileService.createProfiles(profileModelList);
         // Then
         assertThat(response.isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_update_profil_due_to_path_update() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_1.json");
+        final List<ProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
+            });
+        RequestResponse response = profileService.createProfiles(profileModelList);
+
+        assertThat(response.isOk()).isTrue();
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.PROFILE), any());
+        verifyNoMoreInteractions(functionalBackupService);
+        reset(functionalBackupService);
+
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(ProfileModel.TAG_NAME, "PToUpdate"));
+        RequestResponseOK<ProfileModel> result = profileService.findProfiles(select.getFinalSelect());
+        ProfileModel profil = result.getFirstResult();
+        assertThat(profil.getName()).isEqualTo("PToUpdate");
+
+        //profileService.
+        String query = "{\"$query\":{\"$eq\":{\"Identifier\":\"" + profil.getIdentifier() +
+            "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Path\":\"updated Path \"}}]}";
+        response = profileService.updateProfile(profil, JsonHandler.getFromString(query));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+            .isEqualTo(ProfileServiceImpl.PATH_SHOULD_NOT_BE_FILLED);
     }
 }

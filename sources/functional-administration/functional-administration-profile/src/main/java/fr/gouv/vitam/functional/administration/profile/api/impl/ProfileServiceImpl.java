@@ -139,6 +139,8 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
     public static final String PROFILE_BACKUP_EVENT = "BACKUP_PROFILE";
+    public static final String PATH_UNUPDATABLE ="The path field is not updatable";
+    public static final String PATH_SHOULD_NOT_BE_FILLED = "The profile path should not be filled manually";
 
     /**
      * Constructor
@@ -228,13 +230,19 @@ public class ProfileServiceImpl implements ProfileService {
                             .get().getReason()).setMessage(ProfileManager.DUPLICATE_IN_DATABASE)));
                 }
 
+                // Check Path
+                if (pm.getPath() != null) {
+                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                        PATH_UNUPDATABLE, StatusCode.KO).setMessage(PATH_SHOULD_NOT_BE_FILLED));
+                }
+
             }
 
             if (null != error.getErrors() && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getDescription())
+                    error.getErrors().stream().map(VitamError::getDescription)
                         .collect(Collectors.joining(","));
                 manager.logValidationError(PROFILES_IMPORT_EVENT, null, errorsDetails,
                     error.getErrors().get(0).getMessage());
@@ -273,7 +281,7 @@ public class ProfileServiceImpl implements ProfileService {
             );
         } catch (final Exception exp) {
             LOGGER.error(exp);
-            final String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
+            final String err = "Import profiles error : " + exp.getMessage();
             manager.logFatalError(PROFILES_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err, StatusCode.KO).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -396,8 +404,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         } catch (Exception e) {
             LOGGER.error(e);
-            String err =
-                new StringBuilder("Import profiles storage workspace error : ").append(e.getMessage()).toString();
+            String err = "Import profiles storage workspace error : " + e.getMessage();
             LOGGER.error(err, e);
             manager.logFatalError(OP_PROFILE_STORAGE, profileMetadata.getId(), err);
             return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err, StatusCode.KO).setHttpCode(
@@ -618,6 +625,14 @@ public class ProfileServiceImpl implements ProfileService {
                     );
                 }
             }
+        }
+
+        if (ProfileModel.TAG_PATH.equals(field)) {
+            error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                PATH_UNUPDATABLE + " : " + value.asText(), StatusCode.KO)
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .setMessage(PATH_SHOULD_NOT_BE_FILLED)
+            );
         }
     }
 
