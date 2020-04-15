@@ -6,7 +6,7 @@
 
     # Enable SSL for the Reverse proxy
     SSLProxyEngine on
-    
+
     {% if vitam_reverse_external_protocol == "https" %}
     # SSL
     SSLEngine on
@@ -168,7 +168,7 @@
     ProxyPassReverse  /{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }} http://{{ hostvars[host]['ip_service'] }}:8081/{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }}
     {% endfor %}
     # Elasticsearch-head
-    ProxyPass /head http://{{hostvars[groups['hosts_dev_tools'][0]]['ip_service'] }}:9100/ {{ reverse_connection_short_params }}
+    ProxyPass /head http://{{ hostvars[groups['hosts_dev_tools'][0]]['ip_service'] }}:9100/ {{ reverse_connection_short_params }}
     ProxyPassReverse  /head http://{{ hostvars[groups['hosts_dev_tools'][0]]['ip_service'] }}:9100/
     ProxyPass /base http://{{ hostvars[groups['hosts_dev_tools'][0]]['ip_service'] }}:9100/base {{ reverse_connection_short_params }}
     ProxyPassReverse  /base http://{{ hostvars[groups['hosts_dev_tools'][0]]['ip_service'] }}:9100/base
@@ -224,43 +224,43 @@
 
     {% if groups['library']|length >0 %}
     # Documentation
-    ProxyPass /{{ vitam.library.baseuri }} http://{{ hostvars[groups['library'][0]]['ip_service']}}:{{ vitam.library.port_service }}/{{ vitam.library.baseuri }}
+    ProxyPass /{{ vitam.library.baseuri }} http://{{ hostvars[groups['library'][0]]['ip_service'] }}:{{ vitam.library.port_service }}/{{ vitam.library.baseuri }}
     ProxyPassReverse /{{ vitam.library.baseuri }} http://{{ hostvars[groups['library'][0]]['ip_service'] }}:{{ vitam.library.port_service }}/{{ vitam.library.baseuri }}
     {% endif %}
 
     {% if groups['hosts_elasticsearch_log']|length >0 %}
     # Elasticsearch
-    ProxyPass /_plugin http://{{ hostvars [groups['hosts_elasticsearch_log'][0]] ['ip_admin']}}:{{ elasticsearch.log.port_http }}/_plugin
-    ProxyPassReverse _plugin/ http://{{ hostvars [groups['hosts_elasticsearch_log'][0]] ['ip_admin']}}:{{ elasticsearch.log.port_http }}/_plugin
+    ProxyPass /_plugin http://{{ hostvars[groups['hosts_elasticsearch_log'][0]]['ip_admin'] }}:{{ elasticsearch.log.port_http }}/_plugin
+    ProxyPassReverse _plugin/ http://{{ hostvars[groups['hosts_elasticsearch_log'][0]]['ip_admin'] }}:{{ elasticsearch.log.port_http }}/_plugin
     {% elif groups['hosts_elasticsearch_data']|length >0 %}
-    ProxyPass /_plugin http://{{ hostvars[groups['hosts_elasticsearch_data'][0]]['ip_admin']}}:{{ elasticsearch.data.port_http }}/_plugin
-    ProxyPassReverse _plugin/ http://{{ hostvars[groups['hosts_elasticsearch_data'][0]]['ip_admin']}}:{{ elasticsearch.data.port_http }}/_plugin
+    ProxyPass /_plugin http://{{ hostvars[groups['hosts_elasticsearch_data'][0]]['ip_admin'] }}:{{ elasticsearch.data.port_http }}/_plugin
+    ProxyPassReverse _plugin/ http://{{ hostvars[groups['hosts_elasticsearch_data'][0]]['ip_admin'] }}:{{ elasticsearch.data.port_http }}/_plugin
     {% endif %}
 
     {% if groups['hosts_cerebro']|length >0 %}
     # Elasticsearch Cerebro
-    ProxyPass /{{ cerebro.baseuri }} http://{{ hostvars[groups['hosts_cerebro'][0]]['ip_admin']}}:{{ cerebro.port }}/{{ cerebro.baseuri }}
-    ProxyPassReverse /{{ cerebro.baseuri }}/ http://{{ hostvars[groups['hosts_cerebro'][0]]['ip_admin']}}:{{ cerebro.port }}/{{ cerebro.baseuri }}
+    ProxyPass /{{ cerebro.baseuri }} http://{{ hostvars[groups['hosts_cerebro'][0]]['ip_admin'] }}:{{ cerebro.port }}/{{ cerebro.baseuri }}
+    ProxyPassReverse /{{ cerebro.baseuri }}/ http://{{ hostvars[groups['hosts_cerebro'][0]]['ip_admin'] }}:{{ cerebro.port }}/{{ cerebro.baseuri }}
     {% endif %}
 
     {% if groups['hosts_elasticsearch_log']|length >0 %}
     # Elasticsearch log
-    ProxyPass /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts_elasticsearch_log'][0]]['ip_admin']}}:{{ elasticsearch.log.port_http }}
-    ProxyPassReverse /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts_elasticsearch_log'][0]]['ip_admin']}}:{{ elasticsearch.log.port_http }}
+    ProxyPass /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts_elasticsearch_log'][0]]['ip_admin'] }}:{{ elasticsearch.log.port_http }}
+    ProxyPassReverse /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts_elasticsearch_log'][0]]['ip_admin'] }}:{{ elasticsearch.log.port_http }}
     {% endif %}
 
     {% if groups['hosts_elasticsearch_data']|length >0 %}
     # Elasticsearch data ; no / at end as still in ES 2.x
-    ProxyPass /{{ elasticsearch.data.baseuri }} http://{{hostvars [groups['hosts_elasticsearch_data'][0]]['ip_service']}}:{{ elasticsearch.data.port_http }}
-    ProxyPassReverse /{{ elasticsearch.data.baseuri }} http://{{hostvars [groups['hosts_elasticsearch_data'][0]]['ip_service']}}:{{ elasticsearch.data.port_http }}
+    ProxyPass /{{ elasticsearch.data.baseuri }} http://{{ hostvars[groups['hosts_elasticsearch_data'][0]]['ip_service'] }}:{{ elasticsearch.data.port_http }}
+    ProxyPassReverse /{{ elasticsearch.data.baseuri }} http://{{ hostvars[groups['hosts_elasticsearch_data'][0]]['ip_service'] }}:{{ elasticsearch.data.port_http }}
     {% endif %}
 
     {% if groups['hosts_consul_server']|length >0 %}
     # Consul UI
-    ProxyPass /ui http://{{hostvars [groups['hosts_consul_server'][0]]['ip_admin']}}:8500/ui
-    ProxyPassReverse /ui http://{{hostvars [groups['hosts_consul_server'][0]]['ip_admin']}}:8500/ui
-    ProxyPass /v1 http://{{hostvars [groups['hosts_consul_server'][0]]['ip_admin']}}:8500/v1
-    ProxyPassReverse /v1 http://{{hostvars [groups['hosts_consul_server'][0]]['ip_admin']}}:8500/v1
+    ProxyPass /ui http://{{ hostvars[groups['hosts_consul_server'][0]]['ip_admin'] }}:8500/ui
+    ProxyPassReverse /ui http://{{ hostvars[groups['hosts_consul_server'][0]]['ip_admin'] }}:8500/ui
+    ProxyPass /v1 http://{{ hostvars[groups['hosts_consul_server'][0]]['ip_admin'] }}:8500/v1
+    ProxyPassReverse /v1 http://{{ hostvars[groups['hosts_consul_server'][0]]['ip_admin'] }}:8500/v1
     {% endif %}
 
 </VirtualHost>
