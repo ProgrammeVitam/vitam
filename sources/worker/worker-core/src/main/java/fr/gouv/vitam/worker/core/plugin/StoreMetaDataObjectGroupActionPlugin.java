@@ -247,7 +247,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
 
     private List<ItemStatus> getItemStatuses(List<String> objectGroupIds, StatusCode statusCode) {
         List<ItemStatus> itemStatuses = new ArrayList<>();
-        for (String objectGroupId : objectGroupIds) {
+        for (int i = 0; i < objectGroupIds.size(); i++) {
             itemStatuses.add(buildItemStatus(OG_METADATA_STORAGE, statusCode, null));
         }
         return itemStatuses;

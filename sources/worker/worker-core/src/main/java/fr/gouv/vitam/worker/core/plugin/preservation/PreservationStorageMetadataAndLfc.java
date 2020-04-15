@@ -26,52 +26,33 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
+import fr.gouv.vitam.worker.core.plugin.StoreMetaDataObjectGroupActionPlugin;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
-import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
-import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
-import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectActionHandler {
+public class PreservationStorageMetadataAndLfc extends StoreMetaDataObjectGroupActionPlugin {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationStorageMetadataAndLfc.class);
 
-    private static final String JSON = ".json";
     private static final String PRESERVATION_STORAGE_METADATA_LFC = "PRESERVATION_STORAGE_METADATA_LFC";
     private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
-
-    private static final boolean ASYNC_IO = false;
-
-    private MetaDataClientFactory metaDataClientFactory;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
     public PreservationStorageMetadataAndLfc() {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), StorageClientFactory.getInstance());
@@ -80,67 +61,42 @@ public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectAction
     @VisibleForTesting
     PreservationStorageMetadataAndLfc(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory) {
-        super(storageClientFactory);
-        this.metaDataClientFactory = metaDataClientFactory;
-        this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
+        super(metaDataClientFactory,logbookLifeCyclesClientFactory,storageClientFactory);
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-        final ItemStatus itemStatus = new ItemStatus(PRESERVATION_STORAGE_METADATA_LFC);
-        WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
+    public List<ItemStatus> executeList(WorkerParameters params, HandlerIO handlerIO) {
+        WorkflowBatchResults results = (WorkflowBatchResults) handlerIO.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
         List<ItemStatus> itemStatuses = new ArrayList<>();
         List<WorkflowBatchResult> workflowBatchResults = results.getWorkflowBatchResults();
-
         for (WorkflowBatchResult result : workflowBatchResults) {
-            List<WorkflowBatchResult.OutputExtra> outputExtras = result.getOutputExtras().stream()
-                .filter(WorkflowBatchResult.OutputExtra::isOkAndGenerated)
-                .collect(Collectors.toList());
+            List<String> objectGroupIdList = Collections.singletonList(result.getGotId());
+            try {
+                List<WorkflowBatchResult.OutputExtra> outputExtras = result.getOutputExtras().stream()
+                    .filter(WorkflowBatchResult.OutputExtra::isOkAndGenerated)
+                    .collect(Collectors.toList());
 
-            if (outputExtras.isEmpty()) {
-                itemStatuses.add(new ItemStatus(PRESERVATION_STORAGE_METADATA_LFC));
-                continue;
+                if (outputExtras.isEmpty()) {
+                    itemStatuses.add(new ItemStatus(PRESERVATION_STORAGE_METADATA_LFC));
+                    continue;
+                }
+
+                storeDocumentsWithLfc(params, handlerIO, objectGroupIdList);
+                itemStatuses.addAll(this.getItemStatuses(objectGroupIdList, StatusCode.OK));
+
+            } catch (VitamException e) {
+                LOGGER.error("An error occurred during object group storage", e);
+                itemStatuses.addAll(this.getItemStatuses(objectGroupIdList, StatusCode.FATAL));
             }
-            itemStatuses.add(saveDocumentWithLfcInStorage(result.getGotId(), handler, param.getContainerName(), itemStatus));
         }
         return itemStatuses;
     }
 
-    private ItemStatus saveDocumentWithLfcInStorage(String guid, HandlerIO handlerIO, String containerName,
-        ItemStatus itemStatus) {
-
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-            LogbookLifeCyclesClient logbookClient = logbookLifeCyclesClientFactory.getClient()) {
-            JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECTGROUP, metaDataClient);
-            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(got);
-            MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(got);
-            JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
-            JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(got, lfc);
-            final String fileName = guid + JSON;
-            transferToWorkSpace(guid, handlerIO, docWithLfc, fileName);
-            final ObjectDescription description =
-                new ObjectDescription(DataCategory.OBJECTGROUP, containerName,
-                    fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
-            storeObject(strategyId, description, itemStatus);
-            return buildItemStatus(PRESERVATION_STORAGE_METADATA_LFC, OK,
-                EventDetails.of(String.format("Storage %s", guid)));
-        } catch (Exception e) {
-            LOGGER.error(e);
-            return buildItemStatus(PRESERVATION_STORAGE_METADATA_LFC, FATAL, e);
+    private List<ItemStatus> getItemStatuses(List<String> objectGroupIds, StatusCode statusCode) {
+        List<ItemStatus> itemStatuses = new ArrayList<>();
+        for (int i = 0; i < objectGroupIds.size(); i++) {
+            itemStatuses.add(buildItemStatus(PRESERVATION_STORAGE_METADATA_LFC, statusCode, null));
         }
-    }
-
-    private void transferToWorkSpace(String guid, HandlerIO handlerIO, JsonNode docWithLfc, String fileName)
-        throws WorkspaceClientServerException {
-        try {
-            InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
-            handlerIO
-                .transferInputStreamToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName, is, null,
-                    ASYNC_IO);
-        } catch (ProcessingException e) {
-            LOGGER.error("Error when save file to workspace" + guid, e);
-            throw new WorkspaceClientServerException(e);
-        }
+        return itemStatuses;
     }
 }
