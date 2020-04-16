@@ -42,6 +42,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
@@ -56,26 +57,27 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 
 public class PreservationStorageMetadataAndLfcTest {
 
-    private final String GOT_ID = "GOT_ID";
+    private final String GOT_ID = "aebaaaaaaahuq4l4aa4zsalhgwcreaiaaaaq";
     private final TestWorkerParameter parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
             .withRequestId("REQUEST_ID_TEST").build();
+    private static final String JSON = ".json";
 
     private PreservationStorageMetadataAndLfc plugin;
 
@@ -138,9 +140,10 @@ public class PreservationStorageMetadataAndLfcTest {
         InputStream stream = getClass().getResourceAsStream("/preservation/objectGroup.json");
         JsonNode document = JsonHandler.getFromInputStream(stream);
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>().addResult(document)
-                .setHttpCode(Response.Status.OK.getStatusCode());
+            .setHttpCode(Response.Status.OK.getStatusCode());
 
-        given(metaDataClient.getObjectGroupByIdRaw(GOT_ID)).willReturn(responseOK);
+        given(metaDataClient.getObjectGroupsByIdsRaw(eq(Collections.singletonList(GOT_ID))))
+            .willReturn(responseOK);
         given(logbookClient.getRawObjectGroupLifeCycleById(GOT_ID)).willReturn(document);
 
         // When
@@ -148,7 +151,12 @@ public class PreservationStorageMetadataAndLfcTest {
 
         // Then
         assertThat(itemStatus).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.OK);
-        verify(storageClient).storeFileFromWorkspace(eq("other_got_strategy"), eq(DataCategory.OBJECTGROUP),
-                eq(GOT_ID + ".json"), any());
+        verify(storageClient).bulkStoreFilesFromWorkspace(eq("other_got_strategy"),
+            argThat(this::bulkObjectStoreRequestMatches));
+    }
+
+    private boolean bulkObjectStoreRequestMatches(BulkObjectStoreRequest bulkObjectStoreRequest) {
+        return bulkObjectStoreRequest.getObjectNames().equals(Collections.singletonList(GOT_ID + JSON)) &&
+            bulkObjectStoreRequest.getType().equals(DataCategory.OBJECTGROUP);
     }
 }
