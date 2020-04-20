@@ -62,7 +62,7 @@ public abstract class CheckDistributionThresholdBase extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
     private static final int QUERY_TYPE_IN_RANK = 0;
     private static final int QUERY_URI_IN_RANK = 1;
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
 
     protected CheckDistributionThresholdBase(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;

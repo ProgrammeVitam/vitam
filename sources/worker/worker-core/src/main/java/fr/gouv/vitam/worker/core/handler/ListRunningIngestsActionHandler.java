@@ -59,8 +59,6 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "LIST_RUNNING_INGESTS";
     private static final int RANK_FILE = 0;
-    private HandlerIO handlerIO;
-    private boolean asyncIO = false;
 
     private final ProcessingManagementClientFactory processingManagementClientFactory;
 
@@ -76,11 +74,10 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
-        handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
-            listRunningIngests();
+            listRunningIngests(handler);
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
             LOGGER.error("Processing exception", e);
@@ -92,7 +89,7 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private void listRunningIngests() throws ProcessingException, InvalidParseOperationException {
+    private void listRunningIngests(HandlerIO handlerIO) throws ProcessingException, InvalidParseOperationException {
         ProcessQuery pq = new ProcessQuery();
         List<String> listStates = new ArrayList<>();
         listStates.add(ProcessState.RUNNING.name());
@@ -111,7 +108,7 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
             List<ProcessDetail> ingestsInProcess = response.getResults();
             File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(RANK_FILE).getPath());
             JsonHandler.writeAsFile(ingestsInProcess, tempFile);
-            handlerIO.addOutputResult(RANK_FILE, tempFile, true, asyncIO);
+            handlerIO.addOutputResult(RANK_FILE, tempFile, true, false);
 
         } catch (VitamClientException e) {
             LOGGER.error("Process Management cannot be called", e);

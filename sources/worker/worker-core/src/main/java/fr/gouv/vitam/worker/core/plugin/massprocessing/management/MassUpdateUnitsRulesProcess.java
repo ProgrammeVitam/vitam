@@ -117,11 +117,11 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     private static final String JSON = ".json";
     private static final String ID = "#id";
 
-    private MetaDataClientFactory metaDataClientFactory;
-    private LogbookLifeCyclesClientFactory lfcClientFactory;
-    private StorageClientFactory storageClientFactory;
-    private AdminManagementClientFactory adminManagementClientFactory;
-    private BatchReportClientFactory batchReportClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final LogbookLifeCyclesClientFactory lfcClientFactory;
+    private final StorageClientFactory storageClientFactory;
+    private final AdminManagementClientFactory adminManagementClientFactory;
+    private final BatchReportClientFactory batchReportClientFactory;
 
     public MassUpdateUnitsRulesProcess() {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),

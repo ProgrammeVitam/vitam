@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.plugin.reclassification;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 /**
  * Plugin compute graph of units
@@ -35,6 +37,15 @@ public class UnitGraphComputePlugin extends AbstractGraphComputePlugin {
 
     private static final String UNIT_GRAPH_COMPUTE = "UNIT_GRAPH_COMPUTE";
 
+    public UnitGraphComputePlugin() {
+        super();
+        // Default constructor
+    }
+
+    @VisibleForTesting
+    public UnitGraphComputePlugin(MetaDataClientFactory metaDataClientFactory) {
+        super(metaDataClientFactory);
+    }
 
     GraphComputeResponse.GraphComputeAction getGraphComputeAction() {
         return GraphComputeResponse.GraphComputeAction.UNIT;

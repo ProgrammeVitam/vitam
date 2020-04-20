@@ -85,9 +85,9 @@ public class MigrationUnits extends ActionHandler {
 
     private static final String MIGRATION_UNITS = "MIGRATION_UNITS";
     public static final String LFC_UPDATE_MIGRATION_UNITS = "LFC.UPDATE_MIGRATION_UNITS";
-    private MetaDataClientFactory metaDataClientFactory;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private StorageClientFactory storageClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     @VisibleForTesting
     public MigrationUnits(MetaDataClientFactory metaDataClientFactory,

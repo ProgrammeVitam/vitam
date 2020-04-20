@@ -118,8 +118,8 @@ public class CreateManifest extends ActionHandler {
     private static final String REASON_FIELD = "Reason";
     private static final String JSONL_EXTENSION = ".jsonl";
 
-    private MetaDataClientFactory metaDataClientFactory;
-    private ObjectNode projection;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final ObjectNode projection;
 
     /**
      * constructor use for plugin instantiation

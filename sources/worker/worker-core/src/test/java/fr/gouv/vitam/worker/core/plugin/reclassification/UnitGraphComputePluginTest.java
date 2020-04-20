@@ -48,20 +48,19 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class UnitGraphComputePluginTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Spy
     private UnitGraphComputePlugin unitGraphComputePlugin;
-
 
     @Before
     public void setUp() throws Exception {
         MetaDataClientFactory metaDataClientFactory = MetaDataClientFactory.getInstance();
         metaDataClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
-        unitGraphComputePlugin.setMetaDataClientFactory(metaDataClientFactory);
+        unitGraphComputePlugin = spy(new UnitGraphComputePlugin(metaDataClientFactory));
     }
 
     @Test

@@ -76,11 +76,8 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ListArchiveUnitsActionHandler.class);
 
     private static final String HANDLER_ID = "LIST_ARCHIVE_UNITS";
-    private final Map<String, List<FileRulesModel>> archiveUnitGuidAndRulesToBeUpdated;
-    private final List<String> archiveUnitsToBeUpdated;
     private static final String JSON = ".json";
     private static final int AU_TO_BE_UPDATED_RANK = 0;
-    private boolean asyncIO = false;
     private final MetaDataClientFactory metaDataClientFactory;
 
     public ListArchiveUnitsActionHandler() {
@@ -89,17 +86,17 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
 
     public ListArchiveUnitsActionHandler(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
-        archiveUnitGuidAndRulesToBeUpdated = new HashMap<>();
-        archiveUnitsToBeUpdated = new ArrayList<>();
     }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try {
+            Map<String, List<FileRulesModel>> archiveUnitGuidAndRulesToBeUpdated = new HashMap<>();
+            List<String> archiveUnitsToBeUpdated = new ArrayList<>();
             // Task number one, lets get the list of archive units to be updated
-            selectListOfArchiveUnitsForUpdate(handler);
-            exportToWorkspace(handler);
+            selectListOfArchiveUnitsForUpdate(handler, archiveUnitGuidAndRulesToBeUpdated, archiveUnitsToBeUpdated);
+            exportToWorkspace(handler, archiveUnitGuidAndRulesToBeUpdated, archiveUnitsToBeUpdated);
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
             LOGGER.error("Fatal : ", e);
@@ -109,7 +106,9 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     }
 
 
-    private void selectListOfArchiveUnitsForUpdate(HandlerIO handlerIO) throws ProcessingException {
+    private void selectListOfArchiveUnitsForUpdate(HandlerIO handlerIO,
+        Map<String, List<FileRulesModel>> archiveUnitGuidAndRulesToBeUpdated,
+        List<String> archiveUnitsToBeUpdated) throws ProcessingException {
         InputStream input = null;
         try {
             input = handlerIO.getInputStreamFromWorkspace(
@@ -117,7 +116,8 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             JsonNode rulesUpdated = JsonHandler.getFromInputStream(input);
             if (rulesUpdated.isArray() && rulesUpdated.size() > 0) {
                 for (final JsonNode objNode : rulesUpdated) {
-                    searchForInvolvedArchiveUnit(JsonHandler.getFromJsonNode(objNode, FileRulesModel.class));
+                    searchForInvolvedArchiveUnit(JsonHandler.getFromJsonNode(objNode, FileRulesModel.class),
+                        archiveUnitGuidAndRulesToBeUpdated, archiveUnitsToBeUpdated);
                 }
             }
         } catch (ContentAddressableStorageNotFoundException |
@@ -136,7 +136,9 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     }
 
 
-    private void searchForInvolvedArchiveUnit(FileRulesModel fileRule)
+    private void searchForInvolvedArchiveUnit(FileRulesModel fileRule,
+        Map<String, List<FileRulesModel>> archiveUnitGuidAndRulesToBeUpdated,
+        List<String> archiveUnitsToBeUpdated)
         throws InvalidCreateOperationException {
         final SelectMultiQuery selectMultiple = new SelectMultiQuery();
         StringBuffer sb = new StringBuffer();
@@ -180,7 +182,9 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
         }
     }
 
-    private void exportToWorkspace(HandlerIO handlerIO) throws ProcessingException {
+    private void exportToWorkspace(HandlerIO handlerIO,
+        Map<String, List<FileRulesModel>> archiveUnitGuidAndRulesToBeUpdated,
+        List<String> archiveUnitsToBeUpdated) throws ProcessingException {
         String distribFileName = handlerIO.getOutput(AU_TO_BE_UPDATED_RANK).getPath();
         File distribFile = handlerIO.getNewLocalFile(distribFileName);
 
@@ -194,8 +198,8 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             throw new ProcessingException(e);
         }
 
-            // list of archive units to be updated
-            handlerIO.addOutputResult(AU_TO_BE_UPDATED_RANK, distribFile, true, asyncIO);
+        // list of archive units to be updated
+        handlerIO.addOutputResult(AU_TO_BE_UPDATED_RANK, distribFile, true, false);
 
         try  {
             for (String key : archiveUnitGuidAndRulesToBeUpdated.keySet()) {
@@ -210,7 +214,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
                 try {
                     handlerIO
                         .transferFileToWorkspace(UpdateWorkflowConstants.UNITS_FOLDER + "/" + key + JSON,
-                            archiveUnitTempFile, true, asyncIO);
+                            archiveUnitTempFile, true, false);
                 } finally {
                     if (!archiveUnitTempFile.delete()) {
                         LOGGER.warn("File couldnt be deleted");
