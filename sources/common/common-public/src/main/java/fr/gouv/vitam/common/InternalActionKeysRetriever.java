@@ -74,10 +74,14 @@ public class InternalActionKeysRetriever {
             LOGGER.info("The action has no internal action key fields.");
             return Collections.emptyList();
         }
-        return getInternalKeyFields(action);
+        return getActionKeyFields(action);
     }
 
     public List<String> getInternalKeyFields(JsonNode node) {
+        return getSetUnsetKeys(node);
+    }
+
+    private List<String> getActionKeyFields(JsonNode node) {
         List<String> internalKeyFields = new ArrayList<>();
         if (!node.isArray()) {
             LOGGER.info("The action has no internal action key fields.");

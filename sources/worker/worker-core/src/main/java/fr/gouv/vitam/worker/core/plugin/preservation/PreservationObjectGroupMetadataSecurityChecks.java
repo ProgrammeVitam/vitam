@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -36,6 +38,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
@@ -53,12 +56,23 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubIte
 import static java.util.function.Predicate.not;
 
 public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler {
-    public static final String ITEM_ID = "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS";
-    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationObjectGroupMetadataSecurityChecks.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationObjectGroupMetadataSecurityChecks.class);
+    private static final String ITEM_ID = "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS";
+
+    private final InternalActionKeysRetriever internalActionKeysRetriever;
+
+    public PreservationObjectGroupMetadataSecurityChecks() {
+        this(new InternalActionKeysRetriever());
+    }
+
+    @VisibleForTesting
+    public PreservationObjectGroupMetadataSecurityChecks(InternalActionKeysRetriever internalActionKeysRetriever) {
+        this.internalActionKeysRetriever = internalActionKeysRetriever;
+    }
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
-        logger.debug("Starting {}.", ITEM_ID);
+        LOGGER.debug("Starting {}.", ITEM_ID);
 
         handler.setCurrentObjectId(WorkflowBatchResults.NAME);
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(0);
@@ -121,10 +135,18 @@ public class PreservationObjectGroupMetadataSecurityChecks extends ActionHandler
 
     private OutputExtra checkMetadataAndAddExtractedMetadata(OutputExtra output) {
         try {
-            SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(output.getOutput().getExtractedMetadata().getOtherMetadata()));
+            ExtractedMetadata extractedMetadata = output.getOutput().getExtractedMetadata();
+            SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(extractedMetadata));
+            List<String> internalKeyFields = internalActionKeysRetriever.getInternalKeyFields(JsonHandler.toJsonNode(extractedMetadata));
+            if (!internalKeyFields.isEmpty()) {
+                String message = String.format("Extracted metadata contains these forbidden internal keys: '%s'.", internalKeyFields);
+                LOGGER.warn(message);
+                return OutputExtra.inError(message);
+
+            }
             return OutputExtra.withExtractedMetadataForGot(output, output.getOutput().getExtractedMetadata());
         } catch (InvalidParseOperationException e) {
-            logger.error(e);
+            LOGGER.warn(e);
             return OutputExtra.inError(e.getMessage());
         }
     }
