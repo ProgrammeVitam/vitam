@@ -104,6 +104,7 @@ import org.elasticsearch.search.sort.SortBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1298,7 +1299,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             logbookLifeCycleInProcess.remove(LogbookDocument.EVENTS);
             logbookLifeCycleInProcess.append(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname(),
                 LogbookTypeProcess.UPDATE.toString());
-            logbookLifeCycleInProcess.append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
+            logbookLifeCycleInProcess.append(LogbookDocument.EVENTS, Collections.emptyList());
             // Update last persisted date
             logbookLifeCycleInProcess.append(LAST_PERSISTED_DATE,
                 LocalDateUtil.getFormattedDateForMongo(now()));
@@ -1667,20 +1668,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }).collect(Collectors.toList());
 
         if (!vitamDocuments.isEmpty()) {
-            BulkWriteOptions options = new BulkWriteOptions();
-            options.ordered(false);
-            BulkWriteResult bulkWriteResult = lifecycleUnit.getCollection().bulkWrite(vitamDocuments, options);
-
-            int count = bulkWriteResult.getInsertedCount();
-            int size = vitamDocuments.size();
-
-            if (count != size) {
-                LOGGER
-                    .error(String.format("Error while bulk save document count : %s != size : %s :", count, size));
-                throw new DatabaseException(
-                    String.format("Error while bulk save document count : %s != size : %s :", count, size));
+            BulkWriteOptions options = new BulkWriteOptions().ordered(false);
+            try {
+                lifecycleUnit.getCollection().bulkWrite(vitamDocuments, options);
+            } catch (MongoException e) {
+                throw new DatabaseException(e);
             }
-
         }
     }
 
