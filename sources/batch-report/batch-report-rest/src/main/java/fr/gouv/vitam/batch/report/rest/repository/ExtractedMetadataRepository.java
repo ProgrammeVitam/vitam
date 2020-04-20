@@ -26,34 +26,26 @@
  */
 package fr.gouv.vitam.batch.report.rest.repository;
 
-import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 public class ExtractedMetadataRepository {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractedMetadataRepository.class);
-
     public final static String COLLECTION_NAME = "ExtractedMetadata";
 
     private final MongoCollection<Document> extractedMetadataForAuCollection;
@@ -63,25 +55,12 @@ public class ExtractedMetadataRepository {
     }
 
     public void addExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadatas) {
-        List<WriteModel<Document>> extractedMetadataDocuments = extractedMetadatas.stream()
+        List<UpdateOneModel<Document>> extractedMetadataDocuments = extractedMetadatas.stream()
             .map(this::toUpdateModel)
             .collect(Collectors.toList());
 
         BulkWriteOptions insertWithoutOrder = new BulkWriteOptions().ordered(false);
-        BulkWriteResult bulkWriteResult = extractedMetadataForAuCollection.bulkWrite(extractedMetadataDocuments, insertWithoutOrder);
-
-        checkMongoBulkWriteResult(extractedMetadatas, bulkWriteResult);
-    }
-
-    private void checkMongoBulkWriteResult(List<ExtractedMetadata> extractedMetadatas, BulkWriteResult bulkWriteResult) {
-        int upsertedCount = bulkWriteResult.getUpserts().size();
-        int toUpsertCount = extractedMetadatas.size();
-
-        if (upsertedCount != toUpsertCount) {
-            String msg = String.format("Error in bulk write for extracted metadata, we should have '%d' documents inserted but here was '%d'.", toUpsertCount, upsertedCount);
-            LOGGER.error(msg);
-            throw new VitamRuntimeException(msg);
-        }
+        extractedMetadataForAuCollection.bulkWrite(extractedMetadataDocuments, insertWithoutOrder);
     }
 
     private UpdateOneModel<Document> toUpdateModel(ExtractedMetadata metadata) {

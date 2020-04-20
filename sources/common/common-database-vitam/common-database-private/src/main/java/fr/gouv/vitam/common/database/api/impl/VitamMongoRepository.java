@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.common.database.api.impl;
 
-
 import com.mongodb.BasicDBObject;
-import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
-import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
@@ -60,20 +59,13 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
-/**
- * Implementation for MongoDB
- */
 public class VitamMongoRepository implements VitamRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMongoRepository.class);
-    public static final String NAME = "Name";
+    private static final String NAME = "Name";
     private static final String ALL_PARAMS_REQUIRED = "All params are required";
-    private MongoCollection<Document> collection;
 
-    /**
-     * Default constructor
-     *
-     * @param collection the collection on which to perform operation
-     */
+    private final MongoCollection<Document> collection;
+
     public VitamMongoRepository(MongoCollection<Document> collection) {
         this.collection = collection;
     }
@@ -83,7 +75,7 @@ public class VitamMongoRepository implements VitamRepository {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, document);
         try {
             collection.insertOne(document);
-        } catch (Exception e) {
+        } catch (MongoException e) {
             LOGGER.error("Insert Document Exception: ", e);
             throw new DatabaseException(e);
         }
@@ -95,15 +87,14 @@ public class VitamMongoRepository implements VitamRepository {
         try {
             ReplaceOneModel<Document> replaceOneModel =
                 new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
-                    new UpdateOptions().upsert(true));
-            UpdateResult result = collection.replaceOne(replaceOneModel.getFilter(), replaceOneModel.getReplacement(),
-                replaceOneModel.getOptions());
+                    new ReplaceOptions().upsert(true));
+            UpdateResult result = collection.replaceOne(replaceOneModel.getFilter(), replaceOneModel.getReplacement(), replaceOneModel.getReplaceOptions());
             if (result.getModifiedCount() > 0) {
                 return VitamRepositoryStatus.UPDATED;
             } else {
                 return VitamRepositoryStatus.CREATED;
             }
-        } catch (Exception e) {
+        } catch (MongoException e) {
             LOGGER.error("Insert or Update Document Exception: ", e);
             throw new DatabaseException(e);
         }
@@ -112,39 +103,26 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public void save(List<Document> documents) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
-        List<InsertOneModel<Document>> collect =
-            documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
-
-        BulkWriteResult bulkWriteResult = collection.bulkWrite(collect);
-
-        int count = bulkWriteResult.getInsertedCount();
-        if (count != documents.size()) {
-            LOGGER.error(
-                String.format("Error while bulk save document count : %s != size : %s :", count, documents.size()));
-
-            throw new DatabaseException(
-                String.format("Error while bulk save document count : %s != size : %s :", count, documents.size()));
+        List<InsertOneModel<Document>> insertOneModels = documents.stream()
+            .map(InsertOneModel::new)
+            .collect(Collectors.toList());
+        try {
+            collection.bulkWrite(insertOneModels);
+        } catch (MongoException e) {
+            throw new DatabaseException(e);
         }
     }
 
     @Override
     public void saveOrUpdate(List<Document> documents) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
-        List<ReplaceOneModel<Document>> collect =
-            documents.stream().map(document -> new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
-                new UpdateOptions().upsert(true))).collect(Collectors.toList());
-
-        BulkWriteResult bulkWriteResult = collection.bulkWrite(collect);
-
-        int inserted = bulkWriteResult.getUpserts().size();
-        int matched = bulkWriteResult.getMatchedCount();
-        if ((inserted + matched) != documents.size()) {
-            LOGGER.error(
-                String.format("Error while bulk save or update document count : %d != size : %d :", inserted + matched,
-                    documents.size()));
-            throw new DatabaseException(
-                String.format("Error while bulk save or update document count : %d != size : %d :", inserted + matched,
-                    documents.size()));
+        List<ReplaceOneModel<Document>> replaceOneModels = documents.stream()
+            .map(document -> new ReplaceOneModel<>(eq("_id", document.get("_id")), document, new ReplaceOptions().upsert(true)))
+            .collect(Collectors.toList());
+        try {
+            collection.bulkWrite(replaceOneModels);
+        } catch (MongoException e) {
+            throw new DatabaseException(e);
         }
     }
 
@@ -152,7 +130,7 @@ public class VitamMongoRepository implements VitamRepository {
     public void update(List<WriteModel<Document>> queries) throws DatabaseException {
         try {
             collection.bulkWrite(queries, new BulkWriteOptions().ordered(false));
-        } catch (Exception e) {
+        } catch (MongoException e) {
             LOGGER.error("Bulk update documents exception: ", e);
             throw new DatabaseException(e);
         }
@@ -174,7 +152,7 @@ public class VitamMongoRepository implements VitamRepository {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, query);
         try {
             return collection.deleteMany(query).getDeletedCount();
-        } catch (Exception e) {
+        } catch (MongoException e) {
             LOGGER.error("Remove documents exception: ", e);
             throw new DatabaseException(e);
         }
@@ -182,34 +160,26 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException {
-
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, name, tenant);
         Bson query = and(eq(VitamDocument.TENANT_ID, tenant), eq(NAME, name));
         DeleteResult delete = collection.deleteOne(query);
         long count = delete.getDeletedCount();
         if (count == 0) {
-            LOGGER.error(String
-                .format("Error while removeByNameAndTenant> Name : %s and tenant: %s",
-                    name, tenant));
-            throw new DatabaseException(String
-                .format("Error while removeByNameAndTenant> Name : %s and tenant: %s",
-                    name, tenant));
+            LOGGER.error(String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant));
+            throw new DatabaseException(String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant));
         }
-
     }
 
     @Override
     public long purge(Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
-
         try {
             DeleteResult response = collection.deleteMany(new BasicDBObject(VitamDocument.TENANT_ID, tenant));
             return response.getDeletedCount();
-        } catch (Exception e) {
+        } catch (MongoException e) {
             LOGGER.error(String.format("Error while delete documents for tenant %s", tenant), e);
-            throw new DatabaseException(String.format("Error while delete documents for tenant %s", tenant, e));
+            throw new DatabaseException(String.format("Error while delete documents for tenant %s", tenant), e);
         }
-
     }
 
     @Override
@@ -217,9 +187,9 @@ public class VitamMongoRepository implements VitamRepository {
         try {
             DeleteResult response = collection.deleteMany(new BasicDBObject());
             return response.getDeletedCount();
-        } catch (Exception e) {
-            LOGGER.error(String.format("Error while delete documents"), e);
-            throw new DatabaseException(String.format("Error while delete documents", e));
+        } catch (MongoException e) {
+            LOGGER.error("Error while delete documents", e);
+            throw new DatabaseException("Error while delete documents", e);
         }
     }
 
@@ -227,18 +197,13 @@ public class VitamMongoRepository implements VitamRepository {
     public Optional<Document> getByID(String id, Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
         try {
-            FindIterable<Document> result = collection.find(new BasicDBObject(ID, id));
-            if (result.iterator().hasNext()) {
-                return Optional.of(result.first());
-            } else {
-                return Optional.empty();
-            }
-        } catch (Exception e) {
+            Document result = collection.find(new BasicDBObject(ID, id)).first();
+            return Optional.ofNullable(result);
+        } catch (MongoException e) {
             LOGGER.error(String.format("DatabaseException while getting document by id : %s", id), e);
             throw new DatabaseException(String.format("DatabaseException while getting document by id : %s", id), e);
         }
     }
-
 
     @Override
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
@@ -246,21 +211,11 @@ public class VitamMongoRepository implements VitamRepository {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, identifier, tenant);
         Bson query = and(eq("Identifier", identifier), eq(VitamDocument.TENANT_ID, tenant));
         try {
-            FindIterable<Document> result = collection.find(query);
-            if (result.iterator().hasNext()) {
-                return Optional.of(result.first());
-            } else {
-                return Optional.empty();
-            }
-        } catch (Exception e) {
-            LOGGER.error(String
-                    .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
-                        identifier, tenant),
-                e);
-            throw new DatabaseException(String
-                .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
-                    identifier, tenant),
-                e);
+            Document result = collection.find(query).first();
+            return Optional.ofNullable(result);
+        } catch (MongoException e) {
+            LOGGER.error(String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier, tenant), e);
+            throw new DatabaseException(String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier, tenant), e);
         }
     }
 
@@ -268,48 +223,34 @@ public class VitamMongoRepository implements VitamRepository {
     public Optional<Document> findByIdentifier(String identifier) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, identifier);
         try {
-            FindIterable<Document> result = collection.find(eq("Identifier", identifier));
-            if (result.iterator().hasNext()) {
-                return Optional.of(result.first());
-            } else {
-                return Optional.empty();
-            }
-        } catch (Exception e) {
-            LOGGER.error(String
-                    .format("Error while findByIdentifierAndTenant > identifier : %s",
-                        identifier),
-                e);
-            throw new DatabaseException(String
-                .format("Error while findByIdentifierAndTenant > identifier : %s",
-                    identifier),
-                e);
+            Document result = collection.find(eq("Identifier", identifier)).first();
+            return Optional.ofNullable(result);
+        } catch (MongoException e) {
+            LOGGER.error(String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier), e);
+            throw new DatabaseException(String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier), e);
         }
     }
 
     @Override
-    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
-        Integer tenant) {
+    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize, Integer tenant) {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
         if (fields == null || fields.isEmpty()) {
             return findDocuments(mongoBatchSize, tenant);
         }
         BasicDBObject filter = new BasicDBObject();
-        fields.forEach((key, value) -> filter.append(key, value));
+        fields.forEach(filter::append);
         filter.put(VitamDocument.TENANT_ID, tenant);
         return collection.find(filter).batchSize(mongoBatchSize);
     }
-
 
     @Override
     public FindIterable<Document> findDocuments(Collection<String> ids, Bson projection) {
         ParametersChecker.checkParameter("Id list is required ", ids);
         if (null == projection) {
             return collection.find(in(ID, ids));
-        } else {
-            return collection.find(in(ID, ids)).projection(projection);
         }
+        return collection.find(in(ID, ids)).projection(projection);
     }
-
 
     @Override
     public FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant) {
