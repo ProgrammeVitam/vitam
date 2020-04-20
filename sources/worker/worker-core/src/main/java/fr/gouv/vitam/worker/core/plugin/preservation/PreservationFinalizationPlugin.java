@@ -81,8 +81,8 @@ public class PreservationFinalizationPlugin extends ActionHandler {
     private static final String PLUGIN_NAME = "PRESERVATION_FINALIZATION";
     protected static final String PRESERVATION = "PRESERVATION";
     private static final String PRESERVATION_OK = "PRESERVATION.OK";
-    private PreservationReportService preservationReportService;
-    private LogbookOperationsClient logbookOperationsClient;
+    private final PreservationReportService preservationReportService;
+    private final LogbookOperationsClient logbookOperationsClient;
 
     public PreservationFinalizationPlugin() {
         this(new PreservationReportService(), LogbookOperationsClientFactory.getInstance().getClient());

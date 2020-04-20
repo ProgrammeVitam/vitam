@@ -71,8 +71,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "CHECK_CONTRACT_INGEST";
 
-    private AdminManagementClientFactory adminManagementClientFactory;
-    private StorageClientFactory storageClientFactory;
+    private final AdminManagementClientFactory adminManagementClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     public CheckIngestContractActionHandler() {
         this(AdminManagementClientFactory.getInstance(), StorageClientFactory.getInstance());

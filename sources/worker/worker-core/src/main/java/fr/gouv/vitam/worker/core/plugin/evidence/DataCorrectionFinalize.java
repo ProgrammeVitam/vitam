@@ -60,15 +60,16 @@ import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 public class DataCorrectionFinalize extends ActionHandler {
 
     private static final String CORRECTION_FINALIZE = "CORRECTION_FINALIZE";
-    BackupService backupService = new BackupService();
-
+    private final BackupService backupService;
 
     @VisibleForTesting
     DataCorrectionFinalize(BackupService backupService) {
         this.backupService = backupService;
     }
 
-    public DataCorrectionFinalize() { /*nothing to do */ }
+    public DataCorrectionFinalize() {
+        this(new BackupService());
+    }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)

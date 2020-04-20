@@ -96,7 +96,7 @@ public class PurgeUnitPlugin extends ActionHandler {
     private final PurgeDeleteService purgeDeleteService;
     private final MetaDataClientFactory metaDataClientFactory;
     private final PurgeReportService purgeReportService;
-    private LogbookLifeCyclesClientFactory lfcClientFactory;
+    private final LogbookLifeCyclesClientFactory lfcClientFactory;
 
     /**
      * Default constructor

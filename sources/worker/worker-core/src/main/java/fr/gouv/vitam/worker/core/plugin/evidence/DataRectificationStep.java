@@ -60,7 +60,7 @@ public class DataRectificationStep extends ActionHandler {
     private static final String ALTER = "alter";
     private final StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin;
     private final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin;
-    private DataRectificationService dataRectificationService;
+    private final DataRectificationService dataRectificationService;
 
     @VisibleForTesting
     public DataRectificationStep(

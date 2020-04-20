@@ -67,9 +67,9 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuditCheckObjectPlugin.class);
     public static final String AUDIT_CHECK_OBJECT = "AUDIT_CHECK_OBJECT";
     private static final int STRATEGIES_IN_RANK = 0;
-    private AuditExistenceService auditExistenceService;
-    private AuditIntegrityService auditIntegrityService;
-    private AuditReportService auditReportService;
+    private final AuditExistenceService auditExistenceService;
+    private final AuditIntegrityService auditIntegrityService;
+    private final AuditReportService auditReportService;
 
     public AuditCheckObjectPlugin() {
         this(new AuditExistenceService(), new AuditIntegrityService(), new AuditReportService());

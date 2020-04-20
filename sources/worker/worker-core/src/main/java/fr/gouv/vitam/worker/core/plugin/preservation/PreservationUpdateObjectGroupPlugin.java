@@ -91,7 +91,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubIte
 public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     private static final String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
     private static final String RAW_METADATA = "RawMetadata";
-    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
     private final MetaDataClientFactory metaDataClientFactory;
 
     public PreservationUpdateObjectGroupPlugin() {
@@ -105,7 +105,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) {
-        logger.info("Starting {}", PLUGIN_NAME);
+        LOGGER.info("Starting {}", PLUGIN_NAME);
 
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(0);
         List<WorkflowBatchResult> workflowBatchResults = results.getWorkflowBatchResults();
@@ -197,7 +197,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
             return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, OK, new Differences(differencesFiltered));
         } catch (Exception e) {
-            logger.error(e);
+            LOGGER.error(e);
             return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, FATAL,
                 EventDetails.of(String.format("FATAL ERROR IN %s ACTION.", PLUGIN_NAME))).disableLfc();
         }

@@ -56,7 +56,7 @@ public class MigrationUnitPrepare extends ActionHandler {
 
     private static final String MIGRATION_UNITS_LIST = "MIGRATION_UNITS_LIST";
     static final String MIGRATION_UNITS_LIST_IDS = "migrationUnitsListIds";
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
     private final int bachSize;
     private static final String REPORTS = "reports";
 

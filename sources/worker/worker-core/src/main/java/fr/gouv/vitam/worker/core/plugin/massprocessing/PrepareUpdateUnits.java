@@ -74,7 +74,7 @@ public class PrepareUpdateUnits extends ActionHandler {
     /**
      * metaDataClientFactory
      */
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
 
     /**
      * Batch size

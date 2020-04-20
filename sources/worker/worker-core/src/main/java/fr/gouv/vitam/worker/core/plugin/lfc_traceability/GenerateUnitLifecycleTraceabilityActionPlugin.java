@@ -53,7 +53,7 @@ import java.io.InputStream;
 public class GenerateUnitLifecycleTraceabilityActionPlugin extends GenerateLifecycleTraceabilityActionPlugin {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(GenerateUnitLifecycleTraceabilityActionPlugin.class);
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
     };
     private static final String ACTION_HANDLER_ID = "GENERATE_UNIT_LFC_TRACEABILITY";
 

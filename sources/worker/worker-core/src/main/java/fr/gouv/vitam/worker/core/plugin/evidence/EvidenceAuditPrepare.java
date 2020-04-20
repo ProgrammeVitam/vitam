@@ -81,8 +81,8 @@ public class EvidenceAuditPrepare extends ActionHandler {
     private static final String OBJECT = "#object";
     private static final String ID = "id";
 
-    private MetaDataClientFactory metaDataClientFactory;
-    private StorageClientFactory storageClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     public EvidenceAuditPrepare() {
         this.metaDataClientFactory = MetaDataClientFactory.getInstance();
@@ -90,8 +90,9 @@ public class EvidenceAuditPrepare extends ActionHandler {
     }
 
     @VisibleForTesting
-    EvidenceAuditPrepare(MetaDataClientFactory metaDataClientFactory) {
+    EvidenceAuditPrepare(MetaDataClientFactory metaDataClientFactory, StorageClientFactory storageClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
+        this.storageClientFactory = storageClientFactory;
     }
 
     @Override

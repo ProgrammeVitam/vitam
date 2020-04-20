@@ -52,7 +52,6 @@ import java.io.InputStream;
 public class CheckClassificationLevelActionPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckClassificationLevelActionPlugin.class);
-    private HandlerIO handlerIO;
 
     private static final String CHECK_CLASSIFICATION_LEVEL_TASK_ID = "CHECK_CLASSIFICATION_LEVEL";
     private static final int UNIT_INPUT_RANK = 0;
@@ -71,11 +70,9 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler){
         final ItemStatus itemStatus = new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID);
 
-        handlerIO = handler;
-
         try {
 
-            JsonNode archiveUnit = getArchiveUnit(param);
+            JsonNode archiveUnit = getArchiveUnit(param, handler);
             if (!ClassificationLevelUtil.checkClassificationLevel(archiveUnit)) {
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
@@ -100,7 +97,7 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
         // Nothing to check
     }
 
-    private JsonNode getArchiveUnit(WorkerParameters params) throws IOException, InvalidParseOperationException,
+    private JsonNode getArchiveUnit(WorkerParameters params, HandlerIO handlerIO) throws IOException, InvalidParseOperationException,
         ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkNullOrEmptyParameters(params);
         final String objectName = params.getObjectName();

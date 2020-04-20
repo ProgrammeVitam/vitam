@@ -55,10 +55,15 @@ import java.util.Set;
 public abstract class AbstractGraphComputePlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractGraphComputePlugin.class);
 
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
 
     public AbstractGraphComputePlugin() {
         this.metaDataClientFactory = MetaDataClientFactory.getInstance();
+    }
+
+    @VisibleForTesting
+    public AbstractGraphComputePlugin(MetaDataClientFactory metaDataClientFactory) {
+        this.metaDataClientFactory = metaDataClientFactory;
     }
 
     @Override
@@ -127,10 +132,4 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
     abstract GraphComputeResponse.GraphComputeAction getGraphComputeAction();
 
     abstract String getPluginKeyName();
-
-
-    @VisibleForTesting
-    public void setMetaDataClientFactory(MetaDataClientFactory metaDataClientFactory) {
-        this.metaDataClientFactory = metaDataClientFactory;
-    }
 }
