@@ -82,7 +82,7 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
         VitamLoggerFactory.getInstance(ComputeInheritedRuleProgenyIdentifierPlugin.class);
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER";
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
     private static final String UNITS_JSONL_FILE_NAME = "unitsToInvalidate.jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;

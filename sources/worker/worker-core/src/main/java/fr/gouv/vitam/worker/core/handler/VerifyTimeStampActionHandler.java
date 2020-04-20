@@ -89,7 +89,6 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     private static final String HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP = "COMPARE_TOKEN_TIMESTAMP";
     private static final String HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP = "VALIDATE_TOKEN_TIMESTAMP";
     private static final String HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP = "VERIFY_TOKEN_TIMESTAMP";
-    private static JsonNode traceabilityEvent = null;
 
     public static final String getId() {
         return HANDLER_ID;
@@ -102,7 +101,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         InputStream tokenFile = null;
         // 1- Get TraceabilityEventDetail from Workspace
         try {
-            traceabilityEvent =
+            JsonNode traceabilityEvent =
                 JsonHandler.getFromFile((File) handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK));
 
             String operationFilePath = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
@@ -113,7 +112,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             // 1st part - lets check timestamp within the file is the same as the one saved in the traceabilityEvent
             final ItemStatus subItemStatusTokenComparison = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP);
             try {
-                compareTimeStamps(encodedTimeStampToken);
+                compareTimeStamps(encodedTimeStampToken, traceabilityEvent);
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP,
                     subItemStatusTokenComparison.increment(StatusCode.OK));
             } catch (ProcessingException e) {
@@ -197,7 +196,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         }
     }
 
-    private void compareTimeStamps(String timeStampToken) throws ProcessingException {
+    private void compareTimeStamps(String timeStampToken, JsonNode traceabilityEvent) throws ProcessingException {
         String traceabilityTimeStamp = traceabilityEvent.get("TimeStampToken").asText();
         if (!timeStampToken.equals(traceabilityTimeStamp)) {
             throw new ProcessingException("TimeStamp tokens are different");

@@ -48,6 +48,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientMock;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
@@ -88,10 +89,11 @@ public class CheckStorageAvailabilityActionHandlerTest {
     private static final HandlerIO handlerIO = mock(HandlerIO.class);
 
 
+    private static final SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
     private static final SedaUtils sedaUtils = mock(SedaUtils.class);
 
     private CheckStorageAvailabilityActionHandler handler =
-        new CheckStorageAvailabilityActionHandler(storageClientFactory, sedaUtils);
+        new CheckStorageAvailabilityActionHandler(storageClientFactory, sedaUtilsFactory);
 
     @Before
     public void setUp() throws FileNotFoundException {
@@ -104,6 +106,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(sedaUtilsFactory.createSedaUtils(handlerIO)).thenReturn(sedaUtils);
 
         guid = GUIDFactory.newGUID();
         

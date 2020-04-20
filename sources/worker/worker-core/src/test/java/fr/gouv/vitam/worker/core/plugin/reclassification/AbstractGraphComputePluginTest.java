@@ -54,19 +54,24 @@ public class AbstractGraphComputePluginTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Spy
     private AbstractGraphComputePlugin abstractGraphComputePlugin;
 
     @Before
     public void setUp() throws Exception {
         MetaDataClientFactory metaDataClientFactory = MetaDataClientFactory.getInstance();
         metaDataClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
-        abstractGraphComputePlugin.setMetaDataClientFactory(metaDataClientFactory);
+        abstractGraphComputePlugin = new AbstractGraphComputePlugin(metaDataClientFactory) {
 
-        when(abstractGraphComputePlugin.getGraphComputeAction())
-            .thenReturn(GraphComputeResponse.GraphComputeAction.UNIT);
-        when(abstractGraphComputePlugin.getPluginKeyName())
-            .thenReturn("PluginName");
+            @Override
+            GraphComputeResponse.GraphComputeAction getGraphComputeAction() {
+                return GraphComputeResponse.GraphComputeAction.UNIT;
+            }
+
+            @Override
+            String getPluginKeyName() {
+                return "PluginName";
+            }
+        };
     }
 
 

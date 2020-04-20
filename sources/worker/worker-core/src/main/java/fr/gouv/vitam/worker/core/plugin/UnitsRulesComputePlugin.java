@@ -100,9 +100,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
     private static final int UNIT_INPUT_RANK = 0;
-    private HandlerIO handlerIO;
-    private boolean asyncIO = false;
-    private AdminManagementClientFactory adminManagementClientFactory;
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
     /**
      * Empty constructor UnitsRulesComputePlugin
@@ -120,11 +118,10 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         LOGGER.debug("UNITS_RULES_COMPUTE in execute");
         final long time = System.currentTimeMillis();
-        handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_TASK_ID);
 
         try {
-            calculateMaturityDate(params, itemStatus);
+            calculateMaturityDate(params, itemStatus, handler);
             itemStatus.increment(StatusCode.OK);
         } catch (InvalidRuleException e) {
             itemStatus.increment(StatusCode.KO);
@@ -171,7 +168,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     }
 
 
-    private void calculateMaturityDate(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
+    private void calculateMaturityDate(WorkerParameters params, ItemStatus itemStatus,
+        HandlerIO handlerIO) throws ProcessingException {
         ParametersChecker.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
@@ -188,7 +186,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 }
             }
 
-            parseRulesAndUpdateEndDate(archiveUnit, objectName, containerId);
+            parseRulesAndUpdateEndDate(archiveUnit, objectName, containerId, handlerIO);
         } catch (IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | InvalidParseOperationException e) {
             LOGGER.error(WORKSPACE_SERVER_ERROR, e);
             throw new ProcessingException(e);
@@ -234,7 +232,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
      * @throws IOException
      * @throws ProcessingException
      */
-    private void parseRulesAndUpdateEndDate(JsonNode archiveUnit, String objectName, String containerName)
+    private void parseRulesAndUpdateEndDate(JsonNode archiveUnit, String objectName, String containerName,
+        HandlerIO handlerIO)
         throws IOException, ProcessingException {
 
         final File fileWithEndDate = handlerIO.getNewLocalFile(AU_PREFIX_WITH_END_DATE + objectName);
@@ -321,7 +320,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         // Write to workspace
         try {
             handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
-                File.separator + objectName, fileWithEndDate, true, asyncIO);
+                File.separator + objectName, fileWithEndDate, true, false);
         } catch (final ProcessingException e) {
             LOGGER.error("Can not write to workspace ", e);
             if (!fileWithEndDate.delete()) {

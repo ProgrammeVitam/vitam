@@ -68,9 +68,9 @@ public class DataRectificationService {
 
     final private StorageClientFactory storageClientFactory;
     final private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private String OBJECT_CORRECTIVE_AUDIT = "OBJECT_CORRECTIVE_AUDIT";
-    private String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
-    private String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
+    private final static String OBJECT_CORRECTIVE_AUDIT = "OBJECT_CORRECTIVE_AUDIT";
+    private final static String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
+    private final static String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
 
     @VisibleForTesting
     DataRectificationService(StorageClientFactory storageClientFactory,

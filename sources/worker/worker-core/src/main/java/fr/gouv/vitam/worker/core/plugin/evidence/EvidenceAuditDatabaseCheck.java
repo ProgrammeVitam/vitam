@@ -70,8 +70,8 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditDatabaseCheck.class);
     private static final String REPORTS = "reports";
     private static final int STRATEGIES_IN_RANK = 0;
-    private EvidenceService evidenceService;
-    private EvidenceAuditReportService evidenceAuditReportService;
+    private final EvidenceService evidenceService;
+    private final EvidenceAuditReportService evidenceAuditReportService;
 
     @VisibleForTesting
     EvidenceAuditDatabaseCheck(EvidenceService evidenceService, EvidenceAuditReportService evidenceAuditReportService) {

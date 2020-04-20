@@ -71,7 +71,6 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_AGENT";
     public static final String EMPTY_REQUIRED_FIELD = "EMPTY_REQUIRED_FIELD";
     private final AdminManagementClientFactory adminManagementClientFactory;
-    final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
     /**
      * Constructor with parameter SedaUtilsFactory

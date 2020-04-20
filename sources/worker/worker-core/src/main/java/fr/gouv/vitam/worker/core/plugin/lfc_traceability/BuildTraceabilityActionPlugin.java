@@ -113,7 +113,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private static final String STRATEGY_ID_FIELD = "strategyId";
     private static final String STORAGE_FIELD = "_storage";
     public static final TypeReference<JsonLineModel>
-        TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+        TYPE_REFERENCE = new TypeReference<>() {
         };
 
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();

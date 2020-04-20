@@ -56,7 +56,7 @@ public class ComputeInheritedRulesInvalidatorPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRulesInvalidatorPlugin.class);
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_INVALIDATOR";
 
-    private MetaDataClientFactory metaDataClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
 
     public ComputeInheritedRulesInvalidatorPlugin() {
         this(MetaDataClientFactory.getInstance());

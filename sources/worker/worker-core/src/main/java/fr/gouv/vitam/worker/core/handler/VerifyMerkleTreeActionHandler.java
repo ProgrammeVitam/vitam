@@ -73,8 +73,6 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     private static final int END_OF_STREAM = -1;
     private static final char NEW_LINE_SEPARATOR = '\n';
 
-    private  TraceabilityEvent traceabilityEvent = null;
-
     /**
      * @return HANDLER_ID
      */
@@ -91,7 +89,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         try {
 
             // 1- Get TraceabilityEventDetail from Workspace
-            traceabilityEvent =
+            TraceabilityEvent traceabilityEvent =
                 JsonHandler.getFromFile((File) handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK),
                     TraceabilityEvent.class);
 
@@ -112,7 +110,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             final ItemStatus subSecuredItem = compareToSecuredHash( handler, currentRootHash);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH, subSecuredItem);
 
-            final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash);
+            final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash, traceabilityEvent);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
         } catch (Exception e) {
@@ -125,12 +123,8 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    /**
-     * @param params
-     * @param currentRootHash
-     * @return
-     */
-    ItemStatus compareToLoggedHash(WorkerParameters params, final String currentRootHash) {
+    ItemStatus compareToLoggedHash(WorkerParameters params, final String currentRootHash,
+        TraceabilityEvent traceabilityEvent) {
         final ItemStatus subLoggedItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH);
         if (!currentRootHash.equals(traceabilityEvent.getHash())) {
             subLoggedItemStatus.increment(StatusCode.KO);
