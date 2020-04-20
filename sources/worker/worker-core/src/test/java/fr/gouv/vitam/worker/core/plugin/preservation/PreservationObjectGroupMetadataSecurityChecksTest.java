@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.common.model.preservation.OtherMetadata;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -52,14 +54,20 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
 public class PreservationObjectGroupMetadataSecurityChecksTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
+
     @InjectMocks
     private PreservationObjectGroupMetadataSecurityChecks securityChecksPlugin;
 
-    private HandlerIO handler = new TestHandlerIO();
+    @Mock
+    private InternalActionKeysRetriever internalActionKeysRetriever;
+
+    private final HandlerIO handler = new TestHandlerIO();
 
     @Test
     public void should_disable_lfc_when_not_GENERATE_action() throws Exception {
@@ -72,6 +80,8 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
+
+        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
 
         // When
         List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
@@ -101,6 +111,8 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
+        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
+
         // When
         List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
 
@@ -124,6 +136,8 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
+        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
+
         // When
         List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
 
@@ -143,6 +157,52 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
+
+        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList());
+
+        // When
+        List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
+
+        // Then
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(WARNING);
+    }
+
+    @Test
+    public void should_return_item_status_KO_when_any_internal_field() throws Exception {
+        // Given
+        OutputPreservation output = getOutputPreservationExtracted("yeah");
+
+        List<OutputExtra> outputExtras = Collections.singletonList(OutputExtra.of(output));
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
+
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
+        handler.addOutputResult(0, batchResults);
+
+        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Arrays.asList("_forbidden_item", "$another$forbidden$item"));
+
+        // When
+        List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
+
+        // Then
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(KO);
+    }
+
+    @Test
+    public void should_return_item_status_WARNING_when_any_internal_field() throws Exception {
+        // Given
+        OutputPreservation output = getOutputPreservationExtracted("yeah");
+        OutputPreservation output2 = getOutputPreservationExtracted("yeah_too");
+
+        List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output), OutputExtra.of(output2));
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
+
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
+        handler.addOutputResult(0, batchResults);
+
+        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList())
+            .willReturn(Arrays.asList("_forbidden_item", "$another$forbidden$item"));
 
         // When
         List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);

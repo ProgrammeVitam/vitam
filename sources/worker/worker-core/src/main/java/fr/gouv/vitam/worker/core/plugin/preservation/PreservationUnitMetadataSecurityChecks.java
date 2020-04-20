@@ -70,7 +70,6 @@ public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
         this.internalActionKeysRetriever = internalActionKeysRetriever;
     }
 
-
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
         logger.debug("Starting {}.", ITEM_ID);

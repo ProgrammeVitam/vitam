@@ -1,0 +1,41 @@
+{
+  "$action": [
+    {
+      "$setregex": {
+        "$target": "_sedaVersion",
+        "$controlPattern": "YEAH",
+        "$updatePattern": "Toto"
+      }
+    }
+  ],
+  "$set": {
+    "foo.bar.$firstExample": "an hidden id",
+    "foo.bar.$secondExample.foo": "another hidden id",
+    "foo.bar.foo.$thirdExample": {
+      "$fourthExample": "innerId"
+    },
+    "foo.bar.foo.$fifthExample.foo": {
+      "foo.$sixthExample": "innerId"
+    }
+  },
+  "#set": {
+    "foo.bar.#firstExample": "an hidden id",
+    "foo.bar.#secondExample.foo": "another hidden id",
+    "foo.bar.foo.#thirdExample": {
+      "#fourthExample": "innerId"
+    },
+    "foo.bar.foo.#fifthExample.foo": {
+      "foo.#sixthExample": "innerId"
+    }
+  },
+  "_set": {
+    "foo.bar._firstExample": "an hidden id",
+    "foo.bar._secondExample.foo": "another hidden id",
+    "foo.bar.foo._thirdExample": {
+      "_fourthExample": "innerId"
+    },
+    "foo.bar.foo._fifthExample.foo": {
+      "foo._sixthExample": "innerId"
+    }
+  }
+}

@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class InternalActionKeysRetrieverTest {
 
-    private InternalActionKeysRetriever internalActionKeysRetriever = new InternalActionKeysRetriever();
+    private final InternalActionKeysRetriever internalActionKeysRetriever = new InternalActionKeysRetriever();
 
     @Test
     public void should_return_internal_fields() throws Exception {
@@ -120,5 +120,17 @@ public class InternalActionKeysRetrieverTest {
 
         // Then
         assertThat(internalActionKeyFields).containsOnly("_sedaVersion");
+    }
+
+    @Test
+    public void should_return_any_forbidden_field_when_using_getInternalKeyFields() throws Exception {
+        // Given
+        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/internalActionKeysRetrieverTestFiles/setAnyMetadata.json"));
+
+        // When
+        List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalKeyFields(query);
+
+        // Then
+        assertThat(internalActionKeyFields).containsOnly("$action", "$setregex", "$target", "$controlPattern", "$updatePattern", "$set", "$firstExample", "$secondExample", "$thirdExample", "$fourthExample", "$fifthExample", "$sixthExample", "#set", "#firstExample", "#secondExample", "#thirdExample", "#fourthExample", "#fifthExample", "#sixthExample", "_set", "_firstExample", "_secondExample", "_thirdExample", "_fourthExample", "_fifthExample", "_sixthExample");
     }
 }
