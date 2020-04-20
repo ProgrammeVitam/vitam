@@ -3,7 +3,7 @@
 - name: Check if ontologies already exist in functional-admin
   uri:
     method: GET
-    body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"AcquiredDate\"}},\"$filter\":{},\"$projection\":{} }"
+    body: "{ \"$query\":{},\"$filter\":{},\"$projection\":{} }"
     status_code: 200
     url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/ontologies"
     body_format: "json"
