@@ -58,7 +58,7 @@ import static fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare.MI
 public class MigrationFinalize extends ActionHandler {
     private static final String MIGRATION_FINALIZE = "MIGRATION_FINALIZE";
     private static final String JSON_FILE_EXTENSION = ".json";
-    private BackupService backupService;
+    private final BackupService backupService;
 
     private static final String REPORTS = "reports";
 

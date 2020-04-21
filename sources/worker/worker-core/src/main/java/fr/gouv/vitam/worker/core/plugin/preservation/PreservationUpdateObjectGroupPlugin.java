@@ -78,7 +78,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 
 public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
-    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
+    private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
 
     private static final String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
     private final MetaDataClientFactory metaDataClientFactory;
@@ -94,7 +94,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) {
-        logger.info("Starting {}", PLUGIN_NAME);
+        LOGGER.info("Starting {}", PLUGIN_NAME);
 
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(0);
         List<WorkflowBatchResult> workflowBatchResults = results.getWorkflowBatchResults();
@@ -185,7 +185,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             gotIdNode.put("gotId", gotId);
             return buildItemStatus(PLUGIN_NAME, OK, gotIdNode);
         } catch (Exception e) {
-            logger.error(e);
+            LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, e)
                 .disableLfc();
         }

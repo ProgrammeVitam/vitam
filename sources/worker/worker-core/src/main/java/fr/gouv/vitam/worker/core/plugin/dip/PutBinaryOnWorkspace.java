@@ -74,7 +74,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
     /**
      * factory of a storage client
      */
-    private StorageClientFactory storageClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     /**
      * empty constructor

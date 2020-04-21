@@ -94,9 +94,8 @@ public class CreateManifest extends ActionHandler {
     static final int BINARIES_RANK = 2;
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
-    private MetaDataClientFactory metaDataClientFactory;
-
-    private ObjectNode projection;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final ObjectNode projection;
 
     /**
      * constructor use for plugin instantiation

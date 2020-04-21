@@ -134,12 +134,12 @@ public class EvidenceService {
 
     private static final String EVENTS_EVDETDATA_FILENAME = "events.evDetData.FileName";
     private static final String EVENTS_OUT_DETAIL = "events.outDetail";
-    private MetaDataClientFactory metaDataClientFactory;
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
-    private StorageClientFactory storageClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     public EvidenceService() {
         storageClientFactory = StorageClientFactory.getInstance();

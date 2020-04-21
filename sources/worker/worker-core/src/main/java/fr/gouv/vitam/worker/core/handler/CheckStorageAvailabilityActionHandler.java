@@ -58,20 +58,20 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     private static final String DEFAULT_STRATEGY = "default";
 
     private final StorageClientFactory storageClientFactory;
-    private final SedaUtils sedaUtils;
+    private final SedaUtilsFactory sedaUtilsFactory;
 
     /**
      * Constructor with parameter SedaUtilsFactory
      */
     public CheckStorageAvailabilityActionHandler() {
-        this(StorageClientFactory.getInstance(), null);
+        this(StorageClientFactory.getInstance(), SedaUtilsFactory.getInstance());
     }
 
     @VisibleForTesting
     public CheckStorageAvailabilityActionHandler(
-        StorageClientFactory storageClientFactory, SedaUtils sedaUtils) {
+        StorageClientFactory storageClientFactory, SedaUtilsFactory sedaUtilsFactory) {
         this.storageClientFactory = storageClientFactory;
-        this.sedaUtils = sedaUtils;
+        this.sedaUtilsFactory = sedaUtilsFactory;
     }
 
     /**
@@ -91,7 +91,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         try {
             checkMandatoryIOParameter(handlerIO);
             // TODO P0 extract this information from first parsing
-            final SedaUtils sedaUtils = (null == this.sedaUtils) ? SedaUtilsFactory.getInstance().createSedaUtils(handlerIO) : this.sedaUtils;
+            final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             final long manifestSize = sedaUtils.getManifestSize(params, handlerIO.getWorkspaceClientFactory());
             totalSizeToBeStored = objectsSizeInSip + manifestSize;

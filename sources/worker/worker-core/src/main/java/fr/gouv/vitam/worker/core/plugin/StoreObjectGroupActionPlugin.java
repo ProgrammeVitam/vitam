@@ -56,8 +56,6 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreObjectGroupActionPlugin.class);
     private static final String SIP = "SIP/";
     private static final int OG_OUT_RANK = 0;
-    private HandlerIO handlerIO;
-    private boolean asyncIO = false;
 
     public StoreObjectGroupActionPlugin() {
         this(StorageClientFactory.getInstance());
@@ -69,15 +67,14 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
-        handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
         try {
-            checkMandatoryIOParameter(actionDefinition);
+            checkMandatoryIOParameter(handlerIO);
 
             // get list of object group's objects
-            final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params);
+            final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params, handlerIO);
             // get list of object uris
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
@@ -127,7 +124,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 try {
                     handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                         params.getObjectName(),
-                        mapOfObjects.jsonOG, false, asyncIO);
+                        mapOfObjects.jsonOG, false, false);
                 } catch (ProcessingException e) {
                     LOGGER.error(params.getObjectName(), e);
                     throw e;
@@ -152,7 +149,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
      * @return the list of object guid and corresponding Json
      * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
      */
-    private MapOfObjects getMapOfObjectsIdsAndUris(WorkerParameters params)
+    private MapOfObjects getMapOfObjectsIdsAndUris(WorkerParameters params, HandlerIO handlerIO)
         throws ProcessingException {
         final MapOfObjects mapOfObjects = new MapOfObjects();
         mapOfObjects.binaryObjectsToStore = new HashMap<>();

@@ -75,8 +75,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractAccessionRegisterAction.class);
     private static final String VOLUMETRY = "Volumetry";
 
-    private MetaDataClientFactory metaDataClientFactory;
-    private AdminManagementClientFactory adminManagementClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
     public AbstractAccessionRegisterAction() {
         this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());

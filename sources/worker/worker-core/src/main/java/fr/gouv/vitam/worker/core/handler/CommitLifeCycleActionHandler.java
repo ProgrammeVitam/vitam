@@ -43,7 +43,6 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
  */
 public abstract class CommitLifeCycleActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CommitLifeCycleActionHandler.class);
-    private HandlerIO handlerIO;
 
     /**
      * Default Constructor
@@ -55,9 +54,8 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
     
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO param) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
-        handlerIO = param;
         final ItemStatus itemStatus = getItemStatus();
         final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
         final String operationId = params.getContainerName();
@@ -65,20 +63,11 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
             checkMandatoryIOParameter(handlerIO);
             commitLifeCycle(handlerIO, objectID, operationId);
             itemStatus.increment(StatusCode.OK);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (LogbookClientBadRequestException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (LogbookClientNotFoundException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (LogbookClientServerException e) {
+        } catch (final ProcessingException | LogbookClientServerException | LogbookClientNotFoundException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-        
+
         return buildFinalItemStatus(itemStatus);
     }
 

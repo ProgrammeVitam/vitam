@@ -90,7 +90,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
 
     private static final String RUNNING_INGESTS_UPDATE_TASK_ID = "UPDATE_RUNNING_INGESTS";
     private static final int RANK_RUNNING_INGESTS_FILE = 0;
-    private final Map<String, List<JsonNode>> updatedRulesByType = new HashMap<String, List<JsonNode>>();
+    private final Map<String, List<JsonNode>> updatedRulesByType = new HashMap<>();
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final StoreMetadataObjectActionHandler storeMetadataObjectActionHandler;
     private final MetaDataClientFactory metaDataClientFactory;
@@ -103,7 +103,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private static final String FIELDS_KEY = "$fields";
     private static final String RULES_KEY = "Rules";
 
-    private static final long SLEEP_TIME = 10000l;
+    private static final long SLEEP_TIME = 10000L;
     private static final long NB_TRY = 600; // equivalent to 60 minutes
 
     private static final String PROCESS_ID_FIELD = "operationId";

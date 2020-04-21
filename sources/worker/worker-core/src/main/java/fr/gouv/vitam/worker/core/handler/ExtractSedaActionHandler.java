@@ -133,6 +133,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -174,7 +175,10 @@ import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
 /**
  * Handler class used to extract metaData. </br>
  * Create and put a new file (metadata extracted) json.json into container GUID
+ *
+ * Not thread safe : A new instance per execution is created
  */
+@NotThreadSafe
 public class ExtractSedaActionHandler extends ActionHandler {
 
     public static final int OG_ID_TO_UNID_ID_IO_RANK = 4;

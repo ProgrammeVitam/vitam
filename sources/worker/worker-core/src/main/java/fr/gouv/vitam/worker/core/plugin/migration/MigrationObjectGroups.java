@@ -88,9 +88,9 @@ public class MigrationObjectGroups extends ActionHandler {
 
     private static final String MIGRATION_OBJECT_GROUPS = "MIGRATION_OBJECT_GROUPS";
     public static final String LFC_UPDATE_MIGRATION_OBJECT = "LFC.UPDATE_MIGRATION_OBJECT_GROUPS";
-    private MetaDataClientFactory metaDataClientFactory;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private StorageClientFactory storageClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     @VisibleForTesting
     public MigrationObjectGroups(MetaDataClientFactory metaDataClientFactory,

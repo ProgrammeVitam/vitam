@@ -44,7 +44,7 @@ import java.io.File;
  */
 public class EvidenceAuditExtractFromZip extends ActionHandler {
     private static final String EVIDENCE_AUDIT_EXTRACT_ZIP_FILE = "EVIDENCE_AUDIT_EXTRACT_ZIP_FILE";
-    private EvidenceService evidenceService = new EvidenceService();
+    private final EvidenceService evidenceService;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditExtractFromZip.class);
 
 
@@ -53,7 +53,9 @@ public class EvidenceAuditExtractFromZip extends ActionHandler {
         this.evidenceService = evidenceService;
     }
 
-    public EvidenceAuditExtractFromZip() {/* nothing to do */}
+    public EvidenceAuditExtractFromZip() {
+        this(new EvidenceService());
+    }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {

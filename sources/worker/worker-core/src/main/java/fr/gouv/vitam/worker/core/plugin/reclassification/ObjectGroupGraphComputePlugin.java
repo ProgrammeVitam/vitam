@@ -26,13 +26,25 @@
  */
 package fr.gouv.vitam.worker.core.plugin.reclassification;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 /**
  * Plugin compute graph of object group
  */
 public class ObjectGroupGraphComputePlugin extends AbstractGraphComputePlugin {
     private static final String OBJECT_GROUP_GRAPH_COMPUTE = "OBJECT_GROUP_GRAPH_COMPUTE";
+
+    public ObjectGroupGraphComputePlugin() {
+        super();
+        // Default constructor
+    }
+
+    @VisibleForTesting
+    public ObjectGroupGraphComputePlugin(MetaDataClientFactory metaDataClientFactory) {
+        super(metaDataClientFactory);
+    }
 
     GraphComputeResponse.GraphComputeAction getGraphComputeAction() {
         return GraphComputeResponse.GraphComputeAction.OBJECTGROUP;
