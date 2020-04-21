@@ -5,3 +5,4 @@ vitam-odfvalidator-griffin
 vitam-siegfried-griffin
 vitam-tesseract-griffin
 vitam-verapdf-griffin
+vitam-ffmpeg-griffin
