@@ -49,7 +49,7 @@ Exemple:
 Cas de la mise à jour des *griffins*
 ========================================
 
-Modifier la directive ``vitam_griffins`` contenue dans le fichier ``environments/group_vars/all/vitam-vars.yml``.
+Modifier la directive ``vitam_griffins`` contenue dans le fichier ``environments/group_vars/all/vitam_vars.yml``.
 
 .. note:: Dans le cas d'une montée de version des composant *griffins*, ne pas oublier de mettre à jour l'URL du dépôt de binaire associé.
 

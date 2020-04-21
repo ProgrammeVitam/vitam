@@ -127,6 +127,8 @@ consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_compon
 vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" , "consul" ]
 
 # Vitams griffins required to launch preservation scenario
+# Example:
+# vitam_griffins: ["vitam-imagemagick-griffin", "vitam-libreoffice-griffin", "vitam-jhove-griffin", "vitam-odfvalidator-griffin", "vitam-siegfried-griffin", "vitam-tesseract-griffin", "vitam-verapdf-griffin", "vitam-ffmpeg-griffin"]
 vitam_griffins: []
 
 ### Composants Vitam ###
@@ -156,7 +158,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -186,7 +188,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -217,7 +219,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -248,7 +250,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -278,7 +280,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -325,7 +327,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -355,7 +357,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -413,7 +415,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -452,7 +454,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -483,7 +485,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -522,7 +524,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -554,7 +556,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -598,7 +600,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -635,7 +637,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -671,7 +673,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -709,7 +711,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
