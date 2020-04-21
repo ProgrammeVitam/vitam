@@ -30,7 +30,7 @@ Installation des *griffins* (greffons de préservation)
 
 .. caution:: Cette version de :term:`VITAM` ne mettant pas encore en oeuvre de mesure d'isolation particulière des *griffins*, il est recommandé de veiller à ce que l'usage de chaque *griffin* soit en conformité avec la politique de sécurité de l'entité. Il est en particulier déconseillé d'utiliser un griffon qui utiliserait un outil externe qui n'est plus maintenu.
 
-Il est possible de choisir les *griffins* installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``environments/group_vars/all/vitam-vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
+Il est possible de choisir les *griffins* installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``environments/group_vars/all/vitam_vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
 
 Exemple::
 
@@ -67,13 +67,13 @@ Il est également possible d'appliquer un paramétrage différent par composant 
 
 Editer le fichier ``environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
 
-Paramétrage de l'antivirus (ingest-externe)
+Paramétrage de l'antivirus (ingest-external)
 ===========================================
 
-L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; pour cela :
+L'antivirus utilisé par ingest-external est modifiable (par défaut, ClamAV) ; pour cela :
 
-* Modifier le fichier ``environments/group_vars/all/vitam_vars.yml`` pour indiquer le nom de l'antivirus qui sera utilisé (norme : scan-<nom indiqué dans vitam-vars.yml>.sh)
-* Créer un shell (dont l'extension doit être ``.sh``) sous ``environments/antivirus/`` (norme : scan-<nom indiqué dans vitam-vars.yml>.sh) ; prendre comme modèle le fichier ``scan-clamav.sh``. Ce script shell doit respecter le contrat suivant :
+* Modifier le fichier ``environments/group_vars/all/vitam_vars.yml`` pour indiquer le nom de l'antivirus qui sera utilisé (norme : scan-<nom indiqué dans vitam_vars.yml>.sh)
+* Créer un shell (dont l'extension doit être ``.sh``) sous ``environments/antivirus/`` (norme : scan-<nom indiqué dans vitam_vars.yml>.sh) ; prendre comme modèle le fichier ``scan-clamav.sh``. Ce script shell doit respecter le contrat suivant :
 
     * Argument : chemin absolu du fichier à analyser
     * Sémantique des codes de retour
@@ -181,26 +181,26 @@ Par défaut tous les services référentiels de Vitam fonctionnent en mode maît
 Paramétrage du batch de calcul pour l'indexation des règles héritées
 ====================================================================
 
-La paramétrage du batch de calcul pour l'indexation des règles héritées peut être réalisé dans le fichier ``/group_vars/all/vitam_vars.yml``. 
+La paramétrage du batch de calcul pour l'indexation des règles héritées peut être réalisé dans le fichier ``/group_vars/all/vitam_vars.yml``.
 
-La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la fréquence de passage du batch : 
+La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la fréquence de passage du batch :
 
 .. code:: json
 
-    vitam_timers: 
+    vitam_timers:
         metadata:
             - name: vitam-metadata-computed-inherited-rules
               frequency: "*-*-* 02:30:00"
 
-La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la liste des tenants sur lequels s'exécute le batch :  
+La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la liste des tenants sur lequels s'exécute le batch :
 
 .. code:: json
 
     vitam:
       worker:
             # api_output_index_tenants : permet d'indexer les règles de gestion, les chemins des règles et les services producteurs
-            api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9] 
-            # rules_index_tenants : permet d'indexer les règles de gestion 
+            api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
+            # rules_index_tenants : permet d'indexer les règles de gestion
             rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
 
 Durées minimales permettant de contrôler les valeurs saisies
@@ -310,7 +310,7 @@ Exemple::
         * **drive**  un drive est un lecteur de cartouches. Il doit être identifié par un *path* scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
 
         .. note:: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur
-        
+
         Les plus classiques sont par exemple ``/dev/st0`` et ``/dev/nst0`` pour le premier drive détecté par le système.
         L'usage de ``/dev/st0`` indique au système que la bande utilisée dans le lecteur associé devra être rembobinée après l'exécution de la commande appelante.
         A contrario, ``/dev/nst0`` indique au système que la bande utilisée dans le lecteur associé devra rester positionnée après le dernier marqueur de fichier utilisé par l'exécution de la commande appelante.
@@ -444,34 +444,34 @@ Exemple::
                 timeoutInMilliseconds: 3600000
 
 
-Sécurisation SELinux 
+Sécurisation SELinux
 ====================
 
-Depuis la release R13, la solution logicielle :term:`VITAM` prend désormais en charge l'activation de SELinux sur le périmètre du composant worker et des processus associés aux *griffins* (greffons de préservation). 
+Depuis la release R13, la solution logicielle :term:`VITAM` prend désormais en charge l'activation de SELinux sur le périmètre du composant worker et des processus associés aux *griffins* (greffons de préservation).
 
-SELinux (Security-Enhanced Linux) permet de définir des politiques de contrôle d'accès à différents éléments du système d'exploitation en répondant essentiellement à la question "May <subject> do <action> to <object>", par exemple "May a web server access files in users' home directories". 
+SELinux (Security-Enhanced Linux) permet de définir des politiques de contrôle d'accès à différents éléments du système d'exploitation en répondant essentiellement à la question "May <subject> do <action> to <object>", par exemple "May a web server access files in users' home directories".
 
-Chaque processus est ainsi confiné à un (voire plusieurs) domaine(s), et les fichiers sont étiquetés en conséquence. Un processus ne peut ainsi accéder qu'aux fichiers étiquetés pour le domaine auquel il est confiné. 
+Chaque processus est ainsi confiné à un (voire plusieurs) domaine(s), et les fichiers sont étiquetés en conséquence. Un processus ne peut ainsi accéder qu'aux fichiers étiquetés pour le domaine auquel il est confiné.
 
-.. note:: La solution logicielle :term:`VITAM` ne gère actuellement que le mode *targeted* (« only *targeted* processes are protected ») 
+.. note:: La solution logicielle :term:`VITAM` ne gère actuellement que le mode *targeted* (« only *targeted* processes are protected »)
 
-Les enjeux de la sécurisation SELinux dans le cadre de la solution logicielle :term:`VITAM` sont de garantir que les processus associés aux *griffins* (greffons de préservation) n'auront accès qu'au ressources système strictement requises pour leur fonctionnement et leurs échanges avec les composants *worker*. 
+Les enjeux de la sécurisation SELinux dans le cadre de la solution logicielle :term:`VITAM` sont de garantir que les processus associés aux *griffins* (greffons de préservation) n'auront accès qu'au ressources système strictement requises pour leur fonctionnement et leurs échanges avec les composants *worker*.
 
-.. note:: La solution logicielle :term:`VITAM` ne gère actuellement SELinux que pour le système d'exploitation Centos 
+.. note:: La solution logicielle :term:`VITAM` ne gère actuellement SELinux que pour le système d'exploitation Centos
 
-.. warning:: SELinux n'a pas vocation à remplacer quelque système de sécurité existant, mais vise plutôt à les compléter. Aussi, la mise en place de politiques de sécurité reste de mise et à la charge de l'exploitant. Par ailleurs, l'implémentation SELinux proposée avec la solution logicielle :term:`VITAM` est minimale et limitée au greffon de préservation Siegfried. Cette implémentation pourra si nécessaire être complétée ou améliorée par le projet d'implémentation. 
+.. warning:: SELinux n'a pas vocation à remplacer quelque système de sécurité existant, mais vise plutôt à les compléter. Aussi, la mise en place de politiques de sécurité reste de mise et à la charge de l'exploitant. Par ailleurs, l'implémentation SELinux proposée avec la solution logicielle :term:`VITAM` est minimale et limitée au greffon de préservation Siegfried. Cette implémentation pourra si nécessaire être complétée ou améliorée par le projet d'implémentation.
 
-SELinux propose trois modes différents : 
+SELinux propose trois modes différents :
 
 * *Enforcing* : dans ce mode, les accès sont restreints en fonction des règles SELinux en vigueur sur la machine ;
-* *Permissive* : ce mode est généralement à considérer comme un mode de déboguage. En mode permissif, les règles SELinux seront interrogées, les erreurs d'accès logguées, mais l'accès ne sera pas bloqué. 
-* *Disabled* : SELinux est désactivé. Rien ne sera restreint, rien ne sera loggué. 
+* *Permissive* : ce mode est généralement à considérer comme un mode de déboguage. En mode permissif, les règles SELinux seront interrogées, les erreurs d'accès logguées, mais l'accès ne sera pas bloqué.
+* *Disabled* : SELinux est désactivé. Rien ne sera restreint, rien ne sera loggué.
 
-La mise en oeuvre de SELinux est prise en charge par le processus de déploiement et s'effectue de la sorte : 
+La mise en oeuvre de SELinux est prise en charge par le processus de déploiement et s'effectue de la sorte :
 
-* Isoler dans l'inventaire de déploiement les composants worker sur des hosts dédiés (ne contenant aucun autre composant :term:`VITAM`) 
+* Isoler dans l'inventaire de déploiement les composants worker sur des hosts dédiés (ne contenant aucun autre composant :term:`VITAM`)
 * Positionner pour ces hosts un fichier *hostvars* sous ``environments/host_vars/`` contenant la déclaration suivante ::
 
-   selinux_state: "enforcing" 
+   selinux_state: "enforcing"
 
-* Procéder à l'installation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d’installation classique décrite dans le DIN 
+* Procéder à l'installation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d’installation classique décrite dans le DIN
