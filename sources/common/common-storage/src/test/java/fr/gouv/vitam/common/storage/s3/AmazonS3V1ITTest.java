@@ -26,15 +26,28 @@
  */
 package fr.gouv.vitam.common.storage.s3;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.regions.Regions;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.RandomStringUtils;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,35 +55,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import fr.gouv.vitam.common.model.storage.ObjectEntry;
-import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.regions.Regions;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.mockito.ArgumentCaptor;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Integration tests using docker instances with storage s3 API : minio or
  * openio.
  */
-// docker run -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T" -e "MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd" -e "MINIO_HTTP_TRACE=/tmp/minio.log" minio/minio server /data
+// docker run -p 9999:9000 --name minio1 -e "MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T" -e "MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd" -e "MINIO_HTTP_TRACE=/tmp/minio.log" minio/minio server /data
 // docker run -ti --tty -p 127.0.0.1:6007:6007 --name openio1 -e REGION="us-west-1" openio/sds:18.10
-// To add ssl to minio : in docker container, add s3/tls/private.key et s3/tls/public.crt  in folder /root/.minio/certs, "docker restart minio1"
-@Ignore
+// To add ssl to minio : in docker container, add s3/tls/private.key et s3/tls/public.crt  in folder /root/.minio/certs, "docker restart minio1" and use -p 9000:9000
 public class AmazonS3V1ITTest {
 
     private static final String PROVIDER = "amazon-s3-v1";
@@ -78,7 +76,8 @@ public class AmazonS3V1ITTest {
     private StorageConfiguration configurationOpenio;
     private StorageConfiguration configurationMinioSsl;
 
-    private static final String S3_MINIO_ENDPOINT = "http://127.0.0.1:9000";
+    private static final String S3_MINIO_ENDPOINT = "http://127.0.0.1:9999";
+    private static final String S3_MINIO_ENDPOINT_SSL= "https://127.0.0.1:9000";
     private static final String S3_MINIO_ACCESSKEY = "MKU4HW1K9HSST78MDY3T";
     private static final String S3_MINIO_SECRETKEY = "aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd";
     private static final String S3_MINIO_TRUSTSTORE = "src/test/resources/s3/tls/s3TrustStore.jks";
@@ -87,6 +86,9 @@ public class AmazonS3V1ITTest {
     private static final String S3_OPENIO_ENDPOINT = "http://127.0.0.1:6007";
     private static final String S3_OPENIO_ACCESSKEY = "demo:demo";
     private static final String S3_OPENIO_SECRETKEY = "DEMO_PASS";
+    
+    private String containerName;
+    private String objectName;
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -109,7 +111,7 @@ public class AmazonS3V1ITTest {
         configurationMinioSsl = new StorageConfiguration();
         configurationMinioSsl.setProvider(PROVIDER);
         configurationMinioSsl.setS3RegionName("");
-        configurationMinioSsl.setS3Endpoint("https://172.17.0.2:9000");
+        configurationMinioSsl.setS3Endpoint(S3_MINIO_ENDPOINT_SSL);
         configurationMinioSsl.setS3AccessKey(S3_MINIO_ACCESSKEY);
         configurationMinioSsl.setS3SecretKey(S3_MINIO_SECRETKEY);
         configurationMinioSsl.setS3PathStyleAccessEnabled(true);
@@ -134,8 +136,13 @@ public class AmazonS3V1ITTest {
         configurationOpenio.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
         configurationOpenio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationOpenio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+        
+        containerName = RandomStringUtils.randomNumeric(1)+"_"+RandomStringUtils.randomAlphabetic(10);
+        objectName = GUIDFactory.newGUID().getId();
+        
     }
 
+    @Ignore("There is a problem with minio ssl when sending an object with a wrong size")
     @Test
     public void minio_ssl_minio_main_scenario() throws Exception {
 
@@ -168,15 +175,7 @@ public class AmazonS3V1ITTest {
         listingScenario(amazonS3V1);
     }
 
-    @Test
-    public void openio_grossip_main_scenario() throws Exception {
-        AmazonS3V1 amazonS3V1 = new AmazonS3V1(configurationOpenio);
-        grosSipScenario(amazonS3V1);
-    }
-
     private void mainScenario(AmazonS3V1 amazonS3V1) throws Exception {
-        String containerName = "0_Unit";
-        String objectName = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
 
         // check container that does not exists
         assertThat(amazonS3V1.isExistingContainer(containerName)).isFalse();
@@ -185,25 +184,29 @@ public class AmazonS3V1ITTest {
         assertThat(amazonS3V1.isExistingObject(containerName, objectName)).isFalse();
 
         // delete object in a container that does not exists
-        assertThatCode(() -> {
+        assertThatThrownBy(() -> {
             amazonS3V1.deleteObject(containerName, objectName);
-        }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        }, "Delete object in a container that does not exists")
+        .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // try to upload a file in a container that does not exists
         assertThatThrownBy(() -> {
             InputStream stream = getInputStream("file1.pdf");
             amazonS3V1.putObject(containerName, objectName, stream, DigestType.SHA512, 6_906L);
-        }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        }, "Try to upload a file in a container that does not exists")
+        .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // try to download a file from a container that does not exists
         assertThatThrownBy(() -> {
             amazonS3V1.getObject(containerName, objectName);
-        }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        }, "Try to download a file from a container that does not exists")
+        .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // compute digest of object from a container that does not exists
         assertThatThrownBy(() -> {
             amazonS3V1.getObjectDigest(containerName, objectName, DigestType.SHA512, false);
-        }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        }, "Compute digest of object from a container that does not exist")
+        .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // create a container
         assertThatCode(() -> {
@@ -227,12 +230,14 @@ public class AmazonS3V1ITTest {
         // compute digest of object that does not exists
         assertThatThrownBy(() -> {
             amazonS3V1.getObjectDigest(containerName, objectName, DigestType.SHA512, false);
-        }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        }, "Compute digest of object that does not exists")
+        .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // try to download a file that does not exists
         assertThatThrownBy(() -> {
             amazonS3V1.getObject(containerName, objectName);
-        }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        }, "Try to download a file that does not exists")
+        .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // upload a file
         InputStream file1Stream = getInputStream("file1.pdf");
@@ -255,7 +260,7 @@ public class AmazonS3V1ITTest {
         assertThat(metadatasObject.getDigest()).isEqualTo(
                 "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418");
         assertThat(metadatasObject.getObjectName()).isEqualTo(objectName);
-        assertThat(metadatasObject.getType()).isEqualTo("Unit");
+        assertThat(metadatasObject.getType()).isEqualTo(containerName.split("_")[1]);
 
         // check object that does exists
         assertThat(amazonS3V1.isExistingObject(containerName, objectName)).isTrue();
@@ -270,14 +275,16 @@ public class AmazonS3V1ITTest {
         assertThatThrownBy(() -> {
             InputStream file2Stream = getInputStream("file2.pdf");
             amazonS3V1.putObject(containerName, objectName, file2Stream, DigestType.SHA512, 0L);
-        }).isInstanceOf(ContentAddressableStorageServerException.class);
+        }, "Try to upload a file on an existing file with an invalid size length (size < filesize)")
+        .isInstanceOf(ContentAddressableStorageServerException.class);
 
         // try to upload a file on an existing file with an invalid size length (size >
         // filesize)
         assertThatThrownBy(() -> {
             InputStream file2Stream = getInputStream("file2.pdf");
             amazonS3V1.putObject(containerName, objectName, file2Stream, DigestType.SHA512, 1_000_000L);
-        }).isInstanceOf(ContentAddressableStorageServerException.class);
+        },"Try to upload a file on an existing file with an invalid size length (size > filesize)")
+        .isInstanceOf(ContentAddressableStorageServerException.class);
 
         // delete an existing file
         assertThatCode(() -> {
@@ -293,8 +300,6 @@ public class AmazonS3V1ITTest {
     }
 
     private void listingScenario(AmazonS3V1 amazonS3V1) throws Exception {
-        String containerName = "2_Unit";
-        String objectName = "object_";
         int nbIter = 2;
         // create a container
         assertThatCode(() -> {
@@ -329,35 +334,6 @@ public class AmazonS3V1ITTest {
 
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
-    }
-
-    private void grosSipScenario(AmazonS3V1 amazonS3V1) throws Exception {
-        String containerName = "11_Unit";
-        String objectName = "object_11";
-
-        assertThatCode(() -> {
-            amazonS3V1.createContainer(containerName);
-        }).doesNotThrowAnyException();
-
-        File file = new File("/home/gafou/Bureau/SIP_Gabriel_big2/Content/ID5.zip");
-        InputStream file1Stream = new FileInputStream(file);
-        amazonS3V1.putObject(containerName, objectName, file1Stream, DigestType.SHA512, 4_198_763_914L);
-
-        // download an existing file
-        ObjectContent response = amazonS3V1.getObject(containerName, objectName);
-        try (InputStream is = response.getInputStream()) {
-            File fileDownloaded = tempFolder.newFile();
-            try (FileOutputStream fileOutputStream = new FileOutputStream(fileDownloaded)) {
-
-                byte[] buffer = new byte[8 * 1024];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) != -1) {
-                    fileOutputStream.write(buffer, 0, bytesRead);
-                }
-            }
-            System.out.println(fileDownloaded.getPath());
-        }
-        
     }
 
 }

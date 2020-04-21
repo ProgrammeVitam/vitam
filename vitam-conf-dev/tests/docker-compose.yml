@@ -1,0 +1,55 @@
+version: "3.3"
+services:
+  mongo:
+    image: library/mongo:4.2.3
+    ports:
+      - "27017:27017"
+  elasticsearch:
+    image: elasticsearch:7.6.2
+    environment:
+      - xpack.security.enabled=false
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+  minio:
+    image: minio/minio:RELEASE.2020-04-15T00-39-01Z
+    command: server /data
+    environment:
+      - MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T
+      - MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd
+    ports:
+      - "127.0.0.1:9999:9000"
+    volumes:
+      - data_minio:/data
+  minio_ssl:
+    image: minio/minio:RELEASE.2020-04-15T00-39-01Z
+    command: server /data_ssl
+    environment:
+      - MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T
+      - MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - "data_minio_ssl:/data"
+      - "certs_minio_ssl:/root/.minio/certs"
+      - "${MINIO_SSL_CERTIF_FOLDER}:/root/.minio/certs"
+  openio:
+    image: openio/sds:18.10
+    environment:
+      - REGION=us-west-1
+    ports:
+      - "127.0.0.1:6007:6007"
+
+volumes:
+  data_minio:
+  data_minio_ssl:
+  certs_minio_ssl:

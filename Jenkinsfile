@@ -32,6 +32,8 @@ pipeline {
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         ES_VERSION="7.6.2"
         MONGO_VERSION="4.2.3"
+        MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
+        OPENIO_VERSION="18.10"
     }
 
     options {
@@ -111,6 +113,27 @@ pipeline {
             }
         }
 
+        stage('Reinit local s3 storages when tests') {
+            steps {
+                // prepare storage for minIO
+                dir("${pwd}/dataminio") {
+                    // bad rustine, as minIO docker writes as root
+                    //  sh "sudo chmod -R 777 ${pwd}/dataminio"
+                    deleteDir()
+                }
+                sh "mkdir ${pwd}/dataminio"
+                // prepare storage for minIO SSL
+                dir("${pwd}/dataminiossl") {
+                    // bad rustine, as minIO docker writes as root
+                    //  sh "sudo chmod -R 777 ${pwd}/dataminiossl"
+                    deleteDir()
+                }
+                sh "mkdir ${pwd}/dataminiossl"
+                // test
+                echo "echo ${WORKSPACE}"
+            }
+        }
+
         stage ("Execute unit and integration tests on master branches") {
             when {
                 anyOf {
@@ -124,14 +147,20 @@ pipeline {
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
-                                docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
-                                        sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
-                                        sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                            // minIO SSL first
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
+                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
+                                    sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+                                    sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { i ->
+                                        //minIO without SSL
+                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
+                                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
+                                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                            }
+                                        }
                                     }
-                        		}
+                                }
                             }
                         }
                     }
@@ -172,14 +201,20 @@ pipeline {
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
-                                docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
-                                        sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
-                                        sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                            // minIO SSL first
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls/private.key:/root/.minio/certs/private.key -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls/public.crt:/root/.minio/certs/public.crt  -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
+                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
+                                    sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+                                    sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { i ->
+                                        //minIO without SSL
+                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
+                                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
+                                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                            }
+                                        }
                                     }
-                        		}
+                                }
                             }
                         }
                     }
@@ -226,14 +261,20 @@ pipeline {
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
-                                docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
-                                        sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
-                                        sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                            // minIO SSL first
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs  -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
+                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
+                                    sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+                                    sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { i ->
+                                        //minIO without SSL
+                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
+                                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
+                                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                            }
+                                        }
                                     }
-                        		}
+                                }
                             }
                         }
                     }

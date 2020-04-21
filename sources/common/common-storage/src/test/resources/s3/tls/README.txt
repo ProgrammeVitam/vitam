@@ -1,0 +1,1 @@
+This part is injected into minIO SSL docker
