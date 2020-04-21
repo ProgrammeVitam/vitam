@@ -708,7 +708,7 @@ public class MetaDataImpl {
         final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
         updateRequest.parse(updateQuery);
 
-        // FIXME : Object group ontology to be implemented in INGEST workflows
+        // FIXME #6553 : Object group ontology to be implemented in INGEST workflows
         // Execute DSL request
         dbRequest.execUpdateRequest(updateRequest, objectId, OBJECTGROUP, this.objectGroupOntologyValidator, null, this.objectGroupOntologyLoader.loadOntologies());
 

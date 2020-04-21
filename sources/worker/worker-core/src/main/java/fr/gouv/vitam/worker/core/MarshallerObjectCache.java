@@ -35,7 +35,7 @@ import javax.xml.bind.Marshaller;
 
 /**
  * Cache the Marshaller Object as its initialization takes about 40ms
- * FIXME : Warning, marshaller are not thread safe, but jaxbContext is !!!
+ * FIXME #6570 : Warning, marshaller are not thread safe, but jaxbContext is !!!
  */
 public class MarshallerObjectCache {
     private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();

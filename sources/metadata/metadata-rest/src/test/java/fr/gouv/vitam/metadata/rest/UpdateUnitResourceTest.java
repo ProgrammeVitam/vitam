@@ -197,8 +197,6 @@ public class UpdateUnitResourceTest {
 
     // Unit by ID (request and uri)
 
-    // TODO : in order to deal with selection in the query, the code should be modified in MetaDataImpl /
-    // MetadataJsonResponseUtils
     @Test
     @RunWithCustomExecutor
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {

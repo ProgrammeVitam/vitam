@@ -115,6 +115,10 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
         try {
 
+            // FIXME #6283 : IDEMPOTENCY
+            // > Risque écriture mauvaise version sur offre (ne pas écraser une version plus récente)
+            // > Non atomicité Unit+LFC : Ecriture unit v5  + LFC v4
+
             storeDocumentsWithLfc(params, handlerIO, unitIds);
 
             return this.getItemStatuses(unitIds, StatusCode.OK);

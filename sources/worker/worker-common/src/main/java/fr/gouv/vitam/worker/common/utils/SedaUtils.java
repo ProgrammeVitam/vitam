@@ -80,7 +80,6 @@ import static fr.gouv.vitam.common.model.VitamConstants.URL_ENCODED_SEPARATOR;
 /**
  * SedaUtils to read or split element from SEDA
  */
-// TODO P0 : remove parameterChecker when it's a handler method
 // the check is done with ParameterHelper and the WorkerParameters classes on the worker (WorkerImpl before the
 // handler execute)
 // If you absolutely need to check values in handler's methods, also use the ParameterCheker.
@@ -112,7 +111,6 @@ public class SedaUtils {
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
-    // TODO P1 : utiliser une structure avec le GUID et le témoin de passage du DataObjectGroupID .
     // objectGroup referenced before declaration
     private final Map<String, String> unitIdToGuid;
 

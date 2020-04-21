@@ -65,9 +65,6 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "worker-client.conf";
 
-    // TODO  : Is the ConcurrentHashMap is mandatory or is a HashMap is sufficient ?
-
-
     private static final Map <WorkerClientConfiguration, WorkerClientFactory> workersSetFactory = new ConcurrentHashMap<>();
     private static final WorkerClientFactory defaultWorkerClientFactory =  new WorkerClientFactory (null );
     /**
@@ -143,7 +140,6 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      *
      * @param configuration null for MOCK
      */
-    // TODO P2 should not be public (but IT test)
     public static final void changeMode(WorkerClientConfiguration configuration) {
         getInstance(configuration).initialisation(configuration, getInstance(configuration).getResourcePath());
     }

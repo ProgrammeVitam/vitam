@@ -217,7 +217,6 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
 
     /**

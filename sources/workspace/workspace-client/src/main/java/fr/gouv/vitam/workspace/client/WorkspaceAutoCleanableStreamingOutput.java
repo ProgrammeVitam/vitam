@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.StreamingOutput;
@@ -52,15 +53,8 @@ public class WorkspaceAutoCleanableStreamingOutput implements StreamingOutput {
 
     @Override public void write(OutputStream outputStream) throws IOException, WebApplicationException {
         try {
-            // TODO: Buffer size ?
-            byte[] buff = new byte[1024000];
-            int count;
 
-            // Send the stream
-            while ((count = inputStream.read(buff, 0, buff.length)) != -1) {
-                outputStream.write(buff, 0, count);
-            }
-            outputStream.flush();
+            IOUtils.copy(inputStream, outputStream);
 
             // Clean workspace
             if (workspaceClient.isExistingContainer(containerName)) {

@@ -37,7 +37,6 @@ import fr.gouv.vitam.processing.common.model.ProcessResponse;
  * Class contains messages of response.
  */
 public class ExtractUriResponse extends ProcessResponse {
-    // FIXME P1 REVIEW Since build through Factory: use package protected class and constructors for ALL
     private boolean errorDuplicateUri;
     // Set contains Uri for Binary Object
     private Set<URI> uriSetManifest;

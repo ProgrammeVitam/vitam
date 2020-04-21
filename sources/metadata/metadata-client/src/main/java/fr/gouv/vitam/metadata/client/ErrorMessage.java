@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.client;
 /**
  * Error Message for Metadata
  */
-// TODO: move it to a common (when it is)
 public enum ErrorMessage {
 
     /**

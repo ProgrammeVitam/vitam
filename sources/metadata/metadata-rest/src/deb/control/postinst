@@ -1,6 +1,3 @@
 #!/bin/sh
 
-# TODO: better use dh-systemd, Cf. https://wiki.debian.org/Teams/pkg-systemd/Packaging
- if [ -x /bin/systemctl ]; then
-   systemctl enable vitam-${unix.name}.service >/dev/null 2>&1 || true
-fi
+systemctl enable vitam-${unix.name}.service >/dev/null 2>&1 || true

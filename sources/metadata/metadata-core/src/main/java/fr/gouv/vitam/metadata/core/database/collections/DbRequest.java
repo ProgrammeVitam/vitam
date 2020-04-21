@@ -311,7 +311,6 @@ public class DbRequest {
             } else {
                 LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-                // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(requestParser.model())
                     .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
@@ -328,7 +327,6 @@ public class DbRequest {
             if (newResult == null) {
                 LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-                // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(result.type)
                     .addError(result.getCurrentIds().toString())
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
@@ -340,7 +338,6 @@ public class DbRequest {
             } else {
                 LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-                // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(newResult.type)
                     .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
@@ -352,7 +349,6 @@ public class DbRequest {
         // others do not allow empty result
         if (result.getCurrentIds().isEmpty()) {
             LOGGER.debug(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
-            // XXX TODO P1 should be adapted to have a correct error feedback
             result = new ResultError(result.type)
                 .addError(result != null ? result.getCurrentIds().toString() : NO_RESULT_TRUE)
                 .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
@@ -414,7 +410,6 @@ public class DbRequest {
      * @return the valid root ids
      */
     private Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
-        // TODO P1 add unit tests
         final Set<String> roots = request.getRequest().getRoots();
         return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
     }
@@ -433,7 +428,6 @@ public class DbRequest {
             // no limitation: using roots
             return current;
         }
-        // TODO P1 add unit tests
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable =
             (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
@@ -538,7 +532,6 @@ public class DbRequest {
             } else {
                 // OBJECTGROUPS
                 // No depth at all
-                // FIXME later on see if we should support depth
                 LOGGER.debug("ObjectGroup No depth at all");
                 result = objectGroupQuery(realQuery, previous, tenantId, sorts, offset,
                     limit, scrollId, scrollTimeout, facets, parserTokens);
@@ -669,7 +662,6 @@ public class DbRequest {
      * @return the aggregate set of multi level parents for this relativeDepth
      */
     protected Set<String> aggregateUnitDepths(Collection<String> ids, int relativeDepth) {
-        // TODO P1 add unit tests
         // Select all items from ids
         final Bson match = match(in(MetadataDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
@@ -1185,7 +1177,6 @@ public class DbRequest {
                 removeUnitIndexFields(last);
                 return last;
             }
-            // TODO P1 add unit tests
             // OBJECTGROUPS:
             final DeleteResult result =
                 MongoDbMetadataHelper.delete(MetadataCollections.OBJECTGROUP,

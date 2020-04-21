@@ -142,6 +142,10 @@ public class UnitDetachmentPlugin extends ActionHandler {
                 pull(VitamFieldsHelper.unitups(), parentUnitsToAdd.toArray(new String[0])),
                 add(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId())
             );
+
+            // FIXME #6283 : IDEMPOTENCY
+            // > Double incrémentation _v : Pas grave
+            // > Ecriture sur ES sans contrôle de version (ne pas écraser une version plus récente)
             metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
 
         } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | MetaDataNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -160,6 +164,9 @@ public class UnitDetachmentPlugin extends ActionHandler {
                 GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
                 GUIDReader.getGUID(unitId), UNIT_DETACHMENT, eventDetails, LogbookTypeProcess.RECLASSIFICATION);
 
+            // FIXME #6283 : IDEMPOTENCY
+            // > Doublons de LFCs
+            // > Non atomicité Unit+LFC (Chevauchenement si 2 workflows d'update parallèles, sauvegardes incomplètes...)
             logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
         } catch (VitamException e) {
