@@ -238,7 +238,7 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
                     objectNames);
 
             try (StorageClient storageClient = storageClientFactory.getClient()) {
-                storageClient.bulkStoreFilesFromWorkspace(VitamConfiguration.getDefaultStrategy(), request);
+                storageClient.bulkStoreFilesFromWorkspace(strategy, request);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException e) {
                 throw new ProcessingException("Bulk storage failed", e);
             }
