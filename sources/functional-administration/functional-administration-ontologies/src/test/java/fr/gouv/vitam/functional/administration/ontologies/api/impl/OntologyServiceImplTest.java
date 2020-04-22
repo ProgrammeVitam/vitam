@@ -27,13 +27,18 @@
 package fr.gouv.vitam.functional.administration.ontologies.api.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -52,6 +57,8 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import net.javacrumbs.jsonunit.JsonAssert;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -183,6 +190,108 @@ public class OntologyServiceImplTest {
         assertThat(responseCast.getResults()).hasSize(2);
         verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
             FunctionalAdminCollections.ONTOLOGY), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testSimulateUpgradeOntologyThenOK() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("upgrade/ontology_in_database.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
+
+        // When
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        final RequestResponseOK<OntologyModel> responseCast1 = (RequestResponseOK<OntologyModel>) response;
+        List<OntologyModel> results1 = responseCast1.getResults();
+        List<Ontology> actualExternals =  getExternalOntologies();
+
+        // Then
+        assertThat(response.isOk()).isTrue();
+        assertThat(results1).hasSize(6);
+        assertThat(actualExternals).hasSize(3);
+
+        JsonNode expected = JsonHandler.toJsonNode(actualExternals);
+
+        // import an upgraded version of ontology , this is the most probable OK Scenarios
+        final File fileOntology2 = PropertiesUtils.getResourceFile("upgrade/ontology_new_version.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeReference(fileOntology2, listOfOntologyType);
+
+        // When
+        final RequestResponse<OntologyModel> response2 = ontologyService.importInternalOntologies(ontologyModelList2);
+        final RequestResponseOK<OntologyModel> responseCast2 = (RequestResponseOK<OntologyModel>) response2;
+        List<OntologyModel> results2 = responseCast2.getResults();
+        List<Ontology> afterUpgrade =  getExternalOntologies();
+
+        // Then
+        assertThat(response2.isOk()).isTrue();
+        assertThat(results2).hasSize(4);
+        assertThat(afterUpgrade).hasSize(3);
+        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+            FunctionalAdminCollections.ONTOLOGY), any());
+
+        JsonNode actual = JsonHandler.toJsonNode(afterUpgrade);
+
+        JsonAssert.assertJsonEquals(expected, actual);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testSimulateUpgradeOntologyWhenConflictThenKO() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("upgrade/ontology_in_database.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
+
+        // When
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isTrue();
+        // import an upgraded version of ontology , this is the most probable OK Scenarios
+        final File fileOntology2 =
+            PropertiesUtils.getResourceFile("upgrade/ontology_new_version_conflict_external_with_existing.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeReference(fileOntology2, listOfOntologyType);
+        final RequestResponse<OntologyModel> response2 = ontologyService.importInternalOntologies(ontologyModelList2);
+
+        // Then
+        assertThat(response2.isOk()).isFalse();
+        assertThat(((VitamError) response2).getDescription()).contains(
+            "Import/upgrade ontologies error : There is conflict between Ontologies being imported and those already exists in database");
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+            FunctionalAdminCollections.ONTOLOGY), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testSimulateUpgradeWithExternalOntologiesInListThenKO() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("upgrade/ontology_in_database.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
+
+        // When
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+
+        // Then
+        assertThat(response.isOk()).isTrue();
+
+        final File fileOntology2 =
+            PropertiesUtils.getResourceFile("upgrade/ontology_new_version_with_externals_included.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeReference(fileOntology2, listOfOntologyType);
+
+        // When
+        final RequestResponse<OntologyModel> response2 = ontologyService.importInternalOntologies(ontologyModelList2);
+
+        // Then
+        assertThat(response2.isOk()).isFalse();
+        assertThat(((VitamError) response2).getDescription()).contains(
+            "Import ontologies error : The imported ontologies contains EXTERNAL fields.");
     }
 
     @Test
@@ -710,6 +819,18 @@ public class OntologyServiceImplTest {
         assertThat(response).isNotInstanceOf(RequestResponseOK.class);
         verify(functionalBackupService, times(0)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
             FunctionalAdminCollections.ONTOLOGY), any());
+    }
+
+    private List<Ontology> getExternalOntologies()
+        throws InvalidParseOperationException {
+        final List models = new ArrayList();
+
+        FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find(Filters.eq(OntologyModel.TAG_ORIGIN, "EXTERNAL"));
+        for (Document document : documents) {
+            models.add(JsonHandler.getFromString(BsonHelper.stringify(document), Ontology.class));
+        }
+
+        return models;
     }
 
 }

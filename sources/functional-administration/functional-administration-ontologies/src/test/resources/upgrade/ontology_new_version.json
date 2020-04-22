@@ -1,0 +1,46 @@
+[
+  {
+    "Identifier": "AcquiredDate",
+    "SedaField": "AcquiredDate",
+    "Description": "Mapping : unit-es-mapping.json. Références : ARKMS.DateAcquired",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de numérisation",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "BirthDate",
+    "SedaField": "BirthDate",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de naissance",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "BirthName",
+    "SedaField": "BirthName",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Nom de naissance",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "Country",
+    "SedaField": "Country",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Pays",
+    "Collections": [
+      "Unit"
+    ]
+  }
+]

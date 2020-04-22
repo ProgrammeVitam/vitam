@@ -115,9 +115,8 @@ public class AdminFunctionalApplication extends Application {
             AdminContextResource adminContextResource = new AdminContextResource(contextResource);
             singletons.add(adminContextResource);
 
-            OntologyResource ontologyResource = new OntologyResource(mongoDbAccess, vitamCounterService,
-                functionalBackupService);
-            AdminOntologyResource adminOntologyResource = new AdminOntologyResource(ontologyResource);
+            OntologyResource ontologyResource = new OntologyResource(mongoDbAccess, functionalBackupService);
+            AdminOntologyResource adminOntologyResource = new AdminOntologyResource(ontologyResource, mongoDbAccess, functionalBackupService );
             singletons.add(adminOntologyResource);
 
             SecurityProfileResource securityProfileResource =

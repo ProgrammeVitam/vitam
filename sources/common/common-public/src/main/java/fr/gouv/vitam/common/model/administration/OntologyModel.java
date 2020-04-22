@@ -280,4 +280,5 @@ public class OntologyModel {
         this.collections = collections;
         return this;
     }
+
 }
