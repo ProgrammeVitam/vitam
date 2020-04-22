@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -211,6 +213,9 @@ public class StoreMetaDataUnitActionPluginTest {
                 ImmutableMap.of(UNIT_GUID + ".json", "digest1", UNIT_GUID_2, "digest2")
             ));
 
+        when(storageClient.bulkStoreFilesFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), any()))
+                .thenThrow(new StorageServerClientException("wrong strategy"));
+        
         plugin = new StoreMetaDataUnitActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
             storageClientFactory);
 
