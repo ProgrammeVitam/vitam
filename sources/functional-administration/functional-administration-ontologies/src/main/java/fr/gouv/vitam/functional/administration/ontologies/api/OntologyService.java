@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.ontologies.api;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -37,6 +34,9 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * This service manages CRUD on Ontologies
@@ -63,6 +63,18 @@ public interface OntologyService extends VitamAutoCloseable {
     RequestResponse<OntologyModel> importOntologies(boolean forceUpdate, List<OntologyModel> ontologyList)
         throws VitamException, IOException;
 
+    /**
+     * Import a collections of ontologies After passing the validation steps. If all the ontologies are valid, they are
+     * stored in the collection and indexed.
+     * If there is some external ontologies used by vitam at the moment of import, they will be preserved and merged
+     * with the new internal ontologies being imported
+     *
+     * @param ontologyList the list of internal ontologies to be imported
+     * @return RequestResponseOK if success or VitamError
+     * @throws VitamException if in error occurs while validating ontologies
+     */
+    RequestResponse<OntologyModel> importInternalOntologies(List<OntologyModel> ontologyList)
+        throws VitamException, IOException;
     /**
      * find an ontology by QueryDsl
      *

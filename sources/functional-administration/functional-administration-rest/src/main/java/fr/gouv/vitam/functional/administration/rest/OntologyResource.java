@@ -26,6 +26,24 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
+import fr.gouv.vitam.functional.administration.ontologies.api.impl.OntologyServiceImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -40,25 +58,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
-import fr.gouv.vitam.functional.administration.ontologies.api.impl.OntologyServiceImpl;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 @Tag(name="Functional-Administration")
@@ -66,27 +65,22 @@ public class OntologyResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyResource.class);
-    public static final String ONTOLOGY_URI = "/ontologies";
-    public static final String ONTOLOGY_CACHE_URI = "/ontologies/cache";
+    private static final String ONTOLOGY_URI = "/ontologies";
+    private static final String ONTOLOGY_CACHE_URI = "/ontologies/cache";
 
     private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER =
         "The json input of ontology type is mandatory";
-    private static final String DSL_QUERY_IS_MANDATORY_PATAMETER =
-        "The dsl query is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
 
     /**
      * @param mongoAccess
-     * @param vitamCounterService
      * @param functionalBackupService
      */
     public OntologyResource(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
+        FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
         LOGGER.debug("init Ontology Resource server");
     }

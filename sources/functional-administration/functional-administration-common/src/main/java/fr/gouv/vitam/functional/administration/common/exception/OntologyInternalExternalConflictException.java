@@ -24,68 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.functional.administration.common.exception;
+
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Ontology Import ErrorCode enumeration
+ * OntologyInternalExternalConflictException error
  */
-public enum OntologyErrorCode {
+public class OntologyInternalExternalConflictException extends VitamException {
 
-    /**
-     * File not in json format
-     */
-    STP_IMPORT_ONTOLOGIES_NOT_JSON_FORMAT,
-    /**
-     * Onlogy used by document type while trying to delete
-     */
-    STP_IMPORT_ONTOLOGIES_DELETE_IDENTIFIER_USED_BY_DT,
-    /**
-     * Identifier already used
-     */
-    STP_IMPORT_ONTOLOGIES_IDENTIFIER_ALREADY_IN_ONTOLOGY,
-    /**
-     * /**
-     * Used ontology could not be deleted
-     */
-    STP_IMPORT_ONTOLOGIES_DELETE_USED_ONTOLOGY,
-    /**
-     * Missing information
-     */
-    STP_IMPORT_ONTOLOGIES_MISSING_INFORMATION,
-
-    /**
-     * Invalid parameter
-     */
-    STP_IMPORT_ONTOLOGIES_INVALID_PARAMETER,
-
-    /**
-     * Invalid type for update
-     */
-    STP_IMPORT_ONTOLOGIES_UPDATE_INVALID_TYPE,
-
-    /**
-     * Invalid id in create
-     */
-    STP_IMPORT_ONTOLOGIES_ID_NOT_ALLOWED_IN_CREATE,
-
-    /**
-     * Internal origin not allowed for non admin tenants
-     */
-    STP_IMPORT_ONTOLOGIES_NOT_AUTHORIZED_FOR_TENANT,
+    private static final long serialVersionUID = 5667138701285198642L;
 
 
-    /**
-     * Delete not authorized
-     */
-    STP_IMPORT_ONTOLOGIES_DELETE_NOT_AUTHORIZED,
+    public OntologyInternalExternalConflictException(String message) {
+        super(message);
+    }
 
-    /**
-     * General import error
-     */
-    STP_IMPORT_ONTOLOGIES_EXCEPTION,
 
-    /**
-     * Conflict merging internal and external at initialization
-     */
-    STP_IMPORT_ONTOLOGIES_INTERNAL_EXTERNAL_CONFLICT_EXCEPTION
+    public OntologyInternalExternalConflictException(Throwable cause) {
+        super(cause);
+    }
+
+
+    public OntologyInternalExternalConflictException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

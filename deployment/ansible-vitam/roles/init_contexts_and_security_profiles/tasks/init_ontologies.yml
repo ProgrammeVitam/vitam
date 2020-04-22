@@ -30,7 +30,7 @@
         dest: "{{ inventory_dir }}/backups/{{ backup_file_name }}"
         flat: yes
 
-    - name: Import/update ontologies to functionnal-admin
+    - name: Import/update Internal ontologies to functionnal-admin
       uri:
         method: POST
         body: "{{ lookup('file', 'files/VitamOntology.json')}}"
@@ -40,6 +40,5 @@
         timeout: "{{ vitam_defaults.services.api_long_call_timeout }}"
         headers:
           X-Tenant-Id: "{{ vitam_tenant_admin }}"
-          Force-Update: "true"
-
+          
   run_once: true

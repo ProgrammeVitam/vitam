@@ -10,16 +10,24 @@ Notes et procédures spécifiques R13
 Étapes préalables à la montée de version
 ========================================
 
-Gestion du référentiel ontologique 
+Gestion du référentiel de l'ontologie 
 -----------------------------------
 
-.. caution:: En lien avec la *User Story* #5928 (livrée avec la *release* R11) et les changements de comportement de l'API d'import des ontologies associés, si un référentiel ontologique personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version vers la *release* R11 ou supérieure, modifier manuellement le fichier d'ontologie livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, l'ontologie sera remplacée en mode forcé (sans contrôle de cohérence). 
+.. caution:: en lien avec la User Story* #6213 ( livré en version `3.5.x` de :term:`VITAM` ), les ontologies externes en cours d'exploitation par :term:`VITAM` ne sont pas touchées, et seront mergées avec les ontologies internes situés : ``deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json`` .
 
-Il faut pour cela éditer le fichier situé à l'emplacement ``deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json`` afin d'y réintégrer les éléments du référentiel ontologique personnalisés.  
+La procédure de merge manuelle du référentiel de l'ontologie avant chaque montée de version n'est plus nécessaire.
 
-.. note:: Lors de la montée de version, une sauvegarde du référentiel ontologique courant est réalisée à l'emplacement ``environments/backups/ontology_backup_<date>.json`` 
+.. caution:: Avant le lancement du procédure de mise à jour de :term:`VITAM`, une phase préliminaire obligatoire de vérification et validation sera faite pour détecter des éventuelles conflits entre les vocabulaires internes et externes.
 
-Gestion du référentiel des formats 
+.. danger:: En cas d'echec de vérification, autrement dit, en cas de présence de conflits entre les deux vocabulaires (le vocabulaire interne à mettre à jour et le vocabulaire externe en cours d'exploitation), c'est à l'exploitant d'adapter son vocabulaire externe et de veiller à ce qu'il n'ya pas de moindres conflits.
+
+Dès résolution des conflicts, l'exploitant lancera la mise à jour sans toucher l'ontologie interne.
+
+.. note:: Lors de la montée de version, une sauvegarde du référentiel de l'ontologie courant est réalisée à l'emplacement ``environments/backups/ontology_backup_<date>.json`` 
+
+A ce jour l'import de l'ontologie externe seulement n'est pas possible, ce comportement changera dans le futur.
+
+Gestion du référentiel des formats
 -----------------------------------
 
 .. caution:: Si un référentiel des formats personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version, modifier manuellement le fichier des formats livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, le référentiel des formats sera réinitialisé. 
