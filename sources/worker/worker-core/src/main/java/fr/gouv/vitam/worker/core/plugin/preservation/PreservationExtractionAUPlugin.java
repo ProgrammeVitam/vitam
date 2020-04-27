@@ -86,6 +86,7 @@ public class PreservationExtractionAUPlugin extends ActionHandler {
 
                 if (outputExtras.isEmpty()) {
                     ItemStatus itemStatus = new ItemStatus(ITEM_ID);
+                    itemStatus.disableLfc();
                     itemStatuses.add(itemStatus);
                     continue;
                 }
