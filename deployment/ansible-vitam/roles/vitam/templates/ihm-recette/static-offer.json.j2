@@ -4,9 +4,13 @@
     {% set protocol = 'http' %}
 {% endif %}
 [
-{% for item in vitam_strategy %}
+{% for item in all_used_offers %}
 {
+{% if item.id is defined %}
+    "id" : "{{ item.id }}",
+{% else %}
     "id" : "{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}",
+{% endif %}
     "baseUrl" : "{{ protocol }}://{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
     {% if item.asyncRead is defined %} "asyncRead": {{item.asyncRead|lower }}, {% endif %}
     "parameters" : {
