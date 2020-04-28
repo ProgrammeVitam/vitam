@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.processing.engine.core;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 
@@ -51,6 +53,14 @@ final public class ProcessEngineFactory {
      */
     public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
         ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
-        return new ProcessEngineImpl(workParams, processDistributor);
+        return new ProcessEngineImpl(workParams, processDistributor, LogbookOperationsClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        ParametersChecker
+            .checkParameter("Params cannot be null", processDistributor, logbookOperationsClientFactory);
+        return new ProcessEngineImpl(workParams, processDistributor, logbookOperationsClientFactory);
     }
 }

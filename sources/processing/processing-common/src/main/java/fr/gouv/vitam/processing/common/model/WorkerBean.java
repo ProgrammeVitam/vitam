@@ -28,14 +28,10 @@ package fr.gouv.vitam.processing.common.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- *
- *
  * Worker class used for deserialize JSON file (root element)
- *
  */
 public class WorkerBean {
 
@@ -50,9 +46,6 @@ public class WorkerBean {
 
     @JsonProperty("capacity")
     private int capacity = 1;
-
-    @JsonProperty("storage")
-    private long storage;
 
     @JsonProperty("status")
     private String status;
@@ -74,28 +67,25 @@ public class WorkerBean {
      * @param name : the name of the worker
      * @param family : the family of the worker
      * @param capacity : the capacity of the worker
-     * @param storage : the storage of the worker
      * @param status : the status of the worker
      * @param configuration : the configuration of the worker
      */
     @JsonCreator
     public WorkerBean(@JsonProperty("name") String name, @JsonProperty("family") String family,
-        @JsonProperty("capacity") int capacity, @JsonProperty("storage") long storage,
+        @JsonProperty("capacity") int capacity,
         @JsonProperty("status") String status,
         @JsonProperty("configuration") WorkerRemoteConfiguration configuration) {
         ParametersChecker.checkParameter("name is a mandatory parameter", name);
         ParametersChecker.checkParameter("family is a mandatory parameter", family);
         ParametersChecker.checkParameter("capacity is a mandatory parameter", capacity);
-        ParametersChecker.checkParameter("storage is a mandatory parameter", storage);
         ParametersChecker.checkParameter("status is a mandatory parameter", status);
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        
+
         this.name = name;
         this.family = family;
         this.capacity = capacity;
-        this.storage = storage;
         this.status = status;
-        this.configuration = configuration;  
+        this.configuration = configuration;
     }
 
 
@@ -111,7 +101,6 @@ public class WorkerBean {
 
     /**
      * @param name the worker name to set
-     *
      * @return the updated WorkerBean object
      */
     public WorkerBean setName(String name) {
@@ -132,7 +121,6 @@ public class WorkerBean {
 
     /**
      * @param workerId the workerId to set
-     *
      * @return the updated WorkerBean object
      */
     public WorkerBean setWorkerId(String workerId) {
@@ -153,7 +141,6 @@ public class WorkerBean {
 
     /**
      * @param family the worker Family to set
-     *
      * @return the updated WorkerBean object
      */
     public WorkerBean setFamily(String family) {
@@ -174,35 +161,12 @@ public class WorkerBean {
 
     /**
      * @param capacity the capacity to set
-     *
      * @return the updated WorkerBean object
      */
     public WorkerBean setCapacity(int capacity) {
         this.capacity = capacity;
         return this;
     }
-
-
-
-    /**
-     * @return the storage
-     */
-    public long getStorage() {
-        return storage;
-    }
-
-
-
-    /**
-     * @param storage the storage to set
-     *
-     * @return the updated WorkerBean object
-     */
-    public WorkerBean setStorage(long storage) {
-        this.storage = storage;
-        return this;
-    }
-
 
 
     /**
@@ -216,7 +180,6 @@ public class WorkerBean {
 
     /**
      * @param status the status to set
-     *
      * @return the updated WorkerBean object
      */
     public WorkerBean setStatus(String status) {
@@ -224,7 +187,7 @@ public class WorkerBean {
         return this;
     }
 
-    
+
     /**
      * @return the WorkerRemoteConfiguration including properties to connect to the Worker
      */
@@ -235,7 +198,6 @@ public class WorkerBean {
 
     /**
      * @param configuration the WorkerRemoteConfiguration to set
-     *
      * @return the updated WorkerBean object
      */
     public WorkerBean setConfiguration(WorkerRemoteConfiguration configuration) {
@@ -253,7 +215,7 @@ public class WorkerBean {
         sb.append("workerId=" + getWorkerId() + "\n");
         sb.append("workerName=" + getName() + "\n");
         sb.append("workerFamily=" + getFamily() + "\n");
-        sb.append("workerStatus=" + getStatus() + "\n");       
+        sb.append("workerStatus=" + getStatus() + "\n");
         if (getConfiguration() != null) {
             sb.append("configuration = " + getConfiguration().toString() + "\n");
         }

@@ -32,6 +32,7 @@ import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Interface for process datas management service
@@ -91,18 +92,17 @@ public interface ProcessDataManagement {
      * Put process workflow instance in workspace
      *
      * @param folderName the folder to put workflow instance on process container
-     * @param asyncId the request id (asynchronous id)
      * @param processWorkflow the instance to save
      * @throws ProcessingStorageWorkspaceException when storage error occurs
      * @throws InvalidParseOperationException when serializing object to json fail
      */
-    void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow) throws
+    void persistProcessWorkflow(String folderName, ProcessWorkflow processWorkflow) throws
         ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
     void persistDistributorIndex(String folderName, String fileName, DistributorIndex distributorIndex)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
-    DistributorIndex getDistributorIndex(String folderName, String fileName)
+    Optional<DistributorIndex> getDistributorIndex(String folderName, String fileName)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
     /**
@@ -114,10 +114,11 @@ public interface ProcessDataManagement {
      * @throws ProcessingStorageWorkspaceException when storage error occurs
      * @throws InvalidParseOperationException when deserializing object to json fail
      */
-    ProcessWorkflow getProcessWorkflow(String folderName, String asyncId) throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
+    ProcessWorkflow getProcessWorkflow(String folderName, String asyncId)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
     /**
-     * Delete process workflow instance on process container
+     * Delete process workflow from the workspace
      *
      * @param folderName the folder on process container to remove workflow instance
      * @param asyncId the request id (asynchronous id)

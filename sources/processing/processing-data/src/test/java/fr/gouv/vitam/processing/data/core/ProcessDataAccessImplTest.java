@@ -24,36 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.processing.common.exception;
 
-/**
- * StepsNotFoundException manage steps not found Exception
- * 
- */
-public class StepsNotFoundException extends ProcessingException {
+package fr.gouv.vitam.processing.data.core;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 7434200692205429490L;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import org.assertj.core.api.Assertions;
+import org.junit.Test;
 
-    /**
-     *
-     * @param message to be set
-     * @param cause to be set
-     */
-    public StepsNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+import java.util.List;
+
+public class ProcessDataAccessImplTest {
+
+    @Test
+    public void test_add_To_Workflow_List() {
+        ProcessDataAccessImpl processDataAccess = ProcessDataAccessImpl.getInstance();
+
+        // Test when no tenant nor process workflow
+        List<ProcessWorkflow> result =
+            processDataAccess.findAllProcessWorkflow(1);
+        Assertions.assertThat(result).isEmpty();
+
+        // Test addToWorkflowList
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        processWorkflow.setTenantId(1);
+        processWorkflow.setOperationId(GUIDFactory.newGUID().getId());
+        processDataAccess.addToWorkflowList(processWorkflow);
+
+        result =
+            processDataAccess.findAllProcessWorkflow(1);
+        Assertions.assertThat(result).hasSize(1);
     }
-
-    /**
-     * @param message of exception
-     */
-    public StepsNotFoundException(String message) {
-        super(message);
-        // TODO Auto-generated constructor stub
-    }
-
-
 
 }

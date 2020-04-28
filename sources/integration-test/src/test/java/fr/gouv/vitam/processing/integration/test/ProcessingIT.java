@@ -2928,16 +2928,17 @@ public class ProcessingIT extends VitamRuleRunner {
         remove.setTenant(tenantId);
         processingClient.removeForcePause(remove);
 
-        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
         processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
             RESUME.getValue());
 
         processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
+
+        wait(containerName);
         // Verify no pause
-        assertEquals(ProcessState.RUNNING, processWorkflow.getState());
-        assertEquals(StatusCode.UNKNOWN, processWorkflow.getStatus());
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
     }
 
 

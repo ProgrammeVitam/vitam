@@ -1,0 +1,526 @@
+{
+  "id": "DEFAULT_WORKFLOW",
+  "name": "Default Ingest Workflow",
+  "identifier": "PROCESS_SIP_UNITARY",
+  "typeProc": "INGEST",
+  "comment": "Default Ingest Workflow override with multi family",
+  "steps": [
+    {
+      "workerGroupId": "FamilyOne",
+      "stepName": "STP_INGEST_CONTROL_SIP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_SEDA",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_HEADER",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkOriginatingAgency",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkProfile",
+                "uri": "VALUE:true"
+              }
+            ],
+            "out": [
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PREPARE_STORAGE_INFO",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:false"
+              },
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              },
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unitsLevel.file",
+                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+              },
+              {
+                "name": "mapsDOtoOG.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsDOIdtoDODetail.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "existingObjectGroup.file",
+                "uri": "WORKSPACE:UpdateObjectGroup/existing_object_group.json"
+              },
+              {
+                "name": "mapsGuid.file",
+                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
+              },
+              {
+                "name": "mapsExisitingGotToNewGotForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyTwo",
+      "stepName": "STP_OG_CHECK_AND_TRANSFORME",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DIGEST",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "algo",
+                "uri": "VALUE:SHA-512"
+              }
+            ],
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_OBJECTS_FORMAT_CHECK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              },
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyTwo",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_ARCHIVE_UNIT_PROFILE",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsGuid.file",
+                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_CLASSIFICATION_LEVEL",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyOne",
+      "stepName": "STP_STORAGE_AVAILABILITY_CHECK",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "STORAGE_AVAILABILITY_CHECK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyTwo",
+      "stepName": "STP_OBJ_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup",
+        "bulkSize": 1000
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OBJ_STORAGE",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyTwo",
+      "stepName": "STP_UNIT_METADATA",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "bulkSize": 1000
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_INDEXATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyTwo",
+      "stepName": "STP_OG_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup",
+        "bulkSize": 128
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyTwo",
+      "stepName": "STP_UNIT_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "bulkSize": 128
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyTwo",
+      "stepName": "STP_UPDATE_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_FILE",
+        "element": "UpdateObjectGroup/existing_object_group.json",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK",
+        "bulkSize": 128
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OBJECT_GROUP_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "FINAL"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyOne",
+      "stepName": "STP_ACCESSION_REGISTRATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ACCESSION_REGISTRATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "FamilyOne",
+      "stepName": "STP_INGEST_FINALISATION",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ATR_NOTIFICATION",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDOtoOG.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json",
+                "optional": true
+              },
+              {
+                "name": "mapsOG.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json",
+                "optional": true
+              },
+              {
+                "name": "mapsExisitingGotToNewGotForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json",
+                "optional": true
+              }
+            ],
+            "out": [
+              {
+                "name": "atr.file",
+                "uri": "WORKSPACE:ATR/responseReply.xml"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ROLL_BACK",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -295,7 +295,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
     /**
      * test pause on fatal then resume
      *
-     * @param restartMDServerAfterFatal                if true MD server will be started after pause on Fatal
+     * @param restartMDServerAfterFatal if true MD server will be started after pause on Fatal
      * @param stopAndRestartProcessingServerAfterFatal if true Processing Server wil be stopped and restarted after pause on Fatal
      * @throws Exception
      */
@@ -310,7 +310,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
@@ -321,7 +321,8 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
             // process execute
             RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
-                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
+                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                    ProcessAction.NEXT.getValue());
             assertNotNull(resp);
             assertThat(resp.isOk()).isTrue();
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
@@ -405,8 +406,8 @@ public class PausedProcessingIT extends VitamRuleRunner {
                 step.getStepStatusCode().equals(StatusCode.WARNING));
 
             // check processed elements
-            Assertions.assertThat(step.getElementProcessed()).isEqualTo(step.getElementToProcess());
-            Assertions.assertThat(step.getElementProcessed()).isEqualTo(elementCountPerStep[stepIndex++]);
+            Assertions.assertThat(step.getElementProcessed().get()).isEqualTo(step.getElementToProcess().get());
+            Assertions.assertThat(step.getElementProcessed().get()).isEqualTo(elementCountPerStep[stepIndex++]);
         }
     }
 

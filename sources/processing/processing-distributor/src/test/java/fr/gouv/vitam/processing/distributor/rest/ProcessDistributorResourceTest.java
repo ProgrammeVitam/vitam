@@ -69,7 +69,7 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
     private final String FAMILY_ID_E = "/error";
 
     private static final String JSON_REGISTER =
-        "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10, \"storage\" : 100," +
+        "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     @Rule

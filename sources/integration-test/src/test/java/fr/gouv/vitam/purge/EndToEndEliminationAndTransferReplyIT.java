@@ -1841,7 +1841,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         try (ProcessingManagementClient processingClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
             processingClient.cancelOperationProcessExecution(operationGuid);
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL);
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
         }
     }
 
@@ -2532,21 +2532,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         SelectMultiQuery checkEliminationDslRequest = new SelectMultiQuery();
         checkEliminationDslRequest.addQueries(
             QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
-
-        return (RequestResponseOK<JsonNode>) accessInternalClient
-            .selectUnits(checkEliminationDslRequest.getFinalSelect());
-    }
-
-    private RequestResponseOK<JsonNode> selectUnitsByTitle(String ingestOperationGuid, String title,
-        AccessInternalClient accessInternalClient)
-        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
-        SelectMultiQuery checkEliminationDslRequest = new SelectMultiQuery();
-        checkEliminationDslRequest.addQueries(
-            QueryHelper.and().add(
-                QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid),
-                QueryHelper.match("Title", title)
-            ));
 
         return (RequestResponseOK<JsonNode>) accessInternalClient
             .selectUnits(checkEliminationDslRequest.getFinalSelect());

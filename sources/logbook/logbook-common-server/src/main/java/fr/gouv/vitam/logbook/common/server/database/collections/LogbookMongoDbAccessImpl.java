@@ -722,6 +722,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return null;
     }
 
+    // FIXME bug 6542: 06/04/2020 Not idempotent ?!
     final void updateLogbookOperation(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
@@ -761,7 +762,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             if (result == null) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
             }
-            // FIXME : to be refactor when other collection are indexed in ES
             if (LogbookCollections.OPERATION.equals(collection)) {
                 updateIntoElasticsearch(collection, result);
             }
