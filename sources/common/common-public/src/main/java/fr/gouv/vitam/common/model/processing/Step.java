@@ -226,6 +226,11 @@ public class Step {
         return getBehavior().equals(ProcessBehavior.BLOCKING);
     }
 
+    @JsonIgnore
+    public boolean isFinally() {
+        return getBehavior().equals(ProcessBehavior.FINALLY);
+    }
+
     public PauseOrCancelAction getPauseOrCancelAction() {
         return pauseOrCancelAction;
     }

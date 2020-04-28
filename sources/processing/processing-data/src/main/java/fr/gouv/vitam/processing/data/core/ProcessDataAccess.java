@@ -42,25 +42,12 @@ public interface ProcessDataAccess {
 
     /**
      * Allows a process to be initialized
-     * 
+     *
      * @param workflow the workflow to init
      * @param containerName : null not allowed , the name of the container to be processed
      * @return {@link LogbookTypeProcess}
      */
     ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName);
-
-    /**
-     * Update a step in a workflow, knowing its unique id
-     *
-     * @param processId the id of the process to be updated
-     * @param uniqueId the unique Id of the step
-     * @param elementToProcessOrProcessed the number of element to be processed
-     * @param elementProcessed if a new element has been processed
-     * @param tenantId the working tenant
-     * @throws ProcessingException if the step does not exist
-     */
-    void updateStep(String processId, String uniqueId, long elementToProcessOrProcessed, boolean elementProcessed,
-        Integer tenantId);
 
     /**
      * Gets Process Workflow by ID
@@ -76,7 +63,7 @@ public interface ProcessDataAccess {
      * Retrieves All the workflow process for monitoring purpose The final business scope of this feature is likely to
      * be redefined, to match the future need
      * @param tenantId the working tenant
-     * 
+     *
      * @return All the workflow process details
      */
     List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId);

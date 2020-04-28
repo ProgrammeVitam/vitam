@@ -142,15 +142,17 @@ public class WorkspaceProcessDataManagementTest {
     public void persistProcessWorkflowTestOK() throws Exception {
         doNothing().when(workspaceClient).putObject(anyString(), anyString(), any());
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
-        processDataManagement.persistProcessWorkflow("folder", "async_id", processWorkflow);
+        processDataManagement.persistProcessWorkflow("folder", processWorkflow);
     }
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void persistProcessWorkflowTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).putObject(anyString(),
-            anyString(), any());
+        doThrow(new ContentAddressableStorageServerException("fail"))
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(Object.class));
+
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
-        processDataManagement.persistProcessWorkflow("folder", "async_id", processWorkflow);
+        processDataManagement.persistProcessWorkflow("folder", processWorkflow);
     }
 
     @Test

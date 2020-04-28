@@ -26,40 +26,49 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.Step;
+import org.junit.Test;
+
+import java.util.concurrent.atomic.AtomicLong;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.Step;
-
 public class ProcessStepTest {
     @Test
-    public void testConstructor() {
-        assertEquals(0, new ProcessStep().getElementProcessed());
-        assertEquals(0, new ProcessStep().getElementToProcess());
-        assertEquals(10, new ProcessStep().setElementToProcess(10).getElementToProcess());
-        assertEquals(1, new ProcessStep().setElementProcessed(1).getElementProcessed());
+    public void testConstructor() throws InvalidParseOperationException {
+        assertEquals(0, new ProcessStep().getElementProcessed().get());
+        assertEquals(0, new ProcessStep().getElementToProcess().get());
+        assertEquals(10, new ProcessStep().getElementToProcess().addAndGet(10));
+        assertEquals(1, new ProcessStep().getElementProcessed().addAndGet(1));
         assertEquals(StatusCode.OK, new ProcessStep().setStepStatusCode(StatusCode.OK).getStepStatusCode());
         final Step step = new Step();
-        assertEquals(1, new ProcessStep(step, "1", "containerName", "workflowId", 0, 1, 0).getElementToProcess());
-        assertEquals(1, new ProcessStep(step, "2", "containerName", "workflowId", 0, 1, 1).getElementProcessed());
+        assertEquals(1,
+            new ProcessStep(step, "1", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(1))
+                .getElementToProcess().get());
+        assertEquals(1,
+            new ProcessStep(step, "2", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(1))
+                .getElementProcessed().get());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorException() {
-        new ProcessStep(null, "2", "containerName", "workflowId", 0, 1, 0);
+        new ProcessStep(null, "2", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(0));
     }
 
     @Test
     public void equalsTest() {
         final Step step = new Step();
         step.setStepName("1");
-        final ProcessStep processStep = new ProcessStep(step, "25", "containerName", "workflowId", 0, 1, 0);
-        assertEquals(processStep, new ProcessStep(step, "25", "containerName", "workflowId", 0, 1, 0));
+        final ProcessStep processStep =
+            new ProcessStep(step, "25", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(0));
+        assertEquals(processStep,
+            new ProcessStep(step, "25", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(0)));
 
         assertNotEquals(processStep, new Object());
-        assertNotEquals(processStep, new ProcessStep(step, "24", "containerName", "workflowId", 2, 1, 0));
+        assertNotEquals(processStep,
+            new ProcessStep(step, "24", "containerName", "workflowId", 2, new AtomicLong(1), new AtomicLong(0)));
     }
 }

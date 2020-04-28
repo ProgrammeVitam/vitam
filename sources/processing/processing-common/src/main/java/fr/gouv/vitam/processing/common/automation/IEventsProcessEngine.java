@@ -28,7 +28,6 @@ package fr.gouv.vitam.processing.common.automation;
 
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
@@ -39,10 +38,12 @@ public interface IEventsProcessEngine {
 
     /**
      * Update the current step status code
+     *
      * @param statusCode
      */
     void onUpdate(StatusCode statusCode);
 
+    StatusCode getCurrentProcessWorkflowStatus();
     /**
      * @param messageIdentifier
      * @param originatingAgency
@@ -55,15 +56,14 @@ public interface IEventsProcessEngine {
      * @param itemStatus
      * @param workerParameters
      */
-    void onComplete(ItemStatus itemStatus, WorkerParameters workerParameters);
-
+    void onProcessEngineCompleteStep(ItemStatus itemStatus, WorkerParameters workerParameters);
 
     /**
-     * The ProcessEngine callback onPauseOrCancel when the step is paused or cancelled
-     * @param pauseOrCancelAction
+     * The ProcessEngine callback when the step is cancelled
+     *
      * @param workerParameters
      */
-    void onPauseOrCancel(PauseOrCancelAction pauseOrCancelAction, WorkerParameters workerParameters);
+    void onProcessEngineCancel(WorkerParameters workerParameters);
 
     /**
      * The ProcessEngine callback on system error occurred

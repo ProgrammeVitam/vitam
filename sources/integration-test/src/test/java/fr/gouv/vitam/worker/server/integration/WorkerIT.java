@@ -388,7 +388,7 @@ public class WorkerIT extends VitamRuleRunner {
         final WorkerRemoteConfiguration remoteConfiguration =
             new WorkerRemoteConfiguration("localhost", runner.PORT_SERVICE_WORKER);
         final WorkerBean workerBean =
-            new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, 1L, "active", remoteConfiguration);
+            new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, "active", remoteConfiguration);
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         try {
             processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, workerId, workerBean);

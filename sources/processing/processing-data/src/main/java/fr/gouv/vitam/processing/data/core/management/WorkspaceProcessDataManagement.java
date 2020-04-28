@@ -29,7 +29,6 @@ package fr.gouv.vitam.processing.data.core.management;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -40,6 +39,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
+import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -48,14 +48,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -149,13 +146,12 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     }
 
     @Override
-    public void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow)
+    public void persistProcessWorkflow(String folderName, ProcessWorkflow processWorkflow)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
         LOGGER.debug("[PERSIST] workflow process with execution status : <{}>", processWorkflow.getState());
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
-            // XXX: ugly way to do this (bytearray) ?
-            client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId),
-                new ByteArrayInputStream(JsonHandler.writeAsString(processWorkflow).getBytes()));
+            client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, processWorkflow.getOperationId()),
+                JsonHandler.writeAsString(processWorkflow).getBytes());
         } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         }
@@ -166,22 +162,21 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, fileName),
-                new ByteArrayInputStream(JsonHandler.writeAsString(distributorIndex).getBytes()));
+                JsonHandler.writeAsString(distributorIndex).getBytes());
         } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         }
     }
 
     @Override
-    public DistributorIndex getDistributorIndex(String folderName, String fileName)
+    public Optional<DistributorIndex> getDistributorIndex(String folderName, String fileName)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
         Response response = null;
-        InputStream is = null;
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, fileName));
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                is = (InputStream) response.getEntity();
-                return JsonHandler.getFromInputStream(is, DistributorIndex.class);
+                InputStream is = (InputStream) response.getEntity();
+                return Optional.of(JsonHandler.getFromInputStream(is, DistributorIndex.class));
             } else {
                 client.consumeAnyEntityAndClose(response);
                 throw new ProcessingStorageWorkspaceException("Workspace error: " + response.getStatusInfo()
@@ -190,7 +185,8 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         } catch (ContentAddressableStorageNotFoundException exc) {
-            return null;
+            LOGGER.debug(exc);
+            return Optional.empty();
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
@@ -201,15 +197,10 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     public ProcessWorkflow getProcessWorkflow(String folderName, String asyncId)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
         Response response = null;
-        InputStream is = null;
-        // Not using try with resources because in this case, response.close() throw an exception :
-        // MultiException stack 1 of 1
-        // java.lang.IllegalStateException: ServiceLocatorImpl(__HK2_Generated_30,31,1929030508) has been shut down
-
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId));
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                is = (InputStream) response.getEntity();
+                InputStream is = (InputStream) response.getEntity();
                 ProcessWorkflow processWorkflow = JsonHandler.getFromInputStream(is, ProcessWorkflow.class);
                 return processWorkflow;
             } else {
@@ -242,9 +233,10 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             List<URI> uris =
                 JsonHandler
-                    .getFromStringAsTypeReference(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
-                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                    });
+                    .getFromStringAsTypeReference(
+                        client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
+                            .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                        });
             for (URI uri : uris) {
                 try {
                     String processId = uri.getPath().substring(0,
@@ -252,21 +244,24 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                     ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, processId);
                     if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
                         processWorkflow.setState(ProcessState.PAUSE);
-                        processWorkflow.setProcessCompletedDate(LocalDateUtil.now());
                         processWorkflow.setStatus(StatusCode.FATAL);
+                        processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_SERVER_PAUSE);
+                    }
+
+                    if (ProcessState.COMPLETED.equals(processWorkflow.getState()) &&
+                        null == processWorkflow.getProcessCompletedDate()) {
+                        // The make the processWorkflow cleanable
+                        processWorkflow.setProcessCompletedDate(LocalDateUtil.now());
                     }
 
                     if (tenantId == null || processWorkflow.getTenantId().equals(tenantId)) {
                         result.put(processWorkflow.getOperationId(), processWorkflow);
                     }
                 } catch (InvalidParseOperationException e) {
-                    // TODO: is blocking ?
                     LOGGER.error("Error on loading old workflow {} -> cannot be resume", uri.getPath(), e);
                 }
             }
-        } catch (ContentAddressableStorageServerException e) {
-            throw new ProcessingStorageWorkspaceException(e);
-        } catch (InvalidParseOperationException | InvalidFormatException e) {
+        } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
             throw new ProcessingStorageWorkspaceException(e);
         }
         return result;

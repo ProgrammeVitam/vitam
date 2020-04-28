@@ -108,7 +108,6 @@ public class ProcessingManagementClientFactory extends VitamClientFactory<Proces
      *
      * @param urlString the url
      */
-    // TODO P2 should be removed
     public static final void changeConfigurationUrl(String urlString) {
         try {
             final URI url = new URI(urlString);

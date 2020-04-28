@@ -29,7 +29,6 @@ package fr.gouv.vitam.processing.engine.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -53,8 +52,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -90,41 +89,32 @@ public class ProcessEngineImpl implements ProcessEngine {
     private String originatingAgency;
     private WorkerParameters workerParameters;
 
-    private IEventsProcessEngine callback;
+    private IEventsProcessEngine stateMachineCallback;
     private ProcessDistributor processDistributor;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    public ProcessEngineImpl(WorkerParameters workerParameters, ProcessDistributor processDistributor) {
+    public ProcessEngineImpl(WorkerParameters workerParameters, ProcessDistributor processDistributor,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.processDistributor = processDistributor;
         this.workerParameters = workerParameters;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     @Override
-    public void setCallback(IEventsProcessEngine callback) {
-        this.callback = callback;
-    }
-
-    @Override
-    public boolean pause(String operationId) {
-        ParametersChecker.checkParameter("The parameter operationId is required", operationId);
-        return this.processDistributor.pause(operationId);
-    }
-
-    @Override
-    public boolean cancel(String operationId) {
-        ParametersChecker.checkParameter("The parameter operationId is required", operationId);
-        return this.processDistributor.cancel(operationId);
+    public void setStateMachineCallback(IEventsProcessEngine stateMachineCallback) {
+        this.stateMachineCallback = stateMachineCallback;
     }
 
     @Override
     public void start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
         throws ProcessingEngineException {
 
-        if (null == callback) {
+        if (null == stateMachineCallback) {
             throw new ProcessingEngineException("IEventsProcessEngine is required");
         }
 
         if (null == step) {
-            throw new ProcessingEngineException("The paramter step cannot be null");
+            throw new ProcessingEngineException("The parameter step cannot be null");
         }
 
         if (null != workerParameters) {
@@ -145,59 +135,35 @@ public class ProcessEngineImpl implements ProcessEngine {
         final LogbookTypeProcess logbookTypeProcess = this.workerParameters.getLogbookTypeProcess();
 
         // Prepare the logbook operation
-        LogbookOperationParameters parameters;
-        try {
-            parameters = logbookBeforeDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess);
-
-        } catch (Exception e) {
-            LOGGER.error("Logbook error while process workflow, do retry", e);
-            try {
-                parameters = logbookBeforeDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess);
-            } catch (Exception ex) {
-                throw new ProcessingEngineException(ex);
-            }
-        }
-        final LogbookOperationParameters logbookParameter = parameters;
+        LogbookOperationParameters logbookParameter =
+            logbookBeforeDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess);
 
         // update the process monitoring for this step
         if (!PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) &&
             !PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())) {
-            callback.onUpdate(StatusCode.STARTED);
+            stateMachineCallback.onUpdate(StatusCode.STARTED);
         }
 
         this.workerParameters.setCurrentStep(step.getStepName());
+
+        this.workerParameters.putParameterValue(WorkerParameterName.workflowStatusKo,
+            stateMachineCallback.getCurrentProcessWorkflowStatus().name());
 
         Stopwatch stopwatch = Stopwatch.createStarted();
 
         CompletableFuture
             // call distributor in async mode
-            .supplyAsync(() -> {
-                try {
-                    return callDistributor(step, this.workerParameters, operationId, pauseRecover);
-
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }, VitamThreadPoolExecutor.getDefaultExecutor())
+            .supplyAsync(() -> callDistributor(step, this.workerParameters, operationId, pauseRecover), VitamThreadPoolExecutor.getDefaultExecutor())
             // When the distributor responds, finalize the logbook persistence
             .thenApply(distributorResponse -> {
                 try {
                     // Do not log if stop, replay or cancel occurs
-
-                    ItemStatus pauseCancel =
-                        distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name());
-                    if (null != pauseCancel) {
-                        return distributorResponse;
-                    }
-
-                    pauseCancel = distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_CANCEL.name());
-                    if (null != pauseCancel) {
-                        return distributorResponse;
-                    }
-
-                    pauseCancel = distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_REPLAY.name());
-                    if (null != pauseCancel) {
-                        return distributorResponse;
+                    switch (step.getPauseOrCancelAction()) {
+                        case ACTION_PAUSE:
+                            // Do not logbook the event, as the step will be resumed
+                            return distributorResponse;
+                        default:
+                            // we have to logbook the event of the current step
                     }
 
                     logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
@@ -209,28 +175,23 @@ public class ProcessEngineImpl implements ProcessEngine {
             })
             // Finally handle event of evaluation (state and status and persistence/remove to/from workspace
             .thenApply(distributorResponse -> {
-                ItemStatus pauseCancel =
-                    distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name());
-                if (null != pauseCancel) {
-                    callback.onPauseOrCancel(PauseOrCancelAction.ACTION_PAUSE, this.workerParameters);
-                    return distributorResponse;
+                try {
+                    switch (step.getPauseOrCancelAction()) {
+                        case ACTION_CANCEL:
+                            stateMachineCallback.onProcessEngineCancel(this.workerParameters);
+                            return distributorResponse;
+                    }
+
+                    stateMachineCallback.onProcessEngineCompleteStep(distributorResponse, this.workerParameters);
+                } finally {
+                    PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 }
-
-                pauseCancel = distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_CANCEL.name());
-                if (null != pauseCancel) {
-                    callback.onPauseOrCancel(PauseOrCancelAction.ACTION_CANCEL, this.workerParameters);
-                    return distributorResponse;
-                }
-
-                callback.onComplete(distributorResponse, this.workerParameters);
-                PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-
                 return distributorResponse;
             })
             // When exception occurred
             .exceptionally((e) -> {
                 LOGGER.error("Error while process workflow", e);
-                callback.onError(e);
+                stateMachineCallback.onError(e);
                 PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 return null;
             });
@@ -244,38 +205,34 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @param tenantId
      * @param logbookTypeProcess
      * @return
-     * @throws InvalidGuidOperationException
-     * @throws LogbookClientBadRequestException
-     * @throws LogbookClientNotFoundException
-     * @throws LogbookClientServerException
+     * @throws ProcessingEngineException
      */
     private LogbookOperationParameters logbookBeforeDistributorCall(ProcessStep step, WorkerParameters workParams,
-        int tenantId, LogbookTypeProcess logbookTypeProcess)
-        throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
-        LogbookClientServerException {
-        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
-        LogbookOperationParameters parameters;
+        int tenantId, LogbookTypeProcess logbookTypeProcess) throws ProcessingEngineException {
+        try (final LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
+            MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
+            LogbookOperationParameters parameters;
 
-        parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            GUIDFactory.newEventGUID(tenantId),
-            step.getStepName(),
-            GUIDReader.getGUID(workParams.getContainerName()),
-            logbookTypeProcess,
-            StatusCode.OK, // default to OK
-            messageLogbookEngineHelper.getLabelOp(step.getStepName(), StatusCode.OK, null),
-            GUIDReader.getGUID(workParams.getRequestId())); // default status code to OK
-        parameters.putParameterValue(
-            LogbookParameterName.outcomeDetail,
-            messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), StatusCode.OK)); // default outcome to OK
+            parameters = LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(tenantId),
+                step.getStepName(),
+                GUIDReader.getGUID(workParams.getContainerName()),
+                logbookTypeProcess,
+                StatusCode.OK, // default to OK
+                messageLogbookEngineHelper.getLabelOp(step.getStepName(), StatusCode.OK, null),
+                GUIDReader.getGUID(workParams.getRequestId())); // default status code to OK
+            parameters.putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                messageLogbookEngineHelper
+                    .getOutcomeDetail(step.getStepName(), StatusCode.OK)); // default outcome to OK
 
-        // do not re-save the logbook as saved before stop
-        if (PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) ||
-            PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())) {
-            return parameters;
-        }
+            // FIXME: bug 6542 events maybe lost or operation backup to the offer not done
+            if (PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) ||
+                PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())) {
+                return parameters;
+            }
 
-        try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
-            // started event 
+            // started event
             String eventType = VitamLogbookMessages.getEventTypeStarted(step.getStepName());
             LogbookOperationParameters startedParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(tenantId),
@@ -291,8 +248,11 @@ public class ProcessEngineImpl implements ProcessEngine {
 
             // update logbook op
             logbookClient.update(startedParameters);
+
+            return parameters;
+        } catch (LogbookClientBadRequestException | LogbookClientServerException | InvalidGuidOperationException | LogbookClientNotFoundException e) {
+            throw new ProcessingEngineException(e);
         }
-        return parameters;
     }
 
 
@@ -306,13 +266,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      */
     private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId,
         PauseRecover pauseRecover) {
-        final ItemStatus stepResponse = processDistributor.distribute(workParams, step, operationId, pauseRecover);
-        try {
-            processDistributor.close();
-        } catch (final Exception exc) {
-            LOGGER.warn(exc);
-        }
-        return stepResponse;
+        return processDistributor.distribute(workParams, step, operationId, pauseRecover);
     }
 
     /**
@@ -376,12 +330,12 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
 
         if (!Strings.isNullOrEmpty(messageIdentifier)) {
-            callback.onUpdate(messageIdentifier, null);
+            stateMachineCallback.onUpdate(messageIdentifier, null);
             parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
         }
 
         if (!Strings.isNullOrEmpty(originatingAgency)) {
-            callback.onUpdate(null, originatingAgency);
+            stateMachineCallback.onUpdate(null, originatingAgency);
             agIdExt.put(ORIGIN_AGENCY_NAME, originatingAgency);
         }
 
@@ -501,13 +455,44 @@ public class ProcessEngineImpl implements ProcessEngine {
             helper.updateDelegate(actionParameters);
         }
 
-        try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+        // If last step then finalize the logbook
+        if (Boolean.TRUE.equals(step.getLastStep())) {
+            String eventType = workParams.getWorkflowIdentifier();
+            final GUID operationGuid = GUIDReader.getGUID(workParams.getContainerName());
+            final GUID eventIdentifier = GUIDFactory.newEventGUID(operationGuid);
+
+            // Pre-compute the status code using latest global status of the process workflow
+            StatusCode statusCode =
+                (stateMachineCallback.getCurrentProcessWorkflowStatus().compareTo(stepResponse.getGlobalStatus()) < 0 ||
+                    StatusCode.FATAL.equals(stateMachineCallback.getCurrentProcessWorkflowStatus())) ?
+                    stepResponse.getGlobalStatus() :
+                    stateMachineCallback.getCurrentProcessWorkflowStatus();
+
+
+            GUID requestId = GUIDReader.getGUID(workParams.getRequestId());
+
+            final LogbookOperationParameters parametersFinal = LogbookParameterHelper
+                .newLogbookOperationParameters(
+                    eventIdentifier,
+                    eventType,
+                    operationGuid,
+                    logbookTypeProcess,
+                    statusCode,
+                    messageLogbookEngineHelper.getLabelOp(eventType, statusCode),
+                    requestId);
+            parameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                messageLogbookEngineHelper.getOutcomeDetail(eventType, statusCode));
+
+            helper.updateDelegate(parametersFinal);
+        }
+
+        try (final LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
             logbookClient.bulkUpdate(workParams.getContainerName(),
                 helper.removeUpdateDelegate(workParams.getContainerName()));
         }
 
         // update the process with the final status
-        callback.onUpdate(stepResponse.getGlobalStatus());
+        stateMachineCallback.onUpdate(stepResponse.getGlobalStatus());
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("End Workflow: " + step.getId() + " Step:" + step.getStepName());
         }
