@@ -7,7 +7,7 @@
   "steps": [
     {
       "workerGroupId": "worker2",
-      "stepName": "Traiter_archives",
+      "stepName": "Traiter_archives 1",
       "behavior": "NOBLOCKING",
       "distribution": {
         "kind": "REF"
@@ -28,6 +28,54 @@
         {
           "action": {
             "actionKey": "saveInDataBaseAction",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "worker2",
+      "stepName": "Traiter_archives 2",
+      "behavior": "NOBLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "extractContentAction",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "worker2",
+      "stepName": "Traiter_archives 3",
+      "behavior": "NOBLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "extractContentAction",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "worker2",
+      "stepName": "Traiter_archives 3",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "extractContentAction",
             "behavior": "NOBLOCKING"
           }
         }

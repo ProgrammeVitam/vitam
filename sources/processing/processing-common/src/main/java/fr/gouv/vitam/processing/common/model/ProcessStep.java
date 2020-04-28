@@ -26,39 +26,44 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Step;
+
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Step Object in process workflow
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessStep extends Step {
-    private long elementProcessed;
-    private long elementToProcess;
+    private AtomicLong elementProcessed = new AtomicLong(0);
+    private AtomicLong elementToProcess = new AtomicLong(0);
     private StatusCode stepStatusCode = StatusCode.UNKNOWN;
+
+    @JsonIgnore
+    private boolean lastStep = false;
 
 
     @VisibleForTesting
-    public ProcessStep(Step step, long elementToProcess, long elementProcessed, String id) {
+    public ProcessStep(Step step, AtomicLong elementToProcess, AtomicLong elementProcessed, String id) {
         this(step, elementToProcess, elementProcessed);
         setId(id);
     }
-        /**
-         * Constructor to initialize a Process Step with a Step object
-         *
-         * @param step the Step object
-         * @param elementToProcess number of element to process
-         * @param elementProcessed number of element processed
-         * @throws IllegalArgumentException if the step is null
-         */
-    public ProcessStep(Step step, long elementToProcess, long elementProcessed) {
+
+    /**
+     * Constructor to initialize a Process Step with a Step object
+     *
+     * @param step the Step object
+     * @param elementToProcess number of element to process
+     * @param elementProcessed number of element processed
+     * @throws IllegalArgumentException if the step is null
+     */
+    public ProcessStep(Step step, AtomicLong elementToProcess, AtomicLong elementProcessed) {
         ParametersChecker.checkParameter("Step could not be null", step);
         setActions(step.getActions());
         setDistribution(step.getDistribution());
@@ -72,27 +77,28 @@ public class ProcessStep extends Step {
 
     @VisibleForTesting
     public ProcessStep(Step step, String id, String containerName, String workflowId, int position,
-        long elementToProcess,
-        long elementProcessed) {
-        this(step,containerName, workflowId, position, elementToProcess, elementProcessed);
+        AtomicLong elementToProcess,
+        AtomicLong elementProcessed) {
+        this(step, containerName, workflowId, position, elementToProcess, elementProcessed);
         setId(id);
 
 
     }
-        /**
-         * Constructor to initalize a Process Step with a Step object
-         *
-         * @param step the Step object
-         * @param containerName the container name concerned by the process
-         * @param workflowId the workflow ID concerned by the process
-         * @param position the position of the step
-         * @param elementToProcess number of element to process
-         * @param elementProcessed number of element processed
-         * @throws IllegalArgumentException if the step is null
-         */
+
+    /**
+     * Constructor to initalize a Process Step with a Step object
+     *
+     * @param step the Step object
+     * @param containerName the container name concerned by the process
+     * @param workflowId the workflow ID concerned by the process
+     * @param position the position of the step
+     * @param elementToProcess number of element to process
+     * @param elementProcessed number of element processed
+     * @throws IllegalArgumentException if the step is null
+     */
     public ProcessStep(Step step, String containerName, String workflowId, int position,
-        long elementToProcess,
-        long elementProcessed) {
+        AtomicLong elementToProcess,
+        AtomicLong elementProcessed) {
         ParametersChecker.checkParameter("containerName could not be null", containerName);
         ParametersChecker.checkParameter("workflowId could not be null", workflowId);
         ParametersChecker.checkParameter("position could not be null", position);
@@ -113,19 +119,23 @@ public class ProcessStep extends Step {
 
     }
 
+    @JsonIgnore
+    public boolean isBlockingKO() {
+        return isBlocking() && StatusCode.KO.equals(getStepStatusCode());
+    }
+
     /**
      * @return the elementProcessed
      */
-    public long getElementProcessed() {
+    public AtomicLong getElementProcessed() {
         return elementProcessed;
     }
 
     /**
      * @param elementProcessed the elementProcessed to set
-     *
      * @return the updated ProcessStep object
      */
-    public ProcessStep setElementProcessed(long elementProcessed) {
+    public ProcessStep setElementProcessed(AtomicLong elementProcessed) {
         this.elementProcessed = elementProcessed;
         return this;
     }
@@ -133,16 +143,15 @@ public class ProcessStep extends Step {
     /**
      * @return the elementToProcess
      */
-    public long getElementToProcess() {
+    public AtomicLong getElementToProcess() {
         return elementToProcess;
     }
 
     /**
      * @param elementToProcess the elementToProcess to set
-     *
      * @return the updated ProcessStep object
      */
-    public ProcessStep setElementToProcess(long elementToProcess) {
+    public ProcessStep setElementToProcess(AtomicLong elementToProcess) {
         this.elementToProcess = elementToProcess;
         return this;
     }
@@ -156,7 +165,6 @@ public class ProcessStep extends Step {
 
     /**
      * @param stepStatusCode the stepStatusCode to set
-     *
      * @return the updated ProcessStep object
      */
     public ProcessStep setStepStatusCode(StatusCode stepStatusCode) {
@@ -185,11 +193,19 @@ public class ProcessStep extends Step {
     public int hashCode() {
         return Objects.hash(getId(), getStepName(), getWorkerGroupId());
     }
-    
+
     @Override
     public String toString() {
         return "" + this.getStepName() + " " +
-            this.getActions() + " "+ this.getDistribution().getKind() + " " +
+            this.getActions() + " " + this.getDistribution().getKind() + " " +
             this.getDistribution().getElement() + " " + this.getId();
+    }
+
+    public void setLastStep(boolean lastStep) {
+        this.lastStep = lastStep;
+    }
+
+    public boolean getLastStep() {
+        return lastStep;
     }
 }

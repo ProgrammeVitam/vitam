@@ -26,26 +26,41 @@
  */
 package fr.gouv.vitam.processing.management.core;
 
-import static org.mockito.Mockito.mock;
-
-import org.junit.Test;
-
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
+import org.junit.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class StateMachineFactoryTest {
 
     @Test
     public void constructorOK() throws WorkflowNotFoundException {
-        StateMachineFactory.get().create(new ProcessWorkflow(), new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class)));
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        ProcessStep processStep = mock(ProcessStep.class);
+        when(processStep.isBlockingKO()).thenReturn(false);
+        when(processStep.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+        when(processStep.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        processWorkflow.getSteps().add(processStep);
+        StateMachineFactory.get().create(
+            processWorkflow,
+            new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class),
+                mock(LogbookOperationsClientFactory.class)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructorProcessWorkflowRequired() throws WorkflowNotFoundException {
-        StateMachineFactory.get().create(null, new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class)));
+        StateMachineFactory.get().create(null,
+            new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class),
+                mock(LogbookOperationsClientFactory.class)));
     }
 
     @Test(expected = IllegalArgumentException.class)

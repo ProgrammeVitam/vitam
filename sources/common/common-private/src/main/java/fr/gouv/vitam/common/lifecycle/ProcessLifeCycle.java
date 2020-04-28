@@ -27,8 +27,6 @@
 package fr.gouv.vitam.common.lifecycle;
 
 
-import fr.gouv.vitam.common.exception.StateNotAllowedException;
-
 /**
  * Interface of the private class ServerIdentity
  */

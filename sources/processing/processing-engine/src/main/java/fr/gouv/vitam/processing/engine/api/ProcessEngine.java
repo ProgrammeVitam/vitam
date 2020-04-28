@@ -43,9 +43,9 @@ public interface ProcessEngine {
     /**
      * Set the state machine where the ProcessEngine return response on complete or on error
      *
-     * @param callback
+     * @param stateMachineCallback
      */
-    void setCallback(IEventsProcessEngine callback);
+    void setStateMachineCallback(IEventsProcessEngine stateMachineCallback);
 
     /**
      * Start the execution of the given step
@@ -57,22 +57,4 @@ public interface ProcessEngine {
      */
     void start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
         throws ProcessingEngineException;
-
-    /**
-     * Pause the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
-     *
-     * @param operationId the operation identifier
-     * @return true if pause applied, false else
-     */
-    boolean pause(String operationId);
-
-    /**
-     * Cancel the execution of the current step
-     * Send message to the distributor to cancel the execution of the current step
-     *
-     * @param operationId the operation identifier
-     * @return true if pause applied, false else
-     */
-    boolean cancel(String operationId);
 }

@@ -26,14 +26,6 @@
  */
 package fr.gouv.vitam.ingest.external.integration.test;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.model.Filters;
@@ -86,6 +78,14 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * Ingest External integration test
  */
@@ -93,6 +93,7 @@ public class IngestExternalIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
     public static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
     public static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP = "integration-processing/4_UNITS_2_GOTS.zip";
+    public static final String SIP_NOT_ALLOWED_NAME = "integration-processing/KO_FILE_extension_caractere_special.zip";
     public static final String ACCESS_CONTRACT = "aName3";
     public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
     public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
@@ -284,8 +285,9 @@ public class IngestExternalIT extends VitamRuleRunner {
             PropertiesUtils.getResourceAsStream(INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP)) {
             IngestRequestParameters ingestRequestParameters =
                 new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name())
-                .setManifestDigestAlgo("SHA-512")
-                .setManifestDigestValue("3112e4f4f66c70f0565b95ea270c7488f074ace3ab28f74feaa975751b424619ff429490416f1c4b630361ab16f0bb5f16d92f5a867e6f94c886464e95f82ca5");
+                    .setManifestDigestAlgo("SHA-512")
+                    .setManifestDigestValue(
+                        "3112e4f4f66c70f0565b95ea270c7488f074ace3ab28f74feaa975751b424619ff429490416f1c4b630361ab16f0bb5f16d92f5a867e6f94c886464e95f82ca5");
             RequestResponse response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
@@ -359,6 +361,48 @@ public class IngestExternalIT extends VitamRuleRunner {
 
             assertThat(logbookOperationStr).contains("PROCESS_SIP_UNITARY.KO");
             assertThat(logbookOperationStr).contains("MANIFEST_DIGEST_CHECK.KO");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_ingest_with_not_allowed_file_name_ko() throws Exception {
+        try (InputStream inputStream =
+            PropertiesUtils.getResourceAsStream(SIP_NOT_ALLOWED_NAME)) {
+            ;
+            RequestResponse response = ingestExternalClient
+                .ingest(
+                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract("aName3"),
+                    inputStream,
+                    DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
+            boolean process_timeout = vitamPoolingClient
+                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+
+            RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
+                .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
+            LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>)
+                logbookOperationRequestResponse).getFirstResult();
+            String logbookOperationStr = JsonHandler.prettyPrint(JsonHandler.toJsonNode(logbookOperation));
+
+            assertThat(logbookOperationStr)
+                .contains("PROCESS_SIP_UNITARY.KO")
+                .contains("un des noms de fichiers contient un caract");
+            assertThat(logbookOperationStr)
+                .doesNotContain(".FATAL");
+
         }
     }
 }

@@ -40,8 +40,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -197,11 +195,11 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public ItemStatus getOperationProcessStatus(String id)
+    public ItemStatus getOperationProcessStatus(String operationId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
+        ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         VitamRequestBuilder request = head()
-            .withPath(OPERATION_URI + "/" + id)
+            .withPath(OPERATION_URI + "/" + operationId)
             .withJsonAccept();
         Response response = null;
         try {

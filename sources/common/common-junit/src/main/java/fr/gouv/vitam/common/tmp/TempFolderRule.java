@@ -39,6 +39,7 @@ public class TempFolderRule extends TemporaryFolder {
         super.create();
         SystemPropertyUtil.set("vitam.tmp.folder", super.newFolder().getAbsolutePath());
         SystemPropertyUtil.set("vitam.data.folder", super.newFolder().getAbsolutePath());
+        SystemPropertyUtil.set("vitam.config.folder", super.newFolder().getAbsolutePath());
         SystemPropertyUtil.set("vitam.log.folder", super.newFolder().getAbsolutePath());
         VitamConfiguration.reinit();
     }

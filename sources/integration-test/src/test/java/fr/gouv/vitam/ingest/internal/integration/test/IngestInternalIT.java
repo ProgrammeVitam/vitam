@@ -182,7 +182,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -1928,81 +1927,66 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testIngestInternalMultipleActions() throws Exception {
 
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        try {
-            prepareVitamSession(tenantId, "aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
 
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
 
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.debug(initParameters.toString());
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+        LOGGER.debug(initParameters.toString());
 
-            // call ingest
-            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
-            client2.uploadInitialLogbook(params);
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
+        client2.uploadInitialLogbook(params);
 
-            // init workflow before execution
-            client2.initWorkflow(ingestSip);
+        // init workflow before execution
+        client2.initWorkflow(ingestSip);
 
-            client2.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.NEXT.name());
+        client2.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.NEXT.name());
 
-            // lets wait till the step is finished
-            waitStep(operationGuid.toString(), client2);
+        // lets wait till the step is finished
+        waitStep(operationGuid.toString(), client2);
 
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.PAUSE, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-            RequestResponse<ItemStatus> requestResponse =
-                client2.getOperationProcessExecutionDetails(operationGuid.toString());
-            assertThat(requestResponse.isOk()).isTrue();
-            RequestResponseOK<ItemStatus> responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
-            assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.OK);
+        RequestResponse<ItemStatus> requestResponse =
+            client2.getOperationProcessExecutionDetails(operationGuid.toString());
+        assertThat(requestResponse.isOk()).isTrue();
+        RequestResponseOK<ItemStatus> responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
+        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-            assertNotNull(client2.getWorkflowDefinitions());
+        assertNotNull(client2.getWorkflowDefinitions());
 
-            // then finally we cancel the ingest
-            requestResponse = client2.cancelOperationProcessExecution(operationGuid.toString());
-            assertThat(requestResponse.isOk()).isTrue();
-            responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
-            assertThat(responseOK.getResults().iterator().hasNext()).isTrue();
-            assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        // then finally we cancel the ingest
+        requestResponse = client2.cancelOperationProcessExecution(operationGuid.toString());
+        assertThat(requestResponse.isOk()).isTrue();
+        assertThat(requestResponse.getHttpCode()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+        responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
+        assertThat(responseOK.getResults().iterator().hasNext()).isTrue();
+        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.KO);
 
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL);
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
 
-            while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
-                TimeUnit.MILLISECONDS.sleep(20l);
-                processWorkflow =
-                    ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-            }
+        processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
-
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
-                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                    new fr.gouv.vitam.common.database.builder.request.single.Select();
-                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
-                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
-            }
-            throw e;
-        }
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
     }
 
@@ -2011,7 +1995,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         while (true) {
             try {
                 ItemStatus itemStatus = client.getOperationProcessStatus(operationId);
-                if (itemStatus.getGlobalStatus() == StatusCode.OK) {
+                if (itemStatus.getGlobalStatus() == StatusCode.OK &&
+                    itemStatus.getGlobalState() == ProcessState.PAUSE) {
                     break;
                 }
                 Thread.sleep(SLEEP_TIME);
@@ -3141,7 +3126,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         Bson filterAfterUpdate = Filters.eq(ProfileModel.TAG_IDENTIFIER, profile.getIdentifier());
         Bson updateAfterTest = Updates.set(ProfileModel.TAG_PATH, profile.getPath());
-        UpdateResult updateResultAfter = FunctionalAdminCollections.PROFILE.getCollection().updateOne(filterAfterUpdate, updateAfterTest);
+        UpdateResult updateResultAfter =
+            FunctionalAdminCollections.PROFILE.getCollection().updateOne(filterAfterUpdate, updateAfterTest);
         assertEquals(updateResultAfter.getModifiedCount(), 1);
     }
 

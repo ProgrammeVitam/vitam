@@ -26,28 +26,24 @@
  */
 package fr.gouv.vitam.processing.data.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
-import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ProcessMonitoringImpl class implementing the ProcessMonitoring Persists processWorkflow object (to json) at each step
@@ -91,38 +87,20 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         pwkf.setContextId(contextId);
         pwkf.setApplicationId(applicationId);
 
-        int iterator = 0;
+        int cpt = 0;
         for (final Step step : workflow.getSteps()) {
             final String uniqueId =
-                    containerName + "_" + workflow.getId() + "_" + iterator + "_" + step.getStepName();
+                containerName + "_" + workflow.getId() + "_" + cpt + "_" + step.getStepName();
             step.setId(uniqueId);
-            pwkf.getSteps().add(new ProcessStep(step, containerName, workflow.getId(), iterator, 0, 0));
-            iterator++;
+            pwkf.getSteps()
+                .add(new ProcessStep(step, containerName, workflow.getId(), cpt, new AtomicLong(0), new AtomicLong(0)));
+            cpt++;
         }
 
 
-        addWorkflow(containerName, tenantId, pwkf);
+        addToWorkflowList(pwkf);
         return pwkf;
     }
-
-    @Override
-    public void updateStep(String operationId, String uniqueStepId, long elementToProcessOrProcessed,
-                           boolean elementProcessed,
-                           Integer tenantId) {
-
-        ProcessWorkflow processWorkflow = this.findOneProcessWorkflow(operationId, tenantId);
-        for (ProcessStep step : processWorkflow.getSteps()) {
-            if (StringUtils.equals(uniqueStepId, step.getId())) {
-                if (elementProcessed) {
-                    step.setElementProcessed(step.getElementProcessed() + elementToProcessOrProcessed);
-                } else {
-                    step.setElementToProcess(step.getElementToProcess() + elementToProcessOrProcessed);
-                }
-                break;
-            }
-        }
-    }
-
 
     @Override
     public ProcessWorkflow findOneProcessWorkflow(String processId, Integer tenantId) throws WorkflowNotFoundException {
@@ -130,10 +108,10 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         ParametersChecker.checkParameter("tenantId is a mandatory parameter", tenantId);
 
         if (!WORKFLOWS_LIST.containsKey(tenantId) || WORKFLOWS_LIST.get(tenantId) == null ||
-                !WORKFLOWS_LIST.get(tenantId).containsKey(processId)) {
+            !WORKFLOWS_LIST.get(tenantId).containsKey(processId)) {
             throw new WorkflowNotFoundException(
-                    PROCESS_DOES_NOT_EXIST + " > Tenant (" + tenantId + ")" + ". Process (" + processId + ") map = " +
-                            WORKFLOWS_LIST.keySet());
+                PROCESS_DOES_NOT_EXIST + " > Tenant (" + tenantId + ")" + ". Process (" + processId + ") map = " +
+                    WORKFLOWS_LIST.keySet());
         } else {
             return WORKFLOWS_LIST.get(tenantId).get(processId);
         }
@@ -144,81 +122,20 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         WORKFLOWS_LIST.clear();
     }
 
-    private void addWorkflow(String processId, Integer tenantId, final ProcessWorkflow processWorkflow) {
-        ParametersChecker.checkParameter("processId is a mandatory parameter", processId);
-        // check maps
-        // if (WORKFLOWS_LIST.get(tenantId).size() > DEFAULT_MAP_SIZE) {
-        // clear(StatusCode.FATAL, 10, tenantId);
-        // if (WORKFLOWS_LIST.size() > DEFAULT_MAP_SIZE) {
-        // clear(StatusCode.KO, 10);
-        // clear(StatusCode.OK, 5);
-        // }
-        // }
-        // Need requestId
-        LOGGER.info("add workflow with processId: {} and tenant {}", processWorkflow.getOperationId(),
-                processWorkflow.getTenantId());
-
-        // TODO: refacto
-        // WORKFLOWS_LIST.putIfAbsent(tenantId, new ConcurrentHashMap<>()).put(processId, processWorkflow);
-
-        if (!WORKFLOWS_LIST.containsKey(tenantId) || WORKFLOWS_LIST.get(tenantId) == null) {
-            Map<String, ProcessWorkflow> operationsByTenant = new ConcurrentHashMap<>();
-            operationsByTenant.put(processId, processWorkflow);
-
-            WORKFLOWS_LIST.put(tenantId, operationsByTenant);
-        } else {
-
-            WORKFLOWS_LIST.get(tenantId).put(processId, processWorkflow);
-        }
-    }
-
-
     @Override
     public List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId) {
-        // if no files, return empty list
-        if (!WORKFLOWS_LIST.containsKey(tenantId)) {
-            // TODO : Already loaded, so keep this reload to be sure ?
-            ProcessDataManagement processDataManagement = WorkspaceProcessDataManagement.getInstance();
-            try {
-                Map<String, ProcessWorkflow> processWorkflows = processDataManagement.getProcessWorkflowFor(tenantId,
-                        VitamConfiguration.getWorkspaceWorkflowsFolder());
-                if (processWorkflows.isEmpty()) {
-                    return new ArrayList<>(0);
-                }
-                LOGGER.info("reload all workflow from ProcessDataManagement with tenant {}", tenantId);
-                WORKFLOWS_LIST.put(tenantId, processWorkflows);
-                return new ArrayList<>(processWorkflows.values());
-            } catch (ProcessingStorageWorkspaceException e) {
-                LOGGER.error("Cannot load workflow's files", e);
-                // TODO : what ?
-                return new ArrayList<>(0);
-            }
-        } else {
-            return new ArrayList<>(WORKFLOWS_LIST.get(tenantId).values());
-        }
+        return new ArrayList<>(WORKFLOWS_LIST.getOrDefault(tenantId, new HashMap<>()).values());
     }
 
     @Override
     public void addToWorkflowList(ProcessWorkflow processWorkflow) {
 
-        LOGGER.info("try to add workflow to list with processId: {} and tenant {}", processWorkflow.getOperationId(),
-                processWorkflow.getTenantId());
-        // TODO check if it is not better to delete completed workflows here instead of loading them in memory
-        if (ProcessState.PAUSE.equals(processWorkflow.getState()) ||
-                ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+        LOGGER.info("add workflow with processId: {} and tenant {}", processWorkflow.getOperationId(),
+            processWorkflow.getTenantId());
 
-            LOGGER.info("add workflow to list with processId: {} and tenant {}", processWorkflow.getOperationId(),
-                    processWorkflow.getTenantId());
+        WORKFLOWS_LIST.computeIfAbsent(processWorkflow.getTenantId(), (key) -> new ConcurrentHashMap<>())
+            .put(processWorkflow.getOperationId(), processWorkflow);
 
-            if (WORKFLOWS_LIST.containsKey(processWorkflow.getTenantId())) {
-                WORKFLOWS_LIST.get(processWorkflow.getTenantId())
-                        .put(processWorkflow.getOperationId(), processWorkflow);
-            } else {
-                Map<String, ProcessWorkflow> processWorkflowMap = new ConcurrentHashMap<>();
-                processWorkflowMap.put(processWorkflow.getOperationId(), processWorkflow);
-                WORKFLOWS_LIST.put(processWorkflow.getTenantId(), processWorkflowMap);
-            }
-        }
     }
 
     @Override

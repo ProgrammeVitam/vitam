@@ -140,9 +140,12 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                 } catch (final MetaDataException | InvalidParseOperationException e) {
                     LOGGER.error(e);
 
-                    for (ItemStatus itemStatus : aggregateItemStatus) {
-                        itemStatus.increment(StatusCode.FATAL);
+                    List<ItemStatus> aggregateItemStatusBis = new ArrayList<>();
+                    for (ItemStatus ignored : aggregateItemStatus) {
+                        aggregateItemStatusBis.add(new ItemStatus(OG_INDEXATION).setItemsStatus(OG_INDEXATION, new ItemStatus(OG_INDEXATION).increment(StatusCode.FATAL)));
                     }
+                    aggregateItemStatus = aggregateItemStatusBis;
+
 
                 }
             }

@@ -47,17 +47,17 @@ public enum ProcessState {
      */
     PAUSE {
         @Override
-        public void eval(ProcessState processState) throws StateNotAllowedException {
-            if (null == processState) {
+        public void eval(ProcessState targetState) throws StateNotAllowedException {
+            if (null == targetState) {
                 throw new StateNotAllowedException("ProcessState must not be null");
             }
-            switch (processState) {
+            switch (targetState) {
                 case RUNNING:
                 case PAUSE:
                 case COMPLETED:
                     break;
                 default:
-                    super.eval(processState);
+                    super.eval(targetState);
             }
         }
     },
@@ -68,16 +68,16 @@ public enum ProcessState {
      */
     RUNNING {
         @Override
-        public void eval(ProcessState processState) throws StateNotAllowedException {
-            if (null == processState) {
+        public void eval(ProcessState targetState) throws StateNotAllowedException {
+            if (null == targetState) {
                 throw new StateNotAllowedException("ProcessState must not be null");
             }
-            switch (processState) {
+            switch (targetState) {
                 case PAUSE:
                 case COMPLETED:
                     break;
                 default:
-                    super.eval(processState);
+                    super.eval(targetState);
             }
         }
     },
@@ -92,9 +92,9 @@ public enum ProcessState {
      * 
      * @throws StateNotAllowedException
      */
-    public void eval(ProcessState processState) throws StateNotAllowedException {
+    public void eval(ProcessState targetState) throws StateNotAllowedException {
         throw new StateNotAllowedException(
-            "The processState " + processState.name() + " is not allowed for the current state " + this.name());
+            "The processState " + targetState.name() + " is not allowed for the current state " + this.name());
     }
 
     /**
