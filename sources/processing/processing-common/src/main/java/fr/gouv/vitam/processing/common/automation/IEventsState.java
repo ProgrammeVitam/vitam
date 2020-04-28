@@ -31,6 +31,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
+import java.util.Map;
+
 /**
  * This interface expose the action to be executed by the ProcessManager
  */
@@ -126,4 +128,6 @@ public interface IEventsState {
     String getWorkflowId();
 
     String getContextId();
+
+    Map<String, String> getWorkflowParameters();
 }

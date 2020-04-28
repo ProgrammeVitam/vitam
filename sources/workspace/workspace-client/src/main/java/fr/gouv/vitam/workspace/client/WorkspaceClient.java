@@ -183,12 +183,17 @@ public class WorkspaceClient extends DefaultClient {
 
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageServerException {
+        this.putObject(containerName, objectName, (Object)stream);
+    }
+
+    public void putObject(String containerName, String objectName, Object object)
+        throws ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
                 objectName);
         VitamRequestBuilder request = post()
             .withPath(CONTAINERS + containerName + OBJECTS + objectName)
-            .withBody(stream)
+            .withBody(object)
             .withContentType(MediaType.APPLICATION_OCTET_STREAM_TYPE)
             .withJsonAccept();
         try (Response response = make(request)) {

@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.security.codec.URLCodec;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
@@ -53,6 +54,7 @@ import java.io.InputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
@@ -75,15 +77,26 @@ abstract class AbstractCommonClient implements BasicClient {
     private final Client chunkedClient;
 
     private final Predicate<Exception> retryOnException = e -> {
-        Throwable source = e.getCause();
-        if (source == null) {
-            return false;
+        if (isNetworkException(e)) {
+            return true;
         }
-        return source instanceof ConnectTimeoutException
-            || source instanceof UnknownHostException
-            || source instanceof NoHttpResponseException
-            || source instanceof SocketException;
+
+        final List<Throwable> throwableList = ExceptionUtils.getThrowableList(e);
+
+        for (Throwable th : throwableList) {
+            if (isNetworkException(th)) {
+                return true;
+            }
+        }
+        return false;
     };
+
+    private boolean isNetworkException(Throwable th) {
+        return (th instanceof ConnectTimeoutException
+            || th instanceof UnknownHostException
+            || th instanceof NoHttpResponseException
+            || th instanceof SocketException);
+    }
 
     AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
         this.clientFactory = (VitamClientFactory<?>) factory;
@@ -189,7 +202,9 @@ abstract class AbstractCommonClient implements BasicClient {
 
     public Response make(VitamRequestBuilder request) throws VitamClientInternalException {
         if (StringUtils.isNotBlank(request.getBaseUrl())) {
-            throw new VitamRuntimeException(String.format("Base URL must not be 'set' with method 'make' it will be override, here it equals '%s'.", request.getBaseUrl()));
+            throw new VitamRuntimeException(String
+                .format("Base URL must not be 'set' with method 'make' it will be override, here it equals '%s'.",
+                    request.getBaseUrl()));
         }
         request.withBaseUrl(getServiceUrl());
         return doRequest(request);

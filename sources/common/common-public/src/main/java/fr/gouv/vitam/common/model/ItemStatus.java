@@ -382,7 +382,9 @@ public class ItemStatus {
 
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, compositeItemStatus);
         // update statusMeter, globalStatus
-        increment(compositeItemStatus.getGlobalStatus());
+        // As now we bulk in worker, we have to increment by status meter of the current status code
+        increment(compositeItemStatus.getGlobalStatus(),
+            compositeItemStatus.getStatusMeter().get(compositeItemStatus.getGlobalStatus().ordinal()));
 
         if (compositeItemStatus.getItemsStatus() != null && !compositeItemStatus.getItemsStatus().isEmpty()) {
             // update itemStatus
@@ -590,5 +592,34 @@ public class ItemStatus {
             this.statusMeter.set(i, 0);
         }
 
+    }
+
+    public void clearStatusMeterFatal() {
+        this.statusMeter.set(StatusCode.FATAL.ordinal(), 0);
+        globalStatus = StatusCode.STARTED;
+
+        for (StatusCode statusCode : StatusCode.values()) {
+            Integer count = this.statusMeter.get(statusCode.ordinal());
+            if (count > 0) {
+                globalStatus = globalStatus.compareTo(statusCode) > 0
+                    ? globalStatus
+                    : statusCode;
+            }
+        }
+
+        for (ItemStatus is : itemsStatus.values()) {
+            is.clearStatusMeterFatal();
+            globalStatus = globalStatus.compareTo(is.globalStatus) > 0
+                ? globalStatus
+                : is.globalStatus;
+        }
+
+
+        for (ItemStatus is : subTaskStatus.values()) {
+            is.clearStatusMeterFatal();
+            globalStatus = globalStatus.compareTo(is.globalStatus) > 0
+                ? globalStatus
+                : is.globalStatus;
+        }
     }
 }

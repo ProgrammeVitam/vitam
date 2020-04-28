@@ -26,20 +26,19 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 public class WorkerBeanTest {
 
 
     private static final String JSON_WORKER =
-        "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
+        "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : 89102 } }";
 
     @Test
@@ -48,7 +47,6 @@ public class WorkerBeanTest {
         assertEquals(null, wb.getFamily());
         assertEquals(null, wb.getName());
         assertEquals(1, wb.getCapacity());
-        assertEquals(0, wb.getStorage());
         assertEquals(null, wb.getStatus());
         assertEquals(null, wb.getWorkerId());
         assertEquals(null, wb.getConfiguration());
@@ -61,7 +59,6 @@ public class WorkerBeanTest {
         assertEquals("familyname", wb.getFamily());
         assertEquals("workername", wb.getName());
         assertEquals(10, wb.getCapacity());
-        assertEquals(100, wb.getStorage());
         assertEquals("Active", wb.getStatus());
         assertNotEquals(null, wb.getConfiguration());
         assertEquals("localhost", wb.getConfiguration().getServerHost());
@@ -73,16 +70,15 @@ public class WorkerBeanTest {
     }
 
     @Test
-    public void testWorkBeanSetters() throws InvalidParseOperationException {
+    public void testWorkBeanSetters() {
         final WorkerBean wb = new WorkerBean();
         wb.setCapacity(0).setFamily("family").setName("name")
-            .setStatus("Active").setStorage(0).setWorkerId("workerId");
+            .setStatus("Active").setWorkerId("workerId");
         final WorkerRemoteConfiguration wc = new WorkerRemoteConfiguration("localhost", 89102);
         wb.setConfiguration(wc);
         assertEquals("family", wb.getFamily());
         assertEquals("name", wb.getName());
         assertEquals(0, wb.getCapacity());
-        assertEquals(0, wb.getStorage());
         assertEquals("Active", wb.getStatus());
         assertNotEquals(null, wb.getConfiguration());
         assertEquals("localhost", wb.getConfiguration().getServerHost());

@@ -48,6 +48,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -81,6 +83,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,6 +101,7 @@ public class ProcessManagementImplTest {
     private ProcessManagementImpl processManagementImpl;
     private static final String CONTAINER_NAME = "container1";
     private static final String ID = "id1";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -108,9 +112,9 @@ public class ProcessManagementImplTest {
     @Mock
     private WorkspaceClient workspaceClient;
     @Mock
+    private MetaDataClient metaDataClient;
+    @Mock
     private WorkspaceProcessDataManagement processDataManagement;
-
-
     @Mock
     private OperationContextMonitor operationContextMonitor;
 
@@ -130,27 +134,29 @@ public class ProcessManagementImplTest {
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
+        MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
         WorkerClient workerClient = mock(WorkerClient.class);
         when(workerClientFactory.getClient()).thenReturn(workerClient);
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         workerManager = new WorkerManager(workerClientFactory);
         ServerConfiguration configuration = new ServerConfiguration();
         processDistributor =
-            new ProcessDistributorImpl(workerManager, configuration, processDataAccess, processDataManagement,
-                workspaceClientFactory, workerClientFactory);
+            new ProcessDistributorImpl(workerManager, configuration, processDataManagement,
+                workspaceClientFactory, metaDataClientFactory, workerClientFactory);
     }
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = StateNotAllowedException.class)
     @RunWithCustomExecutor
     public void testResumeNotInitiatedWorkflow() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
-        verifyNoMoreInteractions(processDataManagement);
+
         when(processDataManagement.getProcessWorkflowFor(eq(1), anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
                 processDataManagement, operationContextMonitor);
         processManagementImpl.resume(
-            WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, Lists.newArrayList(ID),
+            WorkerParametersFactory.newWorkerParameters(ID, ID, "NotExistsContainer", ID, Lists.newArrayList(ID),
                 "http://localhost:8083",
                 "http://localhost:8083"),
             1, false);
@@ -196,8 +202,9 @@ public class ProcessManagementImplTest {
 
     @RunWithCustomExecutor
     @Test
-    public void loadPersitedPausedWorkflowTest() throws Exception {
+    public void loadPersistedPausedWorkflowTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(3);
+
         when(processDataAccess.findAllProcessWorkflow(eq(3)))
             .thenReturn(getPausedWorkflowList(3));
 
@@ -375,7 +382,7 @@ public class ProcessManagementImplTest {
         itemStatus.setGlobalState(ProcessState.COMPLETED);
         step.setStepResponses(itemStatus);
         step.setWorkerGroupId(groupId);
-        ProcessStep ps = new ProcessStep(step, 0, 0, "id");
+        ProcessStep ps = new ProcessStep(step, new AtomicLong(0), new AtomicLong(0), "id");
         ps.setStepStatusCode(StatusCode.OK);
         return ps;
     }

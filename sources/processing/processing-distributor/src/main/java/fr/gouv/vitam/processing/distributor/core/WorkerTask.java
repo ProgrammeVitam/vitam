@@ -118,7 +118,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
             try {
 
-                switch (descriptionStep.getStep().getPauseOrCancelAction()) {
+                switch (getStep().getPauseOrCancelAction()) {
                     case ACTION_RUN:
                     case ACTION_RECOVER:
                     case ACTION_REPLAY:
@@ -131,14 +131,17 @@ public class WorkerTask implements Supplier<ItemStatus> {
                             .setItemsStatus(PauseOrCancelAction.ACTION_PAUSE.name(),
                                 new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
                                     .increment(StatusCode.UNKNOWN));
-                    case ACTION_COMPLETE:
-                        throw new WorkerExecutorException(workerBean.getWorkerId(), "Step already completed");
                     case ACTION_CANCEL:
                         workerTaskState = WorkerTaskState.CANCEL;
                         return new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
                             .setItemsStatus(PauseOrCancelAction.ACTION_CANCEL.name(),
                                 new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
                                     .increment(StatusCode.UNKNOWN));
+
+                    case ACTION_COMPLETE:
+                        throw new WorkerExecutorException(workerBean.getWorkerId(),
+                            "Step id: " + getStep().getId() + " and name :" + getStep().getStepName() +
+                                " already completed");
                     default:
                         throw new WorkerExecutorException(workerBean.getWorkerId(),
                             "The default case should not be handled");
@@ -170,8 +173,6 @@ public class WorkerTask implements Supplier<ItemStatus> {
                 workerClient.close();
             }
 
-        } catch (WorkerUnreachableException e) {
-            throw e;
         } catch (WorkerExecutorException e) {
             throw e;
         } catch (Exception e) {

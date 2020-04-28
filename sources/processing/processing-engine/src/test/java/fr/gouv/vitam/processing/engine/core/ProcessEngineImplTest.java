@@ -33,16 +33,18 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -57,14 +59,22 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.io.FileNotFoundException;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,11 +82,8 @@ import static org.mockito.Mockito.when;
  * Do not forget init method on test method !
  */
 public class ProcessEngineImplTest {
-    public static final String FAKE_CONTEXT = "FakeContext";
-    public static final String APPLICATION_ID = "FakeApplicationId";
     private ProcessEngine processEngine;
     private WorkerParameters workParams;
-    private ProcessDistributor processDistributor;
     private static final Integer TENANT_ID = 0;
     private static final String WORKFLOW_FILE = "workflowJSONv1.json";
 
@@ -86,8 +93,28 @@ public class ProcessEngineImplTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    private LogbookOperationsClient logbookOperationsClient;
+
+    @Mock
+    private ProcessDistributor processDistributor;
+
+    @Mock
+    private IEventsProcessEngine stateMachineCallback;
+
     @Before
-    public void init() throws WorkflowNotFoundException, ProcessingException {
+    public void init() throws WorkflowNotFoundException {
+        reset(logbookOperationsClient);
+        reset(logbookOperationsClientFactory);
+        reset(processDistributor);
+        reset(stateMachineCallback);
+
         LogbookOperationsClientFactory.changeMode(null);
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID().getId())
@@ -97,34 +124,11 @@ public class ProcessEngineImplTest {
             .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
             .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
 
-        processDistributor = mock(ProcessDistributor.class);
-
         processData = ProcessDataAccessImpl.getInstance();
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         processEngine =
-            ProcessEngineFactory.get().create(workParams, processDistributor);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void pauseTestParamRequiredKO() throws Exception {
-        processEngine.pause(null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void cancelTestParamRequiredKO() throws Exception {
-        processEngine.cancel(null);
-    }
-
-
-    @Test
-    public void pauseTestOK() throws Exception {
-        processEngine.pause("fakeOperationId");
-        verify(processDistributor).pause(anyString());
-    }
-
-    @Test
-    public void cancelTestOK() throws Exception {
-        processEngine.cancel("fakeOperationId");
-        verify(processDistributor).cancel(anyString());
+            ProcessEngineFactory.get().create(workParams, processDistributor, logbookOperationsClientFactory);
+        processEngine.setStateMachineCallback(stateMachineCallback);
     }
 
     @Test
@@ -142,10 +146,12 @@ public class ProcessEngineImplTest {
             .thenReturn(new ItemStatus().increment(StatusCode.KO));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
-        processEngine.setCallback(iEventsProcessEngine);
+        when(iEventsProcessEngine.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.KO);
+        processEngine.setStateMachineCallback(iEventsProcessEngine);
+
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.KO)).when(iEventsProcessEngine)
-            .onComplete(any(), any());
+            .onProcessEngineCompleteStep(any(), any());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
         processEngine.start(step, workParams, PauseRecover.NO_RECOVER);
 
@@ -160,7 +166,7 @@ public class ProcessEngineImplTest {
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
         inOrders.verify(iEventsProcessEngine).onUpdate(any());
         inOrders.verify(processDistributor).distribute(any(), any(), any(), any());
-        inOrders.verify(iEventsProcessEngine).onComplete(any(), any());
+        inOrders.verify(iEventsProcessEngine).onProcessEngineCompleteStep(any(), any());
         Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.KO);
     }
 
@@ -179,11 +185,12 @@ public class ProcessEngineImplTest {
             .thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
-        processEngine.setCallback(iEventsProcessEngine);
+        when(iEventsProcessEngine.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
+        processEngine.setStateMachineCallback(iEventsProcessEngine);
 
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.OK)).when(iEventsProcessEngine)
-            .onComplete(any(), any());
+            .onProcessEngineCompleteStep(any(), any());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
 
         processEngine.start(step, workParams, PauseRecover.NO_RECOVER);
@@ -199,7 +206,7 @@ public class ProcessEngineImplTest {
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
         inOrders.verify(iEventsProcessEngine).onUpdate(any());
         inOrders.verify(processDistributor).distribute(any(), any(), any(), any());
-        inOrders.verify(iEventsProcessEngine).onComplete(any(), any());
+        inOrders.verify(iEventsProcessEngine).onProcessEngineCompleteStep(any(), any());
         Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.OK);
 
     }
@@ -211,8 +218,163 @@ public class ProcessEngineImplTest {
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
             );
-        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, PauseRecover.NO_RECOVER);
+        processEngine.setStateMachineCallback(null);
 
+        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, PauseRecover.NO_RECOVER);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_start_ok() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final ProcessWorkflow processWorkflow =
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
+
+        ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
+
+        when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
+        when(processDistributor
+            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+        doNothing().when(logbookOperationsClient).update(any());
+
+        processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
+
+        TimeUnit.MILLISECONDS.sleep(100);
+
+        verify(logbookOperationsClient).update(any());
+        verify(logbookOperationsClient).bulkUpdate(anyString(), any());
+
+        verify(stateMachineCallback, times(2)).onUpdate(any());
+        verify(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
+    }
+
+    @Test(expected = ProcessingEngineException.class)
+    @RunWithCustomExecutor
+    public void logbookBeforeDistributorCallKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final ProcessWorkflow processWorkflow =
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
+
+        doThrow(new LogbookClientServerException("")).when(logbookOperationsClient).update(any());
+
+        processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_when_callDistributor_return_ActionCancel() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final ProcessWorkflow processWorkflow =
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
+
+        ProcessStep processStep = processWorkflow.getSteps().get(0);
+        processStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
+
+        ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
+
+        when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
+        when(processDistributor
+            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+        doNothing().when(logbookOperationsClient).update(any());
+
+        processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
+
+        TimeUnit.MILLISECONDS.sleep(100);
+
+        verify(logbookOperationsClient).update(any());
+
+        verify(stateMachineCallback, times(2)).onUpdate(any());
+        verify(stateMachineCallback).onProcessEngineCancel(any());
+        verify(stateMachineCallback, times(0)).onProcessEngineCompleteStep(any(), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_when_callDistributor_return_ActionPause() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final ProcessWorkflow processWorkflow =
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
+
+        ProcessStep processStep = processWorkflow.getSteps().get(0);
+        processStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+
+        ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
+
+        when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
+        when(processDistributor
+            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+        doNothing().when(logbookOperationsClient).update(any());
+
+        processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
+
+        TimeUnit.MILLISECONDS.sleep(100);
+
+        verify(logbookOperationsClient).update(any());
+        verify(stateMachineCallback, times(1)).onUpdate(any());
+        verify(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_when_callDistributor_return_FATAL() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final ProcessWorkflow processWorkflow =
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
+
+        ProcessStep processStep = processWorkflow.getSteps().get(0);
+
+        ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.FATAL);
+
+        when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
+        when(processDistributor
+            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+        doNothing().when(logbookOperationsClient).update(any());
+
+        processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
+
+        TimeUnit.MILLISECONDS.sleep(100);
+
+        verify(logbookOperationsClient).update(any());
+        verify(logbookOperationsClient).bulkUpdate(anyString(), any());
+
+        verify(stateMachineCallback, times(2)).onUpdate(any());
+        verify(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_when_logbookAfterDistributorCallKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final ProcessWorkflow processWorkflow =
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
+
+        ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
+
+        when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
+        when(processDistributor
+            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+        doNothing().when(logbookOperationsClient).update(any());
+        doThrow(new LogbookClientServerException("")).when(logbookOperationsClient).bulkUpdate(any(), any());
+        processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
+
+        TimeUnit.MILLISECONDS.sleep(100);
+
+        verify(logbookOperationsClient).update(any());
+        verify(stateMachineCallback).onUpdate(any());
+        verify(stateMachineCallback).onError(any());
+        verify(stateMachineCallback, times(0)).onProcessEngineCompleteStep(any(), any());
     }
 
     public static WorkFlow populate(String workflowFile) throws FileNotFoundException, InvalidParseOperationException {

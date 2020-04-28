@@ -73,6 +73,9 @@ public class ProcessWorkflow {
 
     private StatusCode status = StatusCode.UNKNOWN;
     private ProcessState state = ProcessState.PAUSE;
+    private StatusCode targetStatus;
+    private volatile ProcessState targetState;
+
     private boolean stepByStep = false;
 
     /**
@@ -108,6 +111,14 @@ public class ProcessWorkflow {
         return this;
     }
 
+    public ProcessState getTargetState() {
+        return targetState;
+    }
+
+    public ProcessWorkflow setTargetState(ProcessState targetState) {
+        this.targetState = targetState;
+        return this;
+    }
 
     public List<ProcessStep> getSteps() {
         return steps;
@@ -138,6 +149,15 @@ public class ProcessWorkflow {
         this.status = (this.status.compareTo(status) < 0 || this.status.equals(StatusCode.FATAL))
             ? status : this.status;
 
+        return this;
+    }
+
+    public StatusCode getTargetStatus() {
+        return targetStatus;
+    }
+
+    public ProcessWorkflow setTargetStatus(StatusCode targetStatus) {
+        this.targetStatus = targetStatus;
         return this;
     }
 
@@ -286,8 +306,9 @@ public class ProcessWorkflow {
         return applicationId;
     }
 
-    public void setApplicationId(String applicationId) {
+    public ProcessWorkflow setApplicationId(String applicationId) {
         this.applicationId = applicationId;
+        return this;
     }
 
     /*
@@ -307,16 +328,18 @@ public class ProcessWorkflow {
         return pauseRecover;
     }
 
-    public void setPauseRecover(PauseRecover pauseRecover) {
+    public ProcessWorkflow setPauseRecover(PauseRecover pauseRecover) {
         this.pauseRecover = pauseRecover;
+        return this;
     }
 
     public Map<String, String> getParameters() {
         return parameters;
     }
 
-    public void setParameters(
+    public ProcessWorkflow setParameters(
         Map<String, String> parameters) {
         this.parameters = parameters;
+        return this;
     }
 }

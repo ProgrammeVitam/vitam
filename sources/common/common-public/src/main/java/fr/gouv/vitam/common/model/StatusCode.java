@@ -78,14 +78,6 @@ public enum StatusCode {
         return ordinal();
     }
 
-
-    /**
-     * @return True if the status is greater or equal to OK
-     */
-    public boolean isGreaterOrEqualToOk() {
-        return compareTo(OK) >= 0;
-    }
-
     /**
      * @return True if the status is greater or equal to WARN
      */
