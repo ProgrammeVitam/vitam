@@ -121,61 +121,54 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      */
     private void initStepIndex() {
 
-        if (ProcessState.COMPLETED.equals(this.processWorkflow.getTargetState())) {
-            stepIndex = this.processWorkflow.getSteps().size() - 2;
-        } else {
+        int stepSize = processWorkflow.getSteps().size();
 
-            final Iterator<ProcessStep> it = processWorkflow.getSteps().iterator();
-            while (it.hasNext()) {
-                final ProcessStep step = it.next();
+        final Iterator<ProcessStep> it = processWorkflow.getSteps().iterator();
+        while (it.hasNext()) {
+            final ProcessStep step = it.next();
 
-                final PauseOrCancelAction pauseOrCancelAction = step.getPauseOrCancelAction();
-                final StatusCode stepStatus = step.getStepStatusCode();
+            final PauseOrCancelAction pauseOrCancelAction = step.getPauseOrCancelAction();
+            final StatusCode stepStatus = step.getStepStatusCode();
 
-                // Old workflow can be ACTION_COMPLETE with STARTED status code
-                if (StatusCode.STARTED.equals(stepStatus)) {
-                    step.setPauseOrCancelAction(ACTION_RECOVER);
-                } else if (PauseOrCancelAction.ACTION_COMPLETE.equals(pauseOrCancelAction) && stepStatus.isGreaterOrEqualToStarted()) {
-
-                    if (stepStatus.isGreaterOrEqualToFatal()) {
-                        LOGGER.error(
-                            "ProcessWorkflow " + processWorkflow.getOperationId() + ", step :" + step.getStepName() +
-                                " is ACTION_COMPLETE and status :" + stepStatus +
-                                " > status should be other than FATAL");
-                    }
-
-                    // If step complete with status KO then goto the finally step
-                    if (step.isBlockingKO()) {
-                        stepIndex = this.processWorkflow.getSteps().size() - 2;
-                        break;
-                    }
-
-                    stepIndex++;
-                    continue;
-                }
-
-                // If step is KO and blocking of action cancel needed then goto the finally step
-                if (step.isBlockingKO() || ACTION_CANCEL.equals(pauseOrCancelAction)) {
-                    stepIndex = this.processWorkflow.getSteps().size() - 2;
-                    break;
-                }
-
-                if (ACTION_PAUSE.equals(pauseOrCancelAction) ||
-                    step.getStepStatusCode().isGreaterOrEqualToStarted()) {
-                    step.setPauseOrCancelAction(ACTION_RECOVER);
-                }
-
+            // If step action cancel needed then goto the finally step
+            if (ACTION_CANCEL.equals(pauseOrCancelAction)) {
+                stepIndex = stepSize - 2;
                 break;
             }
+
+            // Old workflow can be ACTION_COMPLETE with STARTED status code
+            // Step can be FATAL
+            if (StatusCode.STARTED.equals(stepStatus) || StatusCode.FATAL.equals(stepStatus)) {
+                step.setPauseOrCancelAction(ACTION_RECOVER);
+                break;
+            }
+
+            if (step.isBlockingKO()) {
+                stepIndex = stepSize - 2;
+                break;
+            }
+
+            if (PauseOrCancelAction.ACTION_COMPLETE.equals(pauseOrCancelAction)) {
+                stepIndex++;
+                continue;
+            }
+
+            if (ACTION_PAUSE.equals(pauseOrCancelAction) || step.getStepStatusCode().isGreaterOrEqualToStarted()) {
+                step.setPauseOrCancelAction(ACTION_RECOVER);
+            }
+
+            break;
         }
 
-        // The stepIndex is initialized to the current step index -1
+
         // This initialization is need for to be able to handle cancel and pause action.
-        currentStep = this.processWorkflow.getSteps().get(stepIndex + 1);
+        int currentIndex = stepSize > stepIndex + 1 ? stepIndex + 1 : stepIndex;
+
+        currentStep = this.processWorkflow.getSteps().get(currentIndex);
 
         if (StatusCode.FATAL.equals(this.processWorkflow.getStatus())) {
-            // Increment, because replayAfterFatal will decrement the increment step index
-            stepIndex++;
+            // replayAfterFatal will decrement then increment step index
+            stepIndex = currentIndex;
         }
     }
 
