@@ -298,7 +298,6 @@
 							<descriptors>
 								<descriptor>${basedir}/assembly-prod.xml</descriptor>
 								<descriptor>${basedir}/assembly-horsprod.xml</descriptor>
-								<descriptor>${basedir}/assembly-publication.xml</descriptor>
 								<descriptor>${basedir}/assembly-deployment.xml</descriptor>
 								<descriptor>${basedir}/assembly-prod-signed.xml</descriptor>
 							</descriptors>
