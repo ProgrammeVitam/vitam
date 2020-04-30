@@ -713,6 +713,68 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void simulate_crash_test_on_complete_step_with_status_fatal() throws Exception {
+        // We simulate case where Processing crash in the middle of distribution
+        runner.stopProcessManagementServer(false);
+
+        ProcessingIT.prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        final String operationId = "aecaaaaaaghaol6vaacfyalrvlc4elaaaaaq";
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(operationId);
+
+        String vitamDataFolder = VitamConfiguration.getVitamDataFolder();
+        Files.delete(Paths.get(vitamDataFolder + "/storage/" + operationId));
+
+        extractArchiveInputStreamOnContainer(vitamDataFolder + "/storage",
+            PropertiesUtils.getResourceAsStream(
+                "integration-processing/simulate_processing_crash/case-traceability-step-complete-status-fatal.zip"));
+
+        LOGGER.error("=== After START");
+        runner.startProcessManagementServer();
+
+        // Wait until operation become PAUSE
+        wait(operationId, ProcessState.PAUSE);
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, 1);
+
+        assertThat(processWorkflow).isNotNull();
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
+
+        // resume
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
+            .executeOperationProcess(operationId, Contexts.UNIT_LFC_TRACEABILITY.name(),
+                ProcessAction.RESUME.getValue());
+
+        assertThat(resp).isNotNull();
+        assertThat(resp.isOk()).isTrue();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+
+        wait(operationId);
+
+        assertThat(processWorkflow).isNotNull();
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+
+        // Assert that all steps are executed
+        ProcessStep firstStep = processWorkflow.getSteps().get(0);
+        ProcessStep lastStep = processWorkflow.getSteps().get(1);
+        assertThat(firstStep.getElementProcessed().get()).isEqualTo(1);
+
+        assertThat(firstStep.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_COMPLETE);
+        assertThat(lastStep.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_COMPLETE);
+
+        assertThat(firstStep.getStepStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(lastStep.getStepStatusCode()).isEqualTo(StatusCode.OK);
+
+    }
+
     private void extractArchiveInputStreamOnContainer(final String destination,
         final InputStream inputStreamObject)
         throws ContentAddressableStorageException {
