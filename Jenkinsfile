@@ -120,6 +120,9 @@ pipeline {
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                 }
             }
+            environment {
+                LANG="fr_FR.UTF-8" // to bypass dateformat problem
+            }
             steps {
                 dir('sources') {
                     script {
@@ -166,6 +169,7 @@ pipeline {
             }
             environment {
                 MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
+                LANG="fr_FR.UTF-8" // to bypass dateformat problem
             }
             steps {
                 updateGitlabCommitStatus name: 'mergerequest', state: "running"
@@ -217,6 +221,7 @@ pipeline {
             }
             environment {
                 MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
+                LANG="fr_FR.UTF-8" // to bypass dateformat problem
             }
             steps {
                 // updateGitlabCommitStatus name: 'mergerequest', state: "running"
