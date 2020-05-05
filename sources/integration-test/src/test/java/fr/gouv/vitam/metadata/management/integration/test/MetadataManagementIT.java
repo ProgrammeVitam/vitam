@@ -254,6 +254,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
+        new DataLoader("integration-ingest-internal").prepareData();
     }
 
 
@@ -274,18 +275,16 @@ public class MetadataManagementIT extends VitamRuleRunner {
         // ReconstructionService delete all unit and GOT without _tenant and older than 1 month.
         VitamConfiguration.setDeleteIncompleteReconstructedUnitDelay(Integer.MAX_VALUE);
 
-        // Reload data before evert test since cleanup is to be done after every test for this test class
-        new DataLoader("integration-ingest-internal").prepareData();
-
         // Clean offerLog
         mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_LOG.getName()).drop();
+        mongoRule.getMongoDatabase().getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName()).drop();
         mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_SEQUENCE.getName()).drop();
     }
 
     @After
     public void tearDown() throws Exception {
+        handleAfterClassExceptReferential(0, 1);
         runAfter();
-        handleAfterClass(0, 1);
     }
 
     @Test
@@ -310,43 +309,61 @@ public class MetadataManagementIT extends VitamRuleRunner {
         checkOfferLogSize(DataCategory.UNIT, 3);
 
         // 1. Reconstruct units
-        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 2L);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 2L);
         ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_0_guid, 0, 5);
         ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_1_guid, 0, 4);
 
         // 2. Reconstruct object groups
-        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 5L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 5L);
 
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_0_guid, 0, 8);
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_1_guid, 0, 8);
 
         // 3. Rest offset and relaunch reconstruct for unit and got
-        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(), 0L);
-        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP.getName(), 0L);
+        offsetRepository
+            .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(),
+                0L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(),
+            MetadataCollections.OBJECTGROUP.getName(), 0L);
 
-        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 2L);
-        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 5L);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 2L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 5L);
 
         // 4. Reconstruct next for unit and got
-        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 3L);
-        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 6L);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 3L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 6L);
 
         ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_2_guid, 0, 5);
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_2_guid, 0, 8);
 
         // 5. Reconstruct nothing for unit and got
-        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 3L);
-        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, VitamConfiguration.getDefaultStrategy(), 6L);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 3L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 6L);
 
         // 6. Reconstruct on unused tenants
-        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(), 0L);
-        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP.getName(), 0L);
+        offsetRepository
+            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(),
+                0L);
+        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
+            MetadataCollections.OBJECTGROUP.getName(), 0L);
 
-        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_1, VitamConfiguration.getDefaultStrategy(), 0L);
-        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_1, VitamConfiguration.getDefaultStrategy(), 0L);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_1,
+            VitamConfiguration.getDefaultStrategy(), 0L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_1,
+            VitamConfiguration.getDefaultStrategy(), 0L);
 
         // 7. Reset Unit offset and reconstruct on unit and another invalid collection
-        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(), 0L);
+        offsetRepository
+            .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName(),
+                0L);
 
         Response<List<ReconstructionResponseItem>> response;
 
@@ -360,8 +377,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(response.body()).hasSize(2);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName())).isEqualTo(2L);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), DataCategory.MANIFEST.name())).isEqualTo(0L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
+            .isEqualTo(2L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), DataCategory.MANIFEST.name()))
+            .isEqualTo(0L);
 
         // Purge reconstructed documents with only graph data and older than a configured delay
         Call<Void> purge = metadataManagementResource.purgeReconstructedDocumentsWithGraphOnlyDataUNIT();
@@ -400,13 +421,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
         checkOfferLogSize(DataCategory.OBJECTGROUP, 4);
 
         // 1. Reconstruct units
-        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 1000, TENANT_0, VitamConfiguration.getDefaultStrategy(), 4L);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 1000, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 4L);
         ensureUnitNotExists(metadataClient, lifecycleClient, unit_with_graph_0_guid);
         ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_1_guid, 0, 4);
         ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_2_guid, 0, 5);
 
         // 2. Reconstruct object groups
-        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 1000, TENANT_0, VitamConfiguration.getDefaultStrategy(), 8L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 1000, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 8L);
         ensureGotNotExists(metadataClient, lifecycleClient, got_with_graph_0_guid);
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_1_guid, 0, 8);
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_2_guid, 0, 8);
@@ -423,13 +446,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
         checkOfferLogSize(DataCategory.OBJECTGROUP, 6);
 
         // 4. Reconstruct units
-        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 1000, TENANT_0, VitamConfiguration.getDefaultStrategy(), 10L);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 1000, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 10L);
         ensureUnitNotExists(metadataClient, lifecycleClient, unit_with_graph_0_guid);
         ensureUnitNotExists(metadataClient, lifecycleClient, unit_with_graph_1_guid);
         ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_2_guid, 1, 6);
 
         // 5. Reconstruct object groups
-        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 1000, TENANT_0, VitamConfiguration.getDefaultStrategy(), 12L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 1000, TENANT_0,
+            VitamConfiguration.getDefaultStrategy(), 12L);
         ensureGotNotExists(metadataClient, lifecycleClient, got_with_graph_0_guid);
         ensureGotNotExists(metadataClient, lifecycleClient, got_with_graph_1_guid);
         ensureGotExists(metadataClient, lifecycleClient, got_with_graph_2_guid, 1, 9);
@@ -437,7 +462,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     private void checkOfferLogSize(DataCategory dataCategory, int size) throws StorageServerClientException {
         RequestResponse<OfferLog> offerLogResponse1 =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), dataCategory, null, Integer.MAX_VALUE, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), dataCategory, null, Integer.MAX_VALUE,
+                Order.ASC);
         assertThat(offerLogResponse1).isNotNull();
         assertThat(offerLogResponse1.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults()).hasSize(size);
@@ -457,7 +483,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(response.body()).hasSize(1);
         assertThat(response.body().get(0).getTenant()).isEqualTo(tenant);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(offsetRepository.findOffsetBy(tenant, strategy, metadataCollection.getName())).isEqualTo(expectedOffset);
+        assertThat(offsetRepository.findOffsetBy(tenant, strategy, metadataCollection.getName()))
+            .isEqualTo(expectedOffset);
     }
 
     private void ensureUnitNotExists(MetaDataClient metadataClient, LogbookLifeCyclesClient lifecycleClient,
@@ -475,11 +502,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
         throws VitamClientException, LogbookClientException, InvalidParseOperationException {
 
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unitId);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(unitId);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt())
-            .isEqualTo(metadataVersion);
+        assertThat(metadataResponse.isOk()).isTrue();
+
+        RequestResponseOK<JsonNode> metadataResponse1 = (RequestResponseOK<JsonNode>) metadataResponse;
+        assertThat(metadataResponse1.getResults().size()).isEqualTo(1);
+        assertThat(metadataResponse1.getFirstResult().get("_id").asText()).isEqualTo(unitId);
+        assertThat(metadataResponse1.getFirstResult().get("_v").asInt()).isEqualTo(metadataVersion);
 
         JsonNode lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unitId);
         assertThat(lifecycleResponse).isNotNull();
@@ -590,7 +618,9 @@ public class MetadataManagementIT extends VitamRuleRunner {
             metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName())).isEqualTo(4L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
+            .isEqualTo(4L);
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
@@ -611,7 +641,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+            storageClient
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -637,7 +668,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
 
 
-        assertThat(offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name()))
+        assertThat(
+            offsetRepository.findOffsetBy(1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name()))
             .isEqualTo(5L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -667,7 +699,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+            storageClient
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
@@ -678,13 +711,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
         storeFileToOffer(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+            storageClient
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
+                Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -721,10 +756,18 @@ public class MetadataManagementIT extends VitamRuleRunner {
             metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(4);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName())).isEqualTo(4L);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP.getName())).isEqualTo(7L);
-        assertThat(offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name())).isEqualTo(8L);
-        assertThat(offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name())).isEqualTo(9L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
+            .isEqualTo(4L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP.getName()))
+            .isEqualTo(7L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name()))
+            .isEqualTo(8L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name()))
+            .isEqualTo(9L);
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
@@ -768,13 +811,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
         storeFileToOffer(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+            storageClient
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10,
+                Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -797,8 +842,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
             metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name())).isEqualTo(1L);
-        assertThat(offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name())).isEqualTo(2L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH.name()))
+            .isEqualTo(1L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH.name()))
+            .isEqualTo(2L);
         assertThat(response.body().get(0).getTenant()).isEqualTo(1);
         assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
@@ -834,7 +883,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+            storageClient
+                .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
@@ -860,8 +910,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
             metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName())).isEqualTo(6L);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP.getName())).isEqualTo(9L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT.getName()))
+            .isEqualTo(6L);
+        assertThat(offsetRepository
+            .findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP.getName()))
+            .isEqualTo(9L);
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
@@ -1500,7 +1554,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         try (FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(file))) {
             workspaceClient.putObject(container, fileName + extension, stream);
         }
-        storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), type, fileName, objectDescription);
+        storageClient
+            .storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), type, fileName, objectDescription);
     }
 
     private void deleteFileFromOffer(String fileName, String extension, DataCategory type)

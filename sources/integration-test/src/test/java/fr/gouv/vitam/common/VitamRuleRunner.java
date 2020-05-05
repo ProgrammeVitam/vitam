@@ -138,6 +138,12 @@ public class VitamRuleRunner {
         FunctionalAdminCollections.afterTestClass(false);
     }
 
+    public static void handleAfterClassExceptReferential(Integer... tenants) {
+        MetadataCollections
+            .afterTestClass(false, tenants);
+        LogbookCollections
+            .afterTestClass(false, tenants);
+    }
     public static void handleAfter(Integer... tenants) {
         MetadataCollections.afterTest(tenants);
         LogbookCollections.afterTest(tenants);
