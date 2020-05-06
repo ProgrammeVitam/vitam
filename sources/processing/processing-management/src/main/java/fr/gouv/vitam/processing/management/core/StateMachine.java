@@ -132,7 +132,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 final PauseOrCancelAction pauseOrCancelAction = step.getPauseOrCancelAction();
                 final StatusCode stepStatus = step.getStepStatusCode();
 
-                if (PauseOrCancelAction.ACTION_COMPLETE.equals(pauseOrCancelAction)) {
+                // Old workflow can be ACTION_COMPLETE with STARTED status code
+                if (StatusCode.STARTED.equals(stepStatus)) {
+                    step.setPauseOrCancelAction(ACTION_RECOVER);
+                } else if (PauseOrCancelAction.ACTION_COMPLETE.equals(pauseOrCancelAction) && stepStatus.isGreaterOrEqualToStarted()) {
 
                     if (stepStatus.isGreaterOrEqualToFatal()) {
                         LOGGER.error(
