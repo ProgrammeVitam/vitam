@@ -33,41 +33,52 @@ public enum StorageProvider {
     /**
      * File system storage offer
      */
-    FILESYSTEM("filesystem"),
+    FILESYSTEM("filesystem", true),
     /**
      * Swift storage offer (ceph or openStack)
      * authent v1
      * DO NOT CHANGE THE VALUE OF THIS VAR AS JCLOUDS IS EXPECTING THIS EXACT VALUE
      */
-    SWIFT_AUTH_V1("openstack-swift"),
+    SWIFT_AUTH_V1("openstack-swift", false),
     /**
      * Swift storage offer
      * authent v2
      */
-    SWIFT_AUTH_V2("openstack-swift-v2"),
+    SWIFT_AUTH_V2("openstack-swift-v2", false),
     /**
      * Swift storage offer
      * authent v3
      */
-    SWIFT_AUTH_V3("openstack-swift-v3"),
+    SWIFT_AUTH_V3("openstack-swift-v3", false),
     /**
      * S3 storage offer
      * Amazon SDK S3 v1 
      */
-    AMAZON_S3_V1("amazon-s3-v1"),
+    AMAZON_S3_V1("amazon-s3-v1", false),
     /**
      * File system storage offer with a hashed directory structure
      */
-    HASHFILESYSTEM("filesystem-hash"),
+    HASHFILESYSTEM("filesystem-hash", true),
     /**
      * Tape library offer
      */
-    TAPE_LIBRARY("tape-library");
+    TAPE_LIBRARY("tape-library", false);
 
     private String value;
+    private boolean hasStoragePath;
 
-    private StorageProvider(String value) {
+    StorageProvider(String value, boolean hasStoragePath) {
         this.value = value;
+        this.hasStoragePath = hasStoragePath;
+    }
+
+    public static StorageProvider getStorageProvider(String storageProvider) {
+        for(StorageProvider provider : values()) {
+            if(provider.getValue().equalsIgnoreCase(storageProvider)) {
+                return provider;
+            }
+        }
+        throw new IllegalArgumentException();
     }
 
     /**
@@ -75,6 +86,10 @@ public enum StorageProvider {
      */
     public String getValue() {
         return value;
+    }
+
+    public boolean hasStoragePath() {
+        return this.hasStoragePath;
     }
 
 }

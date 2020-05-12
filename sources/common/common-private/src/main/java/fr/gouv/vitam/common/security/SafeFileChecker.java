@@ -44,8 +44,8 @@ import java.util.regex.Pattern;
  */
 public class SafeFileChecker {
 
-    private static final Pattern filenamePattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+(\\.[a-z,A-Z,0-9]+)*$");
-    private static final Pattern pathComponentPattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_\\.@]+$");
+    private static final Pattern FILENAME_PATTERN = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+(\\.[a-z,A-Z,0-9]+)*$");
+    private static final Pattern PATH_COMPONENT_PATTERN = Pattern.compile("^[a-z,A-Z,0-9,\\-,_\\.@]+$");
 
     private static final AlertService alertService = new AlertServiceImpl();
     private static final String CHECK_PATH_TRAVERSAL_ERROR_MSG = "Check path traversal error";
@@ -162,7 +162,7 @@ public class SafeFileChecker {
 
         for (int index = 0; index < dirComponent.length; index++) {
             String component = dirComponent[index];
-            if (index != 0 && !pathComponentPattern.matcher(component).matches()) {
+            if (index != 0 && !PATH_COMPONENT_PATTERN.matcher(component).matches()) {
                 throw new VitamRuntimeException(String
                         .format("Invalid path (%s) (has unauthorized characters in component[%d] : %s", pathParent, index,
                                 component));
@@ -180,7 +180,7 @@ public class SafeFileChecker {
         if (pathName != null) {
             String[] nameParts = pathName.split(File.separator);
             for (String part : nameParts) {
-                if (!filenamePattern.matcher(part).matches()) {
+                if (!FILENAME_PATTERN.matcher(part).matches()) {
                     throw new VitamRuntimeException(String
                             .format("Invalid filename (%s) (has unauthorized characters in part %s", pathName, part));
                 }

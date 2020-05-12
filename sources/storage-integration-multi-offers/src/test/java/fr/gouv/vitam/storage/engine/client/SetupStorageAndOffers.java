@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
@@ -60,9 +61,9 @@ import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
  */
 class SetupStorageAndOffers {
     private static final String JETTY_STORAGE_ADMIN = "jetty.storage.admin";
-    static WorkspaceMain workspaceMain;
-    static DefaultOfferMain firstOfferApplication;
-    static StorageMain storageMain;
+    private static WorkspaceMain workspaceMain;
+    private static DefaultOfferMain firstOfferApplication;
+    private static StorageMain storageMain;
     static int storageEngineAdminPort;
 
     static void setupStorageAndTwoOffer() throws IOException, VitamApplicationServerException {
@@ -92,7 +93,8 @@ class SetupStorageAndOffers {
         //Force offer 1 to have her own folder
         File file = PropertiesUtils.findFile(StorageTwoOffersIT.STORAGE_CONF_FILE_NAME);
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            IOUtils.write("storagePath: " + StorageTwoOffersIT.OFFER_FOLDER, outputStream, CharsetUtils.UTF_8);
+            IOUtils.write("storagePath: " + StorageTwoOffersIT.OFFER_FOLDER + "\n", outputStream, CharsetUtils.UTF_8);
+            IOUtils.write("provider: " + StorageProvider.FILESYSTEM.getValue(), outputStream, CharsetUtils.UTF_8);
         }
 
         SystemPropertyUtil.set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, 8757);
@@ -101,7 +103,7 @@ class SetupStorageAndOffers {
         List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         offerConfiguration.setMongoDbNodes(mongoDbNodes);
-offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
+        offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
 
         PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
 
@@ -116,7 +118,8 @@ offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
         //Force offer 2 to have her own folder
         file = PropertiesUtils.findFile(StorageTwoOffersIT.STORAGE_CONF_FILE_NAME);
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            IOUtils.write("storagePath: " + StorageTwoOffersIT.SECOND_FOLDER, outputStream, CharsetUtils.UTF_8);
+            IOUtils.write("storagePath: " + StorageTwoOffersIT.SECOND_FOLDER + "\n", outputStream, CharsetUtils.UTF_8);
+            IOUtils.write("provider: " + StorageProvider.FILESYSTEM.getValue(), outputStream, CharsetUtils.UTF_8);
         }
 
         //
@@ -149,8 +152,7 @@ offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
         serverConfiguration
-            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(
-                StorageTwoOffersIT.PORT_SERVICE_WORKSPACE));
+            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + StorageTwoOffersIT.PORT_SERVICE_WORKSPACE);
 
         StorageTwoOffersIT.tempFolder.create();
         serverConfiguration.setZippingDirecorty(StorageTwoOffersIT.tempFolder.newFolder().getAbsolutePath());
