@@ -362,7 +362,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         if (initFromDistributorIndex) {
             try {
                 Optional<DistributorIndex> distributorIndexOptional =
-                    processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId);
+                    processDataManagement.getDistributorIndex(operationId);
 
                 // If we have saved an index and it concerns the current step
                 if (distributorIndexOptional.isPresent() &&
@@ -500,7 +500,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private void updatePersistedDistributorIndexIfNotFatal(String operationId, int offset,
         DistributorIndex distributorIndex, ItemStatus itemStatus, String message) throws ProcessingException {
         try {
-            processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
+            processDataManagement.persistDistributorIndex(operationId, distributorIndex);
             LOGGER
                 .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
                     " GlobalStatus " + itemStatus.getGlobalStatus());
@@ -524,7 +524,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
      * @param tenantId
      * @return
      */
-    private boolean distributeOnStream(WorkerParameters workerParameters, Step step,
+    private void distributeOnStream(WorkerParameters workerParameters, Step step,
         BufferedReader bufferedReader, boolean initFromDistributorIndex, Integer tenantId)
         throws ProcessingException {
 
@@ -560,7 +560,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             try {
                 Optional<DistributorIndex> distributorIndexOptional =
-                    processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId);
+                    processDataManagement.getDistributorIndex(operationId);
                 // If we have saved an index and it concerns the current step
                 if (distributorIndexOptional.isPresent() &&
                     distributorIndexOptional.get().getStepId().equals(step.getId())) {
@@ -573,7 +573,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     if (distributorIndex.isLevelFinished()) {
                         step.setStepResponses(distributorIndex.getItemStatus());
                         step.getStepResponses().clearStatusMeterFatal();
-                        return true;
+                        return;
                     }
 
                     /*
@@ -615,7 +615,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         if (isEmptyDistribution) {
             step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
                 new ItemStatus(OBJECTS_LIST_EMPTY).increment(step.getDistribution().getStatusOnEmptyDistribution()));
-            return false;
+            return;
         }
 
         while (linesPeekIterator.hasNext()) {
@@ -720,7 +720,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 checkCancelledOrPaused(step);
 
                 if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                    return true;
+                    return;
                 }
 
             } catch (InterruptedException | ExecutionException e) {
@@ -728,7 +728,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 throw new ProcessingException(e);
             }
         }
-        return true;
     }
 
     private void skipOffsetLines(BufferedReader bufferedReader, int offset) throws ProcessingException {
@@ -885,7 +884,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         CompletableFuture<Void> allDoneFuture =
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
         return allDoneFuture
-            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.<T>toList()));
+            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
     }
 
     @Override

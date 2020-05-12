@@ -26,30 +26,34 @@
  */
 package fr.gouv.vitam.processing.management.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ProcessWorkFlowsCleanerTest {
 
@@ -57,29 +61,33 @@ public class ProcessWorkFlowsCleanerTest {
     public RunWithCustomExecutorRule runInThread =
             new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static int tenant = VitamConfiguration.getAdminTenant();
+    private static final int tenant = VitamConfiguration.getAdminTenant();
+
     @BeforeClass
     public static void beforeClass() {
         VitamConfiguration.setAdminTenant(0);
     }
+
     @AfterClass
     public static void afterClass() {
         VitamConfiguration.setAdminTenant(tenant);
     }
+
     @Test
     @RunWithCustomExecutor
-    public void testCleaner(){
+    public void testCleaner()
+        throws Exception {
         //GIVEN
-        ConcurrentHashMap<Integer, Map<String , ProcessWorkflow>> map = new ConcurrentHashMap<>();
+        ConcurrentHashMap<Integer, Map<String, ProcessWorkflow>> map = new ConcurrentHashMap<>();
         map.put(0, new ConcurrentHashMap<>());
         map.put(1, new ConcurrentHashMap<>());
-        map.get(0).put("id1_tenant_0",  new ProcessWorkflow());
-        map.get(0).put("id2_tenant_0",  new ProcessWorkflow());
-        map.get(0).put("id3_tenant_0",  new ProcessWorkflow());
-        map.get(1).put("id1_tenant_1",  new ProcessWorkflow());
-        map.get(1).put("id2_tenant_1",  new ProcessWorkflow());
-        map.get(1).put("id3_tenant_1",  new ProcessWorkflow());
-        ProcessManagementImpl  processManagement = mock(ProcessManagementImpl.class);
+        map.get(0).put("id1_tenant_0", new ProcessWorkflow());
+        map.get(0).put("id2_tenant_0", new ProcessWorkflow());
+        map.get(0).put("id3_tenant_0", new ProcessWorkflow());
+        map.get(1).put("id1_tenant_1", new ProcessWorkflow());
+        map.get(1).put("id2_tenant_1", new ProcessWorkflow());
+        map.get(1).put("id3_tenant_1", new ProcessWorkflow());
+        ProcessManagementImpl processManagement = mock(ProcessManagementImpl.class);
         ServerConfiguration serverConfiguration = mock(ServerConfiguration.class);
         //WHEN
 
@@ -98,12 +106,21 @@ public class ProcessWorkFlowsCleanerTest {
         when(processManagement.getWorkFlowList()).thenReturn(map);
 
         ProcessDataManagement processDataManagement = mock(ProcessDataManagement.class);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         // THEN
-        ProcessWorkFlowsCleaner processWorkFlowsCleaner = new ProcessWorkFlowsCleaner(processManagement, processDataManagement, TimeUnit.HOURS);
+        ProcessWorkFlowsCleaner processWorkFlowsCleaner =
+            new ProcessWorkFlowsCleaner(processManagement, processDataManagement, workspaceClientFactory
+                , TimeUnit.HOURS);
         processWorkFlowsCleaner.run();
 
-       assertThat(map.get(0).size()).isEqualTo(2);
-       assertThat(map.get(1).size()).isEqualTo(2);
+        assertThat(map.get(0).size()).isEqualTo(2);
+        assertThat(map.get(1).size()).isEqualTo(2);
 
+        verify(processDataManagement, times(2))
+            .removeOperationContainer(any(ProcessWorkflow.class), eq(workspaceClientFactory));
+        verify(processDataManagement).removeProcessWorkflow(anyString(), eq("id3_tenant_1"));
+        verify(processDataManagement).removeProcessWorkflow(anyString(), eq("id3_tenant_0"));
     }
 }

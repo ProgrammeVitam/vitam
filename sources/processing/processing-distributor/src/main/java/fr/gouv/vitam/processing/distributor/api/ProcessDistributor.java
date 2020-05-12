@@ -45,7 +45,6 @@ public interface ProcessDistributor {
     String EXCEPTION_MESSAGE = "Exception thrown by the process distributor during running...";
     String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
     String ELEMENT_UNITS = "Units";
-    String DISTRIBUTOR_INDEX = "distributorIndex";
     String NOLEVEL = "_no_level";
 
     /**

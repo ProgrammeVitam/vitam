@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.data.core.management;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -48,6 +49,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -197,5 +200,65 @@ public class WorkspaceProcessDataManagementTest {
         doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).deleteObject(anyString(),
             anyString());
         processDataManagement.removeProcessWorkflow("folder", "asyncId");
+    }
+
+    @Test
+    public void removeOperationContainerOK()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        String operationId = "opId";
+
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        processWorkflow.setOperationId(operationId);
+
+        when(workspaceClient.isExistingContainer(operationId)).thenReturn(true);
+        when(workspaceClient.isExistingObject(ProcessDataManagement.PROCESS_CONTAINER,
+            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json")).thenReturn(true);
+
+
+        boolean result = processDataManagement.removeOperationContainer(processWorkflow, workspaceClientFactory);
+
+        assertTrue(result);
+        verify(workspaceClient).deleteContainer(operationId, true);
+        verify(workspaceClient).deleteObject(ProcessDataManagement.PROCESS_CONTAINER,
+            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json");
+    }
+
+    @Test
+    public void removeOperationContainerKO_because_container_not_exist()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        String operationId = "opId";
+
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        processWorkflow.setOperationId(operationId);
+
+        ContentAddressableStorageServerException exception = new ContentAddressableStorageServerException("Exception");
+
+        when(workspaceClient.isExistingContainer(operationId)).thenThrow(
+            exception);
+
+        boolean result = processDataManagement.removeOperationContainer(processWorkflow, workspaceClientFactory);
+
+        assertFalse(result);
+        verify(workspaceClient, never()).deleteContainer(operationId, true);
+    }
+
+    @Test
+    public void removeOperationContainerKO_because_object_not_exist()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        String operationId = "opId";
+
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        processWorkflow.setOperationId(operationId);
+
+        ContentAddressableStorageServerException exception = new ContentAddressableStorageServerException("Exception");
+
+        when(workspaceClient.isExistingObject(ProcessDataManagement.PROCESS_CONTAINER,
+            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json")).thenThrow(exception);
+
+        boolean result = processDataManagement.removeOperationContainer(processWorkflow, workspaceClientFactory);
+
+        assertFalse(result);
+        verify(workspaceClient, never()).deleteObject(ProcessDataManagement.PROCESS_CONTAINER,
+            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json");
     }
 }

@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.automation.IEventsState;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -54,10 +53,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -84,23 +81,22 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     private int stepIndex = -1;
     private ProcessStep currentStep = null;
     private CompletableFuture<Boolean> waitMonitor;
-    private ProcessWorkflow processWorkflow;
+    private final ProcessWorkflow processWorkflow;
 
-    private ProcessEngine processEngine;
-    private ProcessDataManagement dataManagement;
+    private final ProcessEngine processEngine;
+    private final ProcessDataManagement dataManagement;
 
-    private WorkspaceClientFactory workspaceClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
 
     public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
         this(processWorkflow, processEngine, WorkspaceProcessDataManagement.getInstance(),
-            WorkspaceClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance());
+            WorkspaceClientFactory.getInstance());
     }
 
     @VisibleForTesting
     public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine,
         ProcessDataManagement dataManagement,
-        WorkspaceClientFactory workspaceClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory) {
         ParametersChecker
             .checkParameter("Parameters (processWorkflow, processEngine) are required", processWorkflow, processEngine);
 
@@ -674,7 +670,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         this.processWorkflow.setState(ProcessState.COMPLETED);
         this.processWorkflow.setTargetState(ProcessState.COMPLETED);
-        this.processWorkflow.setProcessCompletedDate(LocalDateUtil.now());
 
         if (!tryPersistProcessWorkflow()) {
             alertService.createAlert(VitamLogLevel.WARN,
@@ -683,29 +678,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                     processWorkflow.getStatus());
         }
 
-        cleanup();
+        dataManagement.removeOperationContainer(this.processWorkflow, this.workspaceClientFactory);
+
+        silentlyCleanBackupOperation();
     }
 
-    private void cleanup() {
-        String operationId = this.processWorkflow.getOperationId();
-
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            if (workspaceClient.isExistingContainer(operationId)) {
-                workspaceClient.deleteContainer(operationId, true);
-            }
-
-            if (workspaceClient
-                .isExistingObject(ProcessDataManagement.PROCESS_CONTAINER,
-                    ProcessDistributor.DISTRIBUTOR_INDEX + "/" + operationId + ".json")) {
-                workspaceClient.deleteObject(ProcessDataManagement.PROCESS_CONTAINER,
-                    ProcessDistributor.DISTRIBUTOR_INDEX + "/" + operationId + ".json");
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error while clear the container " + operationId +
-                    " from the workspace. The background process workflow cleaner should retry to clean the operation container",
-                e);
-        }
-
+    private void silentlyCleanBackupOperation() {
         try {
             switch (processWorkflow.getLogbookTypeProcess()) {
                 case INGEST:
@@ -715,13 +693,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 case AUDIT:
                 case DATA_MIGRATION:
                     LOGGER.debug("Cleanup operation context. No operation context for the process type " +
-                        getLogbookTypeProcess());
+                        processWorkflow.getLogbookTypeProcess());
                     break;
                 default:
                     OperationContextMonitor operationContextMonitor = new OperationContextMonitor();
                     operationContextMonitor
-                        .deleteBackup(VitamConfiguration.getDefaultStrategy(), operationId,
-                            getLogbookTypeProcess());
+                        .deleteBackup(VitamConfiguration.getDefaultStrategy(), processWorkflow.getOperationId(),
+                            processWorkflow.getLogbookTypeProcess());
             }
 
         } catch (Exception e) {
@@ -731,7 +709,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
             LOGGER.error(msg, e);
             alertService.createAlert(VitamLogLevel.WARN, "[StateMachine] " + msg);
-
         }
     }
 }
