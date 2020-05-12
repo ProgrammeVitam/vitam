@@ -95,9 +95,6 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
  */
 public class RestoreBackupIT {
 
-    /**
-     * Vitam logger.
-     */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RestoreBackupIT.class);
 
 
@@ -315,11 +312,6 @@ public class RestoreBackupIT {
         Assert.assertEquals(36543, collectionBackup.get().getSequence().getCounter().intValue());
     }
 
-    /**
-     * Creation and storage of backup files copies.
-     *
-     * @throws Exception
-     */
     private void prepareBackupStorage() throws Exception {
 
         // create and store different backup copies from the backup folder.
@@ -331,11 +323,6 @@ public class RestoreBackupIT {
         }
     }
 
-    /**
-     * Save backup copies of files.
-     *
-     * @param file
-     */
     private void storeBackupCopies(final File file) {
         final String extension = "json";
         try (InputStream in = new BufferedInputStream(new FileInputStream(file));) {
@@ -355,9 +342,6 @@ public class RestoreBackupIT {
         }
     }
 
-    /**
-     * Clean offers content.
-     */
     private static void cleanOffers() {
         // ugly style but we don't have the digest here
         File directory = new File(OFFER_FOLDER + "/" + containerName);

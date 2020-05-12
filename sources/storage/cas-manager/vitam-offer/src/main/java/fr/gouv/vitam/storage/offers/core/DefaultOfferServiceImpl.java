@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.collection.CloseableIterable;
@@ -526,7 +527,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     public void checkOfferPath(String... paths) throws IOException {
-        SafeFileChecker.checkSafeFilePath(configuration.getStoragePath(), paths);
+        StorageProvider provider = StorageProvider.getStorageProvider(configuration.getProvider());
+        if(provider.hasStoragePath()) {
+            SafeFileChecker.checkSafeFilePath(configuration.getStoragePath(), paths);
+            return;
+        }
+        SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), paths);
     }
 
     @Override
@@ -553,11 +559,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
     }
 
-    public boolean isBulkFull(List<OfferLog> bulkToSend) {
+    private boolean isBulkFull(List<OfferLog> bulkToSend) {
         return bulkToSend.size() >= offerLogCompactionConfig.getCompactionSize();
     }
 
-    public boolean isInSameContainer(OfferLog offerLog, List<OfferLog> bulkToSend) {
+    private boolean isInSameContainer(OfferLog offerLog, List<OfferLog> bulkToSend) {
         if (bulkToSend.isEmpty()) {
             return true;
         }

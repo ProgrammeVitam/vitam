@@ -157,9 +157,9 @@ public class StorageTwoOffersIT {
     @ClassRule
     public static TempFolderRule tempFolder = new TempFolderRule();
 
-    public static String OFFER_FOLDER;
+    static String OFFER_FOLDER;
 
-    public static String SECOND_FOLDER;
+    static String SECOND_FOLDER;
 
 
     @ClassRule
