@@ -100,7 +100,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static fr.gouv.vitam.common.GlobalDataRest.X_CHUNK_LENGTH;
 import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
 import static fr.gouv.vitam.processing.distributor.api.ProcessDistributor.OBJECTS_LIST_EMPTY;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
@@ -372,7 +372,7 @@ public class ProcessDistributorImplTest {
                 PauseRecover.NO_RECOVER);
 
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
         assertThat(step.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_COMPLETE);
     }
 
@@ -431,14 +431,14 @@ public class ProcessDistributorImplTest {
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
 
-        assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
 
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
         // All object status are OK
-        assertTrue(imap.get("ItemId").getStatusMeter()
-            .get(StatusCode.OK.getStatusLevel()) == numberOfObjectInIngestLevelStack);
+        assertEquals((int) imap.get("ItemId").getStatusMeter()
+            .get(StatusCode.OK.getStatusLevel()), numberOfObjectInIngestLevelStack);
     }
 
     @Test
@@ -462,12 +462,12 @@ public class ProcessDistributorImplTest {
                 getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.KO.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.KO, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
         // All object status are KO
-        assertTrue(imap.get("ItemId").getStatusMeter().get(StatusCode.KO.getStatusLevel()) == 1);
+        assertEquals(1, (int) imap.get("ItemId").getStatusMeter().get(StatusCode.KO.getStatusLevel()));
     }
 
     @Test
@@ -491,12 +491,12 @@ public class ProcessDistributorImplTest {
                 getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.WARNING.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.WARNING, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
         // All object status are WARNING
-        assertTrue(imap.get("ItemId").getStatusMeter().get(StatusCode.WARNING.getStatusLevel()) == 1);
+        assertEquals(1, (int) imap.get("ItemId").getStatusMeter().get(StatusCode.WARNING.getStatusLevel()));
     }
 
 
@@ -515,7 +515,7 @@ public class ProcessDistributorImplTest {
                 getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.FATAL.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.FATAL, itemStatus.getGlobalStatus());
     }
 
     @Test
@@ -530,7 +530,7 @@ public class ProcessDistributorImplTest {
                 PauseRecover.NO_RECOVER);
 
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
@@ -659,15 +659,13 @@ public class ProcessDistributorImplTest {
         DistributorIndex distributorIndex =
             new DistributorIndex(NOLEVEL, 7, new ItemStatus(), FAKE_REQUEST_ID, step.getId(), new ArrayList<>());
 
-        String DISTRIBUTOR_INDEX = "distributorIndex";
-        when(processDataManagement.getDistributorIndex(DISTRIBUTOR_INDEX, operationId))
-            .thenReturn(Optional.of(distributorIndex));
+        when(processDataManagement.getDistributorIndex(operationId)).thenReturn(Optional.of(distributorIndex));
 
         ItemStatus itemStatus =
             processDistributor.distribute(workerParameters, step, operationId, PauseRecover.RECOVER_FROM_API_PAUSE);
 
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
@@ -710,7 +708,7 @@ public class ProcessDistributorImplTest {
             PauseRecover.NO_RECOVER);
 
         assertNotNull(itemStatus);
-        assertTrue(StatusCode.FATAL.equals(itemStatus.getGlobalStatus()));
+        assertEquals(StatusCode.FATAL, itemStatus.getGlobalStatus());
     }
 
     @Test

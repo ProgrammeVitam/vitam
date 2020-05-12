@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -64,7 +65,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -110,7 +110,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(ProperlyStopStartProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 WorkspaceMain.class,
                 ProcessManagementMain.class
@@ -118,7 +118,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
-    private int[] elementCountPerStep = {1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
+    private final int[] elementCountPerStep = {1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
 
     public static final String INGEST_LEVEL_STACK_JSON =
         "integration-processing/ingestLevelStack.json";
@@ -278,8 +278,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
         assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.RECOVER_FROM_SERVER_PAUSE);
         Optional<DistributorIndex> distributorIndex =
-            WorkspaceProcessDataManagement.getInstance()
-                .getDistributorIndex(ProcessDistributor.DISTRIBUTOR_INDEX, operationId);
+            WorkspaceProcessDataManagement.getInstance().getDistributorIndex(operationId);
 
         assertThat(distributorIndex).isPresent();
         assertThat(distributorIndex.get().getItemStatus()).isNotNull();

@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +45,8 @@ public interface ProcessDataManagement {
      * Container name
      */
     String PROCESS_CONTAINER = "process";
+
+    String DISTRIBUTOR_INDEX = "distributorIndex";
 
     /**
      * Create the process container (initialisation) if does not exist
@@ -99,10 +102,10 @@ public interface ProcessDataManagement {
     void persistProcessWorkflow(String folderName, ProcessWorkflow processWorkflow) throws
         ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
-    void persistDistributorIndex(String folderName, String fileName, DistributorIndex distributorIndex)
+    void persistDistributorIndex(String fileName, DistributorIndex distributorIndex)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
-    Optional<DistributorIndex> getDistributorIndex(String folderName, String fileName)
+    Optional<DistributorIndex> getDistributorIndex(String fileName)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
     /**
@@ -136,4 +139,6 @@ public interface ProcessDataManagement {
      */
     Map<String, ProcessWorkflow> getProcessWorkflowFor(Integer tenantId, String folderName) throws
         ProcessingStorageWorkspaceException;
+
+    boolean removeOperationContainer(ProcessWorkflow processWorkflow, WorkspaceClientFactory workspaceClientFactory);
 }

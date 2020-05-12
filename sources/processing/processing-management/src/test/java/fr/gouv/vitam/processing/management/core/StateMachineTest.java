@@ -37,8 +37,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
@@ -85,13 +83,10 @@ public class StateMachineTest {
 
 
     private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private static final LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
     private static final ProcessDataManagement dataManagement = mock(ProcessDataManagement.class);
 
     @Before
     public void setup() {
-        when(logbookOperationsClientFactory.getClient()).thenReturn(mock(LogbookOperationsClient.class));
         when(workspaceClientFactory.getClient()).thenReturn(mock(WorkspaceClient.class));
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams
@@ -137,7 +132,7 @@ public class StateMachineTest {
 
     @Test
     @RunWithCustomExecutor
-    public void test_pause_and_cancel_on_running_state_ok() throws StateNotAllowedException, ProcessingException {
+    public void test_pause_and_cancel_on_running_state_ok() throws StateNotAllowedException {
         StateMachine stateMachine = mock(StateMachine.class);
         ProcessState state = ProcessState.RUNNING;
         doAnswer(o -> {
@@ -250,8 +245,7 @@ public class StateMachineTest {
 
         final ProcessEngine processEngine = mock(ProcessEngineImpl.class);
         final StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
 
         doAnswer(invocation -> null).when(processEngine).start(any(), any(), any());
         stateMachine.next(workParams);
@@ -304,8 +298,7 @@ public class StateMachineTest {
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, processDistributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
@@ -357,8 +350,7 @@ public class StateMachineTest {
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, processDistributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
@@ -410,8 +402,7 @@ public class StateMachineTest {
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, processDistributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         when(processDistributorMock.distribute(any(), any(), any(), any()))
@@ -448,8 +439,7 @@ public class StateMachineTest {
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -498,8 +488,7 @@ public class StateMachineTest {
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -547,8 +536,7 @@ public class StateMachineTest {
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -597,8 +585,7 @@ public class StateMachineTest {
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -649,8 +636,7 @@ public class StateMachineTest {
         processWorkflow.setState(ProcessState.RUNNING);
         processWorkflow.setTargetState(ProcessState.PAUSE);
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
         stateMachine.shutdown();
 
@@ -679,8 +665,7 @@ public class StateMachineTest {
         processWorkflow.setState(ProcessState.RUNNING);
 
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         stateMachine.cancel();
@@ -709,8 +694,7 @@ public class StateMachineTest {
         processWorkflow.getSteps().get(1).setStepStatusCode(StatusCode.FATAL);
 
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         // when distributor respond with OK then processWorkflowStatus should be OK

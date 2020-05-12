@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.processing.management.core;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -44,6 +39,12 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
@@ -52,25 +53,26 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessWorkFlowsCleaner.class);
 
-    private Integer period = VitamConfiguration.getVitamCleanPeriod();
+    private final Integer period = VitamConfiguration.getVitamCleanPeriod();
     private LocalDateTime timeLimit;
     private final ProcessManagement processManagement;
+    private final WorkspaceClientFactory workspaceClientFactory;
 
     private final ProcessDataManagement processDataManagement;
-    private TimeUnit timeUnit;
 
     public ProcessWorkFlowsCleaner(ProcessManagement processManagement, TimeUnit timeunit) {
-        this(processManagement, WorkspaceProcessDataManagement.getInstance(), timeunit);
+        this(processManagement, WorkspaceProcessDataManagement.getInstance(),
+            WorkspaceClientFactory.getInstance(), timeunit);
     }
 
     @VisibleForTesting
     public ProcessWorkFlowsCleaner(ProcessManagement processManagement, ProcessDataManagement processDataManagement,
-        TimeUnit timeunit) {
-        this.timeUnit = timeunit;
+        WorkspaceClientFactory workspaceClientFactory, TimeUnit timeunit) {
         this.processManagement = processManagement;
         this.processDataManagement = processDataManagement;
+        this.workspaceClientFactory = workspaceClientFactory;
         Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
-            .scheduleAtFixedRate(this, period, period, timeUnit);
+            .scheduleAtFixedRate(this, period, period, timeunit);
     }
 
     @Override
@@ -98,25 +100,23 @@ public class ProcessWorkFlowsCleaner implements Runnable {
     private void cleanCompletedProcess(Map<String, ProcessWorkflow> map) {
         for (Map.Entry<String, ProcessWorkflow> element : map.entrySet()) {
             if (isCleanable(element.getValue())) {
-                // TODO: Bug 6412 > create bug: check operation has the last event. Else, because of processing crash, add this last event to logbook and try to cleanup the container in th workspace @execute StateMachine.logbookAndCleanup method
                 try {
+                    processDataManagement.removeOperationContainer(element.getValue(),workspaceClientFactory);
                     processDataManagement
                         .removeProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                             element.getKey());
+
+                    // remove from workFlowList
+                    map.remove(element.getKey());
+
+                    // remove from state machine
+                    processManagement.getProcessMonitorList().remove(element.getKey());
                 } catch (Exception e) {
                     LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}",
                         VitamConfiguration.getWorkspaceWorkflowsFolder(), element.getKey(), e);
                 }
-                /**
-                 *remove from workFlowList
-                 */
-                map.remove(element.getKey());
-                //remove from state machine
-                processManagement.getProcessMonitorList().remove(element.getKey());
             }
         }
-
-
     }
 
     // Check if the workflow is cleanable
@@ -124,7 +124,6 @@ public class ProcessWorkFlowsCleaner implements Runnable {
         return workflow.getState().equals(ProcessState.COMPLETED)
             && workflow.getProcessCompletedDate() != null &&
             workflow.getProcessCompletedDate().isBefore(timeLimit);
-
     }
 
 }

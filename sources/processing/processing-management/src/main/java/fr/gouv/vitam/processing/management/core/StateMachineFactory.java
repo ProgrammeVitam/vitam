@@ -28,7 +28,6 @@ package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
@@ -62,15 +61,13 @@ public class StateMachineFactory {
     @VisibleForTesting
     public StateMachine create(ProcessWorkflow processWorkflow, ProcessEngine processEngine,
         ProcessDataManagement dataManagement,
-        WorkspaceClientFactory workspaceClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory) {
         ParametersChecker.checkParameter("ProcessWorkflow cannot be null", processWorkflow);
         ParametersChecker.checkParameter("ProcessEngine cannot be null", processEngine);
         ParametersChecker.checkParameter("dataManagement cannot be null", dataManagement);
         ParametersChecker.checkParameter("workspaceClientFactory cannot be null", workspaceClientFactory);
-        ParametersChecker
-            .checkParameter("logbookOperationsClientFactory cannot be null", logbookOperationsClientFactory);
-        return new StateMachine(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-            logbookOperationsClientFactory);
+
+        return new StateMachine(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
     }
 
 }
