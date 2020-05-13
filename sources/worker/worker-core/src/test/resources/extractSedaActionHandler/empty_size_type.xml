@@ -1,0 +1,108 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID1">
+    <Comment>2 images de lac</Comment>
+    <Date>2016-10-18T14:52:27</Date>
+    <MessageIdentifier>SIP passant contenant 2 groupes d'objets et 2 objets dont le PUID est fmt/43</MessageIdentifier>
+    <ArchivalAgreement>IC-000001</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID17">
+            <DataObjectGroupId>ID16</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/Lake.jpeg</Uri>
+            <MessageDigest algorithm="SHA-512">a7c15313969583c478b2d66ad1a4b34e250d6751ee4b39e546a77f9c0d71ccefee55e2661b457f9e848a4e2d45d831058d3f61c1914b7fd45a168bace27f1d6f</MessageDigest>
+            <Size>38628</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPG</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Lake.jpeg</Filename>
+                <LastModified>2017-04-04T08:07:06.487+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID21">
+            <DataObjectGroupId>ID20</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/Lake2.jpeg</Uri>
+            <MessageDigest algorithm="SHA-512">a7c15313969583c478b2d66ad1a4b34e250d6751ee4b39e546a77f9c0d71ccefee55e2661b457f9e848a4e2d45d831058d3f61c1914b7fd45a168bace27f1d6f</MessageDigest>
+            <FormatIdentification>
+                <FormatLitteral>JPG</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Lake2.jpeg</Filename>
+                <LastModified>2017-04-04T08:07:27.825+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID14">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>dossier (master)</Title>
+                    <Description>SIP contenant 2 groupes d'objets et 2 objets dont le PUID est fmt/43</Description>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                </Content>
+                <ArchiveUnit id="ID19">
+                    <ArchiveUnitRefId>ID18</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID23">
+                    <ArchiveUnitRefId>ID22</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID18">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Image de lac - 1</Title>
+                    <Description>L'objet rattaché à cette unité archivistique a un usage de master (BinaryMaster)</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID16</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID22">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Image de lac - 2</Title>
+                    <Description>L'objet rattaché à cette unité archivistique a un usage de master (BinaryMaster)</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID20</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>Identifier4</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
