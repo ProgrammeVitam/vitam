@@ -177,6 +177,12 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
+    public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
+        throws ProcessingException {
+        return this.getFilesWithParamsFromWorkspace(containerName,folderName);
+    }
+
+    @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (inputStreamMap.containsKey(objectName)) {
