@@ -46,6 +46,7 @@ services:
     image: openio/sds:18.10
     environment:
       - REGION=us-west-1
+      - OPENIO_IPADDR=127.0.0.1
     ports:
       - "127.0.0.1:6007:6007"
 
