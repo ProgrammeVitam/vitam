@@ -82,7 +82,8 @@ public class CheckSizeActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                isFileSizeChanged =
+                                // The operator OR is useful for multibinary objects in GOT
+                                isFileSizeChanged = isFileSizeChanged ||
                                     checkIsSizeIncorrect(binaryObjects.get(objectId), version, itemStatus);
                             }
                         }
