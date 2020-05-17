@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.common.config;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -44,6 +45,8 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
+    @JsonProperty("elasticsearchTenantIndexation")
+    private FunctionalAdminIndexationConfiguration indexationConfiguration;
 
     // constructor
     AdminManagementConfiguration() {
@@ -160,6 +163,16 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     public AdminManagementConfiguration setListMinimumRuleDuration(
         Map<Integer, Map<String, String>> listMinimumRuleDuration) {
         this.listMinimumRuleDuration = listMinimumRuleDuration;
+        return this;
+    }
+
+    public FunctionalAdminIndexationConfiguration getIndexationConfiguration() {
+        return indexationConfiguration;
+    }
+
+    public AdminManagementConfiguration setIndexationConfiguration(
+        FunctionalAdminIndexationConfiguration indexationConfiguration) {
+        this.indexationConfiguration = indexationConfiguration;
         return this;
     }
 }

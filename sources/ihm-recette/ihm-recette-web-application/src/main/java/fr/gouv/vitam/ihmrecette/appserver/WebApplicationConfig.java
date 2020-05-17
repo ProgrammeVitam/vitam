@@ -26,11 +26,15 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.FunctionalAdminAdmin;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.List;
@@ -38,7 +42,7 @@ import java.util.List;
 /**
  * Web Application Configuration class
  */
-public class WebApplicationConfig extends MetaDataConfiguration {
+public class WebApplicationConfig extends DbConfigurationImpl {
 
     private int port;
     private String serverHost;
@@ -57,6 +61,19 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private int ingestMaxThread;
     private FunctionalAdminAdmin functionalAdminAdmin;
     private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
+    private String workspaceUrl;
+    private String clusterName;
+    private List<ElasticsearchNode> elasticsearchNodes;
+
+    @JsonProperty("functionalAdminIndexationSettings")
+    private FunctionalAdminIndexationConfiguration functionalAdminIndexationConfiguration;
+
+    @JsonProperty("metadataIndexationSettings")
+    private MetadataIndexationConfiguration metadataIndexationConfiguration;
+
+    @JsonProperty("logbookIndexationSettings")
+    private LogbookIndexationConfiguration logbookIndexationConfiguration;
+
     /**
      * Constructor for tests
      */
@@ -74,7 +91,9 @@ public class WebApplicationConfig extends MetaDataConfiguration {
      */
     public WebApplicationConfig(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, MappingLoader mappingLoader) {
-        super(mongoDbNodes, dbName, clusterName, elasticsearchNodes, mappingLoader);
+        super(mongoDbNodes, dbName);
+        this.clusterName = clusterName;
+        this.elasticsearchNodes = elasticsearchNodes;
     }
 
     /**
@@ -296,5 +315,64 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     public void setElasticsearchExternalMetadataMappings(
         List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings) {
         this.elasticsearchExternalMetadataMappings = elasticsearchExternalMetadataMappings;
+    }
+
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
+    public WebApplicationConfig setWorkspaceUrl(String workspaceUrl) {
+        this.workspaceUrl = workspaceUrl;
+        return this;
+    }
+
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    public WebApplicationConfig setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+        return this;
+    }
+
+    public List<ElasticsearchNode> getElasticsearchNodes() {
+        return elasticsearchNodes;
+    }
+
+    public WebApplicationConfig setElasticsearchNodes(
+        List<ElasticsearchNode> elasticsearchNodes) {
+        this.elasticsearchNodes = elasticsearchNodes;
+        return this;
+    }
+
+    public FunctionalAdminIndexationConfiguration getFunctionalAdminIndexationConfiguration() {
+        return functionalAdminIndexationConfiguration;
+    }
+
+    public WebApplicationConfig setFunctionalAdminIndexationConfiguration(
+        FunctionalAdminIndexationConfiguration functionalAdminIndexationConfiguration) {
+        this.functionalAdminIndexationConfiguration =
+            functionalAdminIndexationConfiguration;
+        return this;
+    }
+
+    public MetadataIndexationConfiguration getMetadataIndexationConfiguration() {
+        return metadataIndexationConfiguration;
+    }
+
+    public WebApplicationConfig setMetadataIndexationConfiguration(
+        MetadataIndexationConfiguration metadataIndexationConfiguration) {
+        this.metadataIndexationConfiguration = metadataIndexationConfiguration;
+        return this;
+    }
+
+    public LogbookIndexationConfiguration getLogbookIndexationConfiguration() {
+        return logbookIndexationConfiguration;
+    }
+
+    public WebApplicationConfig setLogbookIndexationConfiguration(
+        LogbookIndexationConfiguration logbookIndexationConfiguration) {
+        this.logbookIndexationConfiguration = logbookIndexationConfiguration;
+        return this;
     }
 }
