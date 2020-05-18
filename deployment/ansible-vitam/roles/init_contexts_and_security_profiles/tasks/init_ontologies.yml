@@ -33,7 +33,7 @@
     - name: Import/update Internal ontologies to functionnal-admin
       uri:
         method: POST
-        body: "{{ lookup('file', 'files/VitamOntology.json')}}"
+        body: "{{ lookup('file', '{{ inventory_dir }}/ontology/VitamOntology.json')}}"
         status_code: 200,201
         url: "http://{{ hostvars[groups['hosts_functional_administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/ontologies"
         body_format: "json"

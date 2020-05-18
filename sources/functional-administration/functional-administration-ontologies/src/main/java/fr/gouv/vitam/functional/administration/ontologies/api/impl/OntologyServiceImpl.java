@@ -137,6 +137,7 @@ public class OntologyServiceImpl implements OntologyService {
     private static final String CTR_SCHEMA = "CTR_SCHEMA";
     private static final String ONTOLOGY_IMPORT_EVENT = "IMPORT_ONTOLOGY";
     static final String BACKUP_ONTOLOGY_EVENT = "STP_BACKUP_ONTOLOGY";
+    private static final String CHECK_ONTOLOGY_IMPORT_EVENT = "CHECK_ONTOLOGY_IMPORT";
 
 
     private static final String ONTOLOGIES_IS_MANDATORY_PARAMETER = "ontologies parameter is mandatory";
@@ -205,19 +206,11 @@ public class OntologyServiceImpl implements OntologyService {
 
         try {
 
-            // Access permissions checks
-            checkAdminTenant(manager, errors);
-            VitamError tenantValidationErrors = abortOnErrors(eip, errors, manager);
-            if (tenantValidationErrors != null) {
-                return tenantValidationErrors;
-            }
+            VitamError checkResults =
+                ontologyCommonChecks(ontologyModelList, externalOntologyUpdate, eip, errors, manager, false);
 
-            // Request validation checks
-            validateRequest(ontologyModelList, errors, manager);
-
-            VitamError requestValidationErrors = abortOnErrors(eip, errors, manager);
-            if (requestValidationErrors != null) {
-                return requestValidationErrors;
+            if (checkResults != null) {
+                return checkResults;
             }
 
             // Load current ontology from DB
@@ -229,16 +222,6 @@ public class OntologyServiceImpl implements OntologyService {
 
             Map<String, OntologyModel> actualOntologiesMap =
                 actualOntologies.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, item -> item));
-
-            if (externalOntologyUpdate) {
-                // initializing ontology at the first begining of install/upgrade, that's include handling external items if there is some
-                List<OntologyModel> actualExternalOntologies =
-                    actualOntologies.stream().filter(om -> om.getOrigin().equals(OntologyOrigin.EXTERNAL)).collect(
-                        Collectors.toList());
-
-                // if there is external ontologies so we handle their merge with the actual list being imported.
-                checkInternalWithExistingExternalConflict(ontologyModelList, actualExternalOntologies);
-            }
 
             List<OntologyModel> toDelete = new ArrayList<>();
             List<OntologyModel> toCreate = new ArrayList<>();
@@ -356,6 +339,103 @@ public class OntologyServiceImpl implements OntologyService {
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
+    @Override
+    public RequestResponse<OntologyModel> checkUpgradeOntologies(List<OntologyModel> ontologyInternalModelList)
+        throws VitamException {
+
+        if (isExternalOntologies(ontologyInternalModelList)) {
+            LOGGER.error("Import ontologies error : The imported ontologies contains EXTERNAL fields.");
+            return new RequestResponseOK().setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+        return check(ontologyInternalModelList);
+    }
+
+    private RequestResponse<OntologyModel> check(List<OntologyModel> ontologyInternalModelList) throws VitamException {
+        ParametersChecker.checkParameter(ONTOLOGIES_IS_MANDATORY_PARAMETER, ontologyInternalModelList);
+
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+        GUID eip = GUIDReader.getGUID(operationId);
+
+        Map<String, List<ErrorReportOntologies>> errors = new HashMap<>();
+        OntologyManager manager = new OntologyManager(logbookClient, eip, errors);
+        // trace the event in logbook
+        manager.logStarted(CHECK_ONTOLOGY_IMPORT_EVENT, null);
+        try {
+
+            VitamError checkResults = ontologyCommonChecks(ontologyInternalModelList, true, eip, errors, manager, true);
+
+            if (checkResults != null) {
+                return checkResults;
+            }
+
+        } catch (SchemaValidationException e) {
+            LOGGER.error(e);
+            manager.logValidationError(CTR_SCHEMA, null, e.getMessage());
+            return
+                getVitamError(VitamCode.ONTOLOGY_CHECK_ERROR.getItem(),
+                    "Import ontology errors : " + e.getMessage(), StatusCode.KO).setHttpCode(
+                    Response.Status.BAD_REQUEST.getStatusCode());
+        } catch (OntologyInternalExternalConflictException e) {
+            LOGGER.error(e);
+            manager.logValidationError(CHECK_ONTOLOGY_IMPORT_EVENT, null, e.getMessage());
+            return getVitamError(VitamCode.ONTOLOGY_CHECK_ERROR.getItem(),
+                "Import ontology errors : " + e.getMessage(), StatusCode.KO).setHttpCode(
+                Response.Status.BAD_REQUEST.getStatusCode());
+
+        } catch (Exception e) {
+            LOGGER.error(e);
+            manager.logFatalError(CHECK_ONTOLOGY_IMPORT_EVENT, null, "Import ontologies error : " + e.getMessage());
+            return
+                getVitamError(VitamCode.ONTOLOGY_CHECK_ERROR.getItem(),
+                    "Import ontology errors : " + e.getMessage(), StatusCode.KO).setHttpCode(
+                    Response.Status.BAD_REQUEST.getStatusCode());
+        }
+
+        manager.logSuccess(CHECK_ONTOLOGY_IMPORT_EVENT, null, null);
+        return new RequestResponseOK<OntologyModel>().addAllResults(ontologyInternalModelList)
+            .setHttpCode(Response.Status.OK.getStatusCode());
+    }
+
+
+    private VitamError ontologyCommonChecks(List<OntologyModel> ontologyModelList,
+        boolean externalOntologyUpdate, GUID eip, Map<String, List<ErrorReportOntologies>> errors,
+        OntologyManager manager, boolean check)
+        throws VitamException, IOException {
+        // Access permissions checks
+        checkAdminTenant(manager, errors);
+        VitamError tenantValidationErrors =
+            check ? exitCheckOnErrors(errors, manager) : abortOnErrors(eip, errors, manager);
+
+        if (tenantValidationErrors != null) {
+            return tenantValidationErrors;
+        }
+
+        // Request validation checks
+        validateRequest(ontologyModelList, errors, manager);
+
+        VitamError requestValidationErrors =
+            check ? exitCheckOnErrors(errors, manager) : abortOnErrors(eip, errors, manager);
+
+        if (requestValidationErrors != null) {
+            return requestValidationErrors;
+        }
+
+        // Load current ontology from DB
+        List<OntologyModel> actualOntologies = this.selectOntologies();
+
+        if (externalOntologyUpdate) {
+            // initializing ontology at the first begining of install/upgrade, that's include handling external items if there is some
+            List<OntologyModel> actualExternalOntologies =
+                actualOntologies.stream().filter(om -> om.getOrigin().equals(OntologyOrigin.EXTERNAL)).collect(
+                    Collectors.toList());
+
+            // if there is external ontologies so we handle their merge with the actual list being imported.
+            checkInternalWithExistingExternalConflict(ontologyModelList, actualExternalOntologies);
+        }
+        return null;
+    }
+
     private boolean isExternalOntologies(List<OntologyModel> ontologyInternalModelList) {
         return ontologyInternalModelList.stream().anyMatch(oM -> oM.getOrigin().equals(OntologyOrigin.EXTERNAL));
     }
@@ -373,7 +453,7 @@ public class OntologyServiceImpl implements OntologyService {
             if (ParametersChecker.isNotEmpty(ontm.getIdentifier())) {
                 // if the ontology in json file contains some external ontologies already existed in the database so the merge is problematic !
                 if (currentImportedOntologiesMap.containsKey(ontm.getIdentifier().trim().toLowerCase())) {
-                    conflictModels.add(currentImportedOntologiesMap.get(ontm.getIdentifier()));
+                    conflictModels.add(currentImportedOntologiesMap.get(ontm.getIdentifier().toLowerCase()));
                     existingModels.add(ontm);
                 }
             }
@@ -387,6 +467,23 @@ public class OntologyServiceImpl implements OntologyService {
         }
     }
 
+
+    private VitamError exitCheckOnErrors(Map<String, List<ErrorReportOntologies>> errors, OntologyManager manager)
+        throws VitamException {
+        VitamError vitamError = null;
+        if (!errors.isEmpty()) {
+            String errorsDetails =
+                errors.entrySet().stream().map(c -> c.getKey() + " : " + c.getValue().get(0).getMessage())
+                    .collect(Collectors.joining(","));
+
+            manager.logValidationError(ONTOLOGY_IMPORT_EVENT, null, errorsDetails);
+
+            vitamError = getVitamError(VitamCode.ONTOLOGY_CHECK_ERROR.getItem(),
+                "Check ontology errors : " + errorsDetails, StatusCode.KO).setHttpCode(
+                Response.Status.BAD_REQUEST.getStatusCode());
+        }
+        return vitamError;
+    }
 
     private VitamError abortOnErrors(GUID eip, Map<String, List<ErrorReportOntologies>> errors, OntologyManager manager)
         throws VitamException, IOException {

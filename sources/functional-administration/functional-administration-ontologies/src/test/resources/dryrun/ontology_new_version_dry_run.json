@@ -1,0 +1,57 @@
+[
+  {
+    "Identifier": "AcquiredDate",
+    "SedaField": "AcquiredDate",
+    "Description": "Mapping : unit-es-mapping.json. Références : ARKMS.DateAcquired",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de numérisation",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "%",
+    "SedaField": "someSedaField",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de numérisation",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "#id": "aaaaaaaaaaaa",
+    "Identifier": "BirthDate",
+    "SedaField": "BirthDate",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de naissance",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "BirthName",
+    "SedaField": "BirthName",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Nom de naissance",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "Address",
+    "SedaField": "Address",
+    "Description": "Mapping : unit-es-mapping.json , This is field already exists as external in database",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "Addresse",
+    "Collections": [
+      "Unit"
+    ]
+  }
+]

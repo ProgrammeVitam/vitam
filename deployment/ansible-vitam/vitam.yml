@@ -40,6 +40,16 @@
     - selinux_conf
     - syslogd
 
+### CHECK VITAM ONTOLOGY WHEN UPGRADE ###
+- hosts: hosts_functional_administration
+  gather_facts: no
+  any_errors_fatal: true
+  serial: 1
+  roles:
+    - check_ontologies
+  vars:
+    vitam_struct: "{{ vitam.functional_administration }}"
+
 ### CONSUL INSTALLATION ###
 - hosts: hosts_consul_server
   gather_facts: no

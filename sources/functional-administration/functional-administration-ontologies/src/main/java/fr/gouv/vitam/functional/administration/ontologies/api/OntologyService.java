@@ -97,4 +97,14 @@ public interface OntologyService extends VitamAutoCloseable {
     RequestResponseOK<OntologyModel> findOntologiesForCache(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;
 
+    /**
+     * Check the safety of ontology import at vitam reinstall/upgrade
+     *
+     * @param ontologyList the list of internal ontologies to check
+     * @return Response the response of check
+     * @throws VitamException if in error occurs while validating ontologies
+     */
+    RequestResponse<OntologyModel> checkUpgradeOntologies(List<OntologyModel> ontologyList)
+        throws VitamException;
+
 }

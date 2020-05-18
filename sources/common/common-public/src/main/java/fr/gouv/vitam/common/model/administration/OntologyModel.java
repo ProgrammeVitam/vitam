@@ -281,4 +281,19 @@ public class OntologyModel {
         return this;
     }
 
+    @Override
+    public String toString() {
+        return "OntologyModel{" +
+            "identifier='" + identifier + '\'' +
+            ", sedaField='" + sedaField + '\'' +
+            ", apiField='" + apiField + '\'' +
+            ", description='" + description + '\'' +
+            ", type=" + type +
+            ", origin=" + origin +
+            ", creationdate='" + creationdate + '\'' +
+            ", lastupdate='" + lastupdate + '\'' +
+            ", shortName='" + shortName + '\'' +
+            ", collections=" + collections +
+            '}';
+    }
 }
