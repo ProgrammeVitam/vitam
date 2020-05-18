@@ -134,6 +134,35 @@ public class AdminOntologyResource {
         return ontologyResource.findOntologiesForCache(queryDsl);
     }
 
+    @Path("/ontologies/check")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkOntologies(List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
+
+        LOGGER.info("This is check of the safety ontology import");
+        LOGGER.info("use of admin tenant: 1");
+        ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
+
+        try (OntologyService ontologyService =
+            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
+            VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+            RequestResponse
+                response = ontologyService.checkUpgradeOntologies(ontologyModelList);
+
+            if (!response.isOk()) {
+                return Response.status(response.getHttpCode()).entity(response).build();
+            } else {
+                return Response.ok(uri.getRequestUri().normalize()).entity(response).build();
+            }
+
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
+    }
+
     /**
      * Construct the error following input
      *

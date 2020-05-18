@@ -13,13 +13,24 @@ Notes et procédures spécifiques R13
 Gestion du référentiel de l'ontologie 
 -----------------------------------
 
-.. caution:: en lien avec la User Story* #6213 ( livré en version `3.5.x` de :term:`VITAM` ), les ontologies externes en cours d'exploitation par :term:`VITAM` ne sont pas touchées, et seront mergées avec les ontologies internes situés : ``deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json`` .
+.. caution:: en lien avec la User Story* #6213 ( livré en version `3.4.x` de :term:`VITAM` ), les ontologies externes en cours d'exploitation par :term:`VITAM` ne sont pas touchées, et seront mergées avec les ontologies internes situés : ``deployment/environments/ontology/VitamOntology.json`` .
 
 La procédure de merge manuelle du référentiel de l'ontologie avant chaque montée de version n'est plus nécessaire.
 
-.. caution:: Avant le lancement du procédure de mise à jour de :term:`VITAM`, une phase préliminaire obligatoire de vérification et validation sera faite pour détecter des éventuelles conflits entre les vocabulaires internes et externes.
+Lors du lancement du procédure de mise à jour de :term:`VITAM`, une phase préliminaire de vérification et validation sera faite pour détecter des éventuelles conflits entre les vocabulaires internes et externes.
+
+Afin d'assurer que la montée de version de :term:`VITAM` passera sans affecter le système , cette vérification s'exécute dans les phases préliminaires de l'ansiblerie, avant la phase de l'installation des composants :term:`VITAM`, (en cas d'echec à cette étape, la solution logicielle déjà installé ne sera pas affectée).
+
+Le script ansible qui fait le check est situé dans : ``deployment/ansible-vitam/roles/check_ontologies/tasks/main.yml``, le role vérifie que le composant d'administration fonctionnelle ``vitam-functional-administration`` est bien installé et démarré, 
+ensuite la tâche ``Check Import Ontologies`` réalise un import à blanc en mode ``Dry Run`` du référentiel de l'ontologie et remonte des éventuelles erreurs d'import.
 
 .. danger:: En cas d'echec de vérification, autrement dit, en cas de présence de conflits entre les deux vocabulaires (le vocabulaire interne à mettre à jour et le vocabulaire externe en cours d'exploitation), c'est à l'exploitant d'adapter son vocabulaire externe et de veiller à ce qu'il n'ya pas de moindres conflits.
+
+L'exploitant pour vérifier ses corrections en cas d'erreurs, pourra toutefois lancer la commande depuis le dossier `deployment`, depuis une instance hébergeant le composant ``vitam-functional-administration``: 
+
+.. code-block:: bash 
+
+	curl -XPOST -H "Content-type: application/json" -H "X-Tenant-Id: 1" --data-binary @environments/ontology/VitamOntology.json 'http://{{ hostvars[groups['hosts_functional_administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/ontologies/check'
 
 Dès résolution des conflicts, l'exploitant lancera la mise à jour sans toucher l'ontologie interne.
 

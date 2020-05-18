@@ -181,6 +181,10 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Json Schema validation error"),
 
+    ONTOLOGY_CHECK_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "20",
+        Status.BAD_REQUEST,
+        "Ontology check mode error"),
+
     REFERENTIAL_REPOSITORY_DATABASE_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.DATABASE, "15",
         Status.INTERNAL_SERVER_ERROR,
         "DatabaseException while accessing database through repository service"),

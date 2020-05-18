@@ -161,7 +161,6 @@ public class OntologyServiceImplTest {
         assertThat(ontologyModelList.getResults()).isEmpty();
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenWellFormedOntologyMetadataThenImportOK() throws Exception {
@@ -819,6 +818,107 @@ public class OntologyServiceImplTest {
         assertThat(response).isNotInstanceOf(RequestResponseOK.class);
         verify(functionalBackupService, times(0)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
             FunctionalAdminCollections.ONTOLOGY), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkUpgradeOK() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("upgrade/ontology_in_database.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
+
+        // When
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        final RequestResponseOK<OntologyModel> responseCast1 = (RequestResponseOK<OntologyModel>) response;
+        List<OntologyModel> results1 = responseCast1.getResults();
+        List<Ontology> actualExternals = getExternalOntologies();
+
+        assertThat(response.isOk()).isTrue();
+        assertThat(results1).hasSize(6);
+        assertThat(actualExternals).hasSize(3);
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("upgrade/ontology_new_version.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeReference(fileOntology2, listOfOntologyType);
+
+        final RequestResponse response2 = ontologyService.checkUpgradeOntologies(ontologyModelList2);
+
+        // Then
+        assertThat(response2.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        verify(functionalBackupService, times(1))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkUpgradeKO() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("dryrun/ontology_in_database.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
+
+        // When
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        final RequestResponseOK<OntologyModel> responseCast1 = (RequestResponseOK<OntologyModel>) response;
+        List<OntologyModel> results1 = responseCast1.getResults();
+        List<Ontology> actualExternals = getExternalOntologies();
+
+        assertThat(response.isOk()).isTrue();
+        assertThat(results1).hasSize(6);
+        assertThat(actualExternals).hasSize(3);
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("dryrun/ontology_new_version_dry_run.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeReference(fileOntology2, listOfOntologyType);
+
+        final RequestResponse response2 = ontologyService.checkUpgradeOntologies(ontologyModelList2);
+
+        // Then
+        assertThat(response2.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        verify(functionalBackupService, times(1))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
+        JsonAssert.assertJsonEquals(
+            "{\"httpCode\":400,\"code\":\"20\",\"context\":\"FunctionalModule-Ontology\",\"state\":\"KO\",\"message\":\"Ontology service error\",\"description\":\"Check ontology errors : % : The field Type is mandatory,BirthDate : Forbidden field id\"}",
+            response2.toString());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkAnotherUpgradeKO() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("dryrun/ontology_in_database.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeReference(fileOntology, listOfOntologyType);
+
+        // When
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        final RequestResponseOK<OntologyModel> responseCast1 = (RequestResponseOK<OntologyModel>) response;
+        List<OntologyModel> results1 = responseCast1.getResults();
+        List<Ontology> actualExternals = getExternalOntologies();
+
+        assertThat(response.isOk()).isTrue();
+        assertThat(results1).hasSize(6);
+        assertThat(actualExternals).hasSize(3);
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("dryrun/ontology_new_version_dry_run_conflict.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeReference(fileOntology2, listOfOntologyType);
+
+        final RequestResponse response2 = ontologyService.checkUpgradeOntologies(ontologyModelList2);
+
+        // Then
+        assertThat(response2.getStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(response2.toString()).contains(
+            "There is conflict between Ontologies being imported and those already exists in database");
+        verify(functionalBackupService, times(1))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     private List<Ontology> getExternalOntologies()
