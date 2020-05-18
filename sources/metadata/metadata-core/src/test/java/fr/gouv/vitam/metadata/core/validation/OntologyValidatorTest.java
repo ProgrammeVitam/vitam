@@ -488,6 +488,20 @@ public class OntologyValidatorTest {
     }
 
     @Test
+    public void ontologyWhenDateTimeAsDateTimeConversionThenOK() throws Exception {
+
+        // Given
+        JsonNode data = JsonHandler.createObjectNode().put("date", "2019-03-01T10:05:08.583594Z");
+
+        // When
+        ObjectNode updatedData = ontologyValidator.verifyAndReplaceFields(data);
+
+        // Then
+        JsonNode expectedConversion = JsonHandler.createObjectNode().put("date", "2019-03-01T10:05:08.583594");
+        assertThat(updatedData).isEqualTo(expectedConversion);
+    }
+
+    @Test
     public void ontologyWhenDoubleAsDateConversionThenKO() throws Exception {
 
         // Given
