@@ -41,6 +41,7 @@ import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,6 @@ public class CheckSizeActionPlugin extends ActionHandler {
 
     private boolean checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version,
         ItemStatus itemStatus) {
-        // create ItemStatus for subtask
         final ItemStatus subTaskItemStatus = new ItemStatus(CHECK_OBJECT_SIZE);
         Boolean isSizeChanged = Boolean.FALSE;
         if (version.get(SedaConstants.PREFIX_WORK) != null &&
@@ -132,7 +132,7 @@ public class CheckSizeActionPlugin extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        handler.checkHandlerIO(1, Arrays.asList(new Class[] {String.class}));
+        handler.checkHandlerIO(1, Collections.singletonList(String.class));
     }
 
     private Map<String, DataObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
@@ -142,13 +142,11 @@ public class CheckSizeActionPlugin extends ActionHandler {
         final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
 
         if (qualifiers == null) {
-            // KO
             return binaryObjects;
         }
 
         final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
         if (versions == null || versions.isEmpty()) {
-            // KO
             return binaryObjects;
         }
         for (final JsonNode version : versions) {
@@ -163,7 +161,6 @@ public class CheckSizeActionPlugin extends ActionHandler {
                 }
             }
         }
-        // OK
         return binaryObjects;
     }
 }

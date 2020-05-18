@@ -38,6 +38,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -62,6 +63,7 @@ public class TestHandlerIO implements HandlerIO {
     private InputStream inputStreamFromWorkspace;
     private Map<String, InputStream> inputStreamMap = new HashMap<>();
     private Map<String, File> transferedFileToWorkspaceMap = new HashMap<>();
+    private Map<Pair<String, String>, Map<String, Long>> filesToWorkspaceByFolderAndContainer = new HashMap<>();
     private Map<String, JsonNode> jsonFromWorkspace = new HashMap<>();
     private ProcessingUri output;
     private String containerName = "DEFAULT_CONTAINER_NAME";
@@ -179,7 +181,7 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
         throws ProcessingException {
-        return this.getFilesWithParamsFromWorkspace(containerName,folderName);
+        return this.filesToWorkspaceByFolderAndContainer.get(Pair.of(containerName, folderName));
     }
 
     @Override

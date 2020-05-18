@@ -139,10 +139,10 @@ public class CheckSizeActionPluginTest {
 
         // Then
         Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
-        Assertions.assertThat(count).isEqualTo(1);
+        assertEquals(1L, count.longValue());
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertEquals(response.getItemsStatus().get(CHECK_OBJECT_SIZE).getSubTaskStatus().values()
-            .iterator().next().getItemId(), CHECK_OBJECT_SIZE);
+        assertEquals(CHECK_OBJECT_SIZE, response.getItemsStatus().get(CHECK_OBJECT_SIZE).getSubTaskStatus().values()
+            .iterator().next().getItemId());
         handlerIO.close();
     }
 
@@ -152,10 +152,6 @@ public class CheckSizeActionPluginTest {
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INCORRECT_SIZE);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objName2")))
             .thenReturn(Response.status(Response.Status.OK).entity(objectGroup).build());
-        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
-            .thenReturn(Response.status(Response.Status.OK).entity(PropertiesUtils
-                .getResourceAsStream("checkSizeActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
-                .build());
         CheckSizeActionPlugin plugin = new CheckSizeActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objName2");
