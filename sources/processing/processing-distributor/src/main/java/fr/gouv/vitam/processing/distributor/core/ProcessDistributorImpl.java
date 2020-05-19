@@ -844,16 +844,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             return CompletableFuture.completedFuture(new ItemStatus(step.getStepName()).increment(StatusCode.FATAL));
         }
 
-        // Add metrics compute duration of waiting time before execution of the task
-        Histogram.Timer taskWaitingTimeDuration = CommonProcessingMetrics.WORKER_TASKS_IDLE_DURATION_IN_QUEUE
-            .labels(wmf.getFamily(), logbookTypeProcess.name().toLowerCase(), step.getStepName())
-            .startTimer();
-
-        task.setTimer(taskWaitingTimeDuration);
-
         // Add metrics increment as new task created
         CommonProcessingMetrics.CURRENTLY_INSTANTIATED_TASKS
-            .labels(wmf.getFamily(), logbookTypeProcess.name().toLowerCase(), step.getStepName())
+            .labels(wmf.getFamily(), logbookTypeProcess.name(), step.getStepName())
             .inc();
 
         return CompletableFuture
@@ -885,12 +878,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             .increment(StatusCode.FATAL));
             })
             .thenApply(is -> {
-
-                // Decrement as this task is completed
-                CommonProcessingMetrics.CURRENTLY_INSTANTIATED_TASKS
-                    .labels(wmf.getFamily(), logbookTypeProcess.name().toLowerCase(), step.getStepName())
-                    .dec();
-
                 //Do not update processed if pause or cancel occurs or if status is Fatal
                 if (StatusCode.UNKNOWN.equals(is.getGlobalStatus()) || StatusCode.FATAL.equals(is.getGlobalStatus())) {
                     return is;
@@ -898,6 +885,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 // update processed elements
                 ProcessStep processStep = (ProcessStep) step;
                 processStep.getElementProcessed().addAndGet(task.getObjectNameList().size());
+                return is;
+            })
+            .thenApply(is -> {
+                // Decrement as this task is completed
+                CommonProcessingMetrics.CURRENTLY_INSTANTIATED_TASKS
+                    .labels(wmf.getFamily(), logbookTypeProcess.name(), step.getStepName())
+                    .dec();
                 return is;
             });
     }

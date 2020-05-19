@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * With the example above, sample metric names would be:
  * <pre>
- *     vitam_workflow_operation_total{workflow="ingest"}
+ *     vitam_processing_workflow_operation_total{workflow="ingest"}
  * </pre>
  */
 public class ProcessWorkflowMetricsCollector extends Collector {
@@ -61,21 +61,26 @@ public class ProcessWorkflowMetricsCollector extends Collector {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        Gauge processWorkflowMetricPerTypeStateAndStatus = Gauge.build("vitam_workflow_operation_total",
+        Gauge processWorkflowMetricPerTypeStateAndStatus = Gauge.build("vitam_processing_workflow_operation_total",
             "Vitam operation count per state and status").labelNames("workflow", "state", "status").create();
 
         for (Map<String, ProcessWorkflow> all : workflowMap.values()) {
             for (ProcessWorkflow wf : all.values()) {
-                processWorkflowMetricPerTypeStateAndStatus.labels(wf.getLogbookTypeProcess().name().toLowerCase(),
-                    wf.getState().name().toLowerCase(),
-                    wf.getStatus().name().toLowerCase()).inc();
+                processWorkflowMetricPerTypeStateAndStatus.labels(wf.getLogbookTypeProcess().name(),
+                    wf.getState().name(),
+                    wf.getStatus().name()).inc();
             }
         }
         return processWorkflowMetricPerTypeStateAndStatus.collect();
     }
 
+
     public void initialize(
         Map<Integer, Map<String, ProcessWorkflow>> workflowMap) {
+        if (!(workflowMap instanceof ConcurrentHashMap)) {
+            throw new IllegalArgumentException("Only ConcurrentHashMap is accepted");
+        }
+
         this.workflowMap = workflowMap;
     }
 }
