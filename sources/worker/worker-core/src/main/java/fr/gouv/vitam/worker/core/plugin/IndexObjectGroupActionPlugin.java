@@ -124,7 +124,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                     itemStatus.increment(StatusCode.FATAL);
                 } catch (final ProcessingException e) {
                     LOGGER.error(e);
-                    itemStatus.increment(StatusCode.WARNING);
+                    itemStatus.increment(StatusCode.KO);
                 }
 
                 if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {

@@ -1,0 +1,82 @@
+[
+  {
+    "Identifier": "MyKeyword",
+    "ApiField": "MyKeyword",
+    "Origin": "EXTERNAL",
+    "Type": "KEYWORD",
+    "Description": "Extension au SEDA. Elément de type mot clé",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "MyText",
+    "ApiField": "MyText",
+    "Origin": "EXTERNAL",
+    "Type": "TEXT",
+    "Description": "Extension au SEDA. Elément de type texte",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "MyDate",
+    "ApiField": "MyDate",
+    "Origin": "EXTERNAL",
+    "Type": "DATE",
+    "Description": "Extension au SEDA. Elément de type date",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "MyBoolean",
+    "ApiField": "MyBoolean",
+    "Origin": "EXTERNAL",
+    "Type": "BOOLEAN",
+    "Description": "Extension au SEDA. Elément de type booléen",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "MyLong",
+    "ApiField": "MyLong",
+    "Origin": "EXTERNAL",
+    "Type": "LONG",
+    "Description": "Extension au SEDA. Elément de type chiffre",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "MyDouble",
+    "ApiField": "MyDouble",
+    "Origin": "EXTERNAL",
+    "Type": "DOUBLE",
+    "Description": "Extension au SEDA. Elément de type décimal",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "MyGeoPoint",
+    "ApiField": "MyGeoPoint",
+    "Origin": "EXTERNAL",
+    "Type": "GEO_POINT",
+    "Description": "Extension au SEDA. Elément de type gps",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "MyEnum",
+    "ApiField": "MyEnum",
+    "Origin": "EXTERNAL",
+    "Type": "ENUM",
+    "Description": "Extension au SEDA. Elément de type énumératif",
+    "Collections": [
+      "Unit", "ObjectGroup"
+    ]
+  }
+]
