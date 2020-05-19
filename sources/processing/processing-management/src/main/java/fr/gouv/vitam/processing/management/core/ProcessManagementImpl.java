@@ -50,6 +50,7 @@ import fr.gouv.vitam.processing.common.automation.IEventsState;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
+import fr.gouv.vitam.processing.common.metrics.ProcessWorkflowMetricsCollector;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -103,6 +104,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     private final List<LogbookTypeProcess> pausedTypeProcesses;
     private Boolean pauseAll;
 
+
     public ProcessManagementImpl(ServerConfiguration config, ProcessDistributor processDistributor)
         throws ProcessingStorageWorkspaceException {
         this(config, processDistributor, ProcessDataAccessImpl.getInstance(),
@@ -126,6 +128,9 @@ public class ProcessManagementImpl implements ProcessManagement {
         pauseAll = Boolean.FALSE;
         this.processDistributor = processDistributor;
         this.workspaceProcessDataManagement = processDataManagement;
+
+        ProcessWorkflowMetricsCollector.getInstance().initialize(this.processDataAccess.getWorkFlowList());
+
         new ProcessWorkFlowsCleaner(this, TimeUnit.HOURS);
         new WorkflowsLoader(this);
 

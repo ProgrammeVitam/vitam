@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
@@ -146,6 +147,8 @@ public class WorkerManagerTest {
     private DescriptionStep getDescriptionStep(String familyId) {
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
         params.setWorkerGUID(GUIDFactory.newGUID().getId());
+        params.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+
         final Step step = new Step().setStepName("TEST").setWorkerGroupId(familyId);
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
@@ -161,6 +164,7 @@ public class WorkerManagerTest {
     public void givenCorrectQueueAndCorrectAsyncWhenSubmitJobThenOK() throws Exception {
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
         params.setWorkerGUID(GUIDFactory.newGUID().getId());
+        params.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
         final Step step = new Step().setStepName("TEST");
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();

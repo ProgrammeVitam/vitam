@@ -34,6 +34,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
+import io.prometheus.client.hotspot.DefaultExports;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -42,6 +45,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Collections;
+import java.util.Set;
 
 
 /**
@@ -61,6 +69,7 @@ public class AdminStatusResource {
      */
     public static final String AUTOTEST_URL = VitamConfiguration.AUTOTEST_URL;
     public static final String VERSION_URL = VitamConfiguration.VERSION_URL;
+    public static final String METRIC_URL = VitamConfiguration.METRIC_URL;
     private final VitamStatusService statusService;
     private final VitamServiceRegistry autotestService;
 
@@ -97,8 +106,9 @@ public class AdminStatusResource {
      * @param autotestService
      */
     public AdminStatusResource(VitamServiceRegistry autotestService) {
-        statusService = new BasicVitamStatusServiceImpl();
-        this.autotestService = autotestService;
+        this(new BasicVitamStatusServiceImpl(), autotestService);
+
+
     }
 
     /**
@@ -159,4 +169,23 @@ public class AdminStatusResource {
         return Response.status(status.get("httpCode").asInt())
             .entity(status).build();
     }
+
+    @Path(METRIC_URL)
+    @GET
+    @Produces(TextFormat.CONTENT_TYPE_004)
+    public Response prometheusMetrics() {
+
+        return Response
+            .ok()
+            .type(TextFormat.CONTENT_TYPE_004)
+            .entity((StreamingOutput)
+                output -> {
+                    try (final Writer writer = new OutputStreamWriter(output)) {
+                        TextFormat.write004(writer,
+                            CollectorRegistry.defaultRegistry.metricFamilySamples());
+                    }
+                })
+            .build();
+    }
+
 }

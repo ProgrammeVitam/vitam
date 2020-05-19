@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -89,6 +90,16 @@ public class ProcessWorkflow {
 
 
     private Map<String, String> parameters = new HashMap<>();
+
+    public ProcessWorkflow() {
+    }
+
+    @VisibleForTesting
+    public ProcessWorkflow(LogbookTypeProcess logbookTypeProcess, StatusCode status, ProcessState state) {
+        this.logbookTypeProcess = logbookTypeProcess;
+        this.status = status;
+        this.state = state;
+    }
 
     /**
      * Set the state of the workflow process

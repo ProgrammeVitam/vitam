@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.distributor.core;
 
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 import java.util.Map;
@@ -38,15 +39,18 @@ import java.util.concurrent.Executor;
 // manage many worker per worker family
 public class WorkerFamilyManager implements Executor {
 
+    private final String family;
 
     private BlockingQueue<Runnable> queue;
 
     private Map<String, WorkerExecutor> workers = new ConcurrentHashMap<>();
 
-    public WorkerFamilyManager(int queueSize) {
+
+    public WorkerFamilyManager(String family, int queueSize) {
         if (queueSize < 2) {
             throw new IllegalArgumentException("queue size must be greater than 2");
         }
+        this.family = family;
         queue = new ArrayBlockingQueue<>(queueSize, true);
     }
 
@@ -58,10 +62,11 @@ public class WorkerFamilyManager implements Executor {
                 thread.setName("WorkerExecutor_" + workerBean.getWorkerId());
                 thread.start();
             }
+
+            CommonProcessingMetrics.REGISTERED_WORKERS.labels(family).inc();
+
             return executor;
         });
-
-
     }
 
     /**
@@ -72,13 +77,18 @@ public class WorkerFamilyManager implements Executor {
         final WorkerExecutor workerExecutor = workers.get(workerId);
         if (workerExecutor != null) {
             workerExecutor.stop();
+            // TODO wait the async stop to be effective
             workers.remove(workerId);
+
+            CommonProcessingMetrics.REGISTERED_WORKERS.labels(family).dec();
         }
     }
 
     @Override
     public void execute(Runnable command) {
         try {
+            CommonProcessingMetrics.WORKER_TASKS_IN_QUEUE.labels(family).inc();
+
             queue.put(command);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -87,5 +97,9 @@ public class WorkerFamilyManager implements Executor {
 
     public Map<String, WorkerExecutor> getWorkers() {
         return workers;
+    }
+
+    public String getFamily() {
+        return family;
     }
 }

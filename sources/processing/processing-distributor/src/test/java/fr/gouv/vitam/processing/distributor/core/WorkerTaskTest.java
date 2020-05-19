@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -172,9 +173,11 @@ public class WorkerTaskTest {
         when(workerClient.submitStep(eq(descriptionStep)))
             .thenThrow(new WorkerServerClientException("Unreachable server"));
 
-        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException()).doNothing().when(workerClient).checkStatus();
+        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException()).doNothing().when(workerClient)
+            .checkStatus();
         task.get();
     }
+
     @RunWithCustomExecutor
     @Test
     public void with_completable_feature_test_worker_task_get_then_WorkerUnreachableException() throws Exception {
@@ -191,7 +194,7 @@ public class WorkerTaskTest {
         doThrow(new UnresolvedAddressException(), new UnresolvedAddressException(),
             new UnresolvedAddressException()).when(workerClient).checkStatus();
 
-        WorkerFamilyManager workerFamilyManager = new WorkerFamilyManager(10);
+        WorkerFamilyManager workerFamilyManager = new WorkerFamilyManager("family", 10);
         workerFamilyManager.registerWorker(WORKER_DESCRIPTION);
 
 
@@ -214,6 +217,7 @@ public class WorkerTaskTest {
     private DescriptionStep getDescriptionStep(String familyId) {
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
         params.setWorkerGUID(GUIDFactory.newGUID().getId());
+        params.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
         final Step step = new Step().setStepName("TEST").setWorkerGroupId(familyId);
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();

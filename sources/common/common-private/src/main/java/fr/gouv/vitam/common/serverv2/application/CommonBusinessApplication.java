@@ -38,6 +38,8 @@ import fr.gouv.vitam.common.server.RequestIdGeneratorContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
 import fr.gouv.vitam.common.serverv2.metrics.MetricsFeature;
+import io.prometheus.client.dropwizard.DropwizardExports;
+import io.prometheus.client.hotspot.DefaultExports;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,14 +112,24 @@ public class CommonBusinessApplication {
         } catch (final IOException e) {
             LOGGER.warn(e.getMessage());
         }
-
+        VitamMetrics vitamMetrics;
         if (metricsConfiguration.hasMetricsJersey()) {
-            metrics.put(VitamMetricsType.REST, new VitamMetrics(VitamMetricsType.REST, metricsConfiguration));
+            vitamMetrics = new VitamMetrics(VitamMetricsType.REST, metricsConfiguration);
+            new DropwizardExports(vitamMetrics.getRegistry()).register();
+            metrics.put(VitamMetricsType.REST, vitamMetrics);
         }
         if (metricsConfiguration.hasMetricsJVM()) {
-            metrics.put(VitamMetricsType.JVM, new VitamMetrics(VitamMetricsType.JVM, metricsConfiguration));
+            vitamMetrics = new VitamMetrics(VitamMetricsType.JVM, metricsConfiguration);
+            new DropwizardExports(vitamMetrics.getRegistry()).register();
+            metrics.put(VitamMetricsType.JVM, vitamMetrics);
+
+            // Initialize JVM prometheus metrics
+            DefaultExports.initialize();
         }
-        metrics.put(VitamMetricsType.BUSINESS, new VitamMetrics(VitamMetricsType.BUSINESS, metricsConfiguration));
+
+        vitamMetrics = new VitamMetrics(VitamMetricsType.BUSINESS, metricsConfiguration);
+        new DropwizardExports(vitamMetrics.getRegistry()).register();
+        metrics.put(VitamMetricsType.BUSINESS, vitamMetrics);
     }
 
     /**

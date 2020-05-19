@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerTaskState;
 import fr.gouv.vitam.worker.client.WorkerClient;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+import io.prometheus.client.Histogram;
 
 // Task simulating a call to a worker
 public class WorkerTask implements Supplier<ItemStatus> {
@@ -63,6 +65,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
     private volatile WorkerTaskState workerTaskState = WorkerTaskState.PENDING;
 
     private WorkerClientFactory workerClientFactory = null;
+    private Histogram.Timer taskWaitingTimeDuration;
 
 
     public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId,
@@ -90,6 +93,10 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
     @Override
     public ItemStatus get() {
+        if (null != taskWaitingTimeDuration) {
+            taskWaitingTimeDuration.observeDuration();
+        }
+
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadUtils.getVitamSession().setContractId(contractId);
@@ -123,7 +130,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
                     case ACTION_RECOVER:
                     case ACTION_REPLAY:
                         workerTaskState = WorkerTaskState.RUNNING;
-                        return workerClient.submitStep(descriptionStep);
+                        return callWorker(workerBean, workerClient);
                     case ACTION_PAUSE:
                         // The current elements will be persisted in the distributorIndex in the remaining elements
                         workerTaskState = WorkerTaskState.PAUSE;
@@ -189,6 +196,23 @@ public class WorkerTask implements Supplier<ItemStatus> {
         }
     }
 
+    private ItemStatus callWorker(WorkerBean workerBean, WorkerClient workerClient)
+        throws WorkerNotFoundClientException, WorkerServerClientException {
+        // Add metrics
+        Histogram.Timer workerTaskTimer = CommonProcessingMetrics.WORKER_TASKS_EXECUTION_DURATION_HISTOGRAM
+            .labels(workerBean.getFamily(),
+                workerBean.getName(),
+                descriptionStep.getWorkParams().getLogbookTypeProcess().name().toLowerCase(),
+                descriptionStep.getStep().getStepName())
+            .startTimer();
+        try {
+            return workerClient.submitStep(descriptionStep);
+        } finally {
+            // Add metric on worker task execution duration
+            workerTaskTimer.observeDuration();
+        }
+    }
+
     boolean checkStatusWorker(WorkerClient workerClient, String serverHost, int serverPort) {
         try {
             workerClient.checkStatus();
@@ -213,5 +237,9 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
     public boolean isCompleted() {
         return WorkerTaskState.COMPLETED.equals(workerTaskState);
+    }
+
+    public void setTimer(Histogram.Timer taskWaitingTimeDuration) {
+        this.taskWaitingTimeDuration = taskWaitingTimeDuration;
     }
 }
