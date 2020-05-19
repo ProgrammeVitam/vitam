@@ -1,0 +1,74 @@
+{
+	"_id": "aebaaaaaaacyojsgaay5ialsckziacaaaaaq",
+	"_tenant": 0,
+	"_profil": "",
+	"FileInfo": {
+		
+	},
+	"_qualifiers": [
+		{
+			"qualifier": "Thumbnail",
+			"_nbc": 1,
+			"versions": [
+				{
+					"_id": "aeaaaaaaaacyojsgaay5ialsckz6pbaaaaaq",
+					"DataObjectGroupId": "aebaaaaaaacyojsgaay5ialsckziacaaaaaq",
+					"DataObjectVersion": "Thumbnail_1",
+					"FormatIdentification": {
+						"FormatLitteral": "Plain Text File",
+						"MimeType": "text/plain",
+						"FormatId": "x-fmt/111"
+					},
+					"FileInfo": {
+						"Filename": "pdf.jpg",
+						"LastModified": "2018-05-22T16:21:50.731+02:00"
+					},
+					"_opi": "aedaaaaaaccyojsgaay5ialsckz5m4qaaaba",
+					"Size": 9968,
+					"Uri": "Content/ID5.jpg",
+					"MessageDigest": "659e4527aa89e1f5a401c9026ce7ec106aec27142cd7bf9d0f9e387a167893eb1fb35e1a0e244a5697c3c1c7fb6bee1484a2760998b38e5c2c4ddd9ae3d0c1ff",
+					"Algorithm": "SHA-512",
+					"_storage": {
+						"strategyId": "default"
+					}
+				}
+			]
+		}
+	],
+	"_work": {
+		"_qualifiers": {
+			"Thumbnail": {
+				"_nbc": 1,
+				"versions": [
+					{
+						"_id": "aeaaaaaaaacyojsgaay5ialsckz6pbaaaaaq",
+						"_opi": "aedaaaaaaccyojsgaay5ialsckz5m4qaaaba",
+						"Size": 9968,
+						"Uri": "Content/ID5.jpg",
+						"MessageDigest": "659e4527aa89e1f5a401c9026ce7ec106aec27142cd7bf9d0f9e387a167893eb1fb35e1a0e244a5697c3c1c7fb6bee1484a2760998b38e5c2c4ddd9ae3d0c1ff",
+						"Algorithm": "SHA-512",
+						"_storage": {
+							"strategyId": "default"
+						}
+					}
+				]
+			}
+		},
+		"DataObjectGroupExistingReferenceId": "aebaaaaaaacyojsgaay5ialsckziacaaaaaq"
+	},
+	"_up": [
+		"aeaqaaaaaacyojsgaay5ialsckziafyaaaaq"
+	],
+	"_nbc": 1,
+	"_ops": [
+		"aedaaaaaaccyojsgaay5ialsckz5m4qaaaba"
+	],
+	"_opi": "aedaaaaaaccyojsgaay5ialsckz5m4qaaaba",
+	"_sp": "P-A",
+	"_sps": [
+		"P-A"
+	],
+	"_storage": {
+		"strategyId": "default"
+	}
+}
