@@ -150,7 +150,7 @@
         <jclouds.version>2.1.3</jclouds.version>
         <openstack4j.version>3.2.0</openstack4j.version>
         <awssdk.v1.version>1.11.720</awssdk.v1.version>
-        
+
         <!-- jetty -->
         <jetty.version>9.4.27.v20200227</jetty.version>
 
@@ -161,6 +161,7 @@
         <!-- Metrics -->
         <metrics.version>4.1.0-rc3</metrics.version>
         <metrics.jvm.version>4.1.0-rc3</metrics.jvm.version>
+        <prometheus-version>0.8.1</prometheus-version>
         <metrics.elastic.version>2.3.0-VITAM</metrics.elastic.version>
         <jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
         <skipITs>false</skipITs>
@@ -1558,6 +1559,31 @@
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jvm</artifactId>
                 <version>${metrics.jvm.version}</version>
+            </dependency>
+
+            <!-- Prometheus common -->
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_common</artifactId>
+                <version>${prometheus-version}</version>
+            </dependency>
+            <!-- Prometheus the client -->
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient</artifactId>
+                <version>${prometheus-version}</version>
+            </dependency>
+            <!-- Prometheus hotspot JVM metrics-->
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_hotspot</artifactId>
+                <version>${prometheus-version}</version>
+            </dependency>
+            <!-- Prometheus get dropwizard metrics-->
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_dropwizard</artifactId>
+                <version>${prometheus-version}</version>
             </dependency>
 
             <!-- ####################### Json validation ####################### -->

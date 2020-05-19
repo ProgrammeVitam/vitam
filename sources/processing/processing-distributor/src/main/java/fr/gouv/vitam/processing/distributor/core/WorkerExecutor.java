@@ -26,13 +26,14 @@
  */
 package fr.gouv.vitam.processing.distributor.core;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.stream.IntStream;
-
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.worker.client.exception.WorkerExecutorException;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.stream.IntStream;
 
 /**
  * manage one worker with n thread
@@ -57,19 +58,22 @@ public class WorkerExecutor implements Runnable {
             while (true) {
                 Runnable task = queue.take();
 
+                // Add metric on the number of tasks in the queue
+                CommonProcessingMetrics.WORKER_TASKS_IN_QUEUE.labels(workerBean.getFamily()).dec();
+
                 if (checkIfWorkerThreadIsAlive(task)) {
                     break;
                 }
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Start task run on worker: " + workerBean.getName());
                 }
+
                 try {
                     task.run();
                 } finally {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("End task run on worker: " + workerBean.getName());
                     }
-
                 }
             }
         } catch (Exception e) {

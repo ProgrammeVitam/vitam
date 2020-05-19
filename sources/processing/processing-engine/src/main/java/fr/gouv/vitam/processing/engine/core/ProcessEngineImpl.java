@@ -60,12 +60,14 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
+import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import io.prometheus.client.Histogram;
 import org.elasticsearch.common.Strings;
 
 import java.util.concurrent.CompletableFuture;
@@ -153,7 +155,8 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         CompletableFuture
             // call distributor in async mode
-            .supplyAsync(() -> callDistributor(step, this.workerParameters, operationId, pauseRecover), VitamThreadPoolExecutor.getDefaultExecutor())
+            .supplyAsync(() -> callDistributor(step, this.workerParameters, operationId, pauseRecover),
+                VitamThreadPoolExecutor.getDefaultExecutor())
             // When the distributor responds, finalize the logbook persistence
             .thenApply(distributorResponse -> {
                 try {
@@ -266,7 +269,15 @@ public class ProcessEngineImpl implements ProcessEngine {
      */
     private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId,
         PauseRecover pauseRecover) {
-        return processDistributor.distribute(workParams, step, operationId, pauseRecover);
+        Histogram.Timer stepExecutionDurationTimer =
+            CommonProcessingMetrics.PROCESS_WORKFLOW_STEP_EXECUTION_DURATION_HISTOGRAM
+                .labels(workParams.getLogbookTypeProcess().name(), step.getStepName())
+                .startTimer();
+        try {
+            return processDistributor.distribute(workParams, step, operationId, pauseRecover);
+        } finally {
+            stepExecutionDurationTimer.observeDuration();
+        }
     }
 
     /**

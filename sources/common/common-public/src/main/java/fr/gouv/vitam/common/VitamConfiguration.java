@@ -59,6 +59,12 @@ public class VitamConfiguration {
      * General admin version path
      */
     public static final String VERSION_URL = "/version";
+
+    /**
+     * General metric path
+     */
+    public static final String METRIC_URL = "/metrics";
+
     /**
      * General status path
      */

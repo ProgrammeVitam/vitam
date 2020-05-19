@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -159,6 +160,7 @@ public class ProcessDistributorImplTest {
         workerParameters = WorkerParametersFactory.newWorkerParameters();
         workerParameters.setWorkerGUID(GUIDFactory.newGUID().getId());
         workerParameters.setContainerName(operationId);
+        workerParameters.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
         processDataManagement = mock(ProcessDataManagement.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);

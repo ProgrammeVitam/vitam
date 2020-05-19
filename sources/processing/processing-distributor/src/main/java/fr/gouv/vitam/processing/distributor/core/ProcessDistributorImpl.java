@@ -46,12 +46,14 @@ import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
+import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -69,6 +71,7 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceBufferingInputStream;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.prometheus.client.Histogram;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 
 import javax.ws.rs.core.Response;
@@ -771,7 +774,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
 
             currentWorkerTaskList.add(workerTask);
-            completableFutureList.add(prepare(workerTask));
+            completableFutureList.add(prepare(workerTask, workerParameters.getLogbookTypeProcess()));
 
             subOffset = nextSubOffset;
         }
@@ -803,7 +806,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
 
             currentWorkerTaskList.add(workerTask);
-            completableFutureList.add(prepare(workerTask));
+            completableFutureList.add(prepare(workerTask, workerParameters.getLogbookTypeProcess()));
 
             distribOffSet = nextDistributionOffset;
         }
@@ -832,7 +835,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private CompletableFuture<ItemStatus> prepare(WorkerTask task) {
+    private CompletableFuture<ItemStatus> prepare(WorkerTask task, LogbookTypeProcess logbookTypeProcess) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {
@@ -840,6 +843,19 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             LOGGER.error("No WorkerFamilyManager found for : " + step.getWorkerGroupId());
             return CompletableFuture.completedFuture(new ItemStatus(step.getStepName()).increment(StatusCode.FATAL));
         }
+
+        // Add metrics compute duration of waiting time before execution of the task
+        Histogram.Timer taskWaitingTimeDuration = CommonProcessingMetrics.WORKER_TASKS_IDLE_DURATION_IN_QUEUE
+            .labels(wmf.getFamily(), logbookTypeProcess.name().toLowerCase(), step.getStepName())
+            .startTimer();
+
+        task.setTimer(taskWaitingTimeDuration);
+
+        // Add metrics increment as new task created
+        CommonProcessingMetrics.CURRENTLY_INSTANTIATED_TASKS
+            .labels(wmf.getFamily(), logbookTypeProcess.name().toLowerCase(), step.getStepName())
+            .inc();
+
         return CompletableFuture
             .supplyAsync(task, wmf)
             .exceptionally((completionException) -> {
@@ -869,6 +885,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             .increment(StatusCode.FATAL));
             })
             .thenApply(is -> {
+
+                // Decrement as this task is completed
+                CommonProcessingMetrics.CURRENTLY_INSTANTIATED_TASKS
+                    .labels(wmf.getFamily(), logbookTypeProcess.name().toLowerCase(), step.getStepName())
+                    .dec();
+
                 //Do not update processed if pause or cancel occurs or if status is Fatal
                 if (StatusCode.UNKNOWN.equals(is.getGlobalStatus()) || StatusCode.FATAL.equals(is.getGlobalStatus())) {
                     return is;

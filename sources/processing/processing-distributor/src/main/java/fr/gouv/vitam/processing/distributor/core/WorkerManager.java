@@ -122,7 +122,7 @@ public class WorkerManager implements IWorkerManager {
 
     @Override
     public void registerWorker(WorkerBean workerBean) throws IOException {
-        workersFamily.putIfAbsent(workerBean.getFamily(), new WorkerFamilyManager(QUEUE_SIZE));
+        workersFamily.putIfAbsent(workerBean.getFamily(), new WorkerFamilyManager(workerBean.getFamily(), QUEUE_SIZE));
         workersFamily.compute(workerBean.getFamily(), (key, workerManager) -> {
             workerManager.registerWorker(workerBean);
             return workerManager;
