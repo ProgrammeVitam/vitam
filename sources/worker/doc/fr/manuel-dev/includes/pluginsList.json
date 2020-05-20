@@ -4,6 +4,11 @@
 		"propertiesFile": "check_conformity_plugin.properties"
 	},
 
+	"CHECK_OBJECT_SIZE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckObjectSizeActionPlugin",
+		"propertiesFile": "check_object_size_plugin.properties"
+	},
+
 	"OG_OBJECTS_FORMAT_CHECK": {
 		"className": "fr.gouv.vitam.worker.core.plugin.FormatIdentificationActionPlugin",
 		"propertiesFile": "format_check_plugin.properties"

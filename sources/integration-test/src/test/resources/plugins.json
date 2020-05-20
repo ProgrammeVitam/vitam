@@ -3,6 +3,10 @@
     "className": "fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin",
     "propertiesFile": "check_conformity_plugin.properties"
   },
+  "CHECK_OBJECT_SIZE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.CheckObjectSizeActionPlugin",
+    "propertiesFile": "check_object_size_plugin.properties"
+  },
   "CHECK_ATTACHEMENT": {
     "className": "fr.gouv.vitam.worker.core.plugin.CheckAttachementActionHandler"
   },

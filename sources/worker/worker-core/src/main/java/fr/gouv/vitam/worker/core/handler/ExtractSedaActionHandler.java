@@ -97,9 +97,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -367,7 +367,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private ObjectNode archiveUnitTree;
     private Map<String, JsonNode> existingGOTs;
     private boolean asyncIO = true;
-
+    private Map<String, Long> fileWithParmsFromFolder;
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -428,6 +428,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
+        fileWithParmsFromFolder = new HashMap<>();
     }
 
     /**
@@ -451,6 +452,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final ItemStatus globalCompositeItemStatus = new ItemStatus(HANDLER_ID);
 
         UnitType workflowUnitType = getUnitType();
+        
+        loadFilesWithSizesFromWorkspace(handlerIO);
 
         try (LogbookLifeCyclesClient lifeCycleClient = handlerIO.getLifecyclesClient()) {
 
@@ -2133,6 +2136,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         PHYSICAL_DATA_OBJECT.equals(end.getName().getLocalPart())) {
                         jsonWriter.add(event);
                         jsonWriter.add(eventFactory.createEndDocument());
+                        if(BINARY_DATA_OBJECT.equals(end.getName().getLocalPart()) && bo.getSize() == null){
+                            bo.setSize(fileWithParmsFromFolder.get(bo.getUri()));
+                        }
                         objectGuidToDataObject.put(elementGuid, bo);
                         if (PHYSICAL_DATA_OBJECT.equals(end.getName().getLocalPart())) {
                             physicalDataObjetsGuids.add(elementGuid);
@@ -2227,7 +2233,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             break;
                         }
                         case SedaConstants.TAG_SIZE: {
-                            final long size = Long.parseLong(reader.getElementText());
+                            long size = Long.parseLong(reader.getElementText());
+                            Long binaryFileSize = fileWithParmsFromFolder.get(bo.getUri());
+                            if( binaryFileSize!= null && binaryFileSize != size) {
+                                size = binaryFileSize;
+                                bo.setSizeIncorrect(Boolean.TRUE);
+                            }
                             bo.setSize(size);
                             break;
                         }
@@ -2285,13 +2296,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 dataObjectIdToObjectGroupId.remove(dataObjectId);
                 postDataObjectActions(elementGuid + JSON_EXTENSION, dataObjectId);
             }
-
-
-        } catch (final InvalidParseOperationException | IOException | XMLStreamException e) {
+        } catch (final InvalidParseOperationException | IOException | XMLStreamException e)  {
             LOGGER.error(e);
             throw new ProcessingException(e);
-        }
-
+        } 
         return groupGuid;
     }
 
@@ -3082,6 +3090,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (!isPhysical) {
             if (objectGuidToDataObject.get(guid).getSize() != null) {
                 objectNode.put(SedaConstants.TAG_SIZE, objectGuidToDataObject.get(guid).getSize());
+                Boolean isSizeChanged = objectGuidToDataObject.get(guid).getSizeIncorrect();
+                if (isSizeChanged) {
+                    ObjectNode work = JsonHandler.createObjectNode();
+                    work.put(IngestWorkflowConstants.IS_SIZE_INCORRECT, isSizeChanged);
+                    objectNode.set(SedaConstants.PREFIX_WORK, work);
+                }
             }
             if (objectGuidToDataObject.get(guid).getUri() != null) {
                 objectNode.put(SedaConstants.TAG_URI, objectGuidToDataObject.get(guid).getUri());
@@ -3176,6 +3190,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Could not get ontology", e);
             throw new ProcessingException(e);
+        }
+    }
+
+    private void loadFilesWithSizesFromWorkspace(HandlerIO handlerIO) {
+        try {
+            this.fileWithParmsFromFolder = handlerIO.getFilesWithParamsFromWorkspace(handlerIO.getContainerName(),
+                IngestWorkflowConstants.SEDA_FOLDER);
+        } catch (ProcessingException e) {
+            LOGGER.debug("Workspace Server Error when loading files with params", e);
         }
     }
 
