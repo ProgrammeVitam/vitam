@@ -42,7 +42,6 @@ public final class DataObjectInfo {
     private DigestType algo;
     private String physicalId;
     private String type;
-    private Boolean isSizeIncorrect = Boolean.FALSE;
 
 
     /**
@@ -197,16 +196,4 @@ public final class DataObjectInfo {
         return this;
     }
 
-    /**
-     * TO detecte if size has changed between manifest and binary file
-     * @return
-     */
-    public Boolean getSizeIncorrect() {
-        return isSizeIncorrect;
-    }
-
-    public DataObjectInfo setSizeIncorrect(Boolean sizeIncorrect) {
-        this.isSizeIncorrect = sizeIncorrect;
-        return this;
-    }
 }

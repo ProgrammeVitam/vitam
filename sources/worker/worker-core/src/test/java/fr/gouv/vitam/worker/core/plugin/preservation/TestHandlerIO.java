@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -176,12 +174,6 @@ public class TestHandlerIO implements HandlerIO {
     public File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         return this.transferedFileToWorkspaceMap.get(objectName);
-    }
-
-    @Override
-    public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
-        throws ProcessingException {
-        throw new VitamRuntimeException("Not implemented");
     }
 
     @Override

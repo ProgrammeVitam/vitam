@@ -37,7 +37,6 @@ import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
@@ -47,7 +46,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface of HandlerIO for all Handlers
@@ -212,16 +210,6 @@ public interface HandlerIO extends VitamAutoCloseable {
     File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException;
-
-    /**
-     * get Map of File With Params From folder in Workspace
-     * @param containerName
-     * @param folderName
-     * @return
-     * @throws ProcessingException
-     */
-    Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
-        throws ProcessingException;
 
     /**
      * Helper to get an InputStream (using local cache if possible) from Workspace<br/>
