@@ -29,6 +29,7 @@ package fr.gouv.vitam.workspace.common;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
@@ -41,6 +42,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 
 public interface WorkspaceContentAddressableStorage {
@@ -299,5 +301,8 @@ public interface WorkspaceContentAddressableStorage {
     long countObjects(String containerName) throws ContentAddressableStorageException;
 
     void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)
+        throws ContentAddressableStorageException;
+
+    Map<String, FileParams> getFilesWithParamsFromFolder(String containerName, String folderName)
         throws ContentAddressableStorageException;
 }

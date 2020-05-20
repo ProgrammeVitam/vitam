@@ -57,6 +57,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -99,7 +100,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static fr.gouv.vitam.common.stream.StreamUtils.closeSilently;
@@ -641,6 +644,51 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     // Same as getFolderPath but...
     private Path getObjectPath(String containerName, String objectName) {
         return Paths.get(root.toString(), containerName, objectName);
+    }
+
+    /**
+     * This method get all files in folder and return a map with the uri as a key and the value is a FileParams
+     * that contains whatever it needs. This method can have a huge usage of memory so extract only useful data 
+     * in callable clients.
+     * @param containerName
+     * @param folderName
+     * @return
+     * @throws ContentAddressableStorageException
+     */
+    @Override
+    public Map<String, FileParams> getFilesWithParamsFromFolder(String containerName, String folderName) throws ContentAddressableStorageException {
+        
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),containerName);
+        ParametersChecker.checkParameter(ErrorMessage.FOLDER_NOT_FOUND.getMessage(), folderName);
+        
+        if (!isExistingContainer(containerName)) {
+            throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
+        }
+        if (!isExistingFolder(containerName, folderName)) {
+            LOGGER.debug(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
+            return new HashMap<>();
+        }
+
+        try {
+            Path folderPath = getFolderPath(containerName, folderName);
+            final Map<String,FileParams> filesWithParamsMap = new HashMap<>();
+            Files.walkFileTree(folderPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (attrs.isDirectory()) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    FileParams fileParams = new FileParams();
+                    String pathFile = file.toString().replace(folderPath.toString() + "/", "");
+                    fileParams.setSize(file.toFile().length());
+                    filesWithParamsMap.put(pathFile, fileParams);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            return filesWithParamsMap;
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
+        }
     }
 
     /**
