@@ -94,8 +94,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -107,6 +107,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
@@ -435,8 +436,12 @@ public class ProcessingIT extends VitamRuleRunner {
             // call processing
             metaDataClient.insertUnitBulk(
                 new BulkUnitInsertRequest(Arrays.asList(
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    new BulkUnitInsertEntry(Collections.emptySet(), addOpiToMetadata(JsonHandler
+                            .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")),
+                        containerName)),
+                    new BulkUnitInsertEntry(Collections.emptySet(),
+                        addOpiToMetadata(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)),
+                            containerName))
                 )));
 
             metaDataClient.refreshUnits();
@@ -538,9 +543,14 @@ public class ProcessingIT extends VitamRuleRunner {
             // call processing
             metaDataClient.insertUnitBulk(
                 new BulkUnitInsertRequest(Arrays.asList(
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    new BulkUnitInsertEntry(Collections.emptySet(), addOpiToMetadata(JsonHandler
+                            .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")),
+                        containerName)),
+                    new BulkUnitInsertEntry(Collections.emptySet(),
+                        addOpiToMetadata(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)),
+                            containerName))
                 )));
+
 
             metaDataClient.refreshUnits();
             // import contract
@@ -622,6 +632,10 @@ public class ProcessingIT extends VitamRuleRunner {
             assertThat(storageVersion.get("_nbc")).isNull();
             assertThat(storageVersion.get("offerIds")).isNull();
         }
+    }
+
+    private JsonNode addOpiToMetadata(JsonNode jsonNode, String operationId) {
+        return ((ObjectNode) jsonNode).put(MetadataDocument.OPI, operationId);
     }
 
     @RunWithCustomExecutor
@@ -2926,8 +2940,12 @@ public class ProcessingIT extends VitamRuleRunner {
             // call processing
             metaDataClient.insertUnitBulk(
                 new BulkUnitInsertRequest(Arrays.asList(
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    new BulkUnitInsertEntry(Collections.emptySet(), addOpiToMetadata(JsonHandler
+                            .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")),
+                        containerName)),
+                    new BulkUnitInsertEntry(Collections.emptySet(),
+                        addOpiToMetadata(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)),
+                            containerName))
                 )));
 
             metaDataClient.refreshUnits();

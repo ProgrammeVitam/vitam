@@ -186,6 +186,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.SedaConstants.TAG_LOGBOOK;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.EXISTING_UNITS;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.agentIdentifier;
@@ -227,9 +228,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
     private static final int EXISTING_GOT_RANK = 9;
     private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
-    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 13;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 14;
     private static final int ONTOLOGY_IO_RANK = 11;
     private static final int EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK = 12;
+    private static final int EXISTING_UNITS_GUID_FOR_ATTACHMENT_RANK = 13;
 
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
@@ -1288,6 +1290,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         HandlerUtils
             .saveMap(handlerIO, existingGOTGUIDToNewGotGUIDInAttachment,
                 EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK,
+                true, asyncIO);
+
+        HandlerUtils
+            .saveMap(handlerIO, Collections.singletonMap(EXISTING_UNITS, existingUnitGuids),
+                EXISTING_UNITS_GUID_FOR_ATTACHMENT_RANK,
                 true, asyncIO);
     }
 

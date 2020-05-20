@@ -1,0 +1,76 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer
+        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2016-10-18T11:20:26</Date>
+    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+    <ArchivalAgreement>ContractWithAttachment</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID5">
+            <DataObjectGroupId>ID4</DataObjectGroupId>
+            <DataObjectVersion>Thumbnail</DataObjectVersion>
+            <Uri>Content/ID5.jpg</Uri>
+            <MessageDigest algorithm="SHA-512">
+                659e4527aa89e1f5a401c9026ce7ec106aec27142cd7bf9d0f9e387a167893eb1fb35e1a0e244a5697c3c1c7fb6bee1484a2760998b38e5c2c4ddd9ae3d0c1ff
+            </MessageDigest>
+            <Size>9968</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>pdf.jpg</Filename>
+                <LastModified>2018-05-22T16:21:50.731+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Management>
+                    <UpdateOperation>
+                        <ArchiveUnitIdentifierKey>
+                            <MetadataName>OBJECT_GROUP_PROPERTY</MetadataName>
+                            <MetadataValue>GUID_OBJECT_GROUP_PARENT</MetadataValue>
+                        </ArchiveUnitIdentifierKey>
+                    </UpdateOperation>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Titre de test</Title>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID4</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>RATP</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
