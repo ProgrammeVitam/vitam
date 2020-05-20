@@ -169,7 +169,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.exists;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
@@ -275,12 +274,11 @@ public class ProcessingIT extends VitamRuleRunner {
     private static String SIP_ARBRE_3062 = "integration-processing/3062_arbre.zip";
 
     private static String SIP_PROD_SERV_A = "integration-processing/Sip_A.zip";
-    private static String SIP_MDD_SEDA_GOT = "integration-processing/SIP_MDD_SEDA_GOT.zip";
     private static String SIP_PROD_SERV_B_ATTACHED = "integration-processing/SIP_B";
     private static String ADD_OBJET_TO_GOT = "integration-processing/ADD_OBJET_TO_GOT";
 
     private static String SIP_FULL_SEDA_2_1 = "integration-processing/OK_SIP_FULL_SEDA2.1.zip";
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
@@ -2706,109 +2704,6 @@ public class ProcessingIT extends VitamRuleRunner {
         });
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void test_attach_to_au_then_add_object_to_with_alternative_date_format_ontology() throws Exception {
-        prepareVitamSession();
-        // 1. First we create an AU by sip
-        String containerName = createOperationContainer();
-
-        InputStream zipStream =
-            PropertiesUtils.getResourceAsStream(SIP_MDD_SEDA_GOT);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipStream);
-        
-        StreamUtils.closeSilently(zipStream);
-
-        // call processing
-        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
-
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
-        RequestResponse<ItemStatus> requestResponse =
-            processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
-                RESUME.getValue());
-
-        assertNotNull(requestResponse);
-        assertThat(requestResponse.isOk()).isTrue();
-        assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
-        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
-
-        wait(containerName);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        
-        Document operation =
-                (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
-        
-        // 2. Add object to an existing GOT
-        containerName = createOperationContainer();
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
-
-        // prepare zip
-        MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find(exists("_og", true));
-        Document unit = resultUnits.first();
-        String idUnit = (String) unit.getString("_id");
-        String idGot = (String) unit.getString("_og");
-        
-        replaceStringInFile(ADD_OBJET_TO_GOT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-            idUnit);
-        String zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                "/" + zipName;
-        zipFolder(PropertiesUtils.getResourcePath(ADD_OBJET_TO_GOT), zipPath);
-
-
-        // use link sip
-        zipStream = new FileInputStream(new File(
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                "/" + zipName));
-
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipStream);
-
-        StreamUtils.closeSilently(zipStream);
-
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
-        requestResponse =
-            processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
-                RESUME.getValue());
-        assertNotNull(requestResponse);
-        assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
-
-        wait(containerName);
-        processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        assertNotNull(processWorkflow.getSteps());
-        operation =
-                (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
-        
-        MongoIterable<Document> resultGots = MetadataCollections.OBJECTGROUP.getCollection().find(eq("_id", idGot));
-        Document got = resultGots.first();
-        assertNotNull(got);
-        JsonNode gotJson = JsonHandler.getFromString(got.toJson());
-        List<JsonNode> versions = gotJson.findValues("versions");
-        assertEquals(2, versions.size());
-
-        try {
-            Files.delete(new File(zipPath).toPath());
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
-    }
-    
-    
     @RunWithCustomExecutor
     @Test
     public void test_attach_to_au_then_add_object_to_got_then_check_accession_register() throws Exception {
