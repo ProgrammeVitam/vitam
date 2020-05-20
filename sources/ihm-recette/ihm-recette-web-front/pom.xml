@@ -5,7 +5,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>ihm-recette</artifactId>
-        <version>3.0.3</version>
+        <version>3.0.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>ihm-recette-front</artifactId>
