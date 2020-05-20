@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -57,9 +58,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.FileUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -76,6 +77,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handler input and output parameter
@@ -624,5 +626,26 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public WorkspaceClientFactory getWorkspaceClientFactory() {
         return workspaceClientFactory;
+    }
+
+    @Override
+    public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName) throws ProcessingException {
+        Map<String, Long> mapResults = new HashMap<>();
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            RequestResponse<Map<String, FileParams>> filesWithParamsFromFolderRequest =
+                workspaceClient.getFilesWithParamsFromFolder(containerName, folderName);
+            if (filesWithParamsFromFolderRequest != null && filesWithParamsFromFolderRequest.isOk()) {
+                Map<String, FileParams> resultMap = JsonHandler.getFromStringAsTypeReference(
+                    filesWithParamsFromFolderRequest
+                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<>() {
+                    });
+                mapResults = resultMap.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getSize()));
+            }
+        } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        }
+        return mapResults;
     }
 }

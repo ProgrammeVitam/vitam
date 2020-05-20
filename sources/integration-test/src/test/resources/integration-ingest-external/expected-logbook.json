@@ -234,6 +234,16 @@
       "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
+      "evType":"CHECK_OBJECT_SIZE",
+      "evDetData":"{}",
+      "evIdProc":"OPERATION_ID_REPLACE",
+      "evTypeProc":"INGEST",
+      "outcome":"OK",
+      "outDetail":"CHECK_OBJECT_SIZE.OK",
+      "outMessg":"Succès de la vérification de la taille des fichiers Detail=  OK:2",
+      "evIdReq":"OPERATION_ID_REPLACE"
+    },
+    {
       "evType": "OG_OBJECTS_FORMAT_CHECK",
       "evDetData": "{}",
       "evIdProc": "OPERATION_ID_REPLACE",

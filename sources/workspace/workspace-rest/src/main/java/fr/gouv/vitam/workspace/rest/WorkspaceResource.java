@@ -50,6 +50,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
@@ -515,7 +516,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     }
 
     /**
-     * gets the list of object from folder
+     * gets the list of URI of object from folder
      *
      * @param containerName name of container
      * @param folderName name of folder
@@ -553,6 +554,39 @@ public class WorkspaceResource extends ApplicationStatusResource {
             return Response.status(Status.NO_CONTENT).entity(Collections.<URI>emptyList()).build();
         }
         return Response.status(Status.OK).entity(uriList).build();
+
+    }
+
+    @Path("/containers/{containerName}/folders/{folderName:.*}/filesWithParams")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get Map of files with params from folder", description = "Permet de récupérer une Map des objets du dossier du container avec ses propres paramétres")
+    public Response getFilesWithParamsFromFolder(@PathParam(CONTAINER_NAME) String containerName, @PathParam(FOLDER_NAME) String folderName) {
+
+        Map<String, FileParams> filesWithParamsMap = null;
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, folderName);
+            workspace.checkWorkspaceFile(containerName, folderName);
+            filesWithParamsMap = workspace.getFilesWithParamsFromFolder(containerName, folderName);
+
+        } catch (IOException e) {
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
+            LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName);
+            return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
+        } catch (final ContentAddressableStorageException eAddressableStorageException) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), eAddressableStorageException);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        if (filesWithParamsMap == null || filesWithParamsMap.isEmpty()) {
+            return Response.status(Status.NO_CONTENT).entity(Collections.<URI>emptyList()).build();
+        }
+        return Response.status(Status.OK).entity(filesWithParamsMap).build();
 
     }
 

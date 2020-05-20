@@ -1,0 +1,84 @@
+{
+  "_id" : "aeaaaaaaaaf2zkp7abyvqalsbf3erriaaabb",
+  "_tenant" : 1,
+  "_profil" : "",
+  "FileInfo" : {
+    "Filename" : "Filename1",
+    "CreatingApplicationName" : "CreatingApplicationName1",
+    "CreatingApplicationVersion" : "CreatingApplicationVersion1",
+    "DateCreatedByApplication" : "2006-05-04T18:13:51.0",
+    "CreatingOs" : "CreatingOs0",
+    "CreatingOsVersion" : "CreatingOsVersion0",
+    "LastModified" : "2006-05-04T18:13:51.0"
+  },
+  "_qualifiers" : {
+    "PhysicalMaster" : {
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaaakwtamaai7cak32lvlypaaaaaq",
+        "DataObjectGroupId" : "aeaaaaaaaaf2zkp7abyvqalsbf3erriaaabb",
+        "DataObjectVersion" : "PhysicalMaster_155555",
+        "PhysicalId" : 123456789,
+        "PhysicalDimensions" : {
+          "Height" : 21,
+          "Length" : 29.7,
+          "Weight" : 1
+        }
+      } ]
+    },
+    "BinaryMaster" : {
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaaakwtamaai7cak32lvlyoyaaaaq",
+        "DataObjectGroupId" : "aeaaaaaaaaf2zkp7abyvqalsbf3erriaaabb",
+        "DataObjectVersion" : "BinaryMaster_1",
+        "FormatIdentification" : {
+          "FormatLitteral" : "Acrobat PDF 1.4 - Portable Document Format",
+          "MimeType" : "application/pdf",
+          "FormatId" : "fmt/18"
+        },
+        "FileInfo" : {
+          "Filename" : "Filename0",
+          "CreatingApplicationName" : "CreatingApplicationName0",
+          "CreatingApplicationVersion" : "CreatingApplicationVersion0",
+          "DateCreatedByApplication" : "2006-05-04T18:13:51.0",
+          "CreatingOs" : "CreatingOs0",
+          "CreatingOsVersion" : "CreatingOsVersion0",
+          "LastModified" : "2006-05-04T18:13:51.0"
+        },
+        "Size" : 18000,
+        "Uri" : "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+        "MessageDigest" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+        "Algorithm" : "SHA-512",
+        "_work": {
+          "_isSizeIncorrect": true
+        }
+      } ]
+    }
+  },
+  "_work" : {
+    "_qualifiers" : {
+      "PhysicalMaster" : {
+        "_nbc" : 1,
+        "versions" : [ {
+          "_id" : "aeaaaaaaaaakwtamaai7cak32lvlypaaaaaq",
+          "PhysicalId" : 123456789
+        } ]
+      },
+      "BinaryMaster" : {
+        "_nbc" : 1,
+        "versions" : [ {
+          "_id" : "aeaaaaaaaaakwtamaai7cak32lvlyoyaaaaq",
+          "Size" : 29403,
+          "Uri" : "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "MessageDigest" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+          "Algorithm" : "SHA-512"
+        } ]
+      }
+    }
+  },
+  "_up" : [ "aeaqaaaaaaakwtamaai7cak32lvlypiaaaba" ],
+  "_nbc" : 2,
+  "_ops" : [ "CheckSizeActionHandlerTest" ],
+  "OriginatingAgency" : "FRAN_NP_050056"
+}
