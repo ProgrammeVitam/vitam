@@ -169,6 +169,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String KO_AU_REF_OBJ = "extractSedaActionHandler/KO_AU_REF_OBJ.xml";
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String EMPTY_SIZE_TYPE = "extractSedaActionHandler/empty_size_type.xml";
+    private static final String INCORRECT_SIZE_TYPE = "extractSedaActionHandler/incorrect_size_type.xml";
     private HandlerIOImpl handlerIO;
     private List<IOParameter> out;
     private List<IOParameter> in;
@@ -1410,20 +1411,53 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithEmptySizeThenCalculate() throws Exception {
+    public void givenManifestWithIncorrectSizeThenOk() throws Exception {
+        // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
-        final InputStream seda_arborescence =
+        final InputStream sedaArborescenceCheckObjectSize =
+            PropertiesUtils.getResourceAsStream(INCORRECT_SIZE_TYPE);
+        when(workspaceClient.getFilesWithParamsFromFolder(any(), any()))
+            .thenReturn(new RequestResponseOK().addResult(new HashMap<>()));
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaArborescenceCheckObjectSize).build());
+        handlerIO.addOutIOParameters(out);
+
+        // When
+        final ItemStatus response = handler.execute(params, handlerIO);
+
+        // Then
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithEmptySizeThenOK() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+        final InputStream sedaArborescenceCheckObjectSize =
             PropertiesUtils.getResourceAsStream(EMPTY_SIZE_TYPE);
         when(workspaceClient.getFilesWithParamsFromFolder(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(new HashMap<>()));
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+            .thenReturn(Response.status(Status.OK).entity(sedaArborescenceCheckObjectSize).build());
         handlerIO.addOutIOParameters(out);
 
+        // When
         final ItemStatus response = handler.execute(params, handlerIO);
+
+        // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    private Map<String, FileParams> getFilesWithParams(){
+        Map<String, FileParams> fileParamsMap = new HashMap<>();
+        fileParamsMap.put("Content/Lake1.jpeg",new FileParams( 38628L));
+        fileParamsMap.put("Content/Lake2.jpeg",new FileParams( 38628L));
+        return fileParamsMap;
     }
 
     private void saveWorkspacePutObject() throws ContentAddressableStorageServerException {

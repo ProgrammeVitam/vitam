@@ -2131,7 +2131,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         jsonWriter.add(eventFactory.createEndDocument());
                         if(BINARY_DATA_OBJECT.equals(end.getName().getLocalPart()) && bo.getSize() == null){
                             bo.setSize(fileWithParmsFromFolder.get(bo.getUri()));
-                            bo.setSizeIncorrect(Boolean.TRUE);
                         }
                         objectGuidToDataObject.put(elementGuid, bo);
                         if (PHYSICAL_DATA_OBJECT.equals(end.getName().getLocalPart())) {

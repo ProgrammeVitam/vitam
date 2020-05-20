@@ -174,7 +174,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_SIZE",
+            "actionKey": "CHECK_OBJECT_SIZE",
             "behavior": "BLOCKING",
             "out": [
               {

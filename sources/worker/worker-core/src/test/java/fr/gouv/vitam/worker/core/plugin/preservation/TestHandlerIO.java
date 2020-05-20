@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
@@ -63,7 +64,6 @@ public class TestHandlerIO implements HandlerIO {
     private InputStream inputStreamFromWorkspace;
     private Map<String, InputStream> inputStreamMap = new HashMap<>();
     private Map<String, File> transferedFileToWorkspaceMap = new HashMap<>();
-    private Map<Pair<String, String>, Map<String, Long>> filesToWorkspaceByFolderAndContainer = new HashMap<>();
     private Map<String, JsonNode> jsonFromWorkspace = new HashMap<>();
     private ProcessingUri output;
     private String containerName = "DEFAULT_CONTAINER_NAME";
@@ -181,7 +181,7 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
         throws ProcessingException {
-        return this.filesToWorkspaceByFolderAndContainer.get(Pair.of(containerName, folderName));
+        throw new VitamRuntimeException("Not implemented");
     }
 
     @Override

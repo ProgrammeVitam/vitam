@@ -64,15 +64,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class CheckSizeActionPluginTest {
+public class CheckObjectSizeActionPluginTest {
 
-    private static final String CHECK_OBJECT_SIZE = "CHECK_OBJECT_SIZE";
+    private static final String CHECK_SIZE = "CHECK_SIZE";
 
     private static final String OBJECT_GROUP_CORRECT_SIZE =
         "checkSizeActionPlugin/aeaaaaaaaaf2zkp7abyvqalsbf3erriaaaba.json";
 
     private static final String OBJECT_GROUP_INCORRECT_SIZE =
         "checkSizeActionPlugin/aeaaaaaaaaf2zkp7abyvqalsbf3erriaaabb.json";
+
+    private static final String OBJECT_GROUP_MISSED_THEN_CALCULATED_SIZE =
+        "checkSizeActionPlugin/aeaaaaaaaaf2zkp7abyvqalsbf3erriaaabc.json";
 
     private static final String OBJECT_GROUP_INCORRECT_SIZE_MULTIBINARY_OBJECTS =
         "checkSizeActionPlugin/aeaaaaaaaaf2zkp7abyvqalsbf3erriaaabd.json";
@@ -121,7 +124,7 @@ public class CheckSizeActionPluginTest {
                 .getResourceAsStream("checkSizeActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
 
-        CheckSizeActionPlugin plugin = new CheckSizeActionPlugin();
+        CheckObjectSizeActionPlugin plugin = new CheckObjectSizeActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objName1");
         String objectId = "objectId";
@@ -141,18 +144,18 @@ public class CheckSizeActionPluginTest {
         Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
         assertEquals(1L, count.longValue());
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertEquals(CHECK_OBJECT_SIZE, response.getItemsStatus().get(CHECK_OBJECT_SIZE).getSubTaskStatus().values()
+        assertEquals(CHECK_SIZE, response.getItemsStatus().get(CHECK_SIZE).getSubTaskStatus().values()
             .iterator().next().getItemId());
         handlerIO.close();
     }
 
     @Test
-    public void checkInCorrectOrMissedSizeForBinary() throws Exception {
+    public void checkInCorrectSizeForBinary() throws Exception {
         // Given
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INCORRECT_SIZE);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objName2")))
             .thenReturn(Response.status(Response.Status.OK).entity(objectGroup).build());
-        CheckSizeActionPlugin plugin = new CheckSizeActionPlugin();
+        CheckObjectSizeActionPlugin plugin = new CheckObjectSizeActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objName2");
         String objectId = "objectId";
@@ -172,13 +175,44 @@ public class CheckSizeActionPluginTest {
         Integer count = response.getStatusMeter().get(StatusCode.WARNING.ordinal());
         Assertions.assertThat(count).isEqualTo(1);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
-        assertEquals(response.getItemsStatus().get(CHECK_OBJECT_SIZE).getSubTaskStatus().values()
-            .iterator().next().getItemId(), CHECK_OBJECT_SIZE);
+        assertEquals(response.getItemsStatus().get(CHECK_SIZE).getSubTaskStatus().values()
+            .iterator().next().getItemId(), CHECK_SIZE);
         handlerIO.close();
     }
 
     @Test
-    public void checkInCorrectOrMissedSizeForBinaryInMultiBInaryGot() throws Exception {
+    public void checkMissedSizeForBinary() throws Exception {
+        // Given
+        InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_MISSED_THEN_CALCULATED_SIZE);
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName2")))
+            .thenReturn(Response.status(Response.Status.OK).entity(objectGroup).build());
+        CheckObjectSizeActionPlugin plugin = new CheckObjectSizeActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+        params.setObjectName("objName2");
+        String objectId = "objectId";
+        final HandlerIOImpl handlerIO =
+            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
+                "CheckSizeActionPluginTest", "workerId",
+                Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+        final List<IOParameter> out = new ArrayList<>();
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")));
+        handlerIO.addOutIOParameters(out);
+
+        // When
+        final ItemStatus response = plugin.execute(params, handlerIO);
+
+        // Then
+        Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
+        Assertions.assertThat(count).isEqualTo(1);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertEquals(response.getItemsStatus().get(CHECK_SIZE).getSubTaskStatus().values()
+            .iterator().next().getItemId(), CHECK_SIZE);
+        handlerIO.close();
+    }
+
+    @Test
+    public void checkInCorrectForBinaryInMultiBInaryGot() throws Exception {
         // Given
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INCORRECT_SIZE_MULTIBINARY_OBJECTS);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objName3")))
@@ -188,7 +222,7 @@ public class CheckSizeActionPluginTest {
                 .getResourceAsStream("checkSizeActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
 
-        CheckSizeActionPlugin plugin = new CheckSizeActionPlugin();
+        CheckObjectSizeActionPlugin plugin = new CheckObjectSizeActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objName3");
         String objectId = "objectId";
@@ -208,8 +242,8 @@ public class CheckSizeActionPluginTest {
         Integer count = response.getStatusMeter().get(StatusCode.WARNING.ordinal());
         Assertions.assertThat(count).isEqualTo(1);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
-        assertEquals(response.getItemsStatus().get(CHECK_OBJECT_SIZE).getSubTaskStatus().values()
-            .iterator().next().getItemId(), CHECK_OBJECT_SIZE);
+        assertEquals(response.getItemsStatus().get(CHECK_SIZE).getSubTaskStatus().values()
+            .iterator().next().getItemId(), CHECK_SIZE);
         handlerIO.close();
     }
 

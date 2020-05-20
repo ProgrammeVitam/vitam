@@ -40,7 +40,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -49,13 +48,13 @@ import java.util.Map;
 /**
  * CheckSizeActionPlugin Plugin.<br>
  */
-public class CheckSizeActionPlugin extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSizeActionPlugin.class);
+public class CheckObjectSizeActionPlugin extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectSizeActionPlugin.class);
 
-    public static final String CHECK_OBJECT_SIZE = "CHECK_OBJECT_SIZE";
+    public static final String CHECK_OBJECT_SIZE = "CHECK_SIZE";
     private static final int OG_OUT_RANK = 0;
 
-    public CheckSizeActionPlugin() {
+    public CheckObjectSizeActionPlugin() {
     }
 
     @Override

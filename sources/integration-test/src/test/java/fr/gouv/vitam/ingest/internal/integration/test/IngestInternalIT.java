@@ -2038,7 +2038,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "monSIP"))
@@ -2703,7 +2703,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         client.initWorkflow(ingestSip);
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
             accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
