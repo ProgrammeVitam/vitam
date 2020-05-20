@@ -126,6 +126,9 @@ public class IngestWorkflowConstants {
      */
     public static final String ATR_FOLDER = "ATR";
 
+
+    public static final String EXISTING_UNITS = "EXISTING_UNITS";
+
     private IngestWorkflowConstants() {}
 
 }
