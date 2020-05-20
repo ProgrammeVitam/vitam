@@ -174,18 +174,6 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_OBJECT_SIZE",
-            "behavior": "BLOCKING",
-            "out": [
-              {
-                "name": "groupObject",
-                "uri": "MEMORY:groupObjectId"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
             "actionKey": "OG_OBJECTS_FORMAT_CHECK",
             "behavior": "BLOCKING",
             "in": [

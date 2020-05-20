@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageBadRequestException;
@@ -47,7 +48,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
-import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 
@@ -59,7 +59,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_DIGEST;
 import static fr.gouv.vitam.common.GlobalDataRest.X_DIGEST_ALGORITHM;
@@ -80,11 +79,8 @@ public class WorkspaceClient extends DefaultClient {
     private static final String OLD_FILES = "/old_files";
     private static final String CONTAINERS = "/containers/";
     private static final String ATOMIC_CONTAINERS = "/atomic_containers/";
-    private static final String FILES_WITH_PARAMS = "/filesWithParams";
 
     private static final GenericType<List<URI>> URI_LIST_TYPE = new GenericType<List<URI>>() {
-    };
-    private static final GenericType<Map<String, FileParams>> FILES_MAP_TYPE = new GenericType<>() {
     };
 
     WorkspaceClient(WorkspaceClientFactory factory) {
@@ -336,22 +332,6 @@ public class WorkspaceClient extends DefaultClient {
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(e);
             return new RequestResponseOK().addResult(Collections.<URI>emptyList());
-        } catch (VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
-            throw new ContentAddressableStorageServerException(e);
-        }
-    }
-
-    public RequestResponse<Map<String, FileParams>> getFilesWithParamsFromFolder(String containerName, String folderName)
-        throws ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,folderName);
-        try (Response response = make(
-            get().withPath(CONTAINERS + containerName + FOLDERS + folderName + FILES_WITH_PARAMS).withJsonAccept())) {
-            check(response);
-            Map filesMap = response.readEntity(FILES_MAP_TYPE);
-            return new RequestResponseOK().addResult(filesMap == null ? Collections.emptyMap() : filesMap);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.info(e);
-            return new RequestResponseOK().addResult(Collections.emptyMap());
         } catch (VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
             throw new ContentAddressableStorageServerException(e);
         }

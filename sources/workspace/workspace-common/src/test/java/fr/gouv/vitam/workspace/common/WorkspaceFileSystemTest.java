@@ -35,7 +35,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
-import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -58,7 +57,6 @@ import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,8 +76,6 @@ public class WorkspaceFileSystemTest {
     private static final String CONTENT_FOLDER = "Content";
     private static final String SIP_TAR_GZ = "sip.tar.gz";
     private static final String SIP_TAR = "sip.tar";
-    private static final String file1Name = "file1.pdf";
-    private static final String file2Name = "file2.pdf";
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -627,73 +623,6 @@ public class WorkspaceFileSystemTest {
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, "2.txt", null, null))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
-    }
-
-    @Test
-    public void should_get_files_with_params_from_folder_existant_container_and_existant_folder() throws  Exception {
-        // Given
-        storage.createContainer(SIP_CONTAINER);
-
-        final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
-        storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
-
-        final String contentSubFolder = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
-
-        final String file1Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
-        storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
-
-        final String file2Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
-        storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
-        
-        // When
-        Map<String, FileParams> filesWithParamsResult = storage.getFilesWithParamsFromFolder(SIP_CONTAINER, contentSubFolder);
-
-        // Then
-        assertThat(filesWithParamsResult).isNotNull().isNotEmpty();
-        assertThat(filesWithParamsResult).hasSize(2);
-        assertThat(filesWithParamsResult.get(file1Name).getSize()).isEqualTo(getLength(file1Name));
-        assertThat(filesWithParamsResult.get(file2Name).getSize()).isEqualTo(getLength(file2Name));
-    }
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void should_not_get_files_with_params_from_folder_inexistant_container() throws  Exception {
-        // Given
-        final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
-        storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
-
-        final String contentSubFolder = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
-
-        final String file1Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
-        storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
-
-        final String file2Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
-        storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
-
-        // When
-        storage.getFilesWithParamsFromFolder(SIP_CONTAINER, contentSubFolder);
-    }
-
-    @Test
-    public void should_not_get_files_with_params_from_folder_inexistant_folder() throws  Exception {
-        // Given
-        storage.createContainer(SIP_CONTAINER);
-
-        final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
-        storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
-
-        final String contentSubFolder = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
-
-        final String file1Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
-        storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
-
-        final String file2Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
-        storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
-
-        // When
-        Map<String, FileParams> filesWithParamsResult= storage.getFilesWithParamsFromFolder(SIP_CONTAINER, "wrongFolder");
-
-        // Then
-        assertThat(filesWithParamsResult).isNotNull().isEmpty();
     }
 
     private List<ArchiveEntry> findArchiveEntries(ArchiveInputStream archiveInputStream) throws IOException {

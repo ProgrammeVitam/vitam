@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.model.FileParams;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,9 +54,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertFalse;
@@ -131,13 +128,6 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         @GET
         @Path("{containerName}/folders/{folderName}")
         public Response getListUriDigitalObjectFromFolder(@PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
-            return expectedResponse.get();
-        }
-
-        @GET
-        @Path("{containerName}/folders/{folderName}/filesWithParams")
-        public Response getFilesWithParamsFromFolder(@PathParam("containerName") String containerName,
             @PathParam("folderName") String folderName) {
             return expectedResponse.get();
         }
@@ -266,20 +256,6 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
             assertTrue(uriWorkspace.toString().contains("content/"));
         }
 
-    }
-
-    @Test
-    public void given_FolderExists_When_FindingFilesWithParams_Then_ReturnFilesMap()
-        throws ContentAddressableStorageServerException, InvalidParseOperationException, InvalidFormatException {
-        Map<String, FileParams> fileParamsMapResults = new HashMap<>();
-        fileParamsMapResults.put("content/file1.pdf", new FileParams(256L));
-        fileParamsMapResults.put("content/file2.pdf", new FileParams(512L));
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(fileParamsMapResults).build());
-        final Map<String, FileParams> fileParamsMap =
-            JsonHandler.getFromStringAsTypeReference(client.getFilesWithParamsFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode().get("$results").get(0).toString(), new TypeReference<>() {
-            });
-        assertTrue(!fileParamsMap.isEmpty());
     }
 
 }
