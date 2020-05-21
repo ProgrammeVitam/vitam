@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import fr.gouv.vitam.metadata.api.config.ElasticsearchExternalMetadataMapping;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.FunctionalAdminAdmin;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.List;
 

@@ -24,27 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.api.utils;
-
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
-import fr.gouv.vitam.metadata.api.config.ElasticsearchExternalMetadataMapping;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
-
-import java.util.Arrays;
-import java.util.List;
-
-public class MappingLoaderTestUtils {
-
-    public static MappingLoader getTestMappingLoader() throws Exception {
-        List<ElasticsearchExternalMetadataMapping> mappingData =
-            Arrays.asList(
-                new ElasticsearchExternalMetadataMapping("Unit",
-                    ElasticsearchTestHelper.loadMapping("Unit")
-                ),
-                new ElasticsearchExternalMetadataMapping("ObjectGroup",
-                    ElasticsearchTestHelper.loadMapping("ObjectGroup")
-                )
-            );
-        return new MappingLoader(mappingData);
-    }
-}
+/**
+ * Provides API configuration classes for the Metadata module
+ *
+ */
+package fr.gouv.vitam.metadata.core.config;

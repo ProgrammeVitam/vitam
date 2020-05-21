@@ -27,7 +27,7 @@
 package fr.gouv.vitam.model.validation;
 
 import fr.gouv.vitam.common.MappingLoaderTestUtils;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import org.junit.Before;
 import org.junit.Test;
 

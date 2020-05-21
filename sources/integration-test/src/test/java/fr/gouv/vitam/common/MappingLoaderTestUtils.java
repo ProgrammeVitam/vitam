@@ -27,8 +27,8 @@
 package fr.gouv.vitam.common;
 
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
-import fr.gouv.vitam.metadata.api.config.ElasticsearchExternalMetadataMapping;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.Arrays;
 import java.util.List;

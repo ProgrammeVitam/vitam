@@ -24,8 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.metadata.core.config;
+
 /**
- * Provides API configuration classes for the Metadata module
- *
+ * Elasticsearch Unit and ObjectGroup mapping
  */
-package fr.gouv.vitam.metadata.api.config;
+public class ElasticsearchExternalMetadataMapping {
+
+    private String collection;
+    private String mappingFile;
+
+
+    /**
+     * ElasticsearchExternalMetadataMapping empty constructor for YAMLFactory
+     */
+    public ElasticsearchExternalMetadataMapping() {
+        // Empty
+    }
+
+    public ElasticsearchExternalMetadataMapping(String collection, String mapping) {
+        this.collection = collection;
+        this.mappingFile = mapping;
+    }
+    public String getCollection() {
+        return collection;
+    }
+
+    public void setCollection(String collection) {
+        this.collection = collection;
+    }
+
+    public String getMappingFile() {
+        return mappingFile;
+    }
+
+    public void setMappingFile(String mappingFile) {
+        this.mappingFile = mappingFile;
+    }
+}
