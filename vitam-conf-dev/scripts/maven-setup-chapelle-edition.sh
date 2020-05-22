@@ -92,7 +92,7 @@ if [ -z "${JAVA_HOME}" ] ; then
 fi
 
 # Path to certificates
-JAVA_SECURITY_PATH="`find ${JAVA_HOME}/ -name security -type d`"
+JAVA_SECURITY_PATH="`find ${JAVA_HOME}/lib -name security -type d`"
 if [ ! -d "${JAVA_SECURITY_PATH}" ] ; then
 	echo "[fatal] Error with certificates directory"
 	echo "Exit"
