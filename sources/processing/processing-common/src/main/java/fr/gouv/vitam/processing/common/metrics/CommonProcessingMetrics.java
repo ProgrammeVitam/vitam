@@ -50,7 +50,7 @@ public class CommonProcessingMetrics {
      * The tasks maybe in the queue or waiting to be enqueued
      */
     public static final Gauge CURRENTLY_INSTANTIATED_TASKS = Gauge.build()
-        .name("vitam_processing_worker_created_task_total")
+        .name("vitam_processing_worker_current_task_total")
         .labelNames("worker_family", "workflow", "step_name")
         .help(
             "Current number of worker tasks instantiated by the distributor. In queue or waiting to be added to the queue")

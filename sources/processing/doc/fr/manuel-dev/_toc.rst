@@ -10,3 +10,4 @@ Processing
    processing-distributor.rst
    processing-engine.rst
    worker/_toc.rst 
+   metrics/metrics.rst
