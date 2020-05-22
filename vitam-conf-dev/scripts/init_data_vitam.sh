@@ -38,5 +38,5 @@ echo "End"
 
 echo "Import ontologies"
 echo "Begin"
-curl -XPOST -H "Content-type: application/json" -H "X-Tenant-Id: 1" -H "Force-Update: true" --data-binary @../../deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json 'http://functional-administration.service.consul:18004/v1/admin/ontologies'
+curl -XPOST -H "Content-type: application/json" -H "X-Tenant-Id: 1" -H "Force-Update: true" --data-binary @../../deployment/environments/ontology/VitamOntology.json 'http://functional-administration.service.consul:18004/v1/admin/ontologies'
 echo "End"
