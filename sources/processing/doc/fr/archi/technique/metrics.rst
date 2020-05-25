@@ -5,9 +5,9 @@ Métriques spécifiques
 Besoins
 =======
 A des fins de monitoring du composant processing un certain nombre de métriques sont intégrées.
-    - La possibilité d'avoir une vue instantané des opérations gérées par le composant processing
+    - La possibilité d'avoir une vue instantanée des opérations gérées par le composant processing
     - La capacité de détecter des opérations dans un état et un statut particulier
-    - La possibilité de pouvoir filter ces métrique par type d'opération, par état et par statut
+    - La possibilité de pouvoir filter ces métriques par type d'opération, par état et par statut
     - Calculer la durée d'exécution des steps, des tâches
     - Tracer le cycle de vie des tâches crées par le distributeur, création, attente d'entrée dans une queue, temps passé dans la queue et durée d'exécution par un worker.
     - Le nombre de worker abonnés au distributeur

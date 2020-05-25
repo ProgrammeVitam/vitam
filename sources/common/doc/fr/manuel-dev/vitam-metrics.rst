@@ -125,7 +125,7 @@ Veillez-vous référer à la documentation officielle pour plus de détails sur 
 
 Implémentation des métriques
 ============================
-La solution prometheus ont mis à disposition des clients pour développer facilement de nouvelles métriques.
+La solution prometheus met à disposition des clients, implémentés en différents langages, pour faciliter le développement de nouvelles métriques.
 
 .. code-block:: xml
 
@@ -160,7 +160,7 @@ Récupération des métriques déjà existante
 
 Dans la classe **CommonBusinessApplication**, les *VitamMetrics* sont enveloppées par des clients prometheus pour les exposer à son format.
     - La dépendance `simpleclient_dropwizard` permet facilement d'envelopper les métriques dropwizard déjà existantes et de les exposer au format prometheus.
-    - La dépendance `simpleclient_hotspot` vient avec des métriques `jvm` prête à utiliser
+    - La dépendance `simpleclient_hotspot` vient avec des métriques `jvm` prêtes à utiliser
 
 .. code-block:: java
     // Wrap up dropwizard metrics
@@ -174,14 +174,14 @@ Développement de nouvelles métriques prometheus
 ________________________________________________
 Prometheus dispose d'une *CollectorRegistry* instanciée par défaut au démarrage d'une application. Il suffit par la suite de développer des métriques et de les enregistrer dans cette *CollectorRegistry.defaultRegistry*
 Quatre type de métriques sont possible:
-    - Counter : Les métriques dont on a besoin un comptage (Exemple: Nombre de requêtes sur une API donnée)
-    - Gauge : Les métriques dont la valeur change dans le temps (Exemple: L'utilisation de la RAM)
+    - Counter : Les métriques dont la valeur s'incrémente uniquement dans le temps (Exemple: Nombre de requêtes sur une API donnée)
+    - Gauge : Les métriques dont la valeur s'incrémente ou se décrémente dans le temps (Exemple: L'utilisation de la RAM)
     - Histogram: Permet de compter le nombre d'événements et la somme de la durée d'execution de ces événements. Des fonctions sont à appliquer sur ces métriques du côté prometheus serveur pour faire des aggregations, moyenne, quantile, ...
     - Summary: A la différence de l'Histogramme, c'est l'application qui doit calculer des aggregation, moyenne, quantiles, ...
 
 Ce qu'il faut retenir :
     - Pour chacune des types de métriques, on peut définir des `label`. Une métrique avec deux labels par exemple génère deux `séries temporelles`
-    - La métrique de type histogram, peut définir des bucket.
+    - La métrique de type histogram, peut définir des buckets.
 
 .. warning::
    Afin de mieux développer des métriques et de respécter les bonnes pratiques, veuillez vous référer à la documentation officielle de prometheus ``https://prometheus.io/docs/practices/``
