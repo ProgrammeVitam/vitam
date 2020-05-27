@@ -10,8 +10,9 @@ Notes et procédures spécifiques R13
 Étapes préalables à la montée de version
 ========================================
 
-Gestion du référentiel ontologique 
------------------------------------
+
+Gestion du référentiel de l'ontologie 
+-------------------------------------
 
 .. caution:: En lien avec la *User Story* #5928 (livrée avec la *release* R11) et les changements de comportement de l'API d'import des ontologies associés, si un référentiel ontologique personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version vers la *release* R11 ou supérieure, modifier manuellement le fichier d'ontologie livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, l'ontologie sera remplacée en mode forcé (sans contrôle de cohérence). 
 

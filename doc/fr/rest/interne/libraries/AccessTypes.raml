@@ -4,6 +4,7 @@ usage: |
   Use to define global types for Access
 
 uses:
+    DslTypes: DslTypes.raml
     StandardTypes: StandardTypes.raml
 
 types:
@@ -107,3 +108,71 @@ types:
       - Thumbnail
       - TextContent
       - All
+
+  TransferRequest:
+      displayName: Requête pour faire un transfert
+      description: Requête pour faire un transfert d'unités archivistiques
+      type: object
+      properties:
+        exportWithLogBookLFC:
+          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le DIP
+          type: boolean
+          required: false
+        transferWithLogBookLFC:
+          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le transfert
+          type: boolean
+          required: false
+        dslRequest:
+          description: Contient la requête de recherche
+          type: DslTypes.DslMultipleQuery
+          required: true
+        dataObjectVersionToExport:
+          description: L'identifiant du scénario de préservation
+          type: object
+          required: false
+          properties:
+            dataObjectVersions:
+              description: Liste des versions d'objets à inclure dans l'export
+              type: array
+              items:
+                type: string
+        transferRequestParameters:
+          description: Les paramètres nécessaires pour faire un transfert d'unités archivistiques
+          type: object
+          required: true
+          properties:
+            archivalAgreement:
+              description: Contrat d'entrée
+              type: string
+              required: true
+            originatingAgencyIdentifier:
+              description: Identifiant du service producteur
+              type: string
+              required: true
+            archivalAgencyIdentifier:
+              description: Identifiant du service d'archives
+              type: string
+              required: true
+            comment:
+              description: Intitulé
+              type: string
+              required: false
+            submissionAgencyIdentifier:
+              description: Identifiant du service versant
+              type: string
+              required: false
+            transferringAgency:
+              description: Service versant
+              type: string
+              required: false
+            transferRequestReplyIdentifier:
+              description: Identifiant de la réponse à une demande de transfert
+              type: string
+              required: false
+            relatedTransferReference:
+              description: Référence à un transfert d'archives lié
+              type: array
+              required: false
+              items:
+                type: string
+      example: !include examples/transferRequest.json
