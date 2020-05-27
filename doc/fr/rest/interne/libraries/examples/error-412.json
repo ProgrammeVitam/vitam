@@ -1,6 +1,6 @@
 {
   "httpCode": 412,
-  "code": 123458,
+  "code": "vitamcode",
   "context": "ingest",
   "state": "Precondition_Failed",
   "message": "Precondition in error",

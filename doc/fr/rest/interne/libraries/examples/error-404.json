@@ -1,20 +1,20 @@
 {
     "httpCode": 404,
-    "code" : 123456,
+    "code" : "vitamcode1",
     "context": "ingest",
     "state": "Item_Not_Found",
     "message": "Item is not found",
     "description": "Operation on item xxx cannot be done since item is not found in <<resourcePathName>>",
     "errors": [
       { "httpCode": 415,
-        "code" : 123457,
+        "code" : "vitamcode2",
         "context": "ingest",
         "state": "Unsupported_Media_Type",
         "message": "Unsupported media type detected",
         "description": "File xxx has an unsupported media type yyy"
       },
       { "httpCode": 412,
-        "code": 123458,
+        "code": "vitamcode3",
         "context": "ingest",
         "state": "Precondition_Failed",
         "message": "Precondition in error",
