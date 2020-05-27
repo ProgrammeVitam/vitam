@@ -145,7 +145,6 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
         sb.append("#management.").append(fileRule.getRuleType()).append(".Rules").append(".Rule");
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             ObjectNode projectionNode = JsonHandler.createObjectNode();
-            // FIXME : BUG #6612 : Full rewrite required
             ObjectNode objectNode = JsonHandler.createObjectNode();
             objectNode.put("#id", 1);
             projectionNode.set("$fields", objectNode);

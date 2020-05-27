@@ -219,8 +219,6 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             containerName);
         try {
             Path containerPath = getContainerPath(containerName);
-            // # FIXME #6283 : IDEMPOTENCY
-            // > Double invocation ==> HTTP 404
             if (!containerPath.toFile().exists()) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(

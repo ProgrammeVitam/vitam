@@ -640,7 +640,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             collection.getCollection().insertOne(vitamDocument);
 
             if (LogbookCollections.OPERATION.equals(collection)) {
-                // FIXME #6671 : IDEMPOTENCY if DUPLICATE_KEY in mongo
                 insertIntoElasticsearch(collection, vitamDocument);
             }
         } catch (final MongoException e) {

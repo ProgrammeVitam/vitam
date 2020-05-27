@@ -87,8 +87,6 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
         GraphComputeResponse graphComputeResponse = null;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
-            // FIXME #6283 : IDEMPOTENCY
-            //  > Update Mongo vs ES (risque d'écraser par une version plus ancienne)
             graphComputeResponse = metaDataClient.computeGraph(getGraphComputeAction(), ids);
 
             switch (getGraphComputeAction()) {

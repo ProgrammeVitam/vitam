@@ -392,7 +392,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
         switch (indexResponse.getResult()) {
             case CREATED:
-                // FIXME #6671 : IDEMPOTENCY : Si document déjà indexé UPDATED/NOOP?
                 break;
             default:
                 throw new DatabaseException(String
@@ -482,7 +481,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
             switch (indexResponse.getResult()) {
                 case UPDATED:
-                    // FIXME #6671 : IDEMPOTENCY : If document already updated, NOOP?
                     break;
                 default:
                     throw new DatabaseException(String
