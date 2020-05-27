@@ -31,11 +31,6 @@ types:
         minimum: 1
         maximum: 100000
         required: false
-      $per_page:
-        type: integer
-        minimum: 1
-        maximum: 100
-        required: false
       $orderby:
         type: object
         required: false
@@ -74,8 +69,8 @@ types:
         description: Short code as in RFC 7231 (Http Status Codes).
         type: integer
       code:
-          description: Vitam standard numerical code.
-          type: integer
+          description: Vitam standard code.
+          type: string
       context: Context
       state:
         description: Vitam standard litteral code.
@@ -88,7 +83,7 @@ types:
         description: Vitam detailed description of status.
     example: {
         "httpCode" : 401,
-        "code" : 123456,
+        "code" : "VitamCode",
         "context": "ingest",
         "state": "unauthorized",
         "message": "The application is not authorized to use this functionality",
@@ -103,8 +98,8 @@ types:
         description: Short code as in RFC 7231 (Http Status Codes).
         type: integer
       code:
-          description: Vitam standard numerical code.
-          type: integer
+          description: Vitam standard code.
+          type: string
       context: Context
       state:
         description: Vitam standard litteral code.
@@ -121,20 +116,20 @@ types:
 
     example: {
         "httpCode": 404,
-        "code" : 123456,
+        "code" : "VitamCode1",
         "context": "ingest",
         "state": "Item_Not_Found",
         "message": "Item is not found",
         "description": "Operation on item xxx cannot be done since item is not found in <<resourcePathName>>",
         "errors": [
           { "httpCode": 415,
-            "code" : 123457,
+            "code" : "VitamCode2",
             "context": "ingest",
             "state": "Unsupported_Media_Type",
             "message": "Unsupported media type detected",
             "description": "File xxx has an unsupported media type yyy" },
           { "httpCode": 412,
-            "code": 123458,
+            "code": "VitamCode3",
             "context": "ingest",
             "state": "Precondition_Failed",
             "message": "Precondition in error",
@@ -187,7 +182,7 @@ types:
     example: {
       "#id": "idIngests",
       "httpCode" : 200,
-      "code" : 123456,
+      "code" : "123456",
       "context": "ingest",
       "state": "Done",
       "message": "The ingest is done, the report can be downloaded",

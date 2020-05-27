@@ -85,3 +85,41 @@ types:
         },
         "$results": [ { "#id": "id1"}, {"#id": "id2"}, {"#id": "id3"} ]
       }
+
+  DslMultipleQuery:
+      displayName: Requête DSL multiple (SELECT MULTIPLE)
+      description: Requête DSL Vitam externe multi-requête pour la recherche de ressources
+      type: object
+      properties:
+        $roots:
+          description: Contient les racines de la recherche
+          type: array
+          items:
+            type: string
+        $query:
+          description: Contient plusieurs requêtes
+          type: array
+          items:
+            type: object
+        $filter?:
+          description: Contient les filtres à appliquer
+          type: StandardTypes.Filter
+        $projection?:
+          description: Contient la projection à appliquer
+          type: StandardTypes.Projection
+      example: {
+        "$roots": ["guid1","guid2"],
+        "$query": [
+          {
+            "$eq": { "myField1": "myValue" },
+            "$depth": 4
+          }
+        ],
+        "$filter": {
+          "$limit": 100,
+          "$offset": 50
+        },
+        "$projection": {
+          "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+        }
+      }

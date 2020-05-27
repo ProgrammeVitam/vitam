@@ -11,7 +11,7 @@ Notes et procédures spécifiques R13
 ========================================
 
 Gestion du référentiel de l'ontologie 
------------------------------------
+-------------------------------------
 
 .. caution:: en lien avec la User Story* #6213 ( livré en version `3.4.x` de :term:`VITAM` ), les ontologies externes en cours d'exploitation par :term:`VITAM` ne sont pas touchées, et seront mergées avec les ontologies internes situés : ``deployment/environments/ontology/VitamOntology.json`` .
 
