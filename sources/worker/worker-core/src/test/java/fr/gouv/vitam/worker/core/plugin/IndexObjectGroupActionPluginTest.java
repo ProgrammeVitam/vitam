@@ -27,10 +27,12 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -62,13 +64,16 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 
 public class IndexObjectGroupActionPluginTest {
 
 
-    private static final String OBJECT_GROUP = "objectGroup.json";
+    private static final String OBJECT_GROUP = "IndexObjectGroupActionPlugin/objectGroup.json";
+    private static final String EXISTING_OBJECT_GROUP = "IndexObjectGroupActionPlugin/existing_objectGroup.json";
     private final InputStream objectGroup;
+    private final InputStream existingObjectGroup;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -80,6 +85,7 @@ public class IndexObjectGroupActionPluginTest {
     private MetaDataClientFactory metaDataClientFactory;
     private List<IOParameter> in;
     private JsonNode og;
+    private JsonNode existingOg;
 
     HandlerIOImpl handlerIO;
 
@@ -89,6 +95,8 @@ public class IndexObjectGroupActionPluginTest {
     public IndexObjectGroupActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
         og = JsonHandler.getFromInputStream(objectGroup);
+        existingObjectGroup = PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP);
+        existingOg = JsonHandler.getFromInputStream(existingObjectGroup);
     }
 
     @Before
@@ -136,6 +144,27 @@ public class IndexObjectGroupActionPluginTest {
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    public void givenMetadataBadRequestWhenExecuteOnExistingGotThenReturnResponseKO()
+        throws Exception {
+        ObjectNode existingOgRaw = (ObjectNode) existingOg.deepCopy();
+        existingOgRaw.remove("_work");
+        doThrow(new InvalidParseOperationException("")).when(metadataClient).updateObjectGroupById(any(), any());
+        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(new RequestResponseOK<JsonNode>().addResult(existingOgRaw));
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(existingOg);
+        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setContainerName("IndexObjectGroupActionPluginTest");
+        final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
+
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
     @Test
