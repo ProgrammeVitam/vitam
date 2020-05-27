@@ -1,7 +1,7 @@
 {
   "#id": "idIngests",
   "httpCode" : 202,
-  "code" : 123456,
+  "code" : "VitamCode",
   "context": "ingest",
   "state": "Running",
   "message": "The ingest is in progress",

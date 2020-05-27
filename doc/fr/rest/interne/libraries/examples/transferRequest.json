@@ -1,0 +1,47 @@
+{
+  "dataObjectVersionToExport": {
+    "dataObjectVersions": [
+      "BinaryMaster"
+    ]
+  },
+  "transferWithLogBookLFC": true,
+  "transferRequestParameters": {
+    "archivalAgreement": "ArchivalAgreement",
+    "originatingAgencyIdentifier": "OriginatingAgencyIdentifier",
+    "comment": "Comment",
+    "submissionAgencyIdentifier": "SubmissionAgencyIdentifier",
+    "relatedTransferReference": [
+      "RelatedTransferReference"
+    ],
+    "transferRequestReplyIdentifier": "TransferRequestReplyIdentifier",
+    "archivalAgencyIdentifier": "ArchivalAgencyIdentifier",
+    "transferringAgency": "TransferringAgency"
+  },
+  "dslRequest": {
+    "$roots": [
+      "id0"
+    ],
+    "$query": [
+      {
+        "$match": {
+          "title": "titre"
+        },
+        "$depth": 4
+      }
+    ],
+    "$filter": {
+      "$limit": 1000,
+      "$offset": 10
+    },
+    "$projection": {
+      "$fields": {
+        "#id": 1,
+        "title": 1,
+        "#type": 1,
+        "#sector": 1,
+        "#parents": 1,
+        "#object": 1
+      }
+    }
+  }
+}

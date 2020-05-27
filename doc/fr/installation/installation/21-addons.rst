@@ -68,7 +68,7 @@ Il est également possible d'appliquer un paramétrage différent par composant 
 Editer le fichier ``environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
 
 Paramétrage de l'antivirus (ingest-external)
-===========================================
+============================================
 
 L'antivirus utilisé par ingest-external est modifiable (par défaut, ClamAV) ; pour cela :
 

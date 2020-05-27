@@ -1,6 +1,6 @@
 {
   "httpCode" : 401,
-  "code" : 123456,
+  "code" : "vitamcode",
   "context": "ingest",
   "state": "unauthorized",
   "message": "The application is not authorized to use this functionality",

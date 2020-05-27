@@ -11,7 +11,7 @@
     "$query": [
       { "$match": { "title": "titre" }, "$depth": 4 }
     ],
-    "$filter": { "$limit": 1000, "$per_page": 10 },
+    "$filter": { "$limit": 1000 },
     "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#sector": 1, "#parents": 1, "#object": 1 } },
     "$facetQuery": { "$terms": "#object.#type" }
   },
