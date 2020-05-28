@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.metrics.VitamMetricsReporterType;
  */
 public final class VitamMetricsConfiguration {
 
-    private boolean metricsJersey = false;
+    private boolean metricsRest = false;
     private boolean metricsJVM = false;
     private VitamMetricsReporterType metricReporter = VitamMetricsReporterType.NONE;
     private int metricReporterInterval = 1;
@@ -53,22 +53,22 @@ public final class VitamMetricsConfiguration {
     }
 
     /**
-     * Determines whether or not Jersey metrics should be activated
+     * Determines whether or not REST metrics should be activated
      *
      * @return boolean
      */
-    public boolean hasMetricsJersey() {
-        return metricsJersey;
+    public boolean hasMetricsRest() {
+        return metricsRest;
     }
 
     /**
-     * Set whether or not Jersey metrics should be activated
+     * Set whether or not REST metrics should be activated
      *
-     * @param metricsJersey
+     * @param metricsRest
      * @return VitamMetricsConfiguration
      */
-    public VitamMetricsConfiguration setMetricsJersey(boolean metricsJersey) {
-        this.metricsJersey = metricsJersey;
+    public VitamMetricsConfiguration setMetricsRest(boolean metricsRest) {
+        this.metricsRest = metricsRest;
         return this;
     }
 

@@ -113,7 +113,7 @@ public class CommonBusinessApplication {
             LOGGER.warn(e.getMessage());
         }
         VitamMetrics vitamMetrics;
-        if (metricsConfiguration.hasMetricsJersey()) {
+        if (metricsConfiguration.hasMetricsRest()) {
             vitamMetrics = new VitamMetrics(VitamMetricsType.REST, metricsConfiguration);
             new DropwizardExports(vitamMetrics.getRegistry()).register();
             metrics.put(VitamMetricsType.REST, vitamMetrics);
