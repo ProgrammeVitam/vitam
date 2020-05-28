@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>access-external</artifactId>
-		<version>3.0.3-1-SNAPSHOT</version>
+		<version>3.0.3-1</version>
 	</parent>
 	<artifactId>access-external-common</artifactId>
 	<name>access-external-common</name>
