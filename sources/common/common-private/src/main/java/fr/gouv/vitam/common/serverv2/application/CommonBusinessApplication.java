@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.RequestIdGeneratorContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
+import fr.gouv.vitam.common.serverv2.metrics.ContentLengthCountingMetricsFilter;
 import fr.gouv.vitam.common.serverv2.metrics.MetricsFeature;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -76,6 +77,8 @@ public class CommonBusinessApplication {
         } else {
             resources.add(new HeaderIdContainerFilter());
         }
+
+        resources.add(new ContentLengthCountingMetricsFilter(true, true));
 
         resources.add(new GenericExceptionMapper());
         clearAndconfigureMetrics();
