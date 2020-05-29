@@ -39,6 +39,11 @@ public final class VitamMetricsConfiguration {
 
     private boolean metricsRest = false;
     private boolean metricsJVM = false;
+
+    // TODO: 29/05/2020 when the ansible part of prometheus is done, make following variables configurable
+    private boolean enableCountInputBytesMetrics = true;
+    private boolean enableCountOutputBytesMetrics = true;
+
     private VitamMetricsReporterType metricReporter = VitamMetricsReporterType.NONE;
     private int metricReporterInterval = 1;
     private TimeUnit metricReporterIntervalUnit = TimeUnit.MINUTES;
@@ -192,4 +197,19 @@ public final class VitamMetricsConfiguration {
         return this;
     }
 
+    public boolean isEnableCountInputBytesMetrics() {
+        return enableCountInputBytesMetrics;
+    }
+
+    public void setEnableCountInputBytesMetrics(boolean enableCountInputBytesMetrics) {
+        this.enableCountInputBytesMetrics = enableCountInputBytesMetrics;
+    }
+
+    public boolean isEnableCountOutputBytesMetrics() {
+        return enableCountOutputBytesMetrics;
+    }
+
+    public void setEnableCountOutputBytesMetrics(boolean enableCountOutputBytesMetrics) {
+        this.enableCountOutputBytesMetrics = enableCountOutputBytesMetrics;
+    }
 }

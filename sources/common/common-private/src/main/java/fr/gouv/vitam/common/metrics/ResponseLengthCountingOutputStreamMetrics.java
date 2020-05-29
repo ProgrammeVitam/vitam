@@ -32,20 +32,18 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import io.prometheus.client.Summary;
-import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStream {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(ResponseLengthCountingOutputStreamMetrics.class);
 
-    public static final Summary RECEIVED_BYTES = Summary.build()
+    public static final Summary SENT_BYTES = Summary.build()
         .name("vitam_responses_size_bytes")
         .labelNames("tenant", "method")
         .help("Vitam responses size in bytes.")
@@ -76,12 +74,12 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
 
     private void onCloseOfOutputStream() {
         try {
-            String headerString = responseContext.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            String headerString = requestContext.getHeaderString(GlobalDataRest.X_TENANT_ID);
             String tenant = headerString == null ? "unknown" : headerString;
 
             String method = requestContext.getMethod();
 
-            RECEIVED_BYTES
+            SENT_BYTES
                 .labels(tenant, method)
                 .observe(super.getByteCount());
         } catch (Exception e) {

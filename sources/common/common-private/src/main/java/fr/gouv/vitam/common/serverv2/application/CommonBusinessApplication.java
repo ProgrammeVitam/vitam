@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.serverv2.application;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -69,6 +70,14 @@ public class CommonBusinessApplication {
     }
 
     public CommonBusinessApplication(boolean externalApi) {
+        VitamMetricsConfiguration metricsConfiguration = new VitamMetricsConfiguration();
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
+            metricsConfiguration =
+                PropertiesUtils.readYaml(yamlIS, VitamMetricsConfiguration.class);
+        } catch (final IOException e) {
+            LOGGER.warn(e.getMessage());
+        }
+
         this.resources = new HashSet<>();
 
         if (externalApi) {
@@ -78,10 +87,11 @@ public class CommonBusinessApplication {
             resources.add(new HeaderIdContainerFilter());
         }
 
-        resources.add(new ContentLengthCountingMetricsFilter(true, true));
+        resources.add(new ContentLengthCountingMetricsFilter(metricsConfiguration.isEnableCountInputBytesMetrics(),
+            metricsConfiguration.isEnableCountOutputBytesMetrics()));
 
         resources.add(new GenericExceptionMapper());
-        clearAndconfigureMetrics();
+        clearAndConfigureMetrics(metricsConfiguration);
 
         startMetrics();
 
@@ -105,8 +115,8 @@ public class CommonBusinessApplication {
      * Clear the metrics map from any existing {@code VitamMetrics} and reload the configuration from the
      * {@code #METRICS_CONF_FILE_NAME}
      */
-    protected static final void clearAndconfigureMetrics() {
-        VitamMetricsConfiguration metricsConfiguration = new VitamMetricsConfiguration();
+    protected static final void clearAndConfigureMetrics(VitamMetricsConfiguration metricsConfiguration) {
+        ParametersChecker.checkParameter("The param metricsConfiguration is required", metricsConfiguration);
 
         metrics.clear();
         // Throws a JsonMappingException when the vitam.metrics.conf file is empty
