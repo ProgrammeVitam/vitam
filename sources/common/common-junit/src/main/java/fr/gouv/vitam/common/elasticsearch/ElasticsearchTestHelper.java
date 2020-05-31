@@ -40,16 +40,17 @@ public class ElasticsearchTestHelper {
     public static final String OG_MAPPING_ES_FROM_ANSIBLE =
         "deployment/ansible-vitam/roles/elasticsearch-mapping/files/og-es-mapping.json";
 
-    public static String loadMapping(String collection) throws Exception {
+    public static String loadUnitMapping() {
+        return loadMapping(UNIT_MAPPING_ES_FROM_ANSIBLE);
+    }
+
+    public static String loadObjectGroupMapping() {
+        return loadMapping(OG_MAPPING_ES_FROM_ANSIBLE);
+    }
+
+    private static String loadMapping(String path) {
         String dir = Paths.get("").toAbsolutePath().toString();
         String userDir = StringUtils.substringBeforeLast(dir, "sources/");
-
-        if (collection != null && collection.endsWith("Unit")) {
-            return userDir + UNIT_MAPPING_ES_FROM_ANSIBLE;
-        } else if (collection != null && collection.endsWith("ObjectGroup")) {
-            return userDir + OG_MAPPING_ES_FROM_ANSIBLE;
-        } else {
-            throw new FileNotFoundException("mapping Files not found");
-        }
+        return userDir + path;
     }
 }

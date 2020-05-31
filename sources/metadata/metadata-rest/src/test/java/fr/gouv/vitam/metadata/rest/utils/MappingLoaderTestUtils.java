@@ -36,14 +36,14 @@ import java.util.List;
 
 public class MappingLoaderTestUtils {
 
-    public static MappingLoader getTestMappingLoader() throws Exception {
+    public static MappingLoader getTestMappingLoader() {
         List<ElasticsearchExternalMetadataMapping> mappingData =
             Arrays.asList(
                 new ElasticsearchExternalMetadataMapping(MetadataCollections.UNIT.getName(),
-                    ElasticsearchTestHelper.loadMapping(MetadataCollections.UNIT.getName())
+                    ElasticsearchTestHelper.loadUnitMapping()
                 ),
                 new ElasticsearchExternalMetadataMapping(MetadataCollections.OBJECTGROUP.getName(),
-                    ElasticsearchTestHelper.loadMapping(MetadataCollections.OBJECTGROUP.getName())
+                    ElasticsearchTestHelper.loadObjectGroupMapping()
                 )
             );
         return new MappingLoader(mappingData);
