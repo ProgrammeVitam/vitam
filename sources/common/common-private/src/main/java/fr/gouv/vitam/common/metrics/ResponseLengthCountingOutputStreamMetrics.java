@@ -45,22 +45,19 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
 
     public static final Summary SENT_BYTES = Summary.build()
         .name(VitamMetricsNames.VITAM_RESPONSES_SIZE_BYTES)
-        .labelNames("tenant", "method")
-        .help("Vitam responses size in bytes")
+        .labelNames("tenant", "strategy", "method")
+        .help("Vitam responses size in bytes per tenant, strategy and method")
         .register();
 
-    private final ContainerResponseContext responseContext;
     private final ContainerRequestContext requestContext;
 
     private boolean first = true;
 
     public ResponseLengthCountingOutputStreamMetrics(ContainerRequestContext requestContext,
-        ContainerResponseContext responseContext,
         OutputStream outputStream) {
         super(outputStream);
-        ParametersChecker.checkParameter("ResponseContext param is required", responseContext);
+        ParametersChecker.checkParameter("RequestContext param is required", requestContext);
         this.requestContext = requestContext;
-        this.responseContext = responseContext;
     }
 
     @Override
@@ -75,12 +72,15 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
     private void onCloseOfOutputStream() {
         try {
             String headerString = requestContext.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            String tenant = headerString == null ? "unknown" : headerString;
+            String tenant = headerString == null ? "unknown_tenant" : headerString;
+
+            String strategyHeader = requestContext.getHeaderString(GlobalDataRest.X_STRATEGY_ID);
+            String strategy = strategyHeader == null ? "unknown_strategy" : strategyHeader;
 
             String method = requestContext.getMethod();
 
             SENT_BYTES
-                .labels(tenant, method)
+                .labels(tenant, strategy, method)
                 .observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);

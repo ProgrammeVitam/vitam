@@ -64,8 +64,7 @@ public class ContentLengthCountingMetricsFilter implements ContainerRequestFilte
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
         if (countOutputBytes && responseContext.getEntityStream() != null) {
             ResponseLengthCountingOutputStreamMetrics inputStream =
-                new ResponseLengthCountingOutputStreamMetrics(requestContext, responseContext,
-                    responseContext.getEntityStream());
+                new ResponseLengthCountingOutputStreamMetrics(requestContext, responseContext.getEntityStream());
             responseContext.setEntityStream(inputStream);
         }
     }

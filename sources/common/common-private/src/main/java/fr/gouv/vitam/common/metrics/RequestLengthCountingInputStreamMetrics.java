@@ -43,8 +43,8 @@ public class RequestLengthCountingInputStreamMetrics extends CountingInputStream
 
     public static final Summary RECEIVED_BYTES = Summary.build()
         .name(VitamMetricsNames.VITAM_REQUESTS_SIZE_BYTES)
-        .labelNames("tenant", "method")
-        .help("Vitam requests size in bytes")
+        .labelNames("tenant", "strategy", "method")
+        .help("Vitam requests size in bytes per tenant, strategy and method")
         .register();
 
     private final ContainerRequestContext requestContext;
@@ -70,12 +70,15 @@ public class RequestLengthCountingInputStreamMetrics extends CountingInputStream
     private void onEndOfFileReached() {
         try {
             String headerString = requestContext.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            String tenant = headerString == null ? "unknown" : headerString;
+            String tenant = headerString == null ? "unknown_tenant" : headerString;
+
+            String strategyHeader = requestContext.getHeaderString(GlobalDataRest.X_STRATEGY_ID);
+            String strategy = strategyHeader == null ? "unknown_strategy" : strategyHeader;
 
             String method = requestContext.getMethod();
 
             RECEIVED_BYTES
-                .labels(tenant, method)
+                .labels(tenant, strategy, method)
                 .observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);

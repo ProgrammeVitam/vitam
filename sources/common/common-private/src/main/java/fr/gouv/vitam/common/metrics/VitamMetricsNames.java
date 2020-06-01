@@ -35,16 +35,16 @@ public class VitamMetricsNames {
      */
 
     /**
-     * Vitam requests size in bytes
+     * Vitam requests size in bytes per tenant, strategy and method
      * Type: Summary
-     * Labels: "tenant", "method"
+     * Labels: "tenant", "strategy", "method"
      */
     public static final String VITAM_REQUESTS_SIZE_BYTES = "vitam_requests_size_bytes";
 
     /**
-     * Vitam responses size in bytes
+     * Vitam responses size in bytes per tenant, strategy and method
      * Type: Summary
-     * Labels: "tenant", "method"
+     * Labels: "tenant", "strategy", "method
      */
     public static final String VITAM_RESPONSES_SIZE_BYTES = "vitam_responses_size_bytes";
 
