@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.common.server;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
@@ -48,6 +49,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
 /**
@@ -428,7 +430,8 @@ public interface LogbookDbAccess {
      * @param collection the logbook collection to delete
      * @throws DatabaseException thrown when error on delete
      */
-    void deleteCollection(LogbookCollections collection) throws DatabaseException;
+    @VisibleForTesting
+    void deleteCollectionForTesting(LogbookCollections collection) throws DatabaseException, LogbookExecutionException;
 
     /**
      * Get Unit LifeCycle In process

@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
 import io.prometheus.client.Histogram;
@@ -81,14 +82,15 @@ public class LogbookReconstructionResource {
 
     /**
      * Constructor
-     *
-     * @param vitamRepositoryProvider vitamRepositoryProvider
+     *  @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository
+     * @param indexManager
      */
     public LogbookReconstructionResource(
         VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository) {
-        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository);
+        OffsetRepository offsetRepository,
+        ElasticsearchLogbookIndexManager indexManager) {
+        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager);
     }
 
     /**

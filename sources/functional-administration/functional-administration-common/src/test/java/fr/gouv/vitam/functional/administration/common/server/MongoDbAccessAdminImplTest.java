@@ -70,6 +70,7 @@ import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
@@ -95,12 +96,13 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 public class MongoDbAccessAdminImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImplTest.class);
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -147,11 +149,13 @@ public class MongoDbAccessAdminImplTest {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
+        esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes, indexManager);
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         mongoAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+            MongoDbAccessAdminFactory
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager);
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
@@ -222,7 +226,7 @@ public class MongoDbAccessAdminImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        FunctionalAdminCollectionsTestUtils.afterTestClass( true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @After
@@ -268,7 +272,8 @@ public class MongoDbAccessAdminImplTest {
         final String puid = f1.getString(FileFormat.PUID);
         final FileFormat f3 = (FileFormat) mongoAccess.getDocumentByUniqueId(puid, formatCollection, FileFormat.PUID);
         assertEquals(f3.get("#id"), f1.getId());
-        formatCollection.getEsClient().refreshIndex(formatCollection.getName().toLowerCase(), null);
+        formatCollection.getEsClient()
+            .refreshIndex(indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
         assertEquals(1, fileList.getCount());
         fileList.close();
 
@@ -276,7 +281,9 @@ public class MongoDbAccessAdminImplTest {
         final Select selectWithSortName = new Select();
         selectWithSortName.setQuery(and().add(match(FileFormat.NAME, "acrobat")));
         selectWithSortName.addOrderByDescFilter(FileFormat.NAME);
-        final DbRequestSingle dbrequestSort = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
+        final DbRequestSingle dbrequestSort =
+            new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList,
+                indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
         final DbRequestResult selectSortResult = dbrequestSort.execute(selectWithSortName);
         final List<FileFormat> selectSortList = selectSortResult.getDocuments(FileFormat.class);
         assertFalse(selectSortList.isEmpty());
@@ -291,7 +298,9 @@ public class MongoDbAccessAdminImplTest {
         final Select selectWithSortId = new Select();
         selectWithSortId.setQuery(match(FileFormat.NAME, "acrobat"));
         selectWithSortName.addOrderByAscFilter(FileFormat.PUID);
-        final DbRequestSingle dbrequestSortId = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
+        final DbRequestSingle dbrequestSortId =
+            new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList,
+                indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
         final DbRequestResult selectSortIdResult = dbrequestSortId.execute(selectWithSortId);
         final List<FileFormat> selectSortIdList = selectSortIdResult.getDocuments(FileFormat.class);
         assertFalse(selectSortIdList.isEmpty());
@@ -306,10 +315,13 @@ public class MongoDbAccessAdminImplTest {
         final Update update = new Update();
         update.setQuery(match(FileFormat.NAME, "name"));
         update.addActions(UpdateActionHelper.set(FileFormat.COMMENT, "new comment"));
-        final DbRequestSingle dbrequest = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
+        final DbRequestSingle dbrequest =
+            new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList,
+                indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
         final DbRequestResult updateResult = dbrequest.execute(update, mock(DocumentValidator.class));
         assertEquals(1, updateResult.getCount());
-        formatCollection.getEsClient().refreshIndex(formatCollection.getName().toLowerCase(), null);
+        formatCollection.getEsClient()
+            .refreshIndex(indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
         updateResult.close();
 
         final Delete delete = new Delete();
@@ -318,7 +330,7 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(1, deleteResult.getCount());
         assertEquals(2, collection.countDocuments());
         fileList.close();
-        mongoAccess.deleteCollection(formatCollection).close();
+        mongoAccess.deleteCollectionForTesting(formatCollection).close();
         deleteResult.close();
     }
 
@@ -356,7 +368,8 @@ public class MongoDbAccessAdminImplTest {
         final FileRules f1 = fileList.getDocuments(FileRules.class).get(0);
         LOGGER.debug(JsonHandler.prettyPrint(f1));
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
-        rulesCollection.getEsClient().refreshIndex(rulesCollection.getName().toLowerCase(), null);
+        rulesCollection.getEsClient()
+            .refreshIndex(indexManager.getElasticsearchIndexAliasResolver(rulesCollection).resolveIndexName(null));
 
         final QueryBuilder query = QueryBuilders.matchAllQuery();
         final SearchResponse requestResponse =
@@ -364,7 +377,7 @@ public class MongoDbAccessAdminImplTest {
                 .search(rulesCollection, query, null);
         fileList.close();
         assertEquals(2, requestResponse.getHits().getTotalHits().value);
-        mongoAccess.deleteCollection(rulesCollection).close();
+        mongoAccess.deleteCollectionForTesting(rulesCollection).close();
         assertEquals(0, collection.countDocuments());
     }
 
@@ -372,12 +385,13 @@ public class MongoDbAccessAdminImplTest {
     @RunWithCustomExecutor
     public void testAccessionRegister() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("accession_register_detail_OK.json"));
+        final JsonNode jsonNode =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("accession_register_detail_OK.json"));
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         assertEquals(1, collection.countDocuments());
-        mongoAccess.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
+        mongoAccess.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         assertEquals(0, collection.countDocuments());
     }
 
@@ -416,7 +430,7 @@ public class MongoDbAccessAdminImplTest {
         } catch (SchemaValidationException e) {
             // do nothing
         }
-        mongoAccess.deleteCollection(contractCollection).close();
+        mongoAccess.deleteCollectionForTesting(contractCollection).close();
         assertEquals(0, collection.countDocuments());
     }
 
@@ -461,7 +475,7 @@ public class MongoDbAccessAdminImplTest {
             // do nothing
         }
 
-        mongoAccess.deleteCollection(contractCollection).close();
+        mongoAccess.deleteCollectionForTesting(contractCollection).close();
         assertEquals(0, collection.countDocuments());
     }
 
@@ -479,7 +493,7 @@ public class MongoDbAccessAdminImplTest {
             mongoRule.getMongoCollection(FunctionalAdminCollections.PROFILE.getName());
         mongoAccess.insertDocuments(arrayNode, profileCollection).close();
         assertEquals(1, collection.countDocuments());
-        mongoAccess.deleteCollection(profileCollection).close();
+        mongoAccess.deleteCollectionForTesting(profileCollection).close();
         assertEquals(0, collection.countDocuments());
     }
 
@@ -511,7 +525,7 @@ public class MongoDbAccessAdminImplTest {
         final IngestContract foundContract = contracts.getDocuments(IngestContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(IngestContract.NAME));
-        mongoAccess.deleteCollection(contractCollection).close();
+        mongoAccess.deleteCollectionForTesting(contractCollection).close();
 
     }
 
@@ -550,7 +564,7 @@ public class MongoDbAccessAdminImplTest {
         final AccessContract foundContract = contracts.getDocuments(AccessContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(AccessContract.NAME));
-        mongoAccess.deleteCollection(contractCollection).close();
+        mongoAccess.deleteCollectionForTesting(contractCollection).close();
 
     }
 
@@ -579,7 +593,7 @@ public class MongoDbAccessAdminImplTest {
         final Profile foundProfile = profiles.getDocuments(Profile.class).get(0);
         profiles.close();
         assertEquals("FakeId", foundProfile.getString(Profile.IDENTIFIER));
-        mongoAccess.deleteCollection(profileCollection).close();
+        mongoAccess.deleteCollectionForTesting(profileCollection).close();
 
     }
 
@@ -606,7 +620,7 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(0, contextFound.getTotal());
         contextFound.close();
 
-        mongoAccess.deleteCollection(contextCollection).close();
+        mongoAccess.deleteCollectionForTesting(contextCollection).close();
     }
 
 

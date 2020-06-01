@@ -26,25 +26,6 @@
  */
 package fr.gouv.vitam.logbook.rest;
 
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -81,11 +62,11 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import io.restassured.RestAssured;
@@ -99,6 +80,24 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 
 @RunWithCustomExecutor
 public class LogbookResourceTest {
@@ -162,6 +161,8 @@ public class LogbookResourceTest {
 
     private static final int TENANT_ID = 0;
     private static final List<Integer> tenantList = Collections.singletonList(0);
+    private final static ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
+        .createTestIndexManager(tenantList, Collections.emptyMap());
 
     private static int workspacePort = junitHelper.findAvailablePort();
     private static int processingPort = junitHelper.findAvailablePort();
@@ -185,8 +186,8 @@ public class LogbookResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        elasticsearchAccess = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccess, TENANT_ID);
+        elasticsearchAccess = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccess);
 
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
@@ -262,7 +263,7 @@ public class LogbookResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             if (application != null) {
@@ -272,7 +273,7 @@ public class LogbookResourceTest {
             LOGGER.error(e);
         }
 
-        LogbookCollectionsTestUtils.afterTestClass(true, TENANT_ID);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
 
         junitHelper.releasePort(workspacePort);
         junitHelper.releasePort(processingPort);
@@ -281,7 +282,7 @@ public class LogbookResourceTest {
 
     @After
     public void tearDown() {
-        LogbookCollectionsTestUtils.afterTest(TENANT_ID);
+        LogbookCollectionsTestUtils.afterTest(indexManager);
     }
 
 
@@ -670,7 +671,7 @@ public class LogbookResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testCheckLogbookCoherenceOK() throws Exception {
+    public void testCheckLogbookCoherenceOK() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // call the endpoint logbook check coherence
@@ -683,7 +684,7 @@ public class LogbookResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testCheckLifecycleTraceabilityStatus_NotFound() throws Exception {
+    public void testCheckLifecycleTraceabilityStatus_NotFound() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         processingInstanceRule.stubFor(WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn

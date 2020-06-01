@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -108,6 +109,9 @@ public class ArchiveUnitProfileServiceImplTest {
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     private static ElasticsearchAccessFunctionalAdmin esClient;
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
@@ -115,10 +119,8 @@ public class ArchiveUnitProfileServiceImplTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
-        final List tenants = new ArrayList<>();
-        tenants.add(new Integer(TENANT_ID));
-        tenants.add(new Integer(EXTERNAL_TENANT));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+        final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
         list_tenant.add(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name());
@@ -131,12 +133,13 @@ public class ArchiveUnitProfileServiceImplTest {
         archiveUnitProfileService =
             new ArchiveUnitProfileServiceImpl(
                 MongoDbAccessAdminFactory
-                    .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
+                    .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
                 vitamCounterService, functionalBackupService, false);
 
 
         esClient = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())));
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
+            indexManager);
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             esClient, Arrays.asList(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE));
 

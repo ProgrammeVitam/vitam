@@ -28,9 +28,9 @@ package fr.gouv.vitam.metadata.core;
 
 import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
@@ -38,7 +38,6 @@ import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetad
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,17 +50,20 @@ public class MongoDbAccessMetadataFactory {
      * Creation of one MongoDbAccess
      *
      * @param configuration config of MongoDbAcess
+     * @param elasticsearchMetadataIndexManager
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration, MappingLoader mappingLoader) {
+    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration, MappingLoader mappingLoader,
+        ElasticsearchMetadataIndexManager elasticsearchMetadataIndexManager) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
 
         ElasticsearchAccessMetadata esClient;
         try {
-            esClient = ElasticsearchAccessMetadataFactory.create(configuration, mappingLoader);
+            esClient = ElasticsearchAccessMetadataFactory.create(configuration,
+                elasticsearchMetadataIndexManager);
 
-        } catch (final MetaDataException | IOException e1) {
+        } catch (final MetaDataException e1) {
             throw new IllegalArgumentException(e1);
         }
 
@@ -73,6 +75,6 @@ public class MongoDbAccessMetadataFactory {
 
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
-        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient, VitamConfiguration.getTenants());
+        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient);
     }
 }

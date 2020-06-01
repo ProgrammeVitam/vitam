@@ -34,12 +34,14 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfigurationValidator;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.graph.GraphFactory;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 
 import javax.servlet.ServletConfig;
@@ -74,8 +76,19 @@ public class BusinessApplication extends Application {
                 PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
 
-            MappingLoader mappingLoader  = new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
-            MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration, mappingLoader);
+            // Validate configuration
+            MetaDataConfigurationValidator.validateConfiguration(metaDataConfiguration);
+
+            MappingLoader mappingLoader =
+                new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
+
+            // Elasticsearch configuration
+            ElasticsearchMetadataIndexManager indexManager =
+                new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
+                    mappingLoader);
+
+            MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(
+                metaDataConfiguration, mappingLoader, indexManager);
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
@@ -92,13 +105,15 @@ public class BusinessApplication extends Application {
                 mappingLoader
             );
 
-            GraphFactory.initialize(vitamRepositoryProvider, metadata);
+            GraphFactory.initialize(vitamRepositoryProvider, metadata, indexManager);
 
             MetadataRuleService metadataRuleService = new MetadataRuleService(metadata);
-            MetadataResource metaDataResource = new MetadataResource(metadata, metadataRuleService, metaDataConfiguration);
+            MetadataResource metaDataResource =
+                new MetadataResource(metadata, metadataRuleService, metaDataConfiguration);
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
             MetadataManagementResource metadataReconstruction =
-                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata, metaDataConfiguration);
+                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata,
+                    metaDataConfiguration, indexManager);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

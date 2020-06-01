@@ -68,6 +68,7 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.AgenciesParser;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
@@ -92,7 +93,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.ws.rs.core.Response;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -151,6 +151,9 @@ public class AccessContractImplTest {
 
     static ContractService<AccessContractModel> accessContractService;
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @Before
     public void setUp() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
@@ -161,14 +164,16 @@ public class AccessContractImplTest {
     public static void setUpBeforeClass() throws Exception {
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Arrays.asList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
+                Arrays.asList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
+                indexManager),
             Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT, FunctionalAdminCollections.AGENCIES));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+            MongoDbAccessAdminFactory
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
@@ -180,14 +185,14 @@ public class AccessContractImplTest {
         LogbookOperationsClientFactory.changeMode(null);
 
         metaDataClientMock = mock(MetaDataClient.class);
-        
+
         logbookOperationsClientMock = mock(LogbookOperationsClient.class);
 
         functionalBackupService = mock(FunctionalBackupService.class);
 
         accessContractService =
             new AccessContractImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
                 vitamCounterService, metaDataClientMock, logbookOperationsClientMock, functionalBackupService);
         final File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
 
@@ -249,7 +254,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
@@ -259,19 +265,20 @@ public class AccessContractImplTest {
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(CONTRACT_BACKUP_EVENT), eq(
             FunctionalAdminCollections.ACCESS_CONTRACT), any());
-        
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
     }
 
     @Test
@@ -282,26 +289,28 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isFalse();
 
         verifyNoMoreInteractions(functionalBackupService);
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
 
     }
 
@@ -319,22 +328,23 @@ public class AccessContractImplTest {
 
         assertThat(response.isOk()).isFalse();
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("AccessContract service error");
+            .isEqualTo("AccessContract service error");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventDetailData))
-                .contains("accessContractCheck").contains("Id must be null when creating contracts (aName)");
+            .contains("accessContractCheck").contains("Id must be null when creating contracts (aName)");
     }
 
 
@@ -395,7 +405,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -486,7 +497,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -569,7 +581,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -609,7 +622,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -639,7 +653,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -668,23 +683,25 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
         assertThat(response.isOk()).isFalse();
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
 
     @Test
@@ -695,7 +712,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
         assertThat(response.isOk()).isTrue();
     }
 
@@ -717,7 +735,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -735,7 +754,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -782,25 +802,27 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isFalse();
         assertThat(response.toString()).contains("RootUnits (GUID1,GUID2,GUID3) not found in database");
-        
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
     }
 
     @Test
@@ -818,25 +840,27 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isFalse();
         assertThat(response.toString()).contains("RootUnits (GUID2) not found in database");
-        
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
     }
 
 
@@ -856,7 +880,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults()).hasSize(2);
@@ -874,7 +899,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults()).hasSize(2);
@@ -894,26 +920,28 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isFalse();
         assertThat(response.toString()).contains("RootUnits (GUID1,GUID2,GUID3) not found in database");
-        
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
-    
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+
     }
 
     @Test
@@ -927,26 +955,30 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isFalse();
-        assertEquals( ((VitamError) response).getErrors().get(0).getMessage(), "STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO" );
-        assertThat(response.toString()).contains("ExcludedRootUnits and RootUnits (GUID11,GUID22,GUID33,GUID1,GUID2,GUID3) not found in database");
-        
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        assertEquals(((VitamError) response).getErrors().get(0).getMessage(),
+            "STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+        assertThat(response.toString())
+            .contains("ExcludedRootUnits and RootUnits (GUID11,GUID22,GUID33,GUID1,GUID2,GUID3) not found in database");
+
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
     }
 
     @Test
@@ -964,7 +996,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults()).hasSize(2);
@@ -981,23 +1014,25 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
         assertThat(response.isOk()).isFalse();
-        
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO");
     }
 
 
@@ -1014,7 +1049,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
@@ -1074,7 +1110,8 @@ public class AccessContractImplTest {
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
-        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
+        final RequestResponse<AccessContractModel> response =
+            accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -1153,15 +1190,15 @@ public class AccessContractImplTest {
         // Given
         File fileContractsKO = PropertiesUtils.getResourceFile("KO_contract_access_usage_inexistant.json");
         List<AccessContractModel> accessContractModelListKO = JsonHandler.getFromFileAsTypeReference(fileContractsKO,
-                new TypeReference<List<AccessContractModel>>() {
-                });
+            new TypeReference<List<AccessContractModel>>() {
+            });
         RequestResponseOK<FunctionalOperationModel> tempsResult = new RequestResponseOK<FunctionalOperationModel>()
-                .addResult(
-                        new FunctionalOperationModel().setEvId("evId").setEvDateTime("evDateTime").setEvType("evType"));
+            .addResult(
+                new FunctionalOperationModel().setEvId("evId").setEvDateTime("evDateTime").setEvType("evType"));
         when(logbookOperationsClientMock.selectOperationById(any())).thenReturn(tempsResult.toJsonNode());
         // When
         RequestResponse<AccessContractModel> response = accessContractService
-                .createContracts(accessContractModelListKO);
+            .createContracts(accessContractModelListKO);
 
         // Then
         assertThat(response).isInstanceOf(VitamError.class);
@@ -1170,20 +1207,20 @@ public class AccessContractImplTest {
         assertThat(response.toString()).contains("toto");
 
         ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor
-                .forClass(LogbookOperationParameters.class);
+            .forClass(LogbookOperationParameters.class);
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
         List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-                .getAllValues();
+            .getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
         assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-                .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.BAD_REQUEST.KO");
+            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.BAD_REQUEST.KO");
     }
 
 }

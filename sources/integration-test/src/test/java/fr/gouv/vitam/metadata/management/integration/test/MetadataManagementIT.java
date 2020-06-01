@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -136,6 +137,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -236,7 +238,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -260,7 +262,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     @AfterClass
     public static void afterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -283,7 +285,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     @After
     public void tearDown() throws Exception {
-        handleAfterClassExceptReferential(0, 1);
+        handleAfterClassExceptReferential();
         runAfter();
     }
 
@@ -981,9 +983,11 @@ public class MetadataManagementIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void testComputeUnitAndObjectGroupGraphForTrivialCases() throws Exception {
         Document au_without_parents = new Document(Unit.ID, "au_without_parents")
+            .append(Unit.TENANT_ID, 0)
             .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
         Document got_without_unit = new Document(ObjectGroup.ID, "got_without_unit")
+            .append(Unit.TENANT_ID, 0)
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
@@ -994,7 +998,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         // Compute Graph
         final Select select = new Select();
-        select.setQuery(QueryHelper.missing("fakefake"));
+        select.setQuery(QueryHelper.exists(VitamFieldsHelper.id()));
         GraphComputeResponse body = metaDataClient
             .computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("au_without_parents"));
 
@@ -1084,13 +1088,15 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // Save units
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                 .save(unitList);
-            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
                 .save(unitList);
 
             // Save gots
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
                 .save(gotList);
-            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
                 .save(gotList);
 
             // Save LFC
@@ -1494,7 +1500,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
@@ -1537,7 +1544,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
             .save(gots);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
             .save(gots);
     }
 

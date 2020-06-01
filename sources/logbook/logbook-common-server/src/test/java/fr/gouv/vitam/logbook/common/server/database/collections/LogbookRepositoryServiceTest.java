@@ -26,37 +26,39 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.any;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 
 public class LogbookRepositoryServiceTest {
 
     @Test
     public void testSaveBulk() throws DatabaseException {
-        
-        VitamRepositoryProvider vitamRepositoryProvider = Mockito.mock(VitamRepositoryProvider.class);
-        VitamMongoRepository vitamMongoRepository = Mockito.mock(VitamMongoRepository.class);
-        VitamElasticsearchRepository vitamElasticsearchRepository = Mockito.mock(VitamElasticsearchRepository.class);
-        LogbookRepositoryService logbookRepositoryService = new LogbookRepositoryService(vitamRepositoryProvider);
-        
+
+        VitamRepositoryProvider vitamRepositoryProvider = mock(VitamRepositoryProvider.class);
+        VitamMongoRepository vitamMongoRepository = mock(VitamMongoRepository.class);
+        VitamElasticsearchRepository vitamElasticsearchRepository = mock(VitamElasticsearchRepository.class);
+        ElasticsearchLogbookIndexManager indexManager = mock(ElasticsearchLogbookIndexManager.class);
+        LogbookRepositoryService logbookRepositoryService = new LogbookRepositoryService(vitamRepositoryProvider,
+            indexManager);
+
         Mockito.when(vitamRepositoryProvider.getVitamMongoRepository(any())).thenReturn(vitamMongoRepository);
         Mockito.doNothing().when(vitamMongoRepository).saveOrUpdate(any(List.class));
-        Mockito.when(vitamRepositoryProvider.getVitamESRepository(any())).thenReturn(vitamElasticsearchRepository);
+        Mockito.when(vitamRepositoryProvider.getVitamESRepository(any(), any()))
+            .thenReturn(vitamElasticsearchRepository);
         Mockito.doNothing().when(vitamElasticsearchRepository).save(any(List.class));
 
         List<JsonNode> logbookItems = new ArrayList<>();

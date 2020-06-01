@@ -30,13 +30,14 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 
 /**
- * Reconstruction instance for instanciating mongoDB and elasticsearch repository.
+ * Reconstruction instance for instantiating mongoDB and elasticsearch repository.
  */
 public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
-    private static VitamRepositoryFactory instance = new VitamRepositoryFactory();
+    private static final VitamRepositoryFactory instance = new VitamRepositoryFactory();
 
     /**
      * private constructor for instance initialization. <br />
@@ -61,9 +62,10 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
     }
 
     @Override
-    public VitamElasticsearchRepository getVitamESRepository(VitamCollection collection) {
+    public VitamElasticsearchRepository getVitamESRepository(VitamCollection collection,
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver) {
         return new VitamElasticsearchRepository(collection.getEsClient().getClient(),
-            collection.getName().toLowerCase(), collection.isCreateIndexByTenant());
+            elasticsearchIndexAliasResolver);
     }
 
 }

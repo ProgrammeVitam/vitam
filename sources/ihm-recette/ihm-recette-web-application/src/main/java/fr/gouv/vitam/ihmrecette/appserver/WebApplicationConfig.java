@@ -94,6 +94,7 @@ public class WebApplicationConfig extends DbConfigurationImpl {
         super(mongoDbNodes, dbName);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
+        this.elasticsearchExternalMetadataMappings = mappingLoader.getElasticsearchExternalMappings();
     }
 
     /**

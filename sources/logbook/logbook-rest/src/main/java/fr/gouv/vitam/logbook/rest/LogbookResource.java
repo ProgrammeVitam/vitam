@@ -78,6 +78,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -146,11 +147,12 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Constructor
-     *
-     * @param configuration of type LogbookConfiguration
+     *  @param configuration of type LogbookConfiguration
      * @param ontologyLoader
+     * @param indexManager
      */
-    public LogbookResource(LogbookConfiguration configuration, OntologyLoader ontologyLoader) {
+    public LogbookResource(LogbookConfiguration configuration, OntologyLoader ontologyLoader,
+        ElasticsearchLogbookIndexManager indexManager) {
         if (configuration.isDbAuthentication()) {
             logbookConfiguration =
                 new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
@@ -162,7 +164,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
                     configuration.getClusterName(), configuration.getElasticsearchNodes());
         }
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader, indexManager);
 
         logbookOperation = new AlertLogbookOperationsDecorator(new LogbookOperationsImpl(mongoDbAccess),
             configuration.getAlertEvents());

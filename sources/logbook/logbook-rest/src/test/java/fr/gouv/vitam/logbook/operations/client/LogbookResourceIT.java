@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -69,6 +70,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
@@ -94,6 +98,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -137,7 +142,8 @@ public class LogbookResourceIT {
     private static final int NB_TEST = 100;
     private static final Integer tenantId = 0;
     private static final List<Integer> tenantList = newArrayList(tenantId);
-
+    private static final ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
+        .createTestIndexManager(tenantList, Collections.emptyMap());
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -161,7 +167,7 @@ public class LogbookResourceIT {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -188,6 +194,9 @@ public class LogbookResourceIT {
             logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
             logbookConf.setOpWithLFC(new ArrayList<>());
             logbookConf.setOpEventsNotInWf(new ArrayList<>());
+            logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
+                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
+                    new CollectionConfiguration(2, 1))));
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();
             PropertiesUtils.writeYaml(file, logbookConf);
@@ -232,7 +241,7 @@ public class LogbookResourceIT {
             LOGGER.error(e);
         }
 
-        LogbookCollectionsTestUtils.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
 
         junitHelper.releasePort(serverPort);
         junitHelper.releasePort(workspacePort);

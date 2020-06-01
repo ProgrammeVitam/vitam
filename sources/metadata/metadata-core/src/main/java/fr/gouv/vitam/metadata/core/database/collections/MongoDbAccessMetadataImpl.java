@@ -34,15 +34,12 @@ import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * MongoDbAccess Implement for Admin
@@ -59,41 +56,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
      * @param esClient Elasticsearch client
-     * @param tenants the tenant list
      */
-
-    public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
-        ElasticsearchAccessMetadata esClient, List<Integer> tenants) {
-        super(mongoClient, dbname, recreate);
-        this.esClient = esClient;
-
-        MetadataCollections.UNIT.initialize(getMongoDatabase(), recreate);
-        MetadataCollections.OBJECTGROUP.initialize(getMongoDatabase(), recreate);
-
-        // init Unit Mapping for ES
-        MetadataCollections.UNIT.initialize(this.esClient);
-
-        // init OG Mapping for ES
-        MetadataCollections.OBJECTGROUP.initialize(this.esClient);
-
-        for (Integer tenant : tenants) {
-            Map<String, String> map =
-                MetadataCollections.UNIT.getEsClient().addIndex(MetadataCollections.UNIT, tenant);
-            if (map.isEmpty()) {
-                throw new RuntimeException(
-                    "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" +
-                        tenant);
-            }
-            map = MetadataCollections.OBJECTGROUP.getEsClient().addIndex(MetadataCollections.OBJECTGROUP, tenant);
-            if (map.isEmpty()) {
-                throw new RuntimeException(
-                    "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() +
-                        " and tenant :" + tenant);
-            }
-        }
-    }
-
-    @VisibleForTesting
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
         ElasticsearchAccessMetadata esClient) {
         super(mongoClient, dbname, recreate);
@@ -107,6 +70,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
         // init OG Mapping for ES
         MetadataCollections.OBJECTGROUP.initialize(this.esClient);
+
+        esClient.createIndexesAndAliases();
     }
 
     /**
@@ -168,9 +133,9 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * Delete Unit metadata by tenant Not check, test feature !
      *
      * @param tenantIds the list of tenants
-     * @throws DatabaseException thrown when error on delete
      */
-    public void deleteUnitByTenant(Integer... tenantIds) throws DatabaseException {
+    @VisibleForTesting
+    public void deleteUnitByTenant(Integer... tenantIds) throws MetaDataExecutionException {
         final long count = MetadataCollections.UNIT.getCollection().countDocuments();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(MetadataCollections.UNIT.getName() + " count before: " + count);
@@ -185,13 +150,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                         .getDeletedCount());
                 }
 
-                esClient.purgeIndex(MetadataCollections.UNIT.getName().toLowerCase(), tenantId);
-                Map<String, String> map = esClient.addIndex(MetadataCollections.UNIT, tenantId);
-                if (map.isEmpty()) {
-                    throw new RuntimeException(
-                        "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" +
-                            tenantId);
-                }
+                esClient.purgeIndexForTesting(MetadataCollections.UNIT, tenantId);
             }
         }
     }
@@ -201,7 +160,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      *
      * @param tenantIds the list of tenants
      */
-    public void deleteObjectGroupByTenant(Integer... tenantIds) {
+    @VisibleForTesting
+    public void deleteObjectGroupByTenant(Integer... tenantIds) throws MetaDataExecutionException {
         final long count = MetadataCollections.OBJECTGROUP.getCollection().countDocuments();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(MetadataCollections.OBJECTGROUP.getName() + " count before: " + count);
@@ -216,13 +176,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                         MetadataCollections.OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
                             .getDeletedCount());
                 }
-                esClient.purgeIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), tenantId);
-                Map<String, String> map = esClient.addIndex(MetadataCollections.OBJECTGROUP, tenantId);
-                if (map.isEmpty()) {
-                    throw new RuntimeException(
-                        "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() +
-                            " and tenant :" + tenantId);
-                }
+                esClient.purgeIndexForTesting(MetadataCollections.OBJECTGROUP, tenantId);
             }
         }
     }

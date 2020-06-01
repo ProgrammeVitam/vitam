@@ -42,13 +42,15 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
@@ -150,6 +152,10 @@ public class MongoDbAccessMetadataImplTest {
 
     static MongoDbAccessMetadataImpl mongoDbAccess;
 
+    private static final ElasticsearchMetadataIndexManager metadataIndexManager = MetadataCollectionsTestUtils
+        .createTestIndexManager(tenantList, Collections.emptyMap(), MappingLoaderTestUtils.getTestMappingLoader());
+    private static final ElasticsearchFunctionalAdminIndexManager functionalAdminIndexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @BeforeClass
     public static void setupOne() throws Exception {
@@ -157,35 +163,31 @@ public class MongoDbAccessMetadataImplTest {
             Lists
                 .newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-
-        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes, mappingLoader);
-        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient, 0, 1);
+        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes,
+            metadataIndexManager);
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient);
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
-
-
-
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes,
+                functionalAdminIndexManager));
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        MetadataCollectionsTestUtils.afterTestClass(true, 0, 1);
+        MetadataCollectionsTestUtils.afterTestClass(metadataIndexManager, true);
         FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @After
     public void after() {
-        MetadataCollectionsTestUtils.afterTest(0, 1);
+        MetadataCollectionsTestUtils.afterTest(metadataIndexManager);
         FunctionalAdminCollectionsTestUtils.afterTest();
-
     }
 
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), true,
-                esClient, tenantList);
+                esClient);
         assertThat(mongoDbAccess.getInfo())
             .contains(DEFAULT_MONGO1)
             .contains(DEFAULT_MONGO2)
@@ -206,7 +208,7 @@ public class MongoDbAccessMetadataImplTest {
     public void givenMongoDbAccessConstructorWhenCreateWithoutRecreateThenAddNothing() {
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
-                esClient, tenantList);
+                esClient);
         assertThat(mongoDbAccess.getInfo())
             .contains(DEFAULT_MONGO1)
             .contains(DEFAULT_MONGO2)
@@ -226,10 +228,11 @@ public class MongoDbAccessMetadataImplTest {
 
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
-                esClient, tenantList);
+                esClient);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
+        final MetaDataImpl metaData =
+            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
 
         final String operationId = "1234";
         ArrayList<Document> units = Lists.newArrayList(
@@ -276,7 +279,8 @@ public class MongoDbAccessMetadataImplTest {
         mongo.save(units);
 
         VitamElasticsearchRepository es =
-            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection());
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(UNIT));
         es.save(units);
 
         // When
@@ -296,10 +300,11 @@ public class MongoDbAccessMetadataImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(),
-            mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
+            mongoRule.getMongoDatabase().getName(), false, esClient);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
+        final MetaDataImpl metaData =
+            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
         initGotsForAccessionRegisterTest("/got_1_sp1.json", "/got_2_sp1.json", "/got_3_sp2.json",
             "/got_4_sp1_sp2.json");
 
@@ -328,10 +333,11 @@ public class MongoDbAccessMetadataImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(),
-            mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
+            mongoRule.getMongoDatabase().getName(), false, esClient);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
+        final MetaDataImpl metaData =
+            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
         final String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
         initGotsForAccessionRegisterTest("/object_sp1_1.json", "/object_sp1_sp2_2.json", "/object_sp2.json",
             "/object_sp2_4.json", "/object_other_operation_id.json");
@@ -365,7 +371,8 @@ public class MongoDbAccessMetadataImplTest {
         mongo.save(objectGroups);
 
         VitamElasticsearchRepository es =
-            VitamRepositoryFactory.get().getVitamESRepository(OBJECTGROUP.getVitamCollection());
+            VitamRepositoryFactory.get().getVitamESRepository(OBJECTGROUP.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP));
         es.save(objectGroups);
     }
 

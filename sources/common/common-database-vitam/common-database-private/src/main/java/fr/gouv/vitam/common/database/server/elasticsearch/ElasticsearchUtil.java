@@ -36,13 +36,13 @@ import java.util.stream.Collectors;
  * Elasticsearch Util
  */
 public class ElasticsearchUtil {
-    
+
     /**
-     * @param is InputStream of the file json 
+     * @param is InputStream of the file json
      * @return String mapping
      * @throws IOException
      */
-    public static String transferJsonToMapping(InputStream is) throws IOException{
+    public static String transferJsonToMapping(InputStream is) throws IOException {
         final String mapping;
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(is))) {
             mapping = buffer.lines().collect(Collectors.joining("\n"));

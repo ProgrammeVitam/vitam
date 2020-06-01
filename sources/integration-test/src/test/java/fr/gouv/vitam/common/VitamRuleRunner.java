@@ -40,16 +40,18 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
@@ -63,6 +65,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class VitamRuleRunner {
@@ -108,48 +111,62 @@ public class VitamRuleRunner {
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
+    protected static ElasticsearchLogbookIndexManager logbookIndexManager;
+    protected static ElasticsearchMetadataIndexManager metadataIndexManager;
+    protected static ElasticsearchFunctionalAdminIndexManager functionalAdminIndexManager;
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    public static void handleBeforeClass(Integer... tenants) throws Exception {
-        handleBeforeClass(Prefix.PREFIX.getPrefix(), tenants);
+    public static void handleBeforeClass(
+        List<Integer> dedicatedTenants, Map<String, List<Integer>> tenantGroups) throws Exception {
+        handleBeforeClass(Prefix.PREFIX.getPrefix(), dedicatedTenants, tenantGroups);
         FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()
             .setName(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().getClasz().getSimpleName());
     }
 
-    public static void handleBeforeClass(String prefix, Integer... tenants) throws Exception {
+    public static void handleBeforeClass(
+        String prefix, List<Integer> dedicatedTenants, Map<String, List<Integer>> tenantGroups) throws Exception {
+
+        logbookIndexManager = LogbookCollectionsTestUtils.createTestIndexManager(dedicatedTenants, tenantGroups);
+        metadataIndexManager = MetadataCollectionsTestUtils.createTestIndexManager(dedicatedTenants, tenantGroups,
+            MappingLoaderTestUtils.getTestMappingLoader());
+        functionalAdminIndexManager = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
         // ES client
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-
         MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes, mappingLoader), tenants);
+            new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes,
+                metadataIndexManager));
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes));
+            new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes,
+                functionalAdminIndexManager));
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
+            new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes, logbookIndexManager));
     }
 
-    public static void handleAfterClass(Integer... tenants) {
+    public static void handleAfterClass() {
         MetadataCollectionsTestUtils
-            .afterTestClass(false, tenants);
+            .afterTestClass(metadataIndexManager, false);
         LogbookCollectionsTestUtils
-            .afterTestClass(false, tenants);
-        FunctionalAdminCollectionsTestUtils.afterTestClass(false);
+            .afterTestClass(logbookIndexManager, false);
+        FunctionalAdminCollectionsTestUtils
+            .afterTestClass(false);
     }
 
-    public static void handleAfterClassExceptReferential(Integer... tenants) {
+    public static void handleAfterClassExceptReferential() {
         MetadataCollectionsTestUtils
-            .afterTestClass(false, tenants);
+            .afterTestClass(metadataIndexManager, false);
         LogbookCollectionsTestUtils
-            .afterTestClass(false, tenants);
+            .afterTestClass(logbookIndexManager, false);
     }
-    public static void handleAfter(Integer... tenants) {
-        MetadataCollectionsTestUtils.afterTest(tenants);
-        LogbookCollectionsTestUtils.afterTest(tenants);
+
+    public static void handleAfter() {
+        MetadataCollectionsTestUtils.afterTest(metadataIndexManager);
+        LogbookCollectionsTestUtils.afterTest(logbookIndexManager);
     }
 
     private static List<Class<?>> merge(List<Class<?>> classes, List<Class<?>> classes1, List<Class<?>> classes2) {

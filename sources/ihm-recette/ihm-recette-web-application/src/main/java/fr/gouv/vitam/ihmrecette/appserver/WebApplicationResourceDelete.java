@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -46,9 +47,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfigurationValidator;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
+import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -60,13 +63,19 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfigurationValidator;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfigurationValidator;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -134,44 +143,70 @@ public class WebApplicationResourceDelete {
      * @param webApplicationConfig application configuration
      * @param ontologyLoader
      */
-    public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig, OntologyLoader ontologyLoader) {
-        DbConfigurationImpl adminConfiguration;
+    public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig, OntologyLoader ontologyLoader,
+        FunctionalAdminIndexationConfiguration functionalAdminFunctionalAdminIndexationConfiguration,
+        MetadataIndexationConfiguration metadataMetadataIndexationConfiguration,
+        LogbookIndexationConfiguration logbookLogbookIndexationConfiguration) {
+        AdminManagementConfiguration adminConfiguration;
         LogbookConfiguration logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;
         MappingLoader mappingLoader;
         if (webApplicationConfig.isDbAuthentication()) {
             adminConfiguration =
-                new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
+                new AdminManagementConfiguration(webApplicationConfig.getMongoDbNodes(),
                     webApplicationConfig.getMasterdataDbName(),
-                    true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
+                    true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword(),
+                    functionalAdminFunctionalAdminIndexationConfiguration);
             logbookConfiguration =
                 new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
                     webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                     .getElasticsearchNodes(),
-                    true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
+                    true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword())
+                .setLogbookTenantIndexation(logbookLogbookIndexationConfiguration);
             mappingLoader = new MappingLoader(webApplicationConfig.getElasticsearchExternalMetadataMappings());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                 .getElasticsearchNodes(),
                 true, webApplicationConfig.getDbUserName(), webApplicationConfig
-                .getDbPassword(), mappingLoader);
+                .getDbPassword(), mappingLoader)
+                .setIndexationConfiguration(metadataMetadataIndexationConfiguration);
         } else {
             adminConfiguration =
-                new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
-                    webApplicationConfig.getMasterdataDbName());
+                new AdminManagementConfiguration(webApplicationConfig.getMongoDbNodes(),
+                    webApplicationConfig.getMasterdataDbName(), functionalAdminFunctionalAdminIndexationConfiguration);
             logbookConfiguration =
                 new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
                     webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(),
                     webApplicationConfig
-                        .getElasticsearchNodes());
+                        .getElasticsearchNodes())
+                    .setLogbookTenantIndexation(logbookLogbookIndexationConfiguration);
             mappingLoader = new MappingLoader(webApplicationConfig.getElasticsearchExternalMetadataMappings());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                .getElasticsearchNodes(), mappingLoader);
+                .getElasticsearchNodes(), mappingLoader)
+            .setIndexationConfiguration(metadataMetadataIndexationConfiguration);
         }
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(), webApplicationConfig.getElasticsearchNodes(), ontologyLoader);
-        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader);
-        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration,mappingLoader);
+
+
+        // Validate configuration
+        AdminManagementConfigurationValidator.validateConfiguration(adminConfiguration);
+        MetaDataConfigurationValidator.validateConfiguration(metaDataConfiguration);
+        LogbookConfigurationValidator.validateConfiguration(logbookConfiguration);
+
+        ElasticsearchMetadataIndexManager metadataIndexManager =
+            new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
+                mappingLoader);
+        ElasticsearchLogbookIndexManager logbookIndexManager =
+            new ElasticsearchLogbookIndexManager(logbookConfiguration, VitamConfiguration.getTenants());
+        ElasticsearchFunctionalAdminIndexManager indexManager =
+            new ElasticsearchFunctionalAdminIndexManager(adminConfiguration);
+
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(), webApplicationConfig.getElasticsearchNodes(), ontologyLoader,
+            indexManager);
+        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader,
+            logbookIndexManager);
+        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration,mappingLoader,
+            metadataIndexManager);
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -211,7 +246,7 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.FORMATS).close();
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.FORMATS).close();
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_FORMAT).setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_FORMAT, StatusCode.OK))
@@ -258,7 +293,7 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.RULES).close();
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.RULES).close();
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES).setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.OK))
@@ -305,7 +340,7 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
         try {
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC).close();
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC).close();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -315,7 +350,7 @@ public class WebApplicationResourceDelete {
 
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY).close();
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY).close();
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
                 .setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
@@ -347,7 +382,7 @@ public class WebApplicationResourceDelete {
             VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.STARTED), eipDetail);
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
                 .setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
@@ -400,7 +435,7 @@ public class WebApplicationResourceDelete {
             LOGGER.error("Cannot create delegate logbook operation", exc);
         }
         try {
-            mongoDbAccessLogbook.deleteCollection(LogbookCollections.OPERATION);
+            mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.OPERATION);
             parameters
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK))
@@ -454,7 +489,7 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessLogbook.deleteCollection(LogbookCollections.LIFECYCLE_OBJECTGROUP);
+            mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             parameters.setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK))
@@ -501,7 +536,7 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessLogbook.deleteCollection(LogbookCollections.LIFECYCLE_UNIT);
+            mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_UNIT);
             parameters.setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK))
@@ -723,10 +758,10 @@ public class WebApplicationResourceDelete {
         try {
             delete = queryDeleteSecurityProfil();
 
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.SECURITY_PROFILE, delete);
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.SECURITY_PROFILE, delete);
 
             return Response.status(Status.OK).build();
-        } catch (InvalidCreateOperationException | DatabaseException | ReferentialException e) {
+        } catch (InvalidCreateOperationException | DatabaseException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -820,11 +855,11 @@ public class WebApplicationResourceDelete {
             helper.createDelegate(parameters);
             if (FunctionalAdminCollections.CONTEXT.equals(collection)) {
                 // HACK: CT-0001, admin-context have not to be deleted
-                mongoDbAccessAdmin.deleteCollection(collection, queryDeleteContext()).close();
+                mongoDbAccessAdmin.deleteCollectionForTesting(collection, queryDeleteContext()).close();
             } else if (FunctionalAdminCollections.ONTOLOGY.equals(collection)) {
-                mongoDbAccessAdmin.deleteCollection(collection, queryDeleteExternalOntology()).close();
+                mongoDbAccessAdmin.deleteCollectionForTesting(collection, queryDeleteExternalOntology()).close();
             } else {
-                mongoDbAccessAdmin.deleteCollection(collection).close();
+                mongoDbAccessAdmin.deleteCollectionForTesting(collection).close();
             }
             parameters.setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
@@ -1033,7 +1068,7 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.RULES)) {
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.RULES)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1060,7 +1095,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
         try (DbRequestResult result =
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1087,7 +1122,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
         try (DbRequestResult result =
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1114,7 +1149,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK));
         try {
-            mongoDbAccessLogbook.deleteCollection(LogbookCollections.OPERATION);
+            mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.OPERATION);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1141,7 +1176,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK));
         try {
-            mongoDbAccessLogbook.deleteCollection(LogbookCollections.LIFECYCLE_OBJECTGROUP);
+            mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1168,7 +1203,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK));
         try {
-            mongoDbAccessLogbook.deleteCollection(LogbookCollections.LIFECYCLE_UNIT);
+            mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_UNIT);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1195,7 +1230,7 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.PROFILE)) {
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.PROFILE)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1223,7 +1258,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK));
         try (DbRequestResult result = mongoDbAccessAdmin
-            .deleteCollection(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE)) {
+            .deleteCollectionForTesting(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1250,7 +1285,7 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.AGENCIES)) {
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.AGENCIES)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1277,7 +1312,7 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.INGEST_CONTRACT)) {
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.INGEST_CONTRACT)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1304,7 +1339,7 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESS_CONTRACT)) {
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESS_CONTRACT)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1331,7 +1366,7 @@ public class WebApplicationResourceDelete {
                         VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESS_CONTRACT)) {
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESS_CONTRACT)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1360,7 +1395,7 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK));
         try {
             Delete delete = queryDeleteContext();
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.CONTEXT, delete);
+            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.CONTEXT, delete);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)

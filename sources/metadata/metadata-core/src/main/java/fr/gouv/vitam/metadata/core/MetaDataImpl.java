@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
@@ -80,18 +79,18 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -121,8 +120,6 @@ import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.Sum;
 import org.elasticsearch.search.aggregations.metrics.ValueCount;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -506,7 +503,7 @@ public class MetaDataImpl {
                 .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id")));
 
         return OBJECTGROUP.getEsClient()
-            .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.termQuery("_tenant", tenant))
+            .basicSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.matchAllQuery())
             .getAggregations();
     }
 
@@ -517,7 +514,7 @@ public class MetaDataImpl {
             AggregationBuilders.terms("originatingAgencies").field("_sps")
         );
         return MetadataCollections.UNIT.getEsClient()
-            .basicSearch(MetadataCollections.UNIT, tenant, aggregations, QueryBuilders.termQuery("_tenant", tenant))
+            .basicSearch(MetadataCollections.UNIT, tenant, aggregations, QueryBuilders.matchAllQuery())
             .getAggregations();
     }
 
@@ -561,11 +558,10 @@ public class MetaDataImpl {
     }
 
     private QueryBuilder queryForObjectGroupAccessionRegisterByOperationId(Integer tenant, String operationId) {
-        QueryBuilder tenantQuery = QueryBuilders.termQuery("_tenant", tenant);
         QueryBuilder operationQuery = QueryBuilders.matchQuery("_ops", operationId);
         QueryBuilder nestedOperationQuery = QueryBuilders.nestedQuery("_qualifiers.versions",
             QueryBuilders.matchQuery("_qualifiers.versions._opi", operationId), ScoreMode.Avg);
-        return QueryBuilders.boolQuery().must(tenantQuery).must(operationQuery).must(nestedOperationQuery);
+        return QueryBuilders.boolQuery().must(operationQuery).must(nestedOperationQuery);
     }
 
     private AggregationBuilder aggregationForObjectGroupAccessionRegisterByOperationId(String operationId) {
@@ -873,15 +869,15 @@ public class MetaDataImpl {
     }
 
     public void refreshUnit()
-        throws IllegalArgumentException, VitamThreadAccessException, IOException, DatabaseException {
+        throws IllegalArgumentException, VitamThreadAccessException, MetaDataExecutionException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.UNIT, tenantId);
     }
 
     public void refreshObjectGroup()
-        throws IllegalArgumentException, VitamThreadAccessException, IOException, DatabaseException {
+        throws IllegalArgumentException, VitamThreadAccessException, MetaDataExecutionException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP, tenantId);
     }
 
     public IndexationResult reindex(IndexParameters indexParam) {

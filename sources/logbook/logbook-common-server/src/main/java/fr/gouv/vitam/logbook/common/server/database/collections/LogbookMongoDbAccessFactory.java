@@ -28,9 +28,9 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 
@@ -44,14 +44,17 @@ public final class LogbookMongoDbAccessFactory {
      *
      * @param configuration of LogbookMongoDb
      * @param ontologyLoader
+     * @param indexManager
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final LogbookMongoDbAccessImpl create(LogbookConfiguration configuration, OntologyLoader ontologyLoader) {
+    public static final LogbookMongoDbAccessImpl create(LogbookConfiguration configuration,
+        OntologyLoader ontologyLoader,
+        ElasticsearchLogbookIndexManager indexManager) {
         ParametersChecker.checkParameter("configuration", configuration);
         LogbookElasticsearchAccess esClient;
         try {
-            esClient = new LogbookElasticsearchAccessFactory().create(configuration);
+            esClient = new LogbookElasticsearchAccessFactory().create(configuration, indexManager);
 
         } catch (final LogbookException e1) {
             throw new IllegalArgumentException(e1);
@@ -60,6 +63,6 @@ public final class LogbookMongoDbAccessFactory {
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
         return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false, esClient,
-            VitamConfiguration.getTenants(), new LogbookTransformData(), ontologyLoader);
+            new LogbookTransformData(), ontologyLoader);
     }
 }

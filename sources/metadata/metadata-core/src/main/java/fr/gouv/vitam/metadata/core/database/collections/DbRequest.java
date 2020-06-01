@@ -576,7 +576,6 @@ public class DbRequest {
         // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
             .must(QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens))
-            .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
             .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
 
         LOGGER.debug("Req1LevelMD: {}", query);
@@ -639,8 +638,6 @@ public class DbRequest {
                 query.filter(roots);
             }
         }
-
-        query.filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
 
         LOGGER.debug("Req1LevelMD: {}", query);
 
@@ -728,11 +725,6 @@ public class DbRequest {
             final QueryBuilder roots = QueryToElasticsearch.getRoots(MetadataDocument.ID, previous.getCurrentIds());
             finalQuery = QueryBuilders.boolQuery().must(query).must(roots);
         }
-        if (tenantId != null) {
-            // lets add the query on the tenant
-            finalQuery = new BoolQueryBuilder().must(finalQuery)
-                .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
-        }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.UNIT.getEsClient()
@@ -773,11 +765,6 @@ public class DbRequest {
                 roots = QueryToElasticsearch.getRoots(MetadataDocument.ID, previous.getCurrentIds());
             }
             finalQuery = QueryBuilders.boolQuery().must(query).must(roots);
-        }
-        if (tenantId != null) {
-            // lets add the query on the tenant
-            finalQuery = new BoolQueryBuilder().must(finalQuery)
-                .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
         }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);

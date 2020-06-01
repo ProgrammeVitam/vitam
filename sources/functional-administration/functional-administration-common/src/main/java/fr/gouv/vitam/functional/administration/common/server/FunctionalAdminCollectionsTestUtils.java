@@ -34,10 +34,17 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
+import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
 import org.bson.Document;
 
 import java.util.Collection;
+import java.util.Collections;
 
 @VisibleForTesting
 public final class FunctionalAdminCollectionsTestUtils {
@@ -98,24 +105,28 @@ public final class FunctionalAdminCollectionsTestUtils {
     public static void afterTestClass(Collection<FunctionalAdminCollections> functionalAdminCollections,
         boolean deleteEsIndex) {
         ParametersChecker.checkParameter("functionalAdminCollections is required", functionalAdminCollections);
-        for (FunctionalAdminCollections collection : functionalAdminCollections) {
-            if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
-                if (null != collection.getVitamCollection().getCollection()) {
-                    collection.getVitamCollection().getCollection().deleteMany(new Document());
-                }
+        try {
+            for (FunctionalAdminCollections collection : functionalAdminCollections) {
+                if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
+                    if (null != collection.getVitamCollection().getCollection()) {
+                        collection.getVitamCollection().getCollection().deleteMany(new Document());
+                    }
 
-                if (collection.getEsClient() != null) {
-                    if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndexByAlias(collection.getName().toLowerCase(), null);
-                    } else {
-                        collection.getEsClient().purgeIndex(collection.getName().toLowerCase());
+                    if (collection.getEsClient() != null) {
+                        if (deleteEsIndex) {
+                            collection.getEsClient().deleteIndexByAliasForTesting(
+                                ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getName()));
+                        } else {
+                            collection.getEsClient().purgeIndexForTesting(
+                                ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getName()));
+                        }
                     }
                 }
             }
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
         }
     }
-
-
 
     @VisibleForTesting
     public static void afterTest() {
@@ -125,5 +136,14 @@ public final class FunctionalAdminCollectionsTestUtils {
     @VisibleForTesting
     public static void afterTest(Collection<FunctionalAdminCollections> functionalAdminCollections) {
         afterTestClass(functionalAdminCollections, false);
+    }
+
+    @VisibleForTesting
+    public static ElasticsearchFunctionalAdminIndexManager createTestIndexManager() {
+        return new ElasticsearchFunctionalAdminIndexManager(
+            new AdminManagementConfiguration(Collections.emptyList(), null, null, null)
+                .setIndexationConfiguration(new FunctionalAdminIndexationConfiguration()
+                    .setDefaultConfiguration(new CollectionConfiguration(2, 1)))
+        );
     }
 }

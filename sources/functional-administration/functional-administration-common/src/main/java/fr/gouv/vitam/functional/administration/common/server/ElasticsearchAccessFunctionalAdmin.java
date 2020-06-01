@@ -35,22 +35,14 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.QueryBuilder;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil.transferJsonToMapping;
 
 // FIXME refactor with metadata
 
@@ -59,33 +51,20 @@ import static fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUt
  * ElasticSearch model with MongoDB as main database
  */
 public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessFunctionalAdmin.class);
 
-    public static final String MAPPING_FORMAT_FILE = "/format-es-mapping.json";
-    public static final String MAPPING_RULE_FILE = "/rule-es-mapping.json";
-    public static final String MAPPING_INGESTCONTRACT_FILE = "/ingestcontract-es-mapping.json";
-    public static final String MAPPING_ACCESSCONTRACT_FILE = "/accesscontract-es-mapping.json";
-    public static final String MAPPING_MANAGEMENTCONTRACT_FILE = "/managementcontract-es-mapping.json";
-    public static final String MAPPING_AGENCIES_FILE = "/agencies-es-mapping.json";
-    public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
-    public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
-    public static final String MAPPING_SECURITY_PROFILE_FILE = "/securityprofile-es-mapping.json";
-    public static final String MAPPING_ARCHIVE_UNIT_PROFILE_FILE = "/archiveunitprofile-es-mapping.json";
-    public static final String MAPPING_ONTOLOGY_FILE = "/ontology-es-mapping.json";
-    public static final String MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE = "/accessionregistersymbolic-es-mapping.json";
-    public static final String MAPPING_ACCESSION_REGISTER_SUMMARY_FILE = "/accessionregistersummary-es-mapping.json";
-    public static final String MAPPING_ACCESSION_REGISTER_DETAIL_FILE = "/accessionregisterdetail-es-mapping.json";
-    public static final String MAPPING_GRIFFIN_FILE = "/griffin-es-mapping.json";
-    public static final String MAPPING_PRESERVATION_SCENARIO_FILE = "/preservationscenario-es-mapping.json";
+    private final ElasticsearchFunctionalAdminIndexManager indexManager;
 
     /**
      * @param clusterName
      * @param nodes
+     * @param indexManager
      * @throws VitamException
      */
-    public ElasticsearchAccessFunctionalAdmin(final String clusterName, List<ElasticsearchNode> nodes)
-        throws VitamException, IOException {
+    public ElasticsearchAccessFunctionalAdmin(final String clusterName, List<ElasticsearchNode> nodes,
+        ElasticsearchFunctionalAdminIndexManager indexManager)
+        throws VitamException {
         super(clusterName, nodes);
+        this.indexManager = indexManager;
     }
 
     /**
@@ -94,13 +73,14 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      * @param collection
      * @return key aliasName value indexName or empty
      */
-    public final Map<String, String> addIndex(final FunctionalAdminCollections collection) {
+    public final void addIndex(final FunctionalAdminCollections collection) throws ReferentialException {
         try {
-            return super
-                .createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection));
+            super
+                .createIndexAndAliasIfAliasNotExists(
+                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null),
+                    indexManager.getElasticsearchIndexSettings(collection));
         } catch (final Exception e) {
-            LOGGER.error("Error while set Mapping", e);
-            return new HashMap<>();
+            throw new ReferentialException(e);
         }
     }
 
@@ -118,7 +98,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
         try {
             return super
-                .search(collection.getName().toLowerCase(), null, query, filter, VitamDocument.ES_FILTER_OUT,
+                .search(
+                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null), query, filter,
+                    VitamDocument.ES_FILTER_OUT,
                     null,
                     0,
                     GlobalDatas.LIMIT_LOAD, null, null, null);
@@ -126,49 +108,6 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             throw new ReferentialException(e);
         }
 
-    }
-
-    private String getMapping(FunctionalAdminCollections collection) throws IOException {
-        switch (collection) {
-            case ACCESSION_REGISTER_SUMMARY:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ACCESSION_REGISTER_SUMMARY_FILE));
-            case ACCESSION_REGISTER_DETAIL:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
-            case ARCHIVE_UNIT_PROFILE:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ARCHIVE_UNIT_PROFILE_FILE));
-            case ONTOLOGY:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ONTOLOGY_FILE));
-            case ACCESSION_REGISTER_SYMBOLIC:
-                return transferJsonToMapping(
-                    getClass().getResourceAsStream(MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE));
-            case FORMATS:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_FORMAT_FILE));
-            case RULES:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_RULE_FILE));
-            case INGEST_CONTRACT:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_INGESTCONTRACT_FILE));
-            case MANAGEMENT_CONTRACT:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_MANAGEMENTCONTRACT_FILE));
-            case ACCESS_CONTRACT:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ACCESSCONTRACT_FILE));
-            case PROFILE:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_PROFILE_FILE));
-            case CONTEXT:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_CONTEXT_FILE));
-            case AGENCIES:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_AGENCIES_FILE));
-            case SECURITY_PROFILE:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
-            case GRIFFIN:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_GRIFFIN_FILE));
-            case PRESERVATION_SCENARIO:
-                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_PRESERVATION_SCENARIO_FILE));
-            case VITAM_SEQUENCE:
-            default:
-                LOGGER.warn(String.format("Trying to get mapping for collection '%s', but no mapping are configured.",
-                    collection.getName()));
-                return "";
-        }
     }
 
 

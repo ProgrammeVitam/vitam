@@ -39,7 +39,7 @@ public class MetadataModelValidationTest {
     private MappingLoader mappingLoader;
 
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
     }
 
