@@ -73,6 +73,7 @@ import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -164,7 +165,7 @@ public class ContractResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
         File tmpFolder = tempFolder.newFolder();
@@ -240,7 +241,7 @@ public class ContractResourceTest {
             LOGGER.error(e);
         }
 
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
 
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
@@ -248,7 +249,7 @@ public class ContractResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT));
+        FunctionalAdminCollectionsTestUtils.afterTest(Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT));
     }
 
     @Test

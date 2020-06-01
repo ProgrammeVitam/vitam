@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -177,7 +178,7 @@ public class AdminManagementResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 esNodes));
 
@@ -229,8 +230,7 @@ public class AdminManagementResourceTest {
         SystemPropertyUtil.refresh();
 
 
-        FunctionalAdminCollections
-            .afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
 
         LOGGER.debug("Ending tests");
         try {
@@ -257,7 +257,7 @@ public class AdminManagementResourceTest {
 
     @After
     public void tearDown() {
-        FunctionalAdminCollections.afterTest();
+        FunctionalAdminCollectionsTestUtils.afterTest();
     }
 
     @Test

@@ -72,6 +72,7 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
@@ -158,7 +159,7 @@ public class AccessContractImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 Arrays.asList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
             Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT, FunctionalAdminCollections.AGENCIES));
@@ -226,14 +227,14 @@ public class AccessContractImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         accessContractService.close();
     }
 
 
     @After
     public void afterTest() {
-        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESS_CONTRACT));
+        FunctionalAdminCollectionsTestUtils.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESS_CONTRACT));
         reset(functionalBackupService);
         reset(logbookOperationsClientMock);
         reset(metaDataClientMock);

@@ -45,11 +45,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
@@ -109,11 +109,7 @@ public class SelectObjectGroupResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
     static final int tenantId = 0;
-    static final List tenantList = new ArrayList() {
-        {
-            add(tenantId);
-        }
-    };
+    static final List<Integer> tenantList = Collections.singletonList(tenantId);
 
     private static ElasticsearchAccessMetadata accessMetadata;
     @ClassRule
@@ -129,7 +125,7 @@ public class SelectObjectGroupResourceTest {
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
         accessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             accessMetadata, 0);
         junitHelper = JunitHelper.getInstance();
 
@@ -158,14 +154,14 @@ public class SelectObjectGroupResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
 
         try {
             application.stop();
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.syserr("", e);
         } finally {
-            MetadataCollections.afterTestClass(true, 0);
+            MetadataCollectionsTestUtils.afterTestClass(true, 0);
 
             junitHelper.releasePort(serverPort);
             VitamClientFactory.resetConnections();
@@ -174,7 +170,7 @@ public class SelectObjectGroupResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTest(0);
+        MetadataCollectionsTestUtils.afterTest(0);
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {
@@ -183,16 +179,6 @@ public class SelectObjectGroupResourceTest {
 
     private static final JsonNode buildDSLWithOptionsRoot(String root, String data) throws Exception {
         return JsonHandler.getFromString("{ $roots : [ \"" + root + "\"], $query : [], $data : " + data + " }");
-    }
-
-
-    private static String createJsonStringWithDepth(int depth) {
-        final StringBuilder obj = new StringBuilder();
-        if (depth == 0) {
-            return " \"b\" ";
-        }
-        obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
-        return obj.toString();
     }
 
     @Test

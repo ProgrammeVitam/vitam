@@ -26,25 +26,32 @@
  */
 package fr.gouv.vitam.functional.administration.common.server;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.Updates;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.functional.administration.common.*;
-import org.bson.Document;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
+import fr.gouv.vitam.functional.administration.common.Context;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.Griffin;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.ManagementContract;
+import fr.gouv.vitam.functional.administration.common.Ontology;
+import fr.gouv.vitam.functional.administration.common.PreservationScenario;
+import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.SecurityProfile;
+import fr.gouv.vitam.functional.administration.common.VitamSequence;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -132,88 +139,6 @@ public enum FunctionalAdminCollections {
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
     private VitamCollection vitamCollection;
-
-    @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final ElasticsearchAccessFunctionalAdmin esClient) {
-        beforeTestClass(db, prefix, esClient, Lists.newArrayList(FunctionalAdminCollections.values()));
-    }
-
-    @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final ElasticsearchAccessFunctionalAdmin esClient,
-        Collection<FunctionalAdminCollections> functionalAdminCollections) {
-        for (FunctionalAdminCollections collection : functionalAdminCollections) {
-            if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
-                collection.vitamCollection
-                    .setName(prefix + collection.getClasz().getSimpleName());
-                collection.initialize(db, false);
-                if (collection.getEsClient() == null) {
-                    collection.initialize(esClient);
-                } else {
-                    collection.initialize(collection.getEsClient());
-                }
-            }
-        }
-        if (functionalAdminCollections.contains(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
-                .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                    new IndexOptions().unique(true));
-        }
-
-        if (functionalAdminCollections.contains(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
-                    new IndexOptions().unique(true));
-        }
-        // TODO: 30/01/19 Add indexes of other collections
-
-    }
-
-    @VisibleForTesting
-    public static void afterTestClass(boolean deleteEsIndex) {
-        afterTestClass(Lists.newArrayList(FunctionalAdminCollections.values()), deleteEsIndex);
-    }
-
-    @VisibleForTesting
-    public static void resetVitamSequenceCounter() {
-        FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
-            .updateMany(Filters.exists(VitamSequence.ID), Updates.set(VitamSequence.COUNTER, 0));
-    }
-
-    @VisibleForTesting
-    public static void afterTestClass(Collection<FunctionalAdminCollections> functionalAdminCollections,
-        boolean deleteEsIndex) {
-        ParametersChecker.checkParameter("functionalAdminCollections is required", functionalAdminCollections);
-        for (FunctionalAdminCollections collection : functionalAdminCollections) {
-            if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
-                if (null != collection.vitamCollection.getCollection()) {
-                    collection.vitamCollection.getCollection().deleteMany(new Document());
-                }
-
-                if (collection.getEsClient() != null) {
-                    if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndexByAlias(collection.getName().toLowerCase(), null);
-                    } else {
-                        collection.getEsClient().purgeIndex(collection.getName().toLowerCase());
-                    }
-                }
-            }
-        }
-    }
-
-
-
-    @VisibleForTesting
-    public static void afterTest() {
-        afterTestClass(false);
-    }
-
-    @VisibleForTesting
-    public static void afterTest(Collection<FunctionalAdminCollections> functionalAdminCollections) {
-        afterTestClass(functionalAdminCollections, false);
-    }
-
 
     final private boolean multitenant;
     final private boolean usingScore;

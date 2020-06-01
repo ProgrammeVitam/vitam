@@ -54,6 +54,7 @@ import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -136,7 +137,7 @@ public class AgenciesResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes),
             Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES));
 
@@ -191,7 +192,7 @@ public class AgenciesResourceTest {
         }
 
         junitHelper.releasePort(serverPort);
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
@@ -208,7 +209,7 @@ public class AgenciesResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        FunctionalAdminCollections
+        FunctionalAdminCollectionsTestUtils
             .afterTest(Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES));
     }
 

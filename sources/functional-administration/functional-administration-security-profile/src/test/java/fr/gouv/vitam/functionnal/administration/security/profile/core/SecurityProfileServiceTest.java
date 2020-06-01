@@ -61,6 +61,7 @@ import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
@@ -125,7 +126,7 @@ public class SecurityProfileServiceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException, VitamException {
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
                 new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                         Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
                 Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
@@ -165,12 +166,12 @@ public class SecurityProfileServiceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @After
     public void afterTest() {
-        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
+        FunctionalAdminCollectionsTestUtils.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
         securityProfileService.close();
     }
 

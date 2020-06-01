@@ -89,7 +89,6 @@ public class LogbookElasticsearchAccessTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String HOST_NAME = "127.0.0.1";
     private static LogbookElasticsearchAccess esClient;
 
     private static final int tenantId = 0;
@@ -99,14 +98,14 @@ public class LogbookElasticsearchAccessTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
         esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollections.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(true, tenantId);
         esClient.close();
     }
 

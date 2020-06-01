@@ -49,11 +49,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
@@ -83,7 +83,7 @@ public class UpdateUnitResourceTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID_0 = 0;
-    private static final List tenantList = Collections.singletonList(TENANT_ID_0);
+    private static final List<Integer> tenantList = Collections.singletonList(TENANT_ID_0);
     private static final String DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"_tenant\": 0, " + "\"data\": \"data2\" }";
     private static final String DATA2 =
@@ -128,7 +128,7 @@ public class UpdateUnitResourceTest {
 
         esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
 
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             esClient, 0);
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
@@ -158,7 +158,7 @@ public class UpdateUnitResourceTest {
     @AfterClass
     public static void tearDownAfterClass() {
         try {
-            MetadataCollections.afterTestClass(true, 0);
+            MetadataCollectionsTestUtils.afterTestClass(true, 0);
             application.stop();
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.syserr("", e);
@@ -172,7 +172,7 @@ public class UpdateUnitResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTest(0);
+        MetadataCollectionsTestUtils.afterTest(0);
     }
 
     private static final BulkUnitInsertRequest bulkInsertRequest(String data) throws InvalidParseOperationException {

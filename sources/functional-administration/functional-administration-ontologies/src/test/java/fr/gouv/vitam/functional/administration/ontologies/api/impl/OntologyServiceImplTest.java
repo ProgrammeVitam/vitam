@@ -55,6 +55,7 @@ import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -113,7 +114,7 @@ public class OntologyServiceImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
             Collections.singletonList(FunctionalAdminCollections.ONTOLOGY));
@@ -133,13 +134,13 @@ public class OntologyServiceImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         ontologyService.close();
     }
 
     @After
     public void afterTest() {
-        FunctionalAdminCollections.afterTest();
+        FunctionalAdminCollectionsTestUtils.afterTest();
         reset(functionalBackupService);
     }
 

@@ -281,7 +281,7 @@ public class DbRequestTest {
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         elasticsearchAccessMetadata =
             new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             elasticsearchAccessMetadata, TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
     }
@@ -291,7 +291,7 @@ public class DbRequestTest {
      */
     @AfterClass
     public static void tearDown() throws Exception {
-        MetadataCollections.afterTestClass(true, TENANT_ID_0, TENANT_ID_1, TENANT_ID_2);
+        MetadataCollectionsTestUtils.afterTestClass(true, TENANT_ID_0, TENANT_ID_1, TENANT_ID_2);
     }
 
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
@@ -322,7 +322,7 @@ public class DbRequestTest {
      */
     @After
     public void after() throws Exception {
-        MetadataCollections.afterTest(TENANT_ID_0,
+        MetadataCollectionsTestUtils.afterTest(TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
     }
 

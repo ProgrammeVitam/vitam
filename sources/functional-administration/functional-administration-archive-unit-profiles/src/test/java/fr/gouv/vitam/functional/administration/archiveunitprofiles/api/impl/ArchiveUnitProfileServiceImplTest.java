@@ -53,6 +53,7 @@ import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -136,20 +137,20 @@ public class ArchiveUnitProfileServiceImplTest {
 
         esClient = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())));
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             esClient, Arrays.asList(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE));
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         archiveUnitProfileService.close();
     }
 
     @After
     public void afterTest() {
-        FunctionalAdminCollections.afterTest();
+        FunctionalAdminCollectionsTestUtils.afterTest();
         reset(functionalBackupService);
     }
 
