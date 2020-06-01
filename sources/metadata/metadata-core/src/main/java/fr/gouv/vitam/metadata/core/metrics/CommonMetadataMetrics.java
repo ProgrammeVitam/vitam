@@ -24,49 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.alert;
 
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+package fr.gouv.vitam.metadata.core.metrics;
 
-/**
- * Security alert service implementation.
- * This service log the messages in a specific file using VitamLogger.
- */
-public class AlertServiceImpl implements AlertService {
+import fr.gouv.vitam.common.metrics.VitamMetricsNames;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
 
-    VitamLogger LOGGER = VitamLoggerFactory.getInstance(AlertServiceImpl.class);
+public class CommonMetadataMetrics {
 
+    /**
+     * Compute metadata log shipping duration.
+     * This will count number of events and sum durations
+     * This will only count effective log shipping and do not count the number off calls ended with (log shipping already running)
+     *
+     * To count all log shipping events, use
+     */
+    public static final Histogram LOG_SHIPPING_DURATION = Histogram.build()
+        .name(VitamMetricsNames.VITAM_METADATA_LOG_SHIPPING_DURATION)
+        .labelNames("collection")
+        .help("Vitam metadata effective log shipping histogram duration metric")
+        .register();
 
-    public AlertServiceImpl() {
-        super();
-    }
-
-
-    public AlertServiceImpl(VitamLogger lOGGER) {
-        super();
-        LOGGER = lOGGER;
-    }
-
-
-
-    @Override
-    public void createAlert(VitamLogLevel level, String message) {
-        try {
-            LOGGER.log(level, message);
-        } finally {
-            VitamCommonMetrics.ALERT_SERVICE_COUNTER
-                .labels(String.valueOf(ParameterHelper.getTenantParameter()), level.name()).inc();
-        }
-    }
-
-
-    @Override
-    public void createAlert(String message) {
-        createAlert(VitamLogLevel.INFO, message);
-    }
-
+    /**
+     * Count all log shipping events
+     * Even when the response is log shipping already running
+     */
+    public static final Counter LOG_SHIPPING_COUNTER = Counter.build()
+        .name(VitamMetricsNames.VITAM_METADATA_LOG_SHIPPING_TOTAL)
+        .help("Vitam metadata log shipping events counter for all events. Even for those with response already running")
+        .register();
 }

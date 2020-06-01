@@ -39,11 +39,14 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics;
 import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -60,6 +63,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+import io.prometheus.client.Histogram;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -154,8 +158,9 @@ public class StoreGraphService {
         try {
             DataCategory dataCategory = getDataCategory(metadataCollections);
 
-            Iterator<OfferLog> offerLogIterator = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), dataCategory, null,
-                null, Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE);
+            Iterator<OfferLog> offerLogIterator =
+                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), dataCategory, null,
+                    null, Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE);
 
             if (!offerLogIterator.hasNext()) {
                 // Case where no offer log found. Means that no timestamp zip file saved yet in the offer
@@ -197,6 +202,9 @@ public class StoreGraphService {
      * @return the map of collection:number of treated documents
      */
     public Map<MetadataCollections, Integer> tryStoreGraph() throws StoreGraphException {
+        // Increment log shipping event
+        CommonMetadataMetrics.LOG_SHIPPING_COUNTER.inc();
+
         boolean tryStore = alreadyRunningLock.compareAndSet(false, true);
         final Map<MetadataCollections, Integer> map = new HashMap<>();
         map.put(MetadataCollections.UNIT, 0);
@@ -207,20 +215,9 @@ public class StoreGraphService {
             LOGGER.info("Start Graph store GOT and UNIT ...");
 
             try {
-                final VitamThreadPoolExecutor executor = VitamThreadPoolExecutor.getDefaultExecutor();
-
                 CompletableFuture<Integer>[] futures = new CompletableFuture[] {
-                    CompletableFuture.supplyAsync(() -> {
-                        Integer numberOfDocuments = storeGraph(MetadataCollections.UNIT);
-                        map.put(MetadataCollections.UNIT, numberOfDocuments);
-                        return numberOfDocuments;
-                    }, executor)
-                    ,
-                    CompletableFuture.supplyAsync(() -> {
-                        Integer numberOfDocuments = storeGraph(MetadataCollections.OBJECTGROUP);
-                        map.put(MetadataCollections.OBJECTGROUP, numberOfDocuments);
-                        return numberOfDocuments;
-                    }, executor)
+                    createCompletableFeature(MetadataCollections.UNIT, map),
+                    createCompletableFeature(MetadataCollections.OBJECTGROUP, map)
                 };
                 // Start async the features
                 CompletableFuture<Integer> result = CompletableFuture
@@ -247,6 +244,15 @@ public class StoreGraphService {
 
     }
 
+    private CompletableFuture<Integer> createCompletableFeature(MetadataCollections metadataCollections,
+        Map<MetadataCollections, Integer> map) {
+        return CompletableFuture.supplyAsync(() -> {
+            Integer numberOfDocuments = storeGraph(metadataCollections);
+            map.put(metadataCollections, numberOfDocuments);
+            return numberOfDocuments;
+        }, VitamThreadPoolExecutor.getDefaultExecutor());
+    }
+
     /**
      * Should be called only for the method tryStoreGraph
      *
@@ -261,13 +267,18 @@ public class StoreGraphService {
         VitamThreadUtils.getVitamSession().setRequestId(storeOperation);
         final String containerName = storeOperation.getId();
 
-        if (alreadyRunningLock.get()) {
+        final Histogram.Timer timer =
+            CommonMetadataMetrics.LOG_SHIPPING_DURATION.labels(metadataCollections.name()).startTimer();
+
+        try {
             LOGGER.info("Start graph store " + metadataCollections.getName() + " ...");
 
             LocalDateTime lastStoreDate;
             try {
                 lastStoreDate = getLastGraphStoreDate(metadataCollections);
             } catch (StoreGraphException e) {
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER
+                    .labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreGraph").inc();
                 LOGGER.error("[Consistency ERROR] : Error while getting the last store date from the offer ", e);
 
                 return 0;
@@ -277,6 +288,8 @@ public class StoreGraphService {
                 LocalDateUtil.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(),
                     ChronoUnit.SECONDS);
             if (currentStoreDate.isBefore(lastStoreDate)) {
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER
+                    .labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreGraph").inc();
                 LOGGER.error(
                     "[Consistency ERROR] : The last store date should not be newer than the current date. " +
                         "Someone have modified the file name in the offer ?!!");
@@ -287,7 +300,8 @@ public class StoreGraphService {
             final String startDate = LocalDateUtil.getFormattedDateForMongo(lastStoreDate);
             final String endDate = LocalDateUtil.getFormattedDateForMongo(currentStoreDate);
             // Zip file name in the storage
-            final String graph_store_name = lastStoreDate.format(formatter) + "_" + currentStoreDate.format(formatter);
+            final String graph_store_name =
+                lastStoreDate.format(formatter) + "_" + currentStoreDate.format(formatter);
 
             try {
 
@@ -335,6 +349,8 @@ public class StoreGraphService {
                 }
 
             } catch (StoreGraphException e) {
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER
+                    .labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreGraph").inc();
                 LOGGER.error(String
                     .format("[Consistency ERROR] : Error while graph store (%s) form (%s) to (%s)",
                         metadataCollections.name(), startDate, endDate), e);
@@ -346,9 +362,9 @@ public class StoreGraphService {
                     LOGGER.error(e);
                 }
             }
-        } else {
-            LOGGER.info("Graph store " + metadataCollections.name() + "is already running ...");
-            return 0;
+
+        } finally {
+            timer.observeDuration();
         }
     }
 

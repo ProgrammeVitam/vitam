@@ -75,7 +75,7 @@ public class VitamMetrics {
                 configureLogbackReporter(configuration);
                 break;
             default:
-                LOGGER.warn("VitamMetrics instanciated without reporter.");
+                LOGGER.warn("VitamMetrics instantiated without reporter.");
                 break;
         }
     }

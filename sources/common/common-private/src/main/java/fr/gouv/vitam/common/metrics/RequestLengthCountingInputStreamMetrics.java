@@ -42,9 +42,9 @@ public class RequestLengthCountingInputStreamMetrics extends CountingInputStream
         VitamLoggerFactory.getInstance(RequestLengthCountingInputStreamMetrics.class);
 
     public static final Summary RECEIVED_BYTES = Summary.build()
-        .name("vitam_requests_size_bytes")
+        .name(VitamMetricsNames.VITAM_REQUESTS_SIZE_BYTES)
         .labelNames("tenant", "method")
-        .help("Vitam requests size in bytes.")
+        .help("Vitam requests size in bytes")
         .register();
 
     private final ContainerRequestContext requestContext;

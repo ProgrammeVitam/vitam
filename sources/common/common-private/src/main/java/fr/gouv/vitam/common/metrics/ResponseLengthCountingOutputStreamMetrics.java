@@ -44,9 +44,9 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
         VitamLoggerFactory.getInstance(ResponseLengthCountingOutputStreamMetrics.class);
 
     public static final Summary SENT_BYTES = Summary.build()
-        .name("vitam_responses_size_bytes")
+        .name(VitamMetricsNames.VITAM_RESPONSES_SIZE_BYTES)
         .labelNames("tenant", "method")
-        .help("Vitam responses size in bytes.")
+        .help("Vitam responses size in bytes")
         .register();
 
     private final ContainerResponseContext responseContext;
