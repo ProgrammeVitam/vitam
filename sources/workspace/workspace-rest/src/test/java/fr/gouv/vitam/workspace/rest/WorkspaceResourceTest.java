@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -50,14 +49,13 @@ import io.restassured.RestAssured;
 import io.restassured.config.EncoderConfig;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -85,8 +83,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class WorkspaceResourceTest {
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static WorkspaceMain workspaceMain;
 
@@ -104,7 +102,7 @@ public class WorkspaceResourceTest {
     private static int port;
     private static final ObjectMapper OBJECT_MAPPER;
     private static final int tenantId = 0;
-    private static final List tenantList = Lists.newArrayList(tenantId);
+    static final List<Integer> tenantList = Lists.newArrayList(tenantId);
 
     static {
         OBJECT_MAPPER = new ObjectMapper(new JsonFactory());
@@ -115,38 +113,35 @@ public class WorkspaceResourceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
-    }
 
-    @AfterClass
-    public static void shutdownAfterClass() throws VitamApplicationServerException {
-        junitHelper.releasePort(port);
-        VitamClientFactory.resetConnections();
-    }
-
-    @Before
-    public void setup() throws Exception {
         final StorageConfiguration configuration = new StorageConfiguration();
-        final File tempDir = tempFolder.newFolder();
-        configuration.setStoragePath(tempDir.getCanonicalPath());
+        tempFolder.create();
+        configuration.setStoragePath(tempFolder.getRoot().getCanonicalPath());
         configuration.setJettyConfig("jetty-config-test.xml");
         VitamConfiguration.setTenants(tenantList);
         port = junitHelper.findAvailablePort();
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 
         File configurationFile = tempFolder.newFile();
-
         PropertiesUtils.writeYaml(configurationFile, configuration);
 
-        //FIXME: should we start and stop workspace for each test ?!!
         workspaceMain = new WorkspaceMain(configurationFile.getAbsolutePath());
         workspaceMain.start();
         RestAssured.port = port;
         RestAssured.basePath = RESOURCE_URI;
+
+        FileUtils.deleteQuietly(configurationFile);
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() throws Exception {
+        workspaceMain.stop();
+        junitHelper.releasePort(port);
+        VitamClientFactory.resetConnections();
     }
 
     @After
     public void tearDown() throws Exception {
-        workspaceMain.stop();
+        FileUtils.cleanDirectory(tempFolder.getRoot());
     }
 
     // Status

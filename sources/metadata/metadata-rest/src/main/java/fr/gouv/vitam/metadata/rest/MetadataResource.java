@@ -587,9 +587,6 @@ public class MetadataResource extends ApplicationStatusResource {
             .build();
     }
 
-    // OBJECT GROUP RESOURCE. TODO P1 see to externalize it (one resource for units, one resource for object group) to
-    // avoid so much lines and complex maintenance
-
     /**
      * Create unit with json request
      *

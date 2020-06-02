@@ -88,7 +88,6 @@ public class LogbookLifecycleWorkerHelper {
                 params.getContainerName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,
                 GUIDFactory.newEventGUID(0).toString());
-            // TODO P2 to be passed within the parameters since multiple workflow types could exist
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 logbookTypeProcess.name());
 
@@ -121,7 +120,6 @@ public class LogbookLifecycleWorkerHelper {
                 getObjectID(params));
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 params.getContainerName());
-            // TODO P2 to be passed within the parameters since multiple workflow types could exist
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 logbookTypeProcess.name());
             helper.updateDelegate(logbookLifecycleParameters);

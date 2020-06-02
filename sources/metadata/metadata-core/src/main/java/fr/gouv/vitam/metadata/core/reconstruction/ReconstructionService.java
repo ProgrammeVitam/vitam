@@ -478,7 +478,6 @@ public class ReconstructionService {
     private List<MetadataBackupModel> loadMetadataSet(MetadataCollections collection, int tenant, String strategy,
         List<OfferLog> writtenMetadata) throws StorageException {
 
-        // FIXME : parallel processing
         List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
         for (OfferLog offerLog : writtenMetadata) {
 

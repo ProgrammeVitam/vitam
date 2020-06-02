@@ -114,7 +114,6 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws MetaDataException
      */
     default void preLoadCache(List<Document> documents) throws MetaDataException {
-        // TODO Check if we preloadCache or not?!
         Set<String> allUps =
             documents
                 .stream()

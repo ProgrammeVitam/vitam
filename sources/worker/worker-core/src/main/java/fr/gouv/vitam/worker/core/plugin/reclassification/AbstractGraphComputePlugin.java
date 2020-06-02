@@ -86,6 +86,7 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
         int finalSize = 0;
         GraphComputeResponse graphComputeResponse = null;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+
             graphComputeResponse = metaDataClient.computeGraph(getGraphComputeAction(), ids);
 
             switch (getGraphComputeAction()) {

@@ -101,7 +101,6 @@ public class UnitAttachmentPlugin extends ActionHandler {
         throws ProcessingException {
 
         String unitId = param.getObjectName();
-
         try {
 
             Set<String> parentUnitsToAdd = getParentsToAdd(handler, unitId);
@@ -132,7 +131,6 @@ public class UnitAttachmentPlugin extends ActionHandler {
     }
 
     private void updateUnit(String unitId, Set<String> parentUnitsToAdd) throws ProcessingStatusException {
-
         try (
             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
@@ -141,6 +139,7 @@ public class UnitAttachmentPlugin extends ActionHandler {
                 add(VitamFieldsHelper.unitups(), parentUnitsToAdd.toArray(new String[0])),
                 add(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId())
             );
+
             metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
 
         } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | MetaDataNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {

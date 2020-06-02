@@ -142,6 +142,7 @@ public class UnitDetachmentPlugin extends ActionHandler {
                 pull(VitamFieldsHelper.unitups(), parentUnitsToAdd.toArray(new String[0])),
                 add(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId())
             );
+
             metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
 
         } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | MetaDataNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {

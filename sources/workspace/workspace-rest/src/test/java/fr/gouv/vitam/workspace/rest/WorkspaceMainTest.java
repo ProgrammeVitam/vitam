@@ -45,7 +45,6 @@ public class WorkspaceMainTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
     }
 
     @AfterClass

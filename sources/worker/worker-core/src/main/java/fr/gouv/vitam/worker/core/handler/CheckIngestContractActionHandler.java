@@ -306,7 +306,6 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO Auto-generated method stub
     }
 
     /**

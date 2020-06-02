@@ -217,25 +217,18 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
-        Path containerPath = null;
         try {
-            containerPath = getContainerPath(containerName);
+            Path containerPath = getContainerPath(containerName);
             if (!containerPath.toFile().exists()) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             }
             if (recursive) {
-                try (Stream<Path> streams = Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS)) {
-                    streams.sorted(Comparator.reverseOrder())
-                        .map(Path::toFile).forEach(File::delete);
-                }
+                FileUtils.deleteDirectory(containerPath.toFile());
             } else {
                 Files.delete(containerPath);
             }
-        } catch (DirectoryNotEmptyException ex) {
-            // TODO: keep this old none recursive delete workspace container style ?
-            LOGGER.warn("Directory {} not empty, do nothing ", containerPath != null ? containerPath.toString() : "");
         } catch (IOException ex) {
             throw new ContentAddressableStorageServerException(ex);
         }
@@ -319,8 +312,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         }
         if (!isExistingFolder(containerName, folderName)) {
             LOGGER.debug(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
-            // TODO: ugly retro-compatibility !
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         try {
