@@ -258,7 +258,7 @@ public class OntologyValidator {
     /**
      * ES stores data in lucene indexes that have 32Kb max limit per token.
      */
-    static boolean stringExceedsMaxLuceneUtf8StorageSize(String textValue, int maxUtf8Length) {
+    public static boolean stringExceedsMaxLuceneUtf8StorageSize(String textValue, int maxUtf8Length) {
 
         /*
          * Optimisation : most string values are small, and will never exceed max storage length.

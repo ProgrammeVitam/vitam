@@ -1890,6 +1890,12 @@
     "cardinality": "many"
   },
   {
+    "path": "TextContent",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Title",
     "type": "text",
     "indexed": true,
