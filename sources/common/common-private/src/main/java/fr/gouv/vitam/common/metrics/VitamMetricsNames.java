@@ -50,9 +50,9 @@ public class VitamMetricsNames {
 
 
     /**
-     * Vitam alert service counter
+     * Vitam alert service counter per log_level
      * Type: Counter
-     * Labels: "tenant", "log_level"
+     * Labels: "log_level"
      */
     public static final String VITAM_ALERT_COUNTER = "vitam_alert_count";
 
@@ -105,7 +105,6 @@ public class VitamMetricsNames {
      * Worker tasks execution duration. From call of worker until receiving the response. Task contains one or collection of elements to send to workers
      * Type: Histogram
      * Labels: "worker_family", "worker_name", "workflow", "step_name"
-     *
      */
     public static final String VITAM_PROCESSING_WORKER_TASK_EXECUTION_DURATION_SECONDS =
         "vitam_processing_worker_task_execution_duration_seconds";

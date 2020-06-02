@@ -198,8 +198,6 @@ public class ContentLengthCountingMetricsFilterTest {
         verify(containerRequestContext, times(2)).getMethod();
 
 
-        assertThat(CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator()).hasSize(2);
-
         Iterator<Collector.MetricFamilySamples> it =
             CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator();
 

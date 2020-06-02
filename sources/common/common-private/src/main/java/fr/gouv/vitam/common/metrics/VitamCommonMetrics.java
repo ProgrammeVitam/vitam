@@ -33,12 +33,12 @@ import io.prometheus.client.Histogram;
 public class VitamCommonMetrics {
 
     /**
-     * Count the number of alerts by tenant and log_level
+     * Count the number of alerts by log_level
      */
     public static final Counter ALERT_SERVICE_COUNTER = Counter.build()
         .name(VitamMetricsNames.VITAM_ALERT_COUNTER)
-        .labelNames("tenant", "log_level")
-        .help("Vitam alert service counter")
+        .labelNames("log_level")
+        .help("Vitam alert service counter per log_level")
         .register();
 
 

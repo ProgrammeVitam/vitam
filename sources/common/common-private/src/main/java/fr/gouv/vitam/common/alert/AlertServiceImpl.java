@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Security alert service implementation.
@@ -59,7 +58,7 @@ public class AlertServiceImpl implements AlertService {
             LOGGER.log(level, message);
         } finally {
             VitamCommonMetrics.ALERT_SERVICE_COUNTER
-                .labels(String.valueOf(ParameterHelper.getTenantParameter()), level.name()).inc();
+                .labels(level.name()).inc();
         }
     }
 
