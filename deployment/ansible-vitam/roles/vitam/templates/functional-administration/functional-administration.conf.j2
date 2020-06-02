@@ -27,6 +27,23 @@ elasticsearchNodes:
   httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_shards }}
+    number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_replicas }}
+
+{% for collection in ["accesscontract", "accessionregisterdetail", "accessionregistersummary", "accessionregistersymbolic", "agencies", "archiveunitprofile", "context", "fileformat", "filerules", "griffin", "ingestcontract", "managementcontract", "ontology", "preservationscenario", "profile", "securityprofile"] %}
+{% if vitam_elasticsearch_tenant_indexation.masterdata[collection] is defined %}
+  {{collection}}:
+{% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards is defined %}
+    number_of_shards: {{ vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards }}
+{% endif %}
+{% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_replicas is defined %}
+    number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endfor %}
 
 # ExternalId configuration
 listEnableExternalIdentifiers:
