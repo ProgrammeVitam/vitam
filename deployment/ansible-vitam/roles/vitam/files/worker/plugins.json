@@ -271,6 +271,9 @@
   "PRESERVATION_SIEGFRIED_IDENTIFICATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationSiegfriedPlugin"
   },
+  "PRESERVATION_TESSERACT_SPLIT_TEXT_CONTENT": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationTesseractPlugin"
+  },
   "PRESERVATION_OBJECTGROUP_METADATA_SECURITY_CHECKS": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationObjectGroupMetadataSecurityChecks"
   },

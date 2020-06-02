@@ -162,6 +162,9 @@
     "Tag": {
       "type": "keyword"
     },
+    "TextContent": {
+      "type": "text"
+    },
     "Title": {
       "type": "text",
       "fielddata": true

@@ -814,6 +814,17 @@
     ]
   },
   {
+    "Identifier": "TextContent",
+    "SedaField": "TextContent",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "TextContent",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
     "Identifier": "TransactedDate",
     "SedaField": "TransactedDate",
     "Description": "Mapping : unit-es-mapping.json",

@@ -108,6 +108,25 @@
         },
         {
           "action": {
+            "actionKey": "PRESERVATION_TESSERACT_SPLIT_TEXT_CONTENT",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "FINAL",
+            "in": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ],
+            "out": [
+              {
+                "name": "workflowBatchResults",
+                "uri": "MEMORY_SINGLE:workflowBatchResults"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "PRESERVATION_EXTRACTION_AU",
             "behavior": "NOBLOCKING",
             "lifecycleLog": "FINAL",
