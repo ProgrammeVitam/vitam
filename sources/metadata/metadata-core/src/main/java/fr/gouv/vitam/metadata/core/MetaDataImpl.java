@@ -45,12 +45,17 @@ import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationKO;
+import fr.gouv.vitam.common.database.index.model.ReindexationOK;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -84,13 +89,12 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -102,6 +106,9 @@ import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.collections4.SetValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.bson.Document;
@@ -122,6 +129,7 @@ import org.elasticsearch.search.aggregations.metrics.ValueCount;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -130,6 +138,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
@@ -145,6 +154,7 @@ import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDA
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_UNKNOWN_OR_FORBIDDEN;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;
+import static java.util.function.Predicate.not;
 
 public class MetaDataImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataImpl.class);
@@ -160,19 +170,19 @@ public class MetaDataImpl {
     private final OntologyValidator objectGroupOntologyValidator;
     private final OntologyLoader unitOntologyLoader;
     private final OntologyLoader objectGroupOntologyLoader;
-    private final MappingLoader mappingLoader;
+    private final ElasticsearchMetadataIndexManager indexManager;
 
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess,
         int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
         int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds,
-        MappingLoader mappingLoader) {
+        ElasticsearchMetadataIndexManager indexManager) {
 
         this(mongoDbAccess, AdminManagementClientFactory.getInstance(), IndexationHelper.getInstance(),
             new DbRequest(), ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
             archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds,
             schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds,
-            mappingLoader);
+            indexManager);
     }
 
     @VisibleForTesting
@@ -182,11 +192,11 @@ public class MetaDataImpl {
         DbRequest dbRequest, int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
         int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds,
-        MappingLoader mappingLoader) {
+        ElasticsearchMetadataIndexManager indexManager) {
         this.mongoDbAccess = mongoDbAccess;
         this.indexationHelper = indexationHelper;
-        this.mappingLoader = mappingLoader;
         this.dbRequest = dbRequest;
+        this.indexManager = indexManager;
 
         this.unitOntologyLoader = new CachedOntologyLoader(
             ontologyCacheMaxEntries,
@@ -196,7 +206,8 @@ public class MetaDataImpl {
         this.objectGroupOntologyLoader = new CachedOntologyLoader(
             ontologyCacheMaxEntries,
             ontologyCacheTimeoutInSeconds,
-            new AdminManagementOntologyLoader(adminManagementClientFactory, Optional.of(MetadataType.OBJECTGROUP.getName()))
+            new AdminManagementOntologyLoader(adminManagementClientFactory,
+                Optional.of(MetadataType.OBJECTGROUP.getName()))
         );
 
         this.unitOntologyValidator = new OntologyValidator(this.unitOntologyLoader);
@@ -220,19 +231,19 @@ public class MetaDataImpl {
      * Get a new MetaDataImpl instance
      *
      * @param mongoDbAccessMetadata
-     * @param mappingLoader
+     * @param indexManager
      * @return a new instance of MetaDataImpl
      */
     public static MetaDataImpl newMetadata(MongoDbAccessMetadataImpl mongoDbAccessMetadata,
         int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
         int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds,
-        MappingLoader mappingLoader) {
+        ElasticsearchMetadataIndexManager indexManager) {
 
         return new MetaDataImpl(mongoDbAccessMetadata, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
             archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds,
             schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds,
-            mappingLoader);
+            indexManager);
     }
 
     /**
@@ -705,7 +716,8 @@ public class MetaDataImpl {
         updateRequest.parse(updateQuery);
 
         // Execute DSL request
-        dbRequest.execUpdateRequest(updateRequest, objectId, OBJECTGROUP, this.objectGroupOntologyValidator, null, this.objectGroupOntologyLoader.loadOntologies());
+        dbRequest.execUpdateRequest(updateRequest, objectId, OBJECTGROUP, this.objectGroupOntologyValidator, null,
+            this.objectGroupOntologyLoader.loadOntologies());
 
     }
 
@@ -731,7 +743,8 @@ public class MetaDataImpl {
         try {
 
             UpdatedDocument updatedDocument = dbRequest
-                .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator, this.unitValidator, this.unitOntologyLoader.loadOntologies());
+                .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator,
+                    this.unitValidator, this.unitOntologyLoader.loadOntologies());
 
             String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
                 VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
@@ -739,7 +752,9 @@ public class MetaDataImpl {
 
             if (diffs.isEmpty()) {
                 LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
-                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES, "Unit updated with UNKNOWN changes.", "UNKNOWN diff, there are some changes but they cannot be trace.");
+                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES,
+                    "Unit updated with UNKNOWN changes.",
+                    "UNKNOWN diff, there are some changes but they cannot be trace.");
             }
 
             return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
@@ -781,7 +796,9 @@ public class MetaDataImpl {
 
             if (diffs.isEmpty()) {
                 LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
-                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES, "Unit updated with UNKNOWN changes.", "UNKNOWN diff, there are some changes but they cannot be trace.");
+                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES,
+                    "Unit updated with UNKNOWN changes.",
+                    "UNKNOWN diff, there are some changes but they cannot be trace.");
             }
 
             return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit rules OK.", diffs);
@@ -812,7 +829,8 @@ public class MetaDataImpl {
         updateRequest.parse(updateQuery);
 
         UpdatedDocument updatedDocument = dbRequest
-            .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator, this.unitValidator, this.unitOntologyLoader.loadOntologies());
+            .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator,
+                this.unitValidator, this.unitOntologyLoader.loadOntologies());
 
         String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
             VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
@@ -880,45 +898,111 @@ public class MetaDataImpl {
         mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP, tenantId);
     }
 
-    public IndexationResult reindex(IndexParameters indexParam) {
+    public ReindexationResult reindex(IndexParameters indexParameters) {
         MetadataCollections collection;
-        Optional<ElasticsearchExternalMetadataMapping> metadataCollection;
         try {
-            metadataCollection =
-                mappingLoader.getElasticsearchExternalMappings().stream()
-                    .filter(m -> m.getCollection().equalsIgnoreCase(indexParam.getCollectionName()))
-                    .findFirst();
-
-            if (metadataCollection.isEmpty()) {
-                String message = String.format("Try to reindex a non metadata collection '%s' with metadata module",
-                    indexParam.getCollectionName());
-                LOGGER.error(message + " : given collections :" + mappingLoader.getElasticsearchExternalMappings().stream().map(
-                    ElasticsearchExternalMetadataMapping::getCollection)
-                    .collect(Collectors.joining(", ")));
-                return indexationHelper.getFullKOResult(indexParam, message);
-            }
-            collection = MetadataCollections.valueOf(indexParam.getCollectionName().toUpperCase());
+            collection = MetadataCollections.valueOf(indexParameters.getCollectionName().toUpperCase());
         } catch (IllegalArgumentException exc) {
-            String message = String.format("Try to reindex a non metadata collection '%s' with metadata module",
-                indexParam.getCollectionName());
-            LOGGER.error(message);
-            return indexationHelper.getFullKOResult(indexParam, message);
+            String message = "Invalid collection '" + indexParameters.getCollectionName() + "'";
+            LOGGER.error(message, exc);
+            return indexationHelper.getFullKOResult(indexParameters, message);
         }
-        // mongo collection
-        MongoCollection<Document> mongoCollection = collection.getCollection();
-        try (InputStream mappingStream = mappingLoader.loadMapping(collection.name())) {
-            return indexationHelper.reindex(mongoCollection, collection.getName(), mongoDbAccess.getEsClient(),
-                indexParam.getTenants(), mappingStream);
-        } catch (IOException exc) {
-            LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),
-                indexParam.getTenants().stream().map(Object::toString).collect(Collectors.joining(", ")));
-            return indexationHelper.getFullKOResult(indexParam, exc.getMessage());
+
+        switch (collection) {
+            case UNIT:
+            case OBJECTGROUP:
+                // OK
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + collection);
+        }
+
+        if (CollectionUtils.isEmpty(indexParameters.getTenants())) {
+            String message = String.format("Missing tenants for %s collection reindexation",
+                indexParameters.getCollectionName());
+            LOGGER.error(message);
+            return indexationHelper.getFullKOResult(indexParameters, message);
+        }
+
+        ReindexationResult indexationResult = new ReindexationResult();
+        indexationResult.setCollectionName(indexParameters.getCollectionName());
+
+        processDedicatedTenants(indexParameters, collection, indexationResult);
+        processGroupedTenants(indexParameters, collection, indexationResult);
+
+        return indexationResult;
+    }
+
+    private void processDedicatedTenants(IndexParameters indexParameters, MetadataCollections collection,
+        ReindexationResult indexationResult) {
+
+        ElasticsearchIndexAliasResolver indexAliasResolver =
+            indexManager.getElasticsearchIndexAliasResolver(collection);
+
+        List<Integer> dedicatedTenantToProcess = indexParameters.getTenants().stream()
+            .filter(not(this.indexManager::isGroupedTenant))
+            .collect(Collectors.toList());
+
+        for (Integer tenantId : dedicatedTenantToProcess) {
+            try {
+                ReindexationOK reindexResult = this.indexationHelper.reindex(collection.getCollection(),
+                    collection.getEsClient(), indexAliasResolver.resolveIndexName(tenantId),
+                    this.indexManager.getElasticsearchIndexSettings(collection, tenantId),
+                    collection.getElasticsearchCollection(), Collections.singletonList(tenantId), null);
+                indexationResult.addIndexOK(reindexResult);
+            } catch (Exception exc) {
+                String message =
+                    "Cannot reindex collection " + collection.name() + " for tenant " + tenantId + ". Unexpected error";
+                LOGGER.error(message, exc);
+                indexationResult.addIndexKO(new ReindexationKO(Collections.singletonList(tenantId), null, message));
+            }
         }
     }
 
-    public void switchIndex(String alias, String newIndexName) throws DatabaseException {
+    private void processGroupedTenants(IndexParameters indexParameters, MetadataCollections collection,
+        ReindexationResult indexationResult) {
+        ElasticsearchIndexAliasResolver indexAliasResolver =
+            indexManager.getElasticsearchIndexAliasResolver(collection);
+
+        SetValuedMap<String, Integer> tenantGroupTenantsMap = new HashSetValuedHashMap<>();
+        indexParameters.getTenants().stream()
+            .filter(this.indexManager::isGroupedTenant)
+            .forEach(tenantId -> tenantGroupTenantsMap.put(this.indexManager.getTenantGroup(tenantId), tenantId));
+
+        for (String tenantGroupName : tenantGroupTenantsMap.keySet()) {
+            Collection<Integer> allTenantGroupTenants = this.indexManager.getTenantGroupTenants(tenantGroupName);
+            if (allTenantGroupTenants.size() != tenantGroupTenantsMap.get(tenantGroupName).size()) {
+                SetUtils.SetView<Integer> missingTenants = SetUtils.difference(
+                    new HashSet<>(allTenantGroupTenants), tenantGroupTenantsMap.get(tenantGroupName));
+                LOGGER.warn("Missing tenants " + missingTenants + " of tenant group " + tenantGroupName +
+                    " will also be reindexed for collection " + collection);
+            }
+        }
+
+        Collection<String> tenantGroupNamesToProcess = new TreeSet<>(tenantGroupTenantsMap.keySet());
+        for (String tenantGroupName : tenantGroupNamesToProcess) {
+            List<Integer> tenantIds = this.indexManager.getTenantGroupTenants(tenantGroupName);
+            try {
+                ReindexationOK reindexResult = this.indexationHelper.reindex(collection.getCollection(),
+                    collection.getEsClient(), indexAliasResolver.resolveIndexName(tenantIds.get(0)),
+                    this.indexManager.getElasticsearchIndexSettings(collection, tenantIds.get(0)),
+                    collection.getElasticsearchCollection(), tenantIds, tenantGroupName);
+                indexationResult.addIndexOK(reindexResult);
+            } catch (Exception exc) {
+                String message = "Cannot reindex collection " + collection.name()
+                    + " for tenant group " + tenantGroupName + ". Unexpected error";
+                LOGGER.error(message, exc);
+                indexationResult.addIndexKO(new ReindexationKO(tenantIds, tenantGroupName, message));
+            }
+        }
+    }
+
+    public SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException {
         try {
-            indexationHelper.switchIndex(alias, newIndexName, mongoDbAccess.getEsClient());
+            return indexationHelper.switchIndex(
+                ElasticsearchIndexAlias.ofFullIndexName(alias),
+                ElasticsearchIndexAlias.ofFullIndexName(newIndexName),
+                mongoDbAccess.getEsClient());
         } catch (DatabaseException exc) {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName);
             throw exc;

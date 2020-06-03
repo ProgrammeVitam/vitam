@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -70,7 +69,6 @@ import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +98,6 @@ public class ReindexationResourceTest {
     private static final String ALIASES_URI = "/alias";
 
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
-    private static final String TEST_ES_MAPPING_JSON = "test-es-mapping.json";
 
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
@@ -268,18 +265,18 @@ public class ReindexationResourceTest {
     @Test
     @RunWithCustomExecutor
     public void switchIndexesTest() throws Exception {
-
-        String mapping = ElasticsearchUtil
-            .transferJsonToMapping(new FileInputStream(PropertiesUtils.findFile(TEST_ES_MAPPING_JSON)));
         FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexAndAliasIfAliasNotExists(
-            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, null);
+            indexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.CONTEXT).resolveIndexName(null),
+            indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.CONTEXT));
         String newIndex = FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexWithoutAlias(
-            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, null);
+            indexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.CONTEXT).resolveIndexName(null),
+            indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.CONTEXT)).getName();
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         List<SwitchIndexParameters> listSwitches = new ArrayList<>();
         SwitchIndexParameters switchParams = new SwitchIndexParameters();
+        switchParams.setCollectionName(FunctionalAdminCollections.CONTEXT.getName());
         switchParams.setAlias(FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase());
         switchParams.setIndexName(newIndex);
         listSwitches.add(switchParams);

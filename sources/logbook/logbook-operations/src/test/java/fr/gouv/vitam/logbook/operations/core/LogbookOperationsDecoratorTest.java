@@ -39,6 +39,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -72,6 +73,7 @@ public class LogbookOperationsDecoratorTest {
     private String outcome = "OK";
     private LogbookDbAccess mongoDbAccess;
     private WorkspaceClient workspaceClient;
+    private ElasticsearchLogbookIndexManager indexManager;
 
 
     private static class TestClass extends LogbookOperationsDecorator {
@@ -98,7 +100,9 @@ public class LogbookOperationsDecoratorTest {
         mongoDbAccess = mock(LogbookDbAccess.class);
         StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
         when(storageClientFactory.getClient()).thenReturn(mock(StorageClient.class));
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, mock(IndexationHelper.class));
+        indexManager = mock(ElasticsearchLogbookIndexManager.class);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, mock(IndexationHelper.class),
+            indexManager);
         logbookOperationsImpl = Mockito.spy(logbookOperationsImpl);
         logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);
@@ -152,7 +156,4 @@ public class LogbookOperationsDecoratorTest {
         tc.createBulkLogbookOperation(operationArray);
         verify(mongoDbAccess).createBulkLogbookOperation(operationArray);
     }
-
-
-
 }

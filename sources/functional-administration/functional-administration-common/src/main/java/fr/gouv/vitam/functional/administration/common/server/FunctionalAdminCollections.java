@@ -270,22 +270,6 @@ public enum FunctionalAdminCollections {
         return null;
     }
 
-
-    /**
-     * Check if the collection is multi tenant or not
-     *
-     * @param collectionName
-     * @return true if the collection is multi tenant
-     */
-    public static boolean isCollectionMultiTenant(String collectionName) {
-        for (FunctionalAdminCollections coll : FunctionalAdminCollections.values()) {
-            if (coll.name().equalsIgnoreCase(collectionName)) {
-                return coll.isMultitenant();
-            }
-        }
-        return false;
-    }
-
     public VitamDescriptionResolver getVitamDescriptionResolver() {
         return vitamDescriptionResolver;
     }

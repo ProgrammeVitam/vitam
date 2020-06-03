@@ -31,6 +31,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.index.model.ReindexationOK;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -41,6 +44,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -163,15 +168,20 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public JsonNode reindex(IndexParameters indexParam)
-        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
-        return ClientMockResultHelper.getReindexationInfo().toJsonNode();
+    public JsonNode reindex(IndexParameters indexParam) throws InvalidParseOperationException {
+        return JsonHandler.toJsonNode(
+            new ReindexationResult()
+                .setCollectionName(indexParam.getCollectionName())
+                .addIndexOK(new ReindexationOK("alias", "indexname", indexParam.getTenants(), ""))
+        );
     }
 
     @Override
-    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
-        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
-        return ClientMockResultHelper.getSwitchIndexesInfo().toJsonNode();
+    public SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam) throws InvalidParseOperationException {
+        return new SwitchIndexResult()
+                .setAlias(switchIndexParam.getAlias())
+                .setIndexName(switchIndexParam.getIndexName())
+                .setStatusCode(StatusCode.OK);
     }
 
     @Override

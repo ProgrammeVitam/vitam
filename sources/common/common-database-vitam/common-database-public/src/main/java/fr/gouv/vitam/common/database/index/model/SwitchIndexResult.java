@@ -26,40 +26,56 @@
  */
 package fr.gouv.vitam.common.database.index.model;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.StatusCode;
 
-import org.junit.Assert;
-import org.junit.Test;
+public class SwitchIndexResult {
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.json.JsonHandler;
+    @JsonProperty("alias")
+    private String alias;
 
-public class IndexationResultTest {
+    @JsonProperty("indexName")
+    private String indexName;
 
-    public static final String INDEX_RESULT_JSON = "indexationResult.json";
+    @JsonProperty("statusCode")
+    private StatusCode statusCode;
 
-    @Test
-    public void test() throws Exception {
-        IndexationResult result = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(INDEX_RESULT_JSON),
-            IndexationResult.class);
-        Assert.assertNotNull(result);
-        Assert.assertEquals("collection_name", result.getCollectionName());
-        List<IndexOK> okList = result.getIndexOK();
-        Assert.assertNotNull(okList);
-        Assert.assertFalse(okList.isEmpty());
-        Assert.assertEquals(2, okList.size());
-        Assert.assertEquals("collection_name_0_date", okList.get(0).getIndexName());
-        Assert.assertEquals((Integer) 0, okList.get(0).getTenant());
-        Assert.assertEquals(2, okList.size());
-        Assert.assertEquals("collection_name_2_date", okList.get(1).getIndexName());
-        Assert.assertEquals((Integer) 2, okList.get(1).getTenant());
+    @JsonProperty("message")
+    private String message;
 
-        List<IndexKO> koList = result.getIndexKO();
-        Assert.assertNotNull(koList);
-        Assert.assertFalse(koList.isEmpty());
-        Assert.assertEquals(1, koList.size());
-        Assert.assertEquals("collection_name_1_date", koList.get(0).getIndexName());
-        Assert.assertEquals((Integer) 1, koList.get(0).getTenant());
-        Assert.assertEquals("failed", koList.get(0).getMessage());
+    public String getAlias() {
+        return alias;
+    }
+
+    public SwitchIndexResult setAlias(String alias) {
+        this.alias = alias;
+        return this;
+    }
+
+    public String getIndexName() {
+        return indexName;
+    }
+
+    public SwitchIndexResult setIndexName(String indexName) {
+        this.indexName = indexName;
+        return this;
+    }
+
+    public StatusCode getStatusCode() {
+        return statusCode;
+    }
+
+    public SwitchIndexResult setStatusCode(StatusCode statusCode) {
+        this.statusCode = statusCode;
+        return this;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public SwitchIndexResult setMessage(String message) {
+        this.message = message;
+        return this;
     }
 }

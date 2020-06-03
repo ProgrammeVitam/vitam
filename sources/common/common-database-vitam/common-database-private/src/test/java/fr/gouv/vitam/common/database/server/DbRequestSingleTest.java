@@ -99,7 +99,7 @@ public class DbRequestSingleTest {
             PREFIX + CollectionSample.class.getSimpleName());
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
+        new ElasticsearchRule(ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
     static VitamCollection vitamCollection;
     private static ElasticsearchAccess esClient;
     @Rule

@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,5 +138,19 @@ public enum LogbookCollections {
 
     public VitamDescriptionResolver getVitamDescriptionResolver() {
         return vitamDescriptionResolver;
+    }
+
+    public ElasticsearchCollections getElasticsearchCollection() {
+        switch (this) {
+            case OPERATION:
+                return ElasticsearchCollections.OPERATION;
+            case LIFECYCLE_UNIT:
+            case LIFECYCLE_UNIT_IN_PROCESS:
+            case LIFECYCLE_OBJECTGROUP:
+            case LIFECYCLE_OBJECTGROUP_IN_PROCESS:
+                throw new IllegalStateException("No ES index for collection " + this);
+            default:
+                throw new IllegalStateException("Unknown collection " + this);
+        }
     }
 }

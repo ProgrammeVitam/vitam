@@ -114,7 +114,6 @@ public class MongoDbAccessMetadataImplTest {
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-
     public static final String PREFIX = GUIDFactory.newGUID().getId();
 
     private static final String DEFAULT_MONGO1 = PREFIX + "AccessionRegisterDetail";
@@ -231,8 +230,9 @@ public class MongoDbAccessMetadataImplTest {
                 esClient);
 
         // Given
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData =
-            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
+            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, indexManager);
 
         final String operationId = "1234";
         ArrayList<Document> units = Lists.newArrayList(
@@ -303,8 +303,9 @@ public class MongoDbAccessMetadataImplTest {
             mongoRule.getMongoDatabase().getName(), false, esClient);
 
         // Given
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData =
-            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
+            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, indexManager);
         initGotsForAccessionRegisterTest("/got_1_sp1.json", "/got_2_sp1.json", "/got_3_sp2.json",
             "/got_4_sp1_sp2.json");
 
@@ -336,8 +337,9 @@ public class MongoDbAccessMetadataImplTest {
             mongoRule.getMongoDatabase().getName(), false, esClient);
 
         // Given
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData =
-            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
+            new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, indexManager);
         final String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
         initGotsForAccessionRegisterTest("/object_sp1_1.json", "/object_sp1_sp2_2.json", "/object_sp2.json",
             "/object_sp2_4.json", "/object_other_operation_id.json");
@@ -392,14 +394,14 @@ public class MongoDbAccessMetadataImplTest {
         given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(objectGroupResponse);
 
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
             new MongoDbAccessMetadataImpl(
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
-        );
+            ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
         List<Document> accessionRegisterSymbolics = metaData.createAccessionRegisterSymbolic(0);
@@ -425,14 +427,14 @@ public class MongoDbAccessMetadataImplTest {
         given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(objectGroupResponse);
 
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
             new MongoDbAccessMetadataImpl(
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
-        );
+            ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
         Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
@@ -472,14 +474,14 @@ public class MongoDbAccessMetadataImplTest {
         given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(objectGroupResponse);
 
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
             new MongoDbAccessMetadataImpl(
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
-        );
+            ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
         Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
@@ -518,14 +520,14 @@ public class MongoDbAccessMetadataImplTest {
         given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(objectGroupResponse);
 
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
             new MongoDbAccessMetadataImpl(
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
-        );
+            ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
         Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
@@ -566,13 +568,13 @@ public class MongoDbAccessMetadataImplTest {
         given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(objectGroupResponse);
 
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
             new MongoDbAccessMetadataImpl(
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
-                client), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
-        );
+                client), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
         Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)
@@ -605,14 +607,14 @@ public class MongoDbAccessMetadataImplTest {
         given(client.basicSearch(eq(OBJECTGROUP), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(objectGroupResponse);
 
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         final MetaDataImpl metaData = new MetaDataImpl(
             new MongoDbAccessMetadataImpl(
                 mongoRule.getMongoClient(),
                 mongoRule.getMongoDatabase().getName(),
                 true,
                 client
-            ), 100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList())
-        );
+            ), 100, 300, 100, 300, 100, 300, indexManager);
 
         // When
         Optional<AccessionRegisterSymbolic> first = metaData.createAccessionRegisterSymbolic(0)

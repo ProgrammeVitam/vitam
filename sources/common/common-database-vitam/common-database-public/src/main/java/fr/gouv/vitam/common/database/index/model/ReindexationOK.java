@@ -26,48 +26,72 @@
  */
 package fr.gouv.vitam.common.database.index.model;
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
+
 /**
- * IndexationResult pojo
+ * IndexOK
  */
-public class IndexationResult {
+public class ReindexationOK {
 
-    @JsonProperty("collectionName")
-    private String collectionName;
+    @JsonProperty("aliasName")
+    private String aliasName;
 
-    @JsonProperty("OK")
-    private List<IndexOK> OK;
+    @JsonProperty("indexName")
+    private String indexName;
 
-    @JsonProperty("KO")
-    private List<IndexKO> KO;
+    @JsonProperty("tenants")
+    private List<Integer> tenants;
 
-    public String getCollectionName() {
-        return collectionName;
+    @JsonProperty("tenantGroup")
+    private String tenantGroup;
+
+    public ReindexationOK() {
+        // Empty constructor for deserialization
     }
 
-    public void setCollectionName(String collectionName) {
-        this.collectionName = collectionName;
+    public ReindexationOK(String aliasName, String indexName, List<Integer> tenants, String tenantGroup) {
+        this.aliasName = aliasName;
+        this.indexName = indexName;
+        this.tenants = tenants;
+        this.tenantGroup = tenantGroup;
     }
 
-    @JsonGetter("OK")
-    public List<IndexOK> getIndexOK() {
-        return OK;
+    public String getAliasName() {
+        return aliasName;
     }
 
-    public void setIndexOK(List<IndexOK> indexesOK) {
-        this.OK = indexesOK;
+    public ReindexationOK setAliasName(String aliasName) {
+        this.aliasName = aliasName;
+        return this;
     }
 
-    @JsonGetter("KO")
-    public List<IndexKO> getIndexKO() {
-        return KO;
+    public String getIndexName() {
+        return indexName;
     }
 
-    public void setIndexKO(List<IndexKO> indexesKO) {
-        this.KO = indexesKO;
+    public ReindexationOK setIndexName(String indexName) {
+        this.indexName = indexName;
+        return this;
+    }
+
+    public List<Integer> getTenants() {
+        return tenants;
+    }
+
+    public ReindexationOK setTenants(List<Integer> tenants) {
+        this.tenants = tenants;
+        return this;
+    }
+
+    public String getTenantGroup() {
+        return tenantGroup;
+    }
+
+    public ReindexationOK setTenantGroup(String tenantGroup) {
+        this.tenantGroup = tenantGroup;
+        return this;
     }
 }

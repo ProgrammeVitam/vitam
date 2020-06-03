@@ -174,7 +174,7 @@ public class ElasticsearchLogbookIndexManager {
         return this.logbookOperationIndexSettingsMap.get(tenantId);
     }
 
-    public Collection<Integer> getDedicatedTenants() {
+    public List<Integer> getDedicatedTenants() {
         return tenantIds.stream()
             .filter(not(tenantToTenantGroupMap::containsKey))
             .collect(Collectors.toList());
@@ -184,11 +184,15 @@ public class ElasticsearchLogbookIndexManager {
         return tenantGroupToTenantMap.keySet();
     }
 
-    public Collection<Integer> getTenantGroupTenants(String tenantGroupName) {
+    public List<Integer> getTenantGroupTenants(String tenantGroupName) {
         if (!this.tenantGroupToTenantMap.containsKey(tenantGroupName)) {
             throw new IllegalStateException("No such tenant group " + tenantGroupName);
         }
         return tenantGroupToTenantMap.get(tenantGroupName);
+    }
+
+    public boolean isGroupedTenant(int tenantId) {
+        return this.tenantToTenantGroupMap.containsKey(tenantId);
     }
 
     public String getTenantGroup(int tenantId) {

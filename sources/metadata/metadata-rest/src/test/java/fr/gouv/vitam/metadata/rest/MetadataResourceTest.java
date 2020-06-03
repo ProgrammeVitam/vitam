@@ -61,18 +61,18 @@ import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFuncti
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
-import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -549,8 +549,7 @@ public class MetadataResourceTest {
     @Test
     public void indexCollectionUnknownInternalServerError() {
         IndexParameters indexParameters = new IndexParameters();
-        List<Integer> tenants = new ArrayList<>();
-        tenants.add(0);
+        List<Integer> tenants = Collections.singletonList(0);
         indexParameters.setTenants(tenants);
         indexParameters.setCollectionName("fake");
 
@@ -558,9 +557,10 @@ public class MetadataResourceTest {
             .when().post("/reindex").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .body("collectionName", equalTo("fake"))
             .body("KO.size()", equalTo(1))
-            .body("KO.get(0).indexName", equalTo("fake_0_*"))
-            .body("KO.get(0).message", containsString("'fake'"))
-            .body("KO.get(0).tenant", equalTo(0));
+            .body("KO.get(0).tenants.size()", equalTo(1))
+            .body("KO.get(0).tenants.get(0)", equalTo(0))
+            .body("KO.get(0).tenantGroup", equalTo(null))
+            .body("KO.get(0).message", containsString("'fake'"));
     }
 
     @Test

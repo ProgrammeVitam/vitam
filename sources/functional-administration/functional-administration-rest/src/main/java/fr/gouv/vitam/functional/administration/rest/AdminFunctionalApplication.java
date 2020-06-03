@@ -110,7 +110,7 @@ public class AdminFunctionalApplication extends Application {
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
             singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider, ontologyLoader,
                 indexManager));
-            singletons.add(new ReindexationResource());
+            singletons.add(new ReindexationResource(indexManager));
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =
