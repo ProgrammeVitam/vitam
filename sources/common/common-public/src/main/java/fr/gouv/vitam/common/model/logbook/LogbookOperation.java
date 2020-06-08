@@ -65,6 +65,11 @@ public class LogbookOperation extends LogbookEventOperation {
      */
     public static final String UNDERSCORE = "_";
 
+    /**
+     * Events tag
+     */
+    public static final String EVENTS = "events";
+
     @JsonProperty(HASH + TAG_ID)
     @JsonAlias(UNDERSCORE + TAG_ID)
     private String id;

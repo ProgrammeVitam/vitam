@@ -183,6 +183,9 @@ public class CheckDataObjectPackageActionHandlerTest {
         out.add(new IOParameter().setUri(
             new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_UNITS_GUID_FOR_ATTACHMENT_MAP.json")));
 
+        out.add(new IOParameter().setUri(
+            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json")));
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
