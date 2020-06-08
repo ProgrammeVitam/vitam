@@ -1,0 +1,79 @@
+{
+  "_id" : "aebaaaaaaaakwtamaai7cak32lvlyoyaaabc",
+  "_tenant" : 0,
+  "_profil" : "",
+  "FileInfo" : {
+    "Filename" : "Filename0",
+    "CreatingApplicationName" : "CreatingApplicationName0",
+    "CreatingApplicationVersion" : "CreatingApplicationVersion0",
+    "DateCreatedByApplication" : "2006-05-04T18:13:51.0",
+    "CreatingOs" : "CreatingOs0",
+    "CreatingOsVersion" : "CreatingOsVersion0",
+    "LastModified" : "2006-05-04T18:13:51.0"
+  },
+  "_qualifiers" : {
+    "PhysicalMaster" : {
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaaakwtamaai7cak32lvlypaaaaaq",
+        "DataObjectGroupId" : "aebaaaaaaaakwtamaai7cak32lvlyoyaaaba",
+        "DataObjectVersion" : "PhysicalMaster_1",
+        "PhysicalId" : 123456789,
+        "PhysicalDimensions" : {
+          "Height" : 21,
+          "Length" : 29.7,
+          "Weight" : 1
+        }
+      } ]
+    },
+    "BinaryMaster" : {
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaaakwtamaai7cak32lvlyoyaaaaq",
+        "DataObjectGroupId" : "aebaaaaaaaakwtamaai7cak32lvlyoyaaaba",
+        "DataObjectVersion" : "BinaryMaster_1",
+        "FormatIdentification" : {
+          "FormatLitteral" : "Acrobat PDF 1.4 - Portable Document Format",
+          "MimeType" : "application/pdf",
+          "FormatId" : "fmt/18"
+        },
+        "FileInfo" : {
+          "Filename" : "Filename0",
+          "CreatingApplicationName" : "CreatingApplicationName0",
+          "CreatingApplicationVersion" : "CreatingApplicationVersion0",
+          "DateCreatedByApplication" : "2006-05-04T18:13:51.0",
+          "CreatingOs" : "CreatingOs0",
+          "CreatingOsVersion" : "CreatingOsVersion0",
+          "LastModified" : "2006-05-04T18:13:51.0"
+        },
+        "Uri" : "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+        "MessageDigest" : "XXXXX",
+        "Algorithm" : "SHA-512"
+      } ]
+    }
+  },
+  "_work" : {
+    "_qualifiers" : {
+      "PhysicalMaster" : {
+        "_nbc" : 1,
+        "versions" : [ {
+          "_id" : "aeaaaaaaaaakwtamaai7cak32lvlypaaaaaq",
+          "PhysicalId" : 123456789
+        } ]
+      },
+      "BinaryMaster" : {
+        "_nbc" : 1,
+        "versions" : [ {
+          "_id" : "aeaaaaaaaaakwtamaai7cak32lvlyoyaaaaq",
+          "Uri" : "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "MessageDigest" : "XXXXX",
+          "Algorithm" : "SHA-512"
+        } ]
+      }
+    }
+  },
+  "_up" : [ "aeaqaaaaaaakwtamaai7cak32lvlypiaaaba" ],
+  "_nbc" : 2,
+  "_ops" : [ "ExtractSedaActionHandlerTest" ],
+  "OriginatingAgency" : "FRAN_NP_050056"
+}
