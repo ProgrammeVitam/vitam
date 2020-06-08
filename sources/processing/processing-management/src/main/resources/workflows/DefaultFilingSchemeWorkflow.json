@@ -142,6 +142,10 @@
               {
                 "name": "mapsExisitingUnitsForAttachment.file",
                 "uri": "WORKSPACE:Maps/EXISTING_UNITS_GUID_FOR_ATTACHMENT_MAP.json"
+              },
+              {
+                "name": "mapsExisitingGotsForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json"
               }
             ]
           }
@@ -152,8 +156,8 @@
             "behavior": "BLOCKING",
             "in": [
               {
-                "name": "mapsExisitingGotToNewGotForAttachment.file",
-                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json"
+                "name": "mapsExisitingGotsForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json"
               },
               {
                 "name": "mapsExisitingUnitsForAttachment.file",

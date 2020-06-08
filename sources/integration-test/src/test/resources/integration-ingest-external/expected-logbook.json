@@ -208,7 +208,7 @@
       "evTypeProc": "INGEST",
       "outcome": "OK",
       "outDetail": "CHECK_ATTACHEMENT.OK",
-      "outMessg": "Succ\u00E8s de la v\u00E9rification du rattachement entre entre objets, groupes d'objets et unit\u00E9s archivistiques existantes et les nouveaux. Detail=  OK:1",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification du rattachement entre objets, groupes d'objets et unit\u00E9s archivistiques existantes et les nouveaux. Detail=  OK:1",
       "evIdReq": "OPERATION_ID_REPLACE"
     },
     {

@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -60,6 +61,29 @@ public class HandlerUtils {
         final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
         try {
             JsonHandler.writeAsFile(map, firstMapTmpFile);
+        } catch (final InvalidParseOperationException e) {
+            throw new IOException(e);
+        }
+
+        handlerIO.addOutputResult(rank, firstMapTmpFile, removeTmpFile, asyncIO);
+    }
+
+    /**
+     * Save the given set as specified by the rank output argument
+     *
+     * @param handlerIO the handler io
+     * @param set the data set to write
+     * @param rank the output rank
+     * @param removeTmpFile if remove temp output file
+     * @throws IOException if cannot write file in json format
+     * @throws ProcessingException if processing exception occurred
+     */
+    public static void saveSet(HandlerIO handlerIO, Set<?> set, int rank, boolean removeTmpFile, boolean asyncIO)
+        throws IOException, ProcessingException {
+        final String tmpFilePath = handlerIO.getOutput(rank).getPath();
+        final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
+        try {
+            JsonHandler.writeAsFile(set, firstMapTmpFile);
         } catch (final InvalidParseOperationException e) {
             throw new IOException(e);
         }

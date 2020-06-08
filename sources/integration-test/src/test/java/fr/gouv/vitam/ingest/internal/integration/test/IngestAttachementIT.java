@@ -55,6 +55,7 @@ import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
@@ -95,6 +96,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
@@ -102,6 +104,7 @@ import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class IngestAttachementIT extends VitamRuleRunner {
 
@@ -117,8 +120,6 @@ public class IngestAttachementIT extends VitamRuleRunner {
     private static final String LOGBOOK_PATH = "/logbook/v1";
     private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
-    private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
-    private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
 
     private static final String SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET = "integration-processing";
 
@@ -145,8 +146,11 @@ public class IngestAttachementIT extends VitamRuleRunner {
                 IngestInternalMain.class));
 
     private static IngestInternalClient client;
+    // run workflow until storing OG
+    private static ProcessingManagementClient processingManagementClient;
 
-    private final WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
+    private final WorkFlow ingestSip =
+        WorkFlow.of(Contexts.DEFAULT_WORKFLOW.name(), Contexts.DEFAULT_WORKFLOW.getEventType(), "INGEST");
 
 
     @BeforeClass
@@ -155,6 +159,8 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         client = IngestInternalClientFactory.getInstance().getClient();
+
+        processingManagementClient = ProcessingManagementClientFactory.getInstance().getClient();
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
@@ -214,7 +220,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
         get("/status").then().statusCode(Response.Status.NO_CONTENT.getStatusCode());
     }
 
-    private void ingestToStepThenKO() throws Exception  {
+    private void ingestToStepThenKO() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         initialize(operationGuid);
 
@@ -224,12 +230,10 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, ProcessState.PAUSE);
 
-        // run workflow until storing OG
-        ProcessingManagementClient processingManagementClient = ProcessingManagementClientFactory.getInstance().getClient();
-
-        for(int i = 0; i<5;i++) {
-            processingManagementClient.executeOperationProcess(operationGuid.toString(), Contexts.DEFAULT_WORKFLOW.toString(),
-                ProcessAction.NEXT.getValue());
+        for (int i = 0; i <= 5; i++) {
+            processingManagementClient
+                .executeOperationProcess(operationGuid.toString(), Contexts.DEFAULT_WORKFLOW.toString(),
+                    ProcessAction.NEXT.getValue());
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, ProcessState.PAUSE);
         }
 
@@ -239,7 +243,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
     }
 
-    private  void initialize(GUID operationGuid) throws Exception {
+    private void initialize(GUID operationGuid) throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         // init default logbook operation
@@ -258,7 +262,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
         client.initWorkflow(ingestSip);
     }
 
-    private GUID ingestSip(InputStream sipStream) throws  Exception{
+    private GUID ingestSip(InputStream sipStream) throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         initialize(operationGuid);
         client.upload(sipStream, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.getValue());
@@ -279,22 +283,15 @@ public class IngestAttachementIT extends VitamRuleRunner {
         String idUnit = (String) unit.get("_id");
         assertThat(idUnit).isNotNull();
 
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
-
         replaceStringInFile(SIP_BASE_WITH_UNIT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
-        String zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-            "/" + zipName;
-        zipFolder(PropertiesUtils.getResourcePath(SIP_BASE_WITH_UNIT), zipPath);
+        InputStream streamSip = createZipFile(SIP_BASE_WITH_UNIT);
 
-       InputStream streamSip =
-            new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                    "/" + zipName));
 
         GUID ingestOperationGuid = ingestSip(streamSip);
 
         awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.KO);
+        verifyLogbook(ingestOperationGuid.toString());
     }
 
 
@@ -311,31 +308,23 @@ public class IngestAttachementIT extends VitamRuleRunner {
         Document got = resultGots.first();
         String idGOT = (String) got.get("_id");
         assertThat(idGOT).isNotNull();
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
-
 
         replaceStringInFile(SIP_BASE_WITH_GOT + "/manifest.xml",
             "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
         replaceStringInFile(SIP_BASE_WITH_GOT + "/manifest.xml",
             "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
 
-        String zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-            "/" + zipName;
-        zipFolder(PropertiesUtils.getResourcePath(SIP_BASE_WITH_GOT), zipPath);
-
-        InputStream streamSip =
-            new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                    "/" + zipName));
+        InputStream streamSip = createZipFile(SIP_BASE_WITH_GOT);
 
         GUID ingestOperationGuid = ingestSip(streamSip);
 
         awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.KO);
+        verifyLogbook(ingestOperationGuid.toString());
     }
 
     @RunWithCustomExecutor
     @Test
-    public void given_unit_with_opi_KO_when_test_link_got_to_unit_then_KO() throws Exception {
+    public void given_og_with_opi_KO_when_test_link_got_to_unit_then_KO() throws Exception {
         prepareVitamSession(tenantId, "aName", "Context_IT");
 
         // simulate a corrupted ingest
@@ -346,25 +335,37 @@ public class IngestAttachementIT extends VitamRuleRunner {
         Document unit = resultUnits.first();
         String idGot = (String) unit.get("_og");
         assertThat(idGot).isNotNull();
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
 
         replaceStringInFile(LINK_AU_TO_EXISTING_GOT + "/manifest.xml",
             "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
             idGot);
 
-        String zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-            "/" + zipName;
-        zipFolder(PropertiesUtils.getResourcePath(SIP_BASE_WITH_GOT), zipPath);
-
-        InputStream streamSip =
-            new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                    "/" + zipName));
+        InputStream streamSip = createZipFile(LINK_AU_TO_EXISTING_GOT);
 
         GUID ingestOperationGuid = ingestSip(streamSip);
 
         awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.KO);
+        verifyLogbook(ingestOperationGuid.toString());
+    }
+
+    private void verifyLogbook(String operationId) {
+        Document operation =
+            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operation).isNotNull();
+        assertTrue(operation.toString().contains("CHECK_ATTACHEMENT.KO"));
+    }
+
+    private InputStream createZipFile(final String folderToZip) throws IOException {
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+        String zipPath =
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(folderToZip), zipPath);
+
+        return new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
     }
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {

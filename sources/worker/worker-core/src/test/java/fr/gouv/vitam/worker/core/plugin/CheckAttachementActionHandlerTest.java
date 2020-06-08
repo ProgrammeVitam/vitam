@@ -27,69 +27,81 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.logbook.common.model.coherence.OutcomeStatus;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 
 import java.util.Collections;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CheckAttachementActionHandlerTest {
 
+    private static final String OPI = "#opi";
+
     private static final String OPI_ID = "OPI_ID";
     private static final String GOT_ID = "GOT_ID";
     private static final String UNIT_ID = "UNIT_ID";
-    private static final String EXISTING_GOT_JSON = "{\"" + GOT_ID + "\": \"" + UNIT_ID + "\"}";
-    private static final String EXISTING_UNIT_JSON =
-        "{\"" + IngestWorkflowConstants.EXISTING_UNITS + "\": [\"" + UNIT_ID + "\"] }";
 
+    private static final String EXISTING_GOT_JSON = "[\"" + GOT_ID + "\"]";
+    private static final String EXISTING_UNIT_JSON = "[\"" + UNIT_ID + "\"]";
 
-    private MetaDataClientFactory metaDataClientFactory;
-    private ProcessingManagementClientFactory processingManagementClientFactory;
+    private static final String EMPTY_JSON_ARRAY = "[]";
 
     private MetaDataClient metaDataClient;
     private ProcessingManagementClient processingManagementClient;
+    private LogbookOperationsClient logbookOperationsClient;
 
     private CheckAttachementActionHandler checkAttachementActionHandler;
 
     @Before()
-    public void setUp() throws Exception {
+    public void setUp() {
         metaDataClient = mock(MetaDataClient.class);
-        metaDataClientFactory = mock(MetaDataClientFactory.class);
+        MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
 
         processingManagementClient = mock(ProcessingManagementClient.class);
-        processingManagementClientFactory = mock(ProcessingManagementClientFactory.class);
+        ProcessingManagementClientFactory processingManagementClientFactory =
+            mock(ProcessingManagementClientFactory.class);
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
 
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
+        LogbookOperationsClientFactory logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+
         checkAttachementActionHandler =
-            new CheckAttachementActionHandler(metaDataClientFactory, processingManagementClientFactory);
+            new CheckAttachementActionHandler(metaDataClientFactory, processingManagementClientFactory,
+                logbookOperationsClientFactory);
     }
 
     @Test
     public void given_MD_when_attach_with_unexisting_MD_then_OK() throws Exception {
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString("{}"));
+
+        when(handlerIO.getJsonFromWorkspace(anyString()))
+            .thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
 
         ItemStatus itemStatus = checkAttachementActionHandler.execute(param, handlerIO);
 
@@ -101,21 +113,33 @@ public class CheckAttachementActionHandlerTest {
         //given
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(ArgumentMatchers.anyString())).thenReturn(JsonHandler.getFromString("[]"));
+        when(handlerIO.getJsonFromWorkspace(anyString()))
+            .thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
         when(handlerIO
-            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_GOT_TO_NEW_GOT_FOR_ATTACHMENT_FILE))
+            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE))
             .thenReturn(JsonHandler.getFromString(EXISTING_GOT_JSON));
 
-        JsonNode gotNode = mock(JsonNode.class);
-        RequestResponseOK result = new RequestResponseOK();
-        result.addAllResults(Collections.singletonList(gotNode));
-        when(gotNode.get(MetadataDocument.OPI)).thenReturn(new TextNode(OPI_ID));
+        RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
+        requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));
+        JsonNode result = JsonHandler.toJsonNode(requestResponse);
 
-        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Collections.singleton(GOT_ID)))).thenReturn(
-            result);
+        when(metaDataClient.selectObjectGroups((any(JsonNode.class)))).thenReturn(result);
 
-        when(processingManagementClient.getOperationProcessStatus(OPI_ID))
-            .thenReturn(new ItemStatus().increment(StatusCode.KO));
+        LogbookOperation lastLogbookOperation = new LogbookOperation();
+        lastLogbookOperation.setEvIdProc(OPI_ID);
+        lastLogbookOperation.setEvType(IngestWorkflowConstants.WORKFLOW_IDENTIFIER);
+        lastLogbookOperation.setOutcome(OutcomeStatus.KO.toString());
+
+        LogbookOperation logbookOperation = new LogbookOperation();
+        logbookOperation.setEvents(Collections.singletonList(lastLogbookOperation));
+
+        RequestResponseOK<LogbookOperation> responseOK = new RequestResponseOK<>();
+        responseOK.addAllResults(Collections.singletonList(logbookOperation));
+        JsonNode logbookOperationresult = JsonHandler.toJsonNode(responseOK);
+
+        when(logbookOperationsClient.selectOperation(any(ObjectNode.class))).thenReturn(logbookOperationresult);
+
+        when(processingManagementClient.getOperationProcessStatus(OPI_ID)).thenThrow(new WorkflowNotFoundException(""));
 
         //when
         ItemStatus itemStatus = checkAttachementActionHandler.execute(param, handlerIO);
@@ -129,21 +153,32 @@ public class CheckAttachementActionHandlerTest {
         //given
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(ArgumentMatchers.anyString())).thenReturn(JsonHandler.getFromString("{}"));
+        when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
         when(handlerIO
             .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE))
             .thenReturn(JsonHandler.getFromString(EXISTING_UNIT_JSON));
 
-        JsonNode unitNode = mock(JsonNode.class);
-        RequestResponseOK result = new RequestResponseOK();
-        result.addAllResults(Collections.singletonList(unitNode));
-        when(unitNode.get(MetadataDocument.OPI)).thenReturn(new TextNode(OPI_ID));
+        RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
+        requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));
+        JsonNode result = JsonHandler.toJsonNode(requestResponse);
 
-        when(metaDataClient.getUnitsByIdsRaw(eq(Collections.singleton(UNIT_ID)))).thenReturn(
-            result);
+        when(metaDataClient.selectUnits((any(JsonNode.class)))).thenReturn(result);
 
-        when(processingManagementClient.getOperationProcessStatus(OPI_ID))
-            .thenReturn(new ItemStatus().increment(StatusCode.KO));
+        LogbookOperation lastLogbookOperation = new LogbookOperation();
+        lastLogbookOperation.setEvIdProc(OPI_ID);
+        lastLogbookOperation.setEvType(IngestWorkflowConstants.WORKFLOW_IDENTIFIER);
+        lastLogbookOperation.setOutcome(OutcomeStatus.KO.toString());
+
+        LogbookOperation logbookOperation = new LogbookOperation();
+        logbookOperation.setEvents(Collections.singletonList(lastLogbookOperation));
+
+        RequestResponseOK<LogbookOperation> responseOK = new RequestResponseOK<>();
+        responseOK.addAllResults(Collections.singletonList(logbookOperation));
+        JsonNode logbookOperationresult = JsonHandler.toJsonNode(responseOK);
+
+        when(logbookOperationsClient.selectOperation(any(ObjectNode.class))).thenReturn(logbookOperationresult);
+
+        when(processingManagementClient.getOperationProcessStatus(OPI_ID)).thenThrow(new WorkflowNotFoundException(""));
 
         //when
         ItemStatus itemStatus = checkAttachementActionHandler.execute(param, handlerIO);
@@ -157,21 +192,32 @@ public class CheckAttachementActionHandlerTest {
         //given
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(ArgumentMatchers.anyString())).thenReturn(JsonHandler.getFromString("{}"));
+        when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
         when(handlerIO
-            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_GOT_TO_NEW_GOT_FOR_ATTACHMENT_FILE))
+            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE))
             .thenReturn(JsonHandler.getFromString(EXISTING_GOT_JSON));
 
-        JsonNode gotNode = mock(JsonNode.class);
-        RequestResponseOK result = new RequestResponseOK();
-        result.addAllResults(Collections.singletonList(gotNode));
-        when(gotNode.get(MetadataDocument.OPI)).thenReturn(new TextNode(OPI_ID));
+        RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
+        requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));
+        JsonNode result = JsonHandler.toJsonNode(requestResponse);
 
-        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Collections.singleton(GOT_ID)))).thenReturn(
-            result);
+        when(metaDataClient.selectObjectGroups((any(JsonNode.class)))).thenReturn(result);
 
-        when(processingManagementClient.getOperationProcessStatus(OPI_ID))
-            .thenReturn(new ItemStatus().increment(StatusCode.OK));
+        LogbookOperation lastLogbookOperation = new LogbookOperation();
+        lastLogbookOperation.setEvIdProc(OPI_ID);
+        lastLogbookOperation.setEvType(IngestWorkflowConstants.WORKFLOW_IDENTIFIER);
+        lastLogbookOperation.setOutcome(OutcomeStatus.OK.toString());
+
+        LogbookOperation logbookOperation = new LogbookOperation();
+        logbookOperation.setEvents(Collections.singletonList(lastLogbookOperation));
+
+        RequestResponseOK<LogbookOperation> responseOK = new RequestResponseOK<>();
+        responseOK.addAllResults(Collections.singletonList(logbookOperation));
+        JsonNode logbookOperationresult = JsonHandler.toJsonNode(responseOK);
+
+        when(logbookOperationsClient.selectOperation(any(ObjectNode.class))).thenReturn(logbookOperationresult);
+
+        when(processingManagementClient.getOperationProcessStatus(OPI_ID)).thenThrow(new WorkflowNotFoundException(""));
 
         //when
         ItemStatus itemStatus = checkAttachementActionHandler.execute(param, handlerIO);
@@ -185,21 +231,32 @@ public class CheckAttachementActionHandlerTest {
         //given
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(ArgumentMatchers.anyString())).thenReturn(JsonHandler.getFromString("{}"));
+        when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
         when(handlerIO
             .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE))
             .thenReturn(JsonHandler.getFromString(EXISTING_UNIT_JSON));
 
-        JsonNode unitNode = mock(JsonNode.class);
-        RequestResponseOK result = new RequestResponseOK();
-        result.addAllResults(Collections.singletonList(unitNode));
-        when(unitNode.get(MetadataDocument.OPI)).thenReturn(new TextNode(OPI_ID));
+        RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
+        requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));
+        JsonNode result = JsonHandler.toJsonNode(requestResponse);
 
-        when(metaDataClient.getUnitsByIdsRaw(eq(Collections.singleton(UNIT_ID)))).thenReturn(
-            result);
+        when(metaDataClient.selectUnits((any(JsonNode.class)))).thenReturn(result);
 
-        when(processingManagementClient.getOperationProcessStatus(OPI_ID))
-            .thenReturn(new ItemStatus().increment(StatusCode.OK));
+        LogbookOperation lastLogbookOperation = new LogbookOperation();
+        lastLogbookOperation.setEvIdProc(OPI_ID);
+        lastLogbookOperation.setEvType(IngestWorkflowConstants.WORKFLOW_IDENTIFIER);
+        lastLogbookOperation.setOutcome(OutcomeStatus.OK.toString());
+
+        LogbookOperation logbookOperation = new LogbookOperation();
+        logbookOperation.setEvents(Collections.singletonList(lastLogbookOperation));
+
+        RequestResponseOK<LogbookOperation> responseOK = new RequestResponseOK<>();
+        responseOK.addAllResults(Collections.singletonList(logbookOperation));
+        JsonNode logbookOperationresult = JsonHandler.toJsonNode(responseOK);
+
+        when(logbookOperationsClient.selectOperation(any(ObjectNode.class))).thenReturn(logbookOperationresult);
+
+        when(processingManagementClient.getOperationProcessStatus(OPI_ID)).thenThrow(new WorkflowNotFoundException(""));
 
         //when
         ItemStatus itemStatus = checkAttachementActionHandler.execute(param, handlerIO);

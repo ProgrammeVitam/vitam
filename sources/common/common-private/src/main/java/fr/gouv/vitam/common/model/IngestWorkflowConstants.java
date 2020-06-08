@@ -31,6 +31,8 @@ package fr.gouv.vitam.common.model;
  */
 public class IngestWorkflowConstants {
 
+    public static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
+
     /**
      * Prefix of file containing mapping between object group's seda ID and object group's vitam guid.
      */
@@ -125,9 +127,6 @@ public class IngestWorkflowConstants {
      * Sub folder for work file in Worskpace folder of container : containerId/ATR
      */
     public static final String ATR_FOLDER = "ATR";
-
-
-    public static final String EXISTING_UNITS = "EXISTING_UNITS";
 
     /**
      * In work tag : If size of binary is different of the one setted in manifest, set to true, else false

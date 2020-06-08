@@ -142,6 +142,10 @@
               {
                 "name": "mapsExisitingUnitsForAttachment.file",
                 "uri": "WORKSPACE:Maps/EXISTING_UNITS_GUID_FOR_ATTACHMENT_MAP.json"
+              },
+              {
+                "name": "mapsExisitingGotsForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json"
               }
             ]
           }
@@ -152,72 +156,8 @@
             "behavior": "BLOCKING",
             "in": [
               {
-                "name": "unitsLevel.file",
-                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
-              },
-              {
-                "name": "mapsDOtoOG.file",
-                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"
-              },
-              {
-                "name": "mapsDO.file",
-                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "mapsObjectGroup.file",
-                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "mapsObjectGroup.file",
-                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
-              },
-              {
-                "name": "mapsDOtoVersionBDO.file",
-                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
-              },
-              {
-                "name": "mapsUnits.file",
-                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "globalSEDAParameters.file",
-                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-              },
-              {
-                "name": "mapsObjectGroup.file",
-                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "existingObjectGroup.file",
-                "uri": "WORKSPACE:UpdateObjectGroup/existing_object_group.json"
-              },
-              {
-                "name": "mapsGuid.file",
-                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
-              },
-              {
-                "name": "ontology.file",
-                "uri": "WORKSPACE:Ontology/ontology.json"
-              },
-              {
-                "name": "mapsExisitingGotToNewGotForAttachment.file",
-                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json"
-              },
-              {
-                "name": "mapsExisitingUnitsForAttachment.file",
-                "uri": "WORKSPACE:Maps/EXISTING_UNITS_GUID_FOR_ATTACHMENT_MAP.json"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_ATTACHEMENT",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "mapsExisitingGotToNewGotForAttachment.file",
-                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json"
+                "name": "mapsExisitingGotsForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json"
               },
               {
                 "name": "mapsExisitingUnitsForAttachment.file",
