@@ -13,10 +13,10 @@ Les métriques historiques dans :term:`VITAM` sont développées en utilisant le
 
 **fr.gouv.common.metrics**
 
-Les registres de métriques et les reporters de métriques sont tous les deux contenus dans une classe *VitamMetrics*. Cette classe doit être instanciée avec un *VitamMetricsType* qui peut être **REST**, **JVM** ou **BUSINESS**. Le type définira les métriques enregistrées dans le registre interne de la classe.
+Les `registres` de métriques et les `reporters` de métriques sont tous les deux contenus dans une classe *VitamMetrics*. Cette classe doit être instanciée avec un *VitamMetricsType* qui peut être **REST**, **JVM** ou **BUSINESS**. Le type définira les métriques enregistrées dans le registre interne de la classe.
 
 La classe **CommonBusinessApplication** contient une *Map* statique de *VitamMetrics* qui est vide et initialisée à chaque démarrage d'une application VITAM.
-Cette *Map* contient obligatoirement un *VitamMetrics* de type BUSINESS et peut accessoirement contenir les *VitamMetrics* de types JVM et REST.
+Cette *Map* contient obligatoirement un *VitamMetrics* de type BUSINESS et peut accessoirement contenir les *VitamMetrics* de types JVM et/ou REST.
 Les métriques de types JVM et REST peuvent être activées/désactivées depuis le fichier de conf (Cf. Configuration). 
 
 .. code-block:: java
@@ -25,7 +25,7 @@ Les métriques de types JVM et REST peuvent être activées/désactivées depuis
 
 
 Cette fonction permet de vider et de recharger les métriques à chaque création d'une application VITAM.
-Les reporters de métriques (elasticsearch ou logback) sont démarrés lors du démarrage d'un serveur VITAM.
+Les `reporters` de métriques (elasticsearch ou logback) sont démarrés lors du démarrage d'un serveur VITAM.
 
 La fonction suivante de la classe *CommonBusinessApplication* quant à elle s'occupe du démarrage des reporters:
 
