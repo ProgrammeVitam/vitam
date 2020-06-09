@@ -38,9 +38,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class MetaDataConfigurationValidator {
+public final class MetaDataConfigurationValidator {
 
-    public static final String TENANT_GROUP_NAME_PATTERN = "^[a-z][a-z0-9]{1,63}$";
+    private static final String TENANT_GROUP_NAME_PATTERN = "^[a-z][a-z0-9]{1,63}$";
+
+    private MetaDataConfigurationValidator() {
+        // Private constructor of static class
+    }
 
     public static void validateConfiguration(MetaDataConfiguration metaDataConfiguration) {
 

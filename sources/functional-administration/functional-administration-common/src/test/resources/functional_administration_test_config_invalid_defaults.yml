@@ -1,0 +1,8 @@
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    number_of_replicas: 0
+
+  ontology:
+    number_of_shards: 2
+    number_of_replicas: 3
