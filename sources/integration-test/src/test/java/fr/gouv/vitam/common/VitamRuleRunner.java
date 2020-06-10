@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -63,10 +64,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class VitamRuleRunner {
 
@@ -181,10 +184,10 @@ public class VitamRuleRunner {
         mongoRule.handleAfter(collections);
     }
 
-    public static void runAfterEs(Set<String> collections) {
+    public static void runAfterEs(ElasticsearchIndexAlias... indexAliases) {
         // clean offers
         cleanOffers();
-        elasticsearchRule.handleAfter(collections);
+        elasticsearchRule.handleAfter(Arrays.stream(indexAliases).map(ElasticsearchIndexAlias::getName).collect(Collectors.toSet()));
     }
 
     public static void runAfter() {

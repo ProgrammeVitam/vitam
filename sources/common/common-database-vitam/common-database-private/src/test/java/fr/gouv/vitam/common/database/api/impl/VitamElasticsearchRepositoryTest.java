@@ -94,7 +94,7 @@ public class VitamElasticsearchRepositoryTest {
 
     @AfterClass
     public static void afterClass() {
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.purgeIndices();
     }
 
     @BeforeClass

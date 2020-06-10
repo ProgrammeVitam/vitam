@@ -637,7 +637,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
         throws DatabaseException, IOException {
 
         if (!existsAlias(indexAlias)) {
-            throw new DatabaseException(String.format("Alias not exist : %s", indexAlias.getName()));
+            throw new DatabaseException(String.format("Alias does not exist : %s", indexAlias.getName()));
+        }
+
+        if (!existsIndex(indexNameToSwitchTo)) {
+            throw new DatabaseException(String.format("New index does not exist : %s", indexNameToSwitchTo.getName()));
         }
 
         GetAliasesResponse actualIndex =
@@ -690,11 +694,16 @@ public class ElasticsearchAccess implements DatabaseConnection {
             throw new DatabaseException(e);
         }
         for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
-            deleteIndex(entry.getKey());
+            deleteIndexForTesting(entry.getKey());
         }
     }
 
-    private void deleteIndex(final String indexFullName) throws DatabaseException {
+    @VisibleForTesting
+    public final void deleteIndexForTesting(ElasticsearchIndexAlias indexAlias) throws DatabaseException {
+        deleteIndexForTesting(indexAlias.getName());
+    }
+
+    private void deleteIndexForTesting(final String indexFullName) throws DatabaseException {
 
         DeleteIndexRequest request = new DeleteIndexRequest(indexFullName);
         request

@@ -196,21 +196,21 @@ public class ElasticsearchRule extends ExternalResource {
         return acknowledged && shardsAcknowledged;
     }
 
-    public final void deleteIndex(RestHighLevelClient client, String indexName) {
+    public final void purgeIndex(RestHighLevelClient client, String indexName) {
 
         purge(client, indexName);
     }
 
     public void deleteIndexesWithoutClose() {
         for (String indexName : indexesToBePurged) {
-            deleteIndex(client, indexName);
+            purgeIndex(client, indexName);
         }
         indexesToBePurged = new HashSet<>();
     }
 
-    public void deleteIndexes() {
+    public void purgeIndices() {
         for (String indexName : indexesToBePurged) {
-            deleteIndex(client, indexName);
+            purgeIndex(client, indexName);
         }
         indexesToBePurged = new HashSet<>();
         close();
@@ -229,11 +229,7 @@ public class ElasticsearchRule extends ExternalResource {
         after();
     }
 
-    public void handleAfter(Set<String> collections) {
-        after(collections);
-    }
-
-    private void after(Set<String> indexesToBePurged) {
+    public void handleAfter(Set<String> indexesToBePurged) {
         purge(client, indexesToBePurged);
     }
 

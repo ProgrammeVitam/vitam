@@ -122,7 +122,7 @@ public class DbRequestSingleTest {
     @AfterClass
     public static void afterClass() {
         mongoRule.handleAfterClass();
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.purgeIndices();
         esClient.close();
     }
 

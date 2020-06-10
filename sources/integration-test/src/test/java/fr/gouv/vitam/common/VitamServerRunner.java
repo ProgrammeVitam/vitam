@@ -61,15 +61,15 @@ import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
-import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -198,6 +198,8 @@ public class VitamServerRunner extends ExternalResource {
     String dbname;
     String cluster;
     Set<Class> servers;
+    private MetadataIndexationConfiguration customMetadataIndexationConfiguration;
+    private LogbookIndexationConfiguration customLogbookIndexationConfiguration;
 
     public VitamServerRunner(Class<?> clazz, String dbname, String cluster,
         Set<Class> servers) {
@@ -443,11 +445,11 @@ public class VitamServerRunner extends ExternalResource {
             .set(BatchReportMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_BATCH_REPORT));
         final File batchConfig = PropertiesUtils.findFile(BATCH_REPORT_CONF);
         final BatchReportConfiguration batchReportConfiguration =
-            PropertiesUtils.readYaml(batchConfig, BatchReportConfiguration.class);
+            readYaml(batchConfig, BatchReportConfiguration.class);
         List<MongoDbNode> mongoDbNodes = batchReportConfiguration.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         batchReportConfiguration.setMongoDbNodes(mongoDbNodes);
-        PropertiesUtils.writeYaml(batchConfig, batchReportConfiguration);
+        writeYaml(batchConfig, batchReportConfiguration);
         LOGGER.warn("=== VitamServerRunner start  BatchReportMain");
         BatchReportClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_BATCH_REPORT));
         batchReportMain = new BatchReportMain(batchConfig.getAbsolutePath());
@@ -636,11 +638,11 @@ public class VitamServerRunner extends ExternalResource {
             .set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
         final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
         final OfferConfiguration offerConfiguration =
-            PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
+            readYaml(offerConfig, OfferConfiguration.class);
         List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         offerConfiguration.setMongoDbNodes(mongoDbNodes);
-        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
+        writeYaml(offerConfig, offerConfiguration);
         LOGGER.warn("=== VitamServerRunner start  DefaultOfferMain");
 
         defaultOfferMain = new DefaultOfferMain(offerConfig.getAbsolutePath());
@@ -681,15 +683,15 @@ public class VitamServerRunner extends ExternalResource {
         // prepare functional admin
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+            readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realAdminConfig.setDbName(dbname);
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(cluster);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
         realAdminConfig.setIndexationConfiguration(new FunctionalAdminIndexationConfiguration()
-        .setDefaultConfiguration(new CollectionConfiguration(2, 1)));
-        PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
+            .setDefaultConfiguration(new CollectionConfiguration(1, 0)));
+        writeYaml(adminConfig, realAdminConfig);
         LOGGER.warn("=== VitamServerRunner start  AdminManagementMain");
         AdminManagementClientFactory
             .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
@@ -737,15 +739,19 @@ public class VitamServerRunner extends ExternalResource {
             .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         final File logbookConfigFile = PropertiesUtils.findFile(LOGBOOK_CONF);
         final LogbookConfiguration logbookConfiguration =
-            PropertiesUtils.readYaml(logbookConfigFile, LogbookConfiguration.class);
+            readYaml(logbookConfigFile, LogbookConfiguration.class);
         logbookConfiguration.setElasticsearchNodes(esNodes);
         logbookConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         logbookConfiguration.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
-        logbookConfiguration.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
-            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
-                new CollectionConfiguration(2, 1))));
+        if (this.customLogbookIndexationConfiguration != null) {
+            logbookConfiguration.setLogbookTenantIndexation(customLogbookIndexationConfiguration);
+        } else {
+            logbookConfiguration.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
+                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
+                    new CollectionConfiguration(1, 0))));
+        }
 
-        PropertiesUtils.writeYaml(logbookConfigFile, logbookConfiguration);
+        writeYaml(logbookConfigFile, logbookConfiguration);
 
         LOGGER.warn("=== VitamServerRunner start  LogbookMain");
         LogbookOperationsClientFactory
@@ -760,7 +766,7 @@ public class VitamServerRunner extends ExternalResource {
         // Wait startup
     }
 
-    private void stopLogbookServer(boolean mockWhenStop) throws VitamApplicationServerException {
+    public void stopLogbookServer(boolean mockWhenStop) throws VitamApplicationServerException {
         if (null == logbookMain) {
             if (mockWhenStop) {
                 LogbookOperationsClientFactory.getInstance()
@@ -793,8 +799,7 @@ public class VitamServerRunner extends ExternalResource {
         final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_CONF);
 
         fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            PropertiesUtils
-                .readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+            readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
         workspaceConfiguration.setStoragePath(VitamConfiguration.getVitamDataFolder() + "/storage/");
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);
@@ -827,9 +832,9 @@ public class VitamServerRunner extends ExternalResource {
 
         File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
         final InternalSecurityConfiguration internalSecurityConfiguration =
-            PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
+            readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
         internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
+        writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
         LOGGER.warn("=== VitamServerRunner start  Identity");
         InternalSecurityClientFactory.getInstance()
@@ -874,7 +879,7 @@ public class VitamServerRunner extends ExternalResource {
                 Integer.toString(PORT_SERVICE_METADATA_ADMIN));
         final File metadataConfig = PropertiesUtils.findFile(METADATA_CONF);
         final MetaDataConfiguration realMetadataConfig =
-            PropertiesUtils.readYaml(metadataConfig, MetaDataConfiguration.class);
+            readYaml(metadataConfig, MetaDataConfiguration.class);
         realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         realMetadataConfig.setDbName(dbname);
         realMetadataConfig.setElasticsearchNodes(esNodes);
@@ -882,11 +887,16 @@ public class VitamServerRunner extends ExternalResource {
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         realMetadataConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
 
-        realMetadataConfig.setIndexationConfiguration(new MetadataIndexationConfiguration()
-            .setDefaultCollectionConfiguration(new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(2, 1))
-                .setObjectgroup(new CollectionConfiguration(2, 1))));
-        PropertiesUtils.writeYaml(metadataConfig, realMetadataConfig);
+        if (this.customMetadataIndexationConfiguration != null) {
+            realMetadataConfig.setIndexationConfiguration(this.customMetadataIndexationConfiguration);
+        } else {
+            realMetadataConfig.setIndexationConfiguration(new MetadataIndexationConfiguration()
+                .setDefaultCollectionConfiguration(
+                    new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
+                        .setUnit(new CollectionConfiguration(1, 0))
+                        .setObjectgroup(new CollectionConfiguration(1, 0))));
+        }
+        writeYaml(metadataConfig, realMetadataConfig);
 
         LOGGER.warn("=== VitamServerRunner start  MetadataMain");
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
@@ -1123,5 +1133,23 @@ public class VitamServerRunner extends ExternalResource {
 
     public void stopServers() {
         after();
+    }
+
+    public void setCustomMetadataIndexationConfiguration(
+        MetadataIndexationConfiguration customMetadataIndexationConfiguration) {
+        this.customMetadataIndexationConfiguration = customMetadataIndexationConfiguration;
+    }
+
+    public MetadataIndexationConfiguration getCustomMetadataIndexationConfiguration() {
+        return customMetadataIndexationConfiguration;
+    }
+
+    public void setCustomLogbookIndexationConfiguration(
+        LogbookIndexationConfiguration customLogbookIndexationConfiguration) {
+        this.customLogbookIndexationConfiguration = customLogbookIndexationConfiguration;
+    }
+
+    public LogbookIndexationConfiguration getCustomLogbookIndexationConfiguration() {
+        return customLogbookIndexationConfiguration;
     }
 }
