@@ -10,3 +10,4 @@ Architecture Technique
    storage.rst
    check-availability.rst
    seda-check.rst
+   metrics.rst

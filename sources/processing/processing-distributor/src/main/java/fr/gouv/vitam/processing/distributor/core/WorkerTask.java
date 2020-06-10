@@ -26,10 +26,6 @@
  */
 package fr.gouv.vitam.processing.distributor.core;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -52,6 +48,10 @@ import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import io.prometheus.client.Histogram;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
 // Task simulating a call to a worker
 public class WorkerTask implements Supplier<ItemStatus> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerTask.class);
@@ -64,20 +64,8 @@ public class WorkerTask implements Supplier<ItemStatus> {
     private final String applicationId;
     private volatile WorkerTaskState workerTaskState = WorkerTaskState.PENDING;
 
-    private WorkerClientFactory workerClientFactory = null;
+    private WorkerClientFactory workerClientFactory;
     private Histogram.Timer taskWaitingTimeDuration;
-
-
-    public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId,
-        String contextId, String applicationId) {
-        ParametersChecker.checkParameter("Params are required", descriptionStep, requestId);
-        this.descriptionStep = descriptionStep;
-        this.tenantId = tenantId;
-        this.requestId = requestId;
-        this.contractId = contractId;
-        this.contextId = contextId;
-        this.applicationId = applicationId;
-    }
 
     public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId,
         String contextId, String applicationId, WorkerClientFactory workerClientFactory) {
@@ -89,6 +77,13 @@ public class WorkerTask implements Supplier<ItemStatus> {
         this.contextId = contextId;
         this.applicationId = applicationId;
         this.workerClientFactory = workerClientFactory;
+
+        // Add metrics compute duration of waiting time before execution of the task
+        taskWaitingTimeDuration = CommonProcessingMetrics.WORKER_TASKS_IDLE_DURATION_IN_QUEUE
+            .labels(getStep().getWorkerGroupId(),
+                descriptionStep.getWorkParams().getLogbookTypeProcess().name(),
+                descriptionStep.getStep().getStepName())
+            .startTimer();
     }
 
     @Override
@@ -202,7 +197,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
         Histogram.Timer workerTaskTimer = CommonProcessingMetrics.WORKER_TASKS_EXECUTION_DURATION_HISTOGRAM
             .labels(workerBean.getFamily(),
                 workerBean.getName(),
-                descriptionStep.getWorkParams().getLogbookTypeProcess().name().toLowerCase(),
+                descriptionStep.getWorkParams().getLogbookTypeProcess().name(),
                 descriptionStep.getStep().getStepName())
             .startTimer();
         try {
@@ -227,19 +222,11 @@ public class WorkerTask implements Supplier<ItemStatus> {
         return descriptionStep.getStep();
     }
 
-    public String getObjectName() {
-        return descriptionStep.getWorkParams().getObjectName();
-    }
-
     public List<String> getObjectNameList() {
         return descriptionStep.getWorkParams().getObjectNameList();
     }
 
     public boolean isCompleted() {
         return WorkerTaskState.COMPLETED.equals(workerTaskState);
-    }
-
-    public void setTimer(Histogram.Timer taskWaitingTimeDuration) {
-        this.taskWaitingTimeDuration = taskWaitingTimeDuration;
     }
 }

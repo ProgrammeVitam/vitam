@@ -83,6 +83,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
@@ -140,6 +141,7 @@ public class ProcessManagementImplTest {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         workerManager = new WorkerManager(workerClientFactory);
         ServerConfiguration configuration = new ServerConfiguration();
+        when(processDataAccess.getWorkFlowList()).thenReturn(new ConcurrentHashMap<>());
         processDistributor =
             new ProcessDistributorImpl(workerManager, configuration, processDataManagement,
                 workspaceClientFactory, metaDataClientFactory, workerClientFactory);

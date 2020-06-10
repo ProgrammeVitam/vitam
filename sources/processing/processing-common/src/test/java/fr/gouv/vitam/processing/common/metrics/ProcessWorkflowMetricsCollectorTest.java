@@ -97,28 +97,28 @@ public class ProcessWorkflowMetricsCollectorTest {
             processWorkflowMetricsCollector.collect().iterator().next().samples;
         assertThat(samples).hasSize(8);
 
-        assertThat(samples.get(0).labelValues).contains("check", "pause", "fatal");
+        assertThat(samples.get(0).labelValues).contains("INGEST", "PAUSE", "FATAL");
         assertThat(samples.get(0).value).isEqualTo(1l);
 
-        assertThat(samples.get(1).labelValues).contains("elimination", "completed", "ok");
-        assertThat(samples.get(1).value).isEqualTo(2l);
+        assertThat(samples.get(1).labelValues).contains("INGEST", "RUNNING", "OK");
+        assertThat(samples.get(1).value).isEqualTo(1l);
 
-        assertThat(samples.get(2).labelValues).contains("ingest", "running", "ok");
+        assertThat(samples.get(2).labelValues).contains("INGEST", "RUNNING", "WARNING");
         assertThat(samples.get(2).value).isEqualTo(1l);
 
-        assertThat(samples.get(3).labelValues).contains("traceability", "pause", "fatal");
-        assertThat(samples.get(3).value).isEqualTo(2l);
+        assertThat(samples.get(3).labelValues).contains("CHECK", "PAUSE", "FATAL");
+        assertThat(samples.get(3).value).isEqualTo(1l);
 
-        assertThat(samples.get(4).labelValues).contains("ingest", "pause", "fatal");
-        assertThat(samples.get(4).value).isEqualTo(1l);
+        assertThat(samples.get(4).labelValues).contains("INGEST", "COMPLETED", "OK");
+        assertThat(samples.get(4).value).isEqualTo(2l);
 
-        assertThat(samples.get(5).labelValues).contains("audit", "running", "warning");
+        assertThat(samples.get(5).labelValues).contains("AUDIT", "RUNNING", "WARNING");
         assertThat(samples.get(5).value).isEqualTo(2l);
 
-        assertThat(samples.get(6).labelValues).contains("ingest", "running", "warning");
-        assertThat(samples.get(6).value).isEqualTo(1l);
+        assertThat(samples.get(6).labelValues).contains("TRACEABILITY", "PAUSE", "FATAL");
+        assertThat(samples.get(6).value).isEqualTo(2l);
 
-        assertThat(samples.get(7).labelValues).contains("ingest", "completed", "ok");
+        assertThat(samples.get(7).labelValues).contains("ELIMINATION", "COMPLETED", "OK");
         assertThat(samples.get(7).value).isEqualTo(2l);
     }
 }
