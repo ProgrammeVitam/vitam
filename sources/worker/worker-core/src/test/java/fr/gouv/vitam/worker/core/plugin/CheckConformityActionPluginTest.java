@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -226,7 +227,7 @@ public class CheckConformityActionPluginTest {
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
-        Assertions.assertThat(count).isEqualTo(4);
+        assertThat(count).isEqualTo(4);
 
         // check all subtasks
         response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().forEach((k, v) -> {
@@ -263,7 +264,7 @@ public class CheckConformityActionPluginTest {
         handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
         Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
-        Assertions.assertThat(count).isEqualTo(1);
+        assertThat(count).isEqualTo(1);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertEquals(response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().values()
             .iterator().next().getEvDetailData(), JsonHandler.unprettyPrint(EV_DETAIL_DATA_BDO_AND_PDO));
@@ -339,6 +340,38 @@ public class CheckConformityActionPluginTest {
         assertEquals(1, subTasks.size());
         ItemStatus subtask = subTasks.entrySet().iterator().next().getValue();
         assertEquals("INVALID", subtask.getGlobalOutcomeDetailSubcode());
+
+        handlerIO.close();
+    }
+
+    @Test
+    public void should_have_a_ko_when_object_no_size() throws Exception {
+        // Given
+        InputStream OG = PropertiesUtils.getResourceAsStream("checkConformityActionPlugin/binary_no_size.json");
+        Response expectedResponse = Response.status(Status.OK).entity(OG).build();
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName3"))).thenReturn(expectedResponse);
+;
+        WorkerParameters params = getDefaultWorkerParameters();
+        params.setObjectName("objectName3");
+        HandlerIOImpl handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "CheckConformityActionHandlerTest", "workerId", Collections.singletonList("objectId"));
+        handlerIO.setCurrentObjectId("objectId");
+
+        handlerIO.addInIOParameters(
+            Collections.singletonList(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")))
+        );
+
+        handlerIO.addOutIOParameters(
+            Collections.singletonList(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")))
+        );
+
+        CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
+
+        // When
+        ItemStatus response = plugin.execute(params, handlerIO);
+
+        // Then
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+
 
         handlerIO.close();
     }
