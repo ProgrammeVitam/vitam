@@ -404,6 +404,7 @@ public class VitamConfiguration {
      */
     private static int textMaxLength = 32766;
 
+    private static int textContentMaxLength = 320000;
 
     /**
      * default offset for lifecycleSpliterator
@@ -668,6 +669,14 @@ public class VitamConfiguration {
 
     public static void setHttpClientRandomWaitingSleep(int httpClientRandomWaitingSleep) {
         VitamConfiguration.httpClientRandomWaitingSleep = httpClientRandomWaitingSleep;
+    }
+
+    public static int getTextContentMaxLength() {
+        return textContentMaxLength;
+    }
+
+    public static void setTextContentMaxLength(int textContentMaxLength) {
+        VitamConfiguration.textContentMaxLength = textContentMaxLength;
     }
 
     /**
@@ -1034,6 +1043,10 @@ public class VitamConfiguration {
 
         if (null != parameters.getTextMaxLength()) {
             setTextMaxLength(parameters.getTextMaxLength());
+        }
+
+        if (null != parameters.getTextContentMaxLength()) {
+            setTextContentMaxLength(parameters.getTextContentMaxLength());
         }
 
         if (null != parameters.getClassificationLevel()) {

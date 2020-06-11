@@ -37,16 +37,19 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadataForAu;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
-import org.apache.commons.lang.StringEscapeUtils;
+import fr.gouv.vitam.worker.core.utils.PluginHelper;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
 
 public class PreservationTesseractPlugin extends ActionHandler {
 
@@ -84,7 +87,7 @@ public class PreservationTesseractPlugin extends ActionHandler {
 
             outputExtras
                 .forEach(
-                    o -> o.getExtractedMetadataAU().ifPresent(metadata -> computeTextContent(metadata, itemStatuses)));
+                    o -> o.getExtractedMetadataAU().ifPresent(metadata -> computeTextContent(metadata, itemStatuses, o.getBinaryGUID())));
 
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, outputExtras));
         }
@@ -95,18 +98,20 @@ public class PreservationTesseractPlugin extends ActionHandler {
 
 
     private void computeTextContent(ExtractedMetadataForAu extractedMetadataForAu,
-        List<ItemStatus> itemStatuses) {
+        List<ItemStatus> itemStatuses, String subBinaryItemIds) {
         extractedMetadataForAu.computeIfPresent(TEXT_CONTENT, (key, value) -> {
             String textValue = String.valueOf(value);
-            int maxUtf8Length = VitamConfiguration.getTextMaxLength();
-            if (OntologyValidator.stringExceedsMaxLuceneUtf8StorageSize(textValue, maxUtf8Length)) {
-                String encodedString = StringEscapeUtils.escapeJava(textValue);
-                itemStatuses.add(new ItemStatus().setItemId(ITEM_ID).increment(WARNING));
-                // split text content if it exceeds the lucene limit
-                return splitText(encodedString, maxUtf8Length - 1);
+            final int maxUtf8TextContentLength = VitamConfiguration.getTextContentMaxLength();
+            final int maxUtf8Length = VitamConfiguration.getTextMaxLength();
+            String encodedString = StringEscapeUtils.escapeJava(textValue);
+            if (OntologyValidator.stringExceedsMaxLuceneUtf8StorageSize(textValue, maxUtf8TextContentLength)) {
+                encodedString = encodedString.substring(0,maxUtf8TextContentLength);
+                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), WARNING, PluginHelper.EventDetails.of("TextContent metadata exceeds the limit")));
+            }else {
+                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), OK, PluginHelper.EventDetails.of("All metadata are OK.")));
             }
-            itemStatuses.add(new ItemStatus().setItemId(ITEM_ID).increment(OK));
-            return value;
+            // split text content if it exceeds the lucene limit
+            return splitText(encodedString, maxUtf8Length - 1);
         });
     }
 

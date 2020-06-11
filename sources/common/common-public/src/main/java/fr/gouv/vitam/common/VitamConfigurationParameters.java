@@ -112,6 +112,7 @@ public class VitamConfigurationParameters {
     private Integer textMaxLength;
 
 
+    private Integer textContentMaxLength;
 
     /**
      *
@@ -1485,5 +1486,13 @@ public class VitamConfigurationParameters {
 
     public void setHttpClientRandomWaitingSleep(Integer httpClientRandomWaitingSleep) {
         this.httpClientRandomWaitingSleep = httpClientRandomWaitingSleep;
+    }
+
+    public Integer getTextContentMaxLength() {
+        return textContentMaxLength;
+    }
+
+    public void setTextContentMaxLength(Integer textContentMaxLength) {
+        this.textContentMaxLength = textContentMaxLength;
     }
 }
