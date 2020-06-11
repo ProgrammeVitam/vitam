@@ -117,6 +117,10 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     params.getObjectName(), jsonOG, false, false);
             }
 
+        } catch (VitamMissingBinaryObjectSizeException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.KO);
+            itemStatus.setGlobalOutcomeDetailSubcode("CHECK_OBJECT_SIZE");
         } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -221,7 +225,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
         handler.checkHandlerIO(1, Arrays.asList(new Class[] {String.class}));
     }
 
-    private Map<String, DataObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
+    private Map<String, DataObjectInfo> getBinaryObjects(JsonNode jsonOG) throws VitamMissingBinaryObjectSizeException {
         final Map<String, DataObjectInfo> binaryObjects = new HashMap<>();
 
         final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
@@ -241,13 +245,24 @@ public class CheckConformityActionPlugin extends ActionHandler {
             LOGGER.debug(version.toString());
             for (final JsonNode jsonBinaryObject : version) {
                 if (jsonBinaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
-                    binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
-                        new DataObjectInfo()
-                            .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())
-                            .setId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
-                            .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText())
-                            .setMessageDigest(jsonBinaryObject.get(SedaConstants.TAG_DIGEST).asText())
-                            .setAlgo(DigestType.fromValue(jsonBinaryObject.get(SedaConstants.ALGORITHM).asText())));
+                    String digest = jsonBinaryObject.get(SedaConstants.TAG_DIGEST).asText();
+                    String uri = jsonBinaryObject.get(SedaConstants.TAG_URI).asText();
+                    String id = jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText();
+                    String algorithm = jsonBinaryObject.get(SedaConstants.ALGORITHM).asText();
+
+                    JsonNode objectSize = jsonBinaryObject.get(SedaConstants.TAG_SIZE);
+                    if (objectSize == null || objectSize.isNull() || objectSize.isMissingNode()) {
+                        throw new VitamMissingBinaryObjectSizeException(String.format("The binary object at '%s', with digest '%s' and id '%s' has no size.", uri, digest, id));
+                    }
+
+                    DataObjectInfo info = new DataObjectInfo()
+                        .setSize(objectSize.asLong())
+                        .setId(id)
+                        .setUri(uri)
+                        .setMessageDigest(digest)
+                        .setAlgo(DigestType.fromValue(algorithm));
+
+                    binaryObjects.put(id, info);
                 }
             }
         }
