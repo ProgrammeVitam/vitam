@@ -26,6 +26,12 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
+import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.stream.Collectors;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.json.JsonHandler;
 import gherkin.formatter.Formatter;
@@ -40,18 +46,12 @@ import gherkin.formatter.model.Scenario;
 import gherkin.formatter.model.ScenarioOutline;
 import gherkin.formatter.model.Step;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
 public class VitamReporter implements Reporter, Formatter {
 
     private NiceAppendable output;
     private Reports reports = new Reports();
     private Report report = new Report();
-    private String currentFeature;
+    private Feature currentFeature;
     private Queue<Step> steps = new LinkedList<>();
 
     public VitamReporter(Appendable appendable) {
@@ -71,7 +71,7 @@ public class VitamReporter implements Reporter, Formatter {
     @Override
     public void feature(Feature feature) {
         System.out.println("\n\n########\nFEATURE: " + feature.getName() + " - " + feature.getId());
-        currentFeature = feature.getName();
+        currentFeature = feature;
         steps.clear();
     }
 
@@ -97,7 +97,9 @@ public class VitamReporter implements Reporter, Formatter {
         System.out.println("- SCENARIO: " + scenario.getName() + " (line: " + scenario.getLine() + ")");
         report = new Report();
         report.setDescription(scenario.getName());
-        report.setFeature(currentFeature);
+        report.setFeature(currentFeature.getName());
+        report.setTags(scenario.getTags().stream().map(tag -> tag.getName().substring(1, tag.getName().length())).collect(Collectors.toList()));
+        currentFeature.getTags().stream().map(tag -> tag.getName().substring(1, tag.getName().length())).forEach(tagName -> report.addTag(tagName));
         reports.add(report);
         steps.clear();
     }

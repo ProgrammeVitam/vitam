@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import 'rxjs/add/operator/switchMap';
-
 import { BreadcrumbElement, BreadcrumbService } from '../../../common/breadcrumb.service';
 import { FunctionalTestsService } from '../functional-tests.service';
 import { PageComponent } from '../../../common/page/page-component';
-import {Subscription} from "rxjs/Subscription";
+import {Subscription} from 'rxjs/Subscription';
+import { Report } from './report';
+import { TagInfo } from './tag-info';
 
 
 const DefaultBreadcrumb: BreadcrumbElement[] = [];
@@ -19,7 +20,7 @@ const DefaultBreadcrumb: BreadcrumbElement[] = [];
 
 export class FunctionalTestsDetailComponent extends PageComponent {
   fileName: string;
-  resultDetail : any;
+  resultDetail: Report;
   itemLists: any[];
   cols = [
     {field: 'Feature', label: 'Fonctionnalité'},
@@ -48,6 +49,7 @@ export class FunctionalTestsDetailComponent extends PageComponent {
       })
       .subscribe(data => {
         this.resultDetail = data;
+        this.resultDetail.Tags = this.orderTagsList(this.resultDetail.Tags);
       });
     return null;
   }
@@ -58,6 +60,18 @@ export class FunctionalTestsDetailComponent extends PageComponent {
     } else {
       return 'redRows';
     }
+  }
+
+  public orderTagsList(tags: TagInfo[]): TagInfo[] {
+    return tags.sort((a: any, b: any) => {
+      if (a.Ok + a.Ko > b.Ok + b.Ko) {
+          return -1;
+      } else if (a.Ok + a.Ko < b.Ok + b.Ko) {
+          return 1;
+      } else {
+          return 0;
+      }
+  });
   }
 
 }
