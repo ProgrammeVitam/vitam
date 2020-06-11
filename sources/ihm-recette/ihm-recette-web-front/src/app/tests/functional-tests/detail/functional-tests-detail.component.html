@@ -13,8 +13,25 @@
           <td class="ui-g-4 text-red"><b>{{resultDetail.NumberOfTestKO}}</b></td>
         </tr>
       </table>
+      <hr>
+       <table class="ui-g-12">
+        <tr>
+          <td class="ui-g-3">Catégorie</td>
+          <td class="ui-g-3">Succès</td>
+          <td class="ui-g-3">Echecs</td>
+          <td class="ui-g-3">Total</td>
+        </tr>
+        <tr *ngFor="let tag of resultDetail.Tags">
+          <td class="ui-g-3"><b>{{tag.TagName}}</b></td>
+          <td class="ui-g-3 text-green"><b>{{tag.Ok}}</b></td>
+          <td class="ui-g-3 text-red"><b>{{tag.Ko}}</b></td>
+          <td class="ui-g-3"><b>{{tag.Ok + tag.Ko}}</b></td>
+        </tr>
+      </table>
+
       <div class="clearfix">&nbsp;</div>
     </div>
+
   </p-panel>
 
   <p-panel *ngIf="resultDetail" header="Détails">

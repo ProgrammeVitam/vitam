@@ -56,6 +56,11 @@ public class Report {
     private String description;
 
     /**
+     * list of tags
+     */
+    private List<String> tags = new ArrayList<>();
+
+    /**
      * list of errors
      */
     private List<String> errors = new ArrayList<>();
@@ -144,6 +149,19 @@ public class Report {
 
     /**
      *
+     * @return list of tags
+     */
+    public List<String> getTags() {
+        return tags;
+    }
+
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    /**
+     *
      * @return list of errors
      */
     public List<String> getErrors() {
@@ -156,6 +174,14 @@ public class Report {
      */
     public void addError(String error) {
         errors.add(error);
+    }
+
+    /**
+     *
+     * @param tagName add tagName to the Tags list
+     */
+    public void addTag(String tagName) {
+        tags.add(tagName);
     }
 
     /**

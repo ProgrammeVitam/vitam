@@ -26,12 +26,18 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+
+/**
+ * Class for reports
+ * @author geled
+ *
+ */
 public class Reports {
 
     /**
@@ -57,7 +63,6 @@ public class Reports {
     }
 
     /**
-     *
      * @return number of OK test
      */
     public long getNumberOfTestOK() {
@@ -65,7 +70,6 @@ public class Reports {
     }
 
     /**
-     *
      * @return number of KO test
      */
     public long getNumberOfTestKO() {
@@ -74,6 +78,42 @@ public class Reports {
 
     /**
      *
+     * @param tagName Tag Value
+     * @return number of OK Test By TagName
+     */
+    public long numberOfTestOKByTagName(String tagName) {
+        return reports.stream().
+                filter(report -> report.getTags().contains(tagName) && report.isOK())
+                .count();
+    }
+
+    /**
+     *
+     * @param tagName Tag value
+     * @return number of KO Test By TagName
+     */
+    public long numberOfTestKOByTagName(String tagName) {
+        return reports.stream().
+                filter(report -> report.getTags().contains(tagName) && !report.isOK())
+                .count();
+    }
+
+    /**
+     *
+     * @return List of TagInfo
+     */
+    public List<TagInfo> getTags() {
+        return reports.stream()
+                .map(report -> report.getTags())
+                .flatMap(List::stream)
+                .collect(Collectors.toSet())
+                .stream()
+                .map(tagName -> new TagInfo(tagName, numberOfTestOKByTagName(tagName), numberOfTestKOByTagName(tagName)))
+                .collect(Collectors.toList());
+
+    }
+
+    /**
      * @return list of report
      */
     public List<Report> getReports() {
@@ -81,7 +121,6 @@ public class Reports {
     }
 
     /**
-     *
      * @param report add an individual report
      */
     public void add(Report report) {
@@ -97,7 +136,6 @@ public class Reports {
 
     /**
      * @param end the end to set
-     *
      * @return this
      */
     public void setEnd(LocalDateTime end) {
@@ -110,6 +148,6 @@ public class Reports {
     public LocalDateTime getStart() {
         return start;
     }
-    
-    
+
+
 }
