@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>functional-administration-rules</artifactId>
-        <version>3.0.4</version>
+        <version>3.0.5-SNAPSHOT</version>
     </parent>
     <artifactId>functional-administration-rules-core</artifactId>
     <dependencies>
