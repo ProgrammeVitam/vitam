@@ -1,39 +1,42 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {PanelModule, DataTableModule, FieldsetModule} from 'primeng/primeng';
-import { Router, ActivatedRoute, ParamMap } from '@angular/router';
-import {Observable} from "rxjs/Observable";
 import 'rxjs/add/observable/of';
 
-import { FunctionalTestsDetailComponent } from './functional-tests-detail.component';
-import { FunctionalTestsService } from '../functional-tests.service';
-import { BreadcrumbElement, BreadcrumbService } from '../../../common/breadcrumb.service';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import { DataTableModule, FieldsetModule, PanelModule } from 'primeng/primeng';
+import { Observable } from 'rxjs/Observable';
+
+import { BreadcrumbService } from '../../../common/breadcrumb.service';
 import { GenericTableComponent } from '../../../common/generic-table/generic-table.component';
-import {RouterTestingModule} from '@angular/router/testing';
+import { FunctionalTestsService } from '../functional-tests.service';
+import { FunctionalTestsDetailComponent } from './functional-tests-detail.component';
 
 let mockResults = [{
-  "Feature" : "initialisation",
-  "Description" : "Sc\u00E9nario 0 import des regles des getions et formats",
-  "Errors" : [ ],
-  "Ok" : true
+
+  "Feature": "initialisation",
+  "Description": "Sc\u00E9nario 0 import des regles des getions et formats",
+  "Errors": [],
+  "Ok": true
 }];
 let BreadcrumbServiceStub = {
-  changeState: (api) => Observable.of('OK'),
+  changeState: () => Observable.of('OK'),
 };
 
 let ActivatedRouteStub = {
   paramMap: {
-    get : (name) => Observable.of("fileName1"),
+    get: () => Observable.of("fileName1"),
     switchMap: () => Observable.of({
-      Reports : mockResults,
-      NumberOfTestOK : 1,
-      NumberOfTestKO : 0
+      Reports: mockResults,
+      Tags: [],
+      NumberOfTestOK: 1,
+      NumberOfTestKO: 0
     })
   },
 };
 
 let FunctionalTestsServiceStub = {
-  getResultDetail: (api) => Observable.of({})
+  getResultDetail: () => Observable.of({})
 };
 
 
@@ -43,12 +46,12 @@ describe('FunctionalTestsDetailComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ FunctionalTestsDetailComponent, GenericTableComponent ],
+      declarations: [FunctionalTestsDetailComponent, GenericTableComponent],
       imports: [PanelModule, DataTableModule, BrowserAnimationsModule, FieldsetModule, RouterTestingModule],
       providers: [
         { provide: FunctionalTestsService, useValue: FunctionalTestsServiceStub },
-        { provide: BreadcrumbService, useValue: BreadcrumbServiceStub},
-        { provide: ActivatedRoute, useValue: ActivatedRouteStub}
+        { provide: BreadcrumbService, useValue: BreadcrumbServiceStub },
+        { provide: ActivatedRoute, useValue: ActivatedRouteStub }
       ]
     })
       .compileComponents();
@@ -66,10 +69,10 @@ describe('FunctionalTestsDetailComponent', () => {
     expect(component.resultDetail.NumberOfTestOK).toEqual(1);
     expect(component.resultDetail.NumberOfTestKO).toEqual(0);
     expect(component.cols).toEqual([
-      {field: 'Feature', label: 'Fonctionnalité'},
-      {field: 'OperationId', label: `Identifiant de l'opération`},
-      {field: 'Description', label: 'Description'},
-      {field: 'Errors', label: 'Erreurs'}
+      { field: 'Feature', label: 'Fonctionnalité' },
+      { field: 'OperationId', label: `Identifiant de l'opération` },
+      { field: 'Description', label: 'Description' },
+      { field: 'Errors', label: 'Erreurs' }
     ]);
   });
 });
