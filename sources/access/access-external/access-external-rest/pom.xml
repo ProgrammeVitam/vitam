@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>access-external</artifactId>
-		<version>3.6.1-SNAPSHOT</version>
+		<version>3.6.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>access-external-rest</artifactId>
 	<name>Access External Rest</name>
