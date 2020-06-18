@@ -265,6 +265,9 @@ public class ProcessManagementImpl implements ProcessManagement {
                 case INGEST_TEST:
                 case AUDIT:
                 case DATA_MIGRATION:
+                case COMPUTE_INHERITED_RULES:
+                    LOGGER.debug("Backup operation context. No operation context for the process type " +
+                            processWorkflow.getLogbookTypeProcess());
                     break;
                 default:
                     operationContextMonitor
