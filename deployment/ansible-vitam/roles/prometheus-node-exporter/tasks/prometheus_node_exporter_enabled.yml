@@ -48,6 +48,29 @@
   notify:
     - restart prometheus node exporter
 
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{ consul_folder_conf }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-node-exporter.json.j2"
+    dest: "{{ consul_folder_conf }}/service-node-exporter.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  tags:
+    - consul_conf
+    - update_node_exporter_configuration
+  notify:
+    - reload consul configuration
+
 # Ensure that the installation is complete
 - meta: flush_handlers
   tags:
