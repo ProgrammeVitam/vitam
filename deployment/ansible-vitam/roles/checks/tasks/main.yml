@@ -1,5 +1,7 @@
 ---
 
+- import_tasks: check_removed_tenants.yml
+
 - import_tasks: check_ip.yml
 
 - import_tasks: check_java.yml
