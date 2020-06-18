@@ -1,0 +1,7 @@
+---
+
+# handlers file for common
+- name: restart prometheus node exporter
+  service:
+    name: vitam-node-exporter
+    state: restarted

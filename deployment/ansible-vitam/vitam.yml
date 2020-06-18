@@ -54,6 +54,16 @@
   roles:
     - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
 
+
+
+### PROMETHEUS NODE EXPORTER INSTALLATION OR UNINSTALL ###
+- hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  serial: 1
+  roles:
+    - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled == true )" }
+
 # ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts_elasticsearch_log
   any_errors_fatal: true
@@ -303,7 +313,7 @@
     - antivirus
     - create_upload_dir
     - vitam
-   #- {role: clamav, when: vitam_struct.antivirus=='clamav' }
+    #- {role: clamav, when: vitam_struct.antivirus=='clamav' }
   vars:
     vitam_struct: "{{ vitam.ingestexternal }}"
     password_keystore: "{{ keystores.server.ingest_external }}"

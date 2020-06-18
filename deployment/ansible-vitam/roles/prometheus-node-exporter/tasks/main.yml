@@ -1,0 +1,7 @@
+---
+
+- include_tasks: prometheus_node_exporter_enabled.yml
+  when: prometheus.node_exporter.enabled == true
+
+- include_tasks: prometheus_node_exporter_disabled.yml
+  when: prometheus.node_exporter.enabled != true

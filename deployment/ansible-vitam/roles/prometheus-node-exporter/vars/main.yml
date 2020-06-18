@@ -1,0 +1,6 @@
+---
+prometheus_node_exporter_tmp_path:    '{{ vitam_defaults.folder.root_path }}/tmp/node_exporter'
+prometheus_node_exporter_config_path: '{{ vitam_defaults.folder.root_path }}/conf/node_exporter'
+prometheus_node_exporter_db_path:     '{{ vitam_defaults.folder.root_path }}/data/node_exporter'
+prometheus_node_exporter_app_path:    '{{ vitam_defaults.folder.root_path }}/app/node_exporter'
+prometheus_node_exporter_bin_path:    '{{ vitam_defaults.folder.root_path }}/bin/node_exporter'
