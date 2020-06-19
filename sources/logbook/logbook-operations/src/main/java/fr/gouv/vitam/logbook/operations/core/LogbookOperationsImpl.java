@@ -136,19 +136,16 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public List<LogbookOperation> select(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        // TODO: why true by default ? this is a queryDSL, all the request options are in, so why ?
-        List<LogbookOperation> operations = new ArrayList<>();
-        operations = select(select, true);
-        return operations;
+        return select(select, false);
     }
 
     @Override
     public RequestResponse<LogbookOperation> selectOperations(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
-        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, true);
+        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, false);
         List<LogbookOperation> operations = new ArrayList<>();
         while (cursor.hasNext()) {
-            LogbookOperation doc = (LogbookOperation) cursor.next();
+            LogbookOperation doc = cursor.next();
             filterFinalResponse(doc);
             operations.add(doc);
         }

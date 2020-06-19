@@ -424,10 +424,9 @@ public class MassUpdateIT extends VitamRuleRunner {
             Select selectQuery = new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
 
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             JsonNode unitLfc = logbookLifeCyclesClient
@@ -445,6 +444,13 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat(jsoned.get("diff").textValue()).contains(expected);
 
         }
+    }
+
+    private void verifyEvent(JsonNode events, String s) {
+        List<JsonNode> massUpdateFinalized = events.findValues(OUT_DETAIL).stream()
+                .filter(e -> e.asText().equals(s))
+                .collect(Collectors.toList());
+        assertThat(massUpdateFinalized.size()).isGreaterThan(0);
     }
 
     @RunWithCustomExecutor
@@ -515,16 +521,14 @@ public class MassUpdateIT extends VitamRuleRunner {
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
 
             JsonNode logbookResult2 = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            events = logbookResult2.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
         }
     }
 
@@ -585,10 +589,9 @@ public class MassUpdateIT extends VitamRuleRunner {
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
         }
     }
 
@@ -663,12 +666,14 @@ public class MassUpdateIT extends VitamRuleRunner {
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
+
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
 
             JsonNode logbookResult2 = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
+
+            events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
 
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             JsonNode unitLfc = logbookLifeCyclesClient
@@ -676,8 +681,8 @@ public class MassUpdateIT extends VitamRuleRunner {
 
             JsonNode lfcJsonNode = unitLfc.get("$results").get(0);
             LogbookLifecycle lfc = JsonHandler.getFromJsonNode(lfcJsonNode, LogbookLifecycle.class);
-            List<LogbookEvent> events = lfc.getEvents();
-            List<LogbookEvent> updateEvents = events.stream()
+            List<LogbookEvent> lfcEvents = lfc.getEvents();
+            List<LogbookEvent> updateEvents = lfcEvents.stream()
                 .filter(e -> "LFC.UNIT_METADATA_UPDATE".equals(e.getEvType()) && containerName.equals(e.getEvIdProc()))
                 .collect(Collectors.toList());
 
@@ -809,8 +814,8 @@ public class MassUpdateIT extends VitamRuleRunner {
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
         }
     }
 
@@ -877,8 +882,8 @@ public class MassUpdateIT extends VitamRuleRunner {
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
         }
     }
 
@@ -945,8 +950,8 @@ public class MassUpdateIT extends VitamRuleRunner {
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
         }
     }
 }

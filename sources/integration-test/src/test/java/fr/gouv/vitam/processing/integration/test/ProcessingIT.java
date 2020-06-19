@@ -184,6 +184,8 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUT_DETAIL;
+import static fr.gouv.vitam.common.model.logbook.LogbookOperation.EVENTS;
 import static fr.gouv.vitam.ingest.external.integration.test.IngestExternalIT.INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON;
 import static fr.gouv.vitam.ingest.external.integration.test.IngestExternalIT.OPERATION_ID_REPLACE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
@@ -226,6 +228,8 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String SIP_KO_AU_REF_OBJ =
         "integration-processing/KO_SIP_1986_unit_declare_IDobjet_au_lieu_IDGOT.zip";
     private static final String SIP_KO_MANIFEST_URI = "integration-processing/KO_MANIFESTE-URI.zip";
+
+    private static final String RESULTS = "$results";
 
     private static final Integer tenantId = 0;
 
@@ -482,10 +486,9 @@ public class ProcessingIT extends VitamRuleRunner {
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                "ROLL_BACK.OK");
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-                "PROCESS_SIP_UNITARY.WARNING");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "ROLL_BACK.OK");
+            verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
@@ -626,10 +629,9 @@ public class ProcessingIT extends VitamRuleRunner {
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                "ROLL_BACK.OK");
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-                "PROCESS_SIP_UNITARY.WARNING");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "ROLL_BACK.OK");
+            verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
@@ -2170,10 +2172,9 @@ public class ProcessingIT extends VitamRuleRunner {
         // as logbookClient.selectOperation returns last two events and after removing STARTED from events
         // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
         // "STP_INGEST_FINALISATION.OK"
-        assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-            "ROLL_BACK.OK");
-        assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-            "PROCESS_SIP_UNITARY.WARNING");
+        JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+        verifyEvent(events, "ROLL_BACK.OK");
+        verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
     }
 
     @RunWithCustomExecutor
@@ -3565,5 +3566,12 @@ public class ProcessingIT extends VitamRuleRunner {
         return Streams.stream(unit.get(VitamFieldsHelper.unitups()).elements())
             .map(JsonNode::asText)
             .collect(Collectors.toList());
+    }
+
+    private void verifyEvent(JsonNode events, String s) {
+        List<JsonNode> massUpdateFinalized = events.findValues(OUT_DETAIL).stream()
+                .filter(e -> e.asText().equals(s))
+                .collect(Collectors.toList());
+        assertThat(massUpdateFinalized.size()).isGreaterThan(0);
     }
 }

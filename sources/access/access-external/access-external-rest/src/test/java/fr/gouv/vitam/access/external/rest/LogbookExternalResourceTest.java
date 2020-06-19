@@ -26,25 +26,7 @@
  */
 package fr.gouv.vitam.access.external.rest;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.util.Set;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -68,6 +50,21 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 
 public class LogbookExternalResourceTest extends ResteasyTestApplication {
@@ -94,8 +91,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     private static final String OPERATION_ID_URI = "/{id_op}";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
-    private static final String BODY_TEST_WITH_ID =
-        "{$projection: {}}";
+    private static final String BODY_TEST_WITH_ID = "{$projection: {}}";
     private static final String BODY_TEST_WITH_BAD_REQUEST_FOR_BYID_DSL_REQUEST =
         "{$query: {$eq: {\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, $projection: {}, $filter: {}}";
     private static String request = "{ $query: {} , $projection: {}, $filter: {} }";
@@ -275,6 +271,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .thenThrow(new LogbookClientNotFoundException(""));
         when(accessInternalClient.selectOperationById(any(), any()))
             .thenThrow(new LogbookClientNotFoundException(""));
+        when(accessInternalClient.selectOperation(any()))
+            .thenReturn(new RequestResponseOK<>());
 
         given()
             .contentType(ContentType.JSON)
@@ -667,8 +665,6 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         Select select = selectParserSingle.getRequest();
         select.getFinalSelectById();
 
-
-
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelectById())
@@ -732,7 +728,6 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         selectParserSingle.parse(bodyQuery);
         Select select = selectParserSingle.getRequest();
         select.getFinalSelectById();
-
 
         given()
             .contentType(ContentType.JSON)
