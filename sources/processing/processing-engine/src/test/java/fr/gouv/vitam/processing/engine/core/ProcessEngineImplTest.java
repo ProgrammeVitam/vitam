@@ -64,7 +64,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.FileNotFoundException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -234,14 +234,37 @@ public class ProcessEngineImplTest {
 
         ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
 
+        CountDownLatch countDownLatch = new CountDownLatch(5);
+
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
             .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
         doNothing().when(logbookOperationsClient).update(any());
 
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onUpdate(any());
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
+
+
+        doAnswer(o -> {
+            countDownLatch.countDown();
+            return o;
+        }).when(logbookOperationsClient).update(any());
+        doAnswer(o -> {
+            countDownLatch.countDown();
+            return o;
+        }).when(logbookOperationsClient).bulkUpdate(anyString(), any());
+
         processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
 
-        TimeUnit.MILLISECONDS.sleep(100);
+        countDownLatch.await();
 
         verify(logbookOperationsClient).update(any());
         verify(logbookOperationsClient).bulkUpdate(anyString(), any());
@@ -278,14 +301,31 @@ public class ProcessEngineImplTest {
 
         ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
 
+        CountDownLatch countDownLatch = new CountDownLatch(4);
+
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
             .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
-        doNothing().when(logbookOperationsClient).update(any());
+
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onUpdate(any());
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onProcessEngineCancel(any());
+
+        doAnswer(o -> {
+            countDownLatch.countDown();
+            return o;
+        }).when(logbookOperationsClient).update(any());
 
         processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
 
-        TimeUnit.MILLISECONDS.sleep(100);
+        countDownLatch.await();
 
         verify(logbookOperationsClient).update(any());
 
@@ -307,15 +347,31 @@ public class ProcessEngineImplTest {
         processStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
 
         ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
+        CountDownLatch countDownLatch = new CountDownLatch(3);
 
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
             .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
-        doNothing().when(logbookOperationsClient).update(any());
+
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onUpdate(any());
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
+
+        doAnswer(o -> {
+            countDownLatch.countDown();
+            return o;
+        }).when(logbookOperationsClient).update(any());
 
         processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
 
-        TimeUnit.MILLISECONDS.sleep(100);
+        countDownLatch.await();
 
         verify(logbookOperationsClient).update(any());
         verify(stateMachineCallback, times(1)).onUpdate(any());
@@ -335,14 +391,35 @@ public class ProcessEngineImplTest {
 
         ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.FATAL);
 
+        CountDownLatch countDownLatch = new CountDownLatch(5);
+
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
             .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
-        doNothing().when(logbookOperationsClient).update(any());
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onUpdate(any());
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
+
+
+        doAnswer(o -> {
+            countDownLatch.countDown();
+            return o;
+        }).when(logbookOperationsClient).update(any());
+        doAnswer(o -> {
+            countDownLatch.countDown();
+            return o;
+        }).when(logbookOperationsClient).bulkUpdate(anyString(), any());
 
         processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
 
-        TimeUnit.MILLISECONDS.sleep(100);
+        countDownLatch.await();
 
         verify(logbookOperationsClient).update(any());
         verify(logbookOperationsClient).bulkUpdate(anyString(), any());
@@ -362,17 +439,28 @@ public class ProcessEngineImplTest {
 
         ItemStatus itemStatus = new ItemStatus("fakeId").increment(StatusCode.OK);
 
+        CountDownLatch countDownLatch = new CountDownLatch(2);
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
             .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
         doNothing().when(logbookOperationsClient).update(any());
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onUpdate(any());
+        doAnswer(o ->
+        {
+            countDownLatch.countDown();
+            return o;
+        }).when(stateMachineCallback).onError(any());
         doThrow(new LogbookClientServerException("")).when(logbookOperationsClient).bulkUpdate(any(), any());
         processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
 
-        TimeUnit.MILLISECONDS.sleep(100);
+        countDownLatch.await();
 
         verify(logbookOperationsClient).update(any());
-        verify(stateMachineCallback).onUpdate(any());
+        verify(stateMachineCallback, times(1)).onUpdate(any());
         verify(stateMachineCallback).onError(any());
         verify(stateMachineCallback, times(0)).onProcessEngineCompleteStep(any(), any());
     }

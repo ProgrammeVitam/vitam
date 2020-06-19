@@ -24,48 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.alert;
 
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
+package fr.gouv.vitam.common.metrics;
 
-/**
- * Security alert service implementation.
- * This service log the messages in a specific file using VitamLogger.
- */
-public class AlertServiceImpl implements AlertService {
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
 
-    VitamLogger LOGGER = VitamLoggerFactory.getInstance(AlertServiceImpl.class);
+public class VitamCommonMetrics {
 
-
-    public AlertServiceImpl() {
-        super();
-    }
+    /**
+     * Count the number of alerts by log_level
+     */
+    public static final Counter ALERT_SERVICE_COUNTER = Counter.build()
+        .name(VitamMetricsNames.VITAM_ALERT_COUNTER)
+        .labelNames("log_level")
+        .help("Vitam alert service counter per log_level")
+        .register();
 
 
-    public AlertServiceImpl(VitamLogger lOGGER) {
-        super();
-        LOGGER = lOGGER;
-    }
+    /**
+     * Count the number of consistency errors by tenant and service
+     */
+    public static final Counter CONSISTENCY_ERROR_COUNTER = Counter.build()
+        .name(VitamMetricsNames.VITAM_CONSISTENCY_ERRORS_COUNT)
+        .labelNames("tenant", "service")
+        .help("Vitam consistency errors counter")
+        .register();
 
 
-
-    @Override
-    public void createAlert(VitamLogLevel level, String message) {
-        try {
-            LOGGER.log(level, message);
-        } finally {
-            VitamCommonMetrics.ALERT_SERVICE_COUNTER
-                .labels(level.name()).inc();
-        }
-    }
-
-
-    @Override
-    public void createAlert(String message) {
-        createAlert(VitamLogLevel.INFO, message);
-    }
-
+    /**
+     * Compute reconstruction duration by tenant and container.
+     *  Should be aggregated by instance, to differentiate between metadata, logbook and functional administration
+     * This will count number of events and sum durations
+     */
+    public static final Histogram RECONSTRUCTION_DURATION = Histogram.build()
+        .name(VitamMetricsNames.VITAM_RECONSTRUCTION_DURATION)
+        .labelNames("tenant", "container")
+        .help("Vitam reconstruction histogram duration metric. Useful for metadata, logbook and function administration")
+        .register();
 }

@@ -712,4 +712,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             alertService.createAlert(VitamLogLevel.WARN, "[StateMachine] " + msg);
         }
     }
+
+    public ProcessStep getCurrentStep() {
+        return currentStep;
+    }
+
+    public int getStepIndex() {
+        return stepIndex;
+    }
 }

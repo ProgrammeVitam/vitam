@@ -37,8 +37,13 @@ import fr.gouv.vitam.common.metrics.VitamMetricsReporterType;
  */
 public final class VitamMetricsConfiguration {
 
-    private boolean metricsJersey = false;
+    private boolean metricsRest = false;
     private boolean metricsJVM = false;
+
+    // TODO: 29/05/2020 when the ansible part of prometheus is done, make following variables configurable
+    private boolean enableCountInputBytesMetrics = true;
+    private boolean enableCountOutputBytesMetrics = true;
+
     private VitamMetricsReporterType metricReporter = VitamMetricsReporterType.NONE;
     private int metricReporterInterval = 1;
     private TimeUnit metricReporterIntervalUnit = TimeUnit.MINUTES;
@@ -53,22 +58,22 @@ public final class VitamMetricsConfiguration {
     }
 
     /**
-     * Determines whether or not Jersey metrics should be activated
+     * Determines whether or not REST metrics should be activated
      *
      * @return boolean
      */
-    public boolean hasMetricsJersey() {
-        return metricsJersey;
+    public boolean hasMetricsRest() {
+        return metricsRest;
     }
 
     /**
-     * Set whether or not Jersey metrics should be activated
+     * Set whether or not REST metrics should be activated
      *
-     * @param metricsJersey
+     * @param metricsRest
      * @return VitamMetricsConfiguration
      */
-    public VitamMetricsConfiguration setMetricsJersey(boolean metricsJersey) {
-        this.metricsJersey = metricsJersey;
+    public VitamMetricsConfiguration setMetricsRest(boolean metricsRest) {
+        this.metricsRest = metricsRest;
         return this;
     }
 
@@ -192,4 +197,19 @@ public final class VitamMetricsConfiguration {
         return this;
     }
 
+    public boolean isEnableCountInputBytesMetrics() {
+        return enableCountInputBytesMetrics;
+    }
+
+    public void setEnableCountInputBytesMetrics(boolean enableCountInputBytesMetrics) {
+        this.enableCountInputBytesMetrics = enableCountInputBytesMetrics;
+    }
+
+    public boolean isEnableCountOutputBytesMetrics() {
+        return enableCountOutputBytesMetrics;
+    }
+
+    public void setEnableCountOutputBytesMetrics(boolean enableCountOutputBytesMetrics) {
+        this.enableCountOutputBytesMetrics = enableCountOutputBytesMetrics;
+    }
 }

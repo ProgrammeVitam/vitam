@@ -26,41 +26,46 @@
  */
 package fr.gouv.vitam.common.serverv2.metrics;
 
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Timer;
+import fr.gouv.vitam.common.metrics.RequestLengthCountingInputStreamMetrics;
+import fr.gouv.vitam.common.metrics.ResponseLengthCountingOutputStreamMetrics;
 
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.container.PreMatching;
+import java.io.IOException;
 
-/**
- *
- */
-public class MetricsInterceptor implements ContainerRequestFilter, ContainerResponseFilter {
 
-    public static final String CONTEXT_KEY = "context";
-    private final Timer timer;
-    private final Meter meter;
+@PreMatching
+@Priority(Priorities.HEADER_DECORATOR)
+public class ContentLengthCountingMetricsFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
-    public MetricsInterceptor(Timer timer, Meter meter) {
-        this.timer = timer;
-        this.meter = meter;
+    private final boolean countInputBytes;
+    private final boolean countOutputBytes;
+
+    public ContentLengthCountingMetricsFilter(boolean countInputBytes, boolean countOutputBytes) {
+        this.countInputBytes = countInputBytes;
+        this.countOutputBytes = countOutputBytes;
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        // Called when a request is received
-        requestContext.setProperty(CONTEXT_KEY, timer.time());
-        meter.mark();
+        if (countInputBytes && requestContext.getEntityStream() != null) {
+            RequestLengthCountingInputStreamMetrics inputStream =
+                new RequestLengthCountingInputStreamMetrics(requestContext, requestContext.getEntityStream());
+            requestContext.setEntityStream(inputStream);
+        }
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-        // Called when the response is about to be sent back
-        Object contextKey = requestContext.getProperty(CONTEXT_KEY);
-        if (null != contextKey && contextKey instanceof Timer.Context) {
-            ((Timer.Context) requestContext.getProperty(CONTEXT_KEY)).stop();
+        if (countOutputBytes && responseContext.getEntityStream() != null) {
+            ResponseLengthCountingOutputStreamMetrics inputStream =
+                new ResponseLengthCountingOutputStreamMetrics(requestContext, responseContext.getEntityStream());
+            responseContext.setEntityStream(inputStream);
         }
     }
 }

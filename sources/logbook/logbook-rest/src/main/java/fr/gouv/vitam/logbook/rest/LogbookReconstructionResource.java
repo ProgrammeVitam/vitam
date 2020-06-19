@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
@@ -51,10 +52,11 @@ import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestIt
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
+import io.prometheus.client.Histogram;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Path("/logbook/v1")
-@Tag(name="Logbook")
+@Tag(name = "Logbook")
 public class LogbookReconstructionResource {
 
     /**
@@ -91,7 +93,7 @@ public class LogbookReconstructionResource {
 
     /**
      * Constructor for tests
-     * 
+     *
      * @param reconstructionService reconstructionService
      */
     @VisibleForTesting
@@ -117,16 +119,21 @@ public class LogbookReconstructionResource {
         if (!reconstructionItems.isEmpty()) {
             LOGGER.debug(String
                 .format("Starting reconstruction Vitam service with the json parameters : (%s)", reconstructionItems));
-
+            // FIXME: 01/06/2020 Concurrent reconstruction must be controlled. Prevent if reconstruction is already running
             reconstructionItems.forEach(item -> {
                 LOGGER.debug(String.format(
                     "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
                     LogbookCollections.OPERATION.name(), item.getTenant(), item.getLimit()));
+
+                final Histogram.Timer timer = VitamCommonMetrics.RECONSTRUCTION_DURATION
+                    .labels(String.valueOf(item.getTenant()), LogbookCollections.OPERATION.name()).startTimer();
                 try {
                     responses.add(reconstructionService.reconstruct(item));
                 } catch (DatabaseException | IllegalArgumentException e) {
                     LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
                     responses.add(new ReconstructionResponseItem(item, StatusCode.KO));
+                } finally {
+                    timer.observeDuration();
                 }
             });
         }

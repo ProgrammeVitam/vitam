@@ -212,7 +212,7 @@ public class ReconstructionService {
                     newOffset = last.getOffset();
                 }
 
-                // log the recontruction of Vitam collection.
+                // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
                     DataCategory.BACKUP_OPERATION.name(), tenant, offset, LocalDateUtil.now()));

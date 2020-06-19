@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
@@ -842,6 +843,7 @@ public class DbRequest {
                 } else if (checkConsistency) {
                     // check the consistency between elasticSearch and MongoDB
                     desynchronizedResults.add(id);
+                    VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
                     // desynchronization logs
                     LOGGER.error(String.format(
                         CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
@@ -851,6 +853,7 @@ public class DbRequest {
 
             // As soon as we detect a synchronization error MongoDB / ES, we return an error.
             if (!desynchronizedResults.isEmpty()) {
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
                 throw new VitamDBException(
                     "[Consistency ERROR] : An internal data consistency error has been detected !");
             }
@@ -894,6 +897,7 @@ public class DbRequest {
             } else if (checkConsistency) {
                 // check the consistency between elasticSearch and MongoDB
                 desynchronizedResults.add(id);
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
                 // desynchronization logs
                 LOGGER.error(String.format(
                     CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
@@ -903,6 +907,7 @@ public class DbRequest {
 
         // As soon as we detect a synchronization error MongoDB / ES, we return an error.
         if (!desynchronizedResults.isEmpty()) {
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
             throw new VitamDBException(
                 "[Consistency ERROR] : An internal data consistency error has been detected !");
         }

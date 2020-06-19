@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.processing.common.metrics;
 
+import fr.gouv.vitam.common.metrics.VitamMetricsNames;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 
@@ -40,7 +41,7 @@ public class CommonProcessingMetrics {
      * => perhaps, we have to add more workers
      */
     public static final Gauge WORKER_TASKS_IN_QUEUE = Gauge.build()
-        .name("vitam_processing_worker_task_in_queue_total")
+        .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_TASK_IN_QUEUE_TOTAL)
         .labelNames("worker_family")
         .help("Current number of worker tasks in the queue")
         .register();
@@ -50,7 +51,7 @@ public class CommonProcessingMetrics {
      * The tasks maybe in the queue or waiting to be enqueued
      */
     public static final Gauge CURRENTLY_INSTANTIATED_TASKS = Gauge.build()
-        .name("vitam_processing_worker_current_task_total")
+        .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_CURRENT_TASK_TOTAL)
         .labelNames("worker_family", "workflow", "step_name")
         .help(
             "Current number of worker tasks instantiated by the distributor. In queue or waiting to be added to the queue")
@@ -62,7 +63,7 @@ public class CommonProcessingMetrics {
      * => this means that we have to analyse why we have only 1 instead of 2
      */
     public static final Gauge REGISTERED_WORKERS = Gauge.build()
-        .name("vitam_processing_worker_registered_total")
+        .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_REGISTERED_TOTAL)
         .labelNames("worker_family")
         .help("Current number of workers")
         .register();
@@ -73,20 +74,19 @@ public class CommonProcessingMetrics {
      * Task contains one or collection of elements to send to workers
      */
     public static final Histogram WORKER_TASKS_EXECUTION_DURATION_HISTOGRAM = Histogram.build()
-        .name("vitam_processing_worker_task_execution_duration_seconds")
+        .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_TASK_EXECUTION_DURATION_SECONDS)
         .help(
             "Worker tasks execution duration. From call of worker until receiving the response. Task contains one or collection of elements to send to workers")
         .labelNames("worker_family", "worker_name", "workflow", "step_name")
         .buckets(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 300, 600, 1800, 3600)
         .register();
 
-
     /**
      * Worker task waiting in the queue
      * From task creation, until dequeue by a given thread
      */
     public static final Histogram WORKER_TASKS_IDLE_DURATION_IN_QUEUE = Histogram.build()
-        .name("vitam_processing_worker_task_idle_duration_in_queue_seconds")
+        .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_TASK_IDLE_DURATION_IN_QUEUE_SECONDS)
         .help(
             "Worker tasks waiting time since task creation until task dequeue from the queue. Task contains one or collection of elements to send to workers")
         .labelNames("worker_family", "workflow", "step_name")
@@ -94,12 +94,11 @@ public class CommonProcessingMetrics {
             3600)
         .register();
 
-
     /**
      * ProcessWorkflow step execution duration form ProcessEngine point of view
      */
     public static final Histogram PROCESS_WORKFLOW_STEP_EXECUTION_DURATION_HISTOGRAM = Histogram.build()
-        .name("vitam_processing_workflow_step_execution_duration_seconds")
+        .name(VitamMetricsNames.VITAM_PROCESSING_WORKFLOW_STEP_EXECUTION_DURATION_SECONDS)
         .help("ProcessWorkflow step execution duration. From call of distributor until receiving the response")
         .labelNames("workflow", "step_name")
         .buckets(.1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 300, 600, 1800, 3600)
