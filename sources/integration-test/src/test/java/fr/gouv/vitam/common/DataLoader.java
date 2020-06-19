@@ -40,18 +40,16 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -60,7 +58,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -85,9 +82,13 @@ import static org.junit.Assert.assertTrue;
  */
 public class DataLoader {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataLoader.class);
+    private static final String OFFER_FOLDER = "offer";
 
-    int tenantId = 0;
-    String dataFodler = null;
+    private final int tenant1 = 1;
+    private final int tenantId = 0;
+    private String dataFodler;
+    private TypeReference<List<AccessContractModel>> valueTypeRef= new TypeReference<>() {
+    };
 
     public DataLoader(String dataFodler) {
         this.dataFodler = dataFodler;
@@ -133,13 +134,13 @@ public class DataLoader {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             List<OntologyModel> ontology = JsonHandler
                     .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                            new TypeReference<List<OntologyModel>>() {
+                            new TypeReference<>() {
                             });
             try (InputStream externalOntologyStream = PropertiesUtils
                     .getResourceAsStream(dataFodler + "/addition_ext_ontology.json")) {
                 if (externalOntologyStream != null) {
                     List<OntologyModel> externalOntology = JsonHandler.getFromInputStreamAsTypeReference(
-                            externalOntologyStream, new TypeReference<List<OntologyModel>>() {
+                            externalOntologyStream, new TypeReference<>() {
                             });
                     ontology.addAll(externalOntology);
                 }
@@ -169,7 +170,7 @@ public class DataLoader {
 
             File fileProfiles = PropertiesUtils.getResourceFile(dataFodler + "/OK_profil.json");
             List<ProfileModel> profileModelList =
-                JsonHandler.getFromFileAsTypeReference(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                JsonHandler.getFromFileAsTypeReference(fileProfiles, new TypeReference<>() {
                 });
             client.createProfiles(profileModelList);
 
@@ -185,33 +186,33 @@ public class DataLoader {
             File fileContracts =
                 PropertiesUtils.getResourceFile(dataFodler + "/referential_contracts_ok.json");
             List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<IngestContractModel>>() {
+                new TypeReference<>() {
                 });
-            Response.Status importStatus = client.importIngestContracts(IngestContractModelList);
+            client.importIngestContracts(IngestContractModelList);
 
             // import access contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             File fileAccessContracts = PropertiesUtils
                 .getResourceFile(dataFodler + "/access_contracts.json");
             List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+                .getFromFileAsTypeReference(fileAccessContracts, valueTypeRef);
             client.importAccessContracts(accessContractModelList);
 
+            importOptionnalContractTenant1(client);
 
             // Import Security Profile
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importSecurityProfiles(JsonHandler
                 .getFromFileAsTypeReference(
                     PropertiesUtils.getResourceFile(dataFodler + "/security_profile_ok.json"),
-                    new TypeReference<List<SecurityProfileModel>>() {
+                    new TypeReference<>() {
                     }));
 
             // Import Context
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importContexts(JsonHandler
                 .getFromFileAsTypeReference(PropertiesUtils.getResourceFile(dataFodler + "/contexts.json"),
-                    new TypeReference<List<ContextModel>>() {
+                    new TypeReference<>() {
                     }));
 
             // Import Archive Unit Profile
@@ -219,11 +220,26 @@ public class DataLoader {
             client.createArchiveUnitProfiles(JsonHandler
                 .getFromFileAsTypeReference(
                     PropertiesUtils.getResourceFile(dataFodler + "/archive-unit-profile.json"),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {
+                    new TypeReference<>() {
                     }));
 
         } catch (final Exception e) {
             LOGGER.error(e);
+        }
+    }
+
+    private void importOptionnalContractTenant1(AdminManagementClient client) throws fr.gouv.vitam.common.exception.InvalidParseOperationException, AdminManagementClientServerException {
+        File fileAccessContracts;
+        List<AccessContractModel> accessContractModelList;
+        try {
+            fileAccessContracts = PropertiesUtils.getResourceFile(dataFodler + "/access_contract_tenant_1.json");
+            accessContractModelList = JsonHandler.getFromFileAsTypeReference(fileAccessContracts, valueTypeRef);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant1));
+            VitamThreadUtils.getVitamSession().setTenantId(1);
+            client.importAccessContracts(accessContractModelList);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        } catch (FileNotFoundException e) {
+            LOGGER.info("no need to load tenant 1 contracts");
         }
     }
 
@@ -260,14 +276,11 @@ public class DataLoader {
         waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
         return ingestOperationGuid.toString();
     }
-    
-    public static final String OFFER_FOLDER = "offer";
-
 
     /**
      * Clean offers content.
      */
-    public static void cleanOffers() {
+    private static void cleanOffers() {
         // ugly style but we don't have the digest herelo
         File directory = new File(OFFER_FOLDER);
         if (directory.exists()) {

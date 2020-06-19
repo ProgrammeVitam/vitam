@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -87,18 +88,20 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Ingest External integration test
  */
 public class IngestExternalIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
-    public static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
-    public static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP = "integration-processing/4_UNITS_2_GOTS.zip";
-    public static final String SIP_NOT_ALLOWED_NAME = "integration-processing/KO_FILE_extension_caractere_special.zip";
-    public static final String SIP_INCORRECT_OBJECT_SIZE = "integration-processing/KO_SIP_INCORRECT_OBJECT_SIZE.zip";
-    public static final String SIP_MISSED_OBJECT_SIZE = "integration-processing/OK_SIP_MISSED_OBJECT_SIZE.zip";
-    public static final String ACCESS_CONTRACT = "aName3";
+    private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
+    private static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP = "integration-processing/4_UNITS_2_GOTS.zip";
+    private static final String SIP_NOT_ALLOWED_NAME = "integration-processing/KO_FILE_extension_caractere_special.zip";
+    private static final String SIP_INCORRECT_OBJECT_SIZE = "integration-processing/KO_SIP_INCORRECT_OBJECT_SIZE.zip";
+    private static final String SIP_MISSED_OBJECT_SIZE = "integration-processing/OK_SIP_MISSED_OBJECT_SIZE.zip";
+    private static final String ACCESS_CONTRACT = "aName3";
     public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
     public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
         "integration-ingest-external/expected-logbook.json";
@@ -179,6 +182,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertThat(itemStatusRequestResponse.getResults()).hasSize(1);
 
             ItemStatus itemStatus = itemStatusRequestResponse.getFirstResult();
+            assertThat(itemStatus).isNotNull();
             assertThat(itemStatus.getGlobalState()).isEqualTo(ProcessState.COMPLETED);
             assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
                 .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
@@ -404,8 +408,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertThat(logbookOperationStr)
                 .contains("PROCESS_SIP_UNITARY.KO")
                 .contains("un des noms de fichiers contient un caract");
-            assertThat(logbookOperationStr)
-                .doesNotContain(".FATAL");
+            assertThat(logbookOperationStr).doesNotContain(".FATAL");
 
         }
     }
@@ -478,9 +481,63 @@ public class IngestExternalIT extends VitamRuleRunner {
                     .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
             LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
 
+            assertThat(logbookOperation).isNotNull();
+            assertThat(logbookOperation.getEvents()).isNotNull();
             assertThat(logbookOperation.getEvents().stream()
                 .filter(event -> Arrays.asList("CHECK_OBJECT_SIZE.OK", "STP_OG_CHECK_AND_TRANSFORME.OK")
-                    .contains(event.getOutDetail())).collect(Collectors.toList()).size()).isEqualTo(2);
+                    .contains(event.getOutDetail()))
+                .collect(Collectors.toList()).size()).isEqualTo(2);
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_logbook_tenant_filtering() throws Exception {
+        // make sure we are on this specific tenant at ingest
+        String operationId = ingestResource(INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP, 0);
+
+        // initializing vitam context with another tenant than ingest
+        assertThatCode(() -> getLogbookOperation(operationId, 1, "newContract"))
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Not Found");
+
+        RequestResponse<LogbookOperation> logbookOperationRequestResponse = getLogbookOperation(operationId, 0, ACCESS_CONTRACT);
+        assertThat(((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getResults().size()).isEqualTo(1);
+    }
+
+    private RequestResponse<LogbookOperation> getLogbookOperation(String operationId, int tenantId, String accessContract)
+            throws VitamClientException {
+        VitamContext vitamContext = new VitamContext(tenantId)
+                .setApplicationSessionId(APPLICATION_SESSION_ID)
+                .setAccessContract(accessContract);
+        return accessExternalClient
+                .selectOperationbyId(vitamContext, operationId, new Select().getFinalSelectById());
+    }
+
+    private String ingestResource(String resource, int tenantId) throws Exception {
+        try (InputStream inputStream = PropertiesUtils.getResourceAsStream(resource)) {
+            IngestRequestParameters ingestRequestParameters =
+                    new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+            RequestResponse<Void> response = ingestExternalClient.ingest(
+                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                            .setAccessContract(ACCESS_CONTRACT),
+                    inputStream,
+                    ingestRequestParameters);
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
+            boolean process_timeout = vitamPoolingClient
+                    .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+
+            RequestResponse<ItemStatus> operationResponse = adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
+            assertTrue(operationResponse.isOk());
+            return operationId;
         }
     }
 }
