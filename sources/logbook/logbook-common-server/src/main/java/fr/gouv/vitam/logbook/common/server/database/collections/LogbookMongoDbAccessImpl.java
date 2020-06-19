@@ -136,8 +136,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     private static final String SLICE = "$slice";
     private static final String UPDATE_NOT_FOUND_ITEM = "Update not found item: ";
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(LogbookMongoDbAccessImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookMongoDbAccessImpl.class);
     private static final String SELECT_PARAMETER_IS_NULL = "select parameter is null";
     private static final String LIFECYCLE_ITEM = "lifecycleItem";
     private static final String OPERATION_ITEM = "operationItem";
@@ -149,13 +148,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Quick projection for ID Only
      */
-    static final BasicDBObject ID_PROJECTION = new BasicDBObject(LogbookDocument.ID, 1);
-    static final ObjectNode DEFAULT_SLICE = JsonHandler.createObjectNode();
-    static final ObjectNode DEFAULT_SLICE_WITH_ALL_EVENTS = JsonHandler.createObjectNode().put("events", 1);
-    static final ObjectNode DEFAULT_ALLKEYS = JsonHandler.createObjectNode();
+    private static final BasicDBObject ID_PROJECTION = new BasicDBObject(LogbookDocument.ID, 1);
+    private static final ObjectNode DEFAULT_SLICE = JsonHandler.createObjectNode();
+    private static final ObjectNode DEFAULT_SLICE_WITH_ALL_EVENTS = JsonHandler.createObjectNode().put("events", 1);
+    private static final ObjectNode DEFAULT_ALLKEYS = JsonHandler.createObjectNode();
 
-    static final int LAST_EVENT_SLICE = -1;
-    static final int TWO_LAST_EVENTS_SLICE = -2;
+    private static final int LAST_EVENT_SLICE = -1;
+    private static final int TWO_LAST_EVENTS_SLICE = -2;
 
     static {
         DEFAULT_SLICE.putObject(LogbookDocument.EVENTS).put(SLICE, LAST_EVENT_SLICE);
@@ -219,7 +218,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * @return The MongoCLientOptions to apply to MongoClient
      */
-    public static final MongoClientOptions getMongoClientOptions() {
+    public static MongoClientOptions getMongoClientOptions() {
         final VitamDocumentCodec<LogbookOperation> operationCodec = new VitamDocumentCodec<>(LogbookOperation.class);
 
         final VitamDocumentCodec<LogbookLifeCycleUnit> lifecycleUnitCodec =
@@ -255,7 +254,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Ensure that all MongoDB database schema are indexed
      */
-    static final void ensureIndex() {
+    static void ensureIndex() {
         for (final LogbookCollections col : LogbookCollections.values()) {
             if (col.getCollection() != null) {
                 col.getCollection().createIndex(hashed(LogbookDocument.ID));
@@ -268,7 +267,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Remove temporarily the MongoDB Index (import optimization?)
      */
-    static final void removeIndexBeforeImport() {
+    static void removeIndexBeforeImport() {
         LogbookOperation.dropIndexes();
         LogbookLifeCycle.dropIndexes();
     }
@@ -276,7 +275,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Reset MongoDB Index (import optimization?)
      */
-    static final void resetIndexAfterImport() {
+    static void resetIndexAfterImport() {
         LOGGER.info("Rebuild indexes");
         ensureIndex();
     }
@@ -519,7 +518,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookException
      */
     @SuppressWarnings("rawtypes")
-    private final MongoCursor select(final LogbookCollections collection, final JsonNode select, boolean sliced)
+    private MongoCursor select(final LogbookCollections collection, final JsonNode select, boolean sliced)
         throws LogbookDatabaseException, VitamDBException {
         if (sliced) {
             return select(collection, select, DEFAULT_SLICE);
@@ -539,7 +538,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookNotFoundException
      */
     @SuppressWarnings("rawtypes")
-    private final VitamMongoCursor select(final LogbookCollections collection, final JsonNode select,
+    private VitamMongoCursor select(final LogbookCollections collection, final JsonNode select,
         final ObjectNode slice)
         throws LogbookDatabaseException, VitamDBException {
         try {
@@ -606,7 +605,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return selectExecute(collection, parser);
     }
 
-    final VitamDocument<?> getDocument(LogbookParameters item) {
+    private VitamDocument<?> getDocument(LogbookParameters item) {
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
@@ -616,7 +615,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    final VitamDocument getDocumentForUpdate(LogbookParameters item) {
+    private VitamDocument getDocumentForUpdate(LogbookParameters item) {
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item, true);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
@@ -724,7 +723,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     // FIXME bug 6542: 06/04/2020 Not idempotent ?!
-    final void updateLogbookOperation(LogbookCollections collection, LogbookParameters item)
+    private void updateLogbookOperation(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
         @SuppressWarnings("rawtypes")
