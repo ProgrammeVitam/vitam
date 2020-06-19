@@ -105,7 +105,12 @@
 					</p>
 {% endif %}
 
-
+{% if (groups['hosts_prometheus']|length >0) and prometheus.server.enabled == true  %}
+					<p class="row" style="vertical-align: middle">
+						<div class="col-md-3">Prometheus server</div>
+						<div class="col-md-2"><a href="/prometheus" class="btn btn-primary btn-xs" target="_blank">prometheus</a></div>
+					</p>
+{% endif %}
 
 {% if groups['library']|length >0 %}
 					<p class="row" style="vertical-align: middle">

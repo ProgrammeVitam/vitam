@@ -263,4 +263,10 @@
     ProxyPassReverse /v1 http://{{ hostvars[groups['hosts_consul_server'][0]]['ip_admin'] }}:8500/v1
     {% endif %}
 
+    {% if (groups['hosts_prometheus']|length >0)  and  prometheus.server.enabled == true %}
+        # Prometheus server
+        ProxyPass /prometheus http://{{ hostvars[groups['hosts_prometheus'][0]]['ip_admin'] }}:{{ prometheus.server.port }}/prometheus
+        ProxyPassReverse /prometheus http://{{ hostvars[groups['hosts_prometheus'][0]]['ip_admin'] }}:{{ prometheus.server.port }}/prometheus
+    {% endif %}
+
 </VirtualHost>
