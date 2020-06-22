@@ -24,19 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common.server;
+package fr.gouv.vitam.metadata.core.config;
 
-import static org.junit.Assert.assertEquals;
+/**
+ * Elasticsearch Unit and ObjectGroup mapping
+ */
+public class ElasticsearchExternalMetadataMapping {
 
-import org.junit.Test;
+    private String collection;
+    private String mappingFile;
 
 
-public class AdminManagementConfigurationTest {
+    /**
+     * ElasticsearchExternalMetadataMapping empty constructor for YAMLFactory
+     */
+    public ElasticsearchExternalMetadataMapping() {
+        // Empty
+    }
 
-    @Test
-    public void givenAdminManagementConfiguration() {
-        final AdminManagementConfiguration config = new AdminManagementConfiguration();
+    public ElasticsearchExternalMetadataMapping(String collection, String mapping) {
+        this.collection = collection;
+        this.mappingFile = mapping;
+    }
+    public String getCollection() {
+        return collection;
+    }
 
-        assertEquals("jettyFakeConfig", config.setJettyConfig("jettyFakeConfig").getJettyConfig());
+    public void setCollection(String collection) {
+        this.collection = collection;
+    }
+
+    public String getMappingFile() {
+        return mappingFile;
+    }
+
+    public void setMappingFile(String mappingFile) {
+        this.mappingFile = mappingFile;
     }
 }

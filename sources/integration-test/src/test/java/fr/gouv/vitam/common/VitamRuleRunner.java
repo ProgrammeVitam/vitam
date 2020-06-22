@@ -42,9 +42,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -122,31 +125,31 @@ public class VitamRuleRunner {
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
             new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes, mappingLoader), tenants);
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
             new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes));
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
             new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
     }
 
     public static void handleAfterClass(Integer... tenants) {
-        MetadataCollections
+        MetadataCollectionsTestUtils
             .afterTestClass(false, tenants);
-        LogbookCollections
+        LogbookCollectionsTestUtils
             .afterTestClass(false, tenants);
-        FunctionalAdminCollections.afterTestClass(false);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(false);
     }
 
     public static void handleAfterClassExceptReferential(Integer... tenants) {
-        MetadataCollections
+        MetadataCollectionsTestUtils
             .afterTestClass(false, tenants);
-        LogbookCollections
+        LogbookCollectionsTestUtils
             .afterTestClass(false, tenants);
     }
     public static void handleAfter(Integer... tenants) {
-        MetadataCollections.afterTest(tenants);
-        LogbookCollections.afterTest(tenants);
+        MetadataCollectionsTestUtils.afterTest(tenants);
+        LogbookCollectionsTestUtils.afterTest(tenants);
     }
 
     private static List<Class<?>> merge(List<Class<?>> classes, List<Class<?>> classes1, List<Class<?>> classes2) {

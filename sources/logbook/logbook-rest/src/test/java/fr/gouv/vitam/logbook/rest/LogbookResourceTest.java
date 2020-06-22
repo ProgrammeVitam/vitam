@@ -84,8 +84,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -185,7 +186,7 @@ public class LogbookResourceTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         elasticsearchAccess = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccess, TENANT_ID);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccess, TENANT_ID);
 
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
@@ -271,7 +272,7 @@ public class LogbookResourceTest {
             LOGGER.error(e);
         }
 
-        LogbookCollections.afterTestClass(true, TENANT_ID);
+        LogbookCollectionsTestUtils.afterTestClass(true, TENANT_ID);
 
         junitHelper.releasePort(workspacePort);
         junitHelper.releasePort(processingPort);
@@ -280,7 +281,7 @@ public class LogbookResourceTest {
 
     @After
     public void tearDown() {
-        LogbookCollections.afterTest(TENANT_ID);
+        LogbookCollectionsTestUtils.afterTest(TENANT_ID);
     }
 
 

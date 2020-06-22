@@ -71,18 +71,18 @@ public class ElasticsearchAccessFunctionalAdminTest {
         elasticsearchAccessFunctionalAdmin =
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
-        FunctionalAdminCollections
+        FunctionalAdminCollectionsTestUtils
             .beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessFunctionalAdmin);
     }
 
     @AfterClass
     public static void setAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @After
     public void tearDown() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTest();
+        FunctionalAdminCollectionsTestUtils.afterTest();
     }
 
     @Test

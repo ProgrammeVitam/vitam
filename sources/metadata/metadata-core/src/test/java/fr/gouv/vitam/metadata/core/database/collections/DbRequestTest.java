@@ -89,7 +89,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
 import fr.gouv.vitam.metadata.core.trigger.History;
@@ -281,7 +281,7 @@ public class DbRequestTest {
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         elasticsearchAccessMetadata =
             new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             elasticsearchAccessMetadata, TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
     }
@@ -291,7 +291,7 @@ public class DbRequestTest {
      */
     @AfterClass
     public static void tearDown() throws Exception {
-        MetadataCollections.afterTestClass(true, TENANT_ID_0, TENANT_ID_1, TENANT_ID_2);
+        MetadataCollectionsTestUtils.afterTestClass(true, TENANT_ID_0, TENANT_ID_1, TENANT_ID_2);
     }
 
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
@@ -322,7 +322,7 @@ public class DbRequestTest {
      */
     @After
     public void after() throws Exception {
-        MetadataCollections.afterTest(TENANT_ID_0,
+        MetadataCollectionsTestUtils.afterTest(TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
     }
 

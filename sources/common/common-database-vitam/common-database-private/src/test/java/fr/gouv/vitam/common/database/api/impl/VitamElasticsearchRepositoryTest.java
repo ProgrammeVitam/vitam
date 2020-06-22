@@ -144,7 +144,7 @@ public class VitamElasticsearchRepositoryTest {
             .endObject();
 
         Document document = Document.parse(Strings.toString(builder));
-        VitamRepositoryStatus result = repository.saveOrUpdate(document);
+        VitamRepositoryStatus result = repository.save(document);
 
         assertThat(VitamRepositoryStatus.CREATED.equals(result));
         assertThat(document.get(VitamDocument.ID)).isNotNull();
@@ -162,7 +162,7 @@ public class VitamElasticsearchRepositoryTest {
             .endObject();
 
         document = Document.parse(Strings.toString(builder));
-        result = repository.saveOrUpdate(document);
+        result = repository.save(document);
 
         assertThat(VitamRepositoryStatus.UPDATED.equals(result));
         response = repository.getByID(id, tenant);
@@ -223,7 +223,7 @@ public class VitamElasticsearchRepositoryTest {
             documents.add(Document.parse(Strings.toString(builder)));
         }
 
-        repository.saveOrUpdate(documents);
+        repository.save(documents);
         for (int i = 0; i < 100; i++) {
             assertThat(documents.get(i).get(VitamDocument.ID)).isNotNull();
             assertThat(documents.get(i).get(VitamDocument.ID)).isEqualTo(guids.get(i));
@@ -241,7 +241,7 @@ public class VitamElasticsearchRepositoryTest {
             updatedDocuments.add(Document.parse(Strings.toString(builder)));
         }
 
-        repository.saveOrUpdate(updatedDocuments);
+        repository.save(updatedDocuments);
         for (int i = 0; i < 100; i++) {
             assertThat(updatedDocuments.get(i).get(VitamDocument.ID)).isNotNull();
             assertThat(updatedDocuments.get(i).get(VitamDocument.ID)).isEqualTo(guids.get(i));
@@ -374,10 +374,5 @@ public class VitamElasticsearchRepositoryTest {
         Integer tenant = 0;
         Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
         assertThat(response).isEmpty();
-    }
-
-    @Test(expected = DatabaseException.class)
-    public void testRemoveByNameAndTenantNotImplemented() throws DatabaseException {
-        repository.removeByNameAndTenant("FakeName", 0);
     }
 }

@@ -57,8 +57,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -131,7 +131,7 @@ public class LogBookLifeCycleObjectGroupTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
 
         junitHelper = JunitHelper.getInstance();
@@ -237,7 +237,7 @@ public class LogBookLifeCycleObjectGroupTest {
             LOGGER.error(e);
         }
 
-        LogbookCollections.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(true, tenantId);
 
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();

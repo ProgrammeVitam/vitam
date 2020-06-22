@@ -65,7 +65,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -95,6 +94,8 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -123,9 +124,6 @@ public class MongoDbAccessAdminImplTest {
     private static final String FILEFORMAT_PUID = "x-fmt/33";
     private static final String FILEFORMAT_PUID_2 = "x-fmt/44";
     private static final String FILEFORMAT_PUID_3 = "x-fmt/55";
-    private static final String AGENCY = "Agency";
-    private static final String AQUISITION_INFORMATION = "AcquisitionInformation";
-    private static final String LEGAL_STATUS = "LegalStatus";
     private static final Integer TENANT_ID = 0;
 
     private static final String DEFAULT_DATE = "2018-04-05T13:34:40.234";
@@ -136,7 +134,6 @@ public class MongoDbAccessAdminImplTest {
     static FileFormat fileFormat3;
     static FileRules fileRules1;
     static FileRules fileRules2;
-    static AccessionRegisterDetail register;
     static IngestContract contract;
     static AccessContract accessContract;
     static Profile profile;
@@ -158,9 +155,6 @@ public class MongoDbAccessAdminImplTest {
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
-
-        final List<String> testList2 = new ArrayList<>();
-        testList2.add("test2");
 
         final String now = LocalDateUtil.now().toString();
 
@@ -222,18 +216,18 @@ public class MongoDbAccessAdminImplTest {
 
         context = createContext();
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient);
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        FunctionalAdminCollections.afterTestClass( true);
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollectionsTestUtils.afterTestClass( true);
     }
 
     @After
-    public void after() throws Exception {
-        FunctionalAdminCollections.afterTest();
+    public void after() {
+        FunctionalAdminCollectionsTestUtils.afterTest();
     }
 
     @Test
@@ -266,7 +260,7 @@ public class MongoDbAccessAdminImplTest {
             .add(eq(FileFormat.PUID, FILEFORMAT_PUID)));
         final DbRequestResult fileList =
             mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
-        final FileFormat f1 = (FileFormat) fileList.getDocuments(FileFormat.class).get(0);
+        final FileFormat f1 = fileList.getDocuments(FileFormat.class).get(0);
         final String id = f1.getString("#id");
         final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, formatCollection);
 
@@ -285,10 +279,10 @@ public class MongoDbAccessAdminImplTest {
         final DbRequestSingle dbrequestSort = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
         final DbRequestResult selectSortResult = dbrequestSort.execute(selectWithSortName);
         final List<FileFormat> selectSortList = selectSortResult.getDocuments(FileFormat.class);
-        assertEquals(true, !selectSortList.isEmpty());
-        FileFormat fileFormatFirst = (FileFormat) selectSortList.get(0);
+        assertFalse(selectSortList.isEmpty());
+        FileFormat fileFormatFirst = selectSortList.get(0);
         assertEquals(FILEFORMAT_PUID_3, fileFormatFirst.getString(FileFormat.PUID));
-        FileFormat fileFormatSecond = (FileFormat) selectSortList.get(1);
+        FileFormat fileFormatSecond = selectSortList.get(1);
         assertEquals(FILEFORMAT_PUID_2, fileFormatSecond.getString(FileFormat.PUID));
         selectSortList.clear();
         selectSortResult.close();
@@ -300,10 +294,10 @@ public class MongoDbAccessAdminImplTest {
         final DbRequestSingle dbrequestSortId = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
         final DbRequestResult selectSortIdResult = dbrequestSortId.execute(selectWithSortId);
         final List<FileFormat> selectSortIdList = selectSortIdResult.getDocuments(FileFormat.class);
-        assertEquals(true, !selectSortIdList.isEmpty());
-        fileFormatFirst = (FileFormat) selectSortIdList.get(0);
+        assertFalse(selectSortIdList.isEmpty());
+        fileFormatFirst = selectSortIdList.get(0);
         assertEquals(FILEFORMAT_PUID_2, fileFormatFirst.getString(FileFormat.PUID));
-        fileFormatSecond = (FileFormat) selectSortIdList.get(1);
+        fileFormatSecond = selectSortIdList.get(1);
         assertEquals(FILEFORMAT_PUID_3, fileFormatSecond.getString(FileFormat.PUID));
         selectSortIdList.clear();
         selectSortIdResult.close();
@@ -514,7 +508,7 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(IngestContract.CREATIONDATE, DEFAULT_DATE))));
         final DbRequestResult contracts =
             mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
-        final IngestContract foundContract = (IngestContract) contracts.getDocuments(IngestContract.class).get(0);
+        final IngestContract foundContract = contracts.getDocuments(IngestContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(IngestContract.NAME));
         mongoAccess.deleteCollection(contractCollection).close();
@@ -553,7 +547,7 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(AccessContract.CREATIONDATE, DEFAULT_DATE))));
         final DbRequestResult contracts =
             mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
-        final AccessContract foundContract = (AccessContract) contracts.getDocuments(AccessContract.class).get(0);
+        final AccessContract foundContract = contracts.getDocuments(AccessContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(AccessContract.NAME));
         mongoAccess.deleteCollection(contractCollection).close();
@@ -582,7 +576,7 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(Profile.CREATIONDATE, DEFAULT_DATE))));
         final DbRequestResult profiles =
             mongoAccess.findDocuments(select.getFinalSelect(), profileCollection);
-        final Profile foundProfile = (Profile) profiles.getDocuments(Profile.class).get(0);
+        final Profile foundProfile = profiles.getDocuments(Profile.class).get(0);
         profiles.close();
         assertEquals("FakeId", foundProfile.getString(Profile.IDENTIFIER));
         mongoAccess.deleteCollection(profileCollection).close();
@@ -672,19 +666,17 @@ public class MongoDbAccessAdminImplTest {
     }
 
     private static Context createContext() {
-        JsonNode node = JsonHandler.createObjectNode();
-        ((ObjectNode) node).put(VitamDocument.ID, GUIDFactory.newContractGUID(TENANT_ID).getId());
-        ((ObjectNode) node).put(Context.IDENTIFIER, "contextId");
-        ((ObjectNode) node).put(Context.NAME, "contextName");
-        ((ObjectNode) node).put(Context.PERMISSION, new ArrayNode(null));
-        ((ObjectNode) node).put(Context.SECURITY_PROFILE, "contextName");
-        ((ObjectNode) node).put(Context.STATUS, ContextStatus.INACTIVE.toString());
-        ((ObjectNode) node).put("EnableControl", false);
-        ((ObjectNode) node).put("CreationDate", "2019-02-10");
-        ((ObjectNode) node).put("LastUpdate", "2019-02-11");
+        ObjectNode node = JsonHandler.createObjectNode();
+        node.put(VitamDocument.ID, GUIDFactory.newContractGUID(TENANT_ID).getId());
+        node.put(Context.IDENTIFIER, "contextId");
+        node.put(Context.NAME, "contextName");
+        node.set(Context.PERMISSION, new ArrayNode(null));
+        node.put(Context.SECURITY_PROFILE, "contextName");
+        node.put(Context.STATUS, ContextStatus.INACTIVE.toString());
+        node.put("EnableControl", false);
+        node.put("CreationDate", "2019-02-10");
+        node.put("LastUpdate", "2019-02-11");
 
-        final Context context = new Context(node);
-
-        return context;
+        return new Context(node);
     }
 }

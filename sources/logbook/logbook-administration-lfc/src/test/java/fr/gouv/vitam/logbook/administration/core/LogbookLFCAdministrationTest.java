@@ -49,9 +49,10 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
@@ -124,7 +125,6 @@ public class LogbookLFCAdministrationTest {
 
     @ClassRule
     public static TemporaryFolder esTempFolder = new TemporaryFolder();
-    private final static String ES_HOST_NAME = "localhost";
 
     private static final Integer tenantId = 0;
     static final List<Integer> tenantList = Arrays.asList(0);
@@ -141,7 +141,7 @@ public class LogbookLFCAdministrationTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
 
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
@@ -169,7 +169,7 @@ public class LogbookLFCAdministrationTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollections.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(true, tenantId);
 
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();
@@ -184,7 +184,7 @@ public class LogbookLFCAdministrationTest {
     }
     @After
     public void tearDown() {
-        LogbookCollections.afterTest(Arrays.asList(LogbookCollections.OPERATION), tenantId);
+        LogbookCollectionsTestUtils.afterTest(Arrays.asList(LogbookCollections.OPERATION), tenantId);
     }
 
 

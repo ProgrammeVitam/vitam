@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.common.server;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 
 import java.io.IOException;
 import java.util.Arrays;

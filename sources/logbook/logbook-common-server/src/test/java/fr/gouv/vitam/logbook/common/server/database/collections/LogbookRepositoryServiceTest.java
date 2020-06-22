@@ -57,8 +57,8 @@ public class LogbookRepositoryServiceTest {
         Mockito.when(vitamRepositoryProvider.getVitamMongoRepository(any())).thenReturn(vitamMongoRepository);
         Mockito.doNothing().when(vitamMongoRepository).saveOrUpdate(any(List.class));
         Mockito.when(vitamRepositoryProvider.getVitamESRepository(any())).thenReturn(vitamElasticsearchRepository);
-        Mockito.doNothing().when(vitamElasticsearchRepository).saveOrUpdate(any(List.class));
-        
+        Mockito.doNothing().when(vitamElasticsearchRepository).save(any(List.class));
+
         List<JsonNode> logbookItems = new ArrayList<>();
         logbookItems.add(JsonHandler.createObjectNode());
         logbookItems.add(JsonHandler.createObjectNode());

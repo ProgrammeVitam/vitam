@@ -58,12 +58,13 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
@@ -136,7 +137,7 @@ public class MetadataResourceTest {
 
     private static MetadataMain metadataMain;
     private static final int tenantId = 0;
-    private static final List tenantList = Lists.newArrayList(tenantId);
+    private static final List<Integer> tenantList = Lists.newArrayList(tenantId);
     private static final Integer TENANT_ID = 0;
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
     private static ElasticsearchAccessFunctionalAdmin accessFunctionalAdmin;
@@ -156,9 +157,9 @@ public class MetadataResourceTest {
                 elasticsearchRule.getClusterName(), esNodes, mappingLoader);
 
         elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata, 0, 1);
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata, 0, 1);
         accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes);
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, accessFunctionalAdmin,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, accessFunctionalAdmin,
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         configuration.setJettyConfig(JETTY_CONFIG);
@@ -180,8 +181,8 @@ public class MetadataResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        MetadataCollections.afterTestClass(true, 0, 1);
-        FunctionalAdminCollections
+        MetadataCollectionsTestUtils.afterTestClass(true, 0, 1);
+        FunctionalAdminCollectionsTestUtils
             .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
         try {
@@ -196,8 +197,8 @@ public class MetadataResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTest(0, 1);
-        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+        MetadataCollectionsTestUtils.afterTest(0, 1);
+        FunctionalAdminCollectionsTestUtils.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 

@@ -67,16 +67,19 @@ import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.ihmrecette.appserver.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
@@ -149,16 +152,16 @@ public class WebApplicationResourceDeleteTest {
 
         List<ElasticsearchNode> nodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 nodes));
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes, mappingLoader), TENANT_ID, 1);
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes), TENANT_ID, 1);
 
         junitHelper = JunitHelper.getInstance();
@@ -200,12 +203,12 @@ public class WebApplicationResourceDeleteTest {
 
         XSRFFilter.addToken("testId", tokenCSRF);
 
-        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ONTOLOGY), false);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ONTOLOGY), false);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -213,11 +216,11 @@ public class WebApplicationResourceDeleteTest {
             LOGGER.error(e);
         }
 
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
 
-        MetadataCollections.afterTestClass(true, TENANT_ID, 1);
+        MetadataCollectionsTestUtils.afterTestClass(true, TENANT_ID, 1);
 
-        LogbookCollections.afterTestClass(true, TENANT_ID, 1);
+        LogbookCollectionsTestUtils.afterTestClass(true, TENANT_ID, 1);
 
         mongoDbAccessAdmin.close();
         junitHelper.releasePort(serverPort);

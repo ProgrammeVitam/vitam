@@ -67,12 +67,12 @@ public class LogbookMongoDbAccessImplTest {
 
     @BeforeClass
     public static void beforeClass() {
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(), null, 0);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(), null, 0);
     }
 
     @After
     public void after() {
-        LogbookCollections.afterTest();
+        LogbookCollectionsTestUtils.afterTest();
     }
 
     private LogbookMongoDbAccessImpl logbookMongoDbAccess =

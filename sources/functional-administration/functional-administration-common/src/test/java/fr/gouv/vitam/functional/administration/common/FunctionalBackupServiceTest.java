@@ -44,6 +44,7 @@ import fr.gouv.vitam.functional.administration.common.exception.BackupServiceExc
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.After;
@@ -119,7 +120,7 @@ public class FunctionalBackupServiceTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
             Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
@@ -143,12 +144,12 @@ public class FunctionalBackupServiceTest {
 
     @AfterClass
     public static void afterClass() {
-        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.AGENCIES), true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.AGENCIES), true);
     }
 
     @After
     public void cleanUp() {
-        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
+        FunctionalAdminCollectionsTestUtils.afterTest(Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
     }

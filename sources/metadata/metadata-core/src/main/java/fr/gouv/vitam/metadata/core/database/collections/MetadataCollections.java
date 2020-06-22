@@ -26,21 +26,15 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
-import org.bson.Document;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Metadata Collection
@@ -57,84 +51,13 @@ public enum MetadataCollections {
     OBJECTGROUP(ObjectGroup.class);
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
-    private VitamCollection vitamCollection;
-
-    @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final ElasticsearchAccessMetadata esClient, Integer... tenants) {
-        beforeTestClass(db, prefix, esClient, Lists.newArrayList(MetadataCollections.values()), tenants);
-    }
-
-    @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final ElasticsearchAccessMetadata esClient,
-        Collection<MetadataCollections> metadataCollections,
-        Integer... tenants) {
-        ParametersChecker.checkParameter("metadataCollections is required", metadataCollections);
-        for (MetadataCollections collection : metadataCollections) {
-            collection.vitamCollection
-                .setName(prefix + collection.vitamCollection.getClasz().getSimpleName());
-            collection.initialize(db, false);
-            if (collection.getEsClient() == null) {
-                collection.initialize(esClient);
-            }
-
-            if (null != collection.getEsClient()) {
-                for (Integer tenant : tenants) {
-                    Map<String, String> map = collection.getEsClient().addIndex(collection, tenant);
-                    if (map.isEmpty()) {
-                        throw new RuntimeException(
-                            "Index not created for the collection " + collection.getName() + " and tenant :" + tenant);
-                    }
-                }
-            }
-        }
-    }
-
-    @VisibleForTesting
-    public static void afterTestClass(boolean deleteEsIndex, Integer... tenants) {
-        afterTestClass(Lists.newArrayList(MetadataCollections.values()), deleteEsIndex, tenants);
-    }
-
-    @VisibleForTesting
-    public static void afterTestClass(Collection<MetadataCollections> metadataCollections, boolean deleteEsIndex,
-        Integer... tenants) {
-        if (null == metadataCollections) {
-            return;
-        }
-        for (MetadataCollections collection : metadataCollections) {
-            if (null != collection.vitamCollection.getCollection()) {
-                collection.vitamCollection.getCollection().deleteMany(new Document());
-            }
-
-            if (null != collection.getEsClient()) {
-                for (Integer tenant : tenants) {
-                    if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndexByAlias(collection.getName().toLowerCase(), tenant);
-                    } else {
-                        collection.getEsClient().purgeIndex(collection.getName().toLowerCase(), tenant);
-                    }
-                }
-            }
-        }
-    }
-
-
-
-    @VisibleForTesting
-    public static void afterTest(Integer... tenants) {
-        afterTestClass(false, tenants);
-    }
-
-    @VisibleForTesting
-    public static void afterTest(Collection<MetadataCollections> metadataCollections, Integer... tenants) {
-        afterTestClass(metadataCollections, false, tenants);
-    }
+    private final VitamCollection vitamCollection;
 
     MetadataCollections(final Class<?> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
+        vitamCollection =
+            VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
     }
 
     public static List<Class<?>> getClasses() {

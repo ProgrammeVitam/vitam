@@ -44,9 +44,9 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
@@ -160,8 +160,8 @@ public class MongoDbAccessMetadataImplTest {
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
         esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes, mappingLoader);
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient, 0, 1);
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient, 0, 1);
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
 
@@ -170,14 +170,14 @@ public class MongoDbAccessMetadataImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        MetadataCollections.afterTestClass(true, 0, 1);
-        FunctionalAdminCollections.afterTestClass(true);
+        MetadataCollectionsTestUtils.afterTestClass(true, 0, 1);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @After
     public void after() {
-        MetadataCollections.afterTest(0, 1);
-        FunctionalAdminCollections.afterTest();
+        MetadataCollectionsTestUtils.afterTest(0, 1);
+        FunctionalAdminCollectionsTestUtils.afterTest();
 
     }
 
