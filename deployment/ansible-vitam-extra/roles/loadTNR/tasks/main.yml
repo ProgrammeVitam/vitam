@@ -51,6 +51,11 @@
   args:
     chdir: "{{ TNR_conf }}"
   run_once: true
+  when: "{{TNR_TAGS}} ==''"
+
+- name: launch TNR by tag
+  include_tasks: "tnr_by_tag.yml"
+  when: "{{TNR_TAGS}} != ''"
 
 - name: get back TNR output file {{ TNR_output }}
   fetch:
