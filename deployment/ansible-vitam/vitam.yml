@@ -57,7 +57,7 @@
 
 
 ### PROMETHEUS NODE EXPORTER INSTALLATION OR UNINSTALL ###
-- hosts: all
+- hosts: vitam
   gather_facts: no
   any_errors_fatal: true
   serial: 1
@@ -313,7 +313,6 @@
     - antivirus
     - create_upload_dir
     - vitam
-    #- {role: clamav, when: vitam_struct.antivirus=='clamav' }
   vars:
     vitam_struct: "{{ vitam.ingestexternal }}"
     password_keystore: "{{ keystores.server.ingest_external }}"
