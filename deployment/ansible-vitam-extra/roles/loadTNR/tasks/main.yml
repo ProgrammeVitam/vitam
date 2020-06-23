@@ -42,6 +42,10 @@
   run_once: true
   when: login.set_cookie != ''
 
+- debug:
+    msg:
+      - "DEBUG TNR_TAGS: {{ TNR_TAGS }}"
+
 
 - name: launch TNR
 #  shell: java -Dlogback.configurationFile="{{ TNR_conf }}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{ TNR_lib }}/functional-test-*-jar-with-dependencies.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} {{ TNR_dir }}
@@ -51,11 +55,11 @@
   args:
     chdir: "{{ TNR_conf }}"
   run_once: true
-  when: "{{TNR_TAGS}} ==''"
+  when: TNR_TAGS ==''
 
 - name: launch TNR by tag
   include_tasks: "tnr_by_tag.yml"
-  when: "{{TNR_TAGS}} != ''"
+  when: TNR_TAGS != ''
 
 - name: get back TNR output file {{ TNR_output }}
   fetch:
