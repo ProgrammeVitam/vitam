@@ -24,3 +24,6 @@ https://packages.elastic.co/curator/5/centos/7/Packages/elasticsearch-curator-5.
 
 https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.6.2-x86_64.rpm
 https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-7.6.2-x86_64.rpm
+
+https://dl.grafana.com/oss/release/grafana-7.0.3-1.x86_64.rpm
+

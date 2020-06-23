@@ -1,0 +1,8 @@
+Package: vitam-grafana
+Version: 7.0.3
+Section: monitor
+Priority: optional
+Architecture: amd64
+Depends: bash, grafana ( =7.0.3)
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Description: Grafana lets you visualize your Elasticsearch and prometheus data.
