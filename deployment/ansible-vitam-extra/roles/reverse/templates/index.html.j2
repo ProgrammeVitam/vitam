@@ -105,10 +105,17 @@
 					</p>
 {% endif %}
 
-{% if (groups['hosts_prometheus']|length >0) and prometheus.server.enabled == true  %}
+{% if prometheus.server.enabled == true and (groups['hosts_prometheus']|length >0)  %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Prometheus server</div>
-						<div class="col-md-2"><a href="/prometheus" class="btn btn-primary btn-xs" target="_blank">prometheus</a></div>
+						<div class="col-md-2"><a href="/prometheus" class="btn btn-primary btn-xs" target="_blank">Prometheus</a></div>
+					</p>
+{% endif %}
+
+{% if grafana.enabled == true and (groups['grafana']|length >0)  %}
+					<p class="row" style="vertical-align: middle">
+						<div class="col-md-3">Grafana</div>
+						<div class="col-md-2"><a href="/grafana" class="btn btn-primary btn-xs" target="_blank">Grafana</a></div>
 					</p>
 {% endif %}
 

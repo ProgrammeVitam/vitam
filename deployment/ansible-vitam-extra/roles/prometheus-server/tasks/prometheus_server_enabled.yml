@@ -45,6 +45,9 @@
     - log
     - data
     - tmp
+  tags:
+    - update_prometheus_configuration
+    - generate_prometheus_conf
   notify:
     - restart prometheus server
 
@@ -87,6 +90,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   tags:
     - update_prometheus_configuration
+    - generate_prometheus_conf
   notify:
     - restart prometheus server
 
@@ -125,3 +129,11 @@
     state: started
   tags:
     - update_prometheus_configuration
+
+
+- name: Wait for prometheus server port {{ prometheus.server.port}} to be open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ prometheus.server.port}}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"

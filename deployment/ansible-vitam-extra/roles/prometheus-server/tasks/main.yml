@@ -1,8 +1,5 @@
 ---
 
-- debug:
-    var: prometheus.server.enabled == true
-
 - include_tasks: prometheus_server_enabled.yml
   when: prometheus.server.enabled == true
 

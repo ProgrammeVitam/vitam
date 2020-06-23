@@ -1,0 +1,6 @@
+---
+grafana_tmp_path:  '{{ vitam_defaults.folder.root_path }}/tmp/grafana'
+grafana_config_path:  '{{ vitam_defaults.folder.root_path }}/conf/grafana'
+grafana_db_path:      '{{ vitam_defaults.folder.root_path }}/data/grafana'
+grafana_app_path:      '{{ vitam_defaults.folder.root_path }}/app/grafana'
+grafana_bin_path:      '{{ vitam_defaults.folder.root_path }}/bin/grafana'

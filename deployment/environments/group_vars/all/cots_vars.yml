@@ -158,6 +158,7 @@ logstash:
 
 # Prometheus params
 prometheus:
+    metrics_path: /admin/v1/metrics
     check_consul: 10 # in seconds
     server:
         enabled: true
@@ -165,11 +166,15 @@ prometheus:
     node_exporter:
         enabled: true
         port: 19100
-        url_path: /metrics
+        metrics_path: /metrics
     alertmanager:
         enabled: true
         api_port: 19093
         cluster_port: 19094
+grafana:
+    enabled: true
+    check_consul: 10 # in seconds
+    http_port: 13000
 
 # Curator units: days
 curator:

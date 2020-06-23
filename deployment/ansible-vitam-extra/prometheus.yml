@@ -3,9 +3,11 @@
 - hosts: hosts_prometheus
   roles:
     - role: prometheus-server
-      tags: [tag_prometheus, tag_prometheus_server]
+      tags: [tag_prometheus, tag_prometheus_server, generate_prometheus_conf]
+      when: prometheus.server.enabled == true
 
 - hosts: hosts_alertmanager
   roles:
     - role: prometheus-alertmanager
       tags: [tag_prometheus, tag_alertmanager]
+      when: prometheus.alertmanager.enabled == true
