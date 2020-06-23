@@ -39,10 +39,10 @@ public class MappingLoaderTestUtils {
         List<ElasticsearchExternalMetadataMapping> mappingData =
             Arrays.asList(
                 new ElasticsearchExternalMetadataMapping("Unit",
-                    ElasticsearchTestHelper.loadMapping("Unit")
+                    ElasticsearchTestHelper.loadUnitMapping()
                 ),
                 new ElasticsearchExternalMetadataMapping("ObjectGroup",
-                    ElasticsearchTestHelper.loadMapping("ObjectGroup")
+                    ElasticsearchTestHelper.loadObjectGroupMapping()
                 )
             );
         return new MappingLoader(mappingData);
