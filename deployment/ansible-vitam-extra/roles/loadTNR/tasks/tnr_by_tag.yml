@@ -9,7 +9,7 @@
 
   - name: Split
     set_fact:
-      split_lines: "{{ TNR_VAR.split('\n') | lower }}"
+      split_lines: "{{ TNR_TAGS.split('\n') | lower }}"
 
   - debug:
       msg:
