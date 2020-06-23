@@ -106,11 +106,11 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     /**
      * @param identityServerId the identityServerId to set
      * @return this
-     * @throws IllegalArgumentException if identityPlatformId &lt; 0
+     * @throws IllegalArgumentException if identityServerId &lt; 0
      */
     public ServerIdentityConfigurationImpl setIdentityServerId(int identityServerId) {
         if (identityServerId < 0) {
-            throw new IllegalArgumentException("Platform id must be positive");
+            throw new IllegalArgumentException("identityServerId id must be positive");
         }
         this.identityServerId = identityServerId;
         return this;
@@ -119,11 +119,11 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     /**
      * @param identitySiteId the identitySiteId to set
      * @return this
-     * @throws IllegalArgumentException if identityPlatformId &lt; 0
+     * @throws IllegalArgumentException if identitySiteId &lt; 0
      */
     public ServerIdentityConfigurationImpl setIdentitySiteId(int identitySiteId) {
         if (identitySiteId < 0) {
-            throw new IllegalArgumentException("Platform id must be positive");
+            throw new IllegalArgumentException("identitySiteId id must be positive");
         }
         this.identitySiteId = identitySiteId;
         return this;
