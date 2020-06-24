@@ -161,6 +161,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
         when(accessInternalClient.selectOperation(any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
+        when(accessInternalClient.selectOperationSliced(any()))
+            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
 
         when(accessInternalClient.selectOperationById(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));

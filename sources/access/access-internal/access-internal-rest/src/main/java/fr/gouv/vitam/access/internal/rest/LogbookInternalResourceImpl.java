@@ -241,6 +241,30 @@ public class LogbookInternalResourceImpl {
         }
     }
 
+    @GET
+    @Path("/slicedOperations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectOperationSliced(JsonNode query) {
+        Status status;
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+            // Check correctness of request
+            final SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(query);
+            parser.getRequest().reset();
+            final JsonNode result = client.selectOperationSliced(query);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }
+    }
+
 
     /*****
      * LOGBOOK LIFE CYCLES
