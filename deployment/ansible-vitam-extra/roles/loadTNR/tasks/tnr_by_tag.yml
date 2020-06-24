@@ -14,7 +14,7 @@
   
   - name: Read and append line
     set_fact: 
-      TNR_STRING: "{{ TNR_STRING }} + [ '{{TNR_TOKEN}} {{item}}' ]"
+      TNR_STRING: "{{ TNR_STRING +' '+ TNR_TOKEN +' '+ item }}"
     with_items: "{{ split_lines | list }}"
 
   - debug:
