@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -39,6 +40,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -78,6 +81,11 @@ public class LogbookOperationsDecoratorTest {
 
         @Override
         public RequestResponse<LogbookOperation> selectOperations(JsonNode select) {
+            return null;
+        }
+
+        @Override
+        public RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced) {
             return null;
         }
     }

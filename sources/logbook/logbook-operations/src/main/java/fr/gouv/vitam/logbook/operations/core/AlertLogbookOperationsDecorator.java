@@ -96,6 +96,11 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
+    public RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced) throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
+        return logbookOperations.selectOperations(select, sliced);
+    }
+
+    @Override
     public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
             throws LogbookDatabaseException, LogbookAlreadyExistsException {
         logbookOperations.createBulkLogbookOperation(operationArray);

@@ -88,6 +88,9 @@ public interface LogbookOperations {
     RequestResponse<LogbookOperation> selectOperations(JsonNode select)
             throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
+    RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
+            throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException;
+
     /**
      * Select logbook operation entries
      *
