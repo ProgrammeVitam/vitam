@@ -142,7 +142,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public RequestResponse<LogbookOperation> selectOperations(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
-        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, false);
+        return selectOperations(select, false);
+    }
+
+    @Override
+    public RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
+            throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
+        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced);
         List<LogbookOperation> operations = new ArrayList<>();
         while (cursor.hasNext()) {
             LogbookOperation doc = cursor.next();
@@ -161,11 +167,11 @@ public class LogbookOperationsImpl implements LogbookOperations {
         }
 
         DatabaseCursor hitss = (cursor.getScrollId() != null) ?
-            new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
-            :
-            new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
+                new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
+                :
+                new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
         return new RequestResponseOK<LogbookOperation>(select)
-            .addAllResults(operations).setHits(hitss);
+                .addAllResults(operations).setHits(hitss);
     }
 
     private void filterFinalResponse(VitamDocument<?> document) {
