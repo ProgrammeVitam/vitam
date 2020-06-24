@@ -42,10 +42,12 @@
   run_once: true
   when: login.set_cookie != ''
 
+- set_fact:
+    TNR_TAGS: "{{lookup('file', '{{ inventory_dir }}/TNR_STRING.txt') }}"
+
 - debug:
     msg:
       - "DEBUG TNR_TAGS: {{ TNR_TAGS }}"
-
 
 - name: launch TNR
 #  shell: java -Dlogback.configurationFile="{{ TNR_conf }}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{ TNR_lib }}/functional-test-*-jar-with-dependencies.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} {{ TNR_dir }}
