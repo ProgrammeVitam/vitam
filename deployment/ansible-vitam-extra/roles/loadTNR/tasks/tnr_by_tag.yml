@@ -1,9 +1,5 @@
 ---
 
-- name: Compute String and Launch
-  
-  tasks:
-
   - set_fact:
       TNR_STRING: ""
 
