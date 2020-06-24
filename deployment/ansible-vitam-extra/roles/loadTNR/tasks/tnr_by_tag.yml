@@ -2,6 +2,7 @@
 
   - set_fact:
       TNR_STRING: ""
+      TNR_TOKEN: "-T"
 
   - name: Split
     set_fact:
