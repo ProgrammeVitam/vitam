@@ -23,6 +23,46 @@ elasticsearchNodes:
   httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    logbookoperation:
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_shards }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_replicas }}
+
+{% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
+  dedicated_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
+{% if (entry.logbookoperation is defined and (entry.logbookoperation.number_of_shards is defined or entry.logbookoperation.number_of_replicas is defined)) %}
+  - tenants: '{{ entry.tenants }}'
+    logbookoperation:
+{% if entry.logbookoperation.number_of_shards is defined %}
+      number_of_shards: {{ entry.logbookoperation.number_of_shards }}
+{% endif %}
+{% if entry.logbookoperation.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
+  grouped_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
+{% if (entry.logbookoperation is defined and (entry.logbookoperation.number_of_shards is defined or entry.logbookoperation.number_of_replicas is defined)) %}
+  - name: '{{ entry.name }}'
+    tenants: '{{ entry.tenants }}'
+    logbookoperation:
+{% if entry.logbookoperation.number_of_shards is defined %}
+      number_of_shards: {{ entry.logbookoperation.number_of_shards }}
+{% endif %}
+{% if entry.logbookoperation.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
 #Basic Authentication
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
