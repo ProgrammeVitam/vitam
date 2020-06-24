@@ -110,11 +110,11 @@ documentation:
       Requête qui retourne des résultats contenant des Règles de gestion.
       La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste de Règles de gestion selon le DSL Vitam en cas de succès.
     is: [AdminTraits.AdminListingResponse]
-  headers:
-    X-Tenant-Id:
-    required: true
-    X-Access-Contract-Id:
-    required: false  
+    headers:
+      X-Tenant-Id:
+        required: true
+      X-Access-Contract-Id:
+        required: false  
   post:
     description: |
       Requête qui retourne des résultats contenant des Règles de gestion si la requête utilise POST avec X-Http-Method-Override: GET.
@@ -123,11 +123,10 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: false
-    headers:
       X-Tenant-Id:
-      required: true
+        required: true
       X-Access-Contract-Id:
-      required: false
+        required: false
 
   /{idr}:
     displayName: Rule
@@ -144,9 +143,9 @@ documentation:
       is: [AdminTraits.AdminItemResponse]
       headers:
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
     post:
       description: |
         Retourne une liste de Règles de gestion contenant 1 seul résultat en cas de succès. La requête utilise POST avec X-Http-Method-Override: GET
@@ -155,9 +154,9 @@ documentation:
         X-Http-Method-Override:
           required: true
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
 
 /rulesfilecheck:
   displayName: FileRules check
@@ -268,9 +267,9 @@ documentation:
     is: [AdminTraits.AdminListingResponse]
     headers:
       X-Tenant-Id:
-      required: true
+        required: true
       X-Access-Contract-Id:
-      required: false
+        required: false
   post:
     description: |
       Requête qui retourne des résultats contenant des Contrats d'accès si la requête utilise POST avec X-Http-Method-Override: GET.
@@ -280,9 +279,9 @@ documentation:
       X-Http-Method-Override:
         required: false
       X-Tenant-Id:
-      required: true
+        required: true
       X-Access-Contract-Id:
-      required: false
+        required: false
 
   /{idac}:
     uriParameters:
@@ -299,9 +298,9 @@ documentation:
       is: [AdminTraits.AdminListingResponse]
       headers:
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
     put:
       description: |
         Requête qui modifie un Contrat d'accès.
@@ -309,9 +308,9 @@ documentation:
       is: [AdminTraits.AdminUpload]
       headers:
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
 
 /ingestcontracts:
   displayName: Ingest contracts
@@ -360,10 +359,10 @@ documentation:
         X-Access-Contract-Id:
           required: false
     put:
-       description: |
+      description: |
         Requête qui modifie un Contrat d'entrée.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
+      is: [AdminTraits.AdminUpload]
       headers:
         X-Tenant-Id:
           required: true
@@ -417,10 +416,10 @@ documentation:
         X-Access-Contract-Id:
           required: false
     put:
-       description: |
+      description: |
         Requête qui modifie un Contexte.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
+      is: [AdminTraits.AdminUpload]
       headers:
         X-Tenant-Id:
           required: true
@@ -468,10 +467,10 @@ documentation:
 
   /{idp}:
     uriParameters:
-        idp:
-          required: true
-          description: |
-            Identifiant du profil
+      idp:
+        required: true
+        description: |
+          Identifiant du profil
     displayName: Profil
     description: |
       API qui permet de mettre à jour un profil via une requête de mise à jour ou d'accéder à un profil
@@ -490,20 +489,20 @@ documentation:
         X-Access-Contract-Id:
           required: false
     put:
-       description: |
+      description: |
         Requête qui modifie les métadonnées d'un profil si la requête envoie un json (Content-Type = application/json).
         Dans ce cas, la requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
         Sinon, la requête doit spécifier le Content-Type comme application/octet-stream. Dans ce cas, elle permet de mettre à jour le fichier RNG ou XSD lié.
-       is: [AdminTraits.AdminUpload, AdminTraits.AdminProfileUpload]
-       headers:
-         Content-Type:
-           description: Requis pour importer des profils.
-           required: false
-           enum: [ "application/json", "application/octet-stream" ]
-          X-Tenant-Id:
-            required: true
-          X-Access-Contract-Id:
-            required: false
+      is: [AdminTraits.AdminUpload, AdminTraits.AdminProfileUpload]
+      headers:
+        Content-Type:
+          description: Requis pour importer des profils.
+          required: false
+          enum: [ "application/json", "application/octet-stream" ]
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
 
 /griffin:
   displayName: griffons
@@ -537,11 +536,11 @@ documentation:
         L'identifiant du griffon est la chaîne "id_document" dans l'URL.
         la requête renvoie alors le griffon au format json.
       is: [AdminTraits.AdminListingResponse]
-    headers:
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
 /preservationScenario:
   displayName: scénario de préservation
   description: Télécharger le référentiel des scénario de préservation
@@ -574,11 +573,11 @@ documentation:
         L'identifiant du scénario de préservation est la chaîne "id_document" dans l'URL.
         la requête renvoie alors le scénario de préservation au format json.
       is: [AdminTraits.AdminListingResponse]
-    headers:
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
 /archiveunitprofiles:
   displayName: Document Types
   description: |
@@ -591,9 +590,9 @@ documentation:
     is: [AdminTraits.AdminListingResponse]
     headers:
       X-Tenant-Id:
-      required: true
+        required: true
       X-Access-Contract-Id:
-      required: false
+        required: false
   post:
     description: |
       Requête qui retourne des résultats contenant des Document types si la requête utilise POST avec X-Http-Method-Override: GET.
@@ -605,9 +604,9 @@ documentation:
       X-Http-Method-Override:
         description: Requis pour effectuer un GET avec une requête json en body.
         required: false
-        X-Tenant-Id:
+      X-Tenant-Id:
         required: true
-        X-Access-Contract-Id:
+      X-Access-Contract-Id:
         required: false
       Content-Type:
         description: Requis pour importer des document types.
@@ -633,9 +632,9 @@ documentation:
       is: [AdminTraits.AdminListingResponse, AdminTraits.AdminItemResponse]
       headers:
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
     put:
       description: |
         Requête qui modifie un Document type.
@@ -643,9 +642,9 @@ documentation:
       is: [AdminTraits.AdminUpload]
       headers:
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
 
 /securityprofiles:
   displayName: Security Profiles
@@ -694,10 +693,10 @@ documentation:
         X-Access-Contract-Id:
           required: false
     put:
-       description: |
+      description: |
         Requête qui modifie un Profil de sécurité.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
+      is: [AdminTraits.AdminUpload]
       headers:
         X-Tenant-Id:
           required: true
@@ -726,9 +725,9 @@ documentation:
       La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste d'Agencies selon le DSL Vitam en cas de succès.
     is: [AdminTraits.AdminListingResponse]
     headers:
-        X-Tenant-Id:
+      X-Tenant-Id:
         required: true
-        X-Access-Contract-Id:
+      X-Access-Contract-Id:
         required: false
   post:
     description: |
@@ -739,9 +738,9 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: false
-        X-Tenant-Id:
+      X-Tenant-Id:
         required: true
-        X-Access-Contract-Id:
+      X-Access-Contract-Id:
         required: false
 
   /{ida}:
@@ -759,9 +758,9 @@ documentation:
       is: [AdminTraits.AdminItemResponse]
       headers:
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
     post:
       description: |
         Retourne une liste d'Agencies contenant 1 seul résultat en cas de succès. La requête utilise POST avec X-Http-Method-Override: GET.
@@ -770,9 +769,9 @@ documentation:
         X-Http-Method-Override:
           required: true
         X-Tenant-Id:
-        required: true
+          required: true
         X-Access-Contract-Id:
-        required: false
+          required: false
 
 /agenciesfilecheck:
   displayName: FileAgencies check
