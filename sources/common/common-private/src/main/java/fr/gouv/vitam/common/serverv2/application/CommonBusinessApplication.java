@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.serverv2.application;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.RequestIdGeneratorContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
+import fr.gouv.vitam.common.serverv2.metrics.ContentLengthCountingMetricsFilter;
 import fr.gouv.vitam.common.serverv2.metrics.MetricsFeature;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -68,6 +70,14 @@ public class CommonBusinessApplication {
     }
 
     public CommonBusinessApplication(boolean externalApi) {
+        VitamMetricsConfiguration metricsConfiguration = new VitamMetricsConfiguration();
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
+            metricsConfiguration =
+                PropertiesUtils.readYaml(yamlIS, VitamMetricsConfiguration.class);
+        } catch (final IOException e) {
+            LOGGER.warn(e.getMessage());
+        }
+
         this.resources = new HashSet<>();
 
         if (externalApi) {
@@ -77,8 +87,11 @@ public class CommonBusinessApplication {
             resources.add(new HeaderIdContainerFilter());
         }
 
+        resources.add(new ContentLengthCountingMetricsFilter(metricsConfiguration.isEnableCountInputBytesMetrics(),
+            metricsConfiguration.isEnableCountOutputBytesMetrics()));
+
         resources.add(new GenericExceptionMapper());
-        clearAndconfigureMetrics();
+        clearAndConfigureMetrics(metricsConfiguration);
 
         startMetrics();
 
@@ -102,8 +115,8 @@ public class CommonBusinessApplication {
      * Clear the metrics map from any existing {@code VitamMetrics} and reload the configuration from the
      * {@code #METRICS_CONF_FILE_NAME}
      */
-    protected static final void clearAndconfigureMetrics() {
-        VitamMetricsConfiguration metricsConfiguration = new VitamMetricsConfiguration();
+    protected static final void clearAndConfigureMetrics(VitamMetricsConfiguration metricsConfiguration) {
+        ParametersChecker.checkParameter("The param metricsConfiguration is required", metricsConfiguration);
 
         metrics.clear();
         // Throws a JsonMappingException when the vitam.metrics.conf file is empty
@@ -113,7 +126,7 @@ public class CommonBusinessApplication {
             LOGGER.warn(e.getMessage());
         }
         VitamMetrics vitamMetrics;
-        if (metricsConfiguration.hasMetricsJersey()) {
+        if (metricsConfiguration.hasMetricsRest()) {
             vitamMetrics = new VitamMetrics(VitamMetricsType.REST, metricsConfiguration);
             new DropwizardExports(vitamMetrics.getRegistry()).register();
             metrics.put(VitamMetricsType.REST, vitamMetrics);

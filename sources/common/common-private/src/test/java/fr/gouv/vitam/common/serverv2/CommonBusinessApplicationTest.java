@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.common.serverv2;
 
-import java.util.Set;
-
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import org.junit.Assert;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import java.util.Set;
 
 public class CommonBusinessApplicationTest {
 
@@ -41,6 +40,6 @@ public class CommonBusinessApplicationTest {
         Assert.assertNotNull(applicationTest);
         Set<Object> set = applicationTest.getResources();
         Assert.assertNotNull(set);
-        Assert.assertEquals(2, set.size());
+        Assert.assertEquals(3, set.size());
     }
 }

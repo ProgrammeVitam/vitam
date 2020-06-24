@@ -910,11 +910,14 @@ public class ProcessDistributorImplTest {
 
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {
-            countDownLatchSubmit.countDown();
-            return getMockedItemStatus(StatusCode.OK);
+            try {
+                return getMockedItemStatus(StatusCode.OK);
+            } finally {
+                countDownLatchSubmit.countDown();
+            }
         });
 
-        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
+        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final ItemStatus[] itemStatus = new ItemStatus[1];
@@ -944,6 +947,10 @@ public class ProcessDistributorImplTest {
         ItemStatus is = itemStatus[0];
         assertThat(is).isNotNull();
         assertThat(is.getStatusMeter()).isNotNull();
-        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(9, 26);
+
+        int treatedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
+        AtomicLong processedElements = ((ProcessStep) step).getElementProcessed();
+        assertThat(treatedElements).isEqualTo(processedElements.get());
+        assertThat(processedElements.get()).isGreaterThanOrEqualTo(9);
     }
 }

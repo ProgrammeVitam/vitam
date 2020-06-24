@@ -26,19 +26,16 @@
  */
 package fr.gouv.vitam.common.serverv2.metrics;
 
-import java.io.IOException;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Timer;
-
-import fr.gouv.vitam.common.logging.SysErrLogger;
-
 /**
+ *
  */
 public class MetricsInterceptor implements ContainerRequestFilter, ContainerResponseFilter {
 
@@ -51,25 +48,19 @@ public class MetricsInterceptor implements ContainerRequestFilter, ContainerResp
         this.meter = meter;
     }
 
-
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext) {
         // Called when a request is received
         requestContext.setProperty(CONTEXT_KEY, timer.time());
         meter.mark();
     }
 
     @Override
-    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
-        throws IOException {
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
         // Called when the response is about to be sent back
-        try {
+        Object contextKey = requestContext.getProperty(CONTEXT_KEY);
+        if (null != contextKey && contextKey instanceof Timer.Context) {
             ((Timer.Context) requestContext.getProperty(CONTEXT_KEY)).stop();
-        } catch (NullPointerException | ClassCastException e) {
-            // Silently ignore this for now.
-            // KWA FIXME : is it really OK to discard all these exceptions ?
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
-        // KWA TODO: manage error codes here ?
     }
 }

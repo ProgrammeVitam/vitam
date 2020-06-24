@@ -29,11 +29,11 @@ package fr.gouv.vitam.common.alert;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
 
 /**
  * Security alert service implementation.
  * This service log the messages in a specific file using VitamLogger.
- *
  */
 public class AlertServiceImpl implements AlertService {
 
@@ -54,7 +54,12 @@ public class AlertServiceImpl implements AlertService {
 
     @Override
     public void createAlert(VitamLogLevel level, String message) {
-        LOGGER.log(level, message);
+        try {
+            LOGGER.log(level, message);
+        } finally {
+            VitamCommonMetrics.ALERT_SERVICE_COUNTER
+                .labels(level.name()).inc();
+        }
     }
 
 

@@ -156,6 +156,20 @@ logstash:
             max_log_file_size: "100MB"
             max_total_log_size: "5GB"
 
+# Prometheus params
+prometheus:
+    check_consul: 10 # in seconds
+    server:
+        enabled: true
+        port: 19090
+    node_exporter:
+        enabled: true
+        port: 19100
+        url_path: /metrics
+    alertmanager:
+        enabled: true
+        port: 19093
+
 # Curator units: days
 curator:
     log:

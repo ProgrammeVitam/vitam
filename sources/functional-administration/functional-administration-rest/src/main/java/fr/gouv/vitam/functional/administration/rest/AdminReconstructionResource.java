@@ -64,7 +64,7 @@ import java.util.List;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AdminReconstructionResource {
 
     /**
@@ -95,23 +95,25 @@ public class AdminReconstructionResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param reconstructionFactory
      * @param ontologyLoader
      */
-    public AdminReconstructionResource(AdminManagementConfiguration configuration, VitamRepositoryProvider reconstructionFactory, OntologyLoader ontologyLoader) {
+    public AdminReconstructionResource(AdminManagementConfiguration configuration,
+        VitamRepositoryProvider reconstructionFactory, OntologyLoader ontologyLoader) {
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =
-                    new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
-                            true, configuration.getDbUserName(), configuration.getDbPassword());
+                new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
+                    true, configuration.getDbUserName(), configuration.getDbPassword());
         } else {
             adminConfiguration =
-                    new DbConfigurationImpl(configuration.getMongoDbNodes(),
-                            configuration.getDbName());
+                new DbConfigurationImpl(configuration.getMongoDbNodes(),
+                    configuration.getDbName());
         }
         this.mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader);
-        this.reconstructionService = new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess));
+        this.reconstructionService =
+            new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess));
     }
 
     /**
@@ -189,12 +191,12 @@ public class AdminReconstructionResource {
         List<ReconstructionResponseItem> responses = new ArrayList<>();
         if (!reconstructionItems.isEmpty()) {
             LOGGER.debug(String
-                    .format("Starting reconstruction Vitam service with the json parameters : (%s)", reconstructionItems));
+                .format("Starting reconstruction Vitam service with the json parameters : (%s)", reconstructionItems));
 
             reconstructionItems.forEach(item -> {
                 LOGGER.debug(String.format(
-                        "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
-                        item.getCollection(), item.getTenant(), item.getLimit()));
+                    "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
+                    item.getCollection(), item.getTenant(), item.getLimit()));
                 try {
                     responses.add(reconstructionService.reconstruct(item));
                 } catch (IllegalArgumentException e) {

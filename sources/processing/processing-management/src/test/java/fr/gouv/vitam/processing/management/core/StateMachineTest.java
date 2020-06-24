@@ -26,12 +26,14 @@
  */
 package fr.gouv.vitam.processing.management.core;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
+import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -53,16 +55,21 @@ import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -640,7 +647,7 @@ public class StateMachineTest {
         processEngine.setStateMachineCallback(stateMachine);
         stateMachine.shutdown();
 
-        Assertions.assertThat(processWorkflow.getSteps().iterator().next().getPauseOrCancelAction()).isEqualTo(
+        assertThat(processWorkflow.getSteps().iterator().next().getPauseOrCancelAction()).isEqualTo(
             PauseOrCancelAction.ACTION_PAUSE);
 
         processDataAccess.clearWorkflow();
@@ -670,7 +677,7 @@ public class StateMachineTest {
 
         stateMachine.cancel();
 
-        Assertions.assertThat(processWorkflow.getSteps().iterator().next().getPauseOrCancelAction()).isEqualTo(
+        assertThat(processWorkflow.getSteps().iterator().next().getPauseOrCancelAction()).isEqualTo(
             PauseOrCancelAction.ACTION_CANCEL);
         processDataAccess.clearWorkflow();
     }
@@ -699,20 +706,377 @@ public class StateMachineTest {
 
         // when distributor respond with OK then processWorkflowStatus should be OK
         stateMachine.onUpdate(StatusCode.OK);
-        Assertions.assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
 
         stateMachine.onUpdate(StatusCode.FATAL);
-        Assertions.assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.FATAL);
 
         stateMachine.onUpdate(StatusCode.WARNING);
-        Assertions.assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
 
         stateMachine.onUpdate(StatusCode.KO);
-        Assertions.assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
 
         stateMachine.onUpdate(StatusCode.OK);
-        Assertions.assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
     }
 
 
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_new_process_workflow() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.UNKNOWN);
+
+        final ProcessStep processStep1 = mock(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
+        // Because not fatal we must have -1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(-1);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_first_step_status_started() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.STARTED);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
+        // Because of FATAL we replay the step 0
+        assertThat(stateMachine.getStepIndex()).isEqualTo(0);
+        verify(stateMachine.getCurrentStep()).setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_first_step_complete_status_fatal() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.FATAL);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
+        // Because of FATAL we replay the step 0
+        assertThat(stateMachine.getStepIndex()).isEqualTo(0);
+        verify(stateMachine.getCurrentStep(), atLeastOnce())
+            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_first_step_complete_status_ok() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
+        // Because of FATAL we replay the step 1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(1);
+        verify(stateMachine.getCurrentStep(), never()).setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_first_step_action_cancel() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.STARTED);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_CANCEL);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
+        // Because of FATAL we replay the step 1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(1);
+        verify(stateMachine.getCurrentStep(), never()).setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_first_step_action_pause() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_PAUSE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
+        // Because of FATAL we replay the step 0
+        assertThat(stateMachine.getStepIndex()).isEqualTo(0);
+        verify(stateMachine.getCurrentStep(), atLeastOnce())
+            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_last_step_status_started() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.STARTED);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
+        // Because of FATAL we replay the step 1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(1);
+        verify(stateMachine.getCurrentStep()).setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_last_step_complete_status_fatal() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.FATAL);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
+        // Because of FATAL we replay the step 1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(1);
+        verify(stateMachine.getCurrentStep(), atLeastOnce())
+            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_last_step_complete_status_ok() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
+        // Because of FATAL we replay the step 1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(1);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_last_step_action_cancel() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.STARTED);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_CANCEL);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
+        // Because of FATAL we replay the step 1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(1);
+        verify(stateMachine.getCurrentStep(), never()).setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_init_index_when_last_step_action_pause() {
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        // When new process workflow
+        final ProcessWorkflow processWorkflow = mock(ProcessWorkflow.class);
+        when(processWorkflow.getState()).thenReturn(ProcessState.PAUSE);
+        when(processWorkflow.getStatus()).thenReturn(StatusCode.FATAL);
+
+        final ProcessStep processStep1 = spy(ProcessStep.class);
+        when(processStep1.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep1.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep1.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_COMPLETE);
+
+        final ProcessStep processStep2 = mock(ProcessStep.class);
+        when(processStep2.getBehavior()).thenReturn(ProcessBehavior.BLOCKING);
+        when(processStep2.getStepStatusCode()).thenReturn(StatusCode.OK);
+        when(processStep2.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_PAUSE);
+
+        when(processWorkflow.getSteps()).thenReturn(Lists.newArrayList(processStep1, processStep2));
+
+        // When init state machine
+        StateMachine stateMachine = StateMachineFactory.get()
+            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
+                workspaceClientFactory);
+
+        assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
+        // Because of FATAL we replay the step 1
+        assertThat(stateMachine.getStepIndex()).isEqualTo(1);
+        verify(stateMachine.getCurrentStep(), atLeastOnce())
+            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+    }
 }

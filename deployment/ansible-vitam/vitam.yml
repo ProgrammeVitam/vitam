@@ -40,6 +40,16 @@
     - selinux_conf
     - syslogd
 
+### CHECK VITAM ONTOLOGY WHEN UPGRADE ###
+- hosts: hosts_functional_administration
+  gather_facts: no
+  any_errors_fatal: true
+  serial: 1
+  roles:
+    - check_ontologies
+  vars:
+    vitam_struct: "{{ vitam.functional_administration }}"
+
 ### CONSUL INSTALLATION ###
 - hosts: hosts_consul_server
   gather_facts: no
@@ -53,6 +63,16 @@
   any_errors_fatal: true
   roles:
     - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
+
+
+
+### PROMETHEUS NODE EXPORTER INSTALLATION OR UNINSTALL ###
+- hosts: vitam
+  gather_facts: no
+  any_errors_fatal: true
+  serial: 1
+  roles:
+    - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled == true )" }
 
 # ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts_elasticsearch_log
@@ -303,7 +323,6 @@
     - antivirus
     - create_upload_dir
     - vitam
-   #- {role: clamav, when: vitam_struct.antivirus=='clamav' }
   vars:
     vitam_struct: "{{ vitam.ingestexternal }}"
     password_keystore: "{{ keystores.server.ingest_external }}"

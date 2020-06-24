@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.conversions.Bson;
@@ -204,12 +205,16 @@ public class DbRequestHelper {
 
         // log synchronization errors between elasticSearch and MongoDB.
         listDesynchronizedResults.forEach(
-            x -> LOGGER.error(String.format(
-                CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S, x,
-                ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId())));
+            x -> {
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
+                LOGGER.error(String.format(
+                    CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S, x,
+                    ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
+            });
 
         // As soon as we detect a synchronization error MongoDB / ES, we return an error.
         if (!listDesynchronizedResults.isEmpty()) {
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
             throw new VitamDBException("[Consistency ERROR] : An internal data consistency error has been detected !");
         }
 

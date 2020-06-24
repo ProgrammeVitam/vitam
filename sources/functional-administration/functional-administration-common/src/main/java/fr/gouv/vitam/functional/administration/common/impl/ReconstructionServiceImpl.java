@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -70,10 +71,10 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import io.prometheus.client.Histogram;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -176,45 +177,59 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         }
         try {
             for (Integer tenant : tenants) {
-                // This is a hak, we must set manually the tenant is the VitamSession (used and transmitted in the headers)
-                VitamThreadUtils.getVitamSession().setTenantId(tenant);
-
-                // get the last version of the backup copies.
-                Optional<CollectionBackupModel> collectionBackup =
-                    recoverBuckupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), collection);
-
-                // reconstruct Vitam collection from the backup copy.
-                if (collectionBackup.isPresent()) {
-                    LOGGER.debug(String.format("Last backup copy version : %s", collectionBackup));
-
-                    // purge collection content
-                    if (collection.isMultitenant()) {
-                        mongoRepository.purge(tenant);
-                        elasticsearchRepository.purge(tenant);
-                    } else {
-                        mongoRepository.purge();
-                        elasticsearchRepository.purge();
-                    }
-
-                    // saving the sequence & backup sequence in mongoDB
-                    restoreSequence(sequenceRepository, collectionBackup.get().getSequence());
-                    restoreSequence(sequenceRepository, collectionBackup.get().getBackupSequence());
-
-                    // saving the backup collection in mongoDB and elasticSearch.
-                    mongoRepository.save(collectionBackup.get().getDocuments());
-                    elasticsearchRepository.save(collectionBackup.get().getDocuments());
-
-                    // log the recontruction of Vitam collection.
-                    LOGGER.debug(String
-                        .format(
-                            "[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
-                            collectionBackup, tenants, LocalDateUtil.now()));
-                }
+                reconstructByTenant(collection, mongoRepository, elasticsearchRepository, sequenceRepository, tenant,
+                    tenants);
             }
         } finally {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
 
+    }
+
+    private void reconstructByTenant(FunctionalAdminCollections collection, VitamMongoRepository mongoRepository,
+        VitamElasticsearchRepository elasticsearchRepository, VitamMongoRepository sequenceRepository, Integer tenant,
+        Integer[] tenants) throws DatabaseException {
+        final Histogram.Timer timer =
+            VitamCommonMetrics.RECONSTRUCTION_DURATION.labels(String.valueOf(tenant), collection.name())
+                .startTimer();
+        try {
+            // This is a hak, we must set manually the tenant in the VitamSession (used and transmitted in the headers)
+            VitamThreadUtils.getVitamSession().setTenantId(tenant);
+
+            // get the last version of the backup copies.
+            Optional<CollectionBackupModel> collectionBackup =
+                recoverBuckupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), collection);
+
+            // reconstruct Vitam collection from the backup copy.
+            if (collectionBackup.isPresent()) {
+                LOGGER.debug(String.format("Last backup copy version : %s", collectionBackup));
+
+                // purge collection content
+                if (collection.isMultitenant()) {
+                    mongoRepository.purge(tenant);
+                    elasticsearchRepository.purge(tenant);
+                } else {
+                    mongoRepository.purge();
+                    elasticsearchRepository.purge();
+                }
+
+                // saving the sequence & backup sequence in mongoDB
+                restoreSequence(sequenceRepository, collectionBackup.get().getSequence());
+                restoreSequence(sequenceRepository, collectionBackup.get().getBackupSequence());
+
+                // saving the backup collection in mongoDB and elasticSearch.
+                mongoRepository.save(collectionBackup.get().getDocuments());
+                elasticsearchRepository.save(collectionBackup.get().getDocuments());
+
+                // log the reconstruction of Vitam collection.
+                LOGGER.debug(String
+                    .format(
+                        "[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
+                        collectionBackup, tenants, LocalDateUtil.now()));
+            }
+        } finally {
+            timer.observeDuration();
+        }
     }
 
     /**
@@ -237,14 +252,24 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant",
                 reconstructionItem.getCollection(), reconstructionItem.getTenant()));
 
+        FunctionalAdminCollections collection = getCollection(reconstructionItem);
+
+        final Histogram.Timer timer = VitamCommonMetrics.RECONSTRUCTION_DURATION
+            .labels(String.valueOf(reconstructionItem.getTenant()), collection.name()).startTimer();
+        try {
+            return reconstructCollection(collection, reconstructionItem.getTenant(), reconstructionItem.getLimit());
+        } finally {
+            timer.observeDuration();
+        }
+    }
+
+    private FunctionalAdminCollections getCollection(ReconstructionRequestItem reconstructionItem) {
         if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase()
             .equals(reconstructionItem.getCollection().toLowerCase())) {
-            return reconstructCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-                reconstructionItem.getTenant(), reconstructionItem.getLimit());
+            return FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL;
         } else if (FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName().toLowerCase()
             .equals(reconstructionItem.getCollection().toLowerCase())) {
-            return reconstructCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
-                reconstructionItem.getTenant(), reconstructionItem.getLimit());
+            return FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC;
         } else {
             throw new IllegalArgumentException(
                 String.format("ERROR: Invalid collection {%s}", reconstructionItem.getCollection()));
@@ -262,7 +287,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     private ReconstructionResponseItem reconstructCollection(FunctionalAdminCollections collection, int tenant,
         int limit) {
 
-        final long offset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), collection.getName());
+        final long offset =
+            offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), collection.getName());
         ParametersChecker.checkParameter("Parameter collection is required.", collection);
         LOGGER.info(String
             .format(
@@ -350,7 +376,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
-            offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), collection.getName(), newOffset);
+            offsetRepository
+                .createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), collection.getName(), newOffset);
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;
@@ -475,7 +502,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         if (originatingAgencies.isEmpty()) {
             return;
         }
-        
+
         int originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         try {

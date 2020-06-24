@@ -2,7 +2,7 @@
 #
 #  Les différents clés disponibles pour ce fichier de configuration sont les suivantes :
 #
-#  metricsJersey: true / false	Active ou non les métriques Jersey
+#  metricsRest: true / false	Active ou non les métriques Jersey
 #  metricsJVM: true / false	Active ou non les métriques JVM
 #
 #  metricReporter: ELASTICSEARCH | LOGBACK | NONE			défini le type de reporter
@@ -21,7 +21,7 @@
 #  	- 8.8.8.8:22
 
 {% if (groups['hosts_elasticsearch_log'] | length) > 0  %}
-metricsJersey: true
+metricsRest: true
 metricsJVM: true
 
 metricReporter: ELASTICSEARCH

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.common.metrics;
 
 
+import fr.gouv.vitam.common.metrics.VitamMetricsNames;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import io.prometheus.client.Collector;
 import io.prometheus.client.Gauge;
@@ -61,8 +62,9 @@ public class ProcessWorkflowMetricsCollector extends Collector {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        Gauge processWorkflowMetricPerTypeStateAndStatus = Gauge.build("vitam_processing_workflow_operation_total",
-            "Vitam operation count per state and status").labelNames("workflow", "state", "status").create();
+        Gauge processWorkflowMetricPerTypeStateAndStatus =
+            Gauge.build(VitamMetricsNames.VITAM_PROCESSING_WORKFLOW_OPERATION_TOTAL,
+                "Vitam operation count per state and status").labelNames("workflow", "state", "status").create();
 
         for (Map<String, ProcessWorkflow> all : workflowMap.values()) {
             for (ProcessWorkflow wf : all.values()) {
