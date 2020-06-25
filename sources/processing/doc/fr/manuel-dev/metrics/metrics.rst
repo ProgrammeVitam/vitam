@@ -8,6 +8,8 @@ Dans ce qui suit la liste de métriques développées pour ce composant.
 .. note::
     Pour avoir plus d'informations sur la partie développement des métriques prometheus, veuillez vous référer à la documentation du composant **Common Cf. vitam-mertics.rst**
 
+.. warning::
+    La classe fr.gouv.vitam.common.metrics.VitamMetricsNames liste toutes les métriques prometheus. Si vous rajoutez une nouvelle métrique, pensez à mettre à jour cette classe.
 
 Liste des métriques
 *******************
@@ -64,8 +66,8 @@ Liste des métriques
 * vitam_processing_workflow_step_execution_duration_seconds:
     > C'est une métrique de type Histogram, elle calcule la durée d'exécution d'une step du point de vu ProcessEngine
     > Cette métrique dispose des labels ("workflow", "step_name")
-    > C'est, presque, la somme des durées vitam_processing_worker_task_execution_duration_seconds pour une step donnée. Si ce n'est pas la même valeur, ça veut dire qu'entre une tâche et une autre d'une même step, on peut avoir des temps d'attente causés par la concurrence entre opérations.
-    > Durée d'exécution moyenne par seconde par step name durant les 5 dernières minutes regroupées par step name
+    > C'est, presque, la somme des durées vitam_processing_worker_task_execution_duration_seconds pour une step donnée. Si ce n'est pas la même valeur, ça veut dire qu'entre tâche et une autre d'une même step, on peut avoir des temps d'attente causés par la concurrence entre opérations.
+    > Durée d'exécution moyenne par par seconde par step name durant les 5 dernières minutes regroupé par step name
         sum by (step_name) (rate(vitam_processing_workflow_step_execution_duration_seconds_sum[5m]) / rate(vitam_processing_workflow_step_execution_duration_seconds_count[5m]))
     > Exemple de 95 percentile sur la somme des moyennes par seconde sur les 5 dernières minutes regroupées par bucket
         histogram_quantile(0.95, sum(rate(vitam_processing_workflow_step_execution_duration_seconds_bucket[5m])) by (le))

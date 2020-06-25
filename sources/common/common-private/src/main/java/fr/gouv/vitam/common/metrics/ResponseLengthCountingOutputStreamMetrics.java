@@ -35,7 +35,6 @@ import io.prometheus.client.Summary;
 import org.apache.commons.io.output.CountingOutputStream;
 
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -45,8 +44,8 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
 
     public static final Summary SENT_BYTES = Summary.build()
         .name(VitamMetricsNames.VITAM_RESPONSES_SIZE_BYTES)
-        .labelNames("tenant", "strategy", "method")
-        .help("Vitam responses size in bytes per tenant, strategy and method")
+        .labelNames("tenant", "method")
+        .help("Vitam responses size in bytes per tenant and method")
         .register();
 
     private final ContainerRequestContext requestContext;
@@ -74,13 +73,10 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
             String headerString = requestContext.getHeaderString(GlobalDataRest.X_TENANT_ID);
             String tenant = headerString == null ? "unknown_tenant" : headerString;
 
-            String strategyHeader = requestContext.getHeaderString(GlobalDataRest.X_STRATEGY_ID);
-            String strategy = strategyHeader == null ? "unknown_strategy" : strategyHeader;
-
             String method = requestContext.getMethod();
 
             SENT_BYTES
-                .labels(tenant, strategy, method)
+                .labels(tenant, method)
                 .observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);

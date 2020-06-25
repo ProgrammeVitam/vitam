@@ -32,18 +32,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.model.storage.ObjectEntry;
-import fr.gouv.vitam.common.retryable.DelegateRetry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.retryable.Retryable;
-import fr.gouv.vitam.common.retryable.RetryableOnException;
-import fr.gouv.vitam.common.retryable.RetryableOnResult;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -53,7 +48,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.retryable.DelegateRetry;
+import fr.gouv.vitam.common.retryable.Retryable;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
+import fr.gouv.vitam.common.retryable.RetryableOnResult;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
@@ -82,6 +82,8 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.metrics.DownloadCountingSizeMetricsResponse;
+import fr.gouv.vitam.storage.engine.common.metrics.UploadCountingInputStreamMetrics;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -156,6 +158,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         StorageStrategyProviderFactory.getDefaultProvider();
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
+    public static final String NORMAL_ORIGIN = "normal";
+    public static final String COPY_OBJECT_ORIGIN = "copy_object";
 
     private final RetryableParameters retryableParameters = new RetryableParameters(3, 5, 10, 5, SECONDS);
 
@@ -272,8 +276,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         Response resp = null;
         try {
             // load the object/file from the given offer
-            resp = getContainerByCategory(context.getStrategyId(), context.getObjectId(), context.getCategory(),
-                sourceOffer);
+            resp = getContainerByCategory(context.getStrategyId(), COPY_OBJECT_ORIGIN, context.getObjectId(),
+                context.getCategory(), sourceOffer);
 
             if (resp == null) {
                 throw new StorageTechnicalException(
@@ -290,7 +294,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
             if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
 
-                return storeDataInOffers(context.getStrategyId(), context.getObjectId(), context.getCategory(),
+                return storeDataInOffers(context.getStrategyId(), NORMAL_ORIGIN, context.getObjectId(),
+                    context.getCategory(),
                     context.getRequester(), singletonList(destinationOffer), resp);
             }
         } finally {
@@ -308,7 +313,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         DelegateRetry<StorageLogbookParameters, StorageException> delegate = () -> {
             try (StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description)) {
-                return sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt.incrementAndGet(),
+                return sendDataToOffers(streamAndInfo, dataContext, offersParams, NORMAL_ORIGIN,
+                    attempt.incrementAndGet(),
                     needToRetry);
             } catch (StorageNotFoundException e) {
                 // File not found in the workspace
@@ -325,7 +331,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public StoredInfoResult storeDataInOffers(String strategyId, String objectId, DataCategory category,
+    public StoredInfoResult storeDataInOffers(String strategyId, String origin, String objectId, DataCategory category,
         String requester,
         List<String> offerIds, Response response)
         throws StorageException {
@@ -334,12 +340,13 @@ public class StorageDistributionImpl implements StorageDistribution {
         Long size = Long.valueOf(response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
 
         try (StreamAndInfo streamAndInfo = new StreamAndInfo(new VitamAsyncInputStream(response), size)) {
-            return this.storeDataInOffers(strategyId, streamAndInfo, objectId, category, requester, offerIds);
+            return this.storeDataInOffers(strategyId, origin, streamAndInfo, objectId, category, requester, offerIds);
         }
     }
 
     @Override
-    public StoredInfoResult storeDataInOffers(String strategyId, StreamAndInfo streamAndInfo, String objectId,
+    public StoredInfoResult storeDataInOffers(String strategyId, String origin, StreamAndInfo streamAndInfo,
+        String objectId,
         DataCategory category, String requester,
         List<String> offerIds)
         throws StorageException {
@@ -378,7 +385,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         //try only once
         StorageLogbookParameters parameters =
-            sendDataToOffers(streamAndInfo, dataContext, offersToCopyIn, 1, new AtomicBoolean(false));
+            sendDataToOffers(streamAndInfo, dataContext, offersToCopyIn, origin, 1, new AtomicBoolean(false));
 
         try {
             logStorage(tenantId, parameters);
@@ -406,7 +413,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private StorageLogbookParameters startCopyToOffers(DataContext dataContext, OffersToCopyIn data,
-        int attempt, Long size, Digest globalDigest, MultiplePipedInputStream streams,
+        final String origin, int attempt, Long size, Digest globalDigest, MultiplePipedInputStream streams,
         Map<String, Future<ThreadResponseData>> futureMap) {
         String offerIdString = null;
         StorageLogbookParameters parameters = null;
@@ -417,10 +424,15 @@ public class StorageDistributionImpl implements StorageDistribution {
                 OfferReference offerReference = new OfferReference(offerIdString);
                 final Driver driver = retrieveDriverInternal(offerIdString);
                 InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
+                InputStream offerInputStream =
+                    new UploadCountingInputStreamMetrics(dataContext.getTenantId(), dataContext.getStrategyId(),
+                        offerIdString, origin, dataContext.getCategory(), attempt, inputStream);
+
+
                 StoragePutRequest request =
                     new StoragePutRequest(dataContext.getTenantId(), dataContext.getCategory().getFolder(),
                         dataContext.getObjectId(), digestType.getName(),
-                        inputStream);
+                        offerInputStream);
                 futureMap.put(offerIdString,
                     executor.submit(new TransferThread(driver, offerReference, request, globalDigest,
                         size)));
@@ -509,7 +521,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         Map<String, String> objectDigests =
             bulkStorageDistribution
-                .bulkCreateFromWorkspaceWithRetries(tenantId, offerIds, storageDrivers, storageOffers,
+                .bulkCreateFromWorkspaceWithRetries(strategyId, tenantId, offerIds, storageDrivers, storageOffers,
                     bulkObjectStoreRequest.getType(), bulkObjectStoreRequest.getWorkspaceContainerGUID(),
                     bulkObjectStoreRequest.getWorkspaceObjectURIs(), bulkObjectStoreRequest.getObjectNames(),
                     requester);
@@ -531,7 +543,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private StorageLogbookParameters sendDataToOffers(StreamAndInfo streamAndInfo,
-        DataContext dataContext, OffersToCopyIn offersParams, final int attempt,
+        DataContext dataContext, OffersToCopyIn offersParams, final String origin, final int attempt,
         AtomicBoolean needToRetry)
         throws StorageTechnicalException {
         StorageLogbookParameters parameters;
@@ -549,7 +561,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             TimeoutStopwatch timeoutStopwatch = new TimeoutStopwatch(finalTimeout);
 
             parameters =
-                startCopyToOffers(dataContext, offersParams, attempt,
+                startCopyToOffers(dataContext, offersParams, origin, attempt,
                     streamAndInfo.getSize(), globalDigest, streams, futureMap);
 
             // wait for all threads execution
@@ -1075,17 +1087,18 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public Response getContainerByCategory(String strategyId, String objectId, DataCategory category,
+    public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
         AccessLogInfoModel logInformation)
         throws StorageException {
-        return getContainerByCategoryResponse(strategyId, objectId, category, null, logInformation);
+        return getContainerByCategoryResponse(strategyId, origin, objectId, category, null, logInformation);
     }
 
     @Override
-    public Response getContainerByCategory(String strategyId, String objectId, DataCategory category, String
-        offerId)
+    public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
+        String
+            offerId)
         throws StorageException {
-        return getContainerByCategoryResponse(strategyId, objectId, category, offerId,
+        return getContainerByCategoryResponse(strategyId, origin, objectId, category, offerId,
             AccessLogUtils.getNoLogAccessLog());
     }
 
@@ -1093,12 +1106,14 @@ public class StorageDistributionImpl implements StorageDistribution {
      * getContainerByCategoryResponse.
      *
      * @param strategyId strategyId
+     * @param origin origin
      * @param objectId objectId
      * @param category category
      * @return Response
      * @throws StorageException the exception
      */
-    private Response getContainerByCategoryResponse(String strategyId, String objectId, DataCategory category,
+    private Response getContainerByCategoryResponse(String strategyId, String origin, String objectId,
+        DataCategory category,
         String offerId, AccessLogInfoModel logInformation)
         throws StorageException {
 
@@ -1147,9 +1162,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
         }
 
-        final StorageGetResult result =
-            getObjectResult(tenantId, objectId, category, storageOffers);
-        return result.getObject();
+        return getObjectResult(tenantId, strategyId, origin, objectId, category, storageOffers);
     }
 
     /**
@@ -1172,13 +1185,16 @@ public class StorageDistributionImpl implements StorageDistribution {
      * getObjectResult.
      *
      * @param tenantId tenantId
+     * @param strategyId strategyId
+     * @param origin origin
      * @param objectId objectID
      * @param type type
      * @param storageOffers storageOffer
      * @return StorageGetResult
      * @throws StorageException the exception
      */
-    private StorageGetResult getObjectResult(Integer tenantId, String objectId, DataCategory type,
+    private Response getObjectResult(Integer tenantId, String strategyId, String origin, String objectId,
+        DataCategory type,
         List<StorageOffer> storageOffers)
 
         throws StorageException {
@@ -1190,8 +1206,11 @@ public class StorageDistributionImpl implements StorageDistribution {
             try (Connection connection = driver.connect(storageOffer.getId())) {
                 final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
                 result = connection.getObject(request);
-                if (result.getObject() != null) {
-                    return result;
+
+                Response response = result.getObject();
+                if (response != null) {
+                    return new DownloadCountingSizeMetricsResponse(tenantId, strategyId, storageOffer.getId(), origin,
+                        type, response);
                 }
             } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
                 LOGGER.warn(ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY, exc);

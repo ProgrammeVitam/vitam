@@ -26,9 +26,9 @@ Liste des métriques
 
 Exploitation des métriques
 ==========================
-L'exploitation de ces métriques à des fins de visualisation ou d'alerting est de la responsabilité d'un collection externe de métriques.
+L'exploitation de ces métriques à des fins de visualisation ou d'alerting est de la responsabilité d'un collecteur externe de métriques.
 A ce jour, le serveur prometheus avec une bonne configuration permet d'exploiter ces métriques.
 
 .. note::
-    Veuillez vous référer au manuel de développement pour avoir plus d'information et de détail sur chacune de ces métriques
+    Veuillez vous référer au manuel de développement pour avoir plus d'information et de détails sur chacune de ces métriques
     Veuillez vous référer à la documentation d'exploitation pour savoir comment exploiter ces métriques, exemple d'utilisation, alerting, et visualisation
