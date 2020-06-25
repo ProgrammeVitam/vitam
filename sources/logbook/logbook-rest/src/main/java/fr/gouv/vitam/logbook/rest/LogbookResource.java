@@ -482,44 +482,56 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperation(JsonNode query) {
+        return selectOperation(query, false);
+    }
+
+    @GET
+    @Path("/slicedOperations")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectOperationSliced(JsonNode query) {
+        return selectOperation(query, true);
+    }
+
+    private Response selectOperation(JsonNode query, boolean sliced) {
         Status status;
         try {
-            final RequestResponse<LogbookOperation> result = logbookOperation.selectOperations(query);
+            final RequestResponse<LogbookOperation> result = logbookOperation.selectOperations(query, sliced);
 
             return Response.status(Status.OK)
-                .entity(result
-                    .setHttpCode(Status.OK.getStatusCode()))
-                .build();
+                    .entity(result
+                            .setHttpCode(Status.OK.getStatusCode()))
+                    .build();
         } catch (final VitamDBException ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState(CODE_VITAM)
-                    .setMessage(ve.getMessage())
-                    .setDescription(status.getReasonPhrase()))
-                .build();
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(LOGBOOK)
+                            .setState(CODE_VITAM)
+                            .setMessage(ve.getMessage())
+                            .setDescription(status.getReasonPhrase()))
+                    .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
-        } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(LOGBOOK)
+                            .setState("code_vitam")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription(exc.getMessage()))
+                    .build();
+        } catch (final IllegalArgumentException | LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(LOGBOOK)
+                            .setState("code_vitam")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription(exc.getMessage()))
+                    .build();
         }
     }
 
