@@ -88,6 +88,8 @@ import static org.mockito.Mockito.mock;
 public class BulkPutTransferManagerTest {
 
     private static final String WORKSPACE_CONTAINER = "workspaceContainer";
+    private static final String STRATEGY = "default";
+    private static final int ATTEMPT = 1;
     private static final int TENANT_ID = 2;
     private static final DataCategory DATA_CATEGORY = DataCategory.UNIT;
 
@@ -187,7 +189,7 @@ public class BulkPutTransferManagerTest {
         doReturn(storageBulkPutResult).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
@@ -225,7 +227,7 @@ public class BulkPutTransferManagerTest {
             .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
@@ -258,7 +260,7 @@ public class BulkPutTransferManagerTest {
             .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
@@ -295,7 +297,7 @@ public class BulkPutTransferManagerTest {
             .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
@@ -341,7 +343,7 @@ public class BulkPutTransferManagerTest {
         doThrow(new StorageDriverException("", "", true)).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
@@ -392,7 +394,7 @@ public class BulkPutTransferManagerTest {
         doThrow(StorageDriverPreconditionFailedException.class).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
@@ -447,7 +449,7 @@ public class BulkPutTransferManagerTest {
         doReturn(2000L).when(transfertTimeoutHelper).getTransferTimeout(anyLong());
 
         // When
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then
@@ -505,7 +507,7 @@ public class BulkPutTransferManagerTest {
         doThrow(new StorageDriverException("driver", "ko", true)).when(connection2).bulkPutObjects(any());
 
         // When / Then
-        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
 
         // Then

@@ -25,36 +25,30 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.common.metrics;
+package fr.gouv.vitam.storage.engine.common.metrics;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import io.prometheus.client.Summary;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.io.input.CountingInputStream;
 
-import javax.ws.rs.container.ContainerRequestContext;
 import java.io.InputStream;
 
-public class RequestLengthCountingInputStreamMetrics extends CountingInputStream {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(RequestLengthCountingInputStreamMetrics.class);
-
-    public static final Summary RECEIVED_BYTES = Summary.build()
-        .name(VitamMetricsNames.VITAM_REQUESTS_SIZE_BYTES)
-        .labelNames("tenant", "method")
-        .help("Vitam requests size in bytes per tenant and method")
-        .register();
-
-    private final ContainerRequestContext requestContext;
-
+abstract class AbstractCountingInputStreamMetrics extends CountingInputStream {
+    protected final String tenant;
+    protected final String strategy;
+    protected final String offerId;
+    protected final String origin;
+    protected final String dataCategory;
     private boolean first = true;
 
-    public RequestLengthCountingInputStreamMetrics(ContainerRequestContext requestContext, InputStream inputStream) {
+    public AbstractCountingInputStreamMetrics(Integer tenant, String strategy, String offerId, String origin,
+        DataCategory dataCategory, InputStream inputStream) {
         super(inputStream);
-        ParametersChecker.checkParameter("RequestContext param is required", requestContext);
-        this.requestContext = requestContext;
+
+        this.tenant = tenant != null ? String.valueOf(tenant) : "unknown_tenant";
+        this.strategy = strategy != null ? strategy : "unknown_strategy";
+        this.offerId = offerId != null ? offerId : "unknown_offer";
+        this.origin = origin != null ? origin : "unknown_origin";
+        this.dataCategory = dataCategory != null ? dataCategory.name() : "unknown_data_category";
     }
 
     @Override
@@ -67,18 +61,5 @@ public class RequestLengthCountingInputStreamMetrics extends CountingInputStream
         super.afterRead(n);
     }
 
-    private void onEndOfFileReached() {
-        try {
-            String headerString = requestContext.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            String tenant = headerString == null ? "unknown_tenant" : headerString;
-
-            String method = requestContext.getMethod();
-
-            RECEIVED_BYTES
-                .labels(tenant, method)
-                .observe(super.getByteCount());
-        } catch (Exception e) {
-            LOGGER.warn(e);
-        }
-    }
+    protected abstract void onEndOfFileReached();
 }

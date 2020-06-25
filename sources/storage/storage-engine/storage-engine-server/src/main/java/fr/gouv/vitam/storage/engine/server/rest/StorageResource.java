@@ -88,8 +88,8 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.output.CloseShieldOutputStream;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang.BooleanUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -126,10 +126,11 @@ import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.ARCHIVAL_TRANSFER_REPLY;
+import static fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl.NORMAL_ORIGIN;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/storage/v1")
-@Tag(name="Storage")
+@Tag(name = "Storage")
 public class StorageResource extends ApplicationStatusResource implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";
@@ -277,8 +278,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
             List<String> offerIds = Arrays.asList(listOffer.split(","));
 
-            StoredInfoResult storedInfoResult = distribution.storeDataInOffers(strategyId, streamAndInfo, operationId,
-                category, remoteAddress, offerIds);
+            StoredInfoResult storedInfoResult =
+                distribution.storeDataInOffers(strategyId, NORMAL_ORIGIN, streamAndInfo, operationId,
+                    category, remoteAddress, offerIds);
             return Response.ok().entity(storedInfoResult).build();
         } catch (final StorageException e) {
             LOGGER.error(e);
@@ -574,7 +576,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId, VitamCode vitamCode, AccessLogInfoModel logInformation)
         throws StorageException {
         if (vitamCode == null) {
-            return distribution.getContainerByCategory(strategyId, objectId, category, logInformation);
+            return distribution
+                .getContainerByCategory(strategyId, StorageDistributionImpl.NORMAL_ORIGIN, objectId, category,
+                    logInformation);
         }
         return buildErrorResponse(vitamCode);
     }

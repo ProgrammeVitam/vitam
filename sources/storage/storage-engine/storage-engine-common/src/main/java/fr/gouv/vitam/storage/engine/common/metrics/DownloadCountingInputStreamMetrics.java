@@ -25,57 +25,36 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.common.metrics;
+package fr.gouv.vitam.storage.engine.common.metrics;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.metrics.VitamMetricsNames;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import io.prometheus.client.Summary;
-import org.apache.commons.io.input.CountingInputStream;
 
-import javax.ws.rs.container.ContainerRequestContext;
 import java.io.InputStream;
 
-public class RequestLengthCountingInputStreamMetrics extends CountingInputStream {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(RequestLengthCountingInputStreamMetrics.class);
+public class DownloadCountingInputStreamMetrics extends AbstractCountingInputStreamMetrics {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DownloadCountingInputStreamMetrics.class);
 
-    public static final Summary RECEIVED_BYTES = Summary.build()
-        .name(VitamMetricsNames.VITAM_REQUESTS_SIZE_BYTES)
-        .labelNames("tenant", "method")
-        .help("Vitam requests size in bytes per tenant and method")
+    public static final Summary DOWNLOAD_BYTES = Summary.build()
+        .name(VitamMetricsNames.VITAM_STORAGE_DOWNLOAD_SIZE_BYTES)
+        .labelNames("tenant", "strategy", "offer_id", "origin", "data_category")
+        .help(
+            "Vitam storage download objects from offers size in bytes per tenant, strategy, offer_id, origin of request  (normal, traceability, offer_sync) and data_category")
         .register();
 
-    private final ContainerRequestContext requestContext;
-
-    private boolean first = true;
-
-    public RequestLengthCountingInputStreamMetrics(ContainerRequestContext requestContext, InputStream inputStream) {
-        super(inputStream);
-        ParametersChecker.checkParameter("RequestContext param is required", requestContext);
-        this.requestContext = requestContext;
+    public DownloadCountingInputStreamMetrics(Integer tenant, String strategy, String offerId, String origin,
+        DataCategory dataCategory, InputStream inputStream) {
+        super(tenant, strategy, offerId, origin, dataCategory, inputStream);
     }
 
     @Override
-    protected void afterRead(int n) {
-        if (n == -1 && first) {
-            first = false;
-
-            onEndOfFileReached();
-        }
-        super.afterRead(n);
-    }
-
-    private void onEndOfFileReached() {
+    protected void onEndOfFileReached() {
         try {
-            String headerString = requestContext.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            String tenant = headerString == null ? "unknown_tenant" : headerString;
-
-            String method = requestContext.getMethod();
-
-            RECEIVED_BYTES
-                .labels(tenant, method)
+            DOWNLOAD_BYTES
+                .labels(super.tenant, strategy, offerId, origin, dataCategory)
                 .observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);

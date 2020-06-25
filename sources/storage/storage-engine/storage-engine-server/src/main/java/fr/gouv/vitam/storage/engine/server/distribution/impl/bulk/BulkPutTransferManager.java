@@ -48,6 +48,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
 import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
+import fr.gouv.vitam.storage.engine.common.metrics.UploadCountingInputStreamMetrics;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
@@ -81,6 +82,7 @@ import static java.util.stream.Collectors.toMap;
 class BulkPutTransferManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BulkPutTransferManager.class);
+    public static final String BULK_ORIGIN = "bulk";
 
     private final WorkspaceClientFactory workspaceClientFactory;
     private final DigestType digestType;
@@ -88,7 +90,8 @@ class BulkPutTransferManager {
     private final ExecutorService executor;
     private final TransfertTimeoutHelper transfertTimeoutHelper;
 
-    BulkPutTransferManager(WorkspaceClientFactory workspaceClientFactory, TransfertTimeoutHelper transfertTimeoutHelper) {
+    BulkPutTransferManager(WorkspaceClientFactory workspaceClientFactory,
+        TransfertTimeoutHelper transfertTimeoutHelper) {
         this(workspaceClientFactory, VitamConfiguration.getDefaultDigestType(), new AlertServiceImpl(),
             VitamThreadPoolExecutor.getDefaultExecutor(),
             transfertTimeoutHelper);
@@ -104,7 +107,7 @@ class BulkPutTransferManager {
         this.transfertTimeoutHelper = transfertTimeoutHelper;
     }
 
-    BulkPutResult bulkSendDataToOffers(String workspaceContainerGUID, int tenantId,
+    BulkPutResult bulkSendDataToOffers(String workspaceContainerGUID, String strategyId, int attempts, int tenantId,
         DataCategory dataCategory, List<String> offerIds, Map<String, Driver> storageDrivers,
         Map<String, StorageOffer> storageOffers, List<String> workspaceObjectURIs,
         List<String> objectIds) {
@@ -136,7 +139,7 @@ class BulkPutTransferManager {
             streams =
                 new MultiplePipedInputStream(prependedStreamWithInfo.getResult().getStream(), offerIds.size() + 1);
 
-            transferThreadFutures = startTransferThreads(tenantId, dataCategory, objectIds, offerIds, storageDrivers,
+            transferThreadFutures = startTransferThreads(strategyId, attempts, tenantId, dataCategory, objectIds, offerIds, storageDrivers,
                 storageOffers, streams, prependedStreamWithInfo.getResult().getSize());
 
             digestListenerFuture = startDigestComputeThread(offerIds, streams, objectIds);
@@ -146,10 +149,10 @@ class BulkPutTransferManager {
                 prependedStreamWithInfo.getResult().getSize());
             TimeoutStopwatch timeoutStopwatch = new TimeoutStopwatch(finalTimeout);
 
-            ResultOrError<List<ObjectInfo>, BulkPutResult> objectInfos = awaitDigestListenerThread(digestListenerFuture,
+            ResultOrError<List<ObjectInfo>, BulkPutResult> objectInfo = awaitDigestListenerThread(digestListenerFuture,
                 timeoutStopwatch, offerIds);
-            if (objectInfos.hasError()) {
-                return objectInfos.getError();
+            if (objectInfo.hasError()) {
+                return objectInfo.getError();
             }
 
             HashMap<String, OfferBulkPutStatus> statusByOfferIds = new HashMap<>();
@@ -159,11 +162,11 @@ class BulkPutTransferManager {
                 Future<StorageBulkPutResult> transferThreadFuture = transferThreadFutures.get(rank);
 
                 OfferBulkPutStatus status =
-                    awaitTransferThread(timeoutStopwatch, objectInfos.getResult(), offerId, transferThreadFuture);
+                    awaitTransferThread(timeoutStopwatch, objectInfo.getResult(), offerId, transferThreadFuture);
 
                 statusByOfferIds.put(offerId, status);
             }
-            return new BulkPutResult(objectInfos.getResult(), statusByOfferIds);
+            return new BulkPutResult(objectInfo.getResult(), statusByOfferIds);
 
         } finally {
 
@@ -233,19 +236,22 @@ class BulkPutTransferManager {
             streams.getInputStream(offerIds.size()), digestType, objectIds));
     }
 
-    private List<Future<StorageBulkPutResult>> startTransferThreads(int tenantId, DataCategory type,
+    private List<Future<StorageBulkPutResult>> startTransferThreads(String strategyId, int attempts, int tenantId, DataCategory dataCategory,
         List<String> objectIds, List<String> offerIds, Map<String, Driver> storageDrivers, Map<String, StorageOffer>
         storageOffers, MultiplePipedInputStream streams, long size) {
         List<Future<StorageBulkPutResult>> transferThreadFutures = new ArrayList<>();
         for (int rank = 0; rank < offerIds.size(); rank++) {
 
-            InputStream offerInputStream = new BufferedInputStream(streams.getInputStream(rank));
             String offerId = offerIds.get(rank);
             Driver driver = storageDrivers.get(offerId);
             StorageOffer storageOffer = storageOffers.get(offerId);
 
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(streams.getInputStream(rank));
+            InputStream offerInputStream =
+                new UploadCountingInputStreamMetrics(tenantId, strategyId, offerId, BULK_ORIGIN, dataCategory, attempts , bufferedInputStream);
+
             transferThreadFutures.add(executor.submit(
-                new MultiplexedStreamTransferThread(tenantId, type, objectIds, offerInputStream, size, driver,
+                new MultiplexedStreamTransferThread(tenantId, dataCategory, objectIds, offerInputStream, size, driver,
                     storageOffer, this.digestType)));
         }
         return transferThreadFutures;

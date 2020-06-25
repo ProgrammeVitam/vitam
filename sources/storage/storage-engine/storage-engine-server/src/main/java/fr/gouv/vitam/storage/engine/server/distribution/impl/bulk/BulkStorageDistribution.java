@@ -73,7 +73,7 @@ public class BulkStorageDistribution {
         this.bulkPutTransferManager = bulkPutTransferManager;
     }
 
-    public Map<String, String> bulkCreateFromWorkspaceWithRetries(int tenantId,
+    public Map<String, String> bulkCreateFromWorkspaceWithRetries(String strategyId, int tenantId,
         List<String> allOfferIds, Map<String, Driver> storageDrivers,
         Map<String, StorageOffer> storageOffers,
         DataCategory dataCategory, String workspaceContainerGUID,
@@ -90,7 +90,7 @@ public class BulkStorageDistribution {
             for (int attempt = 1; attempt <= nbReties; attempt++) {
 
                 BulkPutResult bulkOutResult =
-                    bulkPutTransferManager.bulkSendDataToOffers(workspaceContainerGUID, tenantId,
+                    bulkPutTransferManager.bulkSendDataToOffers(workspaceContainerGUID, strategyId, attempt, tenantId,
                         dataCategory, remainingOfferIds, storageDrivers, storageOffers, workspaceObjectURIs, objectIds);
 
                 if (bulkOutResult.getObjectInfos() != null) {
