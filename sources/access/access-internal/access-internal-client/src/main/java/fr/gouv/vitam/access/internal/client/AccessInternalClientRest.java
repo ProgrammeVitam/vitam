@@ -86,6 +86,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String BLANK_TRACEABILITY_OPERATION_ID = "traceability operation identifier should be filled";
 
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
+    private static final String LOGBOOK_SLICED_OPERATIONS_URL = "/slicedOperations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
     private static final String LOGBOOK_CHECK = "/traceability/check";
@@ -236,6 +237,19 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OPERATIONS_URL).withBody(select, "Select cannot be empty or null.").withJson())) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException e) {
+            throw new InvalidParseOperationException(e);
+        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
+            throw new LogbookClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectOperationSliced(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_SLICED_OPERATIONS_URL).withBody(select, "Select cannot be empty or null.").withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {

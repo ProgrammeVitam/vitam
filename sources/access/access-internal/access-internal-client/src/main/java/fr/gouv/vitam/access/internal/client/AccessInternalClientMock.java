@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.MediaType;
@@ -126,6 +127,11 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
         throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults());
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override

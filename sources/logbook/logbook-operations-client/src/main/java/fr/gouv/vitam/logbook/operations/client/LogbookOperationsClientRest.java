@@ -63,6 +63,7 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final String OPERATIONS_URL = "/operations";
+    private static final String OPERATIONS_SLICED_URL = "/slicedOperations";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -95,6 +96,16 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     @Override
     public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         try (Response response = make(get().withPath(OPERATIONS_URL).withBody(select).withJson())) {
+            check(response);
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        }
+    }
+
+    @Override
+    public JsonNode selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+        try (Response response = make(get().withPath(OPERATIONS_SLICED_URL).withBody(select).withJson())) {
             check(response);
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (VitamClientInternalException e) {
