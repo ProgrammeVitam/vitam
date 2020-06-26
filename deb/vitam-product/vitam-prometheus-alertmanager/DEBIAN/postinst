@@ -1,0 +1,20 @@
+#!/bin/bash
+
+chmod 750 -R /vitam/conf/alertmanager
+chown -R vitam:vitam /vitam/conf/alertmanager
+chmod 644 /vitam/conf/alertmanager/alertmanager.yml
+chmod 640 /vitam/conf/alertmanager/sysconfig/alertmanager
+
+chmod 750 /vitam/bin/alertmanager
+chmod 755 /vitam/bin/alertmanager/alertmanager
+chmod 755 /vitam/bin/alertmanager/amtool
+
+chown -R vitam:vitam /vitam/bin/alertmanager
+
+chmod 750 /vitam/app/alertmanager
+chown -R vitam:vitam /vitam/app/alertmanager
+
+chmod 755 /vitam/data/alertmanager
+chown -R vitam:vitam /vitam/data/alertmanager
+
+systemctl daemon-reload

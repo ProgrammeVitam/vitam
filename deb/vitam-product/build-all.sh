@@ -32,7 +32,7 @@ if [ ! -d ${WORKING_FOLDER}/target ]; then
 	mkdir -p ${WORKING_FOLDER}/target
 fi
 
-for item in $(ls -d ${WORKING_FOLDER}/*/ | grep -v "target" |grep -v _v2 | awk -F "/" '{print $(NF-1)}'); do
+for item in $(ls -d ${WORKING_FOLDER}/*/ | grep -v "target" | grep -v "sources" |grep -v _v2 | awk -F "/" '{print $(NF-1)}'); do
 	# Need to give the target folder relatively to the base folder...
 	echo ${item}
 	${WORKING_FOLDER}/build-generic.sh ${item} target
@@ -50,3 +50,5 @@ echo "vitam-siegfried"
 ${WORKING_FOLDER}/build-siegfried.sh
 echo "Elasticsearch analysis-icu"
 ${WORKING_FOLDER}/build-elasticsearch-icu.sh
+echo "Prometheus stack"
+${WORKING_FOLDER}/build-prometheus-stack.sh

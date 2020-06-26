@@ -1,0 +1,20 @@
+#!/bin/bash
+
+chmod 750 -R /vitam/conf/prometheus
+chown -R vitam:vitam /vitam/conf/prometheus
+chmod 644 /vitam/conf/prometheus/prometheus.yml
+chmod 640 /vitam/conf/prometheus/sysconfig/prometheus
+
+chmod 750 /vitam/bin/prometheus
+chmod 755 /vitam/bin/prometheus/prometheus
+chmod 755 /vitam/bin/prometheus/promtool
+chmod 755 /vitam/bin/prometheus/tsdb
+chown -R vitam:vitam /vitam/bin/prometheus
+
+chmod 750 /vitam/app/prometheus
+chown -R vitam:vitam /vitam/app/prometheus
+
+chmod 755 /vitam/data/prometheus
+chown -R vitam:vitam /vitam/data/prometheus
+
+systemctl daemon-reload

@@ -1,0 +1,13 @@
+Package: vitam-prometheus
+Source: prometheus
+Section: monitor
+Priority: optional
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Homepage: https://github.com/prometheus/prometheus
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-go/packages/siegfried.git
+Vcs-Git: git://anonscm.debian.org/pkg-go/packages/siegfried.git
+XS-Go-Import-Path: github.com/richardlehane/siegfried
+Architecture: amd64
+Depends: vitam-user-vitam
+Description: Monitoring system and time series database
+Version: 2.19.0

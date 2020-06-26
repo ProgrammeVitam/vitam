@@ -1,0 +1,6 @@
+NODE_EXPORTER_OPTS='--web.listen-address=0.0.0.0:9100 --web.telemetry-path=/metrics --collector.textfile.directory /vitam/data/node_exporter/textfile_collector'
+# web.disable-exporter-metrics
+# web.max-requests
+# collector.disable-defaults
+# web.config
+# see more https://github.com/prometheus/node_exporter/blob/master/node_exporter.go
