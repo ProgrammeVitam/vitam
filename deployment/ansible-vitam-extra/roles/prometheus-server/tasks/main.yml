@@ -5,3 +5,28 @@
 
 - include_tasks: prometheus_server_disabled.yml
   when: prometheus.server.enabled != true
+
+
+- name: list prometheus rules files
+  find:
+    paths: "{{ prometheus_server_config_path }}/rules"
+    patterns: '*.yml'
+    recurse: no # no subdir
+    file_type: file
+  delegate_to: localhost
+  register: rules_files
+  tags:
+    - gen_prometheus_config
+  when: prometheus.prometheus_config_file_target_directory is not undefined
+
+- name: Generate local promethus config file from inventory
+  template:
+    src: "prometheus.yml.j2"
+    dest: "{{ prometheus.prometheus_config_file_target_directory }}/prometheus.yml"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  delegate_to: localhost
+  tags:
+    - gen_prometheus_config
+  when: prometheus.prometheus_config_file_target_directory is not undefined

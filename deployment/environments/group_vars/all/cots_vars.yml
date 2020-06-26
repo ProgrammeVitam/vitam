@@ -160,6 +160,7 @@ logstash:
 prometheus:
     metrics_path: /admin/v1/metrics
     check_consul: 10 # in seconds
+    prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
     server:
         enabled: true
         port: 19090
