@@ -1,0 +1,19 @@
+# -*- mode: conf -*-
+
+[Unit]
+Description=Prometheus Alertmanager.
+Documentation=https://github.com/prometheus/alertmanager
+After=network.target
+
+[Service]
+EnvironmentFile=-/vitam/conf/alertmanager/sysconfig/alertmanager
+User=vitam
+Group=vitam
+ExecStart=/vitam/bin/alertmanager/alertmanager \
+          $ALERTMANAGER_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
