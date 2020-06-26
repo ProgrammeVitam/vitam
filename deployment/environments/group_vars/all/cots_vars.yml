@@ -168,7 +168,8 @@ prometheus:
         url_path: /metrics
     alertmanager:
         enabled: true
-        port: 19093
+        api_port: 19093
+        cluster_port: 19094
 
 # Curator units: days
 curator:

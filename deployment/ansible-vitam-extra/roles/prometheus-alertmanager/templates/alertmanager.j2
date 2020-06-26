@@ -1,0 +1,7 @@
+ALERTMANAGER_OPTS='--web.listen-address={{ ip_admin }}:{{prometheus.alertmanager.api_port}}  --cluster.listen-address={{ ip_admin }}:{{prometheus.alertmanager.cluster_port}}  --config.file=/vitam/conf/alertmanager/alertmanager.yml --storage.path=/vitam/data/alertmanager'
+# data.retention default 120h
+# alerts.gc-interval default 30m
+# web.external-url default
+# web.external-url
+# web.route-prefix default to path of --web.external-url
+# more here https://github.com/prometheus/alertmanager/blob/master/cmd/alertmanager/main.go

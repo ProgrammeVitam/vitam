@@ -1,0 +1,26 @@
+groups:
+  - name: system_disk
+    rules:
+      - alert: OutOfDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/rootfs"} * 100) / node_filesystem_size_bytes{mountpoint="/rootfs"} < 15
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          description: |-
+            Disk is almost full (< 10% left)
+              VALUE = {{ $value }}
+              LABELS: {{ $labels }}
+          summary: Out of disk space (instance {{ $labels.instance }})
+
+      - alert: OutOfDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/rootfs"} * 100) / node_filesystem_size_bytes{mountpoint="/rootfs"} < 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Disk is almost full (< 10% left)
+              VALUE = {{ $value }}
+              LABELS: {{ $labels }}
+          summary: Out of disk space (instance {{ $labels.instance }})
