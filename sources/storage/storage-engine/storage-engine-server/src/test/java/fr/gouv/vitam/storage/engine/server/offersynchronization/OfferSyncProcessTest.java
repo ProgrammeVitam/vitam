@@ -142,7 +142,7 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            String filename = args.getArgument(1);
+            String filename = args.getArgument(2);
             byte[] data = sourceDataFiles.get(filename);
             if (data == null) {
                 throw new StorageNotFoundException("not found");
@@ -150,19 +150,20 @@ public class OfferSyncProcessTest {
             return Response.ok(data).build();
 
         }).when(distribution)
-            .getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DATA_CATEGORY),
+            .getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()),anyString(), anyString(), eq(DATA_CATEGORY),
                 eq(SOURCE));
 
         doAnswer((args) -> {
 
-            String filename = args.getArgument(1);
-            Response response = args.getArgument(5);
+            String filename = args.getArgument(2);
+            Response response = args.getArgument(6);
 
             targetDataFiles.put(filename, (byte[]) response.getEntity());
             return null;
 
         }).when(distribution)
-            .storeDataInOffers(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DATA_CATEGORY), eq(null),
+            .storeDataInOffers(eq(VitamConfiguration.getDefaultStrategy()), eq(OfferSyncProcess.OFFER_SYNC_ORIGIN),
+                anyString(), eq(DATA_CATEGORY), eq(null),
                 eq(singletonList(TARGET)), any());
 
         doAnswer((args) -> {
@@ -196,7 +197,9 @@ public class OfferSyncProcessTest {
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
         verifySynchronizationStatus(instance, null, null);
 
-        verify(distribution, never()).storeDataInOffers(anyString(), anyString(), any(), any(), any(), any());
+        verify(distribution, never())
+            .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(),
+                any());
         verify(distribution, never()).deleteObjectInOffers(any(), any(), any());
     }
 
@@ -222,7 +225,8 @@ public class OfferSyncProcessTest {
         // First batch [sequence 1..12] :
         //  - Written   : file2, file3, file4, file6
         //  - Deleted   : file1, file5
-        verify(distribution, times(4)).storeDataInOffers(anyString(), anyString(), any(), any(), any(), any());
+        verify(distribution, times(4))
+            .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(), any());
         verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
     }
 
@@ -253,7 +257,8 @@ public class OfferSyncProcessTest {
         //  - Written   : file6
         //  - Deleted   : file5 (silently)
 
-        verify(distribution, times(4)).storeDataInOffers(anyString(), anyString(), any(), any(), any(), any());
+        verify(distribution, times(4))
+            .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(), any());
         verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
     }
 
@@ -377,7 +382,7 @@ public class OfferSyncProcessTest {
         ArgumentCaptor<String> fileName = forClass(String.class);
 
         verify(distribution, times(2))
-            .storeDataInOffers(forClass(String.class).capture(), fileName.capture(),
+            .storeDataInOffers(forClass(String.class).capture(), forClass(String.class).capture(), fileName.capture(),
                 forClass(DataCategory.class).capture(), forClass(String.class).capture(),
                 forClass(List.class).capture(), forClass(Response.class).capture());
 
@@ -434,7 +439,7 @@ public class OfferSyncProcessTest {
         ArgumentCaptor<String> fileName = forClass(String.class);
 
         verify(distribution, times(2))
-            .storeDataInOffers(forClass(String.class).capture(), fileName.capture(),
+            .storeDataInOffers(forClass(String.class).capture(), forClass(String.class).capture(), fileName.capture(),
                 forClass(DataCategory.class).capture(), forClass(String.class).capture(),
                 forClass(List.class).capture(), forClass(Response.class).capture());
 

@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -58,6 +59,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.List;
 
 @Path("/access-external/v1")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -67,25 +69,16 @@ import javax.ws.rs.core.Response.Status;
 public class LogbookExternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
-    private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String INVALID_ARGUMENT = "Invalid argument: ";
     private static final String CONTRACT_ACCESS_DOES_NOT_ALLOW = "Contract access does not allow ";
     private static final String COULD_NOT_MODIFY_QUERY = "Could not modify search query: ";
 
     private final AccessInternalClientFactory accessInternalClientFactory;
 
-    /**
-     * Constructor
-     */
     public LogbookExternalResource() {
         this(AccessInternalClientFactory.getInstance());
     }
 
-    /**
-     * Constructor
-     * 
-     * @param accessInternalClientFactory
-     */
     public LogbookExternalResource(AccessInternalClientFactory accessInternalClientFactory) {
         this.accessInternalClientFactory = accessInternalClientFactory;
         LOGGER.debug("LogbookExternalResource initialized");
@@ -108,7 +101,7 @@ public class LogbookExternalResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(query);
-            RequestResponse<JsonNode> result = client.selectOperation(query);
+            RequestResponse<JsonNode> result = client.selectOperationSliced(query);
 
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -159,7 +152,7 @@ public class LogbookExternalResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
+            select.setQuery(QueryHelper.eq(LogbookEvent.EV_ID_PROC, operationId));
             RequestResponse<JsonNode> result = client.selectOperation(select.getFinalSelect());
             if (((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
                 throw new LogbookClientNotFoundException("logbook operation not found");

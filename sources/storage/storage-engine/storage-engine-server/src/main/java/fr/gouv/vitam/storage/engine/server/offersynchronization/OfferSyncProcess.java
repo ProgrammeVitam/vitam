@@ -64,6 +64,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class OfferSyncProcess {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferSyncProcess.class);
+    public static final String OFFER_SYNC_ORIGIN = "offer_sync";
 
     private final RestoreOfferBackupService restoreOfferBackupService;
     private final StorageDistribution distribution;
@@ -227,12 +228,12 @@ public class OfferSyncProcess {
                 sourceOffer + " to offer " + destinationOffer);
 
             resp = distribution
-                .getContainerByCategory(strategyId, fileName, dataCategory,
+                .getContainerByCategory(strategyId, OFFER_SYNC_ORIGIN, fileName, dataCategory,
                     sourceOffer);
             LOGGER.debug("Copy object " + container + "/" + fileName + " from offer " +
                 sourceOffer + " to offer " + destinationOffer);
             // Assume file found so copy object to destination offer
-            distribution.storeDataInOffers(strategyId, fileName,
+            distribution.storeDataInOffers(strategyId, OFFER_SYNC_ORIGIN, fileName,
                 dataCategory, null, Collections.singletonList(destinationOffer), resp);
 
         } catch (StorageNotFoundException e) {
@@ -264,10 +265,10 @@ public class OfferSyncProcess {
                 sourceOffer + " to offer " + destinationOffer);
 
             resp = distribution
-                .getContainerByCategory(strategyId, fileName, dataCategory,
+                .getContainerByCategory(strategyId, OFFER_SYNC_ORIGIN, fileName, dataCategory,
                     sourceOffer);
 
-            distribution.storeDataInOffers(strategyId, fileName,
+            distribution.storeDataInOffers(strategyId, OFFER_SYNC_ORIGIN, fileName,
                 dataCategory, null, Collections.singletonList(destinationOffer), resp);
 
         } catch (StorageNotFoundException e) {

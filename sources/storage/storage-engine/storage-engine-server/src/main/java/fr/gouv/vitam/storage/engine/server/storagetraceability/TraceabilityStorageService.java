@@ -42,6 +42,7 @@ import java.util.Iterator;
 public class TraceabilityStorageService {
 
     private static final Integer GET_LAST_BASE = 100;
+    public static final String TRACEABILITY_ORIGIN = "traceability";
 
     private final StorageDistribution distribution;
 
@@ -90,6 +91,6 @@ public class TraceabilityStorageService {
      */
     public Response getObject(String strategyId, String objectId, DataCategory category) throws StorageException {
         return this.distribution
-            .getContainerByCategory(strategyId, objectId, category, AccessLogUtils.getNoLogAccessLog());
+            .getContainerByCategory(strategyId, TRACEABILITY_ORIGIN, objectId, category, AccessLogUtils.getNoLogAccessLog());
     }
 }

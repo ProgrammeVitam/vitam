@@ -58,6 +58,7 @@ import java.util.Map;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,6 +69,10 @@ public class BulkStorageDistributionTest {
 
     private static final String REQUESTER = "requester";
     private static final DigestType DIGEST_TYPE = DigestType.SHA512;
+
+    private static final String STRATEGY = "default";
+    private static final int ATTEMPT = 1;
+
     private static final int TENANT_ID = 2;
     private static final DataCategory DATA_CATEGORY = DataCategory.UNIT;
 
@@ -123,12 +128,12 @@ public class BulkStorageDistributionTest {
             "offer2", OfferBulkPutStatus.OK
         );
 
-        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, TENANT_ID,
+        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceUris, objectNames)
         ).thenReturn(new BulkPutResult(objectInfos, statusByOfferIds));
 
         // When
-        Map<String, String> digests = instance.bulkCreateFromWorkspaceWithRetries(
+        Map<String, String> digests = instance.bulkCreateFromWorkspaceWithRetries(STRATEGY,
             TENANT_ID, offerIds, driverMap, storageOfferMap, DATA_CATEGORY, workspaceContainer, workspaceUris,
             objectNames, REQUESTER
         );
@@ -158,7 +163,7 @@ public class BulkStorageDistributionTest {
             "offer2", OfferBulkPutStatus.KO
         );
 
-        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, TENANT_ID,
+        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, STRATEGY, 1, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceUris, objectNames)
         ).thenReturn(new BulkPutResult(objectInfos, statusByOfferIds1));
 
@@ -166,12 +171,12 @@ public class BulkStorageDistributionTest {
             "offer2", OfferBulkPutStatus.OK
         );
 
-        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, TENANT_ID,
+        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, STRATEGY, 2, TENANT_ID,
             DATA_CATEGORY, Collections.singletonList("offer2"), driverMap, storageOfferMap, workspaceUris, objectNames)
         ).thenReturn(new BulkPutResult(objectInfos, statusByOfferIds2));
 
         // When
-        Map<String, String> digests = instance.bulkCreateFromWorkspaceWithRetries(
+        Map<String, String> digests = instance.bulkCreateFromWorkspaceWithRetries(STRATEGY,
             TENANT_ID, offerIds, driverMap, storageOfferMap, DATA_CATEGORY, workspaceContainer, workspaceUris,
             objectNames, REQUESTER
         );
@@ -200,7 +205,7 @@ public class BulkStorageDistributionTest {
             "offer2", OfferBulkPutStatus.KO
         );
 
-        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, TENANT_ID,
+        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, STRATEGY, 1, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceUris, objectNames)
         ).thenReturn(new BulkPutResult(objectInfos, statusByOfferIds1));
 
@@ -208,13 +213,17 @@ public class BulkStorageDistributionTest {
             "offer2", OfferBulkPutStatus.KO
         );
 
-        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, TENANT_ID,
+        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, STRATEGY, 2, TENANT_ID,
+            DATA_CATEGORY, Collections.singletonList("offer2"), driverMap, storageOfferMap, workspaceUris, objectNames)
+        ).thenReturn(new BulkPutResult(objectInfos, statusByOfferIds2And3));
+
+        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, STRATEGY, 3, TENANT_ID,
             DATA_CATEGORY, Collections.singletonList("offer2"), driverMap, storageOfferMap, workspaceUris, objectNames)
         ).thenReturn(new BulkPutResult(objectInfos, statusByOfferIds2And3));
 
         // When / Then
 
-        assertThatThrownBy(() -> instance.bulkCreateFromWorkspaceWithRetries(
+        assertThatThrownBy(() -> instance.bulkCreateFromWorkspaceWithRetries(STRATEGY,
             TENANT_ID, offerIds, driverMap, storageOfferMap, DATA_CATEGORY, workspaceContainer, workspaceUris,
             objectNames, REQUESTER
         ))
@@ -245,12 +254,12 @@ public class BulkStorageDistributionTest {
             "offer2", OfferBulkPutStatus.BLOCKER
         );
 
-        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, TENANT_ID,
+        when(bulkPutTransferManager.bulkSendDataToOffers(workspaceContainer, STRATEGY, ATTEMPT, TENANT_ID,
             DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceUris, objectNames)
         ).thenReturn(new BulkPutResult(objectInfos, statusByOfferIds1));
 
         // When / Then
-        assertThatThrownBy(() -> instance.bulkCreateFromWorkspaceWithRetries(
+        assertThatThrownBy(() -> instance.bulkCreateFromWorkspaceWithRetries(STRATEGY,
             TENANT_ID, offerIds, driverMap, storageOfferMap, DATA_CATEGORY, workspaceContainer, workspaceUris,
             objectNames, REQUESTER
         ))

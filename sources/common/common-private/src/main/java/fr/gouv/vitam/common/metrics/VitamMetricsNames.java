@@ -28,6 +28,11 @@
 package fr.gouv.vitam.common.metrics;
 
 public class VitamMetricsNames {
+
+    private VitamMetricsNames() {
+        // This class is only for constants
+    }
+
     /*
      * =================================
      *            Common
@@ -35,18 +40,33 @@ public class VitamMetricsNames {
      */
 
     /**
-     * Vitam requests size in bytes per tenant, strategy and method
+     * Vitam requests size in bytes per tenant and method
      * Type: Summary
-     * Labels: "tenant", "strategy", "method"
+     * Labels: "tenant", "method"
      */
     public static final String VITAM_REQUESTS_SIZE_BYTES = "vitam_requests_size_bytes";
 
     /**
-     * Vitam responses size in bytes per tenant, strategy and method
+     * Vitam responses size in bytes per tenant and method
      * Type: Summary
-     * Labels: "tenant", "strategy", "method
+     * Labels: "tenant", "method
      */
     public static final String VITAM_RESPONSES_SIZE_BYTES = "vitam_responses_size_bytes";
+
+
+    /**
+     * Vitam storage upload objects to offers size in bytes per tenant, strategy, offer_id, data_category, origin (normal, bulk, offer_sync), and per attempt
+     * Type: Summary
+     * Labels: "tenant", "strategy", "offer_id", "data_category", "origin", "attempt"
+     */
+    public static final String VITAM_STORAGE_UPLOAD_SIZE_BYTES = "vitam_storage_upload_size_bytes";
+
+    /**
+     * Vitam storage download objects from offers size in bytes per tenant, strategy, offer_id, origin of request  (normal, traceability, offer_sync) and data_category
+     * Type: Summary
+     * Labels: "tenant", "strategy", "offer_id", "origin", "data_category"
+     */
+    public static final String VITAM_STORAGE_DOWNLOAD_SIZE_BYTES = "vitam_storage_download_size_bytes";
 
 
     /**
@@ -152,6 +172,4 @@ public class VitamMetricsNames {
      * Labels: "tenant", "container"
      */
     public static final String VITAM_RECONSTRUCTION_DURATION = "vitam_reconstruction_duration";
-
-
 }

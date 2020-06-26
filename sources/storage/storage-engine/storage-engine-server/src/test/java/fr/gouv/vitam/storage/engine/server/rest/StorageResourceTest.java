@@ -214,13 +214,13 @@ public class StorageResourceTest {
                 OFFER_ID, VitamHttpHeader.OFFER_NO_CACHE.getName(), "true")
             .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
-        
+
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
             .body("").when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-        
+
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
@@ -269,14 +269,14 @@ public class StorageResourceTest {
             .when().head(DataCategory.OBJECT.name() + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
-        .headers(
-            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
-            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
-            VitamHttpHeader.OFFERS_IDS.getName(), OFFER_ID+","+OFFER_ID_KO
-        )
-        .when().head(DataCategory.OBJECT.name() + OBJECT_ID_URI, ID_O1)
-        .then().statusCode(Status.NOT_FOUND.getStatusCode())
-        .and().header(OFFER_ID, "true").and().header(OFFER_ID_KO, "false");
+            .headers(
+                VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+                VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
+                VitamHttpHeader.OFFERS_IDS.getName(), OFFER_ID + "," + OFFER_ID_KO
+            )
+            .when().head(DataCategory.OBJECT.name() + OBJECT_ID_URI, ID_O1)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode())
+            .and().header(OFFER_ID, "true").and().header(OFFER_ID_KO, "false");
 
         given().contentType(ContentType.JSON)
             .headers(
@@ -585,12 +585,16 @@ public class StorageResourceTest {
 
     @Test
     public void getObjectIllegalArgumentException() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).body(AccessLogUtils.getNoLogAccessLog())
-            .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body(AccessLogUtils.getNoLogAccessLog())
+            .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .body(AccessLogUtils.getNoLogAccessLog()).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).header(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
             .body(AccessLogUtils.getNoLogAccessLog()).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -615,10 +619,10 @@ public class StorageResourceTest {
     @Test
     public void getObjectOk() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-                .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(),
-                        STRATEGY_ID)
-                .body(AccessLogUtils.getNoLogAccessLog()).when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then()
-                .statusCode(Status.OK.getStatusCode());
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(),
+                STRATEGY_ID)
+            .body(AccessLogUtils.getNoLogAccessLog()).when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -771,7 +775,7 @@ public class StorageResourceTest {
     @Test
     public void backupStorageLogbook() {
         given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-        .when().post("/storage/backup").then()
+            .when().post("/storage/backup").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
@@ -845,12 +849,12 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().get("/strategies").then().statusCode(Status.OK.getStatusCode())
             .extract().asString();
-        
+
         assertThatCode(() -> {
             RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(strResponse), StorageStrategy.class);
         }).doesNotThrowAnyException();
-        
-        
+
+
         given()
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E)
             .when().get("/strategies").then()
@@ -957,7 +961,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public Response getContainerByCategory(String strategyId, String objectId, DataCategory category, AccessLogInfoModel logInfo)
+        public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
+            AccessLogInfoModel logInfo)
             throws StorageException {
             return getContainerByCategoryResponse();
         }
@@ -978,7 +983,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public StoredInfoResult storeDataInOffers(String strategyId, String objectId, DataCategory category,
+        public StoredInfoResult storeDataInOffers(String strategyId, String origin, String objectId,
+            DataCategory category,
             String requester,
             List<String> offerIds, Response response)
             throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
@@ -994,7 +1000,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public StoredInfoResult storeDataInOffers(String strategyId, StreamAndInfo streamAndInfo, String objectId,
+        public StoredInfoResult storeDataInOffers(String strategyId, String origin, StreamAndInfo streamAndInfo,
+            String objectId,
             DataCategory category, String requester, List<String> offerIds) throws StorageException {
             throw new UnsupportedOperationException("Not implemented");
         }
@@ -1004,14 +1011,15 @@ public class StorageResourceTest {
          * <p>
          *
          * @param strategyId id of the strategy
-         * @param objectId   id of the object
+         * @param objectId id of the object
          * @param category
          * @param offerId
          * @return an object as a Response with an InputStream
-         * @throws StorageNotFoundException  Thrown if the Container or the object does not exist
+         * @throws StorageNotFoundException Thrown if the Container or the object does not exist
          * @throws StorageTechnicalException thrown if a technical error happened
          */
-        @Override public Response getContainerByCategory(String strategyId, String objectId, DataCategory category,
+        @Override
+        public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
             String offerId) throws StorageException {
 
             return getContainerByCategoryResponse();
@@ -1052,7 +1060,8 @@ public class StorageResourceTest {
         @Override
         public Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
             List<String> offerIds) {
-            return offerIds.stream().collect(Collectors.toMap(offer -> offer, offer -> offer.equals(OFFER_ID) ? Boolean.TRUE:Boolean.FALSE));
+            return offerIds.stream().collect(
+                Collectors.toMap(offer -> offer, offer -> offer.equals(OFFER_ID) ? Boolean.TRUE : Boolean.FALSE));
         }
 
         @Override
@@ -1069,7 +1078,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public void deleteObjectInOffers(String strategyId, DataContext context,  List <String> offerId) {
+        public void deleteObjectInOffers(String strategyId, DataContext context, List<String> offerId) {
             throw new UnsupportedOperationException("UnsupportedOperationException");
         }
 
@@ -1100,14 +1109,15 @@ public class StorageResourceTest {
          *
          * @param strategyId the strategy id to get offers
          * @param offerId
-         * @param category   the object type to list
-         * @param offset     offset of the excluded object
-         * @param limit      the number of result wanted
-         * @param order      order
+         * @param category the object type to list
+         * @param offset offset of the excluded object
+         * @param limit the number of result wanted
+         * @param order order
          * @return list of offer log
          * @throws StorageException thrown in case of any technical problem
          */
-        @Override public RequestResponse<OfferLog> getOfferLogsByOfferId(String strategyId, String offerId,
+        @Override
+        public RequestResponse<OfferLog> getOfferLogsByOfferId(String strategyId, String offerId,
             DataCategory category,
             Long offset, int limit, Order order) throws StorageException {
             Integer tenantId = ParameterHelper.getTenantParameter();

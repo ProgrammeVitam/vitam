@@ -92,14 +92,12 @@ public class ContentLengthCountingMetricsFilterTest {
                 foundRequestMetric = true;
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_requests_size_bytes_count") && o.labelValues.get(0).equals("0") &&
-                        o.labelValues.get(1).equals("unknown_strategy") &&
-                        o.labelValues.get(2).equals("PUT") &&
+                        o.labelValues.get(1).equals("PUT") &&
                         o.value == 1))).isTrue();
 
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_requests_size_bytes_sum") && o.labelValues.get(0).equals("0") &&
-                        o.labelValues.get(1).equals("unknown_strategy") &&
-                        o.labelValues.get(2).equals("PUT") &&
+                        o.labelValues.get(1).equals("PUT") &&
                         o.value == 1))).isTrue();
             }
         }
@@ -113,7 +111,6 @@ public class ContentLengthCountingMetricsFilterTest {
         ContainerRequestContext containerRequestContext = mock(ContainerRequestContext.class);
         when(containerRequestContext.getEntityStream()).thenReturn(null);
         when(containerRequestContext.getHeaderString(eq(GlobalDataRest.X_TENANT_ID))).thenReturn("1");
-        when(containerRequestContext.getHeaderString(eq(GlobalDataRest.X_STRATEGY_ID))).thenReturn("Strategy_1");
         when(containerRequestContext.getMethod()).thenReturn("GET");
 
         filter.filter(containerRequestContext);
@@ -149,14 +146,12 @@ public class ContentLengthCountingMetricsFilterTest {
                 foundResponseMetric = true;
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_responses_size_bytes_count") && o.labelValues.get(0).equals("1") &&
-                        o.labelValues.get(1).equals("Strategy_1") &&
-                        o.labelValues.get(2).equals("GET") &&
+                        o.labelValues.get(1).equals("GET") &&
                         o.value == 1))).isTrue();
 
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_responses_size_bytes_sum") && o.labelValues.get(0).equals("1") &&
-                        o.labelValues.get(1).equals("Strategy_1") &&
-                        o.labelValues.get(2).equals("GET") &&
+                        o.labelValues.get(1).equals("GET") &&
                         o.value == 5))).isTrue();
             }
         }
@@ -169,7 +164,6 @@ public class ContentLengthCountingMetricsFilterTest {
         ContainerRequestContext containerRequestContext = mock(ContainerRequestContext.class);
         when(containerRequestContext.getEntityStream()).thenReturn(new NullInputStream(3));
         when(containerRequestContext.getHeaderString(eq(GlobalDataRest.X_TENANT_ID))).thenReturn("2");
-        when(containerRequestContext.getHeaderString(eq(GlobalDataRest.X_STRATEGY_ID))).thenReturn("Strategy_2");
         when(containerRequestContext.getMethod()).thenReturn("POST");
 
         ArgumentCaptor<InputStream> captorInput = ArgumentCaptor.forClass(InputStream.class);
@@ -197,7 +191,7 @@ public class ContentLengthCountingMetricsFilterTest {
         captorOutput.getValue().close();
         verify(containerRequestContext, times(2)).getMethod();
 
-
+        
         Iterator<Collector.MetricFamilySamples> it =
             CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator();
 
@@ -209,14 +203,12 @@ public class ContentLengthCountingMetricsFilterTest {
                 foundResponseMetric = true;
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_responses_size_bytes_count") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("Strategy_2") &&
-                        o.labelValues.get(2).equals("POST") &&
+                        o.labelValues.get(1).equals("POST") &&
                         o.value == 1))).isTrue();
 
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_responses_size_bytes_sum") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("Strategy_2") &&
-                        o.labelValues.get(2).equals("POST") &&
+                        o.labelValues.get(1).equals("POST") &&
                         o.value == 5))).isTrue();
             }
 
@@ -224,14 +216,12 @@ public class ContentLengthCountingMetricsFilterTest {
                 foundRequestMetric = true;
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_requests_size_bytes_count") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("Strategy_2") &&
-                        o.labelValues.get(2).equals("POST") &&
+                        o.labelValues.get(1).equals("POST") &&
                         o.value == 1))).isTrue();
 
                 assertThat(next.samples.stream().anyMatch(
                     o -> (o.name.equals("vitam_requests_size_bytes_sum") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("Strategy_2") &&
-                        o.labelValues.get(2).equals("POST") &&
+                        o.labelValues.get(1).equals("POST") &&
                         o.value == 3))).isTrue();
             }
         }
