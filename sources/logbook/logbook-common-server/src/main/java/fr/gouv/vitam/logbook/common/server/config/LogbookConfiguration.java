@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.logbook.common.server.config;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
@@ -86,6 +87,9 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      * List of events to skip for OP vs LFC check (used for coherence check)
      */
     private List<String> opLfcEventsToSkip;
+
+    @JsonProperty("elasticsearchTenantIndexation")
+    private LogbookIndexationConfiguration logbookTenantIndexation;
 
     /**
      * LogbookConfiguration constructor
@@ -320,5 +324,15 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      */
     public void setLifecycleTraceabilityMaxEntries(Integer lifecycleTraceabilityMaxEntries) {
         this.lifecycleTraceabilityMaxEntries = lifecycleTraceabilityMaxEntries;
+    }
+
+    public LogbookIndexationConfiguration getLogbookTenantIndexation() {
+        return logbookTenantIndexation;
+    }
+
+    public LogbookConfiguration setLogbookTenantIndexation(
+        LogbookIndexationConfiguration logbookTenantIndexation) {
+        this.logbookTenantIndexation = logbookTenantIndexation;
+        return this;
     }
 }

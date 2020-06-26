@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.metadata.core.config;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -54,6 +55,9 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private int transfersSIPTimeToLiveInMinutes = 60 * 24 * 7;
 
     private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
+
+    @JsonProperty("elasticsearchTenantIndexation")
+    private MetadataIndexationConfiguration indexationConfiguration;
 
     /**
      * MetaDataConfiguration constructor
@@ -212,5 +216,15 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public void setElasticsearchExternalMetadataMappings(
         List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings) {
         this.elasticsearchExternalMetadataMappings = elasticsearchExternalMetadataMappings;
+    }
+
+    public MetadataIndexationConfiguration getIndexationConfiguration() {
+        return indexationConfiguration;
+    }
+
+    public MetaDataConfiguration setIndexationConfiguration(
+        MetadataIndexationConfiguration indexationConfiguration) {
+        this.indexationConfiguration = indexationConfiguration;
+        return this;
     }
 }
