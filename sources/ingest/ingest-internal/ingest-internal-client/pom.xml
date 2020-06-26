@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>ingest-internal</artifactId>
-    <version>3.6.1-SNAPSHOT</version>
+    <version>3.6.0</version>
   </parent>
   <artifactId>ingest-internal-client</artifactId>
   <name>Ingest Internal Client</name>
