@@ -1,0 +1,1 @@
+ALERTMANAGER_OPTS='--web.listen-address=0.0.0.0:9093  --config.file=/vitam/conf/alertmanager/alertmanager.yml --storage.path=/vitam/data/alertmanager'
