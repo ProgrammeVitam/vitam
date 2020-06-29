@@ -65,8 +65,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     private static final String OPERATION_ID_URI = "/{id_op}";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
-    private static final String BODY_TEST_WITH_ID =
-        "{$projection: {}}";
+    private static final String BODY_TEST_WITH_ID = "{$projection: {}}";
     private static final String BODY_TEST_WITH_BAD_REQUEST_FOR_BYID_DSL_REQUEST =
         "{$query: {$eq: {\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, $projection: {}, $filter: {}}";
     private static String request = "{ $query: {} , $projection: {}, $filter: {} }";
@@ -135,6 +134,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
         when(accessInternalClient.selectOperation(any()))
+            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
+        when(accessInternalClient.selectOperationSliced(any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
 
         when(accessInternalClient.selectOperationById(any(), any()))
@@ -246,6 +247,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .thenThrow(new LogbookClientNotFoundException(""));
         when(accessInternalClient.selectOperationById(any(), any()))
             .thenThrow(new LogbookClientNotFoundException(""));
+        when(accessInternalClient.selectOperation(any()))
+            .thenReturn(new RequestResponseOK<>());
 
         given()
             .contentType(ContentType.JSON)
@@ -638,8 +641,6 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         Select select = selectParserSingle.getRequest();
         select.getFinalSelectById();
 
-
-
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelectById())
@@ -703,7 +704,6 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         selectParserSingle.parse(bodyQuery);
         Select select = selectParserSingle.getRequest();
         select.getFinalSelectById();
-
 
         given()
             .contentType(ContentType.JSON)

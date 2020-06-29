@@ -8,7 +8,7 @@
     "Permissions": [
       {
         "tenant": 1,
-        "AccessContracts": [],
+        "AccessContracts": ["newContract"],
         "IngestContracts": []
       },
       {

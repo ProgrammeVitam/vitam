@@ -86,6 +86,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String BLANK_TRACEABILITY_OPERATION_ID = "traceability operation identifier should be filled";
 
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
+    private static final String LOGBOOK_SLICED_OPERATIONS_URL = "/slicedOperations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
     private static final String LOGBOOK_CHECK = "/traceability/check";
@@ -365,6 +366,35 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null, select,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new LogbookClientServerException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectOperationSliced(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, LOGBOOK_SLICED_OPERATIONS_URL, null, select,
+                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new LogbookClientServerException(INTERNAL_SERVER_ERROR);

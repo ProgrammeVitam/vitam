@@ -139,6 +139,11 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
+    public RequestResponse<JsonNode> selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
     public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl)
         throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());

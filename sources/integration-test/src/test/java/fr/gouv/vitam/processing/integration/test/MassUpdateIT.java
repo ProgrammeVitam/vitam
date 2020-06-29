@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.processing.integration.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -109,9 +109,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-/**
- * MassUpdate Itests.
- */
 public class MassUpdateIT extends VitamRuleRunner {
 
     private static final String TITLE = "Title";
@@ -167,7 +164,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                 BatchReportMain.class
             ));
 
-    private static final long SLEEP_TIME = 20l;
+    private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000;
     private static final TypeReference<List<AccessContractModel>> TYPE_LIST_CONTRACT = new TypeReference<List<AccessContractModel>>() {};
     private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<List<Document>>() {};
@@ -179,13 +176,12 @@ public class MassUpdateIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
+        PropertiesUtils.getResourcePath("integration-processing/bigworker.conf");
         FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
         processMonitoring = ProcessMonitoringImpl.getInstance();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
         new DataLoader("integration-processing").prepareData();
-
     }
 
     @AfterClass
@@ -418,14 +414,12 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat((List<String>) updatedUnit.get().get(Unit.OPS)).contains(operationGuid.getId());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                new Select();
+            Select selectQuery = new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
 
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
 
@@ -449,6 +443,13 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat(jsoned.get("diff").textValue()).contains(expected);
 
         }
+    }
+
+    private void verifyEvent(JsonNode events, String s) {
+        List<JsonNode> massUpdateFinalized = events.findValues(OUT_DETAIL).stream()
+                .filter(e -> e.asText().equals(s))
+                .collect(Collectors.toList());
+        assertThat(massUpdateFinalized.size()).isGreaterThan(0);
     }
 
     @RunWithCustomExecutor
@@ -520,20 +521,18 @@ public class MassUpdateIT extends VitamRuleRunner {
                 "Le Reportage photographique juillet n°17642 est réalisé en 1789 sous le titre: Reportage photographique juillet n°17642");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            Select selectQuery =
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
 
             JsonNode logbookResult2 = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            events = logbookResult2.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
         }
     }
 
@@ -596,14 +595,13 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat(((Document)updatedUnit.get().get(TITLE_)).get("fr")).isEqualTo("Good title");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            Select selectQuery =
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_FINALIZE.OK");
-            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
-                "MASS_UPDATE_UNIT_DESC.OK");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "MASS_UPDATE_UNIT_DESC.OK");
         }
     }
 

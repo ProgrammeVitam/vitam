@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -23,8 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
+ */
 package fr.gouv.vitam.logbook.operations.client;
 
 import java.util.Queue;
@@ -69,6 +68,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
+    private static final String OPERATIONS_SLICED_URL = "/slicedOperations";
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String OBJECT_GROUP_LFC_TRACEABILITY_URI = "/lifecycles/units/traceability";
     private static final String UNIT_LFC_TRACEABILITY_URI = "/lifecycles/objectgroups/traceability";
@@ -115,7 +115,6 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
     }
 
     @Override
@@ -156,6 +155,31 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         try {
             response = performRequest(HttpMethod.GET, OPERATIONS_URL, null,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return JsonHandler.getFromString(response.readEntity(String.class));
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.debug("Illegal Entry Parameter");
+                throw new LogbookClientException("Request precondition failed");
+            } else {
+                LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, OPERATIONS_SLICED_URL, null,
+                    select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 return JsonHandler.getFromString(response.readEntity(String.class));
@@ -329,7 +353,6 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
     }
 
     @Override
@@ -466,5 +489,4 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             throw new LogbookClientServerException("Internal Server Error", e);
         }
     }
-
 }

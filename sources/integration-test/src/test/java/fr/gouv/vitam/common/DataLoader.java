@@ -39,12 +39,19 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.*;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -53,7 +60,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -66,6 +72,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -76,9 +84,13 @@ import static org.junit.Assert.assertTrue;
  */
 public class DataLoader {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataLoader.class);
+    private static final String OFFER_FOLDER = "offer";
 
-    int tenantId = 0;
-    String dataFodler = null;
+    private final int tenant1 = 1;
+    private final int tenantId = 0;
+    private String dataFodler;
+    private TypeReference<List<AccessContractModel>> valueTypeRef= new TypeReference<List<AccessContractModel>>() {
+    };
 
     public DataLoader(String dataFodler) {
         this.dataFodler = dataFodler;
@@ -136,7 +148,7 @@ public class DataLoader {
                 }
             } catch (FileNotFoundException e) {
                 LOGGER.info("No addition_ext_ontology.json defined in dataFolder");
-            }            
+            }
             client.importOntologies(true, ontology);
             VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
 
@@ -178,7 +190,7 @@ public class DataLoader {
             List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                 new TypeReference<List<IngestContractModel>>() {
                 });
-            Response.Status importStatus = client.importIngestContracts(IngestContractModelList);
+            client.importIngestContracts(IngestContractModelList);
 
             // import access contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
@@ -189,6 +201,7 @@ public class DataLoader {
                 });
             client.importAccessContracts(accessContractModelList);
 
+            importOptionnalContractTenant1(client);
 
             // Import Security Profile
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
@@ -215,6 +228,21 @@ public class DataLoader {
 
         } catch (final Exception e) {
             LOGGER.error(e);
+        }
+    }
+
+    private void importOptionnalContractTenant1(AdminManagementClient client) throws fr.gouv.vitam.common.exception.InvalidParseOperationException, AdminManagementClientServerException {
+        File fileAccessContracts;
+        List<AccessContractModel> accessContractModelList;
+        try {
+            fileAccessContracts = PropertiesUtils.getResourceFile(dataFodler + "/access_contract_tenant_1.json");
+            accessContractModelList = JsonHandler.getFromFileAsTypeRefence(fileAccessContracts, valueTypeRef);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant1));
+            VitamThreadUtils.getVitamSession().setTenantId(1);
+            client.importAccessContracts(accessContractModelList);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        } catch (FileNotFoundException e) {
+            LOGGER.info("no need to load tenant 1 contracts");
         }
     }
 
@@ -248,17 +276,14 @@ public class DataLoader {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
 
-        waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, ingestOperationGuid.getId());
+        waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
         return ingestOperationGuid.toString();
     }
-
-    public static final String OFFER_FOLDER = "offer";
-
 
     /**
      * Clean offers content.
      */
-    public static void cleanOffers() {
+    private static void cleanOffers() {
         // ugly style but we don't have the digest herelo
         File directory = new File(OFFER_FOLDER);
         if (directory.exists()) {
