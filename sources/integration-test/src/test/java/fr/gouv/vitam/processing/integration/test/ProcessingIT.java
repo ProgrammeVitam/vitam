@@ -173,6 +173,7 @@ import static com.mongodb.client.model.Filters.exists;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUT_DETAIL;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -205,7 +206,7 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
     private static final String OG_ATTACHEMENT_ID = "aebaaaaaaacu6xzeabinwak6t5ecmmaaaaaq";
-    private static final long SLEEP_TIME = 20l;
+    private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000;
     private static final String SIP_FILE_WRONG_DATE = "integration-processing/SIP_INGEST_WRONG_DATE.zip";
     private static final String SIP_KO_AU_REF_OBJ =
@@ -221,6 +222,9 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String WORKER_PATH = "/worker/v1";
     private static final String WORKSPACE_PATH = "/workspace/v1";
     private static final String LOGBOOK_PATH = "/logbook/v1";
+
+    private static final String RESULTS = "$results";
+    private static final String EVENTS = "events";
 
     private static String CONFIG_BIG_WORKER_PATH = "";
 
@@ -470,12 +474,11 @@ public class ProcessingIT extends VitamRuleRunner {
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                "ROLL_BACK.OK");
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-                "PROCESS_SIP_UNITARY.WARNING");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "ROLL_BACK.OK");
+            verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
 
-            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
+            assertEquals(logbookResult.get(RESULTS).get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
 
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
@@ -582,12 +585,11 @@ public class ProcessingIT extends VitamRuleRunner {
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                "ROLL_BACK.OK");
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-                "PROCESS_SIP_UNITARY.WARNING");
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "ROLL_BACK.OK");
+            verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
 
-            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
+            assertEquals(logbookResult.get(RESULTS).get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
 
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
@@ -2561,10 +2563,10 @@ public class ProcessingIT extends VitamRuleRunner {
         // as logbookClient.selectOperation returns last two events and after removing STARTED from events
         // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
         // "STP_INGEST_FINALISATION.OK"
-        assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-            "ROLL_BACK.OK");
-        assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-            "PROCESS_SIP_UNITARY.WARNING");
+
+        JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+        verifyEvent(events, "ROLL_BACK.OK");
+        verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
     }
 
     @RunWithCustomExecutor
@@ -3644,4 +3646,12 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(expectedStatus, processWorkflow2.getStatus());
         return ingestContainerName;
     }
+
+    private void verifyEvent(JsonNode events, String s) {
+        List<JsonNode> massUpdateFinalized = events.findValues(OUT_DETAIL).stream()
+                .filter(e -> e.asText().equals(s))
+                .collect(Collectors.toList());
+        assertThat(massUpdateFinalized.size()).isGreaterThan(0);
+    }
+
 }

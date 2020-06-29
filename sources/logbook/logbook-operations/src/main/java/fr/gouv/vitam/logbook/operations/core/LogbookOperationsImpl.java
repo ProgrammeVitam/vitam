@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -139,19 +139,22 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public List<LogbookOperation> select(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        // TODO: why true by default ? this is a queryDSL, all the request options are in, so why ?
-        List<LogbookOperation> operations = new ArrayList<>();
-        operations = select(select, true);
-        return operations;
+        return select(select, false);
     }
 
     @Override
     public RequestResponse<LogbookOperation> selectOperations(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
-        VitamMongoCursor cursor = mongoDbAccess.getLogbookOperations(select, true);
+        return selectOperations(select, false);
+    }
+
+    @Override
+    public RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
+            throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
+        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced);
         List<LogbookOperation> operations = new ArrayList<>();
         while (cursor.hasNext()) {
-            LogbookOperation doc = (LogbookOperation) cursor.next();
+            LogbookOperation doc = cursor.next();
             filterFinalResponse(doc);
             operations.add(doc);
         }

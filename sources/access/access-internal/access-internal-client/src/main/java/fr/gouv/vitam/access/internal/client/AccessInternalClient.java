@@ -171,6 +171,9 @@ public interface AccessInternalClient extends MockOrRestClient {
     RequestResponse<JsonNode> selectOperation(JsonNode select)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
+    RequestResponse<JsonNode> selectOperationSliced(JsonNode select)
+            throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
+
     /**
      * selectOperationbyId
      *

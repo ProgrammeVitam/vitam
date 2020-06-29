@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -56,9 +58,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-/**
- * Logbook external resource
- */
 @Path("/access-external/v1")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -67,16 +66,12 @@ public class LogbookExternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
     private static final String EVENT_ID_PROCESS = "evIdProc";
-    private static final String OB_ID = "obId";
     private static final String INVALID_ARGUMENT = "Invalid argument: ";
     private static final String CONTRACT_ACCESS_DOES_NOT_ALLOW = "Contract access does not allow ";
     private static final String COULD_NOT_MODIFY_QUERY = "Could not modify search query: ";
 
     private final AccessInternalClientFactory accessInternalClientFactory;
 
-    /**
-     * Constructor
-     */
     public LogbookExternalResource() {
         this(AccessInternalClientFactory.getInstance());
     }
@@ -103,7 +98,7 @@ public class LogbookExternalResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(query);
-            RequestResponse<JsonNode> result = client.selectOperation(query);
+            RequestResponse<JsonNode> result = client.selectOperationSliced(query);
 
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -154,13 +149,16 @@ public class LogbookExternalResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
-            RequestResponse<JsonNode> result = client.selectOperationById(operationId, select.getFinalSelect());
+            select.setQuery(QueryHelper.eq(LogbookEvent.EV_ID_PROC, operationId));
+            RequestResponse<JsonNode> result = client.selectOperation(select.getFinalSelect());
+            if (((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
+                throw new LogbookClientNotFoundException("logbook operation not found");
+            }
+
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
-            status = Status.NOT_FOUND;
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
@@ -209,7 +207,6 @@ public class LogbookExternalResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            select.setQuery(QueryHelper.eq(OB_ID, unitLifeCycleId));
             RequestResponse<JsonNode> result = client.selectUnitLifeCycleById(unitLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -228,11 +225,6 @@ public class LogbookExternalResource {
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
@@ -260,9 +252,7 @@ public class LogbookExternalResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            select.setQuery(QueryHelper.eq(OB_ID, objectGroupLifeCycleId));
-            RequestResponse<JsonNode> result =
-                client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
+            RequestResponse<JsonNode> result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {
@@ -283,12 +273,6 @@ public class LogbookExternalResource {
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
                     e.getLocalizedMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
@@ -297,5 +281,6 @@ public class LogbookExternalResource {
                 .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
     }
+
 
 }

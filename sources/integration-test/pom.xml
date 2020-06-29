@@ -247,5 +247,23 @@
 			<artifactId>json-unit</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>access-external-rest</artifactId>
+			<version>2.1.25-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-external-rest</artifactId>
+			<version>2.1.25-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-external-client</artifactId>
+			<version>2.1.25-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
