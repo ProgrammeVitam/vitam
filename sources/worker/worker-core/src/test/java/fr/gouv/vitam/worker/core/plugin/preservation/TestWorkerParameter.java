@@ -257,7 +257,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public String getWorkflowStatusKo() {
-        throw new IllegalStateException("Not implemented");
+        return (String) this.params.get(workflowStatusKo.name());
     }
 
     @Override
@@ -302,6 +302,11 @@ public class TestWorkerParameter implements WorkerParameters {
 
         public TestWorkerParameterBuilder withObjectMetadata(JsonNode objectMetadata) {
             this.params.put(WorkerParameterName.objectMetadata.name(), objectMetadata);
+            return this;
+        }
+
+        public TestWorkerParameterBuilder withWorkflowStatusKo(String status) {
+            this.params.put(workflowStatusKo.name(), status);
             return this;
         }
 

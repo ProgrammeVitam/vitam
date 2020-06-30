@@ -152,7 +152,8 @@ public class MassUpdateFinalizeTest {
         // Given
         String operationId = "MY_OPERATION_ID";
 
-        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).
+            withWorkflowStatusKo(OK.name()).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
@@ -172,7 +173,8 @@ public class MassUpdateFinalizeTest {
         // Given
         String operationId = "MY_OPERATION_ID";
 
-        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).
+            withWorkflowStatusKo(OK.name()).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 

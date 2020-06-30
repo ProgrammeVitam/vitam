@@ -246,7 +246,7 @@ public class ItemStatus {
      * @param globalStatus the globalStatus to set
      * @return this
      */
-    public ItemStatus setGlobalStatus(StatusCode globalStatus) {
+    private ItemStatus setGlobalStatus(StatusCode globalStatus) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, globalStatus);
         this.globalStatus = globalStatus;
         return this;
