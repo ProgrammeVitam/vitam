@@ -42,10 +42,8 @@
   run_once: true
   when: login.set_cookie != ''
 
-
 - name: Check if TNR tags file exists
-  stat:
-    path: "{{ inventory_dir }}/TNR_STRING.txt"
+  local_action: stat path={{ inventory_dir }}/TNR_STRING.txt
   register: stat_result
 
 - set_fact:
