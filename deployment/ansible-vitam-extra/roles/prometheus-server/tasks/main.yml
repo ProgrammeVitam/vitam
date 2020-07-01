@@ -16,10 +16,10 @@
   delegate_to: localhost
   register: rules_files
   tags:
-    - gen_prometheus_config
+    - generate_prometheus_conf
   when: prometheus.prometheus_config_file_target_directory is not undefined
 
-- name: Generate local promethus config file from inventory
+- name: Generate local prometheus config file from inventory
   template:
     src: "prometheus.yml.j2"
     dest: "{{ prometheus.prometheus_config_file_target_directory }}/prometheus.yml"
@@ -28,5 +28,5 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   delegate_to: localhost
   tags:
-    - gen_prometheus_config
+    - generate_prometheus_conf
   when: prometheus.prometheus_config_file_target_directory is not undefined

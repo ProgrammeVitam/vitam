@@ -50,10 +50,10 @@ http_port = {{ grafana.http_port }}
 
 # Serve Grafana from subpath specified in `root_url` setting. By default it is set to `false` for compatibility reasons.
 ;serve_from_sub_path = false
-# VITAM added this, if you dont use reverse proxy, remove following two lines
+############################## VITAM added this, if you dont use reverse proxy, remove following two lines ##############################
 root_url = http://{{ ip_admin }}:{{grafana.http_port}}/grafana
 serve_from_sub_path = true
-
+############################## VITAM END ##############################
 # Log web requests
 ;router_logging = false
 
@@ -418,7 +418,9 @@ serve_from_sub_path = true
 
 #################################### Basic Auth ##########################
 [auth.basic]
+############################## VITAM START ##############################
 enabled = false
+############################## VITAM END ##############################
 
 #################################### Auth Proxy ##########################
 [auth.proxy]

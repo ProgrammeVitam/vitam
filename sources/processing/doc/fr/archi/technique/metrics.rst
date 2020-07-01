@@ -1,5 +1,5 @@
-Métriques spécifiques
-#####################
+Métriques spécifiques du composant processing
+#############################################
 
 
 Besoins
@@ -16,13 +16,13 @@ Un outil de monitoring, à ce jour, prometheus, permet de faire des requêtes su
 
 Liste des métriques
 ===================
-* vitam_processing_workflow_operation_total : Récupère un snapshot de l'ensemble des opérations visible par le composant processing
-* vitam_processing_worker_task_in_queue_total: Total des tâches dans la queue en attendre d'exécution
-* vitam_processing_worker_current_task_total: Total des tâches crées par le distributeur et qui sont pas encore terminées. C'est la somme des tâches en attente d'entrer dans la queue + Tâches dans la queue + Tâches en cours d'exécution pour les workers.
-* vitam_processing_worker_registered_total: Total des worker enregistré dans le distributeur
-* vitam_processing_worker_task_execution_duration_seconds: C'est une métrique de type Histogram, elle calcule la durée d'exécution d'une tâche du point de vu Distributeur/Worker
-* vitam_processing_worker_task_idle_duration_in_queue_seconds: C'est une métrique de type Histogram, elle calcule la durée d'attente d'exécution d'une tâche depuis sa création jusqu'a sa prise en charge par un worker.
-* vitam_processing_workflow_step_execution_duration_seconds: C'est une métrique de type Histogram, elle calcule la durée d'exécution d'une step du point de vu ProcessEngine
+* ``vitam_processing_workflow_operation_total`` : Récupère un snapshot de l'ensemble des opérations visible par le composant processing
+* ``vitam_processing_worker_task_in_queue_total``: Total des tâches dans la queue en attendre d'exécution
+* ``vitam_processing_worker_current_task_total``: Total des tâches crées par le distributeur et qui sont pas encore terminées. C'est la somme des tâches en attente d'entrer dans la queue + Tâches dans la queue + Tâches en cours d'exécution pour les workers.
+* ``vitam_processing_worker_registered_total``: Total des worker enregistré dans le distributeur
+* ``vitam_processing_worker_task_execution_duration_seconds``: C'est une métrique de type Histogram, elle calcule la durée d'exécution d'une tâche du point de vu Distributeur/Worker
+* ``vitam_processing_worker_task_idle_duration_in_queue_seconds``: C'est une métrique de type Histogram, elle calcule la durée d'attente d'exécution d'une tâche depuis sa création jusqu'a sa prise en charge par un worker.
+* ``vitam_processing_workflow_step_execution_duration_seconds``: C'est une métrique de type Histogram, elle calcule la durée d'exécution d'une step du point de vu ProcessEngine
 
 Exploitation des métriques
 ==========================
@@ -30,5 +30,5 @@ L'exploitation de ces métriques à des fins de visualisation ou d'alerting est 
 A ce jour, le serveur prometheus avec une bonne configuration permet d'exploiter ces métriques.
 
 .. note::
-    Veuillez vous référer au manuel de développement pour avoir plus d'information et de détails sur chacune de ces métriques
-    Veuillez vous référer à la documentation d'exploitation pour savoir comment exploiter ces métriques, exemple d'utilisation, alerting, et visualisation
+    - Veuillez vous référer au manuel de développement pour avoir plus d'information et de détails sur chacune de ces métriques
+    - Veuillez vous référer à la documentation d'exploitation pour savoir comment exploiter ces métriques, exemple d'utilisation, alerting, et visualisation
