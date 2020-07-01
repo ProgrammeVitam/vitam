@@ -1,0 +1,23 @@
+---
+
+  - set_fact:
+      TNR_STRING: ""
+      TNR_TOKEN: "-t"
+
+  - name: TNR by tag - Split
+    set_fact:
+      split_lines: "{{ TNR_TAGS.split('\n') }}"
+  
+  - name: TNR by tag - Read and append line
+    set_fact: 
+      TNR_STRING: "{{ TNR_STRING +' '+ TNR_TOKEN +' '+ item }}"
+    with_items: "{{ split_lines | list }}"
+
+
+  - name: TNR by tag - Launch
+    shell: java -Dlogback.configurationFile="{{TNR_conf}}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{TNR_lib}}/functional-test-*.jar {{ TNR_STRING }} -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} -p fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:{{report_dir}}/report_{{ansible_date_time.year}}{{ansible_date_time.month}}{{ ansible_date_time.day}}_{{ ansible_date_time.hour}}{{ ansible_date_time.minute}}{{ ansible_date_time.second}}.json {{ TNR_dir }}
+    become_user: "{{ vitam_defaults.users.vitam }}"
+    ignore_errors: true
+    args:
+      chdir: "{{TNR_conf}}"
+    run_once: true
