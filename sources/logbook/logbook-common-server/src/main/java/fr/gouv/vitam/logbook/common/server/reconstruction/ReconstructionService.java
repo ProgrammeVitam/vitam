@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -77,44 +78,48 @@ public class ReconstructionService {
 
     public static final String LOGBOOK = "logbook";
 
-    private RestoreBackupService restoreBackupService;
-    private VitamRepositoryProvider vitamRepositoryProvider;
-    private AdminManagementClientFactory adminManagementClientFactory;
-    private LogbookTransformData logbookTransformData;
+    private final RestoreBackupService restoreBackupService;
+    private final VitamRepositoryProvider vitamRepositoryProvider;
+    private final AdminManagementClientFactory adminManagementClientFactory;
+    private final LogbookTransformData logbookTransformData;
 
-    private OffsetRepository offsetRepository;
+    private final OffsetRepository offsetRepository;
+    private final ElasticsearchLogbookIndexManager indexManager;
 
     /**
      * Constructor
-     *
-     * @param vitamRepositoryProvider vitamRepositoryProvider
+     *  @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository
+     * @param indexManager
      */
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository) {
+        OffsetRepository offsetRepository,
+        ElasticsearchLogbookIndexManager indexManager) {
         this(vitamRepositoryProvider, new RestoreBackupService(), AdminManagementClientFactory.getInstance(),
-            new LogbookTransformData(), offsetRepository);
+            new LogbookTransformData(), offsetRepository, indexManager);
     }
 
     /**
      * Constructor for tests
-     *
-     * @param vitamRepositoryProvider vitamRepositoryProvider
+     *  @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
      * @param adminManagementClientFactory adminManagementClientFactory
      * @param logbookTransformData logbookTransformData
      * @param offsetRepository
+     * @param indexManager
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService, AdminManagementClientFactory adminManagementClientFactory,
         LogbookTransformData logbookTransformData,
-        OffsetRepository offsetRepository) {
+        OffsetRepository offsetRepository,
+        ElasticsearchLogbookIndexManager indexManager) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.logbookTransformData = logbookTransformData;
         this.offsetRepository = offsetRepository;
+        this.indexManager = indexManager;
     }
 
     /**
@@ -165,7 +170,8 @@ public class ReconstructionService {
         final VitamMongoRepository mongoRepository =
             vitamRepositoryProvider.getVitamMongoRepository(LogbookCollections.OPERATION.getVitamCollection());
         final VitamElasticsearchRepository esRepository =
-            vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION.getVitamCollection());
+            vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION.getVitamCollection(),
+                indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION));
 
         long newOffset = offset;
 

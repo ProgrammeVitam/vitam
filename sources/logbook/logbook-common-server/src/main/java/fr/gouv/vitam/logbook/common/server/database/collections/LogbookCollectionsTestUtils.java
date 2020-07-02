@@ -28,13 +28,21 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import com.mongodb.client.MongoDatabase;
-import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.GroupedTenantConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import org.bson.Document;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @VisibleForTesting
 public final class LogbookCollectionsTestUtils {
@@ -44,74 +52,90 @@ public final class LogbookCollectionsTestUtils {
     }
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final LogbookElasticsearchAccess esClient, Integer... tenants) {
-        beforeTestClass(db, prefix, esClient, Lists.newArrayList(LogbookCollections.values()), tenants);
+    public static ElasticsearchLogbookIndexManager createTestIndexManager(
+        List<Integer> dedicatedTenants,
+        Map<String, List<Integer>> tenantGroups) {
+
+        List<Integer> allTenants = Streams.concat(
+            dedicatedTenants.stream(),
+            tenantGroups.values().stream().flatMap(Collection::stream)
+        ).collect(Collectors.toList());
+
+        List<GroupedTenantConfiguration> tenantGroupConfiguration =
+            tenantGroups.entrySet().stream()
+                .map(entry -> new GroupedTenantConfiguration()
+                    .setName(entry.getKey())
+                    .setTenants(entry.getValue().stream().map(Object::toString).collect(Collectors.joining(",")))
+                )
+                .collect(Collectors.toList());
+
+        LogbookConfiguration logbookConfiguration = new LogbookConfiguration()
+            .setLogbookTenantIndexation(new LogbookIndexationConfiguration()
+                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
+                    .setLogbookoperation(new CollectionConfiguration(2, 1)))
+                .setGroupedTenantConfiguration(tenantGroupConfiguration)
+            );
+        return new ElasticsearchLogbookIndexManager(logbookConfiguration, allTenants);
     }
 
     @VisibleForTesting
     public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final LogbookElasticsearchAccess esClient, Collection<LogbookCollections> logbookCollections,
-        Integer... tenants) {
-        for (LogbookCollections collection : logbookCollections) {
+        final LogbookElasticsearchAccess esClient) {
+
+        for (LogbookCollections collection : LogbookCollections.values()) {
             collection.getVitamCollection()
                 .setName(prefix + collection.getClasz().getSimpleName());
             collection.initialize(db, false);
             if (collection == LogbookCollections.OPERATION) {
-                if (collection.getEsClient() == null) {
-                    collection.initialize(esClient);
+                collection.initialize(esClient);
+            }
+        }
+
+        if (esClient != null) {
+            esClient.createIndexesAndAliases();
+        }
+    }
+
+    @VisibleForTesting
+    public static void afterTestClass(ElasticsearchLogbookIndexManager indexManager, boolean deleteEsIndexes) {
+        try {
+            for (LogbookCollections collection : LogbookCollections.values()) {
+
+                if (null != collection.getVitamCollection().getCollection()) {
+                    collection.getVitamCollection().getCollection().deleteMany(new Document());
                 }
-                if (null != collection.getEsClient()) {
-                    for (Integer tenant : tenants) {
-                        Map<String, String> map = collection.getEsClient().addIndex(collection, tenant);
-                        if (map.isEmpty()) {
-                            throw new RuntimeException(
-                                "Index not created for the collection " + collection.getName() + " and tenant :" +
-                                    tenant);
+
+                if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
+                    for (Integer tenant : indexManager.getDedicatedTenants()) {
+                        if (deleteEsIndexes) {
+                            collection.getEsClient().deleteIndexByAliasForTesting(
+                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                        } else {
+                            collection.getEsClient().purgeIndexForTesting(
+                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                        }
+                    }
+
+                    for (String tenantGroupName : indexManager.getTenantGroups()) {
+                        // Select first tenant
+                        Integer tenant = indexManager.getTenantGroupTenants(tenantGroupName).iterator().next();
+                        if (deleteEsIndexes) {
+                            collection.getEsClient().deleteIndexByAliasForTesting(
+                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                        } else {
+                            collection.getEsClient().purgeIndexForTesting(
+                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
                         }
                     }
                 }
             }
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
         }
     }
 
-
     @VisibleForTesting
-    public static void afterTestClass(boolean deleteEsIndex, Integer... tenants) {
-        afterTestClass(Lists.newArrayList(LogbookCollections.values()), deleteEsIndex, tenants);
-    }
-
-    @VisibleForTesting
-    public static void afterTestClass(Collection<LogbookCollections> logbookCollections, boolean deleteEsIndex,
-        Integer... tenants) {
-        ParametersChecker.checkParameter("logbookCollections is required", logbookCollections);
-        for (LogbookCollections collection : logbookCollections) {
-
-            if (null != collection.getVitamCollection().getCollection()) {
-                collection.getVitamCollection().getCollection().deleteMany(new Document());
-            }
-
-            if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
-                for (Integer tenant : tenants) {
-                    if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndexByAlias(collection.getName().toLowerCase(), tenant);
-                    } else {
-                        collection.getEsClient().purgeIndex(collection.getName().toLowerCase(), tenant);
-                    }
-                }
-            }
-        }
-    }
-
-
-    @VisibleForTesting
-    public static void afterTest(Integer... tenants) {
-        afterTestClass(false, tenants);
-    }
-
-
-    @VisibleForTesting
-    public static void afterTest(Collection<LogbookCollections> logbookCollections, Integer... tenants) {
-        afterTestClass(logbookCollections, false, tenants);
+    public static void afterTest(ElasticsearchLogbookIndexManager indexManager) {
+        afterTestClass(indexManager, false);
     }
 }

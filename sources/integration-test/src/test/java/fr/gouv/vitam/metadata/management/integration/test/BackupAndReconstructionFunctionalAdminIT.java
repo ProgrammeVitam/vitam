@@ -75,6 +75,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -127,12 +129,12 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -185,7 +187,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.AGENCIES.getVitamCollection());
 
         final VitamElasticsearchRepository agenciesEs =
-            vitamRepository.getVitamESRepository(FunctionalAdminCollections.AGENCIES.getVitamCollection());
+            vitamRepository.getVitamESRepository(FunctionalAdminCollections.AGENCIES.getVitamCollection(),
+                functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.AGENCIES));
 
         Optional<Document> agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isPresent();
@@ -210,7 +213,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(agencyDoc).isEmpty();
 
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
+                functionalAdminIndexManager);
 
         reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
 
@@ -344,7 +348,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
 
         final VitamElasticsearchRepository securityProfileEs =
-            vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+            vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+                functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
@@ -369,7 +374,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
+                functionalAdminIndexManager);
         reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
 
         securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
@@ -517,7 +523,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         final VitamElasticsearchRepository ardEs =
             vitamRepository
-                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection());
+                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection(),
+                    functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL));
 
         final VitamMongoRepository arsMongo =
             vitamRepository
@@ -525,7 +532,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         final VitamElasticsearchRepository arsEs =
             vitamRepository
-                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection());
+                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection(),
+                    functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
 
         Optional<Document> registerDetailDoc = ardMongo.getByID(register1.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -615,7 +623,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
+                functionalAdminIndexManager);
 
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
@@ -715,7 +724,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         final VitamElasticsearchRepository arsEs =
             vitamRepository
-                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
+                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection(),
+                    functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC));
 
         arsMongo.purge();
         arsEs.purge();
@@ -727,7 +737,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
+                functionalAdminIndexManager);
 
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
@@ -855,7 +866,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
@@ -898,7 +910,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
             .save(gots);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
             .save(gots);
     }
 }

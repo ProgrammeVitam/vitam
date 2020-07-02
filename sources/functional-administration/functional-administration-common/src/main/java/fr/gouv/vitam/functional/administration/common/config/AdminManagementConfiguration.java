@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -71,7 +72,20 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
         this.elasticsearchNodes = elasticsearchNodes;
     }
 
+    @VisibleForTesting
+    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, boolean dbAuthentication,
+        String dbUserName, String dbPassword,
+        FunctionalAdminIndexationConfiguration indexationConfiguration) {
+        super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
+        this.indexationConfiguration = indexationConfiguration;
+    }
 
+    @VisibleForTesting
+    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName,
+        FunctionalAdminIndexationConfiguration indexationConfiguration) {
+        super(mongoDbNodes, dbName);
+        this.indexationConfiguration = indexationConfiguration;
+    }
 
     /**
      * @return url workspace

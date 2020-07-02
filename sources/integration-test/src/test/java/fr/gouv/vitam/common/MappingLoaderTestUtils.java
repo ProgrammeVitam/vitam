@@ -35,7 +35,7 @@ import java.util.List;
 
 public class MappingLoaderTestUtils {
 
-    public static MappingLoader getTestMappingLoader() throws Exception {
+    public static MappingLoader getTestMappingLoader() {
         List<ElasticsearchExternalMetadataMapping> mappingData =
             Arrays.asList(
                 new ElasticsearchExternalMetadataMapping("Unit",

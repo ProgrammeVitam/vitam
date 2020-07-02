@@ -92,6 +92,8 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,7 +131,7 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass("", 0, 1);
+        handleBeforeClass("", Arrays.asList(0, 1), Collections.emptyMap());
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
@@ -142,7 +144,7 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
 

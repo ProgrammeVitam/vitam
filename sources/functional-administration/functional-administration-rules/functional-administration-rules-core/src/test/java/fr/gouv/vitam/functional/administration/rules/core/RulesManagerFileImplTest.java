@@ -59,6 +59,7 @@ import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
@@ -171,6 +172,9 @@ public class RulesManagerFileImplTest {
     private static final String USED_DELETED_RULE_RESULT = "used_deleted_rule_result.json";
     private static final Integer TENANT_ID = 0;
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -181,7 +185,6 @@ public class RulesManagerFileImplTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private final static String HOST_NAME = "127.0.0.1";
     private static VitamCounterService vitamCounterService;
     private static VitamRuleService vitamRuleService;
     static RulesManagerFileImpl rulesFileManager;
@@ -229,7 +232,7 @@ public class RulesManagerFileImplTest {
 
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                esNodes));
+                esNodes, indexManager));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
@@ -239,7 +242,7 @@ public class RulesManagerFileImplTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         LogbookOperationsClientFactory.changeMode(null);
-        dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+        dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
         Integer[] tenantsList = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         List<Integer> tenants = new ArrayList<>(Arrays.asList(tenantsList));
         vitamRuleService = getRuleDurationConfigration(tenants);
@@ -250,7 +253,7 @@ public class RulesManagerFileImplTest {
     @Before
     public void setUp() {
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -542,8 +545,8 @@ public class RulesManagerFileImplTest {
         int tenantId = 5;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
-        dbAccess.deleteCollection(FunctionalAdminCollections.RULES);
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+        dbAccess.deleteCollectionForTesting(FunctionalAdminCollections.RULES);
         final Select select = new Select();
         try {
             when(logbookOperationsClient.selectOperation(any()))

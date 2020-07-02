@@ -100,6 +100,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -139,7 +141,7 @@ public class AuditIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         String configurationPath = PropertiesUtils
             .getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
@@ -147,8 +149,8 @@ public class AuditIT extends VitamRuleRunner {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+    public static void tearDownAfterClass() {
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -499,7 +501,7 @@ public class AuditIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
-        handleAfter(0);
+        handleAfter();
     }
 
 }

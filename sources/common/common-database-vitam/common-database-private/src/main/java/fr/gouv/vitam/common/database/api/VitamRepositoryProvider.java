@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.api;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 
 /**
  * Description of reconstruction service factory.
@@ -36,16 +37,15 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 public interface VitamRepositoryProvider {
 
     /**
-     *
      * @param collection VitamCollection
      * @return VitamMongoRepository
      */
     VitamMongoRepository getVitamMongoRepository(VitamCollection collection);
 
     /**
-     *
      * @param collection VitamCollection
      * @return VitamElasticsearchRepository
      */
-    VitamElasticsearchRepository getVitamESRepository(VitamCollection collection);
+    VitamElasticsearchRepository getVitamESRepository(VitamCollection collection,
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver);
 }

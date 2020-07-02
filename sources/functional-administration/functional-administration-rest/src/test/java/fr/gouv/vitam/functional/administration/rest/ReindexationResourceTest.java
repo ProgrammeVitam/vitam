@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
@@ -108,6 +109,10 @@ public class ReindexationResourceTest {
     private static AdminManagementMain application;
 
     private static int workspacePort = junitHelper.findAvailablePort();
+
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager
+        = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -127,7 +132,7 @@ public class ReindexationResourceTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());

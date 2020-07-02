@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.elasticsearch;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.FileNotFoundException;
 import java.nio.file.Paths;
 
 public class ElasticsearchTestHelper {

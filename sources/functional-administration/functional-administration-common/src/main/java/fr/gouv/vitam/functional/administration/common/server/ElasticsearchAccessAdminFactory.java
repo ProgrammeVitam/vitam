@@ -30,8 +30,8 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,13 +46,15 @@ public final class ElasticsearchAccessAdminFactory {
      * Creation of one ElasticsearchDbAcess
      *
      * @param configuration config of ElasticsearchDbAcess
+     * @param indexManager
      * @return the ElasticsearchDbAcess
      * @throws VitamException           if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
-    public static final ElasticsearchAccessFunctionalAdmin create(AdminManagementConfiguration configuration) {
+    public static final ElasticsearchAccessFunctionalAdmin create(AdminManagementConfiguration configuration,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        return create(configuration.getClusterName(), configuration.getElasticsearchNodes());
+        return create(configuration.getClusterName(), configuration.getElasticsearchNodes(), indexManager);
     }
 
 
@@ -61,21 +63,23 @@ public final class ElasticsearchAccessAdminFactory {
      *
      * @param clusterName the cluster name
      * @param nodes       the node list
+     * @param indexManager
      * @return the ElasticsearchDbAcess
      * @throws VitamException           if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
-    public static ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes) {
+    public static ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", clusterName, nodes);
         try {
             ElasticsearchAccessFunctionalAdmin elasticsearchAccess =
-                new ElasticsearchAccessFunctionalAdmin(clusterName, nodes);
+                new ElasticsearchAccessFunctionalAdmin(clusterName, nodes, indexManager);
 
             Arrays.stream(FunctionalAdminCollections.values())
                 .filter(collection -> collection != FunctionalAdminCollections.VITAM_SEQUENCE)
                 .forEach(collection -> collection.initialize(elasticsearchAccess));
             return elasticsearchAccess;
-        } catch (VitamException | IOException e) {
+        } catch (VitamException e) {
             throw new IllegalArgumentException(e);
         }
     }

@@ -50,12 +50,14 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
@@ -64,6 +66,9 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestU
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
+import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -100,6 +105,7 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollectio
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -118,7 +124,6 @@ public class MetadataResourceTest {
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
     public static final String PREFIX = GUIDFactory.newGUID().getId();
-
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -139,6 +144,11 @@ public class MetadataResourceTest {
     private static final int tenantId = 0;
     private static final List<Integer> tenantList = Lists.newArrayList(tenantId);
     private static final Integer TENANT_ID = 0;
+    private static final ElasticsearchMetadataIndexManager metadataIndexManager = MetadataCollectionsTestUtils
+        .createTestIndexManager(tenantList, emptyMap(), MappingLoaderTestUtils.getTestMappingLoader());
+    private static final ElasticsearchFunctionalAdminIndexManager functionalAdminIndexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
     private static ElasticsearchAccessFunctionalAdmin accessFunctionalAdmin;
 
@@ -156,14 +166,22 @@ public class MetadataResourceTest {
             new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
                 elasticsearchRule.getClusterName(), esNodes, mappingLoader);
 
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
-        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata, 0, 1);
-        accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes,
+            metadataIndexManager);
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata);
+        accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes,
+            functionalAdminIndexManager);
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, accessFunctionalAdmin,
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
+
+        configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
+            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
+                .setUnit(new CollectionConfiguration(2, 1))
+                .setObjectgroup(new CollectionConfiguration(2, 1))));
+
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
@@ -181,7 +199,7 @@ public class MetadataResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        MetadataCollectionsTestUtils.afterTestClass(true, 0, 1);
+        MetadataCollectionsTestUtils.afterTestClass(metadataIndexManager, true);
         FunctionalAdminCollectionsTestUtils
             .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
@@ -197,9 +215,10 @@ public class MetadataResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollectionsTestUtils.afterTest(0, 1);
-        FunctionalAdminCollectionsTestUtils.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+        MetadataCollectionsTestUtils.afterTest(metadataIndexManager);
+        FunctionalAdminCollectionsTestUtils
+            .afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {
@@ -484,7 +503,8 @@ public class MetadataResourceTest {
             .append("_sps", Arrays.asList("sp1", "sp2"));
         mongo.save(doc);
 
-        VitamElasticsearchRepository es = factory.getVitamESRepository(UNIT.getVitamCollection());
+        VitamElasticsearchRepository es = factory.getVitamESRepository(UNIT.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(UNIT));
         es.save(doc);
 
         given()
@@ -507,7 +527,8 @@ public class MetadataResourceTest {
             factory.getVitamMongoRepository(OBJECTGROUP.getVitamCollection());
         mongo.save(doc);
         VitamElasticsearchRepository es =
-            factory.getVitamESRepository(OBJECTGROUP.getVitamCollection());
+            factory.getVitamESRepository(OBJECTGROUP.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP));
         es.save(doc);
         String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
 

@@ -68,6 +68,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService;
@@ -164,12 +165,12 @@ public class MetadataManagementResource {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final ExportsPurgeService exportsPurgeService;
 
-    @VisibleForTesting
     MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository, MetaDataImpl metadata, MetaDataConfiguration configuration) {
-        this(new ReconstructionService(vitamRepositoryProvider, offsetRepository),
+        OffsetRepository offsetRepository, MetaDataImpl metadata, MetaDataConfiguration configuration,
+        ElasticsearchMetadataIndexManager indexManager) {
+        this(new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager),
             new StoreGraphService(vitamRepositoryProvider),
-            GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata),
+            GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata, indexManager),
             new ReclassificationDistributionService(metadata),
             ProcessingManagementClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance(),

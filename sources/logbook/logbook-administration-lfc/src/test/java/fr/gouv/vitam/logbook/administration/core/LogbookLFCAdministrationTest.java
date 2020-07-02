@@ -49,8 +49,9 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
@@ -127,12 +128,14 @@ public class LogbookLFCAdministrationTest {
     public static TemporaryFolder esTempFolder = new TemporaryFolder();
 
     private static final Integer tenantId = 0;
-    static final List<Integer> tenantList = Arrays.asList(0);
+    static final List<Integer> tenantList = Collections.singletonList(0);
+    private final static ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-   private LogbookOperationsImpl logbookOperations;
+    private LogbookOperationsImpl logbookOperations;
 
 
     @BeforeClass
@@ -142,7 +145,7 @@ public class LogbookLFCAdministrationTest {
 
 
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -163,13 +166,13 @@ public class LogbookLFCAdministrationTest {
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
     }
 
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollectionsTestUtils.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
 
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();
@@ -180,11 +183,13 @@ public class LogbookLFCAdministrationTest {
         reset(storageClient);
         reset(workspaceClient);
         reset(processingManagementClient);
-        logbookOperations = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, IndexationHelper.getInstance());
+        logbookOperations = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,
+            IndexationHelper.getInstance());
     }
+
     @After
     public void tearDown() {
-        LogbookCollectionsTestUtils.afterTest(Arrays.asList(LogbookCollections.OPERATION), tenantId);
+        LogbookCollectionsTestUtils.afterTest(indexManager);
     }
 
 

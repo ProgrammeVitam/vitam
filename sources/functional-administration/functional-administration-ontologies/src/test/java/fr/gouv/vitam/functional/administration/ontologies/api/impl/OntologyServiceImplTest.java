@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
@@ -104,6 +105,9 @@ public class OntologyServiceImplTest {
     private static OntologyServiceImpl ontologyService;
     private static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @Before
     public void setUp() {
         String operationId = newRequestIdGUID(TENANT_ID).toString();
@@ -116,7 +120,8 @@ public class OntologyServiceImplTest {
 
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
+                indexManager),
             Collections.singletonList(FunctionalAdminCollections.ONTOLOGY));
 
         VitamConfiguration.setAdminTenant(ADMIN_TENANT);
@@ -128,7 +133,7 @@ public class OntologyServiceImplTest {
 
         ontologyService =
             new OntologyServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
                 functionalBackupService);
     }
 

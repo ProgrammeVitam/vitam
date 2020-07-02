@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.common.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -78,7 +79,8 @@ public interface MongoDbAccessReferential {
         throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException;
 
     // Not check, test feature !
-    DbRequestResult deleteCollection(FunctionalAdminCollections collection, Delete delete)
+    @VisibleForTesting
+    DbRequestResult deleteCollectionForTesting(FunctionalAdminCollections collection, Delete delete)
         throws DatabaseException, ReferentialException;
 
     /**
@@ -89,7 +91,8 @@ public interface MongoDbAccessReferential {
      * @throws DatabaseException thrown when error on delete
      * @throws ReferentialException when error occurs
      */
-    DbRequestResult deleteCollection(FunctionalAdminCollections collection)
+    @VisibleForTesting
+    DbRequestResult deleteCollectionForTesting(FunctionalAdminCollections collection)
         throws DatabaseException, ReferentialException, SchemaValidationException;
 
     /**

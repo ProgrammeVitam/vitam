@@ -27,6 +27,8 @@
 package fr.gouv.vitam.common.database.api.impl;
 
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -97,7 +99,9 @@ public class VitamElasticsearchRepositoryTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), TEST_ALIAS, false);
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver =
+            (tenant) -> ElasticsearchIndexAlias.ofFullIndexName(TEST_ALIAS);
+        repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), elasticsearchIndexAliasResolver);
         /*
          * findByIdentifierAndTenant works only if identifier is term (not text) As es by default detect Identifier as
          * text we should pre-create index with correct mapping

@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
@@ -50,10 +51,10 @@ import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * All collections in functional admin module
@@ -194,9 +195,10 @@ public enum FunctionalAdminCollections {
      */
     protected void initialize(final ElasticsearchAccessFunctionalAdmin esClient) {
         vitamCollection.initialize(esClient);
-        Map<String, String> map = esClient.addIndex(this);
-        if (map.isEmpty()) {
-            throw new RuntimeException("Index not created for the collection " + getName());
+        try {
+            esClient.addIndex(this);
+        } catch (ReferentialException e) {
+            throw new RuntimeException("Index not created for the collection " + getName(), e);
         }
     }
 
@@ -286,5 +288,46 @@ public enum FunctionalAdminCollections {
 
     public VitamDescriptionResolver getVitamDescriptionResolver() {
         return vitamDescriptionResolver;
+    }
+
+    public ElasticsearchCollections getElasticsearchCollection() {
+        switch (this) {
+            case ACCESSION_REGISTER_SUMMARY:
+                return ElasticsearchCollections.ACCESSION_REGISTER_SUMMARY;
+            case ACCESSION_REGISTER_DETAIL:
+                return ElasticsearchCollections.ACCESSION_REGISTER_DETAIL;
+            case ARCHIVE_UNIT_PROFILE:
+                return ElasticsearchCollections.ARCHIVE_UNIT_PROFILE;
+            case ONTOLOGY:
+                return ElasticsearchCollections.ONTOLOGY;
+            case ACCESSION_REGISTER_SYMBOLIC:
+                return ElasticsearchCollections.ACCESSION_REGISTER_SYMBOLIC;
+            case FORMATS:
+                return ElasticsearchCollections.FORMATS;
+            case RULES:
+                return ElasticsearchCollections.RULES;
+            case INGEST_CONTRACT:
+                return ElasticsearchCollections.INGEST_CONTRACT;
+            case MANAGEMENT_CONTRACT:
+                return ElasticsearchCollections.MANAGEMENT_CONTRACT;
+            case ACCESS_CONTRACT:
+                return ElasticsearchCollections.ACCESS_CONTRACT;
+            case PROFILE:
+                return ElasticsearchCollections.PROFILE;
+            case CONTEXT:
+                return ElasticsearchCollections.CONTEXT;
+            case AGENCIES:
+                return ElasticsearchCollections.AGENCIES;
+            case SECURITY_PROFILE:
+                return ElasticsearchCollections.SECURITY_PROFILE;
+            case GRIFFIN:
+                return ElasticsearchCollections.GRIFFIN;
+            case PRESERVATION_SCENARIO:
+                return ElasticsearchCollections.PRESERVATION_SCENARIO;
+            case VITAM_SEQUENCE:
+                throw new IllegalStateException("No ES index for collection " + this);
+            default:
+                throw new IllegalStateException("Unknown collection " + this);
+        }
     }
 }

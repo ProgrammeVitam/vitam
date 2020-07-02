@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -57,6 +58,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
@@ -75,7 +79,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -102,7 +105,7 @@ public class LogBookLifeCycleObjectGroupTest {
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
     private static final Integer tenantId = 0;
-    private static final List<Integer> tenantList = Arrays.asList(0);
+    private static final List<Integer> tenantList = Collections.singletonList(0);
 
     // ES
     @ClassRule
@@ -122,6 +125,9 @@ public class LogBookLifeCycleObjectGroupTest {
 
     private static JunitHelper junitHelper;
 
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
@@ -132,7 +138,7 @@ public class LogBookLifeCycleObjectGroupTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -153,6 +159,9 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
             logbookConf.setOpEventsNotInWf(new ArrayList<>());
             logbookConf.setOpWithLFC(new ArrayList<>());
+            logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
+                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
+                    new CollectionConfiguration(2, 1))));
 
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();
@@ -237,7 +246,7 @@ public class LogBookLifeCycleObjectGroupTest {
             LOGGER.error(e);
         }
 
-        LogbookCollectionsTestUtils.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
 
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
