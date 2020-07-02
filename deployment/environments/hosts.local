@@ -3,6 +3,7 @@
 [hosts:children]
 vitam
 prometheus
+grafana
 reverse
 hosts_dev_tools
 ldap
@@ -23,6 +24,8 @@ localhost
 [hosts_alertmanager]
 localhost
 
+[grafana]
+localhost
 
 [ldap] # Extra : OpenLDAP server
 

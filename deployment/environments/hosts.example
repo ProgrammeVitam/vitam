@@ -4,6 +4,8 @@
 # Group definition ; DO NOT MODIFY
 [hosts:children]
 vitam
+prometheus
+grafana
 reverse
 hosts_dev_tools
 ldap
@@ -18,6 +20,18 @@ ldap
 # vitam-centos-01.vitam ansible_ssh_user=centos
 
 ########### Extra VITAM applications ###########
+[prometheus:children]
+hosts_prometheus
+hosts_alertmanager
+
+[hosts_prometheus]
+# TODO: Put here server where this service will be deployed : prometheus server
+
+[hosts_alertmanager]
+# TODO: Put here servers where this service will be deployed : alertmanager
+
+[grafana]
+# TODO: Put here servers where this service will be deployed : grafana
 
 [ldap] # Extra : OpenLDAP server
 # LDAP server !!! NOT FOR PRODUCTION !!! Test only

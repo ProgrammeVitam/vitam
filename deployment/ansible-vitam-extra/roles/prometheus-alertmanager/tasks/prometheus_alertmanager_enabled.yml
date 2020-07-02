@@ -95,3 +95,10 @@
     state: started
   tags:
     - update_alertmanager_configuration
+
+- name: Wait for alertmanager port {{ prometheus.alertmanager.api_port}} to be open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ prometheus.alertmanager.api_port}}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"

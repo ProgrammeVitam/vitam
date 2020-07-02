@@ -7,6 +7,8 @@
 
 [hosts:children]
 vitam
+prometheus
+grafana
 reverse
 hosts_dev_tools
 ldap
@@ -16,6 +18,19 @@ ldap
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
 
 ########### Extra VITAM applications ###########
+[prometheus:children]
+hosts_prometheus
+hosts_alertmanager
+
+[hosts_prometheus]
+# TODO: Put here server where this service will be deployed : prometheus server
+
+[hosts_alertmanager]
+# TODO: Put here servers where this service will be deployed : alertmanager
+
+[grafana]
+# TODO: Put here servers where this service will be deployed : grafana
+
 
 [ldap] # Extra : OpenLDAP server
 

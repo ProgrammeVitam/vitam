@@ -12,6 +12,11 @@
 # Vitam solution deployment
 - import_playbook: metricbeat.yml
 
+- import_playbook: prometheus.yml
+
+- import_playbook: grafana.yml
+
+
 # - hosts: vitam
 #   roles:
 #    - {role: packetbeat, when: "inventory_hostname not in single_vm_hostnames"}
