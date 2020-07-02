@@ -836,7 +836,7 @@ public class ProcessDistributorImplTest {
         // "level_3" : [ "a", "b", "c" ], Execute 3
         // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 20
         // Total = 0 + 1 + 2 + 3 + 20 = 26
-        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(9, 26);
+        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(7, 26);
     }
 
 
@@ -897,7 +897,7 @@ public class ProcessDistributorImplTest {
         // "level_3" : [ "a", "b", "c" ], Execute 3
         // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 20
         // Total = 0 + 1 + 2 + 3 + 20 = 26
-        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(10, 26);
+        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(7, 26);
     }
 
     @Test
