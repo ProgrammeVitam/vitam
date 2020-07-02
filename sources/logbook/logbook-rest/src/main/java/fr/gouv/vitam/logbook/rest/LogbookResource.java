@@ -1664,9 +1664,7 @@ public class LogbookResource extends ApplicationStatusResource {
             List<LogbookLifeCycle> result = new ArrayList<>();
             result = logbookLifeCycle.selectObjectGroup(queryDsl, false,
                 fromLifeCycleStatusToObjectGroupCollection(requiredLifeCycleStatus));
-            if (result.size() != 1) {
-                throw new LogbookDatabaseException("Result size different than 1.");
-            }
+
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
                     .addResult(result.iterator().next())
