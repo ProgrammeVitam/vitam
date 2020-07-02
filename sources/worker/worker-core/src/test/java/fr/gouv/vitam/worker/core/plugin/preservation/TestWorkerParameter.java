@@ -42,6 +42,7 @@ import java.util.Set;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.containerName;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.objectMetadata;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.requestId;
+import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.workflowStatusKo;
 
 public class TestWorkerParameter implements WorkerParameters {
     public final Map<String, Object> params;
@@ -255,6 +256,11 @@ public class TestWorkerParameter implements WorkerParameters {
     }
 
     @Override
+    public String getWorkflowStatusKo() {
+        return (String) this.params.get(workflowStatusKo.name());
+    }
+
+    @Override
     public Map<WorkerParameterName, String> getMapParameters() {
         throw new IllegalStateException("Not implemented");
     }
@@ -296,6 +302,11 @@ public class TestWorkerParameter implements WorkerParameters {
 
         public TestWorkerParameterBuilder withObjectMetadata(JsonNode objectMetadata) {
             this.params.put(WorkerParameterName.objectMetadata.name(), objectMetadata);
+            return this;
+        }
+
+        public TestWorkerParameterBuilder withWorkflowStatusKo(String status) {
+            this.params.put(workflowStatusKo.name(), status);
             return this;
         }
 

@@ -105,7 +105,8 @@
         {
           "action": {
             "actionKey": "MASS_UPDATE_UNITS_RULES",
-            "behavior": "BLOCKING",
+            "statusAggregationBehavior": "KO_CAUSES_WARNING",
+            "behavior": "NOBLOCKING",
             "out": [
               {
                 "name": "update_units_report",

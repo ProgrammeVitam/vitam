@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -62,12 +63,14 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static fr.gouv.vitam.batch.report.model.ReportType.UPDATE_UNIT;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateFinalize.JSONL_EXTENSION;
 import static fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateFinalize.WORKSPACE_REPORT_URI;
 import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
@@ -145,11 +148,33 @@ public class MassUpdateFinalizeTest {
 
     @Test
     @RunWithCustomExecutor
+    public void should_generate_report_WARNING() throws Exception {
+        // Given
+        String operationId = "MY_OPERATION_ID";
+
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).
+            withWorkflowStatusKo(OK.name()).build();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
+
+        when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseWarning());
+
+        // When
+        ItemStatus itemStatus = massUpdateFinalize.execute(workerParameter, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(WARNING);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
     public void should_create_report_with_number_of_OK_from_logbook() throws Exception {
         // Given
         String operationId = "MY_OPERATION_ID";
 
-        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).
+            withWorkflowStatusKo(OK.name()).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
@@ -187,7 +212,10 @@ public class MassUpdateFinalizeTest {
         TestHandlerIO handlerIO = new TestHandlerIO();
 
         File existingReport = tempFolder.newFile();
+        InputStream report = PropertiesUtils.getResourceAsStream("massUpdateFinalize/report.jsonl");
+        handlerIO.setJsonFromWorkspace("report.jsonl", JsonHandler.getFromInputStream(report));
         FileUtils.writeStringToFile(existingReport, "data", StandardCharsets.UTF_8);
+
         handlerIO.transferAtomicFileToWorkspace(WORKSPACE_REPORT_URI, existingReport);
 
         // When
@@ -286,6 +314,10 @@ public class MassUpdateFinalizeTest {
     }
 
     private JsonNode getLogbookOperationRequestResponseOK() throws InvalidParseOperationException {
+        return getLogbookOperationRequestResponseOK(3, 0);
+    }
+
+    private JsonNode getLogbookOperationRequestResponseWarning() throws InvalidParseOperationException {
         return getLogbookOperationRequestResponseOK(1, 2);
     }
 

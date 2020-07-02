@@ -57,28 +57,18 @@ import static fr.gouv.vitam.common.LocalDateUtil.now;
 /**
  * classe permettant de générer des LFC à partir des ItemStatus renvoyé par le résultat d'une action.
  */
-public class LifecycleFromWorker {
+class LifecycleFromWorker {
 
     private List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersTemporaryBulks = new ArrayList<>();
     private List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulks = new ArrayList<>();
     private final LogbookLifeCyclesClient logbookLfcClient;
 
-    public LifecycleFromWorker(LogbookLifeCyclesClient logbookLfcClient) {
+    LifecycleFromWorker(LogbookLifeCyclesClient logbookLfcClient) {
         this.logbookLfcClient = logbookLfcClient;
     }
 
-    /**
-     * generate lifecycle and save in memory to prepare bulk.
-     *
-     * @param pluginResponse
-     * @param workParams
-     * @param action
-     * @param distributionType
-     * @param aggregateItemStatus
-     * @throws InvalidGuidOperationException
-     */
-    public void generateLifeCycle(List<ItemStatus> pluginResponse, WorkerParameters workParams, Action action,
-        DistributionType distributionType, ItemStatus aggregateItemStatus) throws InvalidGuidOperationException {
+    void generateLifeCycle(List<ItemStatus> pluginResponse, WorkerParameters workParams, Action action,
+        DistributionType distributionType) throws InvalidGuidOperationException {
         int i = 0;
         String handlerName = action.getActionDefinition().getActionKey();
 
@@ -101,8 +91,6 @@ public class LifecycleFromWorker {
             } else {
                 // FIXME (US 5769)
             }
-            aggregateItemStatus.setItemId(itemStatus.getItemId());
-            aggregateItemStatus.setItemsStatus(itemStatus);
         }
     }
 
@@ -112,7 +100,7 @@ public class LifecycleFromWorker {
      * @param distributionType unit or GOT
      * @throws VitamClientInternalException
      */
-    public void saveLifeCycles(DistributionType distributionType) throws VitamClientInternalException {
+    void saveLifeCycles(DistributionType distributionType) throws VitamClientInternalException {
         if (!logbookLifeCycleParametersTemporaryBulks.isEmpty()) {
             logbookLfcClient.bulkLifeCycleTemporary(VitamThreadUtils.getVitamSession().getRequestId(), distributionType,
                 logbookLifeCycleParametersTemporaryBulks);

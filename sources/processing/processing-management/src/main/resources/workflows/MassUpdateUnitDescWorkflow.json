@@ -53,7 +53,7 @@
     {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UPDATE",
-      "behavior": "BLOCKING",
+      "behavior": "NOBLOCKING",
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "massUpdateUnits/unitsToUpdate.jsonl"
@@ -62,7 +62,8 @@
         {
           "action": {
             "actionKey": "MASS_UPDATE_UNITS",
-            "behavior": "BLOCKING"
+            "statusAggregationBehavior": "KO_CAUSES_WARNING",
+            "behavior": "NOBLOCKING"
           }
         }
       ]
@@ -70,7 +71,7 @@
     {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_MASS_UPDATE_FINALIZE",
-      "behavior": "BLOCKING",
+      "behavior": "FINALLY",
       "distribution": {
         "kind": "REF"
       },

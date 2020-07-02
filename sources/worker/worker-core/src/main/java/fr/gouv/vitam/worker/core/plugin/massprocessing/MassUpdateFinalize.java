@@ -65,7 +65,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +103,7 @@ public class MassUpdateFinalize extends ActionHandler {
     }
 
     @VisibleForTesting
-    public MassUpdateFinalize(BatchReportClientFactory batchReportClientFactory,
+    private MassUpdateFinalize(BatchReportClientFactory batchReportClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         StorageClientFactory storageClientFactory) {
         this.batchReportClientFactory = batchReportClientFactory;
@@ -118,40 +117,67 @@ public class MassUpdateFinalize extends ActionHandler {
 
         try {
 
-            storeReportToWorkspace(param, handler);
+            ReportResults reportResult = storeReportToWorkspace(param, handler);
 
             storeReportToOffers(param);
 
             cleanupReport(param);
+
+            if (reportResult == null) {
+                return buildItemStatus(MASS_UPDATE_FINALIZE, WARNING,
+                    EventDetails.of("MassUpdate report generation WARNING. Vitam results are absent, seems to be not logbook events..."));
+            }
+
+            if (reportResult.getNbKo() != 0 || reportResult.getNbWarning() != 0) {
+                return buildItemStatus(MASS_UPDATE_FINALIZE, WARNING,
+                    EventDetails.of("MassUpdate report generation WARNING. Some update operations have a KO or WARNING status."));
+            }
+
+            if (reportResult.getTotal() == 0 || reportResult.getNbOk() == 0) {
+                return buildItemStatus(MASS_UPDATE_FINALIZE, KO,
+                    EventDetails.of("MassUpdate report generation KO. No update done."));
+            }
 
             return buildItemStatus(MASS_UPDATE_FINALIZE, OK, EventDetails.of("MassUpdate report generation OK."));
 
         } catch (LogbookClientException | VitamClientInternalException | StorageNotFoundClientException |
             StorageServerClientException | StorageAlreadyExistsClientException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_FINALIZE, FATAL,
-                EventDetails.of("Client error when generating report."));
+            return buildItemStatus(MASS_UPDATE_FINALIZE, FATAL, EventDetails.of("Client error when generating report."));
         }
     }
 
-    private void storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
+    private ReportResults storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, InvalidParseOperationException, LogbookClientException,
         VitamClientInternalException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
             if (handler.isExistingFileInWorkspace(WORKSPACE_REPORT_URI)) {
                 // Report already generated (idempotency)
-                return;
+                JsonNode report = handler.getJsonFromWorkspace(WORKSPACE_REPORT_URI);
+                return JsonHandler.getFromJsonNode(report, Report.class).getReportSummary().getVitamResults();
             }
 
-            LogbookOperation logbook = getLogbookInformation(param);
-            OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());
-            ReportSummary reportSummary = getReport(logbook);
-            JsonNode context = handler.getJsonFromWorkspace("query.json");
-
-            Report reportInfo = new Report(operationSummary, reportSummary, context);
+            Report reportInfo = generateReport(param, handler);
             batchReportClient.storeReportToWorkspace(reportInfo);
+            return reportInfo.getReportSummary().getVitamResults();
         }
+    }
+
+    private Report generateReport(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, InvalidParseOperationException, LogbookClientException {
+
+        LogbookOperation logbook = getLogbookInformation(param);
+        OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());
+        ReportSummary reportSummary = getReport(logbook);
+        // Agregate status of logbook operations when ko occurs
+        if (reportSummary.getVitamResults() != null && reportSummary.getVitamResults().getNbKo() > 0 &&
+            WARNING.name().equals(param.getWorkflowStatusKo())) {
+            operationSummary.setOutcome(operationSummary.getOutcome().replace(KO.name(), param.getWorkflowStatusKo()));
+            operationSummary.setOutDetail(operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo()));
+        }
+        JsonNode context = handler.getJsonFromWorkspace("query.json");
+        return new Report(operationSummary, reportSummary, context);
     }
 
     private void storeReportToOffers(WorkerParameters param)
@@ -207,13 +233,13 @@ public class MassUpdateFinalize extends ActionHandler {
 
     private ReportSummary getReport(LogbookOperation logbook) {
         Optional<LogbookEventOperation> logbookEvent = logbook.getEvents().stream()
-            .filter(e -> e.getEvType().equals(MASS_UPDATE_UNITS))
-            .findFirst();
+            .filter(e -> e.getEvType().startsWith(MASS_UPDATE_UNITS))
+            .reduce((a, b) -> b);
 
         String startDate = logbook.getEvDateTime();
         String endDate = LocalDateUtil.getString(LocalDateUtil.now());
 
-        if (!logbookEvent.isPresent()) {
+        if (logbookEvent.isEmpty()) {
             return new ReportSummary(startDate, endDate, UPDATE_UNIT, null, null);
         }
 

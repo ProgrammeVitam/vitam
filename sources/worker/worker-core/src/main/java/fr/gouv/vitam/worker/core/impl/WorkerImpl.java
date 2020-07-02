@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.processing.Action;
 import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import fr.gouv.vitam.common.model.processing.StatusAggregationBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -92,10 +93,13 @@ import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyUnitPreparat
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.processing.LifecycleState.FLUSH_LFC;
 
 
@@ -284,25 +288,17 @@ public class WorkerImpl implements Worker {
 
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
 
+                        pluginResponse = actionPlugin.executeList(workParams, handlerIO);
+                        List<ItemStatus> itemStatuses = pluginResponse.stream()
+                            .flatMap(itemStatus -> itemStatus.getItemsStatus().values().stream())
+                            .collect(Collectors.toList());
+
+                        aggregateItemStatus = getActionResponse(handlerName,
+                            itemStatuses,
+                            action.getActionDefinition().getStatusAggregationBehavior());
+                        aggregateItemStatus.setItemId(handlerName);
                         if (action.getActionDefinition().lifecycleEnabled()) {
-
-                            pluginResponse = actionPlugin.executeList(workParams, handlerIO);
-
-
-                            lifecycleFromWorker
-                                .generateLifeCycle(pluginResponse, workParams, action, step.getDistribution().getType(),
-                                    aggregateItemStatus);
-
-                            aggregateItemStatus.setItemId(handlerName);
-                            aggregateItemStatus = getActionResponse(handlerName, aggregateItemStatus);
-                        } else {
-                            pluginResponse = actionPlugin.executeList(workParams, handlerIO);
-
-                            for (ItemStatus itemStatus : pluginResponse) {
-                                aggregateItemStatus.setItemId(itemStatus.getItemId());
-                                aggregateItemStatus.setItemsStatus(itemStatus);
-                            }
-                            aggregateItemStatus.setItemId(handlerName);
+                            lifecycleFromWorker.generateLifeCycle(pluginResponse, workParams, action, step.getDistribution().getType());
                         }
 
                         responses.setItemsStatus(aggregateItemStatus);
@@ -352,13 +348,14 @@ public class WorkerImpl implements Worker {
         return responses;
     }
 
-    private static ItemStatus getActionResponse(String handlerName, ItemStatus pluginResponse) {
+    private static ItemStatus getActionResponse(String handlerName, List<ItemStatus> pluginResponse, StatusAggregationBehavior statusBehavior) {
         ItemStatus status = new ItemStatus(handlerName);
-        for (final Entry<String, ItemStatus> entry : pluginResponse.getItemsStatus().entrySet()) {
-            ItemStatus subItemStatus = entry.getValue();
+
+        for (ItemStatus subItemStatus : pluginResponse) {
             subItemStatus.setItemId(handlerName);
-            status.setItemsStatus(handlerName, subItemStatus);
+            status.setItemsStatus(handlerName, subItemStatus, statusBehavior);
         }
+
         return status;
     }
 

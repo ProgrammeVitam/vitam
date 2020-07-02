@@ -31,3 +31,6 @@ vitam-griffins
 .directory
 .gitignore
 deployment/environments/backups
+.floo
+.flooignore
+
