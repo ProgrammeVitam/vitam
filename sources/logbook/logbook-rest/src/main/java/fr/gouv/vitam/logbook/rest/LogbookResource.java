@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
@@ -1045,8 +1046,14 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            if (queryDsl != null) {
+                parser.parse(queryDsl);
+            }
+            Select select = parser.getRequest();
+            select.setQuery(QueryHelper.eq(LogbookMongoDbName.objectIdentifier.getDbname(), unitLifeCycleId));
             final LogbookLifeCycle result =
-                logbookLifeCycle.getUnitById(queryDsl, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
+                logbookLifeCycle.getUnitById(select.getFinalSelect(), fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
 
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
@@ -1071,7 +1078,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(exc.getMessage()))
                 .build();
-        } catch (final IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException | InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
