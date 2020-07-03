@@ -475,3 +475,109 @@ La mise en oeuvre de SELinux est prise en charge par le processus de déploiemen
    selinux_state: "enforcing"
 
 * Procéder à l'installation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d’installation classique décrite dans le DIN
+
+
+Installation de la stack prometheus
+===================================
+Prometheus server et alertmanager sont des addons dans la solution :term:`VITAM`. Il possible de les installer ou désinstaller via la configuration dans le fichier ``cots_var.yml``.
+Voici à quoi correspond une configuration qui permettra d'installer toute la stack prometheus.
+
+.. code-block:: text
+
+    prometheus:
+        metrics_path: /admin/v1/metrics
+        check_consul: 10 # in seconds
+        prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
+        server:
+            enabled: true
+            port: 19090
+        node_exporter:
+            enabled: true
+            port: 19100
+            metrics_path: /metrics
+        alertmanager:
+            enabled: true
+            api_port: 19093
+            cluster_port: 19094
+..
+
+
+- L'adresse d'écoute de ces composants est celle de la patte d'administration.
+- Vous pouvez surcharger la valeur de certaines de ces varibales. Par exemple les numéros de ports d'écoute. Le path de l'API.
+- Pour désinstaller ou désactiver un composant de la stack prometheus il suffiet de mettre la valeur de ``enabled`` à ``false``
+- Pour générer uniquement le fichier de configuration prometheus.yml à partir de l'inventaire de l'environnement en question, il suffit de spécifier le répertoire destination dans la variable ``prometheus_config_file_target_directory``
+
+.. note:: Si vous disposez d'un prometheus server et alertmanager déjà existants, vous pouvez juste installer ``node_eexporter``
+
+Commandes utiles
+----------------
+Veuillez vous référer à la documentation d'exploitation pour plus d'information.
+
+* Installer prometheus seulement: ce playbook install le serveur prometheus et alertmanager
+
+    .. code-block:: bash
+
+        ansible-playbook -i environments/hosts.local ansible-vitam-extra/prometheus.yml --ask-vault
+
+    ..
+
+* Générer du fichier de conf: cette commande génère dans le dossier ``prometheus_config_file_target_directory`` le fichier ``prometheus.yml``
+
+    .. code-block:: bash
+
+        ansible-playbook -i environments/hosts ansible-vitam-extra/prometheus.yml --tags generate_prometheus_conf --ask-vault
+
+    ..
+
+
+Installation de grafana
+=======================
+Grafana server est un addon dans la solution :term:`VITAM`. Il possible de l'installer/désinstaller via la configuration dans le fichier ``cots_var.yml``.
+Voici à quoi correspond une configuration qui permettra d'installer ce serveur.
+
+.. code-block:: text
+
+    grafana:
+        enabled: true
+        check_consul: 10 # in seconds
+        http_port: 13000
+..
+
+
+- L'adresse d'écoute de ces composants est celle de la patte d'administration.
+- Vous pouvez surcharger le numéro de port d'écoute.
+- Pour désinstaller ou désactiver un composant il suffiet de mettre la valeur de ``enabled`` à ``false``
+
+.. note:: Si vous disposez d'un grafana server déjà existants, vous n'avez pas à activer son installation.
+
+Commandes utiles
+----------------
+Veuillez vous référer à la documentation d'exploitation pour plus d'information.
+
+* Installer grafana seulement: ce playbook install le serveur grafana
+
+    .. code-block:: bash
+
+        ansible-playbook -i environments/hosts.local ansible-vitam-extra/grafana.yml --ask-vault
+
+    ..
+
+Configuration
+-------------
+
+Dans le cas ou le serveur grafana est dernière un serveur proxy, vous devez apporter des modification au fichier de configuration ``grafana.conf.j2``
+
+Voici les variables modifiées par la solution vitam pour que ça marche derrière le proxy apache.
+
+    .. code-block:: text
+
+        [server]
+        root_url = http://{{ ip_admin }}:{{grafana.http_port}}/grafana
+        serve_from_sub_path = true
+
+        [auth.basic]
+        enabled = false
+
+    ..
+
+.. warning:: Lors de la première installation, vous devez changer le mot de passe par defaut et configurer le datasource et créer/importer les dashboards manuellement.
