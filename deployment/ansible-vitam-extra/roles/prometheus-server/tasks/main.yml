@@ -16,7 +16,7 @@
   delegate_to: localhost
   register: rules_files
   tags:
-    - generate_prometheus_conf
+    - gen_prometheus_config
   when: prometheus.prometheus_config_file_target_directory is  search("/")
 
 - name: Generate local prometheus config file from inventory
@@ -25,5 +25,5 @@
     dest: "{{ prometheus.prometheus_config_file_target_directory }}/prometheus.yml"
   delegate_to: localhost
   tags:
-    - generate_prometheus_conf
+    - gen_prometheus_config
   when: prometheus.prometheus_config_file_target_directory is  search("/")

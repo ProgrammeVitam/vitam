@@ -525,7 +525,7 @@ Veuillez vous référer à la documentation d'exploitation pour plus d'informati
 
     .. code-block:: bash
 
-        ansible-playbook -i environments/hosts ansible-vitam-extra/prometheus.yml --tags generate_prometheus_conf --ask-vault
+        ansible-playbook -i environments/hosts ansible-vitam-extra/prometheus.yml --tags gen_prometheus_config --ask-vault
 
     ..
 
