@@ -32,27 +32,17 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -81,41 +71,34 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(PrepareLfcTraceabilityActionPlugin.class);
 
-    private static final int LAST_OPERATION_LIFECYCLES_OUT_RANK = 0;
-    private static final int TRACEABILITY_INFORMATION_OUT_RANK = 1;
-    private static final int LFC_AND_METADATA_OUT_RANK = 2;
+    private static final int LAST_OPERATION_LIFECYCLES_IN_RANK = 0;
+    private static final int TRACEABILITY_INFORMATION_OUT_RANK = 0;
+    private static final int LFC_AND_METADATA_OUT_RANK = 1;
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final int batchSize;
 
     public PrepareLfcTraceabilityActionPlugin() {
         this(MetaDataClientFactory.getInstance(),
-            LogbookLifeCyclesClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(),
+            LogbookLifeCyclesClientFactory.getInstance(),
             VitamConfiguration.getBatchSize());
     }
 
     @VisibleForTesting
     PrepareLfcTraceabilityActionPlugin(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory,
         int batchSize) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.batchSize = batchSize;
     }
 
     protected StatusCode selectAndExportLifecyclesWithMetadata(int temporizationDelayInSeconds,
         int lifecycleTraceabilityMaxEntries, String eventType, HandlerIO handlerIO)
-        throws ProcessingException, InvalidParseOperationException, LogbookClientException,
-        InvalidCreateOperationException {
+        throws ProcessingException, InvalidParseOperationException, LogbookClientException {
 
-        final LogbookOperation lastTraceabilityOperation = findLastOperationTraceabilityLifecycle(
-            eventType);
-
-        exportLastOperationTraceabilityLifecycle(handlerIO, lastTraceabilityOperation);
+        final LogbookOperation lastTraceabilityOperation = loadLastOperationTraceabilityLifecycle(handlerIO);
 
         LocalDateTime traceabilityStartDate = getTraceabilityOperationStartDate(lastTraceabilityOperation);
         LocalDateTime traceabilityEndDate = LocalDateUtil.now()
@@ -246,32 +229,14 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         }
     }
 
-    private LogbookOperation findLastOperationTraceabilityLifecycle(String eventType)
-        throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        final Select select = new Select();
-        final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
-        final Query eventStatus = QueryHelper
-            .in(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
-                eventType + ".OK", eventType + ".WARNING");
-        final Query hasTraceabilityFile = QueryHelper.exists(String
-            .format("%s.%s.%s", LogbookDocument.EVENTS, eventDetailData.getDbname(), "FileName"));
-
-        select.setLimitFilter(0, 1);
-        select.setQuery(QueryHelper.and().add(type, eventStatus, hasTraceabilityFile));
-
-        select.addOrderByDescFilter("evDateTime");
-        try (LogbookOperationsClient logbookOperationsClient =
-            logbookOperationsClientFactory.getClient()) {
-            RequestResponseOK requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
-            List<ObjectNode> foundOperation = requestResponseOK.getResults();
-            if (foundOperation != null && foundOperation.size() >= 1) {
-                return new LogbookOperation(foundOperation.get(0));
-            }
-
-            LOGGER.debug("Logbook not found, this is the first Operation of this type");
+    private LogbookOperation loadLastOperationTraceabilityLifecycle(HandlerIO handlerIO)
+        throws InvalidParseOperationException {
+        JsonNode logbookOperation = JsonHandler.getFromFile(
+            (File) handlerIO.getInput(LAST_OPERATION_LIFECYCLES_IN_RANK));
+        if (logbookOperation.isEmpty()) {
             return null;
         }
+        return JsonHandler.getFromJsonNode(logbookOperation, LogbookOperation.class);
     }
 
     private void exportTraceabilityInformation(
@@ -291,21 +256,6 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         // Create json file
         JsonHandler.writeAsFile(traceabilityInformation, tempFile);
         handlerIO.addOutputResult(TRACEABILITY_INFORMATION_OUT_RANK, tempFile, true, false);
-    }
-
-    private void exportLastOperationTraceabilityLifecycle(HandlerIO handlerIO,
-        LogbookOperation lastOperationTraceability)
-        throws InvalidParseOperationException, ProcessingException {
-        File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(LAST_OPERATION_LIFECYCLES_OUT_RANK).getPath());
-        if (lastOperationTraceability == null) {
-            // empty json file
-            JsonHandler.writeAsFile(JsonHandler.createObjectNode(), tempFile);
-            handlerIO.addOutputResult(LAST_OPERATION_LIFECYCLES_OUT_RANK, tempFile, true, false);
-        } else {
-            // Create json file
-            JsonHandler.writeAsFile(lastOperationTraceability, tempFile);
-            handlerIO.addOutputResult(LAST_OPERATION_LIFECYCLES_OUT_RANK, tempFile, true, false);
-        }
     }
 
     @Override

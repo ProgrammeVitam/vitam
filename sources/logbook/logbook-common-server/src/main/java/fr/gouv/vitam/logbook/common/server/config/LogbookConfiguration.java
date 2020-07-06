@@ -78,6 +78,14 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     private Integer lifecycleTraceabilityTemporizationDelay;
 
     /**
+     * Max delay between 2 LFC traceability operations.
+     * A new LFC traceability is required if tenant is active (new LFCs are found),
+     * or last traceability operation is too old.
+     */
+    private Integer lifecycleTraceabilityMaxRenewalDelay;
+    private ChronoUnit lifecycleTraceabilityMaxRenewalDelayUnit;
+
+    /**
      * Max event count to select during a single logbook lifecycle traceability workflow.
      */
     private Integer lifecycleTraceabilityMaxEntries;
@@ -351,6 +359,22 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
         ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
         this.operationTraceabilityMaxRenewalDelayUnit = operationTraceabilityMaxRenewalDelayUnit;
         return this;
+    }
+
+    public Integer getLifecycleTraceabilityMaxRenewalDelay() {
+        return lifecycleTraceabilityMaxRenewalDelay;
+    }
+
+    public void setLifecycleTraceabilityMaxRenewalDelay(Integer lifecycleTraceabilityMaxRenewalDelay) {
+        this.lifecycleTraceabilityMaxRenewalDelay = lifecycleTraceabilityMaxRenewalDelay;
+    }
+
+    public ChronoUnit getLifecycleTraceabilityMaxRenewalDelayUnit() {
+        return lifecycleTraceabilityMaxRenewalDelayUnit;
+    }
+
+    public void setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit lifecycleTraceabilityMaxRenewalDelayUnit) {
+        this.lifecycleTraceabilityMaxRenewalDelayUnit = lifecycleTraceabilityMaxRenewalDelayUnit;
     }
 
     public LogbookIndexationConfiguration getLogbookTenantIndexation() {

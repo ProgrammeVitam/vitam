@@ -175,6 +175,9 @@ public class LogBookLifeCycleUnitTest {
             logbookConf.setOperationTraceabilityTemporizationDelay(300);
             logbookConf.setOperationTraceabilityMaxRenewalDelay(12);
             logbookConf.setOperationTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
+            logbookConf.setLifecycleTraceabilityTemporizationDelay(300);
+            logbookConf.setLifecycleTraceabilityMaxRenewalDelay(12);
+            logbookConf.setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
             logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
                     new CollectionConfiguration(2, 1))));

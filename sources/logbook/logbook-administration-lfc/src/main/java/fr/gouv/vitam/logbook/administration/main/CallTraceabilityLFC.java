@@ -152,6 +152,11 @@ public class CallTraceabilityLFC {
 
                 operationId = runLfcTraceability(tenantId, traceabilityType, client);
 
+                if(operationId == null) {
+                    // No traceability required
+                    return false;
+                }
+
                 // Await for termination (polling the logbook server)
                 LifecycleTraceabilityStatus lifecycleTraceabilityStatus;
                 int timeSleep = 1000;
@@ -198,7 +203,11 @@ public class CallTraceabilityLFC {
         }
 
         String operationId = getOperationId(response, tenantId);
-        LOGGER.info("Traceability operation started successfully ({})", operationId);
+        if(operationId == null) {
+            LOGGER.info("Traceability operation not required for tenant {}", tenantId);
+        } else {
+            LOGGER.info("Traceability operation for tenant started successfully ({})", tenantId, operationId);
+        }
         return operationId;
     }
 
@@ -218,11 +227,7 @@ public class CallTraceabilityLFC {
     }
 
     private static String getOperationId(RequestResponseOK response, int tenant) {
-        List ids = response.getResults();
-        if (ids.size() <= 0) {
-            throw new IllegalStateException("No GUID in response for tenant: " + tenant);
-        }
-        return (String) ids.get(0);
+        return (String)response.getFirstResult();
     }
 
 }
