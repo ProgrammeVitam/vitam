@@ -1668,8 +1668,13 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             LifeCycleStatusCode requiredLifeCycleStatus = getSelectLifeCycleStatusCode(evtStatus);
 
-            List<LogbookLifeCycle> result = new ArrayList<>();
-            result = logbookLifeCycle.selectObjectGroup(queryDsl, false,
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            if (queryDsl != null) {
+                parser.parse(queryDsl);
+            }
+            Select select = parser.getRequest();
+            select.setQuery(QueryHelper.eq(LogbookMongoDbName.objectIdentifier.getDbname(), objectGroupLifeCycleId));
+            List<LogbookLifeCycle> result = logbookLifeCycle.selectObjectGroup(select.getFinalSelect(), false,
                 fromLifeCycleStatusToObjectGroupCollection(requiredLifeCycleStatus));
 
             return Response.status(Status.OK)
@@ -1693,7 +1698,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(exc.getMessage()))
                 .build();
-        } catch (final IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException | InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
