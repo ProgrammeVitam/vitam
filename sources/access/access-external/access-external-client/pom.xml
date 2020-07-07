@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>access-external</artifactId>
-		<version>2.1.25</version>
+		<version>2.1.26-SNAPSHOT</version>
 	</parent>
 	<artifactId>access-external-client</artifactId>
 	<name>Access External Client</name>
