@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>parent</artifactId>
-    <version>2.1.25-SNAPSHOT</version>
+    <version>2.1.25</version>
     <packaging>pom</packaging>
     <name>vitam-parent</name>
     <description>${project.artifactId}</description>
