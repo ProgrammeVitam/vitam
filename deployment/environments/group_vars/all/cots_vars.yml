@@ -162,18 +162,18 @@ prometheus:
     check_consul: 10 # in seconds
     prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
     server:
-        enabled: true
+        enabled: false
         port: 19090
     node_exporter:
         enabled: true
         port: 19100
         metrics_path: /metrics
     alertmanager:
-        enabled: true
+        enabled: false
         api_port: 19093
         cluster_port: 19094
 grafana:
-    enabled: true
+    enabled: false
     check_consul: 10 # in seconds
     http_port: 13000
 

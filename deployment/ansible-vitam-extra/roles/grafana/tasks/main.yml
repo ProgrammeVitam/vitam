@@ -1,7 +1,4 @@
 ---
-# TODO remove debug
-- debug:
-    var: groups
 
 - include_tasks: grafana_server_enabled.yml
   when: grafana.enabled == true

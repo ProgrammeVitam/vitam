@@ -23,13 +23,10 @@ hosts_prometheus
 hosts_alertmanager
 
 [hosts_prometheus]
-# TODO: Put here server where this service will be deployed : prometheus server
 
 [hosts_alertmanager]
-# TODO: Put here servers where this service will be deployed : alertmanager
 
 [grafana]
-# TODO: Put here servers where this service will be deployed : grafana
 
 [ldap] # Extra : OpenLDAP server
 

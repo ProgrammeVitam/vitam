@@ -199,7 +199,7 @@
                         <div class="col-md-2">
                             {% for groupe in groups %}
                                 {% if item in groups[groupe] %}
-                                    {% if (groupe not in ('hosts','all','vitam','reverse','elasticsearch','mongo_common')) and (not(groupe is search('^zone'))) %}
+                                    {% if (groupe not in ('hosts','all','vitam','prometheus','reverse','elasticsearch','mongo_common')) and (not(groupe is search('^zone'))) %}
                                         {{ groupe|regex_replace('hosts_', '')| replace('_','-') }}<br/>
                                     {% endif %}
                                 {% endif %}

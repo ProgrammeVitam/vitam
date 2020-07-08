@@ -32,7 +32,7 @@
 
 - name: Check that the node exporter directories exist
   file:
-    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/node-exporter"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/node_exporter"
     state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
