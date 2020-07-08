@@ -129,9 +129,11 @@ public class IngestWorkflowConstants {
     public static final String ATR_FOLDER = "ATR";
 
     /**
-     * In work tag : If size of binary is different of the one setted in manifest, set to true, else false
+     * In work tag : If size of binary is different of the one setted in manifest, set the difference and update boolean field
      */
     public static final String IS_SIZE_INCORRECT = "_isSizeIncorrect";
+
+    public static final String DIFF_SIZE_JSON = "_diffSizeJson";
 
     private IngestWorkflowConstants() {}
 

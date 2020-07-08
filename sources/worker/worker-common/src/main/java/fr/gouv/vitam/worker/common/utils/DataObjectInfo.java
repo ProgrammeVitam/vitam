@@ -26,8 +26,10 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * The class DataObjectInfo is stored all information of the DataObjectInfo
@@ -43,7 +45,7 @@ public final class DataObjectInfo {
     private String physicalId;
     private String type;
     private Boolean isSizeIncorrect = Boolean.FALSE;
-
+    private ObjectNode diffSizeJson = JsonHandler.createObjectNode();
 
     /**
      * @return id of the data object
@@ -198,13 +200,22 @@ public final class DataObjectInfo {
     }
 
     /**
-     * TO detecte if size has changed between manifest and binary file
+     * Field to conatain the diff if size has not the same between manifest and binary file
      * @return
      */
+
+    public ObjectNode getDiffSizeJson() {
+        return diffSizeJson;
+    }
+
+    public DataObjectInfo setDiffSizeJson(ObjectNode diffSizeJson) {
+        this.diffSizeJson = diffSizeJson;
+        return this;
+    }
+
     public Boolean getSizeIncorrect() {
         return isSizeIncorrect;
     }
-
     public DataObjectInfo setSizeIncorrect(Boolean sizeIncorrect) {
         this.isSizeIncorrect = sizeIncorrect;
         return this;
