@@ -105,10 +105,6 @@
   notify:
     - restart elasticsearch
 
-# OMA: TODO : add to java.policy (/etc/alternates/jre/lib/security/java.policy
-# permission javax.management.MBeanTrustPermission "register";
-#
-
 - name: apply java MBean security
   blockinfile:
     path: "{{ jvm_security_path }}/java.policy"
@@ -144,7 +140,6 @@
     path: "/etc/{{ sysconfig_dir }}/elasticsearch"
     regexp: '^ES_PATH_CONF='
     line: "ES_PATH_CONF={{ elasticsearch_conf_dir }}"
-#### Configuration ####
 
 - name: Ensure elasticsearch directories exist
   file:
@@ -172,7 +167,6 @@
   notify:
     - restart elasticsearch
 
-# # KWA Question : is it still necessary with the systemd service ?
 - name: If already configured, remove limits max_open_files for Elasticsearch
   lineinfile:
     path: /etc/security/limits.conf
@@ -230,7 +224,6 @@
 
 # Cf. https://serverfault.com/questions/546966/whats-removing-stuff-from-var-run-at-reboots-from-a-fedora-machine
 # Cf. https://www.freedesktop.org/software/systemd/man/tmpfiles.d.html
-# FIXME : special owner/group/mode has to be variables !
 - name: add {{ composant.cluster_name }}.conf in tempfile.d
   template:
     src: "tempfile.d-elasticsearch.conf.j2"
@@ -240,15 +233,8 @@
     mode: 0644
   notify: create systemd tmpfiles
 
-# KWA Note : another file should be added here :
-# /usr/lib/sysctl.d/elasticsearch.conf
-# with content :
-# vm.max_map_count=262144
-
-
 #### Consul service declaration ####
 
-# TODO: ideally get the consul configuration path in a global configuration variable
 - name: Ensure consul config dir is OK
   file:
     path: "{{ consul_folder_conf }}"

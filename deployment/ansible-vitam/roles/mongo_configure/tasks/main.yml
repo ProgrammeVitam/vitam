@@ -106,9 +106,6 @@
       tags:
         - update_mongodb_configuration
 
-    # Initiate the databases and the related users
-    # FIXME: use mongodb_user module which is curently in extras modules -> need to install pymongo on mongodb servers
-
     - name: Create the users
       command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin {{ mongo_credentials }} {{ vitam_defaults.folder.root_path }}/app/mongos/users-{{ item }}.js"
       with_items:
@@ -135,8 +132,6 @@
 
     # Activate security on mongo instances
 
-    # TODO: check if we can activate security by default and then create the users
-    #  (caution : it seems that we can only create one user while being anonymous after security enabling)
     - name: Activate security on mongos instances
       blockinfile:
         dest: "{{ mongos_config_path }}/mongos.conf"
@@ -222,7 +217,7 @@
       tags:
         - update_mongodb_configuration
 
-    # Make sure the service is open (mongos listening on 27017)
+    # Make sure the service is open (mongos listening on 27017 by default)
 
     - name: Wait for the service port to be open
       wait_for: host={{ ip_service }} port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"

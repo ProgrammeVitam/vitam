@@ -1,5 +1,5 @@
 ---
-# FIXME OMA : variabiliser les arborescences... et remettre / entre port et baseuri quand ansiblerie 2.1 sera mergée !
+
 - name: ensure no old result is present
   file:
     path: "{{ inventory_dir }}/report.csv"
@@ -14,17 +14,6 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_fileglob:
     - "{{ role_path }}/files/*"
-
-# - name: restart vitam-ihm-recette
-#   service:
-#     name: vitam-ihm-recette
-#     state: restarted
-
-# - name: wait for ihm-recette port to be open
-#   wait_for:
-#     host: "{{ ip_service }}"
-#     port: "{{ vitam.ihm_recette.port_service }}"
-#     timeout: 60
 
 - name: Connection to ihm-recette before uploading
   uri:
@@ -43,7 +32,6 @@
   no_log: "{{ hide_passwords_during_deploy }}"
   register: connected
 
-# KWA comment : better with a template... and a loop !
 - name: launch perf test
   uri:
     url: "https://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
