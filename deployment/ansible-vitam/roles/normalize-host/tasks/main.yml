@@ -22,7 +22,6 @@
     group: root
     mode: 0555
 
-# FIXME : put it in group_vars (root/root/555)
 - name: Ensure {{ vitam_defaults.folder.root_path }} sub-directories exist
   file:
     path: "{{ vitam_defaults.folder.root_path }}/{{ item }}"

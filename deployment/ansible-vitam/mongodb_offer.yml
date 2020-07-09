@@ -42,7 +42,6 @@
     mongod: "hosts_mongod_offer"
     mongos: "hosts_mongos_offer"
 
-# HUGE FIXME: BEURK
 # force mongo_cluster_name when deploying to localhost (dev docker)
 
 - hosts: hosts_mongos_offer

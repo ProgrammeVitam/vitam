@@ -31,7 +31,7 @@
     - "{{ context_check_json.results }}" # item[0]
     - "{{ groups['hosts_mongos_data'] | first }}" # item[1]
 
-#FIXME : a endpoint rather than a mongo query !
+#TODO : a endpoint rather than a mongo query !
 - name: delete in mongo certificates (mongo query) associated to contexts (that are related to {{ admin_security_profile }} security profile)
   shell: "mongo {{ hostvars[groups['hosts_mongos_data'][0]]['ip_service'] }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb['mongo-data'].admin.user }} -p {{ mongodb['mongo-data'].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/tmp/mongos/delete_certificates_{{ item.Identifier }}.js"
   delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
