@@ -39,17 +39,21 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
@@ -109,11 +113,10 @@ public class SelectObjectGroupResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
     static final int tenantId = 0;
-    static final List tenantList = new ArrayList() {
-        {
-            add(tenantId);
-        }
-    };
+    static final List<Integer> tenantList = Collections.singletonList(tenantId);
+    private static final MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+    private static final ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils
+        .createTestIndexManager(tenantList, Collections.emptyMap(), mappingLoader);
 
     private static ElasticsearchAccessMetadata accessMetadata;
     @ClassRule
@@ -126,11 +129,10 @@ public class SelectObjectGroupResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-
-        accessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
-            accessMetadata, 0);
+        accessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes,
+            indexManager);
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
+            accessMetadata);
         junitHelper = JunitHelper.getInstance();
 
 
@@ -141,6 +143,12 @@ public class SelectObjectGroupResourceTest {
                 mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
+
+        configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
+            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
+                .setUnit(new CollectionConfiguration(2, 1))
+                .setObjectgroup(new CollectionConfiguration(2, 1))));
+
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
@@ -158,14 +166,14 @@ public class SelectObjectGroupResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
 
         try {
             application.stop();
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.syserr("", e);
         } finally {
-            MetadataCollections.afterTestClass(true, 0);
+            MetadataCollectionsTestUtils.afterTestClass(indexManager, true);
 
             junitHelper.releasePort(serverPort);
             VitamClientFactory.resetConnections();
@@ -174,7 +182,7 @@ public class SelectObjectGroupResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTest(0);
+        MetadataCollectionsTestUtils.afterTest(indexManager);
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {
@@ -183,16 +191,6 @@ public class SelectObjectGroupResourceTest {
 
     private static final JsonNode buildDSLWithOptionsRoot(String root, String data) throws Exception {
         return JsonHandler.getFromString("{ $roots : [ \"" + root + "\"], $query : [], $data : " + data + " }");
-    }
-
-
-    private static String createJsonStringWithDepth(int depth) {
-        final StringBuilder obj = new StringBuilder();
-        if (depth == 0) {
-            return " \"b\" ";
-        }
-        obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
-        return obj.toString();
     }
 
     @Test

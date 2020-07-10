@@ -38,8 +38,10 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfigurationValidator;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
@@ -78,6 +80,13 @@ public class AdminFunctionalApplication extends Application {
             final AdminManagementConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
 
+            // Validate configuration
+            AdminManagementConfigurationValidator.validateConfiguration(configuration);
+
+            // Elasticsearch configuration
+            ElasticsearchFunctionalAdminIndexManager indexManager =
+                new ElasticsearchFunctionalAdminIndexManager(configuration);
+
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
 
@@ -93,13 +102,15 @@ public class AdminFunctionalApplication extends Application {
                 new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.of(RULES.getName()))
             );
 
-            final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader, rulesOntologyLoader);
+            final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader,
+                rulesOntologyLoader, indexManager);
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
-            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider, ontologyLoader));
-            singletons.add(new ReindexationResource());
+            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider, ontologyLoader,
+                indexManager));
+            singletons.add(new ReindexationResource(indexManager));
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =

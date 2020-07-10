@@ -42,18 +42,22 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
@@ -83,7 +87,10 @@ public class UpdateUnitResourceTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID_0 = 0;
-    private static final List tenantList = Collections.singletonList(TENANT_ID_0);
+    private static final List<Integer> tenantList = Collections.singletonList(TENANT_ID_0);
+    private static final MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+    private static final ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils
+        .createTestIndexManager(tenantList, Collections.emptyMap(), mappingLoader);
     private static final String DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"_tenant\": 0, " + "\"data\": \"data2\" }";
     private static final String DATA2 =
@@ -124,18 +131,23 @@ public class UpdateUnitResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+        esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes,
+            indexManager);
 
-        esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
-
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
-            esClient, 0);
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
+            esClient);
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
+
+        configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
+            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
+                .setUnit(new CollectionConfiguration(2, 1))
+                .setObjectgroup(new CollectionConfiguration(2, 1))));
+
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
         File configurationFile = tempFolder.newFile();
@@ -158,7 +170,7 @@ public class UpdateUnitResourceTest {
     @AfterClass
     public static void tearDownAfterClass() {
         try {
-            MetadataCollections.afterTestClass(true, 0);
+            MetadataCollectionsTestUtils.afterTestClass(indexManager, true);
             application.stop();
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.syserr("", e);
@@ -172,7 +184,7 @@ public class UpdateUnitResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTest(0);
+        MetadataCollectionsTestUtils.afterTest(indexManager);
     }
 
     private static final BulkUnitInsertRequest bulkInsertRequest(String data) throws InvalidParseOperationException {
@@ -216,7 +228,7 @@ public class UpdateUnitResourceTest {
             .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        esClient.refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
+        esClient.refreshIndex(UNIT, TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -225,7 +237,7 @@ public class UpdateUnitResourceTest {
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.OK.getStatusCode());
-        esClient.refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
+        esClient.refreshIndex(UNIT, TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

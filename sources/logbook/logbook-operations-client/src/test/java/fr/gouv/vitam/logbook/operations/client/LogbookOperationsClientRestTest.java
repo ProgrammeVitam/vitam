@@ -802,8 +802,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         throws InvalidParseOperationException, LogbookClientServerException {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode())
             .build());
-        JsonNode resp = client.reindex(new IndexParameters());
-        assertNotNull(resp);
+        assertNotNull(client.reindex(new IndexParameters()));
     }
 
     @Test
@@ -812,8 +811,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         throws InvalidParseOperationException, LogbookClientServerException {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
             .build());
-        JsonNode resp = client.switchIndexes(new SwitchIndexParameters());
-        assertNotNull(resp);
+        assertNotNull(client.switchIndexes(new SwitchIndexParameters()));
     }
 
     @Test

@@ -36,7 +36,9 @@ import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfigurationValidator;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
@@ -73,6 +75,14 @@ public class AdminLogbookApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final LogbookConfiguration logbookConfiguration =
                 PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
+
+            // Validate configuration
+            LogbookConfigurationValidator.validateConfiguration(logbookConfiguration);
+
+            // Elasticsearch configuration
+            ElasticsearchLogbookIndexManager indexManager =
+                new ElasticsearchLogbookIndexManager(logbookConfiguration, VitamConfiguration.getTenants());
+
             adminApplication = new AdminApplication();
             CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(
                 VitamConfiguration.getOntologyCacheMaxEntries(),
@@ -80,7 +90,8 @@ public class AdminLogbookApplication extends Application {
                 new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.empty())
             );
             // hack to init collections and clients
-            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader);
+            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration,
+                ontologyLoader, indexManager);
 
             OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
@@ -89,7 +100,7 @@ public class AdminLogbookApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
             singletons.add(new LogbookAdminResource(vitamRepositoryProvider, logbookConfiguration));
-            singletons.add(new LogbookReconstructionResource(vitamRepositoryProvider, offsetRepository));
+            singletons.add(new LogbookReconstructionResource(vitamRepositoryProvider, offsetRepository, indexManager));
             singletons.add(new BasicAuthenticationFilter(logbookConfiguration));
             singletons.add(new AdminRequestIdFilter());
         } catch (IOException e) {

@@ -57,9 +57,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 import joptsimple.internal.Strings;
 import org.apache.commons.collections4.CollectionUtils;
@@ -97,6 +97,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     private VitamCache<String, Document> cache;
     private VitamRepositoryProvider vitamRepositoryProvider;
     private MetaDataImpl metaData;
+    private final ElasticsearchMetadataIndexManager indexManager;
 
     private String currentOperation = null;
 
@@ -104,16 +105,18 @@ public class GraphComputeServiceImpl implements GraphComputeService {
      * @param vitamRepositoryProvider
      * @param metaData
      * @param cache
+     * @param indexManager
      * @param tenants
      */
     private GraphComputeServiceImpl(
         VitamRepositoryProvider vitamRepositoryProvider,
         MetaDataImpl metaData,
         VitamCache<String, Document> cache,
-        List<Integer> tenants) {
+        ElasticsearchMetadataIndexManager indexManager, List<Integer> tenants) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.metaData = metaData;
         this.cache = cache;
+        this.indexManager = indexManager;
         tenants.forEach(tenant -> lockers.put(tenant, new AtomicBoolean(false)));
     }
 
@@ -122,6 +125,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
      * @param vitamRepositoryProvider
      * @param metaData
      * @param tenants
+     * @param indexManager
      * @return GraphComputeServiceImpl
      */
     @VisibleForTesting
@@ -129,13 +133,13 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         VitamRepositoryProvider vitamRepositoryProvider,
         MetaDataImpl metaData,
         VitamCache<String, Document> cache,
-        List<Integer> tenants) {
+        List<Integer> tenants, ElasticsearchMetadataIndexManager indexManager) {
         if (instance == null) {
             instance = new GraphComputeServiceImpl(
                 vitamRepositoryProvider,
                 metaData,
                 cache,
-                tenants);
+                indexManager, tenants);
         }
         return instance;
     }
@@ -143,16 +147,17 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     /**
      * @param vitamRepositoryProvider
      * @param metaData
+     * @param indexManager
      * @return GraphComputeServiceImpl
      */
     public static synchronized GraphComputeService initialize(
         VitamRepositoryProvider vitamRepositoryProvider,
-        MetaDataImpl metaData) {
+        MetaDataImpl metaData, ElasticsearchMetadataIndexManager indexManager) {
         return initialize(
             vitamRepositoryProvider,
             metaData,
             GraphComputeCache.getInstance(),
-            VitamConfiguration.getTenants());
+            VitamConfiguration.getTenants(), indexManager);
     }
 
     public static GraphComputeService getInstance() {
@@ -357,7 +362,8 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     @Override
     public void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection()).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection(),
+            indexManager.getElasticsearchIndexAliasResolver(metaDaCollection)).save(collection);
     }
 
     @Override

@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import org.junit.Test;
 
 import java.util.ArrayList;

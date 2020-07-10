@@ -81,6 +81,7 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -132,7 +133,7 @@ public class IngestExternalIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         ingestExternalClient = IngestExternalClientFactory.getInstance().getClient();
         adminExternalClient = AdminExternalClientFactory.getInstance().getClient();
         accessExternalClient = AccessExternalClientFactory.getInstance().getClient();
@@ -142,8 +143,8 @@ public class IngestExternalIT extends VitamRuleRunner {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+    public static void tearDownAfterClass() {
+        handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();

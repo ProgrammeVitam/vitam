@@ -26,26 +26,29 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexSettings;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
 
-import java.io.IOException;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * ElasticSearch model with MongoDB as main database with management of index and index entries
@@ -55,30 +58,65 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccess.class);
     public static final String MAPPING_LOGBOOK_OPERATION_FILE = "/logbook-es-mapping.json";
 
+    private final ElasticsearchLogbookIndexManager indexManager;
+
     /**
      * @param clusterName cluster name
      * @param nodes elasticsearch node
+     * @param indexManager
      * @throws VitamException if elasticsearch nodes list is empty/null
      */
-    public LogbookElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes)
-        throws VitamException, IOException {
+    public LogbookElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes,
+        ElasticsearchLogbookIndexManager indexManager)
+        throws VitamException {
         super(clusterName, nodes);
+        this.indexManager = indexManager;
     }
 
-    /**
-     * Add a type to an index
-     *
-     * @param collection collection of index
-     * @param tenantId tenant Id
-     * @return key aliasName value indexName or empty
-     */
-    public final Map<String, String> addIndex(final LogbookCollections collection, final Integer tenantId) {
+    public void createIndexesAndAliases() {
+
         try {
-            return super
-                .createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(), tenantId);
+
+            createIndexesAndAliasesForDedicatedTenants();
+            createIndexesAndAliasesForTenantGroups();
+
         } catch (final Exception e) {
-            LOGGER.error("Error while set Mapping", e);
-            return new HashMap<>();
+            throw new RuntimeException("Could not create indexes and aliases", e);
+        }
+    }
+
+    private void createIndexesAndAliasesForDedicatedTenants() throws LogbookExecutionException {
+        Collection<Integer> dedicatedTenants = this.indexManager.getDedicatedTenants();
+
+        for (int tenantId : dedicatedTenants) {
+            createIndexAndAliasIfAliasNotExists(LogbookCollections.OPERATION, tenantId);
+        }
+    }
+
+    private void createIndexesAndAliasesForTenantGroups() throws LogbookExecutionException {
+        Collection<String> tenantGroups = this.indexManager.getTenantGroups();
+        for (String tenantGroup : tenantGroups) {
+
+            Collection<Integer> tenantGroupTenants = this.indexManager.getTenantGroupTenants(tenantGroup);
+            if (tenantGroupTenants.isEmpty()) {
+                continue;
+            }
+
+            int tenantId = tenantGroupTenants.iterator().next();
+            createIndexAndAliasIfAliasNotExists(LogbookCollections.OPERATION, tenantId);
+        }
+    }
+
+    public final void createIndexAndAliasIfAliasNotExists(final LogbookCollections collection, final Integer tenantId)
+        throws LogbookExecutionException {
+        try {
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
+            ElasticsearchIndexSettings indexSettings =
+                this.indexManager.getElasticsearchIndexSettings(collection, tenantId);
+            super.createIndexAndAliasIfAliasNotExists(indexAlias, indexSettings);
+        } catch (final Exception e) {
+            throw new LogbookExecutionException("Error while set Mapping", e);
         }
     }
 
@@ -93,7 +131,9 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     final <T extends VitamDocument> void updateFullDocument(final LogbookCollections collection, final Integer tenantId,
         final String id, final T logbookDocument) throws LogbookExecutionException {
         try {
-            super.updateEntry(collection.getName().toLowerCase(), tenantId, id, logbookDocument);
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
+            super.updateEntry(indexAlias, id, logbookDocument);
         } catch (DatabaseException e) {
             throw new LogbookExecutionException(e);
         }
@@ -118,9 +158,15 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
         throws LogbookException {
         try {
-            int size = GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit;
+            int size = Math.min(GlobalDatas.LIMIT_LOAD, limit);
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
+
+            QueryBuilder finalQuery = new BoolQueryBuilder().must(query)
+                .must(QueryBuilders.termQuery(LogbookDocument.TENANT_ID, tenantId));
+
             return super
-                .search(collection.getName().toLowerCase(), tenantId, query, filter, VitamDocument.ES_FILTER_OUT,
+                .search(indexAlias, finalQuery, filter, VitamDocument.ES_FILTER_OUT,
                     sorts,
                     offset,
                     size, null, null, null);
@@ -129,8 +175,44 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         }
     }
 
-    private String getMapping() throws IOException {
-        return ElasticsearchUtil
-            .transferJsonToMapping(LogbookOperation.class.getResourceAsStream(MAPPING_LOGBOOK_OPERATION_FILE));
+    @VisibleForTesting
+    public void deleteIndexByAliasForTesting(LogbookCollections collection, int tenantId)
+        throws LogbookExecutionException {
+        try {
+            super.deleteIndexByAliasForTesting(this.indexManager
+                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId));
+        } catch (DatabaseException e) {
+            throw new LogbookExecutionException(e);
+        }
+    }
+
+    public void indexEntry(LogbookCollections collection, Integer tenantId, String id, VitamDocument vitamDocument)
+        throws LogbookExecutionException {
+        try {
+            super.indexEntry(this.indexManager
+                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId), id, vitamDocument);
+        } catch (DatabaseException e) {
+            throw new LogbookExecutionException(e);
+        }
+    }
+
+    public void refreshIndex(LogbookCollections collection, int tenantId) throws LogbookExecutionException {
+        try {
+            super.refreshIndex(this.indexManager
+                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId));
+        } catch (DatabaseException e) {
+            throw new LogbookExecutionException(e);
+        }
+    }
+
+    @VisibleForTesting
+    public void purgeIndexForTesting(LogbookCollections collection, Integer tenantId) throws LogbookExecutionException {
+        try {
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
+            super.purgeIndexForTesting(indexAlias, tenantId);
+        } catch (DatabaseException e) {
+            throw new LogbookExecutionException(e);
+        }
     }
 }

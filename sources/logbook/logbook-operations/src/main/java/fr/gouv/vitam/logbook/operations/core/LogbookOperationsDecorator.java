@@ -29,7 +29,8 @@ package fr.gouv.vitam.logbook.operations.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -129,12 +130,12 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public IndexationResult reindex(IndexParameters indexParameters) {
+    public ReindexationResult reindex(IndexParameters indexParameters) {
         return logbookOperations.reindex(indexParameters);
     }
 
     @Override
-    public void switchIndex(String alias, String newIndexName) throws DatabaseException {
-        logbookOperations.switchIndex(alias, newIndexName);
+    public SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException {
+        return logbookOperations.switchIndex(alias, newIndexName);
     }
 }

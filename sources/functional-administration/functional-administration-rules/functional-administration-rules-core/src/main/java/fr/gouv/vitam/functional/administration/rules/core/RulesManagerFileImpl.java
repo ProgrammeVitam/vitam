@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -59,7 +58,6 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -1255,14 +1253,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      */
     private void deleteFileRules(FileRulesModel fileRulesModel) {
         final Delete delete = new Delete();
-        DbRequestResult result = null;
-        DbRequestSingle dbRequest = new DbRequestSingle(RULES.getVitamCollection(), this.ontologyLoader);
         try {
             delete.setQuery(eq(FileRulesModel.TAG_RULE_ID, fileRulesModel.getRuleId()));
-            result = dbRequest.execute(delete);
+            DbRequestResult result = mongoAccess.deleteCollectionForTesting(RULES, delete);
             result.close();
-        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
-            DatabaseException | VitamDBException | SchemaValidationException e) {
+        } catch (InvalidCreateOperationException | DatabaseException e) {
             LOGGER.error(e);
         }
     }

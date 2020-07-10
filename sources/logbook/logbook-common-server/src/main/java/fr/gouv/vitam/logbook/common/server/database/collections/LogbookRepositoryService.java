@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,11 +47,14 @@ public class LogbookRepositoryService {
     /**
      * VitamRepository provider.
      */
-    private VitamRepositoryProvider vitamRepositoryProvider;
+    private final VitamRepositoryProvider vitamRepositoryProvider;
+    private final ElasticsearchLogbookIndexManager indexManager;
 
 
-    public LogbookRepositoryService(VitamRepositoryProvider vitamRepositoryProvider) {
+    public LogbookRepositoryService(VitamRepositoryProvider vitamRepositoryProvider,
+        ElasticsearchLogbookIndexManager indexManager) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
+        this.indexManager = indexManager;
     }
 
     /**
@@ -64,7 +69,8 @@ public class LogbookRepositoryService {
             .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
         vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).saveOrUpdate(documents);
         if (LogbookCollections.OPERATION.equals(collection)) {
-            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection()).save(documents);
+            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection(),
+                indexManager.getElasticsearchIndexAliasResolver(collection)).save(documents);
         }
 
     }

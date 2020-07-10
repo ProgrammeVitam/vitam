@@ -52,9 +52,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
@@ -130,6 +131,9 @@ public class LogbookOperationsImplWithDatabasesTest {
     private static LogbookOperationParameters event;
     private static LogbookOperationParameters event2;
     private static LogbookOperationParameters securityEvent;
+    private static ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils.createTestIndexManager(
+        tenantList, Collections.emptyMap());
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
     private LogbookOperationsImpl logbookOperationsImpl;
@@ -150,8 +154,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), 0, 1);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
@@ -161,7 +165,7 @@ public class LogbookOperationsImplWithDatabasesTest {
                 esNodes);
         VitamConfiguration.setTenants(tenantList);
 
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
 
         final String datestring1 = "2015-01-01";
         final String datestring2 = "2016-12-12";
@@ -232,7 +236,7 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollections.afterTestClass(true, 0, 1);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();
     }
@@ -244,7 +248,7 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     @After
     public void clean() {
-        LogbookCollections.afterTest(0, 1);
+        LogbookCollectionsTestUtils.afterTest(indexManager);
     }
 
     @Test
@@ -252,7 +256,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
         logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
         logbookOperationsImpl.create(logbookParametersStart);
         logbookOperationsImpl.update(logbookParametersAppend);
         try {
@@ -285,7 +290,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
         logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);
         logbookOperationsImpl.create(logbookParameters3);
@@ -341,7 +347,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
         logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
 
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);

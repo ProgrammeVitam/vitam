@@ -32,7 +32,7 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -817,7 +817,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
             .thenReturn(Response.status(Status.CREATED).entity(JsonHandler.unprettyPrint(new RequestResponseOK<>()))
                 .build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse<IndexationResult> resp = client.launchReindexation(JsonHandler.createArrayNode());
+            RequestResponse<ReindexationResult> resp = client.launchReindexation(JsonHandler.createArrayNode());
             assertEquals(resp.getStatus(), Status.CREATED.getStatusCode());
         }
     }
@@ -831,7 +831,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.OK)
             .build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse<IndexationResult> resp = client.switchIndexes(JsonHandler.createArrayNode());
+            RequestResponse<ReindexationResult> resp = client.switchIndexes(JsonHandler.createArrayNode());
             assertEquals(resp.getStatus(), Status.OK.getStatusCode());
         }
     }

@@ -26,35 +26,13 @@
  */
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
-import static fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService.LOGBOOK;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import org.apache.commons.collections4.IteratorUtils;
-import org.bson.Document;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
@@ -65,8 +43,29 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
+import org.apache.commons.collections4.IteratorUtils;
+import org.bson.Document;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.util.Arrays;
+
+import static fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService.LOGBOOK;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * ReconstructionService tests.
@@ -87,14 +86,15 @@ public class ReconstructionServiceTest {
     private ReconstructionRequestItem requestItem;
 
     private OffsetRepository offsetRepository;
+    private ElasticsearchLogbookIndexManager indexManager;
 
     @Before
     public void setup() {
         vitamRepositoryProvider = mock(VitamRepositoryFactory.class);
         mongoRepository = mock(VitamMongoRepository.class);
         esRepository = mock(VitamElasticsearchRepository.class);
-        when(vitamRepositoryProvider.getVitamMongoRepository(Mockito.any())).thenReturn(mongoRepository);
-        when(vitamRepositoryProvider.getVitamESRepository(Mockito.any())).thenReturn(esRepository);
+        when(vitamRepositoryProvider.getVitamMongoRepository(any())).thenReturn(mongoRepository);
+        when(vitamRepositoryProvider.getVitamESRepository(any(), any())).thenReturn(esRepository);
 
         restoreBackupService = mock(RestoreBackupService.class);
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
@@ -105,6 +105,7 @@ public class ReconstructionServiceTest {
         requestItem.setTenant(10).setLimit(100);
 
         offsetRepository = mock(OffsetRepository.class);
+        indexManager = mock(ElasticsearchLogbookIndexManager.class);
     }
 
     @RunWithCustomExecutor
@@ -115,18 +116,19 @@ public class ReconstructionServiceTest {
         when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
 
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
-            requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+            requestItem.getLimit()))
+            .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
-            .thenReturn(getLogbokBackupModel("100", 100L));
+            .thenReturn(getLogbookBackupModel("100", 100L));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbokBackupModel("101", 101L));
-        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any()))
+            .thenReturn(getLogbookBackupModel("101", 101L));
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -144,18 +146,19 @@ public class ReconstructionServiceTest {
         when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
 
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
-            requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+            requestItem.getLimit()))
+            .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
             .thenThrow(new StorageNotFoundException(""));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbokBackupModel("101", 101L));
-        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any()))
+            .thenReturn(getLogbookBackupModel("101", 101L));
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -177,7 +180,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -194,7 +197,7 @@ public class ReconstructionServiceTest {
         requestItem.setLimit(-5);
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -206,7 +209,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -218,7 +221,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -234,17 +237,17 @@ public class ReconstructionServiceTest {
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
-            .thenReturn(getLogbokBackupModel("100", 100L));
+            .thenReturn(getLogbookBackupModel("100", 100L));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbokBackupModel("101", 101L));
-        Mockito.doThrow(new DatabaseException("mongo error")).when(mongoRepository).save(Mockito.any(List.class));
-        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any())).thenReturn(
+            .thenReturn(getLogbookBackupModel("101", 101L));
+        doThrow(new DatabaseException("mongo error")).when(mongoRepository).save(anyList());
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(
             new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -263,16 +266,16 @@ public class ReconstructionServiceTest {
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
-            .thenReturn(getLogbokBackupModel("100", 100L));
+            .thenReturn(getLogbookBackupModel("100", 100L));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbokBackupModel("101", 101L));
-        Mockito.doThrow(new DatabaseException("mongo error")).when(esRepository).save(Mockito.any(List.class));
-        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any()))
+            .thenReturn(getLogbookBackupModel("101", 101L));
+        doThrow(new DatabaseException("mongo error")).when(esRepository).save(anyList());
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(new RequestResponseOK<>());
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -289,18 +292,18 @@ public class ReconstructionServiceTest {
         throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
-        LogbookBackupModel logbookBackupModel100 = getLogbokBackupModel("100", 100L);
+        LogbookBackupModel logbookBackupModel100 = getLogbookBackupModel("100", 100L);
         logbookBackupModel100.setLogbookOperation(null);
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
-            requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+            requestItem.getLimit()))
+            .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
             .thenReturn(logbookBackupModel100);
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbokBackupModel("101", 101L));
-
+            .thenReturn(getLogbookBackupModel("101", 101L));
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
+                new LogbookTransformData(), offsetRepository, indexManager);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -310,7 +313,7 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
 
-    private LogbookBackupModel getLogbokBackupModel(String id, Long offset) throws InvalidParseOperationException {
+    private LogbookBackupModel getLogbookBackupModel(String id, Long offset) {
         LogbookBackupModel model = new LogbookBackupModel();
         model.setLogbookOperation(new Document("_id", id));
         model.setLogbookId(id);

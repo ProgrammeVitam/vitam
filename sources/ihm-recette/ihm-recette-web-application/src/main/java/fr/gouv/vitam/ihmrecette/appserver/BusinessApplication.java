@@ -117,7 +117,10 @@ public class BusinessApplication extends Application {
             );
 
             final WebApplicationResourceDelete deleteResource =
-                new WebApplicationResourceDelete(configuration, ontologyLoader);
+                new WebApplicationResourceDelete(configuration, ontologyLoader,
+                    configuration.getFunctionalAdminIndexationConfiguration(),
+                    configuration.getMetadataIndexationConfiguration(),
+                    configuration.getLogbookIndexationConfiguration());
             final WebApplicationResource resource =
                 new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
                     PaginationHelper.getInstance(), DslQueryHelper.getInstance(), storageService);

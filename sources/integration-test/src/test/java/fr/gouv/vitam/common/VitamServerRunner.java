@@ -46,24 +46,29 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
@@ -682,6 +687,8 @@ public class VitamServerRunner extends ExternalResource {
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(cluster);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
+        realAdminConfig.setIndexationConfiguration(new FunctionalAdminIndexationConfiguration()
+        .setDefaultConfiguration(new CollectionConfiguration(2, 1)));
         PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
         LOGGER.warn("=== VitamServerRunner start  AdminManagementMain");
         AdminManagementClientFactory
@@ -734,6 +741,9 @@ public class VitamServerRunner extends ExternalResource {
         logbookConfiguration.setElasticsearchNodes(esNodes);
         logbookConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         logbookConfiguration.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
+        logbookConfiguration.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
+            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
+                new CollectionConfiguration(2, 1))));
 
         PropertiesUtils.writeYaml(logbookConfigFile, logbookConfiguration);
 
@@ -869,14 +879,13 @@ public class VitamServerRunner extends ExternalResource {
         realMetadataConfig.setDbName(dbname);
         realMetadataConfig.setElasticsearchNodes(esNodes);
         realMetadataConfig.setClusterName(cluster);
-        MappingLoader mappingLoader = null;
-        try {
-            mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.syserr("", e);
-            throw new RuntimeException(e);
-        }
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         realMetadataConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
+
+        realMetadataConfig.setIndexationConfiguration(new MetadataIndexationConfiguration()
+            .setDefaultCollectionConfiguration(new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
+                .setUnit(new CollectionConfiguration(2, 1))
+                .setObjectgroup(new CollectionConfiguration(2, 1))));
         PropertiesUtils.writeYaml(metadataConfig, realMetadataConfig);
 
         LOGGER.warn("=== VitamServerRunner start  MetadataMain");

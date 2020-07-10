@@ -93,6 +93,8 @@ import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -144,7 +146,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -165,7 +167,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
     @AfterClass
     public static void afterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }

@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.UnmodifiableIterator;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -82,10 +81,12 @@ import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.index.reindex.ScrollableHitSource;
@@ -96,7 +97,6 @@ import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -124,11 +124,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * KEYWORD to activate scroll
      */
     public static final String SCROLL_ACTIVATE_KEYWORD = "START";
-
-    /**
-     * The ES Builder
-     */
-    private Builder default_builder;
+    private static final String NUMBER_OF_SHARDS = "number_of_shards";
+    private static final String NUMBER_OF_REPLICAS = "number_of_replicas";
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
     private AtomicReference<RestHighLevelClient> esClient = new AtomicReference<>();
@@ -143,7 +140,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @throws VitamException when elasticseach node list is empty
      */
     public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes)
-        throws VitamException, IOException {
+        throws VitamException {
 
         ParametersChecker.checkParameter("clusterName, elasticsearch nodes list are a mandatory parameters",
             clusterName, nodes);
@@ -154,133 +151,122 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
         this.clusterName = clusterName;
         this.nodes = nodes;
-
-        default_builder = settings();
     }
 
-    public void purgeIndex(String collectionName, Integer tenant) {
-        String indexName = collectionName.toLowerCase() + "_" + tenant;
-        purgeIndex(indexName);
-    }
-
-    public boolean existsIndex(String indexName) throws IOException {
-        GetIndexRequest request = new GetIndexRequest(indexName.toLowerCase());
-        request.humanReadable(true);
-        request.includeDefaults(false);
-        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
-        return getClient().indices().exists(request, RequestOptions.DEFAULT);
-    }
-
-    public GetAliasesResponse getAlias(String alias) throws IOException {
-        GetAliasesRequest request = new GetAliasesRequest(alias.toLowerCase());
+    public final GetAliasesResponse getAlias(ElasticsearchIndexAlias indexAlias) throws IOException {
+        GetAliasesRequest request = new GetAliasesRequest(indexAlias.getName());
         request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
         return getClient().indices().getAlias(request, RequestOptions.DEFAULT);
     }
 
-
-    public boolean createIndex(String aliasName, String indexName, String mapping) throws IOException {
-
-        if (Boolean.TRUE.equals(existsIndex(indexName))) {
-            LOGGER.debug("Index (" + indexName + ") already exists");
-            return true;
-        }
-
-        CreateIndexRequest request = new CreateIndexRequest(indexName)
-            .settings(default_builder)
-            .mapping(mapping, XContentType.JSON)
-            .alias(new Alias(aliasName));
-
-        request.setTimeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
-        request.setMasterTimeout(
-            TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
-        request.waitForActiveShards(ActiveShardCount.DEFAULT);
-
-        CreateIndexResponse response =
-            getClient().indices().create(request, RequestOptions.DEFAULT);
-
-        boolean acknowledged = response.isAcknowledged();
-        boolean shardsAcknowledged = response.isShardsAcknowledged();
-
-        LOGGER.debug(
-            "Alias (" + aliasName + ") and index (" + indexName + ") create response acknowledged (" + acknowledged +
-                ") and shardsAcknowledged (" + shardsAcknowledged + ") ");
-
-        return acknowledged && shardsAcknowledged;
+    public final ElasticsearchIndexAlias createIndexWithoutAlias(ElasticsearchIndexAlias indexAlias,
+        ElasticsearchIndexSettings indexSettings) throws DatabaseException {
+        ElasticsearchIndexAlias newIndexName = indexAlias.createUniqueIndexName();
+        createIndexWithOptionalAlias(null, newIndexName.getName(), indexSettings.loadMapping(),
+            indexSettings.getShards(),
+            indexSettings.getReplicas());
+        return newIndexName;
     }
 
-    public boolean createIndex(String indexName, String mapping) throws IOException {
+    private void createIndexWithOptionalAlias(String aliasName, String indexName, String mapping, Integer shards,
+        Integer replicas)
+        throws DatabaseException {
 
-        boolean existsIndex = existsIndex(indexName);
-
-        if (Boolean.TRUE.equals(existsIndex)) {
-            LOGGER.debug("Index (" + existsIndex + ") already exists");
-            return true;
-        }
-
-        CreateIndexRequest request = new CreateIndexRequest(indexName)
-            .settings(default_builder)
-            .mapping(mapping, XContentType.JSON);
-
-        request.setTimeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
-        request.setMasterTimeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
-        request.waitForActiveShards(ActiveShardCount.DEFAULT);
-
-        CreateIndexResponse response =
-            getClient().indices().create(request, RequestOptions.DEFAULT);
-
-        boolean acknowledged = response.isAcknowledged();
-        boolean shardsAcknowledged = response.isShardsAcknowledged();
-
-        LOGGER.debug(
-            "Index (" + indexName + ") create response : acknowledged (" + acknowledged +
-                ") and shardsAcknowledged (" + shardsAcknowledged + ") ");
-
-        return acknowledged && shardsAcknowledged;
-    }
-
-    public boolean existsAlias(String aliasName) throws IOException {
-        GetAliasesRequest request = new GetAliasesRequest(aliasName.toLowerCase());
-        request.local(true);
-        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
-        return getClient().indices().existsAlias(request, RequestOptions.DEFAULT);
-    }
-
-    public boolean switchAliasIndex(String aliasName, String oldIndex, String newIndexName) throws IOException {
-        IndicesAliasesRequest request = new IndicesAliasesRequest();
-        AliasActions aliasAction =
-            new AliasActions(AliasActions.Type.ADD)
-                .index(newIndexName.toLowerCase())
-                .alias(aliasName.toLowerCase());
-        request.addAliasAction(aliasAction);
-
-        if (null != oldIndex) {
-            aliasAction =
-                new AliasActions(AliasActions.Type.REMOVE)
-                    .index(oldIndex.toLowerCase())
-                    .alias(aliasName.toLowerCase());
-            request.addAliasAction(aliasAction);
-        }
-
-        request.timeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
-        request.masterNodeTimeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
-
-        AcknowledgedResponse response = getClient().indices().updateAliases(request, RequestOptions.DEFAULT);
-
-        return response.isAcknowledged();
-    }
-
-    public void purgeIndex(String indexName) {
         try {
-            String vitamIndexName = indexName.toLowerCase();
-            if (existsIndex(vitamIndexName)) {
-                DeleteByQueryRequest request = new DeleteByQueryRequest(vitamIndexName);
+            CreateIndexRequest request = new CreateIndexRequest(indexName)
+                .settings(createIndexSettings(shards, replicas))
+                .mapping(mapping, XContentType.JSON);
+
+            if (aliasName != null) {
+                request.alias(new Alias(aliasName));
+            }
+
+            request.setTimeout(TimeValue.timeValueMillis(
+                VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+            request.setMasterTimeout(
+                TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+            request.waitForActiveShards(ActiveShardCount.DEFAULT);
+
+            CreateIndexResponse response =
+                getClient().indices().create(request, RequestOptions.DEFAULT);
+
+            boolean acknowledged = response.isAcknowledged();
+            boolean shardsAcknowledged = response.isShardsAcknowledged();
+
+            if (!acknowledged || !shardsAcknowledged) {
+                throw new DatabaseException("Could not create index " + indexName + ". acknowledged: " + acknowledged +
+                    ", shardsAcknowledged: " + shardsAcknowledged);
+            }
+        } catch (IOException e) {
+            throw new DatabaseException("Could not create index " + indexName, e);
+        }
+    }
+
+    public final boolean existsAlias(ElasticsearchIndexAlias indexAlias) throws DatabaseException {
+        try {
+            GetAliasesRequest request = new GetAliasesRequest(indexAlias.getName());
+            request.local(true);
+            request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+            return getClient().indices().existsAlias(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new DatabaseException("Could not check alias existence " + indexAlias.getName(), e);
+        }
+    }
+
+    public final boolean existsIndex(ElasticsearchIndexAlias index) throws DatabaseException {
+        try {
+            GetIndexRequest request = new GetIndexRequest(index.getName());
+            request.local(true);
+            request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+            return getClient().indices().exists(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new DatabaseException("Could not check index existence " + index.getName(), e);
+        }
+    }
+
+    public final void refreshIndex(ElasticsearchIndexAlias indexAlias)
+        throws DatabaseException {
+        LOGGER.debug("refreshIndex: " + indexAlias.getName());
+
+        RefreshRequest request = new RefreshRequest(indexAlias.getName());
+        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+        RefreshResponse refreshResponse;
+        try {
+            refreshResponse = getClient().indices().refresh(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new DatabaseException("Could not refresh index ", e);
+        }
+        LOGGER.debug("Refresh request executed with {} successful shards", refreshResponse.getSuccessfulShards());
+
+        int failedShards = refreshResponse.getFailedShards();
+        if (failedShards > 0) {
+            DefaultShardOperationFailedException[] failures = refreshResponse.getShardFailures();
+            StringBuilder sb = new StringBuilder();
+            for (DefaultShardOperationFailedException failure : failures) {
+                sb.append(failure.toString()).append("; ");
+            }
+            throw new DatabaseException(sb.toString());
+        }
+    }
+
+    @VisibleForTesting
+    protected void purgeIndexForTesting(ElasticsearchIndexAlias indexAlias, Integer tenantId) throws DatabaseException {
+        TermQueryBuilder query = QueryBuilders.termQuery(VitamDocument.TENANT_ID, tenantId);
+        purgeIndexForTesting(indexAlias, query);
+    }
+
+    @VisibleForTesting
+    public final void purgeIndexForTesting(ElasticsearchIndexAlias indexAlias) throws DatabaseException {
+        MatchAllQueryBuilder query = matchAllQuery();
+        purgeIndexForTesting(indexAlias, query);
+    }
+
+    private void purgeIndexForTesting(ElasticsearchIndexAlias indexAlias, QueryBuilder query) throws DatabaseException {
+        try {
+            if (existsAlias(indexAlias)) {
+                DeleteByQueryRequest request = new DeleteByQueryRequest(indexAlias.getName());
                 request.setConflicts("proceed");
-                request.setQuery(matchAllQuery());
+                request.setQuery(query);
                 request.setBatchSize(VitamConfiguration.getMaxElasticsearchBulk());
                 request.setScroll(TimeValue.timeValueMillis(
                     VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
@@ -304,7 +290,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     bulkResponse.getStatus().getThrottledUntil();
 
                 LOGGER.debug(
-                    "Purge index (" + indexName + ") : timeTaken (" + timeTaken + "), timedOut (" + timedOut +
+                    "Purge alias (" + indexAlias.getName() + ") : timeTaken (" + timeTaken + "), timedOut (" +
+                        timedOut +
                         "), totalDocs (" + totalDocs +
                         ")," +
                         " deletedDocs (" + deletedDocs + "), batches (" + batches + "), noops (" + noops +
@@ -314,59 +301,20 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
                 List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures();
                 if (CollectionUtils.isNotEmpty(searchFailures)) {
-                    throw new VitamFatalRuntimeException("ES purge errors : in search phase > " + searchFailures);
+                    throw new DatabaseException("ES purge errors : in search phase > " + searchFailures);
                 }
 
                 List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures();
                 if (CollectionUtils.isNotEmpty(bulkFailures)) {
-                    throw new VitamFatalRuntimeException("ES purge errors : in bulk phase > " + bulkFailures);
+                    throw new DatabaseException("ES purge errors : in bulk phase > " + bulkFailures);
                 }
-
             }
         } catch (IOException e) {
-            throw new VitamFatalRuntimeException(e);
+            throw new DatabaseException(e);
         }
     }
 
-    /**
-     * refresh an index
-     *
-     * @param collectionName the working metadata collection name
-     * @param tenantId the tenant for operation
-     */
-    public final void refreshIndex(final String collectionName, Integer tenantId)
-        throws IOException, DatabaseException {
-        String index = getAliasName(collectionName, tenantId);
-        LOGGER.debug("refreshIndex: " + index);
-
-        RefreshRequest request = new RefreshRequest(index);
-        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
-        RefreshResponse refreshResponse = getClient().indices().refresh(request, RequestOptions.DEFAULT);
-        LOGGER.debug("Refresh request executed with {} successfull shards", refreshResponse.getSuccessfulShards());
-
-        int failedShards = refreshResponse.getFailedShards();
-        if (failedShards > 0) {
-            DefaultShardOperationFailedException[] failures = refreshResponse.getShardFailures();
-            StringBuilder sb = new StringBuilder();
-            for (DefaultShardOperationFailedException failure : failures) {
-                sb.append(failure.toString()).append("; ");
-            }
-            throw new DatabaseException(sb.toString());
-        }
-    }
-
-
-    /**
-     * Add an entry in the ElasticSearch index
-     *
-     * @param collectionName
-     * @param tenantId
-     * @param id
-     * @param vitamDocument
-     * @return True if ok
-     */
-    public final <T extends VitamDocument> void indexEntry(final String collectionName, final Integer tenantId,
-        final String id,
+    public final <T extends VitamDocument> void indexEntry(ElasticsearchIndexAlias indexAlias, final String id,
         final T vitamDocument) throws DatabaseException {
 
         vitamDocument.remove(VitamDocument.ID);
@@ -374,7 +322,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
         String source = BsonHelper.stringify(vitamDocument);
 
-        IndexRequest request = new IndexRequest(getAliasName(collectionName, tenantId))
+        IndexRequest request = new IndexRequest(indexAlias.getName())
             .id(id)
             .source(source, XContentType.JSON)
             .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
@@ -395,21 +343,13 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 break;
             default:
                 throw new DatabaseException(String
-                    .format("Could not index document on ES. Id=%s, collection=%s, status=%s", id, collectionName,
+                    .format("Could not index document on ES. Id=%s, aliasName=%s, status=%s", id,
+                        indexAlias.getName(),
                         indexResponse.status()));
         }
     }
 
-    /**
-     * Add a set of entries in the ElasticSearch index. <br>
-     * Used in reload from scratch.
-     *
-     * @param collectionName collection of index
-     * @param tenantId tenant Id
-     * @param documents documents to index
-     * @return the listener on bulk insert
-     */
-    final public void indexEntries(final String collectionName, final Integer tenantId,
+    public void indexEntries(ElasticsearchIndexAlias indexAlias,
         final Collection<? extends Document> documents) throws DatabaseException {
 
         UnmodifiableIterator<? extends List<? extends Document>> idIterator =
@@ -422,7 +362,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 String id = (String) document.remove(VitamDocument.ID);
                 try {
                     String source = BsonHelper.stringify(document);
-                    bulkRequest.add(new IndexRequest(getAliasName(collectionName, tenantId))
+                    bulkRequest.add(new IndexRequest(indexAlias.getName())
                         .id(id)
                         .opType(DocWriteRequest.OpType.INDEX)
                         .source(source, XContentType.JSON));
@@ -442,8 +382,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
                 LOGGER.debug("Written document {}", bulkResponse.getItems().length);
                 if (bulkResponse.hasFailures()) {
-                    LOGGER.error("##### Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
-                    throw new DatabaseException(bulkResponse.buildFailureMessage());
+                    throw new DatabaseException(
+                        "Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
                 }
             }
         }
@@ -451,20 +391,15 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Update one element fully
-     *
-     * @param collectionName
-     * @param tenantId
-     * @param id
-     * @param vitamDocument full document to update
      */
-    public <T extends VitamDocument> void updateEntry(String collectionName, Integer tenantId, String id,
+    public <T extends VitamDocument> void updateEntry(ElasticsearchIndexAlias indexAlias, String id,
         T vitamDocument)
         throws DatabaseException {
         try {
             vitamDocument.remove(VitamDocument.ID);
             final String document = BsonHelper.stringify(vitamDocument);
 
-            IndexRequest request = new IndexRequest(getAliasName(collectionName, tenantId))
+            IndexRequest request = new IndexRequest(indexAlias.getName())
                 .id(id)
                 .source(document, XContentType.JSON)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
@@ -484,7 +419,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     break;
                 default:
                     throw new DatabaseException(String
-                        .format("Could not update document on ES. Id=%s, collection=%s, status=%s", id, collectionName,
+                        .format("Could not update document on ES. Id=%s, aliasName=%s, status=%s", id,
+                            indexAlias.getName(),
                             indexResponse.status()));
             }
 
@@ -493,32 +429,19 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
     }
 
-    public final SearchResponse search(final String collectionName, final Integer tenantId,
-        final QueryBuilder query)
-        throws DatabaseException, BadRequestException {
-        return search(collectionName, tenantId, query, null);
-    }
-
-    public final SearchResponse search(final String collectionName, final Integer tenantId,
-        final QueryBuilder query, final QueryBuilder filter)
-        throws DatabaseException, BadRequestException {
-        return search(collectionName, tenantId, query, filter, null, null, 0, GlobalDatas.LIMIT_LOAD);
-    }
-
-    public final SearchResponse search(final String collectionName, final Integer tenantId,
+    public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
         final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
         int offset, Integer limit)
         throws DatabaseException, BadRequestException {
-        return search(collectionName, tenantId, query, filter, esProjection, sorts, offset, limit, null, null, null);
+        return search(indexAlias, query, filter, esProjection, sorts, offset, limit, null, null, null);
     }
 
 
-    public final SearchResponse search(final String collectionName, final Integer tenantId,
+    public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
         final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
         int offset, Integer limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws DatabaseException, BadRequestException {
-
         SearchResponse response;
         SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.searchSource()
             .explain(false)
@@ -538,11 +461,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
 
         SearchRequest searchRequest = new SearchRequest()
-            .indices(getAliasName(collectionName, tenantId))
+            .indices(indexAlias.getName())
             .source(searchSourceBuilder)
             .searchType(SearchType.DFS_QUERY_THEN_FETCH);
-
-
 
         if (scrollId != null && !scrollId.isEmpty()) {
             int limitES = (limit != null && limit > 0) ? limit : DEFAULT_LIMIT_SCROLL;
@@ -690,71 +611,37 @@ public class ElasticsearchAccess implements DatabaseConnection {
         return clusterName;
     }
 
+    public final void createIndexAndAliasIfAliasNotExists(ElasticsearchIndexAlias indexAlias,
+        ElasticsearchIndexSettings indexSettings)
+        throws DatabaseException {
 
-    public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping) {
-        return createIndexAndAliasIfAliasNotExists(collectionName, mapping, null);
-    }
+        LOGGER.debug("createIndexAndAliasIfAliasNotExists: {}", indexAlias.getName());
 
-    public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping,
-        Integer tenantId) {
-        String indexName = getUniqueIndexName(collectionName, tenantId);
-        String aliasName = getAliasName(collectionName, tenantId);
-        LOGGER.debug("addIndex: {}", indexName);
-        Map<String, String> map = new HashMap<>();
-        try {
-            if (!existsAlias(aliasName)) {
-                LOGGER.debug("createIndex");
-                LOGGER.debug("setMapping: " + indexName + "\n\t" + mapping);
-
-                boolean indexCreated = createIndex(aliasName, indexName, mapping);
-
-                if (!indexCreated) {
-                    return new HashMap<>();
-                }
-                map.put(aliasName, indexName);
-            } else {
-                GetAliasesResponse aliasResponse = getAlias(aliasName);
-                for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
-                    // Assume one alias == One index
-                    // Assume one index == multiple aliases
-                    Iterator<AliasMetaData> iterator = entry.getValue().iterator();
-                    while (iterator.hasNext()) {
-                        map.put(iterator.next().getAlias(), entry.getKey());
-                    }
-                }
-            }
-        } catch (final IOException e) {
-            LOGGER.error("Error while check alias existence", e);
+        if (existsAlias(indexAlias)) {
+            return;
         }
-        return map;
+
+        ElasticsearchIndexAlias indexName = indexAlias.createUniqueIndexName();
+
+        createIndexWithOptionalAlias(
+            indexAlias.getName(),
+            indexName.getName(),
+            indexSettings.loadMapping(),
+            indexSettings.getShards(),
+            indexSettings.getReplicas());
     }
 
-    public final String createIndexWithoutAlias(String collectionName, String mapping,
-        Integer tenantId)
-        throws DatabaseException, IOException {
-        String indexName = getUniqueIndexName(collectionName, tenantId);
-        // Retrieve alias
-        LOGGER.debug("createIndex");
-        LOGGER.debug("setMapping: " + indexName + "\n\t" + mapping);
-        boolean indexCreated = createIndex(indexName, mapping);
-
-        if (!indexCreated) {
-            String message = "Index creation exception for collection : " + collectionName;
-            LOGGER.error(message);
-            throw new DatabaseException(message);
-        }
-        return indexName;
-    }
-
-    public final void switchIndex(String aliasName, String indexNameToSwitchWith)
+    public final void switchIndex(
+        ElasticsearchIndexAlias indexAlias,
+        ElasticsearchIndexAlias indexNameToSwitchTo)
         throws DatabaseException, IOException {
 
-        if (!existsAlias(aliasName)) {
-            throw new DatabaseException(String.format("Alias not exist : %s", aliasName));
+        if (!existsAlias(indexAlias)) {
+            throw new DatabaseException(String.format("Alias not exist : %s", indexAlias.getName()));
         }
 
         GetAliasesResponse actualIndex =
-            getClient().indices().getAlias(new GetAliasesRequest(aliasName.toLowerCase()), RequestOptions.DEFAULT);
+            getClient().indices().getAlias(new GetAliasesRequest(indexAlias.getName()), RequestOptions.DEFAULT);
 
         Map<String, Set<AliasMetaData>> aliases = actualIndex.getAliases();
 
@@ -764,36 +651,50 @@ public class ElasticsearchAccess implements DatabaseConnection {
             oldIndexName = aliases.keySet().iterator().next();
         }
 
-        LOGGER.debug("Alias (" + aliasName.toLowerCase() + ") map to index (" + oldIndexName + ")");
+        LOGGER.debug("Alias (" + indexAlias.getName() + ") map to index (" + oldIndexName + ")");
 
-        boolean aliasSwitched = switchAliasIndex(aliasName, oldIndexName, indexNameToSwitchWith);
+        IndicesAliasesRequest request = new IndicesAliasesRequest();
+        AliasActions addNewIndexAliasAction =
+            new AliasActions(AliasActions.Type.ADD)
+                .index(indexNameToSwitchTo.getName())
+                .alias(indexAlias.getName());
+        request.addAliasAction(addNewIndexAliasAction);
 
-        LOGGER.debug("aliasName %s", aliasName);
+        AliasActions deleteOldIndexAliasAction =
+            new AliasActions(AliasActions.Type.REMOVE)
+                .index(oldIndexName)
+                .alias(indexAlias.getName());
+        request.addAliasAction(deleteOldIndexAliasAction);
 
-        if (!aliasSwitched) {
-            final String message = "Switch alias (" + aliasName + ") from index (" + oldIndexName + ") to index (" +
-                indexNameToSwitchWith + ")  error ";
-            LOGGER.error(message);
-            throw new DatabaseException(message);
+        request.timeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.masterNodeTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+
+        AcknowledgedResponse response = getClient().indices().updateAliases(request, RequestOptions.DEFAULT);
+
+        if (!response.isAcknowledged()) {
+            throw new DatabaseException(
+                "Could not switch alias index " + indexAlias.getName() + " from " + oldIndexName + " to " +
+                    indexNameToSwitchTo);
         }
     }
 
+    @VisibleForTesting
+    public final void deleteIndexByAliasForTesting(ElasticsearchIndexAlias indexAlias) throws DatabaseException {
 
-    public final void deleteIndexByAlias(final String collectionName, Integer tenantId) {
-
-        String aliasName = getAliasName(collectionName, tenantId);
-        GetAliasesResponse aliasResponse = null;
+        GetAliasesResponse aliasResponse;
         try {
-            aliasResponse = getAlias(aliasName);
+            aliasResponse = getAlias(indexAlias);
         } catch (IOException e) {
-            throw new VitamFatalRuntimeException(e);
+            throw new DatabaseException(e);
         }
         for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
             deleteIndex(entry.getKey());
         }
     }
 
-    public final boolean deleteIndex(final String indexFullName) {
+    private void deleteIndex(final String indexFullName) throws DatabaseException {
 
         DeleteIndexRequest request = new DeleteIndexRequest(indexFullName);
         request
@@ -806,22 +707,20 @@ public class ElasticsearchAccess implements DatabaseConnection {
             AcknowledgedResponse deleteIndexResponse =
                 getClient().indices().delete(request, RequestOptions.DEFAULT);
 
-            return deleteIndexResponse.isAcknowledged();
+            if (!deleteIndexResponse.isAcknowledged()) {
+                throw new DatabaseException("Error while deleting index " + indexFullName + ". Not acknowledged");
+            }
         } catch (Exception exception) {
             if (exception instanceof ElasticsearchException &&
                 ((ElasticsearchException) exception).status() == RestStatus.NOT_FOUND) {
                 //Nothing to do
-                return true;
+                return;
             }
-            LOGGER.error("Error while deleting index", exception);
-            return false;
+            throw new DatabaseException("Error while deleting index " + indexFullName, exception);
         }
     }
 
-    public void delete(String collectionName, List<String> ids, Integer tenant) throws DatabaseException {
-
-        String index = getAliasName(collectionName, tenant);
-
+    public void delete(ElasticsearchIndexAlias indexAlias, List<String> ids) throws DatabaseException {
 
         Iterator<List<String>> idIterator =
             Iterators.partition(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
@@ -830,7 +729,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
             BulkRequest bulkRequest = new BulkRequest();
             for (String id : idIterator.next()) {
-                bulkRequest.add(new DeleteRequest(index.toLowerCase(), id));
+                bulkRequest.add(new DeleteRequest(indexAlias.getName(), id));
             }
 
             WriteRequest.RefreshPolicy refreshPolicy = idIterator.hasNext() ?
@@ -855,26 +754,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
     }
 
-    private Builder settings() throws IOException {
+    private Settings createIndexSettings(int shards, int replicas) throws IOException {
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
-            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
-    }
-
-    private String getUniqueIndexName(final String collectionName, Integer tenantId) {
-        final String currentDate = LocalDateUtil.getFormattedDateForEsIndexes(LocalDateUtil.now());
-        if (tenantId != null) {
-            return collectionName.toLowerCase() + "_" + tenantId.toString() + "_" +
-                currentDate;
-        } else {
-            return collectionName.toLowerCase() + "_" + currentDate;
-        }
-    }
-
-    private String getAliasName(final String collectionName, Integer tenantId) {
-        if (tenantId != null) {
-            return collectionName.toLowerCase() + "_" + tenantId.toString();
-        } else {
-            return collectionName.toLowerCase();
-        }
+            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), false)
+            .put(NUMBER_OF_SHARDS, shards)
+            .put(NUMBER_OF_REPLICAS, replicas)
+            .build();
     }
 }

@@ -51,9 +51,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -114,6 +116,8 @@ public class AgenciesResourceTest {
     private static File adminConfigFile;
     private static AdminManagementMain application;
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     private static int workspacePort = junitHelper.findAvailablePort();
 
@@ -136,8 +140,8 @@ public class AgenciesResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes),
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager),
             Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES));
 
         File tmpFolder = tempFolder.newFolder();
@@ -163,7 +167,8 @@ public class AgenciesResourceTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         mongoDbAccess =
             MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager);
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -182,7 +187,7 @@ public class AgenciesResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -191,12 +196,12 @@ public class AgenciesResourceTest {
         }
 
         junitHelper.releasePort(serverPort);
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
             .willReturn(
@@ -208,7 +213,7 @@ public class AgenciesResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        FunctionalAdminCollections
+        FunctionalAdminCollectionsTestUtils
             .afterTest(Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES));
     }
 

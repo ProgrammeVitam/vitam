@@ -52,9 +52,11 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
@@ -103,6 +105,10 @@ public class LogbookLifeCyclesImplWithMongoTest {
     private static final int tenantId = 0;
     private static final List<Integer> tenantList = Collections.singletonList(0);
 
+    private static final ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils.createTestIndexManager(
+        tenantList, Collections.emptyMap()
+    );
+
     // ObjectGroup
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
@@ -119,8 +125,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
@@ -130,7 +136,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
                 esNodes);
         VitamConfiguration.setTenants(tenantList);
 
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
 
         logbookLifeCyclesUnitParametersStart = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
@@ -198,7 +204,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollections.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();
     }

@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -51,9 +50,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -70,7 +71,6 @@ import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -108,6 +108,9 @@ public class SecurityProfileResourceTest {
 
     private static int workspacePort = junitHelper.findAvailablePort();
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @ClassRule
     public static WireMockClassRule workspaceWireMock = new WireMockClassRule(workspacePort);
 
@@ -123,8 +126,8 @@ public class SecurityProfileResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
@@ -146,7 +149,7 @@ public class SecurityProfileResourceTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         mongoDbAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -173,7 +176,7 @@ public class SecurityProfileResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws IOException, VitamException {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -181,7 +184,7 @@ public class SecurityProfileResourceTest {
             LOGGER.error(e);
         }
 
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
 
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
@@ -189,7 +192,7 @@ public class SecurityProfileResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
+        FunctionalAdminCollectionsTestUtils.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
     }
 
     @Test

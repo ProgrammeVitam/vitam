@@ -32,8 +32,6 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.BsonHelper;
@@ -47,6 +45,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
@@ -61,8 +60,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -89,24 +88,25 @@ public class LogbookElasticsearchAccessTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String HOST_NAME = "127.0.0.1";
     private static LogbookElasticsearchAccess esClient;
 
     private static final int tenantId = 0;
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(Collections.singletonList(tenantId), Collections.emptyMap());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
-        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager);
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollections.afterTestClass(true, tenantId);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
         esClient.close();
     }
 
@@ -114,9 +114,7 @@ public class LogbookElasticsearchAccessTest {
     @Test
     @RunWithCustomExecutor
     public void testElasticsearchAccessOperation()
-        throws LogbookException, DatabaseException, IOException, InvalidParseOperationException {
-        // add index
-        esClient.addIndex(LogbookCollections.OPERATION, tenantId);
+        throws Exception {
 
         // data
         GUID eventIdentifier = GUIDFactory.newEventGUID(tenantId);
@@ -147,11 +145,12 @@ public class LogbookElasticsearchAccessTest {
         LogbookOperation operationForCreation = new LogbookOperation(parametersForCreation, false);
         String id = operationForCreation.getId();
         operationForCreation.remove(VitamDocument.ID);
+        operationForCreation.put(VitamDocument.TENANT_ID, tenantId);
         final String esJson = BsonHelper.stringify(operationForCreation);
         assertTrue(esJson.contains(LogbookMongoDbName.parentEventIdentifier.getDbname()));
         JsonAssert.assertJsonEquals(operationForCreation, esJson);
-        esClient.indexEntry(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId, id, operationForCreation);
-        esClient.refreshIndex(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
+        esClient.indexEntry(LogbookCollections.OPERATION, tenantId, id, operationForCreation);
+        esClient.refreshIndex(LogbookCollections.OPERATION, tenantId);
         // check entry
         QueryBuilder query = QueryBuilders.matchAllQuery();
         SearchResponse elasticSearchResponse =
@@ -197,10 +196,10 @@ public class LogbookElasticsearchAccessTest {
         assertEquals(1, elasticSearchResponse3.getHits().getTotalHits().value);
 
         // refresh index
-        esClient.refreshIndex(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
+        esClient.refreshIndex(LogbookCollections.OPERATION, tenantId);
 
         // delete index
-        esClient.deleteIndexByAlias(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
+        esClient.deleteIndexByAliasForTesting(LogbookCollections.OPERATION, tenantId);
 
         // check post delete
         try {

@@ -33,7 +33,8 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
@@ -47,10 +48,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -63,9 +66,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -116,9 +118,10 @@ public class LogbookOperationsImplTest {
         doNothing().when(workspaceClient).createContainer(anyString());
         doNothing().when(workspaceClient).putObject(anyString(), anyString(), any());
         doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
+        ElasticsearchLogbookIndexManager indexManager = mock(ElasticsearchLogbookIndexManager.class);
         logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
-
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
     }
 
     @Test(expected = LogbookDatabaseException.class)
@@ -237,44 +240,47 @@ public class LogbookOperationsImplTest {
     public void reindexCollectionUnknownTest() {
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("fakeName");
-        List<Integer> tenants = new ArrayList<>();
-        tenants.add(0);
+        List<Integer> tenants = Collections.singletonList(0);
         parameters.setTenants(tenants);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, IndexationHelper.getInstance());
-        IndexationResult result = logbookOperationsImpl.reindex(parameters);
+        ElasticsearchLogbookIndexManager indexManager =
+            LogbookCollectionsTestUtils.createTestIndexManager(tenants, Collections.emptyMap());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,
+            IndexationHelper.getInstance(),
+            indexManager);
+        ReindexationResult result = logbookOperationsImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
         assertEquals(1, result.getIndexKO().size());
-        assertEquals("fakeName_0_*", result.getIndexKO().get(0).getIndexName());
-        assertEquals("Try to reindex a non operation logbook collection 'fakeName' with operation logbook module",
-            result
-                .getIndexKO().get(0).getMessage());
-        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+        assertNull(result.getIndexKO().get(0).getTenantGroup());
+        assertEquals(tenants, result.getIndexKO().get(0).getTenants());
+        assertEquals("Invalid collection 'fakeName'", result.getIndexKO().get(0).getMessage());
     }
 
     @Test
     public void reindexCollectionUnauthorizedTest() {
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("lifecycle_unit");
-        List<Integer> tenants = new ArrayList<>();
-        tenants.add(0);
+        List<Integer> tenants = Collections.singletonList(0);
         parameters.setTenants(tenants);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, IndexationHelper.getInstance());
-        IndexationResult result = logbookOperationsImpl.reindex(parameters);
+        ElasticsearchLogbookIndexManager indexManager =
+            LogbookCollectionsTestUtils.createTestIndexManager(tenants, Collections.emptyMap());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,
+            IndexationHelper.getInstance(),
+            indexManager);
+        ReindexationResult result = logbookOperationsImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
         assertEquals(1, result.getIndexKO().size());
-        assertEquals("lifecycle_unit_0_*", result.getIndexKO().get(0).getIndexName());
+        assertNull(result.getIndexKO().get(0).getTenantGroup());
+        assertEquals(tenants, result.getIndexKO().get(0).getTenants());
         assertEquals("Try to reindex a non operation logbook collection 'lifecycle_unit' with operation logbook module",
-            result
-                .getIndexKO().get(0).getMessage());
-        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+            result.getIndexKO().get(0).getMessage());
     }
 
     @Test
-    public void reindexIOExceptionTest() throws Exception {
-        when(indexationHelper.reindex(any(), any(), any(), any(), any()))
-            .thenThrow(new IOException());
+    public void reindexExceptionTest() throws Exception {
+        when(indexationHelper.reindex(any(), any(), any(), any(), any(), any(), any()))
+            .thenThrow(new DatabaseException("prb"));
         when(indexationHelper.getFullKOResult(any(), any()))
             .thenCallRealMethod();
         LogbookCollections.OPERATION.getVitamCollection().initialize(mock(MongoDatabase.class), false);
@@ -283,23 +289,25 @@ public class LogbookOperationsImplTest {
         List<Integer> tenants = new ArrayList<>();
         tenants.add(0);
         parameters.setTenants(tenants);
-        IndexationResult result = logbookOperationsImpl.reindex(parameters);
+        ReindexationResult result = logbookOperationsImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
         assertEquals(1, result.getIndexKO().size());
-        assertEquals("operation_0_*", result.getIndexKO().get(0).getIndexName());
-        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+        assertNull(result.getIndexKO().get(0).getTenantGroup());
+        assertEquals(tenants, result.getIndexKO().get(0).getTenants());
+        assertEquals("Cannot reindex collection OPERATION for tenant 0. Unexpected error",
+            result.getIndexKO().get(0).getMessage());
     }
 
     @Test(expected = DatabaseException.class)
     public void switchIndexKOTest() throws Exception {
-        doThrow(new DatabaseException("erreur")).when(indexationHelper).switchIndex(anyString(), anyString(), any());
+        doThrow(new DatabaseException("erreur")).when(indexationHelper).switchIndex(any(), any(), any());
         logbookOperationsImpl.switchIndex("alias", "index_name");
     }
 
     @Test
     public void switchIndexOKTest() throws Exception {
-        doNothing().when(indexationHelper).switchIndex(anyString(), anyString(), any());
+        doReturn(mock(SwitchIndexResult.class)).when(indexationHelper).switchIndex(any(), any(), any());
         logbookOperationsImpl.switchIndex("alias", "index_name");
     }
 

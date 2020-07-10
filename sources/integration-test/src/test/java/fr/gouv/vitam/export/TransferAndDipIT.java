@@ -123,6 +123,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -168,7 +169,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         String CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
 
@@ -178,8 +179,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+    public static void tearDownAfterClass() {
+        handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();

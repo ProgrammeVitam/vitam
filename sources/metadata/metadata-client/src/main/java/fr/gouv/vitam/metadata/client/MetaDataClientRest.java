@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.error.VitamError;
@@ -317,12 +318,12 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+    public SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
         try (Response response = make(
             post().withJson().withPath(ALIASES_URI).withBody(switchIndexParam, "The options are mandatory"))) {
             check(response);
-            return response.readEntity(JsonNode.class);
+            return response.readEntity(SwitchIndexResult.class);
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         }

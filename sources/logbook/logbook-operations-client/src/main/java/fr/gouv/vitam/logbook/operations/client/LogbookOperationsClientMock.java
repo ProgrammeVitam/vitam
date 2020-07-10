@@ -26,25 +26,20 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Queue;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.index.model.ReindexationOK;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -57,6 +52,11 @@ import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Queue;
 
 /**
  * Mock client implementation for logbook operation
@@ -200,15 +200,19 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     }
 
     @Override
-    public JsonNode reindex(IndexParameters indexParam)
-        throws InvalidParseOperationException, LogbookClientServerException {
-        return ClientMockResultHelper.getReindexationInfo().toJsonNode();
+    public ReindexationResult reindex(IndexParameters indexParam) throws InvalidParseOperationException {
+        return new ReindexationResult()
+            .setCollectionName(indexParam.getCollectionName())
+            .addIndexOK(new ReindexationOK("alias", "indexname", indexParam.getTenants(), ""));
     }
 
     @Override
-    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
-        throws InvalidParseOperationException, LogbookClientServerException {
-        return ClientMockResultHelper.getSwitchIndexesInfo().toJsonNode();
+    public SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException {
+        return new SwitchIndexResult()
+            .setAlias(switchIndexParam.getAlias())
+            .setIndexName(switchIndexParam.getIndexName())
+            .setStatusCode(StatusCode.OK);
     }
 
     @Override
@@ -216,7 +220,7 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
         LOGGER.info("audit traceability");
     }
 
-    @Override 
+    @Override
     public LogbookCheckResult checkLogbookCoherence() {
         return new LogbookCheckResult();
     }

@@ -83,7 +83,7 @@ public class LogbookReconstructionResourceTest {
     }
 
     @Test
-    public void should_return_empty_response_when_that_request_empty() throws DatabaseException {
+    public void should_return_empty_response_when_that_request_empty() {
         // given
         LogbookReconstructionResource reconstructionResource =
             new LogbookReconstructionResource(reconstructionService);
@@ -113,7 +113,7 @@ public class LogbookReconstructionResourceTest {
     }
 
     @Test
-    public void should_return_ok_when__request_item_no_offset() throws DatabaseException {
+    public void should_return_ok_when__request_item_no_offset() {
         // given
         LogbookReconstructionResource reconstructionResource =
             new LogbookReconstructionResource(reconstructionService);

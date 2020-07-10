@@ -28,13 +28,11 @@ package fr.gouv.vitam.common.database.api.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterators;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.api.VitamRepository;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -45,7 +43,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
@@ -79,10 +76,8 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -93,7 +88,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 /**
  * Implementation for Elasticsearch
  */
-public class VitamElasticsearchRepository implements VitamRepository {
+public class VitamElasticsearchRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamElasticsearchRepository.class);
     /**
      * Identifier
@@ -105,33 +100,22 @@ public class VitamElasticsearchRepository implements VitamRepository {
     private static final String RIGHT_STATE_ID = "rightsStatementIdentifier";
     private static final String AG_ID_EXT = "agIdExt";
     private static final String EVENTS = "events";
-    private static final String NOT_IMPLEMENTED_YET = "Not implemented yet";
 
-
-    private RestHighLevelClient client;
-    private String indexName;
-    private boolean indexByTenant;
+    private final RestHighLevelClient client;
+    private final ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver;
 
     /**
      * VitamElasticsearchRepository Constructor
      *
      * @param client the es client
-     * @param indexName the name of the index
-     * @param indexByTenant specifies if the index is for a specific tenant or not
+     * @param elasticsearchIndexAliasResolver the name of the index
      */
-    public VitamElasticsearchRepository(RestHighLevelClient client, String indexName, boolean indexByTenant) {
+    public VitamElasticsearchRepository(RestHighLevelClient client, ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver) {
         this.client = client;
-        this.indexName = indexName;
-        this.indexByTenant = indexByTenant;
+        this.elasticsearchIndexAliasResolver = elasticsearchIndexAliasResolver;
     }
 
-    @Override
-    public void save(Document document) throws DatabaseException {
-        saveOrUpdate(document);
-    }
-
-    @Override
-    public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
+    public VitamRepositoryStatus save(Document document) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, document);
         Document internalDocument = new Document(document);
         Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
@@ -140,15 +124,13 @@ public class VitamElasticsearchRepository implements VitamRepository {
         try {
             final String source = BsonHelper.stringify(internalDocument);
 
-            String index = indexName;
-            if (indexByTenant) {
-                index = index + "_" + tenant;
-            }
-            IndexRequest request = new IndexRequest(index)
+            String aliasName = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
+            IndexRequest request = new IndexRequest(aliasName)
                 .id(id)
                 .source(source, XContentType.JSON)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-                .timeout(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
+                .timeout(
+                    TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
                 .opType(DocWriteRequest.OpType.INDEX);
 
             IndexResponse indexResponse;
@@ -179,7 +161,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         ReplicationResponse.ShardInfo shardInfo = indexResponse.getShardInfo();
         if (shardInfo.getTotal() != shardInfo.getSuccessful()) {
             error = String
-                .format("Exception occurred : total shards %s, successful shard.", shardInfo.getTotal(),
+                .format("Exception occurred : total shards %s, successful shards %s", shardInfo.getTotal(),
                     shardInfo.getSuccessful());
         }
         if (shardInfo.getFailed() > 0) {
@@ -201,7 +183,6 @@ public class VitamElasticsearchRepository implements VitamRepository {
         throw new DatabaseException(error);
     }
 
-    @Override
     public void save(List<Document> documents) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
 
@@ -220,12 +201,9 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
             final String source = BsonHelper.stringify(internalDocument);
 
-            String index = indexName;
-            if (indexByTenant) {
-                index = index + "_" + tenant;
-            }
+            String aliasName = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
 
-            bulkRequest.add(new IndexRequest(index)
+            bulkRequest.add(new IndexRequest(aliasName)
                 .id(id)
                 .source(source, XContentType.JSON));
         });
@@ -258,10 +236,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
             internalDocument.remove(VitamDocument.SCORE);
             internalDocument.remove("_unused");
 
-            String index = indexName;
-            if (indexByTenant) {
-                index = index + "_" + tenant;
-            }
+            String aliasName = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
 
             switch (elasticsearchCollections) {
                 case OPERATION:
@@ -271,7 +246,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
             final String source = BsonHelper.stringify(internalDocument);
 
-            bulkRequest.add(new IndexRequest(index)
+            bulkRequest.add(new IndexRequest(aliasName)
                 .id(id)
                 .source(source, XContentType.JSON));
         });
@@ -360,31 +335,10 @@ public class VitamElasticsearchRepository implements VitamRepository {
         vitamDocument.put(EVENTS, eventDocuments);
     }
 
-    @Override
-    public void saveOrUpdate(List<Document> documents) throws DatabaseException {
-        save(documents);
-    }
-
-    @Override
-    public void update(List<WriteModel<Document>> updates) throws DatabaseException {
-        // Not implement yet
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
-    }
-
-    @Override
-    public FindIterable<Document> findDocuments(Collection<String> ids, Bson projection) {
-        // Not implement yet
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
-    }
-
-    @Override
     public void remove(String id, Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
 
-        String index = indexName;
-        if (indexByTenant) {
-            index = index + "_" + tenant;
-        }
+        String index = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
 
         DeleteRequest request = new DeleteRequest(index)
             .id(id)
@@ -415,31 +369,17 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     }
 
-    @Override
-    public long remove(Bson query) throws DatabaseException {
-        return 0;
-    }
-
-    @Override
-    public void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException {
-        throw new DatabaseException("removeByNameAndTenant not implemented for Elasticsearch repository");
-    }
-
-    @Override
     public long purge(Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
-        String index = indexName;
-        if (indexByTenant) {
-            index = index + "_" + tenant;
-        }
+        String index = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
 
         QueryBuilder qb = termQuery(VitamDocument.TENANT_ID, tenant);
 
         return handlePurge(client, index, qb);
     }
 
-    public static long handlePurge(RestHighLevelClient client, String index, QueryBuilder qb)
+    private static long handlePurge(RestHighLevelClient client, String index, QueryBuilder qb)
         throws DatabaseException {
         try {
             DeleteByQueryRequest request = new DeleteByQueryRequest(index);
@@ -492,22 +432,16 @@ public class VitamElasticsearchRepository implements VitamRepository {
     }
 
 
-    @Override
     public long purge() throws DatabaseException {
-        String index = indexName;
+        String index = this.elasticsearchIndexAliasResolver.resolveIndexName(null).getName();
         QueryBuilder qb = matchAllQuery();
         return handlePurge(client, index, qb);
     }
 
-    @Override
     public Optional<Document> getByID(String id, Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
 
-        String index = indexName;
-        if (indexByTenant) {
-            index = index + "_" + tenant;
-        }
-
+        String index = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
         GetRequest request = new GetRequest(index)
             .id(id)
             .fetchSourceContext(FetchSourceContext.FETCH_SOURCE);
@@ -528,20 +462,16 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
     }
 
-    @Override
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
         throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
         try {
-            String index = indexName;
-            if (indexByTenant) {
-                index = index + "_" + tenant;
-            }
+            String aliasName = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
             QueryBuilder qb = boolQuery().must(termQuery(IDENTIFIER, identifier))
                 .must(termQuery(VitamDocument.TENANT_ID, tenant));
 
-            return handleSearch(index, qb);
+            return handleSearch(aliasName, qb);
         } catch (IOException e) {
             throw new DatabaseException("Search by identifier and tenant exception", e);
         }
@@ -576,14 +506,10 @@ public class VitamElasticsearchRepository implements VitamRepository {
         return client.search(searchRequest, RequestOptions.DEFAULT);
     }
 
-    @Override
     public Optional<Document> findByIdentifier(String identifier)
         throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED);
-
-        String index = indexName;
-
-
+        String index = this.elasticsearchIndexAliasResolver.resolveIndexName(null).getName();
         try {
             return handleSearch(index, termQuery(IDENTIFIER, identifier));
         } catch (IOException e) {
@@ -592,39 +518,9 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     }
 
-    @Override
-    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
-        Integer tenant) {
-        // Not implement yet
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
-    }
-
-    @Override
-    public FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant) {
-        // Not implement yet
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
-    }
-
-    @Override
-    public FindIterable<Document> findDocuments(int mongoBatchSize) {
-        // Not implement yet
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
-    }
-
-    @Override
-    public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
-        // Not implement yet
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
-    }
-
-    @Override
     public void delete(List<String> ids, int tenant) throws DatabaseException {
 
-        String index = indexName;
-        if (indexByTenant) {
-            index = index + "_" + tenant;
-        }
-
+        String index = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
         Iterator<List<String>> idIterator =
             Iterators.partition(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
 
@@ -632,7 +528,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
             BulkRequest bulkRequest = new BulkRequest();
             for (String id : idIterator.next()) {
-                bulkRequest.add(new DeleteRequest(index.toLowerCase(), id));
+                bulkRequest.add(new DeleteRequest(index, id));
             }
 
             WriteRequest.RefreshPolicy refreshPolicy = idIterator.hasNext() ?

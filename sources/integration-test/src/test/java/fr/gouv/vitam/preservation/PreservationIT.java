@@ -207,7 +207,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         String configurationPath = PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
         new DataLoader("integration-ingest-internal").prepareData();
@@ -245,7 +245,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }

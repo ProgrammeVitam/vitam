@@ -40,8 +40,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import org.assertj.core.util.Lists;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -54,6 +56,7 @@ import java.util.List;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class LogbookMongoDbAccessImplTest {
 
@@ -65,18 +68,26 @@ public class LogbookMongoDbAccessImplTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(Collections.emptyList(), Collections.emptyMap());
+
     @BeforeClass
     public static void beforeClass() {
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(), null, 0);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(), null);
     }
 
     @After
     public void after() {
-        LogbookCollections.afterTest();
+        LogbookCollectionsTestUtils.afterTest(indexManager);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
     }
 
     private LogbookMongoDbAccessImpl logbookMongoDbAccess =
-        new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true, null, new ArrayList<>(),
+        new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true, mock(LogbookElasticsearchAccess.class),
             new LogbookTransformData(), Collections::emptyList);
 
 
