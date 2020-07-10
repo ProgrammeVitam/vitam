@@ -107,7 +107,7 @@ public class AdminMetadataApplication extends Application {
                 metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
                 metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
-                mappingLoader);
+                indexManager);
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata, indexManager);
 

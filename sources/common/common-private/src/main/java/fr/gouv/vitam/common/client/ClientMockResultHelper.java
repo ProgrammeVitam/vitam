@@ -395,8 +395,6 @@ public class ClientMockResultHelper {
     private static List<OntologyModel> ontologies = ONTOLOGIES;
 
     private static final String DIP_RESULTS = "{}";
-    
-    private static final String REINDEXATION_INFO = "{}";
 
     private ClientMockResultHelper() {}
 
@@ -756,14 +754,6 @@ public class ClientMockResultHelper {
 
     public static RequestResponse getDipInfo() throws InvalidParseOperationException {
         return createResponse(DIP_RESULTS);
-    }
-    
-    public static RequestResponse getReindexationInfo() throws InvalidParseOperationException {
-        return createResponse(REINDEXATION_INFO);
-    }
-    
-    public static RequestResponse getSwitchIndexesInfo() throws InvalidParseOperationException {
-        return createResponse(REINDEXATION_INFO);
     }
 
     /**

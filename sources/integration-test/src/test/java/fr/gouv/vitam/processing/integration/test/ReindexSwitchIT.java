@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -193,9 +193,9 @@ public class ReindexSwitchIT extends VitamRuleRunner {
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-            launchReindexationAndSwitchAndCheckValues("ACCESS_CONTRACT", "access_contract", client, "");
-            launchReindexationAndSwitchAndCheckValues("FORMATS", "formats", client, "");
-            launchReindexationAndSwitchAndCheckValues("INGEST_CONTRACT", "ingest_contract", client, "");
+            launchReindexationAndSwitchAndCheckValues("ACCESS_CONTRACT", "accesscontract", client, "");
+            launchReindexationAndSwitchAndCheckValues("FORMATS", "fileformat", client, "");
+            launchReindexationAndSwitchAndCheckValues("INGEST_CONTRACT", "ingestcontract", client, "");
 
             ProcessingIT.prepareVitamSession();
             String containerName = launchIngest();
@@ -211,9 +211,9 @@ public class ReindexSwitchIT extends VitamRuleRunner {
             int sizeUnitsBefore = resultUnit.size();
             int sizeOgBefore = resultObject.size();
 
-            launchReindexationAndSwitchAndCheckValues("Operation", "Operation", client, "0");
-            launchReindexationAndSwitchAndCheckValues("Unit", "Unit", client, "0");
-            launchReindexationAndSwitchAndCheckValues("ObjectGroup", "ObjectGroup", client, "0");
+            launchReindexationAndSwitchAndCheckValues("Operation", "logbookoperation_0", client, "0");
+            launchReindexationAndSwitchAndCheckValues("Unit", "unit_0", client, "0");
+            launchReindexationAndSwitchAndCheckValues("ObjectGroup", "objectgroup_0", client, "0");
 
             JsonNode logbookResultAfter = logbookClient.selectOperationById(containerName);
 
@@ -241,14 +241,14 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         JsonNode queryDsl = select.getFinalSelect();
         int sizeBefore = countCollection(collection, client, queryDsl);
 
-        RequestResponse<IndexationResult> result =
+        RequestResponse<ReindexationResult> result =
             client.launchReindexation(JsonHandler.getFromString(order));
         assertTrue(result.isOk());
-        List<IndexationResult> idxResults = ((RequestResponseOK<IndexationResult>) result).getResults();
+        List<ReindexationResult> idxResults = ((RequestResponseOK<ReindexationResult>) result).getResults();
         String newIndexName = idxResults.get(0).getIndexOK().get(0).getIndexName();
 
-        String switchOrder = "[{\"alias\" : \"" + alias + "\", \"indexName\" : \"" + newIndexName + "\"}]";
-        RequestResponse<IndexationResult> resultSwitch = client.switchIndexes(JsonHandler.getFromString(switchOrder));
+        String switchOrder = "[{\"collection\" : \"" + collection + "\", \"alias\" : \"" + alias + "\", \"indexName\" : \"" + newIndexName + "\"}]";
+        RequestResponse<ReindexationResult> resultSwitch = client.switchIndexes(JsonHandler.getFromString(switchOrder));
         assertTrue(resultSwitch.isOk());
 
         int sizeAfter = countCollection(collection, client, queryDsl);

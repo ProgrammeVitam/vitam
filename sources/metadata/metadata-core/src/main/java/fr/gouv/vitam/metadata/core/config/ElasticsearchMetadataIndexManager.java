@@ -233,11 +233,15 @@ public class ElasticsearchMetadataIndexManager {
         return tenantGroupToTenantMap.keySet();
     }
 
-    public Collection<Integer> getTenantGroupTenants(String tenantGroupName) {
+    public List<Integer> getTenantGroupTenants(String tenantGroupName) {
         if (!this.tenantGroupToTenantMap.containsKey(tenantGroupName)) {
             throw new IllegalStateException("No such tenant group " + tenantGroupName);
         }
         return tenantGroupToTenantMap.get(tenantGroupName);
+    }
+
+    public boolean isGroupedTenant(Integer tenantId) {
+        return tenantToTenantGroupMap.containsKey(tenantId);
     }
 
     public String getTenantGroup(int tenantId) {

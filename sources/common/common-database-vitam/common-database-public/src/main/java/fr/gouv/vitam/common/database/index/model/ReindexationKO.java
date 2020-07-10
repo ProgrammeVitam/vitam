@@ -28,31 +28,56 @@ package fr.gouv.vitam.common.database.index.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 /**
  * IndexKO
  */
-public class IndexKO extends IndexOK {
+public class ReindexationKO {
+
+    @JsonProperty("tenants")
+    private List<Integer> tenants;
+
+    @JsonProperty("tenantGroup")
+    private String tenantGroup;
 
     @JsonProperty("message")
     private String message;
 
-    public IndexKO() {}
+    public ReindexationKO() {
+        // Empty constructor for deserialization
+    }
 
-    public IndexKO(String indexName, Integer tenant, String message) {
-        super(indexName, tenant);
+    public ReindexationKO(List<Integer> tenants, String tenantGroup, String message) {
+        this.tenants = tenants;
+        this.tenantGroup = tenantGroup;
         this.message = message;
     }
 
-    public IndexKO(String indexName, String message) {
-        super(indexName);
-        this.message = message;
+    public List<Integer> getTenants() {
+        return tenants;
+    }
+
+    public ReindexationKO setTenants(List<Integer> tenants) {
+        this.tenants = tenants;
+        return this;
+    }
+
+    public String getTenantGroup() {
+        return tenantGroup;
+    }
+
+    public ReindexationKO setTenantGroup(String tenantGroup) {
+        this.tenantGroup = tenantGroup;
+        return this;
     }
 
     public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
+    public ReindexationKO setMessage(String message) {
         this.message = message;
+        return this;
     }
 }

@@ -256,7 +256,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
         logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
         logbookOperationsImpl.create(logbookParametersStart);
         logbookOperationsImpl.update(logbookParametersAppend);
         try {
@@ -289,7 +290,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
         logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);
         logbookOperationsImpl.create(logbookParameters3);
@@ -345,7 +347,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
         logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
 
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);

@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,6 +150,17 @@ public enum MetadataCollections {
 
     public VitamDescriptionResolver getVitamDescriptionResolver() {
         return vitamDescriptionResolver;
+    }
+
+    public ElasticsearchCollections getElasticsearchCollection() {
+        switch (this) {
+            case UNIT:
+                return ElasticsearchCollections.UNIT;
+            case OBJECTGROUP:
+                return ElasticsearchCollections.OBJECTGROUP;
+            default:
+                throw new IllegalStateException("Unexpected value: " + this);
+        }
     }
 }
 

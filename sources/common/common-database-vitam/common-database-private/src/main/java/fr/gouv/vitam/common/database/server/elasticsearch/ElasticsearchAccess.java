@@ -78,6 +78,7 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
@@ -209,6 +210,17 @@ public class ElasticsearchAccess implements DatabaseConnection {
             return getClient().indices().existsAlias(request, RequestOptions.DEFAULT);
         } catch (IOException e) {
             throw new DatabaseException("Could not check alias existence " + indexAlias.getName(), e);
+        }
+    }
+
+    public final boolean existsIndex(ElasticsearchIndexAlias index) throws DatabaseException {
+        try {
+            GetIndexRequest request = new GetIndexRequest(index.getName());
+            request.local(true);
+            request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+            return getClient().indices().exists(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new DatabaseException("Could not check index existence " + index.getName(), e);
         }
     }
 
@@ -619,7 +631,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
             indexSettings.getReplicas());
     }
 
-    public final void switchIndex(ElasticsearchIndexAlias indexAlias, String indexNameToSwitchTo)
+    public final void switchIndex(
+        ElasticsearchIndexAlias indexAlias,
+        ElasticsearchIndexAlias indexNameToSwitchTo)
         throws DatabaseException, IOException {
 
         if (!existsAlias(indexAlias)) {
@@ -642,7 +656,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         IndicesAliasesRequest request = new IndicesAliasesRequest();
         AliasActions addNewIndexAliasAction =
             new AliasActions(AliasActions.Type.ADD)
-                .index(indexNameToSwitchTo)
+                .index(indexNameToSwitchTo.getName())
                 .alias(indexAlias.getName());
         request.addAliasAction(addNewIndexAliasAction);
 

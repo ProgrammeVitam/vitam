@@ -49,6 +49,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.index.reindex.ScrollableHitSource;
+import org.elasticsearch.rest.RestStatus;
 import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
@@ -98,10 +99,10 @@ public class ElasticsearchRule extends ExternalResource {
 
 
     public void purge(RestHighLevelClient client, String indexName) {
-        handlePurge(client, indexName.toLowerCase(), matchAllQuery());
+        handlePurge(client, indexName, matchAllQuery());
     }
 
-    public long handlePurge(RestHighLevelClient client, String index, QueryBuilder qb) {
+    public void handlePurge(RestHighLevelClient client, String index, QueryBuilder qb) {
         try {
             DeleteByQueryRequest request = new DeleteByQueryRequest(index);
             request.setConflicts("proceed");
@@ -145,8 +146,12 @@ public class ElasticsearchRule extends ExternalResource {
             }
 
             LOGGER.info("Deleted : " + bulkResponse.getDeleted());
-            return bulkResponse.getDeleted();
-        } catch (IOException | ElasticsearchException e) {
+        } catch (ElasticsearchException e) {
+            if(e.status() == RestStatus.NOT_FOUND) {
+                return;
+            }
+            throw new RuntimeException("Purge Exception", e);
+        } catch (IOException e) {
             throw new RuntimeException("Purge Exception", e);
         }
     }
@@ -192,6 +197,7 @@ public class ElasticsearchRule extends ExternalResource {
     }
 
     public final void deleteIndex(RestHighLevelClient client, String indexName) {
+
         purge(client, indexName);
     }
 

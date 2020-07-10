@@ -88,9 +88,9 @@ public class ElasticsearchIndexAlias {
         return name;
     }
 
-    public boolean isIndexOfAlias(String indexName) {
+    public boolean isValidAliasOfIndex  (ElasticsearchIndexAlias indexName) {
         ParametersChecker.checkParameter("Missing index name", indexName);
-        return indexName.startsWith(this.name + "_");
+        return indexName.getName().startsWith(this.name + "_");
     }
 
     public ElasticsearchIndexAlias createUniqueIndexName() {

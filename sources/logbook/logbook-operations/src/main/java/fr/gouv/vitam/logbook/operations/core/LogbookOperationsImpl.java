@@ -28,7 +28,6 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -37,11 +36,15 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationKO;
+import fr.gouv.vitam.common.database.index.model.ReindexationOK;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
-import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -58,6 +61,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -76,16 +80,22 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.bson.Document;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.collections4.SetValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.outcomeDetail;
+import static java.util.function.Predicate.not;
 
 /**
  * Logbook Operations implementation base class
@@ -98,24 +108,23 @@ public class LogbookOperationsImpl implements LogbookOperations {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
     private final IndexationHelper indexationHelper;
+    private final ElasticsearchLogbookIndexManager indexManager;
 
-    /**
-     * Constructor
-     *
-     * @param mongoDbAccess of logbook
-     */
-    public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess) {
+    public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess,
+        ElasticsearchLogbookIndexManager indexManager) {
         this(mongoDbAccess, WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(),
-            IndexationHelper.getInstance());
+            IndexationHelper.getInstance(), indexManager);
     }
 
     @VisibleForTesting
     public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess, WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory, IndexationHelper indexationHelper) {
+        StorageClientFactory storageClientFactory, IndexationHelper indexationHelper,
+        ElasticsearchLogbookIndexManager indexManager) {
         this.mongoDbAccess = mongoDbAccess;
         this.workspaceClientFactory = workspaceClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.indexationHelper = indexationHelper;
+        this.indexManager = indexManager;
     }
 
     @Override
@@ -316,45 +325,109 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public IndexationResult reindex(IndexParameters indexParameters) {
+    public ReindexationResult reindex(IndexParameters indexParameters) {
         LogbookCollections collection;
         try {
             collection = LogbookCollections.valueOf(indexParameters.getCollectionName().toUpperCase());
         } catch (IllegalArgumentException exc) {
-            String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
-                    "logbook module",
-                indexParameters
-                    .getCollectionName());
-            LOGGER.error(message);
+            String message = "Invalid collection '" + indexParameters.getCollectionName() + "'";
+            LOGGER.error(message, exc);
             return indexationHelper.getFullKOResult(indexParameters, message);
         }
         if (!LogbookCollections.OPERATION.equals(collection)) {
             String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
-                    "logbook module",
-                indexParameters
-                    .getCollectionName());
+                "logbook module", indexParameters.getCollectionName());
             LOGGER.error(message);
             return indexationHelper.getFullKOResult(indexParameters, message);
-        } else {
-            MongoCollection<Document> mongoCollection = collection.getCollection();
-            try (InputStream mappingStream = ElasticsearchCollections
-                .valueOf(indexParameters.getCollectionName().toUpperCase())
-                .getMappingAsInputStream()) {
-                return indexationHelper.reindex(mongoCollection, collection.getName(), collection.getEsClient(),
-                    indexParameters.getTenants(), mappingStream);
-            } catch (IOException exc) {
-                LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),
-                    indexParameters.getTenants().stream().map(Object::toString).collect(Collectors.joining(", ")));
-                return indexationHelper.getFullKOResult(indexParameters, exc.getMessage());
+        }
+
+        if (CollectionUtils.isEmpty(indexParameters.getTenants())) {
+            String message = String.format("Missing tenants for %s collection reindexation",
+                indexParameters.getCollectionName());
+            LOGGER.error(message);
+            return indexationHelper.getFullKOResult(indexParameters, message);
+        }
+
+        ReindexationResult reindexationResult = new ReindexationResult();
+        reindexationResult.setCollectionName(indexParameters.getCollectionName());
+
+        processDedicatedTenants(indexParameters, collection, reindexationResult);
+        processGroupedTenants(indexParameters, collection, reindexationResult);
+
+        return reindexationResult;
+    }
+
+    private void processDedicatedTenants(IndexParameters indexParameters, LogbookCollections collection,
+        ReindexationResult reindexationResult) {
+
+        ElasticsearchIndexAliasResolver indexAliasResolver =
+            indexManager.getElasticsearchIndexAliasResolver(collection);
+
+        List<Integer> dedicatedTenantToProcess = indexParameters.getTenants().stream()
+            .filter(not(this.indexManager::isGroupedTenant))
+            .collect(Collectors.toList());
+
+        for (Integer tenantId : dedicatedTenantToProcess) {
+            try {
+                ReindexationOK reindexResult = this.indexationHelper.reindex(collection.getCollection(),
+                    collection.getEsClient(), indexAliasResolver.resolveIndexName(tenantId),
+                    this.indexManager.getElasticsearchIndexSettings(collection, tenantId),
+                    collection.getElasticsearchCollection(), Collections.singletonList(tenantId), null);
+                reindexationResult.addIndexOK(reindexResult);
+            } catch (Exception exc) {
+                String message =
+                    "Cannot reindex collection " + collection.name() + " for tenant " + tenantId + ". Unexpected error";
+                LOGGER.error(message, exc);
+                reindexationResult.addIndexKO(new ReindexationKO(Collections.singletonList(tenantId), null, message));
+            }
+        }
+    }
+
+    private void processGroupedTenants(IndexParameters indexParameters, LogbookCollections collection,
+        ReindexationResult reindexationResult) {
+        ElasticsearchIndexAliasResolver indexAliasResolver =
+            indexManager.getElasticsearchIndexAliasResolver(collection);
+
+        SetValuedMap<String, Integer> tenantGroupTenantsMap = new HashSetValuedHashMap<>();
+        indexParameters.getTenants().stream()
+            .filter(this.indexManager::isGroupedTenant)
+            .forEach(tenantId -> tenantGroupTenantsMap.put(this.indexManager.getTenantGroup(tenantId), tenantId));
+
+        for (String tenantGroupName : tenantGroupTenantsMap.keySet()) {
+            Collection<Integer> allTenantGroupTenants = this.indexManager.getTenantGroupTenants(tenantGroupName);
+            if (allTenantGroupTenants.size() != tenantGroupTenantsMap.get(tenantGroupName).size()) {
+                SetUtils.SetView<Integer> missingTenants = SetUtils.difference(
+                    new HashSet<>(allTenantGroupTenants), tenantGroupTenantsMap.get(tenantGroupName));
+                LOGGER.warn("Missing tenants " + missingTenants + " of tenant group " + tenantGroupName +
+                    " will also be reindexed for collection " + collection);
             }
         }
 
+        Collection<String> tenantGroupNamesToProcess = new TreeSet<>(tenantGroupTenantsMap.keySet());
+        for (String tenantGroupName : tenantGroupNamesToProcess) {
+            List<Integer> tenantIds = this.indexManager.getTenantGroupTenants(tenantGroupName);
+            try {
+                ReindexationOK reindexResult = this.indexationHelper.reindex(collection.getCollection(),
+                    collection.getEsClient(), indexAliasResolver.resolveIndexName(tenantIds.get(0)),
+                    this.indexManager.getElasticsearchIndexSettings(collection, tenantIds.get(0)),
+                    collection.getElasticsearchCollection(), tenantIds, tenantGroupName);
+                reindexationResult.addIndexOK(reindexResult);
+            } catch (Exception exc) {
+                String message = "Cannot reindex collection " + collection.name()
+                    + " for tenant group " + tenantGroupName + ". Unexpected error";
+                LOGGER.error(message, exc);
+                reindexationResult.addIndexKO(new ReindexationKO(tenantIds, tenantGroupName, message));
+            }
+        }
     }
 
     @Override
-    public void switchIndex(String alias, String newIndexName) throws DatabaseException {
+    public SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException {
         try {
-            indexationHelper.switchIndex(alias, newIndexName, LogbookCollections.OPERATION.getEsClient());
+            return indexationHelper.switchIndex(
+                ElasticsearchIndexAlias.ofFullIndexName(alias),
+                ElasticsearchIndexAlias.ofFullIndexName(newIndexName),
+                LogbookCollections.OPERATION.getEsClient());
         } catch (DatabaseException exc) {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName, exc);
             throw exc;
@@ -385,8 +458,10 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 objectDescription.setType(DataCategory.BACKUP_OPERATION);
                 objectDescription.setWorkspaceObjectURI(operationGuid);
 
-                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, operationGuid,
-                    objectDescription);
+                storageClient
+                    .storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION,
+                        operationGuid,
+                        objectDescription);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                 throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationGuid, e);
             }

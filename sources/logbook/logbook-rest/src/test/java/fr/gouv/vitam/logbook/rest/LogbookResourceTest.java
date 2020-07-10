@@ -640,8 +640,7 @@ public class LogbookResourceTest {
     @Test
     public void indexCollectionUnknownInternalServerError() {
         IndexParameters indexParameters = new IndexParameters();
-        List<Integer> tenants = new ArrayList<>();
-        tenants.add(0);
+        List<Integer> tenants = Collections.singletonList(0);
         indexParameters.setTenants(tenants);
         indexParameters.setCollectionName("fake");
 
@@ -649,9 +648,10 @@ public class LogbookResourceTest {
             .when().post("/reindex").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .body("collectionName", equalTo("fake"))
             .body("KO.size()", equalTo(1))
-            .body("KO.get(0).indexName", equalTo("fake_0_*"))
-            .body("KO.get(0).message", containsString("'fake'"))
-            .body("KO.get(0).tenant", equalTo(0));
+            .body("KO.get(0).tenants.size()", equalTo(1))
+            .body("KO.get(0).tenants.get(0)", equalTo(0))
+            .body("KO.get(0).tenantGroup", equalTo(null))
+            .body("KO.get(0).message", containsString("'fake'"));
     }
 
     @Test

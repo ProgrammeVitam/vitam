@@ -33,7 +33,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -190,14 +191,15 @@ public interface LogbookOperations {
      * @param indexParameters the parameters specifying what to reindex
      * @return the reindexation result as a IndexationResult Object
      */
-    IndexationResult reindex(IndexParameters indexParameters);
+    ReindexationResult reindex(IndexParameters indexParameters);
 
     /**
      * Switch indexes for one or more collections
      *
-     * @param alias the alias name 
-     * @param newIndexName the new index to be pointed on 
+     * @param alias the alias name
+     * @param newIndexName the new index to be pointed on
      * @throws DatabaseException in case error with database occurs
+     * @return
      */
-    void switchIndex(String alias, String newIndexName) throws DatabaseException;
+    SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException;
 }

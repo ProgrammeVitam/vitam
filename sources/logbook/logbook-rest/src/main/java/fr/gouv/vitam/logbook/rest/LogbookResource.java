@@ -38,7 +38,8 @@ import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
@@ -102,6 +103,7 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -166,7 +168,7 @@ public class LogbookResource extends ApplicationStatusResource {
         }
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader, indexManager);
 
-        logbookOperation = new AlertLogbookOperationsDecorator(new LogbookOperationsImpl(mongoDbAccess),
+        logbookOperation = new AlertLogbookOperationsDecorator(new LogbookOperationsImpl(mongoDbAccess, indexManager),
             configuration.getAlertEvents());
 
         TimeStampSignature timeStampSignature;
@@ -2249,23 +2251,18 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setDescription(exc.getMessage()))
                 .build();
         }
-        IndexationResult result = logbookOperation.reindex(indexParameters);
+        ReindexationResult result = logbookOperation.reindex(indexParameters);
         Response response = null;
-        if (result.getIndexKO() == null || result.getIndexKO().size() == 0) {
+        if (CollectionUtils.isEmpty(result.getIndexKO())) {
             // No KO -> 201
-            response = Response.status(Status.CREATED).entity(new RequestResponseOK()
-                .setHttpCode(Status.CREATED.getStatusCode())).entity(result).build();
+            response = Response.status(Status.CREATED).entity(result).build();
         } else {
             // OK and at least one KO -> 202
-            if (result.getIndexOK() != null && result.getIndexOK().size() > 0) {
-                Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
-                    .setHttpCode(Status.ACCEPTED.getStatusCode())).entity(result).build();
+            if (CollectionUtils.isNotEmpty(result.getIndexOK())) {
+                Response.status(Status.ACCEPTED).entity(result).build();
             } else {
                 // All KO -> 500
-                Status status = Status.INTERNAL_SERVER_ERROR;
-                VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_INDEXATION_ERROR,
-                    status.getReasonPhrase());
-                response = Response.status(status).entity(error).entity(result).build();
+                response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(result).build();
             }
         }
         return response;
@@ -2298,14 +2295,13 @@ public class LogbookResource extends ApplicationStatusResource {
                 .build();
         }
         try {
-            logbookOperation.switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
-            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
-                .build();
+            SwitchIndexResult switchIndexResult = logbookOperation
+                .switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
+            return Response.status(Status.OK).entity(switchIndexResult).build();
         } catch (DatabaseException exc) {
-            Status status = Status.INTERNAL_SERVER_ERROR;
             VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_SWITCH_INDEX_ERROR,
                 exc.getMessage());
-            return Response.status(status).entity(error).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build();
         }
     }
 

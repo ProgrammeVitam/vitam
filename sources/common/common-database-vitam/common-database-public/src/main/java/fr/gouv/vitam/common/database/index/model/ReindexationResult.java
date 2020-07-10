@@ -26,44 +26,66 @@
  */
 package fr.gouv.vitam.common.database.index.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
 /**
- * IndexOK
+ * IndexationResult pojo
  */
-public class IndexOK {
+public class ReindexationResult {
 
-    @JsonProperty("indexName")
-    private String indexName;
+    @JsonProperty("collectionName")
+    private String collectionName;
 
-    @JsonProperty("tenant")
-    private Integer tenant;
+    @JsonProperty("OK")
+    private List<ReindexationOK> OK;
 
-    public IndexOK() {}
+    @JsonProperty("KO")
+    private List<ReindexationKO> KO;
 
-    public IndexOK(String indexName, Integer tenant) {
-        this.indexName = indexName;
-        this.tenant = tenant;
+    public String getCollectionName() {
+        return collectionName;
     }
 
-    public IndexOK(String indexName) {
-        this.indexName = indexName;
+    public ReindexationResult setCollectionName(String collectionName) {
+        this.collectionName = collectionName;
+        return this;
     }
 
-    public String getIndexName() {
-        return indexName;
+    @JsonGetter("OK")
+    public List<ReindexationOK> getIndexOK() {
+        return OK;
     }
 
-    public void setIndexName(String indexName) {
-        this.indexName = indexName;
+    public void setIndexOK(List<ReindexationOK> indexesOK) {
+        this.OK = indexesOK;
     }
 
-    public Integer getTenant() {
-        return tenant;
+    @JsonGetter("KO")
+    public List<ReindexationKO> getIndexKO() {
+        return KO;
     }
 
-    public void setTenant(Integer tenant) {
-        this.tenant = tenant;
+    public void setIndexKO(List<ReindexationKO> indexesKO) {
+        this.KO = indexesKO;
+    }
+
+    public ReindexationResult addIndexOK(ReindexationOK reindexationOK) {
+        if(this.OK == null) {
+            this.OK = new ArrayList<>();
+        }
+        this.OK.add(reindexationOK);
+        return this;
+    }
+
+    public ReindexationResult addIndexKO(ReindexationKO reindexationKO) {
+        if(this.KO == null) {
+            this.KO = new ArrayList<>();
+        }
+        this.KO.add(reindexationKO);
+        return this;
     }
 }
