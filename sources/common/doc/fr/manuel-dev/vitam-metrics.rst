@@ -82,9 +82,11 @@ Prometeus
 Depuis la release R14, la solution logicielle :term:`VITAM` intègre `Prometheus`.
 A la différence des reporters ci-dessus qui diffuse par un modèle `push`, prometheus serveur a besoin d'une API pour récupérer les métriques depuis les applications.
 L'avatange du fonctionnement du `Promtheus` avec un modèle `pull` est multiple :
+
     - Faciliter de lancer la supervision sur un post de dev lors du développement de nouvelles métriques
     - L'inaccessiblé de l'API est une information important pour la supervision des composants VITAM (Composant tombé).
     - L'API peut être appelée depuis un navigateur.
+
 Prometheus fonctionne aussi en mode `push` pour les traitement de type batch (Pour plus d'information voir Pushgateway).
 
 
@@ -163,10 +165,11 @@ Dans la classe **CommonBusinessApplication**, les *VitamMetrics* sont enveloppé
     - La dépendance `simpleclient_hotspot` vient avec des métriques `jvm` prêtes à utiliser
 
 .. code-block:: java
-    // Wrap up dropwizard metrics
+
+    /* Wrap up dropwizard metrics */
     new DropwizardExports(vitamMetrics.getRegistry()).register();
 
-    // Initialize JVM prometheus metrics
+    /* Initialize JVM prometheus metrics */
     DefaultExports.initialize();
 
 
@@ -174,6 +177,7 @@ Développement de nouvelles métriques prometheus
 ________________________________________________
 Prometheus dispose d'une *CollectorRegistry* instanciée par défaut au démarrage d'une application. Il suffit par la suite de développer des métriques et de les enregistrer dans cette *CollectorRegistry.defaultRegistry*
 Quatre type de métriques sont possible:
+
     - Counter : Les métriques dont la valeur s'incrémente uniquement dans le temps (Exemple: Nombre de requêtes sur une API donnée)
     - Gauge : Les métriques dont la valeur s'incrémente ou se décrémente dans le temps (Exemple: L'utilisation de la RAM)
     - Histogram: Permet de compter le nombre d'événements et la somme de la durée d'execution de ces événements. Des fonctions sont à appliquer sur ces métriques du côté prometheus serveur pour faire des aggregations, moyenne, quantile, ...
@@ -191,6 +195,7 @@ Ce qu'il faut retenir :
 La classe liste sous forme de constantes toutes les métriques prometheus ajoutées. Voici le contenu de cette classe:
 
 .. code-block:: java
+
     public class VitamMetricsNames {
 
         private VitamMetricsNames() {
@@ -375,9 +380,12 @@ Deux façons d'implémenter les métriques prometheus:
         }
 
 
+
     - Soit en étend la classe Collector
 
+
     .. code-block:: java
+
         // Exemple d'une métrique du composant `processing` ProcessWorkflowMetricsCollector.
         public class ProcessWorkflowMetricsCollector extends Collector {
             private static final ProcessWorkflowMetricsCollector instance = new ProcessWorkflowMetricsCollector();

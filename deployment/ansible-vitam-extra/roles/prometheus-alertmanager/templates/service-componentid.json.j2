@@ -1,0 +1,16 @@
+{
+  "service": {
+    "name": "Prometheus alertmanager",
+    "port": {{ prometheus.alertmanager.api_port }},
+    "enable_tag_override": false,
+    "tags": ["alertmanager"],
+    "checks": [
+      {
+        "name": "Prometheus alertmanager : TCP check",
+        "notes": "Status prometheus alertmanager",
+        "tcp": "{{ ip_admin }}:{{ prometheus.alertmanager.api_port }}",
+        "interval": "{{ prometheus.check_consul }}s"
+      }
+    ]
+  }
+}

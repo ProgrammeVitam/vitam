@@ -1,0 +1,20 @@
+#!/bin/bash
+
+chmod 750 -R /vitam/conf/node_exporter
+chown -R vitam:vitam /vitam/conf/node_exporter
+chmod 644 /vitam/conf/node_exporter/node_exporter.yml
+chmod 640 /vitam/conf/node_exporter/sysconfig/node_exporter
+
+chmod 750 /vitam/bin/node_exporter
+chmod 755 /vitam/bin/node_exporter/node_exporter
+chmod 755 /vitam/bin/node_exporter/amtool
+
+chown -R vitam:vitam /vitam/bin/node_exporter
+
+chmod 750 /vitam/app/node_exporter
+chown -R vitam:vitam /vitam/app/node_exporter
+
+chmod 755 /vitam/data/node_exporter
+chown -R vitam:vitam /vitam/data/node_exporter
+
+systemctl daemon-reload

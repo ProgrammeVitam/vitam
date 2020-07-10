@@ -1,0 +1,87 @@
+---
+
+#### Grafana installation ####
+- name: Set command for CentOS
+  set_fact:
+    check_grafana_version: "rpm -q grafana"
+  when: ansible_os_family == "RedHat"
+
+- name: Set command for Debian
+  set_fact:
+    check_grafana_version: "dpkg-query -l  'grafana'"
+  when: ansible_os_family == "Debian"
+
+- name: checking whether grafana is already installed
+  shell : "{{ check_grafana_version }}"
+  register: is_installed
+  ignore_errors: true
+
+- name: Install vitam-grafana package
+  package:
+    name: vitam-grafana
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  notify:
+    - restart grafana
+
+- name: Add grafana autostart at boot
+  systemd:
+    name: grafana-server
+    daemon_reload: yes
+    enabled: yes
+  notify:
+    - restart grafana
+
+# When upgrade the Grafana version, get the corresponding grafana.ini file and replace grafana.conf.j2 with corresponding changes
+- name: "Grafana configuration file copy"
+  template:
+    src: "grafana.conf.j2"
+    dest: /etc/grafana/grafana.ini
+  tags:
+    - update_grafana_configuration
+  notify:
+    - restart grafana
+
+- name: Make sure grafana is started
+  systemd:
+    name: grafana-server
+    enabled: true
+    state: started
+
+
+- name: flush_handlers
+  meta: flush_handlers
+
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{ consul_folder_conf }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-componentid.json.j2"
+    dest: "{{ consul_folder_conf }}/service-grafana.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  tags:
+    - consul_conf
+    - update_grafana_configuration
+  notify:
+    - reload consul configuration
+
+
+- name: Wait for Grafana port {{ grafana.http_port}} to be open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ grafana.http_port}}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"

@@ -1,0 +1,6 @@
+PROMETHEUS_OPTS='--web.listen-address={{ ip_admin }}:{{prometheus.server.port}} --web.external-url=http://{{ ip_admin }}:{{prometheus.server.port}}/prometheus --config.file=/vitam/conf/prometheus/prometheus.yml --storage.tsdb.path=/vitam/data/prometheus'
+# Following params can be added
+# --web.enable-admin-api
+# --web.page-title
+# --web.cors.origin
+# --web.route-prefix

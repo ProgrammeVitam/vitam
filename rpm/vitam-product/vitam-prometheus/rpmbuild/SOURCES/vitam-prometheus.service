@@ -1,0 +1,21 @@
+# -*- mode: conf -*-
+
+[Unit]
+Description=The Prometheus monitoring system and time series database.
+Documentation=https://prometheus.io
+After=network.target
+
+[Service]
+EnvironmentFile=-/vitam/conf/prometheus/sysconfig/prometheus
+User=vitam
+Group=vitam
+ExecStart=/vitam/bin/prometheus/prometheus \
+          --web.console.libraries=/vitam/app/prometheus/console_libraries \
+          --web.console.templates=/vitam/app/prometheus/consoles \
+          $PROMETHEUS_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

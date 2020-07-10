@@ -113,7 +113,6 @@ vitam_timers:
         frequency: "*-*-* *:00:00" # every hour
 
 ### consul ###
-# FIXME: Consul à la racine pour le moment à cause de problèmes de récursivité dans le parsing yaml
 # WARNING: consul_domain should be a supported domain name for your organization
 #          You will have to generate server certificates with the same domain name and the service subdomain name
 #          Example: consul_domain=vitam means you will have to generate some certificates with .service.vitam domain

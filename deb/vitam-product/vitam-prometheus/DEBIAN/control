@@ -1,0 +1,10 @@
+Package: vitam-prometheus
+Source: prometheus
+Section: monitor
+Priority: optional
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Homepage: https://github.com/prometheus/prometheus
+Architecture: amd64
+Depends: vitam-user-vitam
+Description: Monitoring system and time series database
+Version: 2.19.0

@@ -1,0 +1,9 @@
+---
+
+prometheus_server_tmp_path:  '{{ vitam_defaults.folder.root_path }}/tmp/prometheus'
+prometheus_server_config_path:  '{{ vitam_defaults.folder.root_path }}/conf/prometheus'
+prometheus_server_db_path:      '{{ vitam_defaults.folder.root_path }}/data/prometheus'
+prometheus_server_app_path:      '{{ vitam_defaults.folder.root_path }}/app/prometheus'
+prometheus_server_bin_path:      '{{ vitam_defaults.folder.root_path }}/bin/prometheus'
+prometheus_server_log_path:      '{{ vitam_defaults.folder.root_path }}/log/prometheus'
+

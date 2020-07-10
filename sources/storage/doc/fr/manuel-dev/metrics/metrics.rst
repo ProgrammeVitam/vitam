@@ -13,9 +13,10 @@ Dans ce qui suit la liste de métriques développées pour ce composant.
 
 Liste des métriques
 *******************
-* vitam_storage_download_size_bytes : Données en octets téléchargées par le composant `vitam-storage-engine` depuis les offres de stockages.
+* ``vitam_storage_download_size_bytes`` : Données en octets téléchargées par le composant `vitam-storage-engine` depuis les offres de stockages.
     > Cette métrique est de type `Summary`
     > Cette métrique dispose des labels (tenant, strategy, offer_id, data_category, origin)
+
         - "tenant": Le tenant depuis lequel la demande de télécharegement a était faite
         - "strategy" : La stratégie de stockage utilisée lors de ce téléchargement/lecture
         - "offer_id": L'identifiant de l'offre depuis laquelle les données sont téléchargées
@@ -24,14 +25,14 @@ Liste des métriques
 
     > Total des opérations de téléchargement tout type confondu:
         TODO
-
     > Total des opérations de téléchargement par tenant et par stratégie. Cette requête peut être utilisée pour determiner la moyenne des téléchargemets par tenant et par stratégie:
         TODO
 
 
-* vitam_storage_upload_size_bytes : Données en octets téléversées par le composant `vitam-storage-engine` vers les offres de stockages.
+* ``vitam_storage_upload_size_bytes`` : Données en octets téléversées par le composant `vitam-storage-engine` vers les offres de stockages.
     > Cette métrique est de type `Summary`
     > Cette métrique dispose des labels (tenant, strategy, offer_id, data_category, origin, attempt)
+
         - "tenant": Le tenant depuis lequel la demande a était faite
         - "strategy" : La stratégie de stockage utilisée lors de ce téléversement
         - "offer_id": L'identifiant de l'offre vers laquelle les données sont téléversées
@@ -41,9 +42,7 @@ Liste des métriques
 
     > Total des opérations de téléversement tout type confondu:
         TODO
-
     > Total des opérations de téléversement par tenant et par stratégie. Cette requête peut être utilisée pour determiner la moyenne des téléversements par tenant et par stratégie:
         TODO
-
     > Total des opérations de téléversement par tenant et par stratégie et par data_category = OBJECT. Cette requête peut être utilisée pour determiner la moyenne des téléversements des binaires uniquement:
         TODO

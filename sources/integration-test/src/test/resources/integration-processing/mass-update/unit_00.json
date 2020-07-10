@@ -19,7 +19,7 @@
       "offer1",
       "offer2"
     ],
-    "strategyId": "offerId"
+    "strategyId": "default"
   },
   "_unitType" : "INGEST",
   "_tenant" : 0,

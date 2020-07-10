@@ -1,0 +1,16 @@
+{
+  "service": {
+    "name": "Grafana server",
+    "port": {{ grafana.http_port }},
+    "enable_tag_override": false,
+    "tags": ["grafana"],
+    "checks": [
+      {
+        "name": "Grafana server : TCP check",
+        "notes": "Status grafana server",
+        "tcp": "{{ ip_admin }}:{{ grafana.http_port }}",
+        "interval": "{{ grafana.check_consul }}s"
+      }
+    ]
+  }
+}

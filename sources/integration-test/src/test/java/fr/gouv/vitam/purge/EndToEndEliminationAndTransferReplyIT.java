@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamHelper;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -66,6 +67,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -118,6 +120,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -1550,47 +1553,14 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
     private void runStepByStepUntilStepReached(String operationGuid, String targetStepName)
-        throws VitamClientException, InternalServerException, InterruptedException {
-
-        try (ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient()) {
-
-            while (true) {
-
-                ProcessQuery processQuery = new ProcessQuery();
-                processQuery.setId(operationGuid);
-                RequestResponse<ProcessDetail> response = processingClient.listOperationsDetails(processQuery);
-
-                assertThat(response.isOk()).isTrue();
-                ProcessDetail processDetail = ((RequestResponseOK<ProcessDetail>) response).getResults().get(0);
-
-                switch (ProcessState.valueOf(processDetail.getGlobalState())) {
-
-                    case PAUSE:
-
-                        if (processDetail.getPreviousStep().equals(targetStepName)) {
-                            LOGGER.info(operationGuid + " finished step " + targetStepName);
-                            return;
-                        }
-
-                        processingClient
-                            .executeOperationProcess(operationGuid, Contexts.DEFAULT_WORKFLOW.name(),
-                                ProcessAction.NEXT.getValue());
-
-                        break;
-                    case RUNNING:
-
-                        // Sleep and retry
-                        TimeUnit.MILLISECONDS.sleep(SLEEP_TIME);
-
-                        break;
-                    case COMPLETED:
-                        tryLogLogbookOperation(operationGuid);
-                        tryLogATR(operationGuid);
-                        fail("Process completion unexpected " + JsonHandler.unprettyPrint(processDetail));
-                        break;
-                }
-            }
+        throws VitamClientException, InternalServerException, InterruptedException, ProcessingException {
+        try {
+            VitamHelper.runStepByStepUntilStepReached(operationGuid, targetStepName);
+        } catch( VitamRuntimeException e){
+            LOGGER.error(e.getMessage());
+            tryLogLogbookOperation(operationGuid);
+            tryLogATR(operationGuid);
+            fail(e.getMessage());
         }
     }
 

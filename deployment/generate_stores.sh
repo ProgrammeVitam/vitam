@@ -260,7 +260,6 @@ for USAGE in $( ls ${REPERTOIRE_CERTIFICAT}/timestamping/vitam/ 2>/dev/null | aw
     CRT_KEY_PASSWORD=$(getComponentPassphrase certs "timestamping_${USAGE}_key")
     P12_PASSWORD=$(getKeystorePassphrase "keystores_timestamping_${USAGE}")
 
-    # KWA FIXME : simplify (we only use TMP_P12_KEYSTORE to do this dirname...)
     crtKeyToP12 $(dirname ${TMP_P12_KEYSTORE}) \
                 ${CRT_KEY_PASSWORD} \
                 ${USAGE} \

@@ -1,0 +1,10 @@
+---
+
+- name: Remove Prometheus server package
+  package:
+    name: vitam-prometheus
+    state: absent
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"

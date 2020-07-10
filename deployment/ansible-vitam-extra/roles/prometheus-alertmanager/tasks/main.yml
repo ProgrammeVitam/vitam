@@ -1,0 +1,7 @@
+---
+
+- include_tasks: prometheus_alertmanager_enabled.yml
+  when: prometheus.alertmanager.enabled == true
+
+- include_tasks: prometheus_alertmanager_disabled.yml
+  when: prometheus.alertmanager.enabled  != true

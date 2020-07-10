@@ -1,0 +1,16 @@
+{
+  "service": {
+    "name": "Prometheus server",
+    "port": {{ prometheus.server.port }},
+    "enable_tag_override": false,
+    "tags": ["prometheus"],
+    "checks": [
+      {
+        "name": "Prometheus server : TCP check",
+        "notes": "Status prometheus server",
+        "tcp": "{{ ip_admin }}:{{ prometheus.server.port }}",
+        "interval": "{{ prometheus.check_consul }}s"
+      }
+    ]
+  }
+}

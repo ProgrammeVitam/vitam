@@ -45,6 +45,9 @@ public class ActionDefinition {
     @JsonProperty("behavior")
     private ProcessBehavior behavior;
 
+    @JsonProperty("statusAggregationBehavior")
+    private StatusAggregationBehavior statusAggregationBehavior;
+
     @JsonProperty("lifecycleLog")
     private LifecycleState lifecycleState;
 
@@ -143,6 +146,14 @@ public class ActionDefinition {
     public ActionDefinition setOut(List<IOParameter> out) {
         this.out = out;
         return this;
+    }
+
+    public StatusAggregationBehavior getStatusAggregationBehavior() {
+        return statusAggregationBehavior;
+    }
+
+    public void setStatusAggregationBehavior(StatusAggregationBehavior statusAggregationBehavior) {
+        this.statusAggregationBehavior = statusAggregationBehavior;
     }
 
     public LifecycleState getLifecycleState() {

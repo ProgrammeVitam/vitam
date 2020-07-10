@@ -1,0 +1,29 @@
+---
+
+- include_tasks: prometheus_server_enabled.yml
+  when: prometheus.server.enabled == true
+
+- include_tasks: prometheus_server_disabled.yml
+  when: prometheus.server.enabled != true
+
+
+- name: list prometheus rules files
+  find:
+    paths: "{{ prometheus_server_config_path }}/rules"
+    patterns: '*.yml'
+    recurse: no # no subdir
+    file_type: file
+  delegate_to: localhost
+  register: rules_files
+  tags:
+    - gen_prometheus_config
+  when: prometheus.prometheus_config_file_target_directory is  search("/")
+
+- name: Generate local prometheus config file from inventory
+  template:
+    src: "prometheus.yml.j2"
+    dest: "{{ prometheus.prometheus_config_file_target_directory }}/prometheus.yml"
+  delegate_to: localhost
+  tags:
+    - gen_prometheus_config
+  when: prometheus.prometheus_config_file_target_directory is  search("/")

@@ -12,3 +12,4 @@ Architecture Technique
    storage-engine-client.rst
    storage-offers.rst
    default-offer.rst
+   metrics.rst
