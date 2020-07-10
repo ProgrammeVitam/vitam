@@ -45,7 +45,7 @@ public final class DataObjectInfo {
     private String physicalId;
     private String type;
     private Boolean isSizeIncorrect = Boolean.FALSE;
-    private ObjectNode diffSizeJson = JsonHandler.createObjectNode();
+    private ObjectNode diffSizeJson;
 
     /**
      * @return id of the data object
