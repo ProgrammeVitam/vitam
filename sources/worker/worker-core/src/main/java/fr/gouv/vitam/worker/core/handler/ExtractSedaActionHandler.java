@@ -2135,6 +2135,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         jsonWriter.add(eventFactory.createEndDocument());
                         if(BINARY_DATA_OBJECT.equals(end.getName().getLocalPart()) && bo.getSize() == null){
                             bo.setSize(fileWithParmsFromFolder.get(bo.getUri()));
+                            ObjectNode diffJsonNodeToPopulate = JsonHandler.createObjectNode();
+                            diffJsonNodeToPopulate.put("- " + SedaConstants.TAG_SIZE, "");
+                            diffJsonNodeToPopulate.put("+ " + SedaConstants.TAG_SIZE, bo.getSize());
+                            bo.setDiffSizeJson(diffJsonNodeToPopulate);
+                            bo.setSizeIncorrect(Boolean.FALSE);
                         }
                         objectGuidToDataObject.put(elementGuid, bo);
                         if (PHYSICAL_DATA_OBJECT.equals(end.getName().getLocalPart())) {
@@ -2230,13 +2235,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             break;
                         }
                         case SedaConstants.TAG_SIZE: {
-                            long size = Long.parseLong(reader.getElementText());
+                            long gotSize = Long.parseLong(reader.getElementText());
                             Long binaryFileSize = fileWithParmsFromFolder.get(bo.getUri());
-                            if( binaryFileSize!= null && binaryFileSize != size) {
-                                size = binaryFileSize;
+                            if( binaryFileSize!= null && binaryFileSize != gotSize) {
+                                ObjectNode diffJsonNodeToPopulate = JsonHandler.createObjectNode();
+                                diffJsonNodeToPopulate.put("- " + SedaConstants.TAG_SIZE, gotSize);
+                                diffJsonNodeToPopulate.put("+ " + SedaConstants.TAG_SIZE, binaryFileSize);
+                                bo.setDiffSizeJson(diffJsonNodeToPopulate);
+                                gotSize = binaryFileSize;
                                 bo.setSizeIncorrect(Boolean.TRUE);
                             }
-                            bo.setSize(size);
+                            bo.setSize(gotSize);
                             break;
                         }
                         case SedaConstants.TAG_DIGEST: {
@@ -3087,11 +3096,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (!isPhysical) {
             if (objectGuidToDataObject.get(guid).getSize() != null) {
                 objectNode.put(SedaConstants.TAG_SIZE, objectGuidToDataObject.get(guid).getSize());
-                Boolean isSizeChanged = objectGuidToDataObject.get(guid).getSizeIncorrect();
-                if (isSizeChanged) {
+                ObjectNode diffSizeJson = objectGuidToDataObject.get(guid).getDiffSizeJson();
+                if (!JsonHandler.isNullOrEmpty(diffSizeJson)) {
                     ObjectNode work = JsonHandler.createObjectNode();
-                    work.put(IngestWorkflowConstants.IS_SIZE_INCORRECT, isSizeChanged);
-                    objectNode.set(SedaConstants.PREFIX_WORK, work);
+                    work.put(IngestWorkflowConstants.IS_SIZE_INCORRECT, objectGuidToDataObject.get(guid).getSizeIncorrect());
+                    work.put(IngestWorkflowConstants.DIFF_SIZE_JSON, diffSizeJson);
+                    objectNode.put(SedaConstants.PREFIX_WORK, work);
                 }
             }
             if (objectGuidToDataObject.get(guid).getUri() != null) {

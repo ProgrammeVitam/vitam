@@ -51,7 +51,8 @@
         "MessageDigest" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
         "Algorithm" : "SHA-512",
         "_work": {
-          "_isSizeIncorrect": true
+          "_isSizeIncorrect": true,
+          "_diffSizeJson": {"- Size":"10000","+ Size":"38628"}
         }
       } ]
     }

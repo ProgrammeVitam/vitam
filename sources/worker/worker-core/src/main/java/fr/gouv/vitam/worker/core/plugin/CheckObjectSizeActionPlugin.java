@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,9 +84,12 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                                Pair<Boolean, String> checkSizeDetailsPair = checkIsSizeIncorrect(binaryObjects.get(objectId), version, itemStatus);
+                                if(checkSizeDetailsPair.getRight() != null){
+                                    itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(checkSizeDetailsPair.getRight());
+                                }
                                 // The operator OR is useful for multibinary objects in GOT
-                                isFileSizeChanged = isFileSizeChanged ||
-                                    checkIsSizeIncorrect(binaryObjects.get(objectId), version, itemStatus);
+                                isFileSizeChanged = isFileSizeChanged || checkSizeDetailsPair.getLeft();
                             }
                         }
                     }
@@ -109,24 +114,33 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         return new ItemStatus(CHECK_OBJECT_SIZE).setItemsStatus(CHECK_OBJECT_SIZE, itemStatus);
     }
 
-    private boolean checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version,
-        ItemStatus itemStatus) {
+    private Pair<Boolean, String> checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version, ItemStatus itemStatus) {
         final ItemStatus subTaskItemStatus = new ItemStatus(CHECK_OBJECT_SIZE);
         Boolean isSizeChanged = Boolean.FALSE;
+        String eventDetailData = null;
         if (version.get(SedaConstants.PREFIX_WORK) != null &&
-            version.get(SedaConstants.PREFIX_WORK)
-                .get(IngestWorkflowConstants.IS_SIZE_INCORRECT) != null &&
-            version.get(SedaConstants.PREFIX_WORK)
-                .get(IngestWorkflowConstants.IS_SIZE_INCORRECT).asBoolean() == Boolean.TRUE) {
+            !JsonHandler.isNullOrEmpty(version.get(SedaConstants.PREFIX_WORK)
+                .get(IngestWorkflowConstants.DIFF_SIZE_JSON))) {
+            ObjectNode workNode = (ObjectNode) version.get(SedaConstants.PREFIX_WORK);
+            // Check diffSizeJson
+            if (workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON).size() > 0) {
+                JsonNode wrappingDiffJsonObject = JsonHandler.createObjectNode().set("diff", workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON));
+                eventDetailData = JsonHandler.unprettyPrint(wrappingDiffJsonObject);
+            }
+            // Check if Size is incorrect
+            if(workNode.get(IngestWorkflowConstants.IS_SIZE_INCORRECT).asBoolean()){
+                subTaskItemStatus.increment(StatusCode.WARNING);
+                itemStatus.increment(StatusCode.WARNING);
+                isSizeChanged = Boolean.TRUE;
+            } else {
+                subTaskItemStatus.increment(StatusCode.OK);
+            }
             ((ObjectNode) version).remove(SedaConstants.PREFIX_WORK);
-            subTaskItemStatus.increment(StatusCode.WARNING);
-            itemStatus.increment(StatusCode.WARNING);
-            isSizeChanged = Boolean.TRUE;
         } else {
             subTaskItemStatus.increment(StatusCode.OK);
         }
         itemStatus.setSubTaskStatus(dataObjectInfo.getId(), subTaskItemStatus);
-        return isSizeChanged;
+        return Pair.of(isSizeChanged, eventDetailData);
     }
 
     @Override
