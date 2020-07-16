@@ -104,7 +104,7 @@ public class IndexationHelperTest {
     @AfterClass
     public static void afterClass() {
         mongoRule.handleAfterClass();
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.purgeIndices();
         elasticsearchAccess.close();
     }
 
@@ -191,9 +191,9 @@ public class IndexationHelperTest {
         GetAliasesResponse aliasGrpAfterSwitch = elasticsearchAccess.getAlias(indexAliasGrp);
         assertThat(aliasGrpAfterSwitch.getAliases()).containsOnlyKeys(newIndexGrp.getName());
 
-        // Delete old indices
-        elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), INDEX);
-        elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), INDEX + "_mygrp_initialindex");
+        // Purge old indices
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX);
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX + "_mygrp_initialindex");
 
         // Check documents
         elasticsearchAccess.refreshIndex(indexAlias0);
@@ -221,8 +221,8 @@ public class IndexationHelperTest {
         assertThat(countDocumentsByQuery(indexAliasGrp, vitamElasticsearchRepository,
             QueryBuilders.termQuery("Identifier", "Identifier_2"))).isEqualTo(10);
 
-        elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), newIndex0.getName());
-        elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), newIndexGrp.getName());
+        elasticsearchAccess.deleteIndexForTesting(newIndex0);
+        elasticsearchAccess.deleteIndexForTesting(newIndexGrp);
     }
 
     private long countDocumentsByQuery(ElasticsearchIndexAlias indexAlias0,
@@ -279,8 +279,8 @@ public class IndexationHelperTest {
         GetAliasesResponse aliasAfterSwitch = elasticsearchAccess.getAlias(indexAlias);
         assertThat(aliasAfterSwitch.getAliases()).containsOnlyKeys(newIndex.getName());
 
-        // Delete old indices
-        elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), INDEX);
+        // Purge old indices
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX);
 
         // Check documents
         elasticsearchAccess.refreshIndex(indexAlias);
@@ -301,7 +301,7 @@ public class IndexationHelperTest {
         assertThat(countDocumentsByQuery(indexAlias, vitamElasticsearchRepository,
             QueryBuilders.termQuery("Identifier", "Identifier_No_Tenant"))).isEqualTo(10);
 
-        elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), newIndex.getName());
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), newIndex.getName());
     }
 
     private Map<String, Integer> populating(MongoCollection<Document> collection,

@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -63,8 +64,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -495,8 +498,10 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
             MetadataCollections.UNIT.getName(), MetadataCollections.OBJECTGROUP.getName()));
 
-        runAfterEs(Sets.newHashSet(MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0"));
+        runAfterEs(
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0)
+        );
     }
 
 }

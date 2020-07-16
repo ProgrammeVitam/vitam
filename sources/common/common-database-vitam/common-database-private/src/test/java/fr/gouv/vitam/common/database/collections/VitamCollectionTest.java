@@ -94,7 +94,7 @@ public class VitamCollectionTest {
     @AfterClass
     public static void tearDownAfterClass() throws DatabaseException {
         mongoRule.handleAfterClass();
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.purgeIndices();
         esClient.close();
     }
 

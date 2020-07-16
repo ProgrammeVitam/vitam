@@ -26,15 +26,18 @@
  */
 package fr.gouv.vitam.metadata.core.config;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.junit.Test;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class MetaDataConfigurationTest {
@@ -73,5 +76,54 @@ public class MetaDataConfigurationTest {
         assertEquals(config2.getClusterName(), CLUSTER_NAME);
         assertEquals(config2.getElasticsearchNodes().size(), 1);
         assertEquals(config2.getElasticsearchExternalMetadataMappings().size(),2);
+    }
+
+    @Test
+    public void testElasticsearchIndexationConfigurationLoading() throws Exception {
+
+        MetaDataConfiguration config;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
+
+        assertThat(config.getIndexationConfiguration()).isNotNull();
+
+        DefaultCollectionConfiguration defaultCollectionConfiguration =
+            config.getIndexationConfiguration().getDefaultCollectionConfiguration();
+        assertThat(defaultCollectionConfiguration).isNotNull();
+        assertThat(defaultCollectionConfiguration.getUnit()).isNotNull();
+        assertThat(defaultCollectionConfiguration.getUnit().getNumberOfShards()).isEqualTo(3);
+        assertThat(defaultCollectionConfiguration.getUnit().getNumberOfReplicas()).isEqualTo(10);
+        assertThat(defaultCollectionConfiguration.getObjectgroup().getNumberOfShards()).isEqualTo(3);
+        assertThat(defaultCollectionConfiguration.getObjectgroup().getNumberOfReplicas()).isEqualTo(11);
+
+
+        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration =
+            config.getIndexationConfiguration().getDedicatedTenantConfiguration();
+        assertThat(dedicatedTenantConfiguration).isNotNull();
+        assertThat(dedicatedTenantConfiguration).hasSize(1);
+        assertThat(dedicatedTenantConfiguration.get(0)).isNotNull();
+        assertThat(dedicatedTenantConfiguration.get(0).getTenants()).isEqualTo("10-20");
+        assertThat(dedicatedTenantConfiguration.get(0).getUnit()).isNotNull();
+        assertThat(dedicatedTenantConfiguration.get(0).getUnit().getNumberOfShards()).isEqualTo(4);
+        assertThat(dedicatedTenantConfiguration.get(0).getUnit().getNumberOfReplicas()).isEqualTo(12);
+        assertThat(dedicatedTenantConfiguration.get(0).getObjectgroup()).isNotNull();
+        assertThat(dedicatedTenantConfiguration.get(0).getObjectgroup().getNumberOfShards()).isEqualTo(5);
+        assertThat(dedicatedTenantConfiguration.get(0).getObjectgroup().getNumberOfReplicas()).isEqualTo(13);
+
+
+        List<GroupedTenantConfiguration> groupedTenantConfiguration =
+            config.getIndexationConfiguration().getGroupedTenantConfiguration();
+        assertThat(groupedTenantConfiguration).isNotNull();
+        assertThat(groupedTenantConfiguration).hasSize(1);
+        assertThat(groupedTenantConfiguration.get(0)).isNotNull();
+        assertThat(groupedTenantConfiguration.get(0).getName()).isEqualTo("grp1");
+        assertThat(groupedTenantConfiguration.get(0).getTenants()).isEqualTo("21-22");
+        assertThat(groupedTenantConfiguration.get(0).getUnit()).isNotNull();
+        assertThat(groupedTenantConfiguration.get(0).getUnit().getNumberOfShards()).isEqualTo(5);
+        assertThat(groupedTenantConfiguration.get(0).getUnit().getNumberOfReplicas()).isEqualTo(14);
+        assertThat(groupedTenantConfiguration.get(0).getObjectgroup()).isNotNull();
+        assertThat(groupedTenantConfiguration.get(0).getObjectgroup().getNumberOfShards()).isEqualTo(6);
+        assertThat(groupedTenantConfiguration.get(0).getObjectgroup().getNumberOfReplicas()).isEqualTo(15);
     }
 }

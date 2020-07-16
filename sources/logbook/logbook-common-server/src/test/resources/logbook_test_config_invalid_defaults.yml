@@ -1,0 +1,5 @@
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    logbookoperation:
+      number_of_shards: 2
