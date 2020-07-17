@@ -4,7 +4,7 @@
     "Identifier":"newContract",
     "Description":"aDescription of the contract",
     "Status":"ACTIVE",
-    "OriginatingAgencies":[],
+    "OriginatingAgencies":["FRAN_NP_009913"],
     "DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
     "LastUpdate":"10/12/2016",
     "CreationDate":"10/12/2016",

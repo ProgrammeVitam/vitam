@@ -34,6 +34,8 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -100,6 +102,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 
 @Path("/access-external/v1")
@@ -497,17 +500,17 @@ public class AccessExternalResource extends ApplicationStatusResource {
             SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
             selectParserMultiple.parse(queryJson);
             SelectMultiQuery selectMultiQuery = selectParserMultiple.getRequest();
-            selectMultiQuery.addRoots(idUnit);
-            RequestResponse<JsonNode> result = client.selectUnitbyId(selectMultiQuery.getFinalSelect(), idUnit);
+            selectMultiQuery.addQueries(eq(VitamFieldsHelper.id(), idUnit));
+            RequestResponse<JsonNode> result = client.selectUnits(selectMultiQuery.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
             if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
+                    ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
             return Response.status(st).entity(result).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException | BadRequestException e) {
             LOGGER.debug(PREDICATES_FAILED_EXCEPTION, e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
                 e.getLocalizedMessage()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
