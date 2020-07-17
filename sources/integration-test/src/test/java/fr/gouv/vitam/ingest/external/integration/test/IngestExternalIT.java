@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.external.integration.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -46,6 +47,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -64,6 +66,8 @@ import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -80,6 +84,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
@@ -87,6 +92,7 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -413,17 +419,71 @@ public class IngestExternalIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void test_logbook_tenant_filtering() throws Exception {
-        // make sure we are on this specific tenant at ingest
-        String operationId = ingestResource(INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP, 0);
+    public void test_tenant_filtering() throws Exception {
+        final int ingestTenant = 0;
+        final int accessTenant = 1;
+        final String tenant1Contract = "newContract";
 
-        // initializing vitam context with another tenant than ingest
-        assertThatCode(() -> getLogbookOperation(operationId, 1, "newContract"))
+        String operationId = ingestResource(INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP, ingestTenant);
+
+        // requesting with another tenant than ingest
+        assertThatCode(() -> getLogbookOperation(operationId, accessTenant, tenant1Contract))
                 .isInstanceOf(VitamClientException.class)
                 .hasMessageContaining("Not Found");
 
-        RequestResponse<LogbookOperation> logbookOperationRequestResponse = getLogbookOperation(operationId, 0, ACCESS_CONTRACT);
+        // verifying that in the correct tenant we have the logbook (to prevent false-ok test)
+        RequestResponse<LogbookOperation> logbookOperationRequestResponse = getLogbookOperation(operationId, ingestTenant, ACCESS_CONTRACT);
         assertThat(((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getResults().size()).isEqualTo(1);
+
+        // retrieve one unit we ingest
+        RequestResponse<JsonNode> units = getUnitsFromTitle("UnitA", ingestTenant, ACCESS_CONTRACT);
+        List results = ((RequestResponseOK) units).getResults();
+        assertNotNull(results);
+        assertThat(results.size()).isGreaterThan(0);
+
+        String unitId = ((ObjectNode) results.get(0)).get("#id").asText();
+        VitamContext vitamContextIngestTenant = new VitamContext(ingestTenant)
+                .setApplicationSessionId(APPLICATION_SESSION_ID)
+                .setAccessContract(ACCESS_CONTRACT);
+
+        final String queryDsql =
+                "{\n" +
+                        "  \"$projection\": {\n" +
+                        "    \"$fields\": {\n" +
+                        "      \"#id\": 1\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}";
+
+        // in the correct tenant we should find the unit
+        RequestResponse<JsonNode> result = accessExternalClient.selectUnitbyId(vitamContextIngestTenant,
+                JsonHandler.getFromString(queryDsql), unitId);
+        assertTrue(result.isOk());
+        List<JsonNode> resultUnit = ((RequestResponseOK<JsonNode>) result).getResults();
+        assertNotNull(resultUnit);
+        assertThat(resultUnit.size()).isGreaterThan(0);
+
+        // in the wrong tenant, we should not find the unit
+        VitamContext vitamContextAccessTenant = new VitamContext(accessTenant)
+                .setApplicationSessionId(APPLICATION_SESSION_ID)
+                .setAccessContract("newContract");
+
+        assertThatCode(() -> accessExternalClient.selectUnitbyId(vitamContextAccessTenant,
+                JsonHandler.getFromString(queryDsql), unitId))
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Not Found");
+    }
+
+    private RequestResponse<JsonNode> getUnitsFromTitle(String title, int tenant, String accessContract)
+            throws VitamClientException, InvalidParseOperationException {
+        VitamContext vitamContext = new VitamContext(tenant)
+                .setApplicationSessionId(APPLICATION_SESSION_ID)
+                .setAccessContract(accessContract);
+        final String queryDsql =
+                "{ \"$query\" : [ { \"$eq\": { \"Title\" : \"" + title + "\" } } ], " +
+                        " \"$projection\" : { \"$fields\" : { \"#id\": 1} } " +
+                        " }";
+        return accessExternalClient.selectUnits(vitamContext, JsonHandler.getFromString(queryDsql));
     }
 
     private RequestResponse<LogbookOperation> getLogbookOperation(String operationId, int tenantId, String accessContract)
