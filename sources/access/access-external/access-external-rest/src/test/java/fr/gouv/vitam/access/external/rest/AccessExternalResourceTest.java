@@ -33,7 +33,9 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -424,18 +426,18 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void given_pathWithId_when_get_SelectByID()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException {
+            throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+            InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, InvalidCreateOperationException {
 
 
         SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
         selectParserMultiple.parse(JsonHandler.getFromString(QUERY_TEST_BY_ID));
 
         SelectMultiQuery selectMultiQuery = selectParserMultiple.getRequest();
-        selectMultiQuery.addRoots(ID_UNIT);
+        selectMultiQuery.addQueries(eq(VitamFieldsHelper.id(), ID_UNIT));
 
 
-        when(accessInternalClient.selectUnitbyId(selectMultiQuery.getFinalSelect(), ID_UNIT))
+        when(accessInternalClient.selectUnits(selectMultiQuery.getFinalSelect()))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(SELECT_RETURN)));
 
         given()
