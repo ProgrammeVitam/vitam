@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -157,7 +158,7 @@ public class DataLoader {
             client.importRulesFile(
                 PropertiesUtils.getResourceAsStream(dataFodler + "/jeu_donnees_OK_regles_CSV_regles.csv"),
                 "jeu_donnees_OK_regles_CSV_regles.csv");
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+            importAgenciesTenant1(client);
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
             // lets check evdetdata for rules import
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
@@ -231,19 +232,35 @@ public class DataLoader {
         }
     }
 
+    private void importAgenciesTenant1(AdminManagementClient client) throws ReferentialException, FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant1));
+        VitamThreadUtils.getVitamSession().setTenantId(tenant1);
+        client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+    }
+
     private void importOptionnalContractTenant1(AdminManagementClient client) throws fr.gouv.vitam.common.exception.InvalidParseOperationException, AdminManagementClientServerException {
         File fileAccessContracts;
         List<AccessContractModel> accessContractModelList;
         try {
-            fileAccessContracts = PropertiesUtils.getResourceFile(dataFodler + "/access_contract_tenant_1.json");
-            accessContractModelList = JsonHandler.getFromFileAsTypeRefence(fileAccessContracts, valueTypeRef);
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant1));
-            VitamThreadUtils.getVitamSession().setTenantId(1);
-            client.importAccessContracts(accessContractModelList);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            importContract(client, "access_contract_tenant_1.json");
+            importContract(client, "referential_contracts_ok.json");
         } catch (FileNotFoundException e) {
             LOGGER.info("no need to load tenant 1 contracts");
         }
+    }
+
+    private void importContract(AdminManagementClient client, String filename)
+            throws FileNotFoundException, fr.gouv.vitam.common.exception.InvalidParseOperationException, AdminManagementClientServerException {
+        File fileAccessContracts;
+        List<AccessContractModel> accessContractModelList;
+        fileAccessContracts = PropertiesUtils.getResourceFile(dataFodler + "/" + filename);
+        accessContractModelList = JsonHandler.getFromFileAsTypeRefence(fileAccessContracts, valueTypeRef);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant1));
+        VitamThreadUtils.getVitamSession().setTenantId(tenant1);
+        client.importAccessContracts(accessContractModelList);
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
     }
 
     public String doIngest(String zip) throws FileNotFoundException, VitamException {
@@ -251,7 +268,7 @@ public class DataLoader {
         String CONTEXT_ID = "DEFAULT_WORKFLOW";
         String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
         WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
-
+        
         final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
 
