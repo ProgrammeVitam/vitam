@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,6 +34,8 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -89,39 +91,39 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Access External Resource
- */
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
 @Path("/access-external/v1")
 public class AccessExternalResource extends ApplicationStatusResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
 
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
     private static final String CONTRACT_ACCESS_NOT_ALLOW = "Contract access does not allow ";
     private static final String UNIT_NOT_FOUND = "Unit not found";
     private static final String REQ_RES_DOES_NOT_EXIST = "Request resource does not exist";
     private static final String OBJECT_TAG = "#object";
+    private static final String REQUEST_UNAUTHORIZED = "Request unauthorized ";
+    private static final String NO_SEARCH_QUERY = "No search query specified, this is mandatory";
+    private static final String TECHNICAL_EXCEPTION = "Technical Exception ";
+    private static final String COULD_NOT_VALIDATE_REQUEST = "Could not validate request";
+    private static final String REQUEST_RESOURCES_DOES_NOT_EXISTS = "Request resources does not exits";
+    private static final String WRITING_PERMISSIONS_INVALID = "Writing permission invalid";
+    private static final String ERROR_ON_PRESERVATION = "Error on preservation request";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final AccessInternalClientFactory accessInternalClientFactory;
 
-    /**
-     * Constructor
-     *
-     * @param secureEndpointRegistry endpoint list registry
-     */
-    public AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
+    AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
         this(secureEndpointRegistry, AccessInternalClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry,
+    AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry,
         AccessInternalClientFactory accessInternalClientFactory) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.accessInternalClientFactory = accessInternalClientFactory;
-        LOGGER.debug("AccessExternalResourceV2 initialized");
     }
 
     /**
@@ -169,7 +171,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Request unauthorized ", e);
+            LOGGER.error(REQUEST_UNAUTHORIZED, e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
@@ -190,7 +192,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (BadRequestException e) {
-            LOGGER.error("No search query specified, this is mandatory", e);
+            LOGGER.error(NO_SEARCH_QUERY, e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
@@ -224,7 +226,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (final Exception e) {
-            LOGGER.error("Technical Exception ", e);
+            LOGGER.error(TECHNICAL_EXCEPTION, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
@@ -253,11 +255,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 return response.toResponse();
             }
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Precondition Failed Exception ", e);
+            LOGGER.error(Status.PRECONDITION_FAILED.getReasonPhrase(), e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (final Exception e) {
-            LOGGER.error("Technical Exception ", e);
+            LOGGER.error(TECHNICAL_EXCEPTION, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
@@ -286,7 +288,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             validator.validate(eliminationRequestBody.getDslRequest());
 
         } catch (IllegalArgumentException | IOException | ValidationException e) {
-            LOGGER.warn("Could not validate request", e);
+            LOGGER.warn(COULD_NOT_VALIDATE_REQUEST, e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         }
@@ -299,11 +301,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 return response.toResponse();
             }
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Precondition Failed Exception ", e);
+            LOGGER.error(Status.PRECONDITION_FAILED.getReasonPhrase(), e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (final Exception e) {
-            LOGGER.error("Technical Exception ", e);
+            LOGGER.error(TECHNICAL_EXCEPTION, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
@@ -332,7 +334,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             validator.validate(eliminationRequestBody.getDslRequest());
 
         } catch (IllegalArgumentException | IOException | ValidationException e) {
-            LOGGER.warn("Could not validate request", e);
+            LOGGER.warn(COULD_NOT_VALIDATE_REQUEST, e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         }
@@ -345,11 +347,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 return response.toResponse();
             }
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Precondition Failed Exception ", e);
+            LOGGER.error(Status.PRECONDITION_FAILED.getReasonPhrase(), e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (final Exception e) {
-            LOGGER.error("Technical Exception ", e);
+            LOGGER.error(TECHNICAL_EXCEPTION, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
@@ -399,17 +401,17 @@ public class AccessExternalResource extends ApplicationStatusResource {
             SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
             selectParserMultiple.parse(queryJson);
             SelectMultiQuery selectMultiQuery = selectParserMultiple.getRequest();
-            selectMultiQuery.addRoots(idUnit);
-            RequestResponse<JsonNode> result = client.selectUnitbyId(selectMultiQuery.getFinalSelect(), idUnit);
+            selectMultiQuery.addQueries(eq(VitamFieldsHelper.id(), idUnit));
+            RequestResponse<JsonNode> result = client.selectUnits(selectMultiQuery.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
-            if (result.isOk() && (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty())) {
+            if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                    ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
             return Response.status(st).entity(result).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException | BadRequestException e) {
             LOGGER.debug(PREDICATES_FAILED_EXCEPTION, e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
                 e.getLocalizedMessage()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
@@ -418,7 +420,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
                 e.getLocalizedMessage()).setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.debug("Request resources does not exits", e);
+            LOGGER.debug(REQUEST_RESOURCES_DOES_NOT_EXISTS, e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
                 e.getLocalizedMessage()).setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
@@ -443,7 +445,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     public Response updateUnitById(@Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            // FIXME P1 add of idUnit as roots should be made in metadata as it is an internal concern
             UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
             updateParserMultiple.parse(queryJson);
             UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
@@ -463,21 +464,21 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.debug("Internal request error ", e);
+            LOGGER.debug(Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.debug("Request resources does not exits", e);
+            LOGGER.debug(REQUEST_RESOURCES_DOES_NOT_EXISTS, e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_NOT_FOUND,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (NoWritingPermissionException e) {
-            LOGGER.debug("Writing permission invalid", e);
+            LOGGER.debug(WRITING_PERMISSIONS_INVALID, e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
@@ -518,9 +519,13 @@ public class AccessExternalResource extends ApplicationStatusResource {
             }
             RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
-            if (result.isOk() && (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty())) {
+
+            if (!result.isOk()) {
+                VitamError error = (VitamError) result;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR, error.getMessage(),
+                    error);
+            } else if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
@@ -596,7 +601,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                         e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
                 .build();
         } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.debug("Request resources does not exits", e);
+            LOGGER.debug(REQUEST_RESOURCES_DOES_NOT_EXISTS, e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(getErrorStream(
@@ -654,7 +659,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (NoWritingPermissionException e) {
-            LOGGER.error("Writing permission invalid", e);
+            LOGGER.error(WRITING_PERMISSIONS_INVALID, e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
@@ -688,7 +693,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             DslValidator validator = new BatchProcessingQuerySchemaValidator();
             validator.validate(massUpdateUnitRuleRequest.getDslRequest());
         } catch (ValidationException e) {
-            LOGGER.warn("Could not validate request", e);
+            LOGGER.warn(COULD_NOT_VALIDATE_REQUEST, e);
             return e.getVitamError().toResponse();
         } catch (IOException e) {
             LOGGER.warn("Can not read Dsl query", e);
@@ -722,7 +727,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (NoWritingPermissionException e) {
-            LOGGER.error("Writing permission invalid", e);
+            LOGGER.error(WRITING_PERMISSIONS_INVALID, e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
@@ -763,7 +768,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Request unauthorized ", e);
+            LOGGER.error(REQUEST_UNAUTHORIZED, e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR,
@@ -784,7 +789,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (BadRequestException e) {
-            LOGGER.error("No search query specified, this is mandatory", e);
+            LOGGER.error(NO_SEARCH_QUERY, e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR,
@@ -945,7 +950,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Request unauthorized ", e);
+            LOGGER.error(REQUEST_UNAUTHORIZED, e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
@@ -966,7 +971,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (BadRequestException e) {
-            LOGGER.error("No search query specified, this is mandatory", e);
+            LOGGER.error(NO_SEARCH_QUERY, e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR,
@@ -995,7 +1000,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Request unauthorized ", e);
+            LOGGER.error(REQUEST_UNAUTHORIZED, e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESS_LOG,
@@ -1038,5 +1043,4 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .build();
         }
     }
-
 }
