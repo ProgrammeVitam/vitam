@@ -58,11 +58,11 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
@@ -110,11 +110,13 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -245,11 +247,11 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static final String ORIGINATING_AGENCY = "RATP";
     private static final String JSONL = ".jsonl";
     private static final String XML = ".xml";
-    private static String link_to_manifest_and_existing_unit =
+    private static final String link_to_manifest_and_existing_unit =
         "ingestCleanup/link_to_manifest_and_existing_unit";
-    private static String link_to_manifest_and_existing_object_group =
+    private static final String link_to_manifest_and_existing_object_group =
         "ingestCleanup/link_to_manifest_and_existing_object_group";
-    private static String add_object_to_existing_object_group =
+    private static final String add_object_to_existing_object_group =
         "ingestCleanup/add_object_to_existing_object_group";
     private static final String ADMIN_MANAGEMENT_URL =
         "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
@@ -273,11 +275,11 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 BatchReportMain.class
             ));
     private static String CONFIG_SIEGFRIED_PATH = "";
-    private static String TEST_ELIMINATION_SIP =
+    private static final String TEST_ELIMINATION_SIP =
         "elimination/TEST_ELIMINATION.zip";
-    private static String ELIMINATION_ACCESSION_REGISTER_DETAIL =
+    private static final String ELIMINATION_ACCESSION_REGISTER_DETAIL =
         "elimination/accession_regoister_detail.json";
-    private static String ELIMINATION_ACCESSION_REGISTER_SUMMARY =
+    private static final String ELIMINATION_ACCESSION_REGISTER_SUMMARY =
         "elimination/accession_regoister_summary.json";
     private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
     private TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE =
@@ -296,7 +298,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
 
@@ -333,21 +335,21 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         ));
 
-        runAfterEs(Sets.newHashSet(
-            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1",
-            LogbookCollections.OPERATION.getName().toLowerCase() + "_0",
-            LogbookCollections.OPERATION.getName().toLowerCase() + "_1",
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase()
-        ));
+        runAfterEs(
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+        );
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+    public static void tearDownAfterClass() {
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -371,6 +373,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             if (nbTry == NB_TRY)
@@ -2154,15 +2157,15 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     private void checkUnitExistence(String unitId, boolean shouldExist)
         throws Exception {
-        checkDocumentExistence(MetadataCollections.UNIT.getVitamCollection(), unitId, shouldExist);
-        checkDocumentExistence(LogbookCollections.LIFECYCLE_UNIT.getVitamCollection(), unitId, shouldExist);
+        checkDocumentExistence(MetadataCollections.UNIT, unitId, shouldExist);
+        checkDocumentExistence(LogbookCollections.LIFECYCLE_UNIT, unitId, shouldExist);
         checkFileInStorage(DataCategory.UNIT, unitId + ".json", shouldExist);
     }
 
     private void checkObjectGroupExistence(String gotId, boolean shouldExist)
         throws Exception {
-        checkDocumentExistence(MetadataCollections.OBJECTGROUP.getVitamCollection(), gotId, shouldExist);
-        checkDocumentExistence(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection(), gotId, shouldExist);
+        checkDocumentExistence(MetadataCollections.OBJECTGROUP, gotId, shouldExist);
+        checkDocumentExistence(LogbookCollections.LIFECYCLE_OBJECTGROUP, gotId, shouldExist);
         checkFileInStorage(DataCategory.OBJECTGROUP, gotId + ".json", shouldExist);
     }
 
@@ -2184,16 +2187,35 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         }
     }
 
-    private void checkDocumentExistence(VitamCollection collection, String documentId,
-        boolean shouldExist) throws DatabaseException, BadRequestException {
+    private void checkDocumentExistence(LogbookCollections collection, String documentId,
+        boolean shouldExist) throws LogbookException {
 
         int expectedHits = shouldExist ? 1 : 0;
 
         // Logbook LFCs are not persisted in ES
         if (collection.getEsClient() != null) {
             TotalHits totalHits = collection.getEsClient()
-                .search(collection.getName().toLowerCase(), VitamThreadUtils.getVitamSession().getTenantId(),
-                    QueryBuilders.termQuery(VitamDocument.ID, documentId))
+                .search(collection, VitamThreadUtils.getVitamSession().getTenantId(),
+                    QueryBuilders.termQuery(VitamDocument.ID, documentId), null, null, 0, 1000)
+                .getHits()
+                .getTotalHits();
+            assertThat(totalHits.value).isEqualTo(expectedHits);
+        }
+
+        assertThat(collection.getCollection().find(Filters.eq(VitamDocument.ID, documentId))
+            .iterator()).hasSize(expectedHits);
+    }
+
+    private void checkDocumentExistence(MetadataCollections collection, String documentId,
+        boolean shouldExist) throws MetaDataExecutionException {
+
+        int expectedHits = shouldExist ? 1 : 0;
+
+        // Logbook LFCs are not persisted in ES
+        if (collection.getEsClient() != null) {
+            TotalHits totalHits = collection.getEsClient()
+                .basicSearch(collection, VitamThreadUtils.getVitamSession().getTenantId(),
+                    null, QueryBuilders.termQuery(VitamDocument.ID, documentId))
                 .getHits()
                 .getTotalHits();
             assertThat(totalHits.value).isEqualTo(expectedHits);
@@ -2243,10 +2265,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     private Set<String> getIds(RequestResponseOK<JsonNode> ingestedGots) {
         return mapByField(ingestedGots, VitamFieldsHelper.id()).keySet();
-    }
-
-    private String getAliasName(final VitamCollection collection, Integer tenantId) {
-        return collection.getName().toLowerCase() + "_" + tenantId.toString();
     }
 
     private Map<String, JsonNode> mapByField(RequestResponseOK<JsonNode> requestResponseOK, String title) {

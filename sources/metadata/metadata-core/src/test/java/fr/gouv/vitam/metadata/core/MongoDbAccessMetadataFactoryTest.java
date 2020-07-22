@@ -27,18 +27,24 @@
 package fr.gouv.vitam.metadata.core;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,12 +52,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class MongoDbAccessMetadataFactoryTest {
 
-    private static final List tenantList = new ArrayList() {
-        {
-            add(0);
-            add(1);
-        }
-    };
+    private static final List<Integer> tenantList = Arrays.asList(0, 1);
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
@@ -68,15 +69,29 @@ public class MongoDbAccessMetadataFactoryTest {
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+        ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils.createTestIndexManager(
+            tenantList, Collections.emptyMap(), mappingLoader);
 
         MetaDataConfiguration config =
             new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
                 mappingLoader);
         VitamConfiguration.setTenants(tenantList);
-        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config, mappingLoader);
+        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config, mappingLoader,
+            indexManager);
 
         assertNotNull(mongoDbAccess);
         assertThat(mongoDbAccess.getMongoDatabase().getName()).isEqualTo(MongoRule.VITAM_DB);
+
+        // Ensure indexes initialized
+        for (Integer tenant : tenantList) {
+            ElasticsearchIndexAlias indexAlias = indexManager.getElasticsearchIndexAliasResolver(
+                MetadataCollections.UNIT).resolveIndexName(tenant);
+
+            assertThat(mongoDbAccess.getEsClient().existsAlias(indexAlias)).isTrue();
+            mongoDbAccess.getEsClient().deleteIndexByAliasForTesting(indexAlias);
+            assertThat(mongoDbAccess.getEsClient().existsAlias(indexAlias)).isFalse();
+        }
+
         mongoDbAccess.close();
     }
 }

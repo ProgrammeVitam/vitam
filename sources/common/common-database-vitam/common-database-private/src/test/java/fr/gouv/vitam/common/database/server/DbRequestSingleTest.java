@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionType;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -98,7 +99,7 @@ public class DbRequestSingleTest {
             PREFIX + CollectionSample.class.getSimpleName());
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
+        new ElasticsearchRule(ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
     static VitamCollection vitamCollection;
     private static ElasticsearchAccess esClient;
     @Rule
@@ -119,9 +120,9 @@ public class DbRequestSingleTest {
     }
 
     @AfterClass
-    public static void afterClass() throws DatabaseException {
+    public static void afterClass() {
         mongoRule.handleAfterClass();
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.purgeIndices();
         esClient.close();
     }
 
@@ -138,7 +139,8 @@ public class DbRequestSingleTest {
         VitamDBException, SchemaValidationException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList);
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -226,7 +228,8 @@ public class DbRequestSingleTest {
     public void testInsertRequestWithValidationOK() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList);
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -262,7 +265,8 @@ public class DbRequestSingleTest {
     public void testInsertRequestWithValidationFailure() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList);
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -286,7 +290,8 @@ public class DbRequestSingleTest {
     public void testUpdateRequestWithValidationFailure() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList);
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -340,7 +345,8 @@ public class DbRequestSingleTest {
         datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "Optimistic lock test", 3));
         final Insert insert = new Insert();
         insert.setData(datas);
-        final DbRequestResult insertResult = new DbRequestSingle(vitamCollection, Collections::emptyList).execute(insert, 0,
+        final DbRequestResult insertResult = new DbRequestSingle(vitamCollection, Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())).execute(insert, 0,
             mock(DocumentValidator.class));
         assertEquals(1, insertResult.getCount());
         assertEquals(1, vitamCollection.getCollection().countDocuments());
@@ -373,7 +379,7 @@ public class DbRequestSingleTest {
             update.setQuery(eq("Numero", 3));
             update.addActions(UpdateActionHelper.set("Title", "thread_" + nbr));
 
-            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection, Collections::emptyList).execute(update, mock(DocumentValidator.class));
+            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection, Collections::emptyList, ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())).execute(update, mock(DocumentValidator.class));
             System.err.println("Thread_" + nbr + " >> " + updateResult.getDiffs());
             assertEquals(1, updateResult.getCount());
             updateResult.close();

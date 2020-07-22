@@ -81,6 +81,8 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -122,12 +124,12 @@ public class PurgeIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-       handleBeforeClass(0, 1);
+       handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
     }
 
     @AfterClass
-    public static void afterClass() throws Exception {
-        handleAfterClass(0, 1);
+    public static void afterClass() {
+        handleAfterClass();
     }
 
     @Before
@@ -344,7 +346,8 @@ public class PurgeIT extends VitamRuleRunner {
             .save(Document.parse(vitamDocument.toString()));
 
         VitamRepositoryFactory.get()
-            .getVitamESRepository(objectgroup.getVitamCollection())
+            .getVitamESRepository(objectgroup.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(objectgroup))
             .save(Document.parse(vitamDocument.toString()));
 
         VitamRepositoryFactory.get()
@@ -390,7 +393,9 @@ public class PurgeIT extends VitamRuleRunner {
 
     private String getObjectGrpByIdForElastic(String id) throws Exception {
         Optional<Document> document = VitamRepositoryFactory.get()
-            .getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()).getByID(id, 0);
+            .getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP)
+            ).getByID(id, 0);
         if (document.isPresent()) {
             return id;
         }

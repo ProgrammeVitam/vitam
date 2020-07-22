@@ -60,10 +60,12 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
@@ -83,6 +85,7 @@ import org.mockito.Mockito;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -127,7 +130,6 @@ public class ContextServiceImplTest {
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
     private static FunctionalBackupService functionalBackupService;
-    private final static String HOST_NAME = "127.0.0.1";
 
     static ContextService contextService;
 
@@ -135,24 +137,24 @@ public class ContextServiceImplTest {
     static ContractService<IngestContractModel> ingestContractService;
     static ContractService<AccessContractModel> accessContractService;
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,esNodes));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,esNodes, indexManager));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
 
-        final List tenants = new ArrayList<>();
-        tenants.add(new Integer(TENANT_ID));
-        tenants.add(new Integer(0));
-        tenants.add(new Integer(EXTERNAL_TENANT));
+        final List<Integer> tenants = Arrays.asList(TENANT_ID, 0, EXTERNAL_TENANT);
         VitamConfiguration.setTenants(tenants);
         VitamConfiguration.setAdminTenant(TENANT_ID);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
@@ -175,7 +177,7 @@ public class ContextServiceImplTest {
 
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
                 vitamCounterService, ingestContractService, accessContractService, securityProfileService,
                 functionalBackupService);
     }
@@ -183,13 +185,13 @@ public class ContextServiceImplTest {
     @AfterClass
     public static void tearDownAfterClass() {
         contextService.close();
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @After
     public void afterTest() {
-        FunctionalAdminCollections.afterTest(
+        FunctionalAdminCollectionsTestUtils.afterTest(
             Lists.newArrayList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.INGEST_CONTRACT));
         reset(ingestContractService);
         reset(functionalBackupService);

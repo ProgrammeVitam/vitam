@@ -1,0 +1,5 @@
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    number_of_shards: 3
+    number_of_replicas: 10

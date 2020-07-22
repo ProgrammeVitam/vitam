@@ -57,9 +57,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -129,6 +131,9 @@ public class ProfileResourceTest {
 
     private static int workspacePort = junitHelper.findAvailablePort();
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager
+        = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
 
@@ -152,9 +157,9 @@ public class ProfileResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                esNodes));
+                esNodes, indexManager));
 
         LogbookOperationsClientFactory.changeMode(null);
         System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.newFolder().getAbsolutePath());
@@ -176,7 +181,7 @@ public class ProfileResourceTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         mongoDbAccess =
             MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -210,7 +215,7 @@ public class ProfileResourceTest {
             LOGGER.error(e);
         }
         junitHelper.releasePort(serverPort);
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
@@ -231,7 +236,7 @@ public class ProfileResourceTest {
 
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
+        mongoDbAccess.deleteCollectionForTesting(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -264,7 +269,7 @@ public class ProfileResourceTest {
     public void givenProfileJsonWithAmissingIdentifierReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
+        mongoDbAccess.deleteCollectionForTesting(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -283,7 +288,7 @@ public class ProfileResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
+        mongoDbAccess.deleteCollectionForTesting(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_duplicate_name.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -301,7 +306,7 @@ public class ProfileResourceTest {
     public void givenTestImportXSDProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
+        mongoDbAccess.deleteCollectionForTesting(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
@@ -366,7 +371,7 @@ public class ProfileResourceTest {
     public void givenTestImportRNGProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
+        mongoDbAccess.deleteCollectionForTesting(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json

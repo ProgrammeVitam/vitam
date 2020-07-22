@@ -84,6 +84,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static com.mongodb.client.model.Indexes.ascending;
@@ -121,14 +123,14 @@ public class MigrationIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         MetaDataClientFactory
             .changeMode(new ClientConfigurationImpl("localhost", VitamServerRunner.PORT_SERVICE_METADATA));
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -151,7 +153,7 @@ public class MigrationIT extends VitamRuleRunner {
     @After
     public void tearDown() {
         runAfter();
-        handleAfterClass(0, 1);
+        handleAfterClass();
     }
 
     @Test

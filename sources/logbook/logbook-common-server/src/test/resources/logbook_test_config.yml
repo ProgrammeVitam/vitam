@@ -1,0 +1,84 @@
+# Configuration MongoDB
+mongoDbNodes:
+  - dbHost: 172.17.0.2
+    dbPort: 27017
+dbName: logbook
+dbAuthentication: true
+dbUserName: logbook
+dbPassword: azerty2
+jettyConfig: jetty-config.xml
+p12LogbookPassword: azerty8
+p12LogbookFile: keystore_secure-logbook.p12
+workspaceUrl: http://workspace.service.consul:8201/
+processingUrl: http://processing.service.consul:8203/
+
+# ElasticSearch
+clusterName: elasticsearch-data
+elasticsearchNodes:
+  - hostName: 172.17.0.2
+    httpPort: 9200
+
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    logbookoperation:
+      number_of_shards: 2
+      number_of_replicas: 10
+
+  dedicated_tenants:
+    - tenants: '10-20'
+      logbookoperation:
+        number_of_shards: 3
+        number_of_replicas: 11
+
+  grouped_tenants:
+    - name: 'grp1'
+      tenants: '21-22'
+      logbookoperation:
+        number_of_shards: 4
+        number_of_replicas: 12
+
+#Basic Authentication
+adminBasicAuth:
+  - userName: adminUser
+    password: adminPassword
+
+## Configuration for logbook coherence check
+# list of operations that generate LFC
+opWithLFC: [
+  "PROCESS_SIP_UNITARY",
+  "FILINGSCHEME",
+  "HOLDINGSCHEME",
+  "UPDATE_RULES_ARCHIVE_UNITS",
+  "PROCESS_AUDIT",
+  "STP_UPDATE_UNIT"]
+# list of events not declared in wf
+opEventsNotInWf: [
+  "STP_SANITY_CHECK_SIP",
+  "SANITY_CHECK_SIP",
+  "CHECK_CONTAINER",
+  "STP_UPLOAD_SIP"
+]
+# list of events to skip for OP-LFC check
+opLfcEventsToSkip: [
+  "STP_SANITY_CHECK_SIP", "SANITY_CHECK_SIP", "CHECK_CONTAINER", "STP_UPLOAD_SIP", "ATR_NOTIFICATION", "ROLL_BACK",
+  "STORAGE_AVAILABILITY_CHECK", "ACCESSION_REGISTRATION",
+  "ROLL_BACK", "ATR_NOTIFICATION", "COMMIT_LIFE_CYCLE_OBJECT_GROUP", "COMMIT_LIFE_CYCLE_UNIT",
+  "LIST_OBJECTGROUP_ID", "REPORT_AUDIT",
+  "LIST_ARCHIVE_UNITS", "LIST_RUNNING_INGESTS"]
+
+# Configuration des alertes de securite
+alertEvents:
+  - evType: 'CHECK_HEADER.CHECK_CONTRACT_INGEST'
+    outcome: 'KO'
+  - evType: 'CHECK_RULES.MAX_DURATION_EXCEEDS'
+    outcome: 'KO'
+  - evType: 'CHECK_RULES'
+    outcome: 'KO'
+  - outDetail: 'CHECK_CLASSIFICATION_LEVEL.KO'
+  - outDetail: 'STP_PERSONAL_CERTIFICATE_CHECK.KO'
+
+# Traceability params
+operationTraceabilityTemporizationDelay: 300
+lifecycleTraceabilityTemporizationDelay: 300
+lifecycleTraceabilityMaxEntries: 100000

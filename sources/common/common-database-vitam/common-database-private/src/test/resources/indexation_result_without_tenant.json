@@ -1,9 +1,0 @@
-{
-  "collectionName": "collection_name",
-  "KO": [
-    {
-      "indexName": "collection_name_*",
-      "message": "failed"
-    }
-  ]
-}

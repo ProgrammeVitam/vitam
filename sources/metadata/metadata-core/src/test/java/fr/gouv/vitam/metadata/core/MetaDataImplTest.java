@@ -27,9 +27,11 @@
 package fr.gouv.vitam.metadata.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
@@ -50,11 +52,13 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
@@ -70,7 +74,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,6 +84,7 @@ import java.util.Map.Entry;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
@@ -90,10 +94,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -121,6 +125,7 @@ public class MetaDataImplTest {
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {},\"$facets\": []}";
     private AdminManagementClient adminManagementClient;
+    private ElasticsearchMetadataIndexManager indexManager;
 
     private static JsonNode buildQueryJsonWithOptions(String query, String data)
         throws InvalidParseOperationException {
@@ -159,9 +164,10 @@ public class MetaDataImplTest {
         responseOK.addAllResults(Collections.emptyList());
         when(adminManagementClient.findOntologies(any())).thenReturn(responseOK);
 
+        indexManager = mock(ElasticsearchMetadataIndexManager.class);
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, request,
-                100, 300, 100, 300, 100, 300, new MappingLoader(Collections.emptyList()));
+                100, 300, 100, 300, 100, 300, indexManager);
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -459,58 +465,58 @@ public class MetaDataImplTest {
 
     @Test
     public void reindexCollectionUnknownTest() throws Exception {
-        // Given
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("fakeName");
-        List<Integer> tenants = new ArrayList<>();
-        tenants.add(0);
+        List<Integer> tenants = Collections.singletonList(0);
         parameters.setTenants(tenants);
-
-        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+        ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils
+            .createTestIndexManager(tenants, emptyMap(), MappingLoaderTestUtils.getTestMappingLoader());
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, IndexationHelper.getInstance(),
-                request, 100, 300, 100, 300, 100, 300, mappingLoader);
+                request, 100, 300, 100, 300, 100, 300, indexManager);
         // When
-        IndexationResult result = metaDataImpl.reindex(parameters);
+        ReindexationResult result = metaDataImpl.reindex(parameters);
 
         // Then
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
         assertEquals(1, result.getIndexKO().size());
-        assertEquals("fakeName_0_*", result.getIndexKO().get(0).getIndexName());
-        assertEquals("Try to reindex a non metadata collection 'fakeName' with metadata module", result.getIndexKO()
-            .get(0).getMessage());
-        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+        assertNull(result.getIndexKO().get(0).getTenantGroup());
+        assertEquals(tenants, result.getIndexKO().get(0).getTenants());
+        assertEquals("Invalid collection 'fakeName'", result.getIndexKO().get(0).getMessage());
     }
 
     @Test
     public void reindexIOExceptionTest() throws Exception {
-        when(indexationHelper.reindex(any(), any(), any(), any(), any()))
-            .thenThrow(new IOException());
+        when(indexationHelper.reindex(any(), any(), any(), any(), any(), any(), any()))
+            .thenThrow(new DatabaseException("prb"));
         when(indexationHelper.getFullKOResult(any(), any()))
             .thenCallRealMethod();
+        LogbookCollections.OPERATION.getVitamCollection().initialize(mock(MongoDatabase.class), false);
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("Unit");
         List<Integer> tenants = new ArrayList<>();
         tenants.add(0);
         parameters.setTenants(tenants);
-        IndexationResult result = metaDataImpl.reindex(parameters);
+        ReindexationResult result = metaDataImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
         assertEquals(1, result.getIndexKO().size());
-        assertEquals("unit_0_*", result.getIndexKO().get(0).getIndexName().toLowerCase());
-        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+        assertNull(result.getIndexKO().get(0).getTenantGroup());
+        assertEquals(tenants, result.getIndexKO().get(0).getTenants());
+        assertEquals("Cannot reindex collection UNIT for tenant 0. Unexpected error",
+            result.getIndexKO().get(0).getMessage());
     }
 
     @Test(expected = DatabaseException.class)
     public void switchIndexKOTest() throws Exception {
-        doThrow(new DatabaseException("erreur")).when(indexationHelper).switchIndex(anyString(), anyString(), any());
+        doThrow(new DatabaseException("erreur")).when(indexationHelper).switchIndex(any(), any(), any());
         metaDataImpl.switchIndex("alias", "index_name");
     }
 
     @Test
     public void switchIndexOKTest() throws Exception {
-        doNothing().when(indexationHelper).switchIndex(anyString(), anyString(), any());
+        doReturn(mock(SwitchIndexResult.class)).when(indexationHelper).switchIndex(any(), any(), any());
         metaDataImpl.switchIndex("alias", "index_name");
     }
 }

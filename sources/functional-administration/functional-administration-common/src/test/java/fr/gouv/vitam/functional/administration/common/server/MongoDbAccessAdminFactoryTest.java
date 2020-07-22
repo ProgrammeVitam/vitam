@@ -52,7 +52,8 @@ public class MongoDbAccessAdminFactoryTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         mongoDbAccess = MongoDbAccessAdminFactory.create(
-            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName(), true, "user", "pwd"), Collections::emptyList);
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName(), true, "user", "pwd"), Collections::emptyList,
+            FunctionalAdminCollectionsTestUtils.createTestIndexManager());
 
         assertNotNull(mongoDbAccess);
         assertEquals(MongoRule.VITAM_DB, mongoDbAccess.getMongoDatabase().getName());

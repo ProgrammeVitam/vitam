@@ -27,14 +27,21 @@
 package fr.gouv.vitam.logbook.common.server;
 
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.logbook.common.server.config.DedicatedTenantConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.GroupedTenantConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import org.junit.Test;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class LogbookConfigurationTest {
@@ -83,5 +90,46 @@ public class LogbookConfigurationTest {
         assertEquals(config2.getDbName(), DB_NAME);
         assertEquals(config2.getClusterName(), CLUSTER_NAME);
         assertEquals(config2.getElasticsearchNodes().size(), 1);
+    }
+
+    @Test
+    public void testElasticsearchIndexationConfigurationLoading() throws Exception {
+
+        LogbookConfiguration config;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config.yml")) {
+            config = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
+        }
+
+        assertThat(config.getLogbookTenantIndexation()).isNotNull();
+
+        DefaultCollectionConfiguration defaultCollectionConfiguration =
+            config.getLogbookTenantIndexation().getDefaultCollectionConfiguration();
+        assertThat(defaultCollectionConfiguration).isNotNull();
+        assertThat(defaultCollectionConfiguration.getLogbookoperation()).isNotNull();
+        assertThat(defaultCollectionConfiguration.getLogbookoperation().getNumberOfShards()).isEqualTo(2);
+        assertThat(defaultCollectionConfiguration.getLogbookoperation().getNumberOfReplicas()).isEqualTo(10);
+
+
+        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration =
+            config.getLogbookTenantIndexation().getDedicatedTenantConfiguration();
+        assertThat(dedicatedTenantConfiguration).isNotNull();
+        assertThat(dedicatedTenantConfiguration).hasSize(1);
+        assertThat(dedicatedTenantConfiguration.get(0)).isNotNull();
+        assertThat(dedicatedTenantConfiguration.get(0).getTenants()).isEqualTo("10-20");
+        assertThat(dedicatedTenantConfiguration.get(0).getLogbookoperation()).isNotNull();
+        assertThat(dedicatedTenantConfiguration.get(0).getLogbookoperation().getNumberOfShards()).isEqualTo(3);
+        assertThat(dedicatedTenantConfiguration.get(0).getLogbookoperation().getNumberOfReplicas()).isEqualTo(11);
+
+
+        List<GroupedTenantConfiguration> groupedTenantConfiguration =
+            config.getLogbookTenantIndexation().getGroupedTenantConfiguration();
+        assertThat(groupedTenantConfiguration).isNotNull();
+        assertThat(groupedTenantConfiguration).hasSize(1);
+        assertThat(groupedTenantConfiguration.get(0)).isNotNull();
+        assertThat(groupedTenantConfiguration.get(0).getName()).isEqualTo("grp1");
+        assertThat(groupedTenantConfiguration.get(0).getTenants()).isEqualTo("21-22");
+        assertThat(groupedTenantConfiguration.get(0).getLogbookoperation()).isNotNull();
+        assertThat(groupedTenantConfiguration.get(0).getLogbookoperation().getNumberOfShards()).isEqualTo(4);
+        assertThat(groupedTenantConfiguration.get(0).getLogbookoperation().getNumberOfReplicas()).isEqualTo(12);
     }
 }

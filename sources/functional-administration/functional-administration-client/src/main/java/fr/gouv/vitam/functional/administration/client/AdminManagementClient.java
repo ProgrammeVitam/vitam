@@ -28,7 +28,7 @@ package fr.gouv.vitam.functional.administration.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -645,7 +645,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return the server response including information about the newsly created index
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<IndexationResult> launchReindexation(JsonNode options)
+    RequestResponse<ReindexationResult> launchReindexation(JsonNode options)
         throws AdminManagementClientServerException;
 
     /**
@@ -656,7 +656,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return the server response
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<IndexationResult> switchIndexes(JsonNode options)
+    RequestResponse<ReindexationResult> switchIndexes(JsonNode options)
         throws AdminManagementClientServerException;
 
     /**

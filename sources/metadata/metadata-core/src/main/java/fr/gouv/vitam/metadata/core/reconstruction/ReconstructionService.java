@@ -66,6 +66,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -132,24 +133,26 @@ public class ReconstructionService {
 
     private static final String $_SET = "$set";
 
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private StorageClientFactory storageClientFactory;
+    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
-    private VitamRepositoryProvider vitamRepositoryProvider;
-    private OffsetRepository offsetRepository;
+    private final VitamRepositoryProvider vitamRepositoryProvider;
+    private final OffsetRepository offsetRepository;
 
-    private RestoreBackupService restoreBackupService;
+    private final ElasticsearchMetadataIndexManager indexManager;
+    private final RestoreBackupService restoreBackupService;
 
     /**
      * Constructor
-     *
-     * @param vitamRepositoryProvider vitamRepositoryProvider
+     *  @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository offsetRepository
+     * @param indexManager
      */
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository) {
+        OffsetRepository offsetRepository,
+        ElasticsearchMetadataIndexManager indexManager) {
         this(vitamRepositoryProvider, new RestoreBackupService(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance(), offsetRepository);
+            StorageClientFactory.getInstance(), offsetRepository, indexManager);
     }
 
     /**
@@ -164,12 +167,14 @@ public class ReconstructionService {
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService, LogbookLifeCyclesClientFactory logbookLifecycleClientFactory,
-        StorageClientFactory storageClientFactory, OffsetRepository offsetRepository) {
+        StorageClientFactory storageClientFactory, OffsetRepository offsetRepository,
+        ElasticsearchMetadataIndexManager indexManager) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.logbookLifeCyclesClientFactory = logbookLifecycleClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.offsetRepository = offsetRepository;
+        this.indexManager = indexManager;
     }
 
     /**
@@ -565,7 +570,8 @@ public class ReconstructionService {
 
         this.vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection())
             .delete(ids, tenant);
-        this.vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection())
+        this.vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection(),
+            indexManager.getElasticsearchIndexAliasResolver(collection))
             .delete(ids, tenant);
     }
 
@@ -820,7 +826,8 @@ public class ReconstructionService {
      */
     private void bulkElasticSearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection()).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection(),
+            indexManager.getElasticsearchIndexAliasResolver(metaDaCollection)).save(collection);
     }
 
     /**

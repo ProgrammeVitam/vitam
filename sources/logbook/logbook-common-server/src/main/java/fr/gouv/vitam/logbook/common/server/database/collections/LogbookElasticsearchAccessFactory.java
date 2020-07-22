@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 
 
@@ -44,16 +43,18 @@ public class LogbookElasticsearchAccessFactory {
      * Creation of one ElasticsearchAccess
      *
      * @param configuration config of elasticsearch
+     * @param indexManager
      * @return the ElasticsearchAccess
      * @throws LogbookException if error in create LogbookElasticsearchAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public LogbookElasticsearchAccess create(LogbookConfiguration configuration) throws LogbookException {
+    public LogbookElasticsearchAccess create(LogbookConfiguration configuration,
+        ElasticsearchLogbookIndexManager indexManager) throws LogbookException {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         try {
             return new LogbookElasticsearchAccess(configuration.getClusterName(),
-                configuration.getElasticsearchNodes());
-        } catch (final VitamException | IOException e) {
+                configuration.getElasticsearchNodes(), indexManager);
+        } catch (final VitamException e) {
             throw new LogbookException(e);
         }
     }

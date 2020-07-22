@@ -32,6 +32,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
 
 import javax.ws.rs.core.Response;
 
@@ -117,7 +119,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
@@ -126,7 +128,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
@@ -139,7 +141,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @After
     public void afterTest() throws Exception {
-        handleAfter(0, 1);
+        handleAfter();
     }
 
     private void wait(String operationId) {

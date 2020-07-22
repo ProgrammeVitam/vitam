@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.ErrorCategory;
@@ -103,11 +104,9 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
@@ -174,16 +173,15 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Constructor
      *
-     * @param ontologyLoader
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
      * @param esClient elastic search client
-     * @param tenants the tenants list
+     * @param ontologyLoader
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
-        LogbookElasticsearchAccess esClient, List<Integer> tenants, LogbookTransformData logbookTransformData,
+        LogbookElasticsearchAccess esClient, LogbookTransformData logbookTransformData,
         OntologyLoader ontologyLoader) {
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
@@ -200,19 +198,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.initialize(getMongoDatabase(), recreate);
         LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.initialize(getMongoDatabase(), recreate);
 
-
         // init Logbook Operation Mapping for ES
         LogbookCollections.OPERATION.initialize(this.esClient);
-        for (Integer tenant : tenants) {
-            Map<String, String> map =
-                LogbookCollections.OPERATION.getEsClient().addIndex(LogbookCollections.OPERATION, tenant);
-            if (map.isEmpty()) {
-                throw new RuntimeException(
-                    "Index not created for the collection " + LogbookCollections.OPERATION.getName() +
-                        " and tenant :" +
-                        tenant);
-            }
-        }
+        esClient.createIndexesAndAliases();
     }
 
     /**
@@ -1117,7 +1105,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     // Not check, test feature !
     @Override
-    public void deleteCollection(LogbookCollections collection) throws DatabaseException {
+    @VisibleForTesting
+    public void deleteCollectionForTesting(LogbookCollections collection) throws DatabaseException, LogbookExecutionException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final long count = collection.getCollection().countDocuments(Filters.eq(VitamDocument.TENANT_ID, tenantId));
         if (LOGGER.isDebugEnabled()) {
@@ -1130,15 +1119,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }
             if (LogbookCollections.OPERATION.equals(collection)) {
-                esClient.deleteIndexByAlias(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
-                Map<String, String> map = esClient.addIndex(LogbookCollections.OPERATION, tenantId);
-                if (map.isEmpty()) {
-                    throw new RuntimeException(
-                        "Index not created for the collection " + LogbookCollections.OPERATION.getName() +
-                            " and tenant :" +
-                            tenantId);
-                }
-
+                esClient.purgeIndexForTesting(collection, tenantId);
             }
             if (result.getDeletedCount() != count) {
                 throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
@@ -1528,11 +1509,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(vitamDocument);
-        try {
-            collection.getEsClient().indexEntry(collection.getName().toLowerCase(), tenantId, id, vitamDocument);
-        } catch (DatabaseException e) {
-            throw new LogbookExecutionException("Index to Elasticsearch has errors", e);
-        }
+        collection.getEsClient().indexEntry(collection, tenantId, id, vitamDocument);
     }
 
     /**
@@ -1697,5 +1674,4 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         document.append(LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(now()));
         return document;
     }
-
 }
