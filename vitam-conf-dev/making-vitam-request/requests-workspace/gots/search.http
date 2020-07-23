@@ -3,7 +3,7 @@
 @tenant = 0
 
 ### Recherche d'un groupe d'on le nom du fichier correspond à 'IGI1300'
-GET {{url}}/access-external/v1/objects
+GET {{url-access}}/access-external/v1/objects
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}

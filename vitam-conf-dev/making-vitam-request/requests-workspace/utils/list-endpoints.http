@@ -1,14 +1,15 @@
 ### Liste des points d'API d'ingest-external
-OPTIONS {{url}}/ingest-external/v1/
+OPTIONS {{url-ingest}}/ingest-external/v1/
 Content-Type: application/json
 X-Tenant-Id: 0
+# X-Ingest-Contract-Id: {{access-contract}}
 
 ### Liste des points d'API d'access-external
-OPTIONS {{url}}/access-external/v1/
+OPTIONS {{url-access}}/access-external/v1/
 Content-Type: application/json
 X-Tenant-Id: 0
 
 ### Liste des points d'API d'admin-external
-OPTIONS {{url}}/admin-external/v1/
+OPTIONS {{url-access}}/admin-external/v1/
 Content-Type: application/json
 X-Tenant-Id: 0

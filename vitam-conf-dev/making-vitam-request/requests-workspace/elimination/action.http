@@ -3,7 +3,7 @@
 @tenant = 0
 
 ### Rercherche d'une partie (Titre et id) d'AU dont l'opération d'ingest est 'aeeaaaaaachemhquabpikaln3xe2gliaaaaq'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -31,7 +31,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Lancement d'une analyse avant élimination sur l'opération d'ingest dont l'identifiant est 'aeeaaaaaachemhquabpikaln3xe2gliaaaaq'
-POST {{url}}/access-external/v1/elimination/analysis
+POST {{url-access}}/access-external/v1/elimination/analysis
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -52,7 +52,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Rercherche d'une partie (Titre, id et élimination) d'AU dont l'opération d'ingest est 'aeeaaaaaachemhquabpikaln3xe2gliaaaaq'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -81,7 +81,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ##### Lancement du workflow d'élimination afin de supprimer les unitées archivistiques éliminable dont l'opération d'ingest est 'aeeaaaaaacfennmrabnl6alfyprerbqaaaaq'
-POST {{url}}/access-external/v1/elimination/action
+POST {{url-access}}/access-external/v1/elimination/action
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -102,7 +102,7 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Rercherche d'une partie (Titre et id) d'AU dont l'opération d'ingest est 'aeeaaaaaachemhquabpikaln3xe2gliaaaaq' afin de vérifier qu'elle ont bien été éliminé
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}

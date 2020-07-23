@@ -4,7 +4,7 @@
 @operation-id = aeaqaaaaaapnh5a2aanzsaln2sr6tnaaaaba
 
 ### Démarrage de la procédure d'accusé reception du transfert
-POST {{url}}/access-external/v1/transfers/reply
+POST {{url-access}}/access-external/v1/transfers/reply
 Accept: application/json
 Content-Type: application/xml
 X-Tenant-Id: {{tenant}}
@@ -13,13 +13,13 @@ X-Access-Contract-Id: {{access-contract}}
 < /path/to/atr.xml
 
 ### Vérification de la complétude de l'opération de transfert reply en cours grâce au 'X-Request-Id' de la réponse du transfert
-GET {{url}}/admin-external/v1/operations/{{operation-id}}
+GET {{url-access}}/admin-external/v1/operations/{{operation-id}}
 Accept: application/json
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 ### Récupération du résultat de l'opération de transfert reply précédente grâce au 'X-Request-Id' de la réponse du transfert
-POST {{url}}/access-external/v1/logbookoperations
+POST {{url-access}}/access-external/v1/logbookoperations
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -39,13 +39,13 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Récupération du rapport
-GET {{url}}/admin-external/v1/batchreport/{{operation-id}}
+GET {{url-access}}/admin-external/v1/batchreport/{{operation-id}}
 X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}
 Accept: application/octet-stream
 
 ### Vérification de la bonne suppression des unités archivistiques supprimées
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}

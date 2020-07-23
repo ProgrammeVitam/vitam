@@ -4,7 +4,7 @@
 @unit-id = aeaqaaaaaahgynv2aanysaln2jvxeyyaaaaq
 
 ### Récupération d'un groupe d'objet dont l'identifiant de l'unité archivistique est 'aeaqaaaaaahgynv2aanysaln2jvxeyyaaaaq'
-GET {{url}}/access-external/v1/units/{{unit-id}}/objects
+GET {{url-access}}/access-external/v1/units/{{unit-id}}/objects
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -17,7 +17,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Récupération d'une partie (qualifiers) d'un groupe d'objet dont l'identifiant de l'unité archivistique est 'aeaqaaaaaahgynv2aanysaln2jvxeyyaaaaq'
-GET {{url}}/access-external/v1/units/{{unit-id}}/objects
+GET {{url-access}}/access-external/v1/units/{{unit-id}}/objects
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -32,7 +32,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Récupération du 'BinaryMaster_1' de l'unité archivistique 'aeaqaaaaaahgynv2aanysaln2jvxeyyaaaaq'
-GET {{url}}/access-external/v1/units/{{unit-id}}/objects
+GET {{url-access}}/access-external/v1/units/{{unit-id}}/objects
 Accept: application/octet-stream
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
