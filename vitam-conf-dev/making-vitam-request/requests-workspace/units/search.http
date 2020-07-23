@@ -3,7 +3,7 @@
 @tenant = 0
 
 ### Recherche d'une unitée archivistique dont le titre correspond à 'héritag' sur le tenant 0 et avec le contract d'accès 'ContratTNR'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -14,7 +14,7 @@ X-Tenant-Id: {{tenant}}
   "$query": [
     {
       "$match": {
-        "Title": "héritag"
+              "Title": "héritag"
       }
     }
   ],
@@ -26,7 +26,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Recherche d'une unitée archivistique dont la description inclu 'Proin bibendum odio quam, in placerat dui congue nec'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -49,7 +49,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Recherche d'une unitée archivistique dont la description contient 'RATP' **ET** dont le titre n'est pas 'Eglise de Pantin'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -87,7 +87,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Recherche d'une unitée archivistique qui possède un object group **ET** dont la description contient 'RATP'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -119,7 +119,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Recherche d'une unitée archivistique dont la description contiens 'SNCF' **OU** dont la description contient 'RATP'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -153,7 +153,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Recherche d'une unitée archivistique fille directe de 'aeaqaaaaaahgynv2aanysaln2jvxewiaaaba' et dont le titre correspond à 'pantin'
-GET {{url}}/access-external/v1/units/
+GET {{url-access}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}

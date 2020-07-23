@@ -1,0 +1,41 @@
+# Configuration
+@tenant = 0
+
+### import des contrats d'entrée
+POST {{url-access}}/admin-external/v1/ingestcontracts/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+	{
+		"Name":"ArchivalAgreement0",
+    "Identifier":"ArchivalAgreement0",
+		"Description":"Contrat Vitam 0",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
+	},
+	{
+		"Name":"ArchivalAgreement1",
+    "Identifier":"ArchivalAgreement1",
+		"Description":"Contrat Vitam 1",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
+	},
+	{
+		"Name":"ArchivalAgreement0Test",
+    "Identifier":"ArchivalAgreement0Test",
+		"Description":"Contrat Vitam 0",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
+	}
+]

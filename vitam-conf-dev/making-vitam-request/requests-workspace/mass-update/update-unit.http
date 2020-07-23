@@ -4,7 +4,7 @@
 @unit-id
 
 ### Mise à jours des unité archivistique dont la Description contient 'Cette unité de description doit hériter' et remplacement par 'Cette unité de description hérite'
-POST {{url}}/access-external/v1/units
+POST {{url-access}}/access-external/v1/units
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -32,7 +32,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Ajout de la métadonnée MyText sur l'unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
-POST {{url}}/access-external/v1/units
+POST {{url-access}}/access-external/v1/units
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -58,7 +58,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Suppression de la métadonnée 'Description' sur l'unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
-POST {{url}}/access-external/v1/units
+POST {{url-access}}/access-external/v1/units
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}

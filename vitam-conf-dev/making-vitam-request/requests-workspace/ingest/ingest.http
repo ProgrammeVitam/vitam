@@ -1,11 +1,11 @@
 # Configuration
 @access-contract = ContratTNR
-@tenant = 0
+@tenant = 1
 @sip-size = 79267
-@operation-id = aeeaaaaaacfww4l5absymaln3dj5jdaaaaaq
+@operation-id = aeeaaaaaaghmn2claadmqaltkkp2xwaaaaaq
 
 ### Ajout de l'unité archivistique 'my-name.zip' qui est dans le fichier '/path/to/my-name.zip' a VITAM
-POST {{url}}/ingest-external/v1/ingests
+POST {{url-ingest}}/ingest-external/v1/ingests
 Accept: application/json
 Content-Type: application/octet-stream
 X-Action: RESUME
@@ -17,13 +17,13 @@ X-Tenant-Id: {{tenant}}
 < /path/to/my-name.zip
 
 ### Vérification de la complétude de l'opération d'ingest en cours grâce au 'X-Request-Id' de la réponse de l'ingest
-GET {{url}}/admin-external/v1/operations/{{operation-id}}
+GET {{url-access}}/admin-external/v1/operations/{{operation-id}}
 Accept: application/json
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 ### Récupération du résultat de l'opération d'ingest précédente grâce au 'X-Request-Id' de la réponse de l'ingest
-GET {{url}}/access-external/v1/logbookoperations
+GET {{url-access}}/access-external/v1/logbookoperations
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -43,7 +43,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Récupération de l'ATR de l'opération d'ingest précédente grâce au 'X-Request-Id' de la réponse de l'ingest
-GET {{url}}/ingest-external/v1/ingests/{{operation-id}}/archivetransferreply
+GET {{url-ingest}}/ingest-external/v1/ingests/{{operation-id}}/archivetransferreply
 Accept: application/octet-stream
 X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}

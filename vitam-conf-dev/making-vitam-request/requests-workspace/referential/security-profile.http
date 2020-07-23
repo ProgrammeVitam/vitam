@@ -2,7 +2,7 @@
 @tenant = 0
 
 ### Récupération du profile de sécurité dont le nom est 'admin-security-profile'
-GET {{url}}/admin-external/v1/securityprofiles/
+GET {{url-access}}/admin-external/v1/securityprofiles/
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -21,7 +21,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Création d'un profil de sécurité avec le nom 'demo-security-profile007'
-POST {{url}}/admin-external/v1/securityprofiles/
+POST {{url-access}}/admin-external/v1/securityprofiles/
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}

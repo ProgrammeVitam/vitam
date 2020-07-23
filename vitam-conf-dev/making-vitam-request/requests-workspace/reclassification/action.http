@@ -3,7 +3,7 @@
 @tenant = 0
 
 ### Reclassement de l'unitée archivistique dont l'identifiant est 'aeaqaaaaaafnrnfpabijualehok5n6yaaaaq' rattachement de l'unité archivistique 'aeaqaaaaaafnrnfpabijualehokvjliaaaaq' et détachement de l'unité archivistique 'aeaqaaaaaafnrnfpabijualehok5n5iaaabq'
-POST {{url}}/access-external/v1/reclassification/
+POST {{url-access}}/access-external/v1/reclassification/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -27,7 +27,7 @@ X-Tenant-Id: {{tenant}}
 ]
 
 #### Reclassement de l'unité archivistique dont le titre correspond à 'Mon Titre', rattachement de l'unité 'aeaqaaaaaafnrnfpabijualehokvjliaaaaq' et détachement de l'unité 'aeaqaaaaaafnrnfpabijualehok5n5iaaabq' et aussi reclassement de l'unitée archivistique dont l'identifiant est 'aeaqaaaaaafnrnfpabijualehok5n6yaaaaq' rattachement de l'unité archivistique 'aeaqaaaaaafnrnfpabijualehokvjliaaaaq'
-POST {{url}}/access-external/v1/reclassification/
+POST {{url-access}}/access-external/v1/reclassification/
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}

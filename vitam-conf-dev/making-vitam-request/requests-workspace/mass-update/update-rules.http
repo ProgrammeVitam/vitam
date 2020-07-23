@@ -4,7 +4,7 @@
 @unit-id = aeaqaaaaaahnh5o2aal76aln3teqq4qaaaba
 
 ### Supression d'une catégorie afin d'avoir une l'unité archivistique sans DisseminationRule
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -38,7 +38,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Blocage total de l'héritage sur des AU qui n'ont aucun blocage d'héritage
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -75,7 +75,7 @@ X-Tenant-Id: {{tenant}}
 
 
 ### Blocage partiel de l'héritage sur des AU qui n'ont aucun blocage d'héritage
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -112,7 +112,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Suppression du blocage total d'héritage sur des AU qui bloquent tout l'héritage
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -148,7 +148,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Variante pour mettre à jour `PreventInheritance` à false
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -184,7 +184,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Suppression du blocage partiel d'héritage sur des AUI qui bloquent une partie de l'héritage
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -220,7 +220,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Modification des conditions de blocage pour passer d'un blocage total à un blocage partiel
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -259,7 +259,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Modification des conditions de blocage pour passer d'un blocage partiel à un blocage total
-POST {{url}}/access-external/v1/units/rules
+POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}

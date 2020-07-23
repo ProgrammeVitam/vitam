@@ -23,14 +23,14 @@ X-Manifest-Digest-Algo: {{manifest-digest-algo}}
 }
 
 ### Vérification de la complétude de l'opération d'ingest en cours grâce au 'X-Request-Id' de la réponse de l'ingest
-GET {{url}}/admin-external/v1/operations/{{operation-id}}
+GET {{url-access}}/admin-external/v1/operations/{{operation-id}}
 Accept: application/json
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 
 ### Récupération du résultat de l'opération d'ingest précédente grâce au 'X-Request-Id' de la réponse de l'ingest
-GET {{url}}/access-external/v1/logbookoperations
+GET {{url-access}}/access-external/v1/logbookoperations
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
