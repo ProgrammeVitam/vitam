@@ -4,7 +4,7 @@
 @unit-id = aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba
 
 ### Mise a jour du titre et de la description de l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
-PUT {{url}}/access-external/v1/units//{{unit-id}}
+PUT {{url-access}}/access-external/v1/units//{{unit-id}}
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -22,7 +22,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Ajout d'une date de fin et de début à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
-PUT {{url}}/access-external/v1/units//{{unit-id}}
+PUT {{url-access}}/access-external/v1/units//{{unit-id}}
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -40,7 +40,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Suppression d'une de début à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
-PUT {{url}}/access-external/v1/units//{{unit-id}}
+PUT {{url-access}}/access-external/v1/units//{{unit-id}}
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -57,7 +57,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Ajout de la règle de dissémination 'DIS-00003' à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
-PUT {{url}}/access-external/v1/units//{{unit-id}}
+PUT {{url-access}}/access-external/v1/units//{{unit-id}}
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -78,7 +78,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Ajout de l'AUP 'AUP_IDENTIFIER' à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
-PUT {{url}}/access-external/v1/units//{{unit-id}}
+PUT {{url-access}}/access-external/v1/units//{{unit-id}}
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}

@@ -5,7 +5,7 @@
 @dip-id = aeeaaaaaachemhquabfyqaln3wpwptqaaaaq
 
 ### Lancement du workflow de création de DIP sur une unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aal76aln3teqq3qaaaba'
-POST {{url}}/access-external/v1/dipexport
+POST {{url-access}}/access-external/v1/dipexport
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
@@ -24,13 +24,13 @@ X-Access-Contract-Id: {{access-contract}}
 }
 
 ### Vérification de l'opération de création de DIP en cours grâce au 'X-Request-Id' de la réponse
-GET {{url}}/admin-external/v1/operations/{{operation-id}}
+GET {{url-access}}/admin-external/v1/operations/{{operation-id}}
 Accept: application/json
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 ### Récupération du journal des opération de la génération du DIP
-GET {{url}}/access-external/v1/logbookoperations
+GET {{url-access}}/access-external/v1/logbookoperations
 Accept: application/json
 Content-Type: application/json
 X-Access-Contract-Id: {{access-contract}}
@@ -50,13 +50,13 @@ X-Tenant-Id: {{tenant}}
 }
 
 #### Téléchargement du DIP
-GET {{url}}/access-external/v1/dipexport/{{operation-id}}/dip
+GET {{url-access}}/access-external/v1/dipexport/{{operation-id}}/dip
 Accept: application/octet-stream
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
 ### Lancement du workflow de création de DIP complet avec paramètres et LogBook sur une unité archivistique avec descendance dont l'identifiant est 'aeaqaaaaaahnh5o2aal76aln3teqq3qaaaba'
-POST {{url}}/access-external/v2/dipexport
+POST {{url-access}}/access-external/v2/dipexport
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}

@@ -3,7 +3,7 @@
 @tenant = 0
 
 ### Lancement de l'audit de cohérence sur la unit dont l'ID est aeeaaaaaachemhquabfyqaln3wpwptqaaaaq
-POST {{url}}/admin-external/v1/evidenceaudit
+POST {{url-access}}/admin-external/v1/evidenceaudit
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}
