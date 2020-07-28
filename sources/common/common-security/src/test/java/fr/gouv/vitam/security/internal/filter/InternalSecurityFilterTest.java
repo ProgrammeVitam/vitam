@@ -69,6 +69,7 @@ import org.junit.Test;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,6 +87,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -225,7 +227,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn("/otherUri");
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
 
@@ -265,7 +267,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn(VitamConfiguration.STATUS_URL);
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
     /**
@@ -284,7 +286,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn(VitamConfiguration.TENANTS_URL);
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
     /**
@@ -322,7 +324,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn("/otherUri");
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
     /**
@@ -362,7 +364,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn("/access-external/");
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
 
@@ -384,7 +386,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn("/access-external/");
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, false, "fakeAccessContract", null));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
 
@@ -424,7 +426,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, "fakeIngestContract"));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
 
@@ -445,7 +447,7 @@ public class InternalSecurityFilterTest {
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
         when(adminManagementClient.findContextById(anyString()))
             .thenReturn(getTestContext(ContextStatus.ACTIVE, false, "notIngestContract", null));
-        internalSecurityFilter.filter(containerRequestContext);
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
 

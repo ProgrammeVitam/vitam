@@ -50,6 +50,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class SwiftTest {
 
@@ -141,7 +142,8 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
+        assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream,
+                VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
     }
 
     @Test
@@ -204,6 +206,8 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), 3_500L);
+        
+        assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream,
+                VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
     }
 }

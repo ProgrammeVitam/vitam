@@ -34,9 +34,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionExc
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
@@ -99,6 +97,7 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -107,6 +106,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -329,7 +329,7 @@ public class AccessInternalModuleImplTest {
     public void given_correct_dsl_When_select_thenOK()
         throws Exception {
         when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createObjectNode());
-        accessModuleImpl.selectUnit(fromStringToJson(QUERY));
+        assertThatCode(() -> accessModuleImpl.selectUnit(fromStringToJson(QUERY))).doesNotThrowAnyException();
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -379,7 +379,7 @@ public class AccessInternalModuleImplTest {
     public void given_correct_dsl_When_selectunitById_thenOK()
         throws Exception {
         when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(JsonHandler.createObjectNode());
-        accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
+        assertThatCode(() -> accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID)).doesNotThrowAnyException();
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -1268,7 +1268,7 @@ public class AccessInternalModuleImplTest {
     public void givenCorrectDslWhenSelectObjectsThenOK()
         throws Exception {
         when(metaDataClient.selectObjectGroups(any())).thenReturn(JsonHandler.createObjectNode());
-        accessModuleImpl.selectObjects(fromStringToJson(QUERY));
+        assertThatCode(() -> accessModuleImpl.selectObjects(fromStringToJson(QUERY))).doesNotThrowAnyException();
     }
 
     @Test(expected = InvalidParseOperationException.class)

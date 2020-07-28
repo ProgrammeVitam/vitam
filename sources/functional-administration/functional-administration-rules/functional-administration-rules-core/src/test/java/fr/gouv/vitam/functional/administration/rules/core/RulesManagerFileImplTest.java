@@ -403,7 +403,9 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         when(logbookOperationsClient.selectOperation(any())).thenReturn(getEmptyJsonResponse());
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
+        
+        assertThatCode(() -> rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
+                FILE_TO_TEST_OK)).doesNotThrowAnyException();
     }
 
     /**

@@ -32,6 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -111,13 +112,15 @@ public class DigestTest {
 
     @Test
     public void testDigestSimple() throws IOException {
-        final Digest digest = new Digest(DigestType.MD5);
-        digest.update(new byte[2], 1, 0);
-        digest.update((ByteBuffer) ByteBuffer.allocate(1).put((byte) 1).flip());
-        digest.update(ByteBuffer.allocate(0));
-        ByteBuffer bb = (ByteBuffer) ByteBuffer.wrap(new byte[4]).position(2);
-        bb = bb.slice();
-        digest.update(bb);
+        assertThatCode(() -> {
+            final Digest digest = new Digest(DigestType.MD5);
+            digest.update(new byte[2], 1, 0);
+            digest.update((ByteBuffer) ByteBuffer.allocate(1).put((byte) 1).flip());
+            digest.update(ByteBuffer.allocate(0));
+            ByteBuffer bb = (ByteBuffer) ByteBuffer.wrap(new byte[4]).position(2);
+            bb = bb.slice();
+            digest.update(bb);
+        }).doesNotThrowAnyException();
     }
 
     @Test
@@ -187,7 +190,7 @@ public class DigestTest {
     @Test
     public void testError() throws IOException {
         try {
-            final DigestType digestType = DigestType.fromValue("unknown");
+            DigestType.fromValue("unknown");
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) {
             // Ignore

@@ -660,10 +660,8 @@ public class MongoDbInMemoryTest {
         mDIM.resetUpdatedAU();
         parser.parse(JsonHandler.getFromString(requestNonExistingSubSubField));
 
-        // When
-        mDIM.getUpdateJson(parser);
-
-        // Then : NO NPE
+        // When + Then : NO NPE
+        assertThatCode(() -> mDIM.getUpdateJson(parser)).doesNotThrowAnyException();
     }
 
     @Test

@@ -175,7 +175,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V94.xml");
+            assertEquals(Status.OK, client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V94.xml"));
         }
     }
 
@@ -238,7 +238,8 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            client.importRulesFile(new FakeInputStream(1), "jeu_donnees_KO_regles_CSV_StringToNumber.csv");
+            assertEquals(Status.OK,
+                    client.importRulesFile(new FakeInputStream(1), "jeu_donnees_KO_regles_CSV_StringToNumber.csv"));
         }
     }
 
@@ -249,7 +250,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            client.importAgenciesFile(new FakeInputStream(1), "vitam.conf");
+            assertEquals(Status.OK, client.importAgenciesFile(new FakeInputStream(1), "vitam.conf"));
         }
     }
 
@@ -322,10 +323,8 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            client.createOrUpdateAccessionRegister(
-                new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE)
-                    .setEndDate(DATE)
-                    .setLastUpdate(DATE));
+            assertEquals(Status.CREATED, client.createOrUpdateAccessionRegister(new AccessionRegisterDetailModel()
+                    .setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE).setLastUpdate(DATE)));
         }
     }
 
@@ -363,7 +362,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
+            assertEquals(Status.OK, client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY)));
         }
     }
 
@@ -390,7 +389,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+            assertEquals(Status.OK, client.getAccessionRegister(JsonHandler.getFromString(QUERY)));
         }
     }
 
@@ -696,6 +695,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
             .entity(new RequestResponseOK<ProfileModel>().addAllResults(getProfiles())).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             JsonNode resp = client.getAgencies(JsonHandler.createObjectNode());
+            assertNotNull(resp);
         }
     }
 

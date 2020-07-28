@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
@@ -285,7 +286,7 @@ public class VitamElasticsearchRepositoryTest {
     public void testRemoveNotExistsThenOK() throws DatabaseException {
         String id = GUIDFactory.newGUID().toString();
         Integer tenant = 0;
-        repository.remove(id, tenant);
+        assertThatCode(() -> repository.remove(id, tenant)).doesNotThrowAnyException();
     }
 
     @Test
