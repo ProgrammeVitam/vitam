@@ -629,7 +629,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             }
 
             return Response.status(st).entity(result).build();
-        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (final InvalidParseOperationException | IllegalArgumentException |
+                BadRequestException | InvalidCreateOperationException e) {
             LOGGER.debug(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -683,7 +684,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             }
             MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
             return asyncObjectStream(multipleMap, idObjectGroup, unitId);
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | BadRequestException | InvalidCreateOperationException e) {
             LOGGER.debug(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -941,14 +942,16 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     private String idObjectGroup(String idu)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException {
+            throws InvalidParseOperationException, AccessInternalClientServerException,
+            AccessInternalClientNotFoundException, AccessUnauthorizedException,
+            BadRequestException, InvalidCreateOperationException {
         // Select "Object from ArchiveUNit idu
         ParametersChecker.checkParameter("unit id is required", idu);
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addUsedProjection(OBJECT_TAG);
-            RequestResponse<JsonNode> response = client.selectUnitbyId(select.getFinalSelect(), idu);
+            select.addQueries(eq(VitamFieldsHelper.id(), idu));
+            RequestResponse<JsonNode> response = client.selectUnits(select.getFinalSelect());
             SanityChecker.checkJsonAll(response.toJsonNode());
             if (response.isOk()) {
                 JsonNode unit = ((RequestResponseOK<JsonNode>) response).getFirstResult();
