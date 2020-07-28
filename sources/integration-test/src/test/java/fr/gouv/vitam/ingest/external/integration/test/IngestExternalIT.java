@@ -84,6 +84,7 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -513,7 +514,7 @@ public class IngestExternalIT extends VitamRuleRunner {
         assertThat(((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getResults().size()).isEqualTo(1);
 
         // retrieve one unit we ingest
-        RequestResponse<JsonNode> units = getUnitsFromTitle("UnitA", ingestTenant, ACCESS_CONTRACT);
+        RequestResponse<JsonNode> units = getUnitsFromTitle("UnitB", ingestTenant, ACCESS_CONTRACT);
         List results = ((RequestResponseOK) units).getResults();
         assertNotNull(results);
         assertThat(results.size()).isGreaterThan(0);
@@ -525,11 +526,7 @@ public class IngestExternalIT extends VitamRuleRunner {
 
         final String queryDsql =
                 "{\n" +
-                        "  \"$projection\": {\n" +
-                        "    \"$fields\": {\n" +
-                        "      \"#id\": 1\n" +
-                        "    }\n" +
-                        "  }\n" +
+                        "  \"$projection\": {}\n" +
                         "}";
 
         // in the correct tenant we should find the unit
@@ -546,6 +543,18 @@ public class IngestExternalIT extends VitamRuleRunner {
                 .setAccessContract("newContract");
 
         assertThatCode(() -> accessExternalClient.selectUnitbyId(vitamContextAccessTenant,
+                JsonHandler.getFromString(queryDsql), unitId))
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Not Found");
+
+        result = accessExternalClient.selectObjectMetadatasByUnitId(vitamContextIngestTenant,
+                JsonHandler.getFromString(queryDsql), unitId);
+        assertTrue(result.isOk());
+        List<JsonNode> resultGots = ((RequestResponseOK<JsonNode>) result).getResults();
+        assertNotNull(resultGots);
+        assertThat(resultGots.size()).isGreaterThan(0);
+
+        assertThatCode(() -> accessExternalClient.selectObjectMetadatasByUnitId(vitamContextAccessTenant,
                 JsonHandler.getFromString(queryDsql), unitId))
                 .isInstanceOf(VitamClientException.class)
                 .hasMessageContaining("Not Found");
