@@ -112,6 +112,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class IngestContractImplTest {
 
@@ -339,18 +340,20 @@ public class IngestContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void testObjectNode() throws InvalidParseOperationException {
-        final ArrayNode object = JsonHandler.createArrayNode();
-        final ObjectNode msg = JsonHandler.createObjectNode();
-        msg.put("Status", "update");
-        msg.put("oldStatus", "INACTIF");
-        msg.put("newStatus", "ACTIF");
-        final ObjectNode msg2 = JsonHandler.createObjectNode();
-        msg2.put("LinkParentId", "update");
-        msg2.put("oldLinkParentId", "lqskdfjh");
-        msg2.put("newLinkParentId", "lqskdfjh");
-        object.add(msg);
-        object.add(msg2);
-        SanityChecker.sanitizeJson(object);
+        assertThatCode(() -> {
+            final ArrayNode object = JsonHandler.createArrayNode();
+            final ObjectNode msg = JsonHandler.createObjectNode();
+            msg.put("Status", "update");
+            msg.put("oldStatus", "INACTIF");
+            msg.put("newStatus", "ACTIF");
+            final ObjectNode msg2 = JsonHandler.createObjectNode();
+            msg2.put("LinkParentId", "update");
+            msg2.put("oldLinkParentId", "lqskdfjh");
+            msg2.put("newLinkParentId", "lqskdfjh");
+            object.add(msg);
+            object.add(msg2);
+            SanityChecker.sanitizeJson(object);
+        }).doesNotThrowAnyException();
     }
 
 

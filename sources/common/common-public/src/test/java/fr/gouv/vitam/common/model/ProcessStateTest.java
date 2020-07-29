@@ -32,30 +32,30 @@ import org.junit.Test;
 import javax.ws.rs.core.Response;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class ProcessStateTest {
 
     @Test
     public void pauseEvalPauseStateThenOK() throws Exception {
-        ProcessState.PAUSE.eval(ProcessState.PAUSE);
+        assertThatCode(() -> ProcessState.PAUSE.eval(ProcessState.PAUSE)).doesNotThrowAnyException();
     }
     @Test
     public void pauseEvalCompletedStateThenOK() throws Exception {
-        ProcessState.PAUSE.eval(ProcessState.COMPLETED);
+        assertThatCode(() -> ProcessState.PAUSE.eval(ProcessState.COMPLETED)).doesNotThrowAnyException();
     }
     @Test
     public void pauseEvalRunningStateThenOK() throws Exception {
-        ProcessState.PAUSE.eval(ProcessState.RUNNING);
+        assertThatCode(() -> ProcessState.PAUSE.eval(ProcessState.RUNNING)).doesNotThrowAnyException();
     }
-
 
     @Test
     public void runningEvalPauseStateThenOK() throws Exception {
-        ProcessState.RUNNING.eval(ProcessState.PAUSE);
+        assertThatCode(() -> ProcessState.RUNNING.eval(ProcessState.PAUSE)).doesNotThrowAnyException();
     }
     @Test
     public void runningEvalCompletedStateThenOK() throws Exception {
-        ProcessState.RUNNING.eval(ProcessState.COMPLETED);
+        assertThatCode(() -> ProcessState.RUNNING.eval(ProcessState.COMPLETED)).doesNotThrowAnyException();
     }
     @Test (expected = StateNotAllowedException.class)
     public void runningEvalRunningStateThenOK() throws Exception {
