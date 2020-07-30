@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -92,6 +93,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -323,8 +325,10 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            assertEquals(Status.CREATED, client.createOrUpdateAccessionRegister(new AccessionRegisterDetailModel()
-                    .setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE).setLastUpdate(DATE)));
+            int status = client.createOrUpdateAccessionRegister(new AccessionRegisterDetailModel()
+                .setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE).setEndDate(DATE).setLastUpdate(DATE))
+                .getStatus();
+            assertEquals(Status.CREATED, Status.fromStatusCode(status));
         }
     }
 
@@ -362,7 +366,9 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            assertEquals(Status.OK, client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY)));
+            RequestResponse<AccessionRegisterDetailModel> request =
+                client.getAccessionRegisterDetail("request", JsonHandler.getFromString(QUERY));
+            assertTrue(request.isOk());
         }
     }
 
@@ -389,7 +395,9 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            assertEquals(Status.OK, client.getAccessionRegister(JsonHandler.getFromString(QUERY)));
+            RequestResponse<AccessionRegisterSummaryModel> request =
+                client.getAccessionRegister(JsonHandler.getFromString(QUERY));
+            assertTrue(request.isOk());
         }
     }
 
