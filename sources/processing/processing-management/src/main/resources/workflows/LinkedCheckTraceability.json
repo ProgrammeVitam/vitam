@@ -1,0 +1,176 @@
+{
+  "id": "LINKED_CHECK",
+  "name": "Linked Check Traceability",
+  "identifier": "LINKED_CHECK_SECURISATION",
+  "typeProc": "AUDIT",
+  "comment": "Linked Check traceability Workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PREPARE_TRACEABILITY_LINKED_CHECK",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TRACEABILITY_LINKED_CHECK_PREPARE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PREPARE_STORAGE_STRATEGIES",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRACEABILITY_LINKED_CHECKS",
+      "behavior": "NOBLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "logbookOperations.jsonl",
+        "type": "LogbookOperation",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "RETRIEVE_SECURE_TRACEABILITY_DATA_FILE",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json"
+              },
+              {
+                "name": "digest.file",
+                "uri": "MEMORY:DIGEST.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECKS_SECURE_TRACEABILITY_DATA_HASHES",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json",
+                "optional": true
+              },
+              {
+                "name": "digest.file",
+                "uri": "MEMORY:DIGEST.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "traceability.file",
+                "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/TRACEABILITY_FILE.zip"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "EXTRACT_SECURE_TRACEABILITY_DATA_FILE",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "traceability.file",
+                "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/TRACEABILITY_FILE.zip",
+                "optional": true
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_MERKLE_TREE",
+            "behavior": "NOBLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json",
+                "optional": true
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECKS_SECURE_TRACEABILITY_DATA_STORAGELOG",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              },
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json",
+                "optional": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_FINALIZE_TRACEABILITY_LINKED_CHECKS",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF",
+        "element": "query.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TRACEABILITY_FINALIZATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryUri",
+                "uri": "WORKSPACE:query.json"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

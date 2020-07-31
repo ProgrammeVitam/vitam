@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Handler Utils class
@@ -43,6 +43,47 @@ public class HandlerUtils {
 
     private HandlerUtils() {
         // private constructor
+    }
+
+    /**
+     * Save the given map as specified by the rank output argument
+     *
+     * @param handlerIO the handler io
+     * @param object the data object to write
+     * @param rank the output rank
+     * @throws IOException if cannot write file in json format
+     * @throws ProcessingException if processing exception occurred
+     */
+    public static void save(HandlerIO handlerIO, Object object, int rank)
+        throws IOException, ProcessingException {
+        final String tmpFilePath = handlerIO.getOutput(rank).getPath();
+        final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
+        try {
+            JsonHandler.writeAsFile(object, firstMapTmpFile);
+        } catch (final InvalidParseOperationException e) {
+            throw new IOException(e);
+        }
+        handlerIO.addOutputResult(rank, firstMapTmpFile, true, false);
+    }
+
+    /**
+     * Save the given map as specified by the rank output argument
+     *
+     * @param handlerIO the handler io
+     * @param object the data object to write
+     * @param workspacePath path to workspace
+     * @throws IOException if cannot write file in json format
+     * @throws ProcessingException if processing exception occurred
+     */
+    public static void save(HandlerIO handlerIO, Object object, String workspacePath)
+        throws IOException, ProcessingException {
+        final File firstMapTmpFile = handlerIO.getNewLocalFile(workspacePath);
+        try {
+            JsonHandler.writeAsFile(object, firstMapTmpFile);
+        } catch (final InvalidParseOperationException e) {
+            throw new IOException(e);
+        }
+        handlerIO.transferFileToWorkspace(workspacePath,firstMapTmpFile,true,false);
     }
 
     /**
@@ -90,4 +131,5 @@ public class HandlerUtils {
 
         handlerIO.addOutputResult(rank, firstMapTmpFile, removeTmpFile, asyncIO);
     }
+
 }

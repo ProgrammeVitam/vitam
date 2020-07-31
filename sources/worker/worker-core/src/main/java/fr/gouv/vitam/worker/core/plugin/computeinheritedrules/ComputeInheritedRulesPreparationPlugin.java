@@ -111,7 +111,7 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
                 while (unitIterator.hasNext()) {
                     JsonNode unit = unitIterator.next();
                     String unitId = unit.get(VitamFieldsHelper.id()).asText();
-                    JsonLineModel entry = new JsonLineModel(unitId, null, null);
+                    JsonLineModel entry = new JsonLineModel(unitId);
                     unitWriter.addEntry(entry);
                 }
             }

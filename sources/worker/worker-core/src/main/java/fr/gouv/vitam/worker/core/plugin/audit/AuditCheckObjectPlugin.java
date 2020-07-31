@@ -136,7 +136,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws ProcessingStatusException {
         try {
-            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
+            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<>() {
             });
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load storage strategies datas", e);

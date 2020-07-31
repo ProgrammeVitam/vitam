@@ -256,6 +256,24 @@
     "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeObjectGroupLifecycleTraceabilityActionPlugin",
     "propertiesFile": "object_group_lfc_traceability_finalization_plugin.properties"
   },
+  "TRACEABILITY_LINKED_CHECK_PREPARE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.TraceabilityLinkedCheckPreparePlugin"
+  },
+  "RETRIEVE_SECURE_TRACEABILITY_DATA_FILE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.RetrieveSecureTraceabilityDataFilePlugin"
+  },
+  "CHECKS_SECURE_TRACEABILITY_DATA_HASHES": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.ChecksSecureTraceabilityDataHashesPlugin"
+  },
+  "EXTRACT_SECURE_TRACEABILITY_DATA_FILE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.ExtractSecureTraceabilityDataFilePlugin"
+  },
+  "CHECKS_SECURE_TRACEABILITY_DATA_STORAGELOG": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.ChecksSecureTaceabilityDataStoragelogPlugin"
+  },
+  "TRACEABILITY_FINALIZATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.TraceabilityFinalizationPlugin"
+  },
   "PRESERVATION_PREPARATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin"
   },

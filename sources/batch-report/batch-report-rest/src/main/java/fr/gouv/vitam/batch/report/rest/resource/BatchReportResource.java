@@ -39,6 +39,7 @@ import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
@@ -155,6 +156,10 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case EVIDENCE_AUDIT:
                     ReportBody<EvidenceAuditReportEntry> evidenceAuditReportBody = JsonHandler.getFromJsonNode(body, reportEvidenceAuditType);
                     batchReportServiceImpl.appendEvidenceAuditReport(evidenceAuditReportBody.getProcessId(), evidenceAuditReportBody.getEntries(), tenantId);
+                    break;
+                case TRACEABILITY:
+                    ReportBody<TraceabilityReportEntry> traceabilityReportEntry = JsonHandler.getFromJsonNode(body, ReportBody.class, TraceabilityReportEntry.class);
+                    batchReportServiceImpl.appendTraceabilityReport(traceabilityReportEntry.getProcessId(), traceabilityReportEntry.getEntries(), tenantId);
                     break;
                 case UNIT_COMPUTED_INHERITED_RULES_INVALIDATION:
                     ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> unitInvalidationReportEntry =
@@ -287,6 +292,9 @@ public class BatchReportResource extends ApplicationStatusResource {
                     break;
                 case EVIDENCE_AUDIT:
                     batchReportServiceImpl.deleteEvidenceAuditByIdAndTenant(processId, tenantId);
+                    break;
+                case TRACEABILITY:
+                    batchReportServiceImpl.deleteTraceabilityByIdAndTenant(processId, tenantId);
                     break;
                 case UNIT_COMPUTED_INHERITED_RULES_INVALIDATION:
                     batchReportServiceImpl.deleteUnitComputedInheritedRulesInvalidationReport(processId, tenantId);

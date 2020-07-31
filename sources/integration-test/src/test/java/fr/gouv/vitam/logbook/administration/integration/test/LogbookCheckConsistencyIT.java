@@ -26,17 +26,6 @@
  */
 package fr.gouv.vitam.logbook.administration.integration.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -99,6 +88,17 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Integration test of LogbookCheckConsistency services.
  */
@@ -157,7 +157,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
         VitamConfiguration.setPurgeTemporaryLFC(false);
 
-        cleanOffers();
+        VitamServerRunner.cleanOffers();
     }
 
     @AfterClass

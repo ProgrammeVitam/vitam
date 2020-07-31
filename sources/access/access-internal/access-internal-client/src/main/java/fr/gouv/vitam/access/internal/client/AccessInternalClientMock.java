@@ -159,6 +159,11 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
+    public RequestResponse<JsonNode> linkedCheckTraceability(JsonNode query) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        return null;
+    }
+
+    @Override
     public Response downloadTraceabilityFile(String operationId) {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);

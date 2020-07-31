@@ -226,6 +226,17 @@ public interface AccessInternalClient extends MockOrRestClient {
         throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
+     * Linked check traceability
+     *
+     * @param query to be executed
+     * @return a response containing a json node
+     * @throws LogbookClientServerException
+     * @throws AccessUnauthorizedException
+     */
+    RequestResponse<JsonNode> linkedCheckTraceability(JsonNode query)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
+
+    /**
      * @param operationId
      * @return a response containing the traceability file
      * @throws AccessUnauthorizedException

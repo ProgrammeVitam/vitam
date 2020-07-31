@@ -39,7 +39,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -91,6 +90,11 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public Object getInput(int rank) {
         return inputs.get(rank);
+    }
+
+    @Override
+    public <T> T getInput(int rank, Class<T> type) {
+        return type.cast(inputs.get(rank));
     }
 
     @Override

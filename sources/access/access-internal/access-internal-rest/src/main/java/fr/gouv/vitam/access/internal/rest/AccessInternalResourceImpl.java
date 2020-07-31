@@ -1328,7 +1328,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             workspaceClient.createContainer(operationId);
 
-            workspaceClient.putObject(operationId, "query.json", writeToInpustream(restrictedQuery));
+            workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(restrictedQuery));
 
             // store original query in workspace
             workspaceClient

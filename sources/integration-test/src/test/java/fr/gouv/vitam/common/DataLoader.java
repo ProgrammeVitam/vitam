@@ -61,12 +61,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -83,7 +79,6 @@ import static org.junit.Assert.assertTrue;
  */
 public class DataLoader {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataLoader.class);
-    private static final String OFFER_FOLDER = "offer";
 
     private final int tenant1 = 1;
     private final int tenantId = 0;
@@ -119,7 +114,7 @@ public class DataLoader {
 
     private void initialize() {
 
-        cleanOffers();
+        VitamServerRunner.cleanOffers();
 
         prepareVitamSession();
         LOGGER.error("++++++++ tryImportFile....");
@@ -135,8 +130,8 @@ public class DataLoader {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             List<OntologyModel> ontology = JsonHandler
                     .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                            new TypeReference<>() {
-                            });
+                        new TypeReference<>() {
+                        });
             try (InputStream externalOntologyStream = PropertiesUtils
                     .getResourceAsStream(dataFodler + "/addition_ext_ontology.json")) {
                 if (externalOntologyStream != null) {
@@ -292,23 +287,5 @@ public class DataLoader {
 
         waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
         return ingestOperationGuid.toString();
-    }
-
-    /**
-     * Clean offers content.
-     */
-    private static void cleanOffers() {
-        // ugly style but we don't have the digest herelo
-        File directory = new File(OFFER_FOLDER);
-        if (directory.exists()) {
-            try {
-                Files.walk(directory.toPath())
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            } catch (IOException | IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

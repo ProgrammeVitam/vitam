@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -40,6 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.WorkspaceConstants;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -84,7 +84,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         this(LogbookOperationsClientFactory.getInstance(), StorageClientFactory.getInstance());
     }
 
-    public PrepareTraceabilityCheckProcessActionHandler(
+    PrepareTraceabilityCheckProcessActionHandler(
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         StorageClientFactory storageClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -94,7 +94,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static String getId() {
         return HANDLER_ID;
     }
 
@@ -114,7 +114,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
                         JsonHandler.getFromString(param.getMapParameters().get(WorkerParameterName.logbookRequest))));
 
             List<ObjectNode> foundOperation = requestResponseOK.getResults();
-            if (foundOperation == null || foundOperation.isEmpty() || foundOperation.size() > 1) {
+            if (foundOperation == null || foundOperation.size() != 1) {
                 itemStatus.increment(StatusCode.KO);
                 return itemStatus;
             }
@@ -154,20 +154,22 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
                 storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, dataCategory,
                     AccessLogUtils.getNoLogAccessLog());
 
+            String zipContainer =
+                WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY + File.separator + param.getObjectName();
+
             // Idempotency - we check if a folder exist
-            if (workspaceClient.isExistingContainer(param.getContainerName())) {
+            if (workspaceClient.isExistingFolder(param.getContainerName(), zipContainer)) {
                 try {
-                    workspaceClient.deleteContainer(param.getContainerName(), true);
-                    LOGGER.warn("Container was already existing, step is being replayed");
+                    workspaceClient.deleteObject(param.getContainerName(), zipContainer);
+                    LOGGER.warn("folder was already existing, re-extracting audit zip");
                 } catch (ContentAddressableStorageNotFoundException e) {
-                    LOGGER.warn("The container could not be deleted", e);
+                    LOGGER.warn("The folder could not be deleted", e);
                 }
             }
 
             // 2- unzip file
-            handler.unzipInputStreamOnWorkspace(param.getContainerName(),
-                SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, CommonMediaType.ZIP,
-                response.readEntity(InputStream.class), false);
+            workspaceClient.uncompressObject(param.getContainerName(), zipContainer, CommonMediaType.ZIP,
+                response.readEntity(InputStream.class));
 
             // 3- Add Output result : eventDetailData
             extractTraceabilityOperationDetails(handler, traceabilityEvent);

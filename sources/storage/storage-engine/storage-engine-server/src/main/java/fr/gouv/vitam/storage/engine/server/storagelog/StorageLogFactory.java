@@ -240,19 +240,19 @@ public class StorageLogFactory implements StorageLog {
         } else {
             path = accessOperationLogPath;
         }
-        try (DirectoryStream<Path> paths = Files.newDirectoryStream(path, tenant + "_*.log")) {
-            for (Path filePath : paths) {
-
-                String filename = filePath.getFileName().toString();
-                Optional<LocalDateTime> localDateTime = tryParseCreationDateFromFileName(filename);
-                if (!localDateTime.isPresent()) {
-                    LOGGER.warn("Invalid storage log filename '" + filename + "'");
-                } else {
-                    previousLogFiles.add(new LogInformation(filePath, localDateTime.get(), now));
+        if (Files.exists(path)) {
+            try (DirectoryStream<Path> paths = Files.newDirectoryStream(path, tenant + "_*.log")) {
+                for (Path filePath : paths) {
+                    String filename = filePath.getFileName().toString();
+                    Optional<LocalDateTime> localDateTime = tryParseCreationDateFromFileName(filename);
+                    if (!localDateTime.isPresent()) {
+                        LOGGER.warn("Invalid storage log filename '" + filename + "'");
+                    } else {
+                        previousLogFiles.add(new LogInformation(filePath, localDateTime.get(), now));
+                    }
                 }
             }
         }
-
         return previousLogFiles;
     }
 

@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamHelper;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -79,7 +79,6 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -92,7 +91,6 @@ import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
-import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
@@ -105,7 +103,6 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -163,7 +160,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -1553,7 +1549,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private void runStepByStepUntilStepReached(String operationGuid, String targetStepName)
         throws VitamClientException, InternalServerException, InterruptedException, ProcessingException {
         try {
-            VitamHelper.runStepByStepUntilStepReached(operationGuid, targetStepName);
+            VitamTestHelper.runStepByStepUntilStepReached(operationGuid, targetStepName);
         } catch( VitamRuntimeException e){
             LOGGER.error(e.getMessage());
             tryLogLogbookOperation(operationGuid);
