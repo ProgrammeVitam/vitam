@@ -90,6 +90,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
     private static final String LOGBOOK_CHECK = "/traceability/check";
+    private static final String LOGBOOK_LINKED_CHECK = "/traceability/linkedcheck";
 
     private static final String OBJECTS = "objects/";
     private static final String DIPEXPORT = "dipexport/";
@@ -319,6 +320,22 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             if (response != null) {
                 response.close();
             }
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> linkedCheckTraceability(JsonNode query)
+        throws InvalidParseOperationException, LogbookClientException, AccessUnauthorizedException {
+        VitamRequestBuilder request = post().withPath(LOGBOOK_LINKED_CHECK).withJson().withBody(query);
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException e) {
+            throw new InvalidParseOperationException(e);
+        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException |
+            NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException |
+            ExpectationFailedClientException | PreconditionFailedClientException e) {
+            throw new LogbookClientException(e);
         }
     }
 

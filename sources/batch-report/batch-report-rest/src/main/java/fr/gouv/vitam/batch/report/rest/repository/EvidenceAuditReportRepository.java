@@ -115,7 +115,6 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
         reportResult.setNbKo(globalResults.getObjectGroupsCount().getNbKO() + globalResults.getUnitsCount().getNbKO() + globalResults.getObjectsCount().getNbKO());
         reportResult.setNbWarning(globalResults.getObjectGroupsCount().getNbWARNING() + globalResults.getUnitsCount().getNbWARNING() + globalResults.getObjectsCount().getNbWARNING());
 
-        reportResult.setTotal(reportResult.getNbKo() + reportResult.getNbOk() + reportResult.getNbWarning());
         return reportResult;
     }
 

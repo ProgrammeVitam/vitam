@@ -1,0 +1,23 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 2,
+    "offset": 0,
+    "limit": 2,
+    "size": 2
+  },
+  "$results": [
+    {
+      "_id": "aecaaaaaacc4hjizabv54alrxqcrb3qaaaaq",
+      "evId": "aecaaaaaacc4hjizabv54alrxqcrb3qaaaaq",
+      "evDetData": null
+    },
+    {
+      "_id": "aecaaaaaacc4hjizabv54alrxqct7aqaaaaq",
+      "evId": "aecaaaaaacc4hjizabv54alrxqct7aqaaaaq",
+      "evDetData": "{}"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

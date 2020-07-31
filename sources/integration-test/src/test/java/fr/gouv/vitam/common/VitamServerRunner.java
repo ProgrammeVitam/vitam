@@ -158,7 +158,6 @@ public class VitamServerRunner extends ExternalResource {
     public static final String PROCESSING_CONF = "common/processing.conf";
     public static final String CONFIG_WORKER_PATH = "common/worker.conf";
     public static final String FORMAT_IDENTIFIERS_CONF = "common/format-identifiers.conf";
-    public static final String OFFER_FOLDER = "offer";
     public static final String DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH =
         "/deployment/environments/antivirus/scan-dev.sh";
 
@@ -230,6 +229,10 @@ public class VitamServerRunner extends ExternalResource {
 
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/storage/"))) {
                 Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/storage/"));
+            }
+
+            if (Files.notExists(Paths.get(getOfferPath()))) {
+                Files.createDirectories(Paths.get(getOfferPath()));
             }
 
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"))) {
@@ -635,6 +638,7 @@ public class VitamServerRunner extends ExternalResource {
         List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         offerConfiguration.setMongoDbNodes(mongoDbNodes);
+        offerConfiguration.setStoragePath(Paths.get(getOfferPath()).toString());
         PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
         LOGGER.warn("=== VitamServerRunner start  DefaultOfferMain");
 
@@ -1095,7 +1099,7 @@ public class VitamServerRunner extends ExternalResource {
      */
     public static void cleanOffers() {
         // ugly style but we don't have the digest herelo
-        File directory = new File(OFFER_FOLDER);
+        File directory = new File(getOfferPath());
         if (directory.exists()) {
             try {
                 Files.walk(directory.toPath())
@@ -1108,6 +1112,7 @@ public class VitamServerRunner extends ExternalResource {
         }
     }
 
+
     public void startServers() {
         before();
     }
@@ -1115,4 +1120,9 @@ public class VitamServerRunner extends ExternalResource {
     public void stopServers() {
         after();
     }
+
+    public static final String getOfferPath() {
+        return VitamConfiguration.getVitamDataFolder() + "/offer/";
+    }
+
 }

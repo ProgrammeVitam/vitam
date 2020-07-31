@@ -174,6 +174,18 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                     } catch (final FileNotFoundException e) {
                         throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri.getPath(), e);
                     }
+                case WORKSPACE_OBJECT:
+                    try {
+                        // TODO P1 : remove optional when lazy file loading is implemented
+                        for (String objectId : objectIds) {
+                            input.put(objectId, findFileFromWorkspace(objectId + File.separator + uri.getPath(),
+                                in.getOptional()));
+                        }
+
+                        break;
+                    } catch (final FileNotFoundException e) {
+                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri.getPath(), e);
+                    }
                 case MEMORY:
                     for (String objectId : objectIds) {
                         input.put(objectId, memoryMap.get(String.format("%s.%s", uri.getPath(), objectId)));
@@ -200,6 +212,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             switch (out.getUri().getPrefix()) {
                 case MEMORY_SINGLE:
                 case WORKSPACE:
+                case WORKSPACE_OBJECT:
                 case MEMORY:
                     output.add(out.getUri());
                     break;
@@ -250,6 +263,11 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
+    public <T> T getInput(int rank, Class<T> type) {
+        return type.cast(input.get(currentObjectId).get(rank));
+    }
+
+    @Override
     public List<ProcessingUri> getOutput() {
         return output;
     }
@@ -285,6 +303,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 break;
             case VALUE:
                 // Ignore
+                break;
+            case WORKSPACE_OBJECT:
+                if (!(object instanceof File)) {
+                    throw new ProcessingException("Not a File but WORKSPACE out parameter: " + uri);
+                }
+                transferFileToWorkspace(currentObjectId + File.separator + uri.getPath(), (File) object, deleteLocal, asyncIO);
                 break;
             case WORKSPACE:
                 if (!(object instanceof File)) {

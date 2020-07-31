@@ -100,7 +100,10 @@ public class OfferCommonApplication {
 
             this.storageConfiguration =
                 PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME), StorageConfiguration.class);
-            if (!Strings.isNullOrEmpty(storageConfiguration.getStoragePath())) {
+            if (Strings.isNullOrEmpty(storageConfiguration.getStoragePath())) {
+                this.storageConfiguration
+                    .setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
+            }else {
                 this.storageConfiguration
                     .setStoragePath(FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath()));
             }

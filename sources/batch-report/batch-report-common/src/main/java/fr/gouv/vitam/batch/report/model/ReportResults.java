@@ -26,8 +26,11 @@
  */
 package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(value = {"total"}, allowGetters = true)
 public class ReportResults {
     @JsonProperty("OK")
     private Integer nbOk;
@@ -38,18 +41,14 @@ public class ReportResults {
     @JsonProperty("WARNING")
     private Integer nbWarning;
 
-    @JsonProperty("total")
-    private Integer total;
-
     public ReportResults() {
-        // Empty constructor for deserialization
+        this(0,0,0);
     }
 
-    public ReportResults(Integer nbOk, Integer nbKo, Integer nbWarning, Integer total) {
+    public ReportResults(Integer nbOk, Integer nbKo, Integer nbWarning) {
         this.nbOk = nbOk;
         this.nbKo = nbKo;
         this.nbWarning = nbWarning;
-        this.total = total;
     }
 
     public Integer getNbOk() {
@@ -76,13 +75,24 @@ public class ReportResults {
         this.nbWarning = nbWarning;
     }
 
+    @JsonGetter("total")
     public Integer getTotal() {
-        return total;
+        return this.nbOk + this.nbWarning + this.nbKo;
     }
 
-    public void setTotal(Integer total) {
-        this.total = total;
+    public void addOneStatus(String status, Integer count) {
+        switch (status) {
+            case "OK":
+                this.nbOk = count;
+                break;
+            case "WARNING":
+                this.nbWarning = count;
+                break;
+            case "KO":
+                this.nbKo = count;
+                break;
+            default:
+                throw new IllegalArgumentException("Status invalid " + status);
+        }
     }
-
-
 }

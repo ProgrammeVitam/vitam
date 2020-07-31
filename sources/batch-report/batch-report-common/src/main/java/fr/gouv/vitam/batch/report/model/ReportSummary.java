@@ -29,8 +29,6 @@ package fr.gouv.vitam.batch.report.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.time.LocalDateTime;
-
 public class ReportSummary {
 
     @JsonProperty("evStartDateTime")
@@ -52,7 +50,8 @@ public class ReportSummary {
         // Empty constructor for deserialization
     }
 
-    public ReportSummary(String startDate, String endDate, ReportType reportType, ReportResults vitamResults, JsonNode extendedInfo) {
+    public ReportSummary(String startDate, String endDate, ReportType reportType, ReportResults vitamResults,
+        JsonNode extendedInfo) {
         this.evStartDateTime = startDate;
         this.evEndDateTime = endDate;
         this.reportType = reportType;

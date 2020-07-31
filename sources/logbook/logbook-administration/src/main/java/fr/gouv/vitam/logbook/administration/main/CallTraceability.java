@@ -54,10 +54,8 @@ public class CallTraceability {
 
     /**
      * @param args ignored
-     * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientServerException if logbook server is unreachable
      */
-    public static void main(String[] args) throws InvalidParseOperationException, LogbookClientServerException {
+    public static void main(String[] args) {
         platformSecretConfiguration();
         try {
             File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);

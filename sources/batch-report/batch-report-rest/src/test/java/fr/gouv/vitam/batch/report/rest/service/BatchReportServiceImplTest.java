@@ -58,6 +58,7 @@ import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.TraceabilityReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
@@ -144,7 +145,7 @@ public class BatchReportServiceImplTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
     @Mock
-    public UpdateUnitReportRepository updateUnitMetadataReportEntry;
+    public UpdateUnitReportRepository updateUnitReportRepository;
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     @Mock
@@ -161,6 +162,8 @@ public class BatchReportServiceImplTest {
     private AuditReportRepository auditReportRepository;
     @Mock
     private EvidenceAuditReportRepository evidenceAuditReportRepository;
+    @Mock
+    private TraceabilityReportRepository traceabilityReportRepository;
     @Mock
     private UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository;
     @Mock
@@ -185,11 +188,11 @@ public class BatchReportServiceImplTest {
 
     @Before
     public void setUp() throws Exception {
-        batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
-                purgeUnitRepository, purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitMetadataReportEntry,
-                workspaceClientFactory,
-                preservationReportRepository, auditReportRepository, unitComputedInheritedRulesInvalidationRepository,
-                evidenceAuditReportRepository, extractedMetadataRepository);
+        batchReportServiceImpl = new BatchReportServiceImpl(workspaceClientFactory, eliminationActionUnitRepository, purgeUnitRepository,
+            purgeObjectGroupRepository, transferReplyUnitRepository,
+            updateUnitReportRepository, preservationReportRepository, auditReportRepository,
+            unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository,
+            traceabilityReportRepository, extractedMetadataRepository);
     }
 
 
@@ -314,7 +317,7 @@ public class BatchReportServiceImplTest {
         OperationSummary operationSummary =
                 new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(),
                         JsonHandler.createObjectNode());
-        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportResults reportResults = new ReportResults(1, 0, 0);
         ReportSummary reportSummary =
                 new ReportSummary(null, null, ReportType.PRESERVATION, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
@@ -364,7 +367,7 @@ public class BatchReportServiceImplTest {
         OperationSummary operationSummary =
                 new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(),
                         JsonHandler.createObjectNode());
-        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportResults reportResults = new ReportResults(1, 0, 0);
         ReportSummary reportSummary =
                 new ReportSummary(null, null, ReportType.AUDIT, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
@@ -410,7 +413,7 @@ public class BatchReportServiceImplTest {
         OperationSummary operationSummary =
                 new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "", JsonHandler.createObjectNode(),
                         JsonHandler.createObjectNode());
-        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportResults reportResults = new ReportResults(1, 0, 0);
         ReportSummary reportSummary =
                 new ReportSummary(null, null, ReportType.ELIMINATION_ACTION, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
@@ -453,7 +456,7 @@ public class BatchReportServiceImplTest {
         OperationSummary operationSummary =
                 new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "", JsonHandler.createObjectNode(),
                         JsonHandler.createObjectNode());
-        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportResults reportResults = new ReportResults(1, 0, 0);
         ReportSummary reportSummary =
                 new ReportSummary(null, null, ReportType.TRANSFER_REPLY, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
@@ -523,7 +526,7 @@ public class BatchReportServiceImplTest {
         OperationSummary operationSummary =
                 new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(),
                         JsonHandler.createObjectNode());
-        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportResults reportResults = new ReportResults(1, 0, 0);
         ReportSummary reportSummary =
                 new ReportSummary(null, null, ReportType.EVIDENCE_AUDIT, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();

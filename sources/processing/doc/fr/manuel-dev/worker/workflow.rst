@@ -20,6 +20,7 @@ Un Workflow est défini en JSON avec la structure suivante :
  - un modèle d'exécution (behavior) pouvant être :
    BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer le workflow
    NOBLOCKING : le traitement peut continuer malgrée les erreurs
+   FINALLY: le traitement est executé quelque soit la statut des traitements precedants
 
  - un modèle de distribution :
 
@@ -50,13 +51,15 @@ Un Workflow est défini en JSON avec la structure suivante :
 
 
           - WORKSPACE:path indique le chemin relatif sur le workspace
+          - WORKSPACE_OBJECT:path indique le chemin relatif sur un dossier intitulé au nom d'objet courant situé au workspace
           - MEMORY:path indique le nom de la clef de valeur
+          - MEMORY_SINGLE:path indique le nom de la clef de valeur
           - VALUE:path indique la valeur statique en entrée
 
        - chaque handler peut accéder à ces valeurs, définies dans l'ordre stricte, via le handlerIO
 
-          - WORKSPACE : implicitement un File
-          - MEMORY : implicitement un objet mémoire déjà alloué par un Handler précédent
+          - WORKSPACE, WOKSPACE_OBJECT : implicitement un File
+          - MEMORY, MEMORY_SINGLE : implicitement un objet mémoire déjà alloué par un Handler précédent
           - VALUE : implicitement une valeur String
 
     - des paramètres de sortie (out) :
@@ -65,13 +68,14 @@ Un Workflow est défini en JSON avec la structure suivante :
        - une cible (uri) comportant un schema (WORKSPACE, MEMORY) et un path :
 
           - WORKSPACE:path indique le chemin relatif sur le workspace
+          - WORKSPACE_OBJECT:path indique le chemin relatif sur un dossier intitulé au nom d'objet courant situé au workspace
           - MEMORY:path indique le nom de la clef de valeur
+          - MEMORY_SINGLE:path indique le nom de la clef de valeur
 
        - chaque handler peut stocker les valeurs finales, définies dans l'ordre stricte, via le handlerIO
 
-
-          - WORKSPACE : implicitement un File local
-          - MEMORY : implicitement un objet mémoire
+          - WORKSPACE, WORKSPACE_OBJECT : implicitement un File local
+          - MEMORY, MEMORY_SINGLE : implicitement un objet mémoire
 
 
 .. literalinclude:: includes/json

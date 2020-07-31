@@ -37,7 +37,6 @@ import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
@@ -87,6 +86,14 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @return the rank-th object
      */
     Object getInput(int rank);
+
+    /**
+     * Return one Object casted to type from input
+     *
+     * @param rank
+     * @return the rank-th object
+     */
+    <T> T getInput(int rank, Class<T> type);
 
     /**
      * @return list of output

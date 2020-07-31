@@ -116,16 +116,7 @@
             </Set>
         </New>
     </Set>
-
-    <Set name="RequestLog">
-        <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
-            <Set name="fileName">logback-access.xml</Set>
-        </New>
-    </Set>
-    <Ref id="RequestLogImpl">
-        <Call name="start"/>
-    </Ref>
-
+    
     <!-- =========================================================== -->
     <!-- extra server options                                        -->
     <!-- =========================================================== -->

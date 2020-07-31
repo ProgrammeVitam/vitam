@@ -18,5 +18,23 @@ X-Access-Contract-Id: {{access-contract}}
       }
     }
   ],
+  "$projection": {},
   "$threshold": 1000
+}
+
+### Lancement de l'audit de sécurisation sur la unit dont l'ID est aeeaaaaaachemhquabfyqaln3wpwptqaaaaq
+POST {{url}}/admin-external/v1/traceability/linkedchecks
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+    "$query": {
+       "$gt": {
+            "evDateTime": "2019-07-15T17:15:59.871"
+        }
+    },
+    "$filter": {},
+    "$projection": {}
 }

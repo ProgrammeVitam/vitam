@@ -94,7 +94,7 @@ public class AuditReportRepository extends ReportCommonRepository {
     }
 
     public ReportResults computeVitamResults(String processId, Integer tenantId) {
-        ReportResults reportResult = new ReportResults(0,0,0,0);
+        ReportResults reportResult = new ReportResults(0,0,0);
 
         Bson eqProcessId = eq(AuditObjectGroupModel.PROCESS_ID, processId);
         Bson eqTenant = eq(AuditObjectGroupModel.TENANT, tenantId);
@@ -119,7 +119,6 @@ public class AuditReportRepository extends ReportCommonRepository {
                 break;
             }
         }
-        reportResult.setTotal(reportResult.getNbKo() + reportResult.getNbOk() + reportResult.getNbWarning());
         return reportResult;
     }
 

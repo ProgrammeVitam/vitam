@@ -35,6 +35,7 @@ public enum UriPrefix {
      * Workspace based argument
      */
     WORKSPACE,
+    WORKSPACE_OBJECT,
     /**
      * Memory based argument
      */

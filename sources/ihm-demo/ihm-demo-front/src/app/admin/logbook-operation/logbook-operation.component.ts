@@ -239,6 +239,9 @@ export class LogbookOperationComponent extends PageComponent {
           logbookService.downloadReport(item.evIdProc);
           break;
         }
+        if (item.evType === "LINKED_CHECK_SECURISATION") {
+          logbookService.downloadBatchReport(item.evIdProc);
+        }
         break;
       case 'DATA_MIGRATION':
         logbookService.downloadReport(item.evIdProc);

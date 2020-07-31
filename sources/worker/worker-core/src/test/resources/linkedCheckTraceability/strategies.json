@@ -1,0 +1,14 @@
+[
+  {
+    "Copy": 1,
+    "id": "default",
+    "offers": [
+      {
+        "Enabled": true,
+        "id": "default",
+        "referent": true,
+        "status": "ACTIVE"
+      }
+    ]
+  }
+]
