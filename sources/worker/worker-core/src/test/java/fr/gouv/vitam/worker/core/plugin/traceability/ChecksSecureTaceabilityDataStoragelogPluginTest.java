@@ -245,6 +245,51 @@ public class ChecksSecureTaceabilityDataStoragelogPluginTest extends ActionHandl
         assertEquals(KO.name(), reportEntry.getStatus());
     }
 
+
+    @Test
+    public void test_when_multi_offer_without_error() throws Exception {
+        preapre();
+
+        final File strategiesFile = PropertiesUtils.getResourceFile(STRATEGIES_WITH_2_OFFRES_JSON);
+        when(handler.getInput(eq(0), eq(File.class))).thenReturn(strategiesFile);
+
+        when(storageClient
+            .exists(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
+                eq(Arrays.asList(DEFAULT_OFFER_ID,
+                    SECONDARY_OFFER_ID))))
+            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(storageClient.getInformation(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
+            eq(Arrays.asList(DEFAULT_OFFER_ID, SECONDARY_OFFER_ID)), anyBoolean())).thenReturn(
+            createObjectNode().setAll(
+                Map.of(DEFAULT_OFFER_ID,
+                    createObjectNode().put(DIGEST, HASH),
+                    SECONDARY_OFFER_ID,
+                    createObjectNode().put(DIGEST, HASH)
+                )
+            ));
+
+
+        Response response = mock(Response.class);
+        when(response.readEntity(eq(InputStream.class))).thenReturn(
+            new ByteArrayInputStream(FILE_CONTENT.getBytes())
+        );
+
+        when(storageClient
+            .getContainerAsync(anyString(), eq(FILE_NAME), eq(DataCategory.STORAGELOG), any(AccessLogInfoModel.class)))
+            .thenReturn(response);
+        // When
+        ItemStatus itemStatus = checksSecureTaceabilityDataStoragelogPlugin.execute(param, handler);
+
+        // Then
+        assertEquals(itemStatus.getGlobalStatus(), StatusCode.OK);
+        verify(storageClient).exists(anyString(), any(DataCategory.class), anyString(), anyList());
+        verify(storageClient).getContainerAsync(anyString(), anyString(), any(DataCategory.class), any());
+
+        JsonNode report = JsonHandler.getFromFile(reportTempFile);
+        TraceabilityReportEntry reportEntry = JsonHandler.getFromJsonNode(report, TraceabilityReportEntry.class);
+        assertEquals(OK.name(), reportEntry.getStatus());
+    }
+
     @Test
     public void should_verify_storage_operation_event_without_error() throws Exception {
         preapre();

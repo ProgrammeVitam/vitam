@@ -69,6 +69,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -150,8 +151,8 @@ public class ChecksSecureTaceabilityDataStoragelogPlugin extends ActionHandler {
                             storageStrategy.getId(), offerIds));
                 }
 
-                List<String> hashes =
-                    digests.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toList());
+                Set<String> hashes =
+                    digests.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toSet());
                 if (hashes.isEmpty()) {
                     ItemStatus result =
                         buildItemStatusWithMessage(PLUGIN_NAME, KO, "Error: unable to retrive all hashes!");
