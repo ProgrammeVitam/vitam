@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.WorkspaceConstants.ERROR_FLAG;
@@ -126,8 +127,8 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
                         storageStrategy.getId(), offerIds));
             }
 
-            List<String> hashes =
-                digests.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toList());
+            Set<String> hashes =
+                digests.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toSet());
             if (hashes.isEmpty()) {
                 ItemStatus result =
                     buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, "Error: unable to retrive all hashes!");

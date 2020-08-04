@@ -62,7 +62,7 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     private static final String STRATEGIES_JSON = "linkedCheckTraceability/strategies.json";
     private static final String STRATEGIES_WITH_2_OFFRES_JSON = "linkedCheckTraceability/strategies_with_2_offres.json";
 
-    private static final String STRATEGY_ID = "default";
+    private static final String DEFAULT_STRATEGY_ID = "default";
     private static final String DEFAULT_OFFER_ID = "default";
     private static final String SECONDARY_OFFER_ID = "secondary";
 
@@ -98,7 +98,7 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     public void test_when_security_file_doesnt_exists() throws Exception {
         // Given
         when(storageClient
-            .exists(eq(STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Collections.singletonList(
+            .exists(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Collections.singletonList(
                 DEFAULT_OFFER_ID))))
             .thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, false));
         // When
@@ -112,8 +112,8 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
         TraceabilityReportEntry reportEntry = JsonHandler.getFromJsonNode(report, TraceabilityReportEntry.class);
         assertEquals(TraceabilityType.OPERATION.name(), reportEntry.getOperationType());
         assertEquals(KO.name(), reportEntry.getStatus());
-        assertTrue(reportEntry.getOffersHashes().containsKey(STRATEGY_ID));
-        assertFalse(reportEntry.getOffersHashes().get(STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
+        assertTrue(reportEntry.getOffersHashes().containsKey(DEFAULT_STRATEGY_ID));
+        assertFalse(reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
         assertEquals(FILE_NAME, reportEntry.getFileId());
     }
 
@@ -121,10 +121,10 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     public void test_when_hashes_are_empty() throws Exception {
         // Given
         when(storageClient
-            .exists(eq(STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Collections.singletonList(
+            .exists(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Collections.singletonList(
                 DEFAULT_OFFER_ID))))
             .thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, true));
-        when(storageClient.getInformation(eq(STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
+        when(storageClient.getInformation(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
             eq(Collections.singletonList(DEFAULT_OFFER_ID)), anyBoolean())).thenReturn(
             createObjectNode()
         );
@@ -139,8 +139,8 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
         TraceabilityReportEntry reportEntry = JsonHandler.getFromJsonNode(report, TraceabilityReportEntry.class);
         assertEquals(TraceabilityType.OPERATION.name(), reportEntry.getOperationType());
         assertEquals(KO.name(), reportEntry.getStatus());
-        assertTrue(reportEntry.getOffersHashes().containsKey(STRATEGY_ID));
-        assertFalse(reportEntry.getOffersHashes().get(STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
+        assertTrue(reportEntry.getOffersHashes().containsKey(DEFAULT_STRATEGY_ID));
+        assertFalse(reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
         assertEquals(FILE_NAME, reportEntry.getFileId());
     }
 
@@ -150,11 +150,11 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
         when(handler.getInput(eq(0), eq(File.class))).thenReturn(strategiesFile);
 
         when(storageClient
-            .exists(eq(STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Arrays.asList(DEFAULT_OFFER_ID,
+            .exists(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Arrays.asList(DEFAULT_OFFER_ID,
                 SECONDARY_OFFER_ID))))
             .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
         String fakeHash = "HASH";
-        when(storageClient.getInformation(eq(STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
+        when(storageClient.getInformation(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
             eq(Arrays.asList(DEFAULT_OFFER_ID, SECONDARY_OFFER_ID)), anyBoolean())).thenReturn(
             createObjectNode().setAll(
                 Map.of(DEFAULT_OFFER_ID,
@@ -175,11 +175,53 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
         TraceabilityReportEntry reportEntry = JsonHandler.getFromJsonNode(report, TraceabilityReportEntry.class);
         assertEquals(TraceabilityType.OPERATION.name(), reportEntry.getOperationType());
         assertEquals(KO.name(), reportEntry.getStatus());
-        assertTrue(reportEntry.getOffersHashes().containsKey(STRATEGY_ID));
-        assertTrue(reportEntry.getOffersHashes().get(STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
-        assertEquals(HASH, reportEntry.getOffersHashes().get(STRATEGY_ID).get(DEFAULT_OFFER_ID));
-        assertTrue(reportEntry.getOffersHashes().get(STRATEGY_ID).containsKey(SECONDARY_OFFER_ID));
-        assertEquals(fakeHash, reportEntry.getOffersHashes().get(STRATEGY_ID).get(SECONDARY_OFFER_ID));
+        assertTrue(reportEntry.getOffersHashes().containsKey(DEFAULT_STRATEGY_ID));
+        assertTrue(reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
+        assertEquals(HASH, reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).get(DEFAULT_OFFER_ID));
+        assertTrue(reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).containsKey(SECONDARY_OFFER_ID));
+        assertEquals(fakeHash, reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).get(SECONDARY_OFFER_ID));
+        assertEquals(FILE_NAME, reportEntry.getFileId());
+    }
+
+    @Test
+    public void test_when_multi_offer_without_error() throws Exception {
+        final File strategiesFile = PropertiesUtils.getResourceFile(STRATEGIES_WITH_2_OFFRES_JSON);
+        when(handler.getInput(eq(0), eq(File.class))).thenReturn(strategiesFile);
+
+        when(storageClient
+            .exists(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Arrays.asList(DEFAULT_OFFER_ID,
+                SECONDARY_OFFER_ID))))
+            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(storageClient.getInformation(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
+            eq(Arrays.asList(DEFAULT_OFFER_ID, SECONDARY_OFFER_ID)), anyBoolean())).thenReturn(
+            createObjectNode().setAll(
+                Map.of(DEFAULT_OFFER_ID,
+                    createObjectNode().put(DIGEST, HASH),
+                    SECONDARY_OFFER_ID,
+                    createObjectNode().put(DIGEST, HASH)
+                )
+            ));
+
+        when(handler.getOutput(anyInt())).thenReturn(mock(ProcessingUri.class));
+
+        final File handlerTempFile = temporaryFolder.newFile(HANDLER_OUTPUT_FILE_NAME);
+        when(handler.getNewLocalFile(eq(null))).thenReturn(handlerTempFile);
+        // When
+        ItemStatus itemStatus = retrieveSecureTraceabilityDataFilePlugin.execute(param, handler);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        //check report file
+        JsonNode report = JsonHandler.getFromFile(reportTempFile);
+        TraceabilityReportEntry reportEntry = JsonHandler.getFromJsonNode(report, TraceabilityReportEntry.class);
+        assertEquals(TraceabilityType.OPERATION.name(), reportEntry.getOperationType());
+        assertEquals(OK.name(), reportEntry.getStatus());
+        assertTrue(reportEntry.getOffersHashes().containsKey(DEFAULT_STRATEGY_ID));
+        assertTrue(reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
+        assertEquals(HASH, reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).get(DEFAULT_OFFER_ID));
+        assertTrue(reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).containsKey(SECONDARY_OFFER_ID));
+        assertEquals(HASH, reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).get(SECONDARY_OFFER_ID));
         assertEquals(FILE_NAME, reportEntry.getFileId());
     }
 
@@ -187,10 +229,10 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     public void should_extract_digest_without_error() throws Exception {
         // Given
         when(storageClient
-            .exists(eq(STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Collections.singletonList(
+            .exists(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME), eq(Collections.singletonList(
                 DEFAULT_OFFER_ID))))
             .thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, true));
-        when(storageClient.getInformation(eq(STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
+        when(storageClient.getInformation(eq(DEFAULT_STRATEGY_ID), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
             eq(Collections.singletonList(DEFAULT_OFFER_ID)), anyBoolean())).thenReturn(
             createObjectNode().set(DEFAULT_OFFER_ID,
                 createObjectNode().put(DIGEST, HASH)
@@ -211,9 +253,9 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
         TraceabilityReportEntry reportEntry = JsonHandler.getFromJsonNode(report, TraceabilityReportEntry.class);
         assertEquals(TraceabilityType.OPERATION.name(), reportEntry.getOperationType());
         assertEquals(OK.name(), reportEntry.getStatus());
-        assertTrue(reportEntry.getOffersHashes().containsKey(STRATEGY_ID));
-        assertTrue(reportEntry.getOffersHashes().get(STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
-        assertEquals(HASH, reportEntry.getOffersHashes().get(STRATEGY_ID).get(DEFAULT_OFFER_ID));
+        assertTrue(reportEntry.getOffersHashes().containsKey(DEFAULT_STRATEGY_ID));
+        assertTrue(reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).containsKey(DEFAULT_OFFER_ID));
+        assertEquals(HASH, reportEntry.getOffersHashes().get(DEFAULT_STRATEGY_ID).get(DEFAULT_OFFER_ID));
         assertEquals(FILE_NAME, reportEntry.getFileId());
     }
 }
