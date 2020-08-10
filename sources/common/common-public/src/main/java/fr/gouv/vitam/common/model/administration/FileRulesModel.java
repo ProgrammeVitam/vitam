@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.model.administration;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.FileRules}
@@ -196,20 +197,39 @@ public class FileRulesModel {
 
     @Override
     public boolean equals(Object obj) {
-        boolean same = false;
         if (this == obj) {
             return true;
         }
-        if (obj != null && obj instanceof FileRulesModel) {
+
+        if (obj instanceof FileRulesModel) {
             final FileRulesModel objectToCompare = (FileRulesModel) obj;
-            if (this.getRuleId().equals(objectToCompare.getRuleId())) {
-                same = true;
+            if (!StringUtils.equals(this.ruleDuration, objectToCompare.getRuleDuration())) {
+                return false;
             }
+
+            if (!StringUtils.equals(this.ruleMeasurement, objectToCompare.getRuleMeasurement())) {
+                return false;
+            }
+
+            if (!StringUtils.equals(this.ruleDescription, objectToCompare.getRuleDescription())) {
+                return false;
+            }
+
+            if (!StringUtils.equals(this.ruleValue, objectToCompare.getRuleValue())) {
+                return false;
+            }
+
+            return StringUtils.equals(this.ruleType, objectToCompare.getRuleType());
         }
-        return same;
+
+        return false;
     }
 
-    @Override
+    public boolean hasSameRuleId(FileRulesModel rule) {
+        return rule != null && rule.getRuleId().equals(this.ruleId);
+    }
+
+        @Override
     public String toString() {
         return "ruleId=" + ruleId + ", ruleType=" + ruleType +
                 ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +

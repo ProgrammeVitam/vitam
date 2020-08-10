@@ -35,4 +35,13 @@ public enum RuleType {
     DisseminationRule,
     ClassificationRule,
     ReuseRule;
+
+    public static RuleType getEnumFromName(String name) {
+        for (final RuleType e : values()) {
+            if (e.name().equalsIgnoreCase(name)) {
+                return e;
+            }
+        }
+        return null;
+    }
 }

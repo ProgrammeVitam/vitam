@@ -26,10 +26,15 @@
  */
 package fr.gouv.vitam.functional.administration.common.exception;
 
+import fr.gouv.vitam.functional.administration.common.ErrorReport;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * Exception throw when rule duration is inferior than duration in configuration
  */
-public class FileRulesDurationException extends ReferentialException {
+public class FileRulesDurationException extends FileRulesReadException {
     /**
      * @param message message to associate with the exception
      * @param cause   cause to associate with the exception
@@ -52,4 +57,7 @@ public class FileRulesDurationException extends ReferentialException {
         super(cause);
     }
 
+    public FileRulesDurationException(String message, Map<Integer, List<ErrorReport>> errorsMap) {
+        super(message, errorsMap);
+    }
 }
