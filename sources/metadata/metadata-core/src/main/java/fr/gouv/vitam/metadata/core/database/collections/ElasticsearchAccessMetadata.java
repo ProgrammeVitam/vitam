@@ -147,7 +147,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (scrollId != null && !scrollId.isEmpty()) {
             resultRequest.setScrollId(response.getScrollId());
             SearchHits hits = response.getHits();
-            if (hits.getTotalHits().relation == TotalHits.Relation.EQUAL_TO) {
+            if (hits.getHits().length == 0) {
                 //Release search contexts as soon as they are not necessary anymore using the Clear Scroll API.
                 try {
                     super.clearScroll(response.getScrollId());

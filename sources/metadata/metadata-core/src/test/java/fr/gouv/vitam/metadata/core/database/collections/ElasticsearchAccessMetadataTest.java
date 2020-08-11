@@ -58,8 +58,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ElasticsearchAccessMetadataTest {
     @Rule
@@ -69,7 +72,6 @@ public class ElasticsearchAccessMetadataTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
 
     private static final Integer TENANT_ID_0 = 0;
@@ -169,20 +171,60 @@ public class ElasticsearchAccessMetadataTest {
         List<Query> queries = parser.getRequest().getQueries();
         DynamicParserTokens parserTokens =
             new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
-        for (Query elasticQuery : queries) {
-            SortBuilder sortBuilder = new FieldSortBuilder("_max");
-            sortBuilder.order(SortOrder.DESC);
-            sorts.add(sortBuilder);
-            BoolQueryBuilder queryBuilder = new BoolQueryBuilder()
-                .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
-            // When
-            Result result = elasticsearchAccessMetadata
-                .search(MetadataCollections.UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
-                    10_000, null, "START", 0);
-            // Then
-            assertThat(result.getNbResult()).isEqualTo(2);
-            assertThat(result.getCurrentIds().indexOf(id)).isEqualTo(1);
-            assertThat(result.getCurrentIds().indexOf(id2)).isEqualTo(0);
+        Query elasticQuery = queries.get(0);
+        SortBuilder sortBuilder = new FieldSortBuilder("_max");
+        sortBuilder.order(SortOrder.DESC);
+        sorts.add(sortBuilder);
+        BoolQueryBuilder queryBuilder = new BoolQueryBuilder()
+            .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
+        // When
+        Result result = elasticsearchAccessMetadata
+            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
+                10_000, null, "START", 0);
+        // Then
+        assertThat(result.getNbResult()).isEqualTo(2);
+        assertThat(result.getCurrentIds().indexOf(id)).isEqualTo(1);
+        assertThat(result.getCurrentIds().indexOf(id2)).isEqualTo(0);
+
+        // Test clear scroll ony if no result found
+        queryBuilder = new BoolQueryBuilder()
+            .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
+
+        // As limit == 1, first call should return only 1 document even 2 documents found
+        result = elasticsearchAccessMetadata
+            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
+                1, null, "START", 5000);
+
+        assertThat(result.getNbResult()).isEqualTo(1);
+        assertThat(result.getTotal()).isEqualTo(2);
+        assertThat(result.getCurrentIds()).contains(id2);
+
+
+
+        // Next result should return the remaining documents
+        result = elasticsearchAccessMetadata
+            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
+                1, null, result.scrollId, 5000);
+
+        assertThat(result.getNbResult()).isEqualTo(1);
+        assertThat(result.getTotal()).isEqualTo(2);
+        assertThat(result.getCurrentIds()).contains(id);
+
+        // Third call result should be empty
+        result = elasticsearchAccessMetadata
+            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
+                1, null, result.scrollId, 5000);
+
+        assertThat(result.getNbResult()).isEqualTo(0);
+
+        // Last call should fail as scroll is cleared event scrollTimeout = 5000
+        try {
+            result = elasticsearchAccessMetadata
+                .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
+                    1, null, result.scrollId, 5000);
+            fail("should throw an exception (scroll id not found)");
+        } catch (Exception e) {
+            // Elasticsearch exception [type=search_context_missing_exception, reason=No search context found for id]
         }
 
         elasticsearchAccessMetadata
