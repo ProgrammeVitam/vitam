@@ -192,13 +192,16 @@ public class WorkspaceProcessDataManagementTest {
     @Test
     public void removeProcessWorkflowTestOK() throws Exception {
         doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
+        doReturn(true).when(workspaceClient).isExistingObject(anyString(), anyString());
         processDataManagement.removeProcessWorkflow("folder", "asyncId");
+        verify(workspaceClient).deleteObject(anyString(), anyString());
     }
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
-    public void removeProcessWorkflowTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).deleteObject(anyString(),
-            anyString());
+    public void removeProcessWorkflowTestKO() throws Exception {
+        doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
+        doThrow(new ContentAddressableStorageServerException("Exception")).when(workspaceClient)
+            .isExistingObject(anyString(), anyString());
         processDataManagement.removeProcessWorkflow("folder", "asyncId");
     }
 
