@@ -55,6 +55,8 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
@@ -88,17 +90,15 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException {
-        ItemStatus itemStatus = buildItemStatus(PLUGIN_NAME, StatusCode.STARTED);
+        ItemStatus itemStatus = new ItemStatus(PLUGIN_NAME);
         JsonNode dslQuery = filterQuery(handler.getJsonFromWorkspace(WorkspaceConstants.QUERY));
         File logbookOperationDistributionFile = handler.getNewLocalFile(LOGBOOK_OPERATIONS_JSONL_FILE);
+
+        List<String> skippedOperations = new ArrayList<>();
+
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookOperations = logbookOperationsClient.selectOperation(dslQuery);
             JsonNode results = logbookOperations.get(TAG_RESULTS);
-
-            if (results == null || results.isEmpty()) {
-                return buildItemStatus(PLUGIN_NAME, StatusCode.KO,
-                    PluginHelper.EventDetails.of("Operations list is empty"));
-            }
 
             try (JsonLineWriter logbookOperationsWriter = new JsonLineWriter(
                 new FileOutputStream(logbookOperationDistributionFile))) {
@@ -108,9 +108,7 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
                     JsonNode eventDetail = JsonHandler
                         .getFromString(logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()).asText());
                     if (eventDetail instanceof NullNode || eventDetail.isEmpty()) {
-                        itemStatus.setItemsStatus(buildItemStatus(PLUGIN_NAME, StatusCode.WARNING,
-                            PluginHelper.EventDetails
-                                .of("Some operations does not contain data. so they are skipped !")));
+                        skippedOperations.add(logbookOperation.get(LogbookEvent.EV_ID).asText());
                     } else {
                         JsonLineModel entry =
                             new JsonLineModel(logbookOperation.get(LogbookEvent.EV_ID).textValue(), null, eventDetail);
@@ -120,11 +118,22 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
             }
             handler
                 .transferFileToWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE, logbookOperationDistributionFile, true, false);
+
+
         } catch (IOException | LogbookClientException | InvalidParseOperationException e) {
             return buildItemStatus(PLUGIN_NAME, StatusCode.FATAL, e.getMessage());
         } finally {
             FileUtils.deleteQuietly(logbookOperationDistributionFile);
         }
+
+        if (!skippedOperations.isEmpty()) {
+            itemStatus.setItemsStatus(buildItemStatus(PLUGIN_NAME, StatusCode.WARNING,
+                PluginHelper.EventDetails
+                    .of(String.format("These operations %s does not contains data. they will be skipped !",
+                        skippedOperations.toString()))));
+            return itemStatus;
+        }
+
         itemStatus.setItemsStatus(buildItemStatus(PLUGIN_NAME, StatusCode.OK));
         return itemStatus;
     }

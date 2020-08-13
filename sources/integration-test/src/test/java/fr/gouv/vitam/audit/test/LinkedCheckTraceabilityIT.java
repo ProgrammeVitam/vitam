@@ -269,13 +269,33 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void should_execute_linked_check_traceability_audit_workflow_with_warning() {
+    public void give_an_operation_with_null_data_should_execute_linked_check_traceability_audit_workflow_with_warning() {
         VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
         List<String> secureOpGUID = new ArrayList<>();
         // run operations to audit
         secureOpGUID.add(secureStorageData());
 
         // run LinkedCheckTraceabilityWorkflow
+        JsonNode query = buildQuery(secureOpGUID);
+        String opId = runLinkedCheckTraceability(query);
+
+        VitamTestHelper.verifyOperation(opId, StatusCode.WARNING);
+
+        List<JsonNode> report = VitamTestHelper.getReports(opId);
+        assertEquals(report.size(), 3);
+        assertEquals(ReportStatus.WARNING.name(), report.get(0).get(LogbookEvent.OUTCOME).asText());
+        assertEquals(String.format("%s.%s", ProcessDistributor.OBJECTS_LIST_EMPTY, StatusCode.WARNING),
+            report.get(0).get(LogbookEvent.OUT_DETAIL).asText());
+        assertEquals(ReportType.TRACEABILITY.name(), report.get(1).get("reportType").asText());
+        assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_empty_query_result_should_execute_linked_check_traceability_audit_workflow_with_warning() {
+        VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
+        List<String> secureOpGUID = new ArrayList<>();
+        secureOpGUID.add("");
         JsonNode query = buildQuery(secureOpGUID);
         String opId = runLinkedCheckTraceability(query);
 
