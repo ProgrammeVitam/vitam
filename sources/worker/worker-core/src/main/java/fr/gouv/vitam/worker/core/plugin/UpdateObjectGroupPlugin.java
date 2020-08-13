@@ -44,7 +44,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-//FIXME: As OG_METADATA_STORAGE create a json file in the folder ObjectGroup in the workspace, so for the next steps it will be included in the distribution,  this step should be positioned just before STP_ACCESSION_REGISTRATION and finally step.
+//FIXME: As OG_METADATA_STORAGE create a json file in the folder ObjectGroup in the workspace, so for the next steps it will be included in the distribution,  this step should be positioned just before STP_ACCESSION_REGISTRATION and final step.
 /**
  * This plugin, add diff (some original object group data) to item status, so, WorkerImpl can create a GOT LFC with those information
  *

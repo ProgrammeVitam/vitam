@@ -58,7 +58,6 @@ import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +77,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private static final AlertService alertService = new AlertServiceImpl();
 
-    private int stepIndex = -1;
+    private int stepIndex = 0;
     private ProcessStep currentStep = null;
     private CompletableFuture<Boolean> waitMonitor;
     private final ProcessWorkflow processWorkflow;
@@ -87,6 +86,9 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     private final ProcessDataManagement dataManagement;
 
     private final WorkspaceClientFactory workspaceClientFactory;
+
+    @VisibleForTesting
+    private static final long TIMEOUT = 30;
 
     public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
         this(processWorkflow, processEngine, WorkspaceProcessDataManagement.getInstance(),
@@ -119,16 +121,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         int stepSize = processWorkflow.getSteps().size();
 
-        final Iterator<ProcessStep> it = processWorkflow.getSteps().iterator();
-        while (it.hasNext()) {
-            final ProcessStep step = it.next();
-
+        for (ProcessStep step : processWorkflow.getSteps()) {
             final PauseOrCancelAction pauseOrCancelAction = step.getPauseOrCancelAction();
             final StatusCode stepStatus = step.getStepStatusCode();
 
-            // If step action cancel needed then goto the finally step
+            // If step action cancel needed then goto the final step
             if (ACTION_CANCEL.equals(pauseOrCancelAction)) {
-                stepIndex = stepSize - 2;
+                stepIndex = stepSize - 1;
                 break;
             }
 
@@ -140,11 +139,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
 
             if (step.isBlockingKO()) {
-                stepIndex = stepSize - 2;
+                stepIndex = stepSize - 1;
                 break;
             }
 
-            if (PauseOrCancelAction.ACTION_COMPLETE.equals(pauseOrCancelAction)) {
+            if (PauseOrCancelAction.ACTION_COMPLETE.equals(pauseOrCancelAction) && stepIndex + 1 < stepSize) {
                 stepIndex++;
                 continue;
             }
@@ -156,16 +155,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             break;
         }
 
-
-        // This initialization is need for to be able to handle cancel and pause action.
-        int currentIndex = stepSize > stepIndex + 1 ? stepIndex + 1 : stepIndex;
-
-        currentStep = this.processWorkflow.getSteps().get(currentIndex);
-
-        if (StatusCode.FATAL.equals(this.processWorkflow.getStatus())) {
-            // replayAfterFatal will decrement then increment step index
-            stepIndex = currentIndex;
-        }
+        currentStep = this.processWorkflow.getSteps().get(stepIndex);
     }
 
     @Override
@@ -263,11 +253,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         if (!isLastStep()) {
-            switch (processWorkflow.getTargetState()) {
-                case COMPLETED:
-                    break;
-                default:
-                    this.processWorkflow.setTargetState(ProcessState.PAUSE);
+            if (processWorkflow.getTargetState() != ProcessState.COMPLETED) {
+                this.processWorkflow.setTargetState(ProcessState.PAUSE);
             }
 
             // Tell distributor to immediately pause current step if the current step is not ActionComplete or ActionCancel
@@ -287,7 +274,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         if (PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(pauseRecover)) {
             try {
-                this.waitMonitor.get(30, TimeUnit.SECONDS);
+                this.waitMonitor.get(TIMEOUT, TimeUnit.SECONDS);
             } catch (Exception e) {
                 String msg = "[StateMachine] The operation " + processWorkflow.getOperationId() +
                     " is not completed properly. To be safe, all workers must be restarted before starting processing > ";
@@ -304,12 +291,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     protected void doCancel() {
         var currentStatus = this.processWorkflow.getStatus();
         this.processWorkflow.setTargetState(ProcessState.COMPLETED);
-        // Needed if retry after fatal in the finally step
+        // Needed if retry after fatal in the final step
         this.processWorkflow.setTargetStatus(StatusCode.KO);
         this.processWorkflow.setStatus(StatusCode.KO);
 
         tryPersistProcessWorkflow();
-        //FIXME: We can't force cancel on finally step as we have, for any case, execute the finally step
+        //FIXME: We can't force cancel on final step as we have, for any case, execute the final step
         if (isRunning()) {
             if (!isLastStep()) {
                 // Tell distributor to immediately cancel current step
@@ -325,11 +312,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 this.processWorkflow.setState(ProcessState.COMPLETED);
                 finalizeOperation();
             } else {
-                // Execute the finally step
+                // Execute the final step
                 this.processWorkflow.setState(ProcessState.RUNNING);
                 final WorkerParameters workerParameters =
                     WorkerParametersFactory.newWorkerParameters().setMap(processWorkflow.getParameters());
-                this.executeFinallyStep(workerParameters);
+                this.executeFinalStep(workerParameters);
             }
         }
     }
@@ -388,29 +375,24 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     protected void findAndExecuteNextStep(WorkerParameters workerParameters, PauseRecover pauseRecover,
         boolean replayCurrentStep) {
 
-        boolean replayAfterFatal = StatusCode.FATAL.equals(processWorkflow.getStatus());
-
-        if ((replayCurrentStep || replayAfterFatal) && stepIndex >= 0) {
+        if (replayCurrentStep && stepIndex > 0) {
             stepIndex--;
         }
 
-        // Always increment to execute the next step
-        stepIndex++;
-
-        // If, for any reason, the current step is blocking KO or ACTION_CANCEL then goto the finally step
+        // If, for any reason, the current step is blocking KO or ACTION_CANCEL then goto the final step
         boolean cancelRequired = ACTION_CANCEL.equals(currentStep.getPauseOrCancelAction());
-        boolean mustExecuteTheFinallyStep =
+        boolean mustExecuteTheFinalStep =
             (!replayCurrentStep && currentStep.isBlockingKO() && !isLastStep()) || cancelRequired;
 
-        if (mustExecuteTheFinallyStep) {
-            executeFinallyStep(workerParameters);
+        if (mustExecuteTheFinalStep) {
+            executeFinalStep(workerParameters);
             return;
         }
 
         currentStep = this.processWorkflow.getSteps().get(stepIndex);
 
         boolean paused = currentStep.getPauseOrCancelAction().equals(ACTION_PAUSE);
-        if (replayAfterFatal || paused) {
+        if (paused) {
             currentStep.setPauseOrCancelAction(ACTION_RECOVER);
             processWorkflow.setPauseRecover(RECOVER_FROM_API_PAUSE);
         } else {
@@ -438,12 +420,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     /**
-     * Execute the finally step of the workflow Update global status of the workflow Persist the process workflow
+     * Execute the final step of the workflow Update global status of the workflow Persist the process workflow
      *
      * @param workerParameters
      */
-    protected void executeFinallyStep(WorkerParameters workerParameters) {
-        // FIXME bug 4843
+    protected void executeFinalStep(WorkerParameters workerParameters) {
         this.tryPersistProcessWorkflow();
         stepIndex = this.processWorkflow.getSteps().size() - 1;
         currentStep = this.processWorkflow.getSteps().get(stepIndex);
@@ -493,7 +474,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      */
     private void recomputeProcessWorkflowStatus(StatusCode statusCode) {
         StatusCode computedStatus = statusCode;
-        for (int i = 0; i < stepIndex; i++) {
+        for (int i = 0; i <= stepIndex; i++) {
             StatusCode previousStatusCode = this.processWorkflow.getSteps().get(i).getStepStatusCode();
             if (previousStatusCode.compareTo(computedStatus) > 0) {
                 computedStatus = previousStatusCode;
@@ -534,7 +515,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     @Override
     synchronized public void onProcessEngineCancel(WorkerParameters workerParameters) {
-        this.executeFinallyStep(workerParameters);
+        this.executeFinalStep(workerParameters);
     }
 
     @Override
@@ -556,7 +537,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
                     this.tryPersistProcessWorkflow();
                 } else {
-                    this.executeFinallyStep(workerParameters);
+                    this.executeFinalStep(workerParameters);
                 }
             } else {
                 final ProcessState targetState = this.processWorkflow.getTargetState();
@@ -564,20 +545,22 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 if (ProcessState.COMPLETED.equals(targetState)) {
                     // Force status code to KO
                     this.processWorkflow.setTargetStatus(StatusCode.KO);
-                    this.executeFinallyStep(workerParameters);
-
-                } else if (ProcessState.PAUSE.equals(targetState)) {
-                    this.processWorkflow.setState(ProcessState.PAUSE);
-                    try {
-                        this.tryPersistProcessWorkflow();
-                    } finally {
-                        if (null != waitMonitor) {
-                            waitMonitor.complete(Boolean.TRUE);
-                        }
-                    }
+                    this.executeFinalStep(workerParameters);
 
                 } else {
-                    this.findAndExecuteNextStep(workerParameters, PauseRecover.NO_RECOVER, false);
+                    stepIndex++;
+                    if (ProcessState.PAUSE.equals(targetState)) {
+                        this.processWorkflow.setState(ProcessState.PAUSE);
+                        try {
+                            this.tryPersistProcessWorkflow();
+                        } finally {
+                            if (null != waitMonitor) {
+                                waitMonitor.complete(Boolean.TRUE);
+                            }
+                        }
+                    } else {
+                        this.findAndExecuteNextStep(workerParameters, PauseRecover.NO_RECOVER, false);
+                    }
                 }
             }
         } else {
@@ -639,7 +622,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * @return true if the current step is the last one
      */
     protected boolean isLastStep() {
-        return stepIndex >= (this.processWorkflow.getSteps().size() - 1);
+        return stepIndex == this.processWorkflow.getSteps().size() - 1;
     }
 
     /**
