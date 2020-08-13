@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.WorkspaceConstants.ERROR_FLAG;
@@ -107,14 +108,15 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
                 digests.put(storageStrategy.getId(), new HashMap<>());
                 List<String> offerIds =
                     storageStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
-                Map<String, Boolean> existsMap = storageClient
-                    .exists(storageStrategy.getId(), dataCategory, traceabilityEvent.getFileName(), offerIds);
+                Map<String, Boolean> existsMap = new HashMap<>(storageClient
+                    .exists(storageStrategy.getId(), dataCategory, traceabilityEvent.getFileName(), offerIds));
                 boolean exists = existsMap.values().stream().allMatch(e -> e);
-                if (existsMap.values().isEmpty() || !exists) {
+                if (!exists) {
+                    existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
                     ItemStatus result =
                         buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, String
                             .format("Unable to find data file with name %s in all offers %s",
-                                traceabilityEvent.getFileName(), offerIds.toString()));
+                                traceabilityEvent.getFileName(), existsMap.keySet().toString()));
                     saveReport(param, handler,
                         createTraceabilityReportEntry(param, traceabilityEvent, digests, result,
                             TraceabilityError.FILE_NOT_FOUND));

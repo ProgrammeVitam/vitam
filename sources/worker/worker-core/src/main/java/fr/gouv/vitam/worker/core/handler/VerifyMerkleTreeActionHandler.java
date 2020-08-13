@@ -92,7 +92,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             return buildItemStatus(HANDLER_ID, KO);
         }
 
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID).increment(StatusCode.OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         final String zipDataFolder =
             WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY + File.separator + params.getObjectName();
@@ -169,7 +169,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         final String securedRootHash = merkleTree.get(ROOT).asText();
 
         if (currentRootHash == null || !currentRootHash.equals(securedRootHash)) {
-            subItemStatus.increment(StatusCode.KO);
+            return subItemStatus.increment(StatusCode.KO);
         }
         return subItemStatus.increment(StatusCode.OK);
     }

@@ -157,9 +157,6 @@ public class ItemStatus {
     public ItemStatus setItemId(String itemId) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemId);
         this.itemId = itemId;
-        for (Entry<String, ItemStatus> itemStatusEntry : itemsStatus.entrySet()) {
-            itemStatusEntry.getValue().setItemId(itemId);
-        }
         return this;
     }
 

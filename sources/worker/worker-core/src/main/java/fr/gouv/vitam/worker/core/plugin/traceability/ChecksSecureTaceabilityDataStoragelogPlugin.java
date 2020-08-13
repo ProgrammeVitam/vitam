@@ -71,6 +71,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry.FILE_ID;
@@ -131,13 +132,15 @@ public class ChecksSecureTaceabilityDataStoragelogPlugin extends ActionHandler {
                     digests.put(storageStrategy.getId(), new HashMap<>());
                     List<String> offerIds =
                         storageStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
-                    boolean exists = storageClient
+                    Map<String, Boolean> existsMap = new HashMap<>(storageClient
                         .exists(storageStrategy.getId(), DataCategory.STORAGELOG, traceabilityDataEvent.getFileName(),
-                            offerIds).values().stream().allMatch(e -> e);
+                            offerIds));
+                    boolean exists = existsMap.values().stream().allMatch(e -> e);
                     if (!exists) {
-                        ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, KO, String
+                        existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
+                            ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, KO, String
                             .format("Cannot find storagelog data with filename %s in offers %s",
-                                traceabilityDataEvent.getFileName(), offerIds.toString()));
+                                traceabilityDataEvent.getFileName(), existsMap.keySet().toString()));
                         updateReport(param, handler, t ->
                             t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage()).setError(
                                 TraceabilityError.FILE_NOT_FOUND)
