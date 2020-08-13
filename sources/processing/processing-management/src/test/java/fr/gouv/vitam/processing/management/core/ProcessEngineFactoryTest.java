@@ -24,41 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.processing.engine.api;
+package fr.gouv.vitam.processing.management.core;
 
-
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
-import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
-import fr.gouv.vitam.processing.common.model.ProcessStep;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-
-import java.util.concurrent.CompletableFuture;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
 
 /**
- * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
+ * Class ProcessEngineFactory Goal : create an instance of ProcessEngineImpl
  */
+final public class ProcessEngineFactoryTest {
 
-public interface ProcessEngine {
+    private final static ProcessEngineFactoryTest INSTANCE = new ProcessEngineFactoryTest();
 
+    private ProcessEngineFactoryTest(){}
+
+    public static ProcessEngineFactoryTest get() {
+        return INSTANCE;
+    }
 
     /**
-     * Set the state machine where the ProcessEngine return response on complete or on error
      *
-     * @param stateMachineCallback
+     * @param processDistributor the wanted processDistributor
+     * @return ProcessEngineImpl object created
+     * @throws IllegalArgumentException if processDistributor is null
      */
-    void setStateMachineCallback(IEventsProcessEngine stateMachineCallback);
+    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
+        ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
+        return new ProcessEngineTest(workParams, processDistributor, LogbookOperationsClientFactory.getInstance());
+    }
 
-    /**
-     * Start the execution of the given step
-     *
-     * @param step the ProcessStep object
-     * @param workerParameters the worker parameters
-     * @param pauseRecover prevent recover from pause action
-     * @throws ProcessingEngineException thrown if step could not be started
-     * @return
-     */
-    CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
-        throws ProcessingEngineException;
+    @VisibleForTesting
+    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        ParametersChecker
+            .checkParameter("Params cannot be null", processDistributor, logbookOperationsClientFactory);
+        return new ProcessEngineTest(workParams, processDistributor, logbookOperationsClientFactory);
+    }
 }

@@ -53,16 +53,13 @@ public class OperationContextMonitor {
     public static final String OperationContextFileName = "operation_context.json";
 
     private final StorageClientFactory storageClientFactory;
-    private final WorkspaceClientFactory workspaceClientFactory;
 
-    public OperationContextMonitor(StorageClientFactory storageClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+    public OperationContextMonitor(StorageClientFactory storageClientFactory) {
         this.storageClientFactory = storageClientFactory;
-        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     public OperationContextMonitor() {
-        this(StorageClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+        this(StorageClientFactory.getInstance());
     }
 
     public static void compressInWorkspace(WorkspaceClientFactory workspaceClientFactory, String operationContainer,
@@ -120,7 +117,7 @@ public class OperationContextMonitor {
             storageClient.storeFileFromWorkspace(strategy, DataCategory.TMP, outputFile, description);
 
             // Should remove the zip file from the workspace
-            // The finally step of the workflow will remove it
+            // The final step of the workflow will remove it
             // Save one call to the workspace ?! or the best is to save space ?!
 
         } catch (Exception e) {

@@ -71,6 +71,7 @@ import io.prometheus.client.Histogram;
 import org.elasticsearch.common.Strings;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 
@@ -79,21 +80,21 @@ import java.util.concurrent.TimeUnit;
  */
 public class ProcessEngineImpl implements ProcessEngine {
 
-    private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
+    private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
     public static final String DETAILS = " Detail= ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static final String AGENCY_DETAIL = "agIdExt";
-    private static String ORIGIN_AGENCY_NAME = "OriginatingAgency";
+    private static final String ORIGIN_AGENCY_NAME = "OriginatingAgency";
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
     private String messageIdentifier;
     private String originatingAgency;
-    private WorkerParameters workerParameters;
+    private final WorkerParameters workerParameters;
 
     private IEventsProcessEngine stateMachineCallback;
-    private ProcessDistributor processDistributor;
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final ProcessDistributor processDistributor;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     public ProcessEngineImpl(WorkerParameters workerParameters, ProcessDistributor processDistributor,
         LogbookOperationsClientFactory logbookOperationsClientFactory) {
@@ -108,7 +109,8 @@ public class ProcessEngineImpl implements ProcessEngine {
     }
 
     @Override
-    public void start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
+    public CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters,
+        PauseRecover pauseRecover)
         throws ProcessingEngineException {
 
         if (null == stateMachineCallback) {
@@ -153,7 +155,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         Stopwatch stopwatch = Stopwatch.createStarted();
 
-        CompletableFuture
+        return CompletableFuture
             // call distributor in async mode
             .supplyAsync(() -> callDistributor(step, this.workerParameters, operationId, pauseRecover),
                 VitamThreadPoolExecutor.getDefaultExecutor())
@@ -161,12 +163,10 @@ public class ProcessEngineImpl implements ProcessEngine {
             .thenApply(distributorResponse -> {
                 try {
                     // Do not log if stop, replay or cancel occurs
-                    switch (step.getPauseOrCancelAction()) {
-                        case ACTION_PAUSE:
-                            // Do not logbook the event, as the step will be resumed
-                            return distributorResponse;
-                        default:
-                            // we have to logbook the event of the current step
+                    // we have to logbook the event of the current step
+                    if (step.getPauseOrCancelAction() ==
+                        PauseOrCancelAction.ACTION_PAUSE) {// Do not logbook the event, as the step will be resumed
+                        return distributorResponse;
                     }
 
                     logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
@@ -179,10 +179,9 @@ public class ProcessEngineImpl implements ProcessEngine {
             // Finally handle event of evaluation (state and status and persistence/remove to/from workspace
             .thenApply(distributorResponse -> {
                 try {
-                    switch (step.getPauseOrCancelAction()) {
-                        case ACTION_CANCEL:
-                            stateMachineCallback.onProcessEngineCancel(this.workerParameters);
-                            return distributorResponse;
+                    if (step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_CANCEL) {
+                        stateMachineCallback.onProcessEngineCancel(this.workerParameters);
+                        return distributorResponse;
                     }
 
                     stateMachineCallback.onProcessEngineCompleteStep(distributorResponse, this.workerParameters);
@@ -193,10 +192,9 @@ public class ProcessEngineImpl implements ProcessEngine {
             })
             // When exception occurred
             .exceptionally((e) -> {
-                LOGGER.error("Error while process workflow", e);
                 stateMachineCallback.onError(e);
                 PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-                return null;
+                throw new CompletionException(e);
             });
     }
 
@@ -222,7 +220,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 GUIDReader.getGUID(workParams.getContainerName()),
                 logbookTypeProcess,
                 StatusCode.OK, // default to OK
-                messageLogbookEngineHelper.getLabelOp(step.getStepName(), StatusCode.OK, null),
+                messageLogbookEngineHelper.getLabelOp(step.getStepName(), StatusCode.OK),
                 GUIDReader.getGUID(workParams.getRequestId())); // default status code to OK
             parameters.putParameterValue(
                 LogbookParameterName.outcomeDetail,
@@ -243,7 +241,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 GUIDReader.getGUID(workParams.getContainerName()),
                 logbookTypeProcess,
                 StatusCode.OK,
-                messageLogbookEngineHelper.getLabelOp(eventType, StatusCode.OK, null),
+                messageLogbookEngineHelper.getLabelOp(eventType, StatusCode.OK),
                 GUIDReader.getGUID(workParams.getRequestId()));
             startedParameters.putParameterValue(
                 LogbookParameterName.outcomeDetail,
@@ -370,12 +368,6 @@ public class ProcessEngineImpl implements ProcessEngine {
             final ItemStatus itemStatus = stepResponse.getItemsStatus().get(handlerId);
             if (itemStatus != null) {
 
-                // main task logbook
-                String itemId = null;
-                if (!itemStatus.getItemId().equals(handlerId)) {
-                    itemId = itemStatus.getItemId();
-                }
-
                 final GUID actionEventIdentifier = GUIDFactory.newEventGUID(tenantId);
                 final LogbookOperationParameters actionLogBookParameters =
                     LogbookParameterHelper.newLogbookOperationParameters(
@@ -384,7 +376,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         GUIDReader.getGUID(workParams.getContainerName()),
                         logbookTypeProcess,
                         itemStatus.getGlobalStatus(),
-                        itemId, DETAILS + itemStatus.computeStatusMeterMessage(),
+                        null, DETAILS + itemStatus.computeStatusMeterMessage(),
                         GUIDReader.getGUID(workParams.getRequestId()));
                 actionLogBookParameters
                     .putParameterValue(LogbookParameterName.parentEventIdentifier, stepEventIdentifier);
