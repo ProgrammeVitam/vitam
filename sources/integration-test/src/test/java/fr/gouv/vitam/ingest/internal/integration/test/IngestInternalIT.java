@@ -193,7 +193,6 @@ import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1889,8 +1888,9 @@ public class IngestInternalIT extends VitamRuleRunner {
         FileInputStream stream =
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-        Throwable thrown = catchThrowable(() -> client.checkRulesFile(stream));
-        assertThat(thrown).isInstanceOf(AdminManagementClientServerException.class)
+
+        assertThatThrownBy(() -> client.checkRulesFile(stream))
+                .isInstanceOf(AdminManagementClientServerException.class)
                 .hasMessageContaining("\\u00C9chec du processus d'import du r\\u00E9f\\u00E9rentiel des r\\u00E8gles de gestion");
     }
 

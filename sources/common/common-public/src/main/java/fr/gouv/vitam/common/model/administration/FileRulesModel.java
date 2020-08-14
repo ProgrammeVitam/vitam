@@ -203,6 +203,10 @@ public class FileRulesModel {
 
         if (obj instanceof FileRulesModel) {
             final FileRulesModel objectToCompare = (FileRulesModel) obj;
+            if (!StringUtils.equals(this.ruleId, objectToCompare.getRuleId())) {
+                return false;
+            }
+
             if (!StringUtils.equals(this.ruleDuration, objectToCompare.getRuleDuration())) {
                 return false;
             }

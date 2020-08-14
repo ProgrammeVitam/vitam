@@ -29,8 +29,10 @@ package fr.gouv.vitam.functional.administration.rules.core;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,16 +53,23 @@ public class RuleImportDiff {
     RuleImportDiff(List<FileRulesModel> rulesFromFileIds,
                    List<FileRulesModel> rulesInDatabaseIds) {
         this();
-        Map<String, FileRulesModel> rulesInDatabase = rulesInDatabaseIds.stream()
-                .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
-        Map<String, FileRulesModel> rulesFromFile = rulesFromFileIds.stream()
-                .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
-        getDiff(rulesFromFile, rulesInDatabase);
+        getDiff(Optional.ofNullable(rulesFromFileIds).orElse(Collections.emptyList()),
+                Optional.ofNullable(rulesInDatabaseIds).orElse(Collections.emptyList()));
     }
 
     RuleImportDiff(Map<String, FileRulesModel> rulesFromFile,
                    Map<String, FileRulesModel> rulesInDatabase) {
         this();
+        getDiff(Optional.ofNullable(rulesFromFile).orElse(Collections.emptyMap()),
+                Optional.ofNullable(rulesInDatabase).orElse(Collections.emptyMap()));
+    }
+    
+    private void getDiff(List<FileRulesModel> rulesFromFileIds,
+                         List<FileRulesModel> rulesInDatabaseIds) {
+        Map<String, FileRulesModel> rulesInDatabase = rulesInDatabaseIds.stream()
+                .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
+        Map<String, FileRulesModel> rulesFromFile = rulesFromFileIds.stream()
+                .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
         getDiff(rulesFromFile, rulesInDatabase);
     }
 
@@ -88,19 +97,19 @@ public class RuleImportDiff {
         }
     }
 
-    public void addRuleToInsert(FileRulesModel rule) {
+    private void addRuleToInsert(FileRulesModel rule) {
         rulesToInsert.add(rule);
     }
 
-    public void addRuleToUpdateUnsafely(FileRulesModel rule) {
+    private void addRuleToUpdateUnsafely(FileRulesModel rule) {
         rulesToUpdateUnsafely.add(rule);
     }
 
-    public void addRuleToUpdate(FileRulesModel rule) {
+    private void addRuleToUpdate(FileRulesModel rule) {
         rulesToUpdate.add(rule);
     }
 
-    public void addRuleToDelete(FileRulesModel rule) {
+    private void addRuleToDelete(FileRulesModel rule) {
         rulesToDelete.add(rule);
     }
 
