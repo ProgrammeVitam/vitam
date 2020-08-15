@@ -94,6 +94,11 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.outcomeDetail;
 import static java.util.function.Predicate.not;
 
@@ -431,6 +436,39 @@ public class LogbookOperationsImpl implements LogbookOperations {
         } catch (DatabaseException exc) {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName, exc);
             throw exc;
+        }
+    }
+
+    @Override
+    public boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
+        LocalDateTime traceabilityStartDate, LocalDateTime traceabilityEndDate)
+        throws LogbookDatabaseException {
+
+        try {
+            Select select = new Select();
+            // Ignore scheduled background operations : TRACEABILITY, STORAGE_BACKUP...
+            String[] ignoredBackgroundLogbookTypeProcesses =
+                BackgroundLogbookTypeProcessHelper.getBackgroundLogbookTypeProcesses()
+                .stream().map(Enum::name).toArray(String[]::new);
+            select.setQuery(and()
+                .add(gte(VitamFieldsHelper.lastPersistedDate(),
+                    LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate)))
+                .add(lte(VitamFieldsHelper.lastPersistedDate(),
+                    LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate)))
+                .add(not().add(in("evTypeProc", ignoredBackgroundLogbookTypeProcesses)))
+            );
+
+            // Limit to 1 result
+            select.setLimitFilter(0, 1);
+
+            List<LogbookOperation> logbookOperations = select(select.getFinalSelect(), false);
+            return !logbookOperations.isEmpty();
+
+        } catch (InvalidCreateOperationException | VitamDBException e) {
+            throw new LogbookDatabaseException("Could not parse last traceability operation information", e);
+        } catch (LogbookNotFoundException e) {
+            LOGGER.debug("No new logbook operations since last traceability", e);
+            return false;
         }
     }
 

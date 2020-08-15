@@ -99,6 +99,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private final LogbookOperations logbookOperations;
     private final GUID operationID;
     private final int temporizationDelayInSeconds;
+    private final int traceabilityExpirationInSeconds;
 
     private List<String> expectedLogbookId = null;
     private LogbookOperation lastTraceabilityOperation = null;
@@ -121,15 +122,16 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
      * @param logbookOperations used to search the operation to secure
      * @param operationID guid of the traceability operation
      * @param temporizationDelayInSeconds temporization delay (in seconds) for recent logbook operation events.
+     * @param traceabilityExpirationInSeconds
      */
     public LogbookOperationTraceabilityHelper(LogbookOperations logbookOperations,
-        GUID operationID, int temporizationDelayInSeconds) {
+        GUID operationID, int temporizationDelayInSeconds, int traceabilityExpirationInSeconds) {
         this.logbookOperations = logbookOperations;
         this.operationID = operationID;
         this.temporizationDelayInSeconds = temporizationDelayInSeconds;
+        this.traceabilityExpirationInSeconds = traceabilityExpirationInSeconds;
     }
 
-    @Override
     public void initialize() throws TraceabilityException {
 
         expectedLogbookId = newArrayList(operationID.getId());
@@ -157,6 +159,34 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         }
         this.traceabilityStartDate = startDate;
         this.traceabilityEndDate = LocalDateUtil.now().minusSeconds(temporizationDelayInSeconds);
+    }
+
+    public boolean isTraceabilityOperationRequired() throws TraceabilityException {
+
+        LocalDateTime lastTraceabilityOperationValidityDateTime
+            = this.traceabilityStartDate.plusSeconds(this.traceabilityExpirationInSeconds);
+
+        if (this.traceabilityEndDate.isAfter(lastTraceabilityOperationValidityDateTime)) {
+            LOGGER.info("Logbook operation traceability required. " +
+                "Last traceability operation is too old. " +
+                "Max validity date " + lastTraceabilityOperationValidityDateTime);
+            return true;
+        }
+
+        try {
+            if (logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
+                this.traceabilityStartDate, this.traceabilityEndDate)) {
+                LOGGER.info("Logbook operation traceability required. " +
+                    "New logbook operations found since last traceability operation: " + this.traceabilityStartDate);
+                return true;
+            }
+        } catch (LogbookDatabaseException e) {
+            throw new TraceabilityException("Could not parse check traceability operation information", e);
+        }
+
+        LOGGER.info("Skipping Logbook operation traceability. " +
+            "No activity since last traceability operation: " + this.traceabilityStartDate);
+        return false;
     }
 
     @Override
@@ -240,7 +270,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public void createLogbookOperationStructure() throws TraceabilityException {
+    public void startTraceability() throws TraceabilityException {
         final LogbookOperationParameters logbookParameters =
             newLogbookOperationParameters(operationID, STP_OP_SECURISATION, operationID, TRACEABILITY, STARTED, null,
                 null, operationID);

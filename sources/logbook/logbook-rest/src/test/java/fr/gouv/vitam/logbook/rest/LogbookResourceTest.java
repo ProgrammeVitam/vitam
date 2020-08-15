@@ -288,13 +288,8 @@ public class LogbookResourceTest {
 
     @Test
     public final void testTraceability() {
-        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersAppend)
             .post(TRACEABILITY_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
@@ -302,13 +297,8 @@ public class LogbookResourceTest {
 
     @Test
     public final void testTraceabilityUnitLfc() {
-        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersAppend)
             .post(UNIT_LFC_TRACEABILITY_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
@@ -316,13 +306,8 @@ public class LogbookResourceTest {
 
     @Test
     public final void testTraceabilityObjectGroupLfc() {
-        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersAppend)
             .post(OBJECT_GROUP_LFC_TRACEABILITY_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());

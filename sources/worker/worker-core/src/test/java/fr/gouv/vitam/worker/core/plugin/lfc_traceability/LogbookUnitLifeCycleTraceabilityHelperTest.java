@@ -156,7 +156,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
                 workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         // When
-        helper.initialize();
+        helper.startTraceability();
 
         // Then
         assertThat(helper.getTraceabilityStartDate())
@@ -179,7 +179,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
                 workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         // When
-        helper.initialize();
+        helper.startTraceability();
 
         // Then
         assertThat(helper.getTraceabilityStatistics().getUnits().getNbOK()).isEqualTo(1);
@@ -237,7 +237,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
                 workspaceClientFactory, null, "eventFileName", "zipFileName");
 
-        helper.initialize();
+        helper.startTraceability();
 
         // When
         String date = helper.getPreviousStartDate();
@@ -263,7 +263,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
                 workspaceClientFactory, null, "eventFileName", "zipFileName");
 
-        helper.initialize();
+        helper.startTraceability();
 
         // When
         Long size = helper.getDataSize();

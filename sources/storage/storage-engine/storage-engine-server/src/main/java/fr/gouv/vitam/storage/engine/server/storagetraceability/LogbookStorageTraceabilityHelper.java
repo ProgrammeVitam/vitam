@@ -135,8 +135,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         this.delay = overlapDelayInSeconds;
     }
 
-    @Override
-    public void initialize() throws TraceabilityException {
+    private void initialize() throws TraceabilityException {
         this.traceabilityEndDate = LocalDateUtil.now();
         String fileName = traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy());
         if (fileName == null) {
@@ -272,7 +271,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public void createLogbookOperationStructure() throws TraceabilityException {
+    public void startTraceability() throws TraceabilityException {
         final LogbookOperationParameters logbookParameters =
             newLogbookOperationParameters(operationID, STP_STORAGE_SECURISATION, operationID, TRACEABILITY, STARTED,
                 null,
@@ -284,6 +283,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException e) {
             throw new TraceabilityException("unable to create traceability logbook", e);
         }
+
+        initialize();
     }
 
     @Override

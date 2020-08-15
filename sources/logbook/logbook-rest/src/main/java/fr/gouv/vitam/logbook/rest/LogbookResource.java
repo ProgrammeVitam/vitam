@@ -186,7 +186,9 @@ public class LogbookResource extends ApplicationStatusResource {
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
 
         logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
-            configuration.getOperationTraceabilityTemporizationDelay());
+            configuration.getOperationTraceabilityTemporizationDelay(),
+            configuration.getOperationTraceabilityMaxRenewalDelay(),
+            configuration.getOperationTraceabilityMaxRenewalDelayUnit());
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
@@ -409,24 +411,27 @@ public class LogbookResource extends ApplicationStatusResource {
             // FIXME: 01/01/2020 request id should be set in the external headers by filter
             VitamThreadUtils.getVitamSession().setRequestId(guid);
 
-            logbookAdministration.generateSecureLogbook(guid);
-            final List<String> resultAsJson = new ArrayList<>();
-
-            resultAsJson.add(guid.toString());
-            return Response.status(Status.OK)
-                .entity(new RequestResponseOK<String>()
-                    .addAllResults(resultAsJson)
-                    .setHits(1, 0, 1)
-                    .setHttpCode(Status.OK.getStatusCode()))
-                .build();
-
+            if(logbookAdministration.generateSecureLogbook(guid)) {
+                return Response.status(Status.OK)
+                    .entity(new RequestResponseOK<String>()
+                        .addResult(guid.getId())
+                        .setHits(1, 0, 1)
+                        .setHttpCode(Status.OK.getStatusCode()))
+                    .build();
+            } else {
+                return Response.status(Status.ACCEPTED)
+                    .entity(new RequestResponseOK<String>()
+                        .setHits(0, 0, 0)
+                        .setHttpCode(Status.ACCEPTED.getStatusCode()))
+                    .build();
+            }
         } catch (TraceabilityException e) {
             LOGGER.error("unable to generate traceability log", e);
-            // FIXME: Why put a responseOK when exception catch ?
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new RequestResponseOK()
-                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
-                .build();
+            Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
+            VitamError vitamError = new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setMessage("Unable to generate traceability log")
+                .setDescription("Unable to generate traceability log");
+            return Response.status(status).entity(vitamError).build();
         }
     }
 

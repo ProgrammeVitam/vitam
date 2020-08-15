@@ -138,4 +138,11 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     public SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException {
         return logbookOperations.switchIndex(alias, newIndexName);
     }
+
+    @Override
+    public boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(LocalDateTime traceabilityStartDate,
+        LocalDateTime traceabilityEndDate) throws LogbookDatabaseException {
+        return logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
+            traceabilityStartDate, traceabilityEndDate);
+    }
 }

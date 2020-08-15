@@ -78,6 +78,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -159,6 +160,9 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
             logbookConf.setOpEventsNotInWf(new ArrayList<>());
             logbookConf.setOpWithLFC(new ArrayList<>());
+            logbookConf.setOperationTraceabilityTemporizationDelay(300);
+            logbookConf.setOperationTraceabilityMaxRenewalDelay(12);
+            logbookConf.setOperationTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
             logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
                     new CollectionConfiguration(2, 1))));
