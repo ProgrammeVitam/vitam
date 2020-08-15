@@ -51,8 +51,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -112,13 +113,12 @@ public class PrepareUnitLfcTraceabilityActionPlugin extends PrepareLfcTraceabili
     }
 
     @Override
-    protected List<JsonNode> getRawLifecyclesByLastPersistedDate(LocalDateTime startDate,
-        LocalDateTime endDate, int limit, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory)
-        throws LogbookClientException, InvalidParseOperationException {
-
+    protected InputStream exportRawLifecyclesByLastPersistedDate(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        LocalDateTime startDate, LocalDateTime endDate, int maxEntries)
+        throws LogbookClientException, InvalidParseOperationException, IOException {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-
-            return logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(startDate, endDate, limit);
+            return logbookLifeCyclesClient.exportRawUnitLifecyclesByLastPersistedDate(
+                startDate, endDate, maxEntries);
         }
     }
 

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mongodb.client.model.Projections;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.json.BsonHelper;
 import org.bson.Document;
 
@@ -374,25 +375,24 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate, int limit)
-        throws InvalidParseOperationException {
+    public CloseableIterator<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate,
+        int limit) {
         return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_UNIT, startDate, endDate, limit);
     }
 
     @Override
-    public List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate,
-        int limit) throws InvalidParseOperationException {
+    public CloseableIterator<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate,
+        int limit) {
         return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_OBJECTGROUP, startDate, endDate,
             limit);
     }
 
-    private List<JsonNode> getRawLifecyclesByLastPersistedDate(LogbookCollections collection, String startDate,
-        String endDate, int limit) throws InvalidParseOperationException {
+    private CloseableIterator<JsonNode> getRawLifecyclesByLastPersistedDate(LogbookCollections collection,
+        String startDate, String endDate, int limit) {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
         // Get new LFC entries last operation
         // Select operations greater OR equal to startDate to include last secured elements in next traceability
-        List<JsonNode> result = new ArrayList<>();
-        try (MongoCursor<Document> lifecycles =
+        MongoCursor<Document> lifecycleIterator =
             vitamMongoRepository.findDocuments(
                 Filters.and(
                     Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
@@ -402,13 +402,29 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
                 .sort(
                     Sorts.ascending(LogbookDocument.LAST_PERSISTED_DATE)
                 )
-                .limit(limit).iterator()) {
+                .limit(limit).iterator();
 
-            while (lifecycles.hasNext()) {
-                result.add(JsonHandler.getFromString(BsonHelper.stringify(lifecycles.next())));
+        return new CloseableIterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                return lifecycleIterator.hasNext();
             }
-        }
-        return result;
+
+            @Override
+            public JsonNode next() {
+                try {
+                    return JsonHandler.getFromString(BsonHelper.stringify(lifecycleIterator.next()));
+                } catch (InvalidParseOperationException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public void close() {
+                lifecycleIterator.close();
+            }
+        };
     }
 
     @Override

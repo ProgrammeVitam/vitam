@@ -563,8 +563,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeIngest2, afterIngest2);
         assertThat(beforeIngest2).isEqualTo(afterIngest2);
         assertThat(traceabilityEvent1.getMaxEntriesReached()).isTrue();
-        assertThat(traceabilityEvent1.getNumberOfElements()).isEqualTo(20);
-        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbOK()).isEqualTo(20);
+        assertThat(traceabilityEvent1.getNumberOfElements()).isEqualTo(24);
+        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbOK()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getUnits().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups()).isNull();
@@ -1027,12 +1027,12 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeIngest2, afterIngest2);
         assertThat(beforeIngest2).isEqualTo(afterIngest2);
         assertThat(traceabilityEvent1.getMaxEntriesReached()).isTrue();
-        assertThat(traceabilityEvent1.getNumberOfElements()).isEqualTo(20);
+        assertThat(traceabilityEvent1.getNumberOfElements()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getUnits()).isNull();
-        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbOK()).isEqualTo(20);
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbOK()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbOK()).isEqualTo(20);
+        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbOK()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
 

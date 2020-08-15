@@ -26,14 +26,19 @@
  */
 package fr.gouv.vitam.logbook.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Model for querying raw lifecycles by last persisted date
  */
 public class RawLifecycleByLastPersistedDateRequest {
 
-    String startDate;
-    String endDate;
-    int limit;
+    @JsonProperty("startDate")
+    private String startDate;
+    @JsonProperty("endDate")
+    private String endDate;
+    @JsonProperty("limit")
+    private int limit;
 
     /**
      * Deserialization constructor

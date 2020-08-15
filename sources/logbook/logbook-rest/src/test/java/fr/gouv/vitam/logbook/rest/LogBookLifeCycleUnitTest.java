@@ -26,8 +26,10 @@
  */
 package fr.gouv.vitam.logbook.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -53,10 +55,13 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.time.LogicalClockRule;
+import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
@@ -64,14 +69,17 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
-import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.apache.commons.collections4.IteratorUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -81,6 +89,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.temporal.ChronoUnit;
@@ -89,6 +98,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -96,6 +106,8 @@ import static io.restassured.RestAssured.given;
 public class LogBookLifeCycleUnitTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
+    private final static TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     @ClassRule
     public static MongoRule mongoRule =
@@ -122,6 +134,8 @@ public class LogBookLifeCycleUnitTest {
     private static final String SELECT_UNIT_BY_ID_URI = "/unitlifecycles/" + FAKE_UNIT_LF_ID;
     private static final String SELECT_OBG_BY_ID_URI = "/objectgrouplifecycles/" + FAKE_OBG_LF_ID;
     private static final String UNIT_LIFECYCLES_RAW_BY_ID_URL = "/raw/unitlifecycles/byid/";
+    private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL =
+        "/raw/unitlifecycles/bylastpersisteddate";
 
     private static int serverPort;
     private static LogbookMain application;
@@ -142,6 +156,8 @@ public class LogBookLifeCycleUnitTest {
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -667,5 +683,170 @@ public class LogBookLifeCycleUnitTest {
             .get(UNIT_LIFECYCLES_RAW_BY_ID_URL + "aeaqaaaaaaef6ys5absnuala7tya75iaaaaa")
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public final void testGetRawUnitLifecyclesByLastPersistedDate()
+        throws Exception {
+
+        // Given :
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(PropertiesUtils.getResourceAsStream("lfc_units_raw.json"))
+            .when()
+            .post("/raw/unitlifecycles/bulk")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        // When
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2020-09-07T11:01:53.112",
+            "2020-09-07T11:01:53.139",
+            1000
+        );
+        ValidatableResponse response = given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newGUID().getId())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .post(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
+            .then();
+
+        // Then
+        response.statusCode(Status.OK.getStatusCode());
+        long size = Long.parseLong(response.extract().header(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+        assertThat(size).isPositive();
+
+        byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
+        assertThat(body).hasSize((int) size);
+
+        JsonLineGenericIterator<JsonNode> jsonLineIterator =
+            new JsonLineGenericIterator<>(new ByteArrayInputStream(body), JSON_NODE_TYPE_REFERENCE);
+        List<JsonNode> entries = IteratorUtils.toList(jsonLineIterator);
+        assertThat(entries).hasSize(2);
+        assertThat(entries.get(0).get("_id").asText()).isEqualTo("aeaqaaaaaahdjrrgaaqiwaluna5izwiaaaaq");
+        assertThat(entries.get(1).get("_id").asText()).isEqualTo("aeaqaaaaaahdjrrgaaqiwaluna5iz4aaaaaq");
+    }
+
+    @Test
+    public final void testGetRawUnitLifecyclesByLastPersistedDateWithLimit()
+        throws Exception {
+
+        // Given :
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(PropertiesUtils.getResourceAsStream("lfc_units_raw.json"))
+            .when()
+            .post("/raw/unitlifecycles/bulk")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        // When
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2020-09-07T11:01:53.112",
+            "2020-09-07T11:01:53.139",
+            1
+        );
+        ValidatableResponse response = given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newGUID().getId())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .post(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
+            .then();
+
+        // Then
+        response.statusCode(Status.OK.getStatusCode());
+        long size = Long.parseLong(response.extract().header(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+        assertThat(size).isPositive();
+
+        byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
+        assertThat(body).hasSize((int) size);
+
+        JsonLineGenericIterator<JsonNode> jsonLineIterator =
+            new JsonLineGenericIterator<>(new ByteArrayInputStream(body), JSON_NODE_TYPE_REFERENCE);
+        List<JsonNode> entries = IteratorUtils.toList(jsonLineIterator);
+        assertThat(entries).hasSize(1);
+        assertThat(entries.get(0).get("_id").asText()).isEqualTo("aeaqaaaaaahdjrrgaaqiwaluna5izwiaaaaq");
+    }
+
+    @Test
+    public final void testGetRawUnitLifecyclesByLastPersistedDateWithLimitMatchingMultipleEntries()
+        throws Exception {
+
+        // Given :
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(PropertiesUtils.getResourceAsStream("lfc_units_raw.json"))
+            .when()
+            .post("/raw/unitlifecycles/bulk")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        // When
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2020-01-01T00:00:00.000",
+            "2020-12-31T01:02:03.456",
+            5
+        );
+        ValidatableResponse response = given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newGUID().getId())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .post(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
+            .then();
+
+        // Then
+        response.statusCode(Status.OK.getStatusCode());
+        long size = Long.parseLong(response.extract().header(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+        assertThat(size).isPositive();
+
+        byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
+        assertThat(body).hasSize((int) size);
+
+        JsonLineGenericIterator<JsonNode> jsonLineIterator =
+            new JsonLineGenericIterator<>(new ByteArrayInputStream(body),
+                JsonHandler.JSON_NODE_TYPE_REFERENCE);
+        List<JsonNode> entries = IteratorUtils.toList(jsonLineIterator);
+        assertThat(entries).hasSize(6);
+        assertThat(entries).extracting(entry -> entry.get("_id").asText())
+            .containsExactlyInAnyOrder("aeaqaaaaaahdjrrgaaqiwaluna5iwoyaaabq", "aeaqaaaaaahdjrrgaaqiwaluna5izwiaaaaq",
+                "aeaqaaaaaahdjrrgaaqiwaluna5iz4aaaaaq", "aeaqaaaaaahdjrrgaaqiwaluna5prxiaaaba",
+                "aeaqaaaaaahdjrrgaaqiwaluna5teviaaaba", "aeaqaaaaaahdjrrgaaqiwaluna5tfayaaaba");
+    }
+
+    @Test
+    public final void testGetRawUnitLifecyclesByLastPersistedDateEmpty()
+        throws Exception {
+
+        // Given : no data
+
+        // When
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2020-09-07T11:01:53.112",
+            "2020-09-07T11:01:53.139",
+            1000
+        );
+        ValidatableResponse response = given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newGUID().getId())
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .post(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
+            .then();
+
+        // Then
+        response.statusCode(Status.OK.getStatusCode());
+        long size = Long.parseLong(response.extract().header(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+        assertThat(size).isZero();
+
+        byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
+        assertThat(body).isEmpty();
     }
 }

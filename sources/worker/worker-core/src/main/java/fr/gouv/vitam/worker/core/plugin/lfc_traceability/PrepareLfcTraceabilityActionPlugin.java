@@ -26,12 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -46,6 +49,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -53,14 +57,15 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
@@ -74,6 +79,8 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
     private static final int LAST_OPERATION_LIFECYCLES_IN_RANK = 0;
     private static final int TRACEABILITY_INFORMATION_OUT_RANK = 0;
     private static final int LFC_AND_METADATA_OUT_RANK = 1;
+    public static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -104,58 +111,29 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         LocalDateTime traceabilityEndDate = LocalDateUtil.now()
             .minusSeconds(temporizationDelayInSeconds);
 
-        LocalDateTime selectionStartDate = traceabilityStartDate;
-        LocalDateTime selectionEndDate = traceabilityEndDate;
-
-        boolean maxEntriesReached = false;
         int nbExportedEntries = 0;
         LocalDateTime maxEntryLastPersistedDate = traceabilityStartDate;
 
         File lfcWithMetadataFile = handlerIO.getNewLocalFile(handlerIO.getOutput(LFC_AND_METADATA_OUT_RANK).getPath());
 
-        try (OutputStream os = new FileOutputStream(lfcWithMetadataFile);
+        // List / export metadata
+        try (
+            InputStream is = exportRawLifecyclesByLastPersistedDate(logbookLifeCyclesClientFactory,
+                traceabilityStartDate, traceabilityEndDate, lifecycleTraceabilityMaxEntries);
+            CloseableIterator<JsonNode> rawLifecycleIterator
+                = new JsonLineGenericIterator<>(is, JSON_NODE_TYPE_REFERENCE);
+            OutputStream os = new FileOutputStream(lfcWithMetadataFile);
             JsonLineWriter jsonLineWriter = new JsonLineWriter(os)) {
 
-            // List / export metadata
+            Iterator<List<JsonNode>> bulkRawLifecycleIterator = Iterators.partition(rawLifecycleIterator, batchSize);
 
-            Set<String> lastBatchIds = new HashSet<>();
+            while (bulkRawLifecycleIterator.hasNext()) {
 
-            while (true) {
+                List<JsonNode> rawLifecycleToProceed = bulkRawLifecycleIterator.next();
 
-                int remaining = lifecycleTraceabilityMaxEntries - nbExportedEntries;
-                if (remaining == 0) {
-                    LOGGER.info("Max entries reached (" + nbExportedEntries + ").");
-                    maxEntriesReached = true;
-                    break;
-                }
-
-                // FIXME : Use streaming jsonl response
-                int limit = Math.min(batchSize, remaining);
-
-                Stopwatch loadTraceabilityLfc = Stopwatch.createStarted();
-                List<JsonNode> rawLifecycles =
-                    getRawLifecyclesByLastPersistedDate(selectionStartDate, selectionEndDate, batchSize,
-                        logbookLifeCyclesClientFactory);
-                PerformanceLogger.getInstance().log(stepName(), actionName(),
-                    "LOAD_TRACEABILITY_LFC", loadTraceabilityLfc.elapsed(TimeUnit.MILLISECONDS));
-
-                List<JsonNode> rawLifecycleToProceed = new ArrayList<>();
-                Set<String> currentBatchIds = new HashSet<>();
-
-                for (JsonNode item : rawLifecycles) {
-
-                    // Skip entry if already proceeded in last bulk
-                    String itemId = item.get(LogbookDocument.ID).textValue();
-                    if (lastBatchIds.contains(itemId)) {
-                        continue;
-                    }
-                    currentBatchIds.add(itemId);
-                    rawLifecycleToProceed.add(item);
-
-                    if (rawLifecycleToProceed.size() == limit) {
-                        break;
-                    }
-                }
+                Set<String> currentBatchIds = rawLifecycleToProceed.stream()
+                    .map(item -> item.get(LogbookDocument.ID).textValue())
+                    .collect(Collectors.toSet());
 
                 for (JsonNode item : rawLifecycleToProceed) {
                     nbExportedEntries++;
@@ -183,21 +161,10 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
                         throw new ProcessingException("Metadata not found for id " + id);
                     }
 
-
-
                     LfcMetadataPair lfcMetadataPair = new LfcMetadataPair(rawMetadata, rawLfc);
 
                     jsonLineWriter.addEntry(new JsonLineModel(id, null, JsonHandler.toJsonNode(lfcMetadataPair)));
                 }
-
-                if (rawLifecycles.size() < limit) {
-                    // No more entries to proceed. Done
-                    break;
-                }
-
-                // Mark current bulk ids for next bulk
-                lastBatchIds = currentBatchIds;
-                selectionStartDate = maxEntryLastPersistedDate;
             }
         } catch (IOException e) {
             throw new ProcessingException("Could not export lfc and metadata for traceability", e);
@@ -205,6 +172,7 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
 
         handlerIO.addOutputResult(LFC_AND_METADATA_OUT_RANK, lfcWithMetadataFile, true, false);
 
+        boolean maxEntriesReached = nbExportedEntries >= lifecycleTraceabilityMaxEntries;
         if (maxEntriesReached) {
             // Override end date if max entries reached
             traceabilityEndDate = maxEntryLastPersistedDate;
@@ -263,14 +231,17 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         // NOP.
     }
 
-    protected abstract List<JsonNode> getRawLifecyclesByLastPersistedDate(LocalDateTime startDate,
-        LocalDateTime endDate, int limit, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory)
-        throws LogbookClientException, InvalidParseOperationException;
+    protected abstract InputStream exportRawLifecyclesByLastPersistedDate(
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        LocalDateTime selectionStartDate,
+        LocalDateTime selectionEndDate,
+        int lifecycleTraceabilityMaxEntries) throws LogbookClientException, InvalidParseOperationException, IOException;
 
     protected abstract Map<String, JsonNode> getRawMetadata(Set<String> ids,
         MetaDataClientFactory metaDataClientFactory)
         throws ProcessingException;
 
     protected abstract String stepName();
+
     protected abstract String actionName();
 }

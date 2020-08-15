@@ -43,6 +43,8 @@ import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -160,28 +162,38 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
-     * Gets a list of raw unit life cycles by last persisted date
+     * Exports raw unit lifecycles by last persisted date range.
+     * Warning: If maxEntries limit reached, lifecycles with exact same last persisted date will also be exported.
+     * i.e. Max entries is a "soft limit" that can be exceeded if needed.
+     * e.g. Setting a 100_000 max limit, can yield 100_045 entries if last 46 lifecycles have the exact same
+     * last persistence date.
      *
      * @param startDate the selection start date
      * @param endDate the selection end date
-     * @param limit the max limit
+     * @param maxEntries max entries to export (soft limit)
      * @throws LogbookClientException
-     * @throws InvalidParseOperationException
+     * @return json line stream of raw life cycles
      */
-    List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate, int limit)
-        throws LogbookClientException, InvalidParseOperationException;
+    InputStream exportRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
+        int maxEntries)
+        throws LogbookClientException, InvalidParseOperationException, IOException;
 
     /**
-     * Gets a list of raw object group life cycles by last persisted date
+     * Exports raw object group lifecycles by last persisted date range
+     * Warning: If maxEntries limit reached, lifecycles with exact same last persisted date will also be exported.
+     * i.e. Max entries is a "soft limit" that can be exceeded if needed.
+     * e.g. Setting a 100_000 max limit, can yield a 100_045 entries if last 46 lifecycles have the exact same
+     * last persistence date.
      *
      * @param startDate the selection start date
      * @param endDate the selection end date
-     * @param limit the max limit
+     * @param maxEntries max entries to export (soft limit)
      * @throws LogbookClientException
-     * @throws InvalidParseOperationException
+     * @return json line stream of raw life cycles
      */
-    List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate, int limit)
-        throws LogbookClientException, InvalidParseOperationException;
+    InputStream exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
+        int maxEntries)
+        throws LogbookClientException, InvalidParseOperationException, IOException;
 
     /**
      * returns the object group life cycle
@@ -465,5 +477,4 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws VitamClientInternalException VitamClientInternalException
      */
     void bulkLifeCycle(String operationId, DistributionType type, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
-
 }
