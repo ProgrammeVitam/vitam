@@ -42,6 +42,7 @@ import org.junit.Test;
 import javax.ws.rs.core.Response.Status;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class AccessExternalApplicationTest {
     private AccessExternalMain application;
@@ -148,6 +149,7 @@ public class AccessExternalApplicationTest {
     @Test
     public void shouldActivateShiroFilter() throws VitamException {
         application = new AccessExternalMain("src/test/resources/access-external-test-ssl.conf");
-        application.start();
+        assertThatCode(() -> application.start()).doesNotThrowAnyException();
+        
     }
 }

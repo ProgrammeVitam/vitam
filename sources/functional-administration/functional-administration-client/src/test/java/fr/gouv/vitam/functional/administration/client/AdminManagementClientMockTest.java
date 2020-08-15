@@ -96,7 +96,7 @@ public class AdminManagementClientMockTest {
     @Test
     public void givenClientMockWhenWhenImportThenReturnOK() throws FileFormatException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
-        client.importFormat(stream, "DROID_SignatureFile_V94.xml");
+        assertEquals(Status.CREATED, client.importFormat(stream, "DROID_SignatureFile_V94.xml"));
     }
 
     @Test
@@ -134,7 +134,7 @@ public class AdminManagementClientMockTest {
         throws ReferentialException, FileRulesException, DatabaseConflictException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.importRulesFile(stream, "FF-jeu_donnees_OK_regles_CSV.csv");
+        assertEquals(Status.CREATED, client.importRulesFile(stream, "FF-jeu_donnees_OK_regles_CSV.csv"));
     }
 
     @Test
@@ -187,7 +187,7 @@ public class AdminManagementClientMockTest {
         throws ReferentialException, DatabaseConflictException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.importAgenciesFile(stream, "agencies.csv");
+        assertEquals(Status.CREATED, client.importAgenciesFile(stream, "agencies.csv"));
     }
 
     @Test
@@ -206,7 +206,9 @@ public class AdminManagementClientMockTest {
     @RunWithCustomExecutor
     public void givenClientMockWhenCreateAccessionRegister() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.createOrUpdateAccessionRegister(new AccessionRegisterDetailModel());
+        RequestResponse requestResponse = client.createOrUpdateAccessionRegister(new AccessionRegisterDetailModel());
+        assertNotNull(requestResponse);
+        assertThat(requestResponse.isOk()).isTrue();
     }
 
     @Test

@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  */
@@ -43,7 +44,7 @@ public class VitamServerLifeCycleTest {
 
     @Test
     public void whenConstructorWithNotNullArgThenOK() {
-        new VitamServerLifeCycle(mock(ProcessLifeCycle.class));
+        assertThatCode(() -> new VitamServerLifeCycle(mock(ProcessLifeCycle.class))).doesNotThrowAnyException();
     }
 
     @Test(expected = RuntimeException.class)

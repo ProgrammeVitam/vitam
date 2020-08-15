@@ -44,15 +44,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 
 /**
  * Composite Item Status
  */
-@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonIgnoreProperties
 public class ItemStatus {
 
     private static final String EVENT_DETAIL_DATA = "eventDetailData";
@@ -101,7 +99,6 @@ public class ItemStatus {
         @JsonProperty("globalStatus") StatusCode globalStatus,
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
         @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus,
-        @JsonProperty("evDetailData") String evDetailData,
         @JsonProperty("globalState") ProcessState globalState) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
@@ -160,9 +157,6 @@ public class ItemStatus {
     public ItemStatus setItemId(String itemId) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemId);
         this.itemId = itemId;
-        for (Entry<String, ItemStatus> itemStatusEntry : itemsStatus.entrySet()) {
-            itemStatusEntry.getValue().setItemId(itemId);
-        }
         return this;
     }
 
@@ -465,6 +459,7 @@ public class ItemStatus {
     /**
      * @return evDetailData
      */
+    @JsonIgnore
     public String getEvDetailData() {
 
         String evDetailData = (String) data.get(EVENT_DETAIL_DATA);
@@ -481,6 +476,7 @@ public class ItemStatus {
      * @param evDetailData
      * @return this
      */
+    @JsonIgnore
     public ItemStatus setEvDetailData(String evDetailData) {
         ParametersChecker.checkParameterDefault("evDetailData", evDetailData);
         try {

@@ -83,7 +83,6 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_EVENT_STATUS;
 import static fr.gouv.vitam.common.model.LifeCycleStatusCode.LIFE_CYCLE_COMMITTED;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -656,7 +655,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void createExecution() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
-        client.create(log);
+        assertThatCode(() -> client.create(log)).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
@@ -684,14 +683,14 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void updateExecutionUnitLifeCycle() throws Exception {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
-        client.update(log);
+        assertThatCode(() -> client.update(log)).doesNotThrowAnyException();
     }
 
     @Test
     public void commitExecutionUnitLifeCycle() throws Exception {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
-        client.commit(log);
+        assertThatCode(() -> client.commit(log)).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientBadRequestException.class)
@@ -719,7 +718,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void rollbacktExecutionUnitLifeCycle() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
-        client.rollback(log);
+        assertThatCode(() -> client.rollback(log)).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientBadRequestException.class)
@@ -747,7 +746,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void statusExecutionWithouthBody() throws Exception {
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
-        client.checkStatus();
+        assertThatCode(() -> client.checkStatus()).doesNotThrowAnyException();
     }
 
     @Test(expected = VitamApplicationServerException.class)
@@ -790,7 +789,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void createExecutionObjectGroupLifeCycle() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         final LogbookLifeCycleUnitParameters log = getCompleteLifeCycleUnitParameters();
-        client.create(log);
+        assertThatCode(() -> client.create(log)).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
@@ -819,14 +818,14 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void updateExecutionObjectGroupLifeCycle() throws Exception {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
-        client.update(log);
+        assertThatCode(() -> client.update(log)).doesNotThrowAnyException();
     }
 
     @Test
     public void commitExecutionObjectGroupLifeCycle() throws Exception {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
-        client.commit(log);
+        assertThatCode(() -> client.commit(log)).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientBadRequestException.class)
@@ -854,7 +853,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void rollbacktExecutionObjectGroup() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
-        client.rollback(log);
+        assertThatCode(() -> client.rollback(log)).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientBadRequestException.class)
@@ -968,7 +967,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void closeExecution() throws Exception {
-        client.close();
+        assertThatCode(() -> client.close()).doesNotThrowAnyException();
     }
 
     @Test
@@ -977,7 +976,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
         GUID unitId = GUIDFactory.newUnitGUID(0);
-        client.commitUnit(operationId.getId(), unitId.getId());
+        assertThatCode(() -> client.commitUnit(operationId.getId(), unitId.getId())).doesNotThrowAnyException();
     }
 
     @Test
@@ -986,7 +985,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
         GUID objectGroup = GUIDFactory.newUnitGUID(0);
-        client.commitUnit(operationId.getId(), objectGroup.getId());
+        assertThatCode(() -> client.commitUnit(operationId.getId(), objectGroup.getId())).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientBadRequestException.class)
@@ -1021,7 +1020,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
-        client.rollBackUnitsByOperation(operationId.getId());
+        assertThatCode(() -> client.rollBackUnitsByOperation(operationId.getId())).doesNotThrowAnyException();
     }
 
     @Test
@@ -1029,7 +1028,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
-        client.rollBackObjectGroupsByOperation(operationId.getId());
+        assertThatCode(() -> client.rollBackObjectGroupsByOperation(operationId.getId())).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
@@ -1063,7 +1062,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         when(mock.head()).thenReturn(Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
 
         GUID unitId = GUIDFactory.newUnitGUID(0);
-        client.getUnitLifeCycleStatus(unitId.toString());
+        assertThatCode(() -> client.getUnitLifeCycleStatus(unitId.toString())).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
@@ -1093,7 +1092,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         when(mock.head()).thenReturn(Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
 
         GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
-        client.getObjectGroupLifeCycleStatus(objectGroupId.toString());
+        assertThatCode(() -> client.getObjectGroupLifeCycleStatus(objectGroupId.toString())).doesNotThrowAnyException();
     }
 
     @Test(expected = LogbookClientNotFoundException.class)

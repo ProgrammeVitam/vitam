@@ -60,21 +60,13 @@ import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import org.junit.ClassRule;
 import org.junit.Rule;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class VitamRuleRunner {
-
-    public static final String OFFER_FOLDER = "offer";
-
 
     enum Prefix {
         PREFIX(GUIDFactory.newGUID().getId());
@@ -180,40 +172,21 @@ public class VitamRuleRunner {
 
     public static void runAfterMongo(Set<String> collections) {
         // clean offers
-        cleanOffers();
+        VitamServerRunner.cleanOffers();
         mongoRule.handleAfter(collections);
     }
 
     public static void runAfterEs(ElasticsearchIndexAlias... indexAliases) {
         // clean offers
-        cleanOffers();
+        VitamServerRunner.cleanOffers();
         elasticsearchRule.handleAfter(Arrays.stream(indexAliases).map(ElasticsearchIndexAlias::getName).collect(Collectors.toSet()));
     }
 
     public static void runAfter() {
         // clean offers
-        cleanOffers();
+        VitamServerRunner.cleanOffers();
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
         ProcessDataAccessImpl.getInstance().clearWorkflow();
-    }
-
-
-    /**
-     * Clean offers content.
-     */
-    public static void cleanOffers() {
-        // ugly style but we don't have the digest herelo
-        File directory = new File(OFFER_FOLDER);
-        if (directory.exists()) {
-            try {
-                Files.walk(directory.toPath())
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            } catch (IOException | IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

@@ -28,13 +28,13 @@ package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.WorkspaceConstants;
 import fr.gouv.vitam.logbook.common.traceability.TimeStampService;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -104,7 +104,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             JsonNode traceabilityEvent =
                 JsonHandler.getFromFile((File) handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK));
 
-            String operationFilePath = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
+            String operationFilePath = WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
                 TIMESTAMP_FILENAME;
             tokenFile = handler.getInputStreamFromWorkspace(operationFilePath);
             String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
@@ -138,8 +138,8 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
 
             final ItemStatus subItemStatusTokenVerification = new ItemStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP);
             try {
-                String computingInformationPath = String.format("%s/%s", SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, TRACEABILITY_COMPUTING_INFORMATION);
-                String merkleTreePath = String.format("%s/%s", SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, TRACEABILITY_MERKLE_TREE);
+                String computingInformationPath = String.format("%s/%s", WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY, TRACEABILITY_COMPUTING_INFORMATION);
+                String merkleTreePath = String.format("%s/%s", WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY, TRACEABILITY_MERKLE_TREE);
                 verifyTimestamp(encodedTimeStampToken, computingInformationPath, merkleTreePath, handler);
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
                     subItemStatusTokenVerification.increment(StatusCode.OK));

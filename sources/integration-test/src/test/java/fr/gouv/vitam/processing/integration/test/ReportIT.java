@@ -34,7 +34,7 @@ import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamHelper;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -242,7 +242,7 @@ public class ReportIT extends VitamRuleRunner {
         workspaceClient.putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
         processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
-        VitamHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
+        VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
         // delete unit to create a KO
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
@@ -254,7 +254,7 @@ public class ReportIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
+        VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
 
         // CHECK REPORT
         List<JsonNode> reportLines;
@@ -264,7 +264,7 @@ public class ReportIT extends VitamRuleRunner {
                 reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                     operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
                 assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-                reportLines = VitamHelper.getReport(reportResponse);
+                reportLines = VitamTestHelper.getReport(reportResponse);
             } finally {
                 consumeAnyEntityAndClose(reportResponse);
             }
@@ -316,7 +316,7 @@ public class ReportIT extends VitamRuleRunner {
             .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
         processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
-        VitamHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
+        VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
         // delete unit to create a KO
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
@@ -330,8 +330,8 @@ public class ReportIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS", StatusCode.KO.name());
-        VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
+        VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS", StatusCode.KO.name());
+        VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
 
         // CHECK REPORT
         List<JsonNode> reportLines;
@@ -341,7 +341,7 @@ public class ReportIT extends VitamRuleRunner {
                 reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                     operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
                 assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-                reportLines = VitamHelper.getReport(reportResponse);
+                reportLines = VitamTestHelper.getReport(reportResponse);
             } finally {
                 consumeAnyEntityAndClose(reportResponse);
             }
@@ -393,7 +393,7 @@ public class ReportIT extends VitamRuleRunner {
             workspaceClient.putObject(operationGuid.getId(), ACTION,JsonHandler.writeToInpustream(action));
             processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
-            VitamHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
+            VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
             // delete unit to create a KO
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                 .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
@@ -405,7 +405,7 @@ public class ReportIT extends VitamRuleRunner {
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-            VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
+            VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
 
             Optional<Document> updatedUnit =
                 VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
@@ -427,7 +427,7 @@ public class ReportIT extends VitamRuleRunner {
                     reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                         operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-                    reportLines = VitamHelper.getReport(reportResponse);
+                    reportLines = VitamTestHelper.getReport(reportResponse);
                 } finally {
                     consumeAnyEntityAndClose(reportResponse);
                 }
@@ -484,7 +484,7 @@ public class ReportIT extends VitamRuleRunner {
             workspaceClient.putObject(operationGuid.getId(), ACTION,JsonHandler.writeToInpustream(action));
             processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
-            VitamHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
+            VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
             // delete unit to create a KO
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                 .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
@@ -498,8 +498,8 @@ public class ReportIT extends VitamRuleRunner {
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-            VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS_RULES", StatusCode.KO.name());
-            VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
+            VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS_RULES", StatusCode.KO.name());
+            VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
 
             // CHECK REPORT
             List<JsonNode> reportLines;
@@ -509,7 +509,7 @@ public class ReportIT extends VitamRuleRunner {
                     reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                         operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-                    reportLines = VitamHelper.getReport(reportResponse);
+                    reportLines = VitamTestHelper.getReport(reportResponse);
                 } finally {
                     consumeAnyEntityAndClose(reportResponse);
                 }

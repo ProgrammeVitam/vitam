@@ -56,7 +56,7 @@ public interface IEventsState {
     void next(WorkerParameters workerParameters) throws StateNotAllowedException, ProcessingException;
 
     /**
-     * Pause the processWorkflow, If the last step the just wait the finally step Else pause the processWorkflow as soon
+     * Pause the processWorkflow, If the last step the just wait the final step Else pause the processWorkflow as soon
      * as possible Do not wait all elements of the current step to be executed The step pauseCancelAction will be
      * updated to PauseOrCancelAction.ACTION_PAUSE If all elements of the current step are executed then stop correctly
      * and step pauseCancelAction will be updated to PauseOrCancelAction.ACTION_COMPLETE
@@ -89,8 +89,8 @@ public interface IEventsState {
 
     /**
      * Cancel as soon as possible the processWorkflow, To do that, the step pauseCancelAction is updated to be
-     * PauseOrCancelAction.ACTION_CANCEL Unlike pause, - The finally step should be executed, -
-     * PauseOrCancelAction.ACTION_CANCEL have no impact on the finally step - The finally step cannot be cancelled
+     * PauseOrCancelAction.ACTION_CANCEL Unlike pause, - The final step should be executed, -
+     * PauseOrCancelAction.ACTION_CANCEL have no impact on the final step - The final step cannot be cancelled
      * 
      * @throws StateNotAllowedException
      */

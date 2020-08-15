@@ -103,7 +103,7 @@ public class PluginHelper {
         itemStatus.increment(statusCode);
         itemStatus.setMessage(message);
         setEvDetData(itemStatus, EventDetails.of(message));
-        return new ItemStatus(action).setItemsStatus(action, itemStatus);
+        return new ItemStatus(action).setItemsStatus(action, itemStatus).setMessage(message);
     }
 
     public static <TEventDetails> ItemStatus buildItemStatusWithMasterData(String action, StatusCode statusCode, TEventDetails eventDetails, Object masterDataValue) {

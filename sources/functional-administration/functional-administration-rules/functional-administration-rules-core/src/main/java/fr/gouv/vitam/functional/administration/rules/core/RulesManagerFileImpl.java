@@ -1124,9 +1124,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     if (!fileRulesModelInDb.getRuleMeasurement().equals(fileRulesModel.getRuleMeasurement()) ||
                         !fileRulesModelInDb.getRuleDuration().equals(fileRulesModel.getRuleDuration())) {
                         fileRulesModelToUpdateThenUpdateUnit.add(fileRulesModel);
-                    } else {
-                        fileRulesModelToUpdate.add(fileRulesModel);
                     }
+
+                    fileRulesModelToUpdate.add(fileRulesModel);
+
                 }
             }
         }
@@ -1222,7 +1223,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         // FIXME use bulk create instead like LogbookMongoDbAccessImpl.
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateFileRules = new Update();
-        List<SetAction> actions = new ArrayList<SetAction>();
+        List<SetAction> actions = new ArrayList<>();
         SetAction setRuleValue;
         setRuleValue = new SetAction(FileRulesModel.TAG_RULE_VALUE, fileRulesModel.getRuleValue());
         actions.add(setRuleValue);

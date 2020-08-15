@@ -51,7 +51,7 @@ public enum AdminCollections {
     ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT, null),
 
     /**
-     * Access contracts collection
+     * Managemnent contracts collection
      */
     MANAGEMENT_CONTRACTS(AccessExtAPI.MANAGEMENT_CONTRACT, null),
 

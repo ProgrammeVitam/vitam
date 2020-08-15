@@ -33,7 +33,7 @@ import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamHelper;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -358,7 +358,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
         processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
-        VitamHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
+        VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
         // delete unit to create a KO
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
@@ -370,8 +370,8 @@ public class MassUpdateIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS", StatusCode.KO.name());
-        VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
+        VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS", StatusCode.KO.name());
+        VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
 
         Optional<Document> updatedUnit =
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
@@ -425,7 +425,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
         processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
-        VitamHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
+        VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
         // delete unit to create a KO
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
@@ -439,8 +439,8 @@ public class MassUpdateIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS", StatusCode.KO.name());
-        VitamHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
+        VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_UNITS", StatusCode.KO.name());
+        VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
 
         Optional<Document> updatedUnit =
             VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())

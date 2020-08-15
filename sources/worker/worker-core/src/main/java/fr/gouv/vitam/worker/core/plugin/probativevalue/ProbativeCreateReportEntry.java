@@ -518,7 +518,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         ProbativeCheck compareTimeStamp = compare(timeStampComparison, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
 
         String digestFromDatabase = JsonHandler.getFromString(traceabilityLogbookOperation.getEvDetData(), TraceabilityEvent.class).getHash();
-        MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(new FileInputStream(traceabilityFiles.getData()));
+        MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(new FileInputStream(traceabilityFiles.getData()),
+            VitamConfiguration.getDefaultDigestType());
         String digestRecalculated = BaseXx.getBase64(merkleTreeAlgo.generateMerkle().getRoot());
 
         String traceabilityMerkleFileMerkleTreeRootDigest = getTraceabilityMerkleFileMerkleTreeRootDigest(traceabilityFiles.getMerkleTree());
@@ -528,6 +529,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
         Properties computingProperties = new Properties();
         computingProperties.load(computingInformation);
+
 
         ProbativeCheck merkleDigestInAdditionalInformation = compare(checkMerkleComputingInformation, digestRecalculated, computingProperties.getProperty(currentHash));
         ProbativeCheck computedTimeStampComparison = computeAndCompareTimeStamp(checkComputedTimestamp, timeStampFromTraceabilityFile, computingProperties);

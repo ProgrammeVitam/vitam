@@ -97,6 +97,7 @@ import java.util.Set;
 
 import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1023,7 +1024,10 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         throws Exception {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
-            client.downloadTraceabilityOperationFile(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID);
+            assertThatCode(() -> client
+                    .downloadTraceabilityOperationFile(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID))
+                            .doesNotThrowAnyException();
+
         }
     }
 

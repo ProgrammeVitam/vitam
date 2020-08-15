@@ -130,8 +130,7 @@ public class ProbativeCreateReport extends ActionHandler {
             ReportResults reportResults = new ReportResults(
                 (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.OK)).count(),
                 (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.KO)).count(),
-                (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.WARNING)).count(),
-                probativeEntries.size()
+                (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.WARNING)).count()
             );
 
             String startDate = probativeEntries.stream()

@@ -466,7 +466,7 @@ public class InsertParserMultipleTest {
         final String s =
             "{ $roots: [ 'id0' ], $query : [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'notimeout'}, $data : {} }";
         request.parse(JsonHandler.getFromString(s));
-        GlobalDatasParser.getJsonNodedepth(request.getRootNode());
+        assertEquals(2, GlobalDatasParser.getJsonNodedepth(request.getRootNode()));
     }
 
     @Test
@@ -481,13 +481,14 @@ public class InsertParserMultipleTest {
         assertEquals(LocalDateUtil.getDate(value.get(Query.DATE).asText()), GlobalDatasParser.getValue(value));
     }
 
-    @Test//Empty data seems allowed (expected = InvalidParseOperationException.class)
-    public void shouldRaiseException_GlobalDatasParserNull() throws InvalidParseOperationException {
+    @Test
+    public void shouldNotThrowException_whenInsertUsesData() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
         final String s =
             "{ $roots: [ 'id0' ], $query : [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'notimeout'}, $data : {} }";
         request.parse(JsonHandler.getFromString(s));
-        GlobalDatasParser.getValue(request.getRootNode());
+        assertTrue(request.getRootNode().has("$data"));
+        assertEquals(2, GlobalDatasParser.getJsonNodedepth(request.getRootNode()));
     }
 
     @Test(expected = InvalidParseOperationException.class)

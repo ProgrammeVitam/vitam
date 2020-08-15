@@ -86,10 +86,11 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMo
 
 public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHelper {
 
+    public static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationTraceabilityHelper.class);
 
     private static final String OP_SECURISATION_STORAGE = "OP_SECURISATION_STORAGE";
-    private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
     private static final String TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();

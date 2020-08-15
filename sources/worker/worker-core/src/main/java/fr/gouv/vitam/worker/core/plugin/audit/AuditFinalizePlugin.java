@@ -41,7 +41,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.WorkspaceConstants;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -53,7 +56,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -115,7 +117,7 @@ public class AuditFinalizePlugin extends ActionHandler {
         }
 
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
-        JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
+        JsonNode initialQuery = handler.getJsonFromWorkspace(WorkspaceConstants.QUERY);
         JsonNode logbookOperation = getLogbookOperation(param.getContainerName());
 
         OperationSummary operationSummary = computeLogbookInformation(param.getContainerName(), logbookOperation);
@@ -148,12 +150,12 @@ public class AuditFinalizePlugin extends ActionHandler {
             JsonNode lastEvent = events.get(events.size() - 2);
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             String evId = processId;
-            String evType = logbookOperation.get("evType").asText();
-            String outcome = lastEvent.get("outcome").asText();
-            String outDetail = lastEvent.get("outDetail").asText();
-            String outMsg = lastEvent.get("outMessg").asText();
-            JsonNode evDetData = JsonHandler.getFromString(lastEvent.get("evDetData").asText());
-            JsonNode rSI = JsonHandler.getFromString(logbookOperation.get("rightsStatementIdentifier").asText());
+            String evType = logbookOperation.get(LogbookEvent.EV_TYPE).asText();
+            String outcome = lastEvent.get(LogbookEvent.OUTCOME).asText();
+            String outDetail = lastEvent.get(LogbookEvent.OUT_DETAIL).asText();
+            String outMsg = lastEvent.get(LogbookEvent.OUT_MESSG).asText();
+            JsonNode evDetData = JsonHandler.getFromString(lastEvent.get(LogbookEvent.EV_DET_DATA).asText());
+            JsonNode rSI = JsonHandler.getFromString(logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText());
             OperationSummary operationSummary =
                 new OperationSummary(tenantId, evId, evType, outcome, outDetail, outMsg, rSI,
                     evDetData);
@@ -164,7 +166,7 @@ public class AuditFinalizePlugin extends ActionHandler {
     }
 
     private ReportSummary computeReportSummary(JsonNode logbookOperation) {
-        String startDate = logbookOperation.get("evDateTime").asText();
+        String startDate = logbookOperation.get(LogbookEvent.EV_DATE_TIME).asText();
         String endDate = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.AUDIT;
         ReportResults vitamResults = new ReportResults();
@@ -175,8 +177,8 @@ public class AuditFinalizePlugin extends ActionHandler {
     private JsonNode getLogbookOperation(String operationId) throws ProcessingStatusException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookResponse = client.selectOperationById(operationId);
-            if (logbookResponse.has("$results") && logbookResponse.get("$results").isArray()) {
-                ArrayNode results = (ArrayNode) logbookResponse.get("$results");
+            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) && logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
+                ArrayNode results = (ArrayNode) logbookResponse.get(RequestResponseOK.TAG_RESULTS);
                 if (results.size() > 0) {
                     return results.get(0);
                 }

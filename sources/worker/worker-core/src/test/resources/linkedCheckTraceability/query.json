@@ -1,0 +1,18 @@
+{
+  "$roots": [],
+  "$query": {
+    "$in": {
+      "#id": [
+        "aecaaaaaacc4hjizabv54alrxqcrb3qaaaaq",
+        "aecaaaaaacc4hjizabv54alrxqct7aqaaaaq",
+        "aecaaaaaacc4hjizabv54alrxqcxxxiaaaaq",
+        "aecaaaaaacc4hjizabv54alrxqcz4uqaaaaq"
+      ]
+    }
+  },
+  "$filter": {
+    "$limit": 10000
+  },
+  "$projection": {},
+  "$facets": []
+}

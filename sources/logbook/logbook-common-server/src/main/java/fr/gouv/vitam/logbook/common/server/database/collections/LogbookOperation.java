@@ -136,7 +136,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         return new LogbookOperation(content);
     }
 
-    static final LogbookMongoDbName getIdName() {
+    static LogbookMongoDbName getIdName() {
         return LogbookMongoDbName.eventIdentifierProcess;
     }
 
@@ -144,7 +144,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      *
      * @return the ParameterName as id in collection
      */
-    public static final LogbookParameterName getIdParameterName() {
+    public static LogbookParameterName getIdParameterName() {
         return LogbookParameterName.eventIdentifierProcess;
     }
 

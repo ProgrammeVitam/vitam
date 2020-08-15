@@ -36,6 +36,7 @@ import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.TraceabilityReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
@@ -95,12 +96,14 @@ public class BusinessApplication extends ConfigurationApplication {
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
             UpdateUnitReportRepository updateUnitReportRepository = new UpdateUnitReportRepository(mongoDbAccess);
             EvidenceAuditReportRepository evidenceAuditReportRepository = new EvidenceAuditReportRepository(mongoDbAccess);
+            TraceabilityReportRepository traceabilityReportRepository = new TraceabilityReportRepository(mongoDbAccess);
             ExtractedMetadataRepository extractedMetadataRepository = new ExtractedMetadataRepository(mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME));
             BatchReportServiceImpl batchReportServiceImpl =
-                new BatchReportServiceImpl(eliminationActionUnitRepository, purgeUnitRepository,
-                    purgeObjectGroupRepository, transferReplyUnitRepository, workspaceClientFactory,
-                    preservationReportRepository, auditReportRepository, updateUnitReportRepository,
-                    unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository, extractedMetadataRepository);
+                new BatchReportServiceImpl(workspaceClientFactory, eliminationActionUnitRepository, purgeUnitRepository,
+                    purgeObjectGroupRepository, transferReplyUnitRepository,
+                    updateUnitReportRepository, preservationReportRepository, auditReportRepository,
+                    unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository,
+                    traceabilityReportRepository, extractedMetadataRepository);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());

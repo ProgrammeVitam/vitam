@@ -98,6 +98,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static fr.gouv.vitam.common.VitamServerRunner.getOfferPath;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -203,8 +204,8 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         String TENANT_1_PREFIXED = VitamConfiguration.getEnvironmentName() + "_" + TENANT_1;
 
         // 0. Init data
-        Path backup0Folder = Paths.get(OFFER_FOLDER, TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
-        Path backup1Folder = Paths.get(OFFER_FOLDER, TENANT_1_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+        Path backup0Folder = Paths.get(getOfferPath(), TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+        Path backup1Folder = Paths.get(getOfferPath(), TENANT_1_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
 
         assertThat(java.nio.file.Files.exists(backup0Folder)).isFalse();
         assertThat(java.nio.file.Files.exists(backup1Folder)).isFalse();

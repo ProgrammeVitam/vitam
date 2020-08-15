@@ -18,5 +18,32 @@ X-Access-Contract-Id: {{access-contract}}
       }
     }
   ],
+  "$projection": {},
   "$threshold": 1000
+}
+
+### Lancement de l'audit de sécurisation sur les journaux crées entre deux dates
+POST {{url-access}}/admin-external/v1/traceability/linkedchecks
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+    "$query": {
+        "$and": [
+            {
+                "$lt": {
+                    "evDateTime": "2020-08-01T06:00:00.000"
+                }
+            },
+            {
+                "$gt": {
+                    "evDateTime": "2019-08-06T18:00:00.000"
+                }
+            }
+        ]
+    },
+    "$filter": {},
+    "$projection": {}
 }

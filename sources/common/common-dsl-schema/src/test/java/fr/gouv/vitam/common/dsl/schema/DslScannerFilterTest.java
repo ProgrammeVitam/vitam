@@ -34,6 +34,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * DslScannerFilterTest
@@ -69,6 +70,6 @@ public class DslScannerFilterTest {
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
         when(containerRequestContext.getEntityStream()).thenReturn(JsonHandler.writeToInpustream(fromString));
         final DslScannerFilter dslScannerFilter = new DslScannerFilter(DslSchema.SELECT_SINGLE);
-        dslScannerFilter.filter(containerRequestContext);
+        assertThatCode(() -> dslScannerFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 }

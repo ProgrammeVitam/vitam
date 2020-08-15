@@ -118,7 +118,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
                 ProcessManagementMain.class
             ));
     private static final Integer TENANT_ID = 0;
-    private static final long SLEEP_TIME = 20l;
+    private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000;
     private final int[] elementCountPerStep = {1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
 
@@ -426,9 +426,9 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
 
-        // Assert that the execution is breaking down and jumped to the finally step
+        // Assert that the execution is breaking down and jumped to the final step
         assertThat(processWorkflow.getSteps().get(5).getStepStatusCode()).isEqualTo(StatusCode.UNKNOWN);
-        // Assert that the finally step is executed
+        // Assert that the final step is executed
         assertThat(processWorkflow.getSteps().get(processWorkflow.getSteps().size() - 1).getStepStatusCode())
             .isEqualTo(StatusCode.OK);
     }

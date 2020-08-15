@@ -27,28 +27,34 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.TraceabilityError;
+import fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry;
 import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.WorkspaceConstants;
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Consumer;
+
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.WorkspaceConstants.ERROR_FLAG;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Using Merkle trees to detect inconsistencies in data
@@ -81,81 +87,94 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
+        if (handler.isExistingFileInWorkspace(params.getObjectName() + File.separator + ERROR_FLAG)) {
+            return buildItemStatus(HANDLER_ID, KO);
+        }
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-        InputStream operationsInputStream = null;
-        try {
+        final String zipDataFolder =
+            WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY + File.separator + params.getObjectName();
+        final String dataFilePath = zipDataFolder + File.separator + DATA_FILE;
 
-            // 1- Get TraceabilityEventDetail from Workspace
+        File traceabilityFile = handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK, File.class);
+
+        // 1- Get data.txt file
+        try (InputStream operationsInputStream = handler.getInputStreamFromWorkspace(dataFilePath)) {
+            // 2- Get TraceabilityEventDetail from Workspace
             TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromFile((File) handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK),
+                JsonHandler.getFromFile(traceabilityFile,
                     TraceabilityEvent.class);
 
-            // 2- Get data.txt file
-            String operationFilePath = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-                DATA_FILE;
-            operationsInputStream = handler.getInputStreamFromWorkspace(operationFilePath);
-
             // 3- Calculate MerkelTree hash
-
-            // TODO Get digest algorithm from traceabilityEvent object
-            MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(operationsInputStream);
+            MerkleTreeAlgo merkleTreeAlgo =
+                computeMerkleTree(operationsInputStream, traceabilityEvent.getDigestAlgorithm());
 
             // calculates hash
             final String currentRootHash = currentRootHash(merkleTreeAlgo);
 
             // compare to secured and indexed hash
-            final ItemStatus subSecuredItem = compareToSecuredHash( handler, currentRootHash);
+            final ItemStatus subSecuredItem =
+                compareToSecuredHash(handler, zipDataFolder + File.separator + MERKLE_TREE_JSON, currentRootHash);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH, subSecuredItem);
 
-            final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash, traceabilityEvent);
+            final ItemStatus subLoggedItemStatus = compareToLoggedHash(currentRootHash, traceabilityEvent);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
+            if (itemStatus.getGlobalStatus().equals(StatusCode.KO)) {
+                updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
+                    TraceabilityError.INCORRECT_MERKLE_TREE)
+                    .setMessage("Error checking merkle tree"));
+                HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
+            } else {
+                updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()));
+            }
         } catch (Exception e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-        } finally {
-        	IOUtils.closeQuietly(operationsInputStream);
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    ItemStatus compareToLoggedHash(WorkerParameters params, final String currentRootHash,
+
+    private void updateReport(WorkerParameters param, HandlerIO handlerIO, Consumer<TraceabilityReportEntry> updater)
+        throws IOException, ProcessingException, InvalidParseOperationException {
+        String path = param.getObjectName() + File.separator + WorkspaceConstants.REPORT;
+        TraceabilityReportEntry traceabilityReportEntry =
+            JsonHandler.getFromJsonNode(handlerIO.getJsonFromWorkspace(path), TraceabilityReportEntry.class);
+        updater.accept(traceabilityReportEntry);
+        HandlerUtils.save(handlerIO, traceabilityReportEntry, path);
+    }
+
+    ItemStatus compareToLoggedHash(final String currentRootHash,
         TraceabilityEvent traceabilityEvent) {
         final ItemStatus subLoggedItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH);
         if (!currentRootHash.equals(traceabilityEvent.getHash())) {
-            subLoggedItemStatus.increment(StatusCode.KO);
+            return subLoggedItemStatus.increment(StatusCode.KO);
         }
         return subLoggedItemStatus.increment(StatusCode.OK);
     }
 
 
-    private ItemStatus compareToSecuredHash( HandlerIO handler, final String currentRootHash)
+    private ItemStatus compareToSecuredHash(HandlerIO handler, final String merkleTreeFile,
+        final String currentRootHash)
         throws ProcessingException {
 
         final ItemStatus subItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH);
-
-        String merkleTreeFile = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            MERKLE_TREE_JSON;
 
         final JsonNode merkleTree = handler.getJsonFromWorkspace(merkleTreeFile);
 
         final String securedRootHash = merkleTree.get(ROOT).asText();
 
         if (currentRootHash == null || !currentRootHash.equals(securedRootHash)) {
-            subItemStatus.increment(StatusCode.KO);
+            return subItemStatus.increment(StatusCode.KO);
         }
         return subItemStatus.increment(StatusCode.OK);
     }
 
-    /**
-     * @param merkleTreeAlgo
-     * @return
-     */
-    String currentRootHash(final MerkleTreeAlgo merkleTreeAlgo) {
+    private String currentRootHash(final MerkleTreeAlgo merkleTreeAlgo) {
         // check ok then compare diff root hash
         final MerkleTree currentMerkleTree = merkleTreeAlgo.generateMerkle();
 
@@ -166,13 +185,15 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
      * Compute merkle tree
      *
      * @param inputStream
+     * @param digestType
      * @return the computed Merkle tree
      * @throws ProcessingException
      */
-    public static MerkleTreeAlgo computeMerkleTree(InputStream inputStream)
+    public static MerkleTreeAlgo computeMerkleTree(InputStream inputStream,
+        DigestType digestType)
         throws ProcessingException {
 
-        final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
+        final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(digestType);
 
         // Process
         try (BufferedInputStream bis = new BufferedInputStream(inputStream);

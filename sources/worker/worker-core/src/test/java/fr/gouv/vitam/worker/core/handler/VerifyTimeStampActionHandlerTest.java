@@ -68,6 +68,7 @@ import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.model.WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_COMPUTING_INFORMATION;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_MERKLE_TREE;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_TOKEN;
@@ -170,9 +171,9 @@ public class VerifyTimeStampActionHandlerTest {
         final InputStream computingInformationFile = PropertiesUtils.getResourceAsStream(COMPUTING_FILE);
         final InputStream merkleFile = PropertiesUtils.getResourceAsStream(MERKLE_FILE);
 
-        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_TOKEN))).thenReturn(Response.status(Status.OK).entity(tokenFile).build());
-        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_COMPUTING_INFORMATION))).thenReturn(Response.status(Status.OK).entity(computingInformationFile).build());
-        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_MERKLE_TREE))).thenReturn(Response.status(Status.OK).entity(merkleFile).build());
+        when(workspaceClient.getObject(any(), eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_TOKEN))).thenReturn(Response.status(Status.OK).entity(tokenFile).build());
+        when(workspaceClient.getObject(any(), eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_COMPUTING_INFORMATION))).thenReturn(Response.status(Status.OK).entity(computingInformationFile).build());
+        when(workspaceClient.getObject(any(), eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_MERKLE_TREE))).thenReturn(Response.status(Status.OK).entity(merkleFile).build());
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -197,7 +198,7 @@ public class VerifyTimeStampActionHandlerTest {
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
 
-        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
+        when(workspaceClient.getObject(any(), eq(TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp"))).thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
@@ -222,7 +223,7 @@ public class VerifyTimeStampActionHandlerTest {
             PropertiesUtils.getResourceAsStream(TOKEN_FAKE);
 
 
-        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
+        when(workspaceClient.getObject(any(), eq(TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp")))
             .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
 

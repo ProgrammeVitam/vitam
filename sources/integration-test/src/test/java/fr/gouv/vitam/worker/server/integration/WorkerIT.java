@@ -85,6 +85,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static io.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -212,7 +213,7 @@ public class WorkerIT extends VitamRuleRunner {
 
     @Test
     public void testXsdConfiguration() throws Exception {
-        printAndCheckXmlConfiguration();
+        assertThatCode(() -> printAndCheckXmlConfiguration()).doesNotThrowAnyException();
     }
 
     @RunWithCustomExecutor

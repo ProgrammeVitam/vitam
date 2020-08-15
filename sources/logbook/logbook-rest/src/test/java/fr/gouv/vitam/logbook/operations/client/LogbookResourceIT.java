@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
@@ -105,6 +106,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -271,11 +273,11 @@ public class LogbookResourceIT {
                 "\"MinusOneMonthLogbookTraceabilityDate\":\"2017-01-16T23:01:03.49\",\"MinusOneYearLogbookTraceabilityDate\":\"2016-02-16T23:01:03.49\"," +
                 "\"NumberOfElements\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
         LogbookOperationParameters traceabilityParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
-            eip1, "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
+            eip1, LOGBOOK_TRACEABILITY.getEventType(), eip1, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, "Début de la sécurisation des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpStart =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
+                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpAct1End =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -287,21 +289,21 @@ public class LogbookResourceIT {
                 StatusCode.OK, "Succès du stockage des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpEnd =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
+                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès du processus de sécurisation des journaux", eip1);
         traceabilityParametersStpEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
 
         LogbookOperationParameters traceabilityParameters2Start =
             LogbookParameterHelper.newLogbookOperationParameters(
-                eip2, "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
+                eip2, LOGBOOK_TRACEABILITY.getEventType(), eip2, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début de la sécurisation des journaux", eip2);
         LogbookOperationParameters traceabilityParameters2StpStart =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
+                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip2, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip2);
         LogbookOperationParameters traceabilityParameters2StpEndFatal =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
+                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip2, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.FATAL, "Succès du processus de sécurisation des journaux", eip2);
 
         try (final LogbookOperationsClient client =
@@ -326,7 +328,7 @@ public class LogbookResourceIT {
                         "OPERATION");
                 final Query eventType = QueryHelper.eq(
                     String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
-                    "STP_OP_SECURISATION");
+                    LOGBOOK_TRACEABILITY.getEventType());
                 final Query outcome = QueryHelper
                     .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.getDbname()),
                         "OK");

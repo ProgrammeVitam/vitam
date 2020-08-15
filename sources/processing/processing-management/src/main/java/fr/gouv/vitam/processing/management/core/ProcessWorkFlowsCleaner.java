@@ -35,10 +35,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.time.LocalDateTime;
@@ -111,7 +113,7 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
                     // remove from state machine
                     processManagement.getProcessMonitorList().remove(element.getKey());
-                } catch (Exception e) {
+                } catch (ProcessingStorageWorkspaceException e) {
                     LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}",
                         VitamConfiguration.getWorkspaceWorkflowsFolder(), element.getKey(), e);
                 }

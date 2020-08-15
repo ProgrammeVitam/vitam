@@ -88,8 +88,7 @@ public class ComputeInheritedRulesPreparationPluginTest {
 
     private ComputeInheritedRulesPreparationPlugin computeInheritedRulesPreparationPlugin;
 
-    private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<JsonLineModel>() {
-    };
+    private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<>() {};
 
     @Before
     public void setUp() throws Exception {
@@ -128,8 +127,7 @@ public class ComputeInheritedRulesPreparationPluginTest {
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
-        JsonLineGenericIterator<JsonLineModel> lines =
-            new JsonLineGenericIterator<>(new FileInputStream(resultFile), jsonLineModelTypeReference);
+        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(resultFile), jsonLineModelTypeReference);
 
         List<String> unitIds = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
         assertThat(unitIds.size()).isEqualTo(4);

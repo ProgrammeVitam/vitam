@@ -27,11 +27,14 @@
 package fr.gouv.vitam.processing.engine.api;
 
 
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
@@ -54,7 +57,8 @@ public interface ProcessEngine {
      * @param workerParameters the worker parameters
      * @param pauseRecover prevent recover from pause action
      * @throws ProcessingEngineException thrown if step could not be started
+     * @return
      */
-    void start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
+    CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
         throws ProcessingEngineException;
 }

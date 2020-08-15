@@ -219,7 +219,10 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     @Override
     public void removeProcessWorkflow(String folderName, String asyncId) throws ProcessingStorageWorkspaceException {
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
-            client.deleteObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId));
+            String path = getPathToObjectFromFolder(folderName, asyncId);
+            if(client.isExistingObject(PROCESS_CONTAINER, path)) {
+                client.deleteObject(PROCESS_CONTAINER, path);
+            }
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         }
