@@ -66,6 +66,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteE
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
@@ -123,6 +124,7 @@ import static fr.gouv.vitam.functional.administration.common.server.MongoDbAcces
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -180,7 +182,6 @@ public class RulesManagerFileImplTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private final static String HOST_NAME = "127.0.0.1";
     private static VitamCounterService vitamCounterService;
     private static VitamRuleService vitamRuleService;
     static RulesManagerFileImpl rulesFileManager;
@@ -299,11 +300,7 @@ public class RulesManagerFileImplTest {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                 errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules,
                 notUsedDeletedRules, notUsedUpdatedRules);
-        } catch (final FileRulesException e) {
-            fail("Check file with FILE_TO_TEST_OK should not throw exception");
-        } catch (FileRulesDeleteException e) {
-            fail("Check file with FILE_TO_TEST_OK should not throw exception");
-        } catch (FileRulesUpdateException e) {
+        } catch (final FileRulesException | FileRulesUpdateException | FileRulesDeleteException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
 
@@ -314,9 +311,7 @@ public class RulesManagerFileImplTest {
             fail("Check file with FILE_TO_TEST_KO should throw exception");
         } catch (final FileRulesCsvException e) {
             exception.expect(FileRulesCsvException.class);
-        } catch (FileRulesDeleteException e) {
-            fail("Check file with FILE_TO_TEST_OK should not throw exception");
-        } catch (FileRulesUpdateException e) {
+        } catch (FileRulesDeleteException | FileRulesUpdateException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
 
@@ -361,8 +356,7 @@ public class RulesManagerFileImplTest {
             new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO_EMPTY_LINE)), errors, usedDeletedRules,
             usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
             .isInstanceOf(FileRulesCsvException.class)
-            .hasMessageContaining("Index for header 'RuleType' is 1 but CSVRecord only has 1 values!");
-
+            .hasMessageContaining("Invalid CSV File");
     }
 
     @Test(expected = FileRulesDurationException.class)
@@ -377,11 +371,7 @@ public class RulesManagerFileImplTest {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)),
                 FILE_DURATION_EXCEED);
-        } catch (final FileRulesException e) {
-            fail("Check file with FILE_TO_TEST_OK should not throw exception");
-        } catch (FileRulesDeleteException e) {
-            fail("Check file with FILE_TO_TEST_OK should not throw exception");
-        } catch (FileRulesUpdateException e) {
+        } catch (final FileRulesException | FileRulesUpdateException | FileRulesDeleteException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
     }
@@ -794,6 +784,7 @@ public class RulesManagerFileImplTest {
     public void should_contains_outMessg_in_error_report_when_csv_with_no_rule_type_is_upload()
         throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         // mock Storage
         final InputStream inputStream =
             getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_INVALID_FORMAT);
@@ -853,8 +844,6 @@ public class RulesManagerFileImplTest {
         // mock logbook client
         when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
 
-
-
         assertThatCode(() -> when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, 0))).doesNotThrowAnyException();
 
@@ -866,16 +855,15 @@ public class RulesManagerFileImplTest {
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
 
-
         // When
-        assertThatThrownBy(() -> rulesFileManager
-            .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
-                usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules,
-                notUsedUpdatedRules))
-            .isInstanceOf(ReferentialException.class);
+        Throwable thrown = catchThrowable(() -> rulesFileManager
+                .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
+                        usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules,
+                        notUsedUpdatedRules));
+        assertThat(thrown).isInstanceOf(ReferentialException.class);
 
-        return rulesFileManager.generateErrorReport(errorsMap, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
-            null);
+        return rulesFileManager.generateErrorReport(((FileRulesReadException) thrown).getErrorsMap(), usedDeletedRules,
+                usedUpdatedRules, StatusCode.KO, null);
     }
 
 

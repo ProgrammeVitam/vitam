@@ -115,7 +115,6 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -138,16 +137,12 @@ import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
@@ -1892,10 +1887,11 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream =
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
-        FileInputStream streamErrorReport =
-            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_REFERENCE_WITH_WRONG_COMA));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport,
-            LINE_3);
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+
+        assertThatThrownBy(() -> client.checkRulesFile(stream))
+                .isInstanceOf(AdminManagementClientServerException.class)
+                .hasMessageContaining("\\u00C9chec du processus d'import du r\\u00E9f\\u00E9rentiel des r\\u00E8gles de gestion");
     }
 
     @Test
