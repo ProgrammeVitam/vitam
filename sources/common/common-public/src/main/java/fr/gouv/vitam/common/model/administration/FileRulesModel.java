@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.FileRules}
@@ -201,32 +202,20 @@ public class FileRulesModel {
             return true;
         }
 
-        if (obj instanceof FileRulesModel) {
-            final FileRulesModel objectToCompare = (FileRulesModel) obj;
-            if (!StringUtils.equals(this.ruleId, objectToCompare.getRuleId())) {
-                return false;
-            }
-
-            if (!StringUtils.equals(this.ruleDuration, objectToCompare.getRuleDuration())) {
-                return false;
-            }
-
-            if (!StringUtils.equals(this.ruleMeasurement, objectToCompare.getRuleMeasurement())) {
-                return false;
-            }
-
-            if (!StringUtils.equals(this.ruleDescription, objectToCompare.getRuleDescription())) {
-                return false;
-            }
-
-            if (!StringUtils.equals(this.ruleValue, objectToCompare.getRuleValue())) {
-                return false;
-            }
-
-            return StringUtils.equals(this.ruleType, objectToCompare.getRuleType());
+        if (!(obj instanceof FileRulesModel)) {
+            return false;
         }
 
-        return false;
+        final FileRulesModel objectToCompare = (FileRulesModel) obj;
+        return new EqualsBuilder()
+                .append(this.ruleId, objectToCompare.getRuleId())
+                .append(this.ruleDuration, objectToCompare.getRuleDuration())
+                .append(this.ruleMeasurement, objectToCompare.getRuleMeasurement())
+                .append(this.ruleDescription, objectToCompare.getRuleDescription())
+                .append(this.ruleValue, objectToCompare.getRuleValue())
+                .append(this.ruleType, objectToCompare.getRuleType())
+                .isEquals();
+
     }
 
     public boolean hasSameRuleId(FileRulesModel rule) {
