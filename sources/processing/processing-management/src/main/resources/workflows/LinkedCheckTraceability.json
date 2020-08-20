@@ -59,12 +59,7 @@
             "actionKey": "RETRIEVE_SECURE_TRACEABILITY_DATA_FILE",
             "behavior": "NOBLOCKING",
             "lifecycleLog": "DISABLED",
-            "in": [
-              {
-                "name": "strategies.json",
-                "uri": "WORKSPACE:StorageInfo/strategies.json"
-              }
-            ],
+            "in": [],
             "out": [
               {
                 "name": "traceabilityevent.file",
@@ -135,10 +130,6 @@
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED",
             "in": [
-              {
-                "name": "strategies.json",
-                "uri": "WORKSPACE:StorageInfo/strategies.json"
-              },
               {
                 "name": "traceabilityevent.file",
                 "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json",

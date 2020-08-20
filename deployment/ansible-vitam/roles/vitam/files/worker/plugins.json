@@ -269,7 +269,7 @@
     "className": "fr.gouv.vitam.worker.core.plugin.traceability.ExtractSecureTraceabilityDataFilePlugin"
   },
   "CHECKS_SECURE_TRACEABILITY_DATA_STORAGELOG": {
-    "className": "fr.gouv.vitam.worker.core.plugin.traceability.ChecksSecureTaceabilityDataStoragelogPlugin"
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.ChecksSecureTraceabilityDataStoragelogPlugin"
   },
   "TRACEABILITY_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.traceability.TraceabilityFinalizationPlugin"
