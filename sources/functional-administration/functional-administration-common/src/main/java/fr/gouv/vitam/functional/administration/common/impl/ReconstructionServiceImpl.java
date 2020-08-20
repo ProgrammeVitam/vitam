@@ -66,6 +66,7 @@ import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -104,13 +105,13 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
     private static final int ADMIN_TENANT = VitamConfiguration.getAdminTenant();
 
-    private RestoreBackupService recoverBuckupService;
+    private final RestoreBackupService recoverBackupService;
 
-    private VitamRepositoryProvider vitamRepositoryProvider;
+    private final VitamRepositoryProvider vitamRepositoryProvider;
 
-    private static final String RECONSTRUCTION_ITEM_MONDATORY_MSG = "the item defining reconstruction is mandatory.";
-    private static final String RECONSTRUCTION_COLLECTION_MONDATORY_MSG = "the collection to reconstruct is mondatory.";
-    private static final String RECONSTRUCTION_TENANT_MONDATORY_MSG = "the tenant to reconstruct is mondatory.";
+    private static final String RECONSTRUCTION_ITEM_MANDATORY_MSG = "the item defining reconstruction is mandatory.";
+    private static final String RECONSTRUCTION_COLLECTION_MANDATORY_MSG = "the collection to reconstruct is mandatory.";
+    private static final String RECONSTRUCTION_TENANT_MANDATORY_MSG = "the tenant to reconstruct is mandatory.";
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
 
     private static final String TOTAL_OBJECT_GROUPS_INGESTED = "TotalObjectGroups_ingested";
@@ -126,19 +127,23 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     private static final String OBJECT_SIZE_DELETED = "ObjectSize_deleted";
     private static final String OBJECT_SIZE_REMAINED = "ObjectSize_remained";
 
-    private OffsetRepository offsetRepository;
+    private final OffsetRepository offsetRepository;
+    private final ElasticsearchFunctionalAdminIndexManager indexManager;
 
     public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository) {
-        this(vitamRepositoryProvider, new RestoreBackupServiceImpl(), offsetRepository);
+        OffsetRepository offsetRepository,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
+        this(vitamRepositoryProvider, new RestoreBackupServiceImpl(), offsetRepository, indexManager);
     }
 
     @VisibleForTesting
     public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider,
-        RestoreBackupService recoverBuckupService, OffsetRepository offsetRepository) {
+        RestoreBackupService recoverBackupService, OffsetRepository offsetRepository,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
-        this.recoverBuckupService = recoverBuckupService;
+        this.recoverBackupService = recoverBackupService;
         this.offsetRepository = offsetRepository;
+        this.indexManager = indexManager;
     }
 
     /**
@@ -153,14 +158,15 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         ParametersChecker.checkParameter("All parameters [%s, %s] are required.", collection, tenants);
         LOGGER.debug(String
             .format("Start reconstruction of the %s collection on the Vitam tenant %s.", collection.getName(),
-                tenants));
+                Arrays.toString(tenants)));
 
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         final VitamMongoRepository mongoRepository =
             vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection());
         final VitamElasticsearchRepository elasticsearchRepository =
-            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection());
+            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection(),
+                indexManager.getElasticsearchIndexAliasResolver(collection));
 
         final VitamMongoRepository sequenceRepository =
             vitamRepositoryProvider
@@ -198,7 +204,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
             // get the last version of the backup copies.
             Optional<CollectionBackupModel> collectionBackup =
-                recoverBuckupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), collection);
+                recoverBackupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), collection);
 
             // reconstruct Vitam collection from the backup copy.
             if (collectionBackup.isPresent()) {
@@ -225,7 +231,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 LOGGER.debug(String
                     .format(
                         "[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
-                        collectionBackup, tenants, LocalDateUtil.now()));
+                        collectionBackup, Arrays.toString(tenants), LocalDateUtil.now()));
             }
         } finally {
             timer.observeDuration();
@@ -237,13 +243,12 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      *
      * @param reconstructionItem request for reconstruction
      * @return response of reconstruction
-     * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      */
     public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem) {
-        ParametersChecker.checkParameter(RECONSTRUCTION_ITEM_MONDATORY_MSG, reconstructionItem);
-        ParametersChecker.checkParameter(RECONSTRUCTION_COLLECTION_MONDATORY_MSG, reconstructionItem.getCollection());
-        ParametersChecker.checkParameter(RECONSTRUCTION_TENANT_MONDATORY_MSG, reconstructionItem.getTenant());
+        ParametersChecker.checkParameter(RECONSTRUCTION_ITEM_MANDATORY_MSG, reconstructionItem);
+        ParametersChecker.checkParameter(RECONSTRUCTION_COLLECTION_MANDATORY_MSG, reconstructionItem.getCollection());
+        ParametersChecker.checkParameter(RECONSTRUCTION_TENANT_MANDATORY_MSG, reconstructionItem.getTenant());
         if (reconstructionItem.getLimit() < 0) {
             throw new IllegalArgumentException(RECONSTRUCTION_LIMIT_POSITIVE_MSG);
         }
@@ -318,7 +323,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
             // get the list of data to backup.
             Iterator<List<OfferLog>> offerLogIterator =
-                recoverBuckupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset,
+                recoverBackupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset,
                     limit, Order.ASC);
 
             Set<String> originatingAgencies = new HashSet<>();
@@ -330,7 +335,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 List<AccessionRegisterBackupModel> dataFromOffer = new ArrayList<>();
                 for (OfferLog offerLog : listingBulk) {
 
-                    AccessionRegisterBackupModel model = recoverBuckupService
+                    AccessionRegisterBackupModel model = recoverBackupService
                         .loadData(VitamConfiguration.getDefaultStrategy(), collection, offerLog.getFileName(),
                             offerLog.getSequence());
                     if (model.getAccessionRegister() != null && model.getOffset() != null) {
@@ -454,7 +459,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         if (null != tenants && !tenants.isEmpty()) {
             LOGGER.debug(String.format("Reconstruction of %s Vitam tenants", tenants.size()));
             // reconstruction of the list of tenants
-            reconstruct(collection, tenants.stream().toArray(Integer[]::new));
+            reconstruct(collection, tenants.toArray(new Integer[0]));
         }
     }
 
@@ -488,7 +493,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      */
     private void bulkElasticsearch(FunctionalAdminCollections faCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(faCollection.getVitamCollection()).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(faCollection.getVitamCollection(),
+            indexManager.getElasticsearchIndexAliasResolver(faCollection)).save(collection);
     }
 
     public void computeAccessionRegisterSummary(String originatingAgency, Integer tenant) {

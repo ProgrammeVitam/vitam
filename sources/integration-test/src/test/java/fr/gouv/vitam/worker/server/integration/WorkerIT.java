@@ -80,6 +80,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import static io.restassured.RestAssured.get;
@@ -131,7 +133,7 @@ public class WorkerIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         CONFIG_WORKER_CLIENT_PATH = PropertiesUtils.getResourcePath("common/worker-client.conf").toString();
 
         AdminManagementClientFactory instance = AdminManagementClientFactory.getInstance();
@@ -140,7 +142,7 @@ public class WorkerIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         AdminManagementClientFactory instance = AdminManagementClientFactory.getInstance();
         instance.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);

@@ -26,27 +26,31 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import com.mongodb.client.FindIterable;
+import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.index.model.IndexKO;
-import fr.gouv.vitam.common.database.index.model.IndexOK;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationKO;
+import fr.gouv.vitam.common.database.index.model.ReindexationOK;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
+import org.apache.commons.collections4.CollectionUtils;
 import org.bson.Document;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -67,127 +71,85 @@ public class IndexationHelper {
      *
      * @param collection the collection to be reindexed
      * @param esClient the elastic client to be used to reindex
-     * @param tenants the tenant list on which to reindex
-     * @param mapping the es mapping as a string
+     * @param indexAlias the elastic index alias information
      * @return the result of the reindexation as a IndexationResult object
-     * @throws IOException
      */
-    public IndexationResult reindex(MongoCollection<Document> collection, String collectionName,
+    public ReindexationOK reindex(MongoCollection<Document> collection,
         ElasticsearchAccess esClient,
-        List<Integer> tenants, InputStream mapping)
-        throws IOException {
-        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
-        IndexationResult indexationResult = new IndexationResult();
-        String collectionMapping = ElasticsearchUtil.transferJsonToMapping(mapping);
-        String currentIndexWithoutAlias = null;
-        Integer currentTenant = null;
-        List<IndexOK> indexesOk = new ArrayList<>();
+        ElasticsearchIndexAlias indexAlias,
+        ElasticsearchIndexSettings indexSettings,
+        ElasticsearchCollections elasticsearchCollection,
+        List<Integer> tenantIds,
+        String tenantGroupName
+    ) throws DatabaseException {
+
+        MongoCursor<Document> cursor = null;
         try {
-            if (tenants != null && !tenants.isEmpty()) {
-                LOGGER
-                    .debug("reindex collectionName : %s for Tenant : %s", collectionName,
-                        String.join(",", tenants.toString()));
-                for (Integer tenant : tenants) {
-                    currentTenant = tenant;
-                    // Create ElasticSearch new index for a given collection
-                    currentIndexWithoutAlias = esClient
-                        .createIndexWithoutAlias(collectionName.toLowerCase(), collectionMapping, tenant);
+            // Select data from mongo
+            VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
 
-                    MongoCursor<Document> cursor =
-                        vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk(), tenant)
-                            .iterator();
-                    // Create repository for the given indexName
-                    VitamElasticsearchRepository vitamElasticsearchRepository =
-                        new VitamElasticsearchRepository(esClient.getClient(), currentIndexWithoutAlias,
-                            false);
-                    List<Document> documents = getDocuments(cursor);
-                    // Reindex document with bulk
-                    while (!documents.isEmpty()) {
-                        // Reindex document with bulk
-                        if (collectionName.toLowerCase().equals(ElasticsearchCollections.OPERATION.getIndexName())) {
-                            vitamElasticsearchRepository.save(ElasticsearchCollections.OPERATION, documents);
-                        } else {
-                            vitamElasticsearchRepository.save(documents);
-                        }
-
-                        documents = getDocuments(cursor);
-                    }
-                    createIndexationResult(collectionName, indexationResult, currentIndexWithoutAlias, currentTenant,
-                        indexesOk);
-                }
+            if (CollectionUtils.isNotEmpty(tenantIds)) {
+                cursor = vitamMongoRepository.findDocuments(
+                    Filters.in(VitamDocument.TENANT_ID, tenantIds),
+                    VitamConfiguration.getMaxElasticsearchBulk()).iterator();
             } else {
-                currentIndexWithoutAlias = esClient
-                    .createIndexWithoutAlias(collectionName, collectionMapping, null);
+                cursor = vitamMongoRepository.findDocuments(
+                    VitamConfiguration.getMaxElasticsearchBulk()).iterator();
+            }
 
-                FindIterable<Document> iterable =
-                    vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk());
-                // Create repository for the given indexName
-                VitamElasticsearchRepository vitamElasticsearchRepository =
-                    new VitamElasticsearchRepository(esClient.getClient(), currentIndexWithoutAlias,
-                        false);
-                MongoCursor<Document> cursor;
-                cursor = iterable.iterator();
-                List<Document> documents = getDocuments(cursor);
-                // Reindex document with bulk
-                while (!documents.isEmpty()) {
+            // Create ElasticSearch new index for a given collection
+            ElasticsearchIndexAlias newIndexWithoutAlias = esClient.createIndexWithoutAlias(indexAlias, indexSettings);
+
+            // Create repository for the given indexName
+            VitamElasticsearchRepository vitamElasticsearchRepository =
+                new VitamElasticsearchRepository(esClient.getClient(),
+                    (tenant) -> newIndexWithoutAlias);
+
+            // Reindex document with bulk
+            Iterator<List<Document>> bulkDocumentIterator =
+                Iterators.partition(cursor, VitamConfiguration.getMaxElasticsearchBulk());
+            while (bulkDocumentIterator.hasNext()) {
+                List<Document> documents = bulkDocumentIterator.next();
+                if (elasticsearchCollection == ElasticsearchCollections.OPERATION) {
+                    vitamElasticsearchRepository.save(ElasticsearchCollections.OPERATION, documents);
+                } else {
                     vitamElasticsearchRepository.save(documents);
-                    documents = getDocuments(cursor);
                 }
-                createIndexationResult(collectionName, indexationResult, currentIndexWithoutAlias, null,
-                    indexesOk);
             }
-        } catch (DatabaseException e) {
-            LOGGER.error("DatabaseException ", e);
-            final String message = e.getMessage();
-            List<IndexKO> indexesKo = new ArrayList<>();
-            if (currentTenant != null) {
-                indexesKo.add(new IndexKO(currentIndexWithoutAlias, currentTenant, message));
-            } else {
-                indexesKo.add(new IndexKO(currentIndexWithoutAlias, message));
+
+            return new ReindexationOK(indexAlias.getName(), newIndexWithoutAlias.getName(), tenantIds, tenantGroupName);
+
+        } finally {
+            if (cursor != null) {
+                cursor.close();
             }
-            indexationResult.setIndexOK(indexesOk);
-            indexationResult.setIndexKO(indexesKo);
-            indexationResult.setCollectionName(collectionName);
         }
-        return indexationResult;
     }
 
     /**
      * switch index, attach a new index to an existing alias
      *
-     * @param aliasName the name of the alias
+     * @param indexAlias the alias information
      * @param newIndex the new index name to switch on
      * @param esClient the elastic client
      * @throws DatabaseException if an error occurs
      */
-    public void switchIndex(String aliasName, String newIndex, ElasticsearchAccess esClient)
+    public SwitchIndexResult switchIndex(ElasticsearchIndexAlias indexAlias, ElasticsearchIndexAlias newIndex,
+        ElasticsearchAccess esClient)
         throws DatabaseException {
         try {
-            esClient.switchIndex(aliasName, newIndex);
+            if (!indexAlias.isValidAliasOfIndex(newIndex)) {
+                throw new DatabaseException(
+                    "Illegal index name '" + newIndex + "' for alias '" + indexAlias.getName() + "'");
+            }
+            esClient.switchIndex(indexAlias, newIndex);
+            return new SwitchIndexResult()
+                .setAlias(indexAlias.getName())
+                .setIndexName(newIndex.getName())
+                .setStatusCode(StatusCode.OK);
         } catch (IOException e) {
             throw new DatabaseException(e);
         }
-    }
-
-    private void createIndexationResult(String collectionName, IndexationResult indexationResult,
-        String currentIndexWithoutAlias, Integer currentTenant, List<IndexOK> indexesOk) {
-        if (currentTenant != null) {
-            indexesOk.add(new IndexOK(currentIndexWithoutAlias, currentTenant));
-        } else {
-            indexesOk.add(new IndexOK(currentIndexWithoutAlias));
-        }
-        indexationResult.setIndexOK(indexesOk);
-        indexationResult.setCollectionName(collectionName);
-    }
-
-    private List<Document> getDocuments(MongoCursor<Document> cursor) {
-        int cpt = 0;
-        List<Document> documents = new ArrayList<>();
-        while (cpt < VitamConfiguration.getMaxElasticsearchBulk() && cursor.hasNext()) {
-            documents.add(cursor.next());
-            cpt++;
-        }
-        return documents;
     }
 
     /**
@@ -197,19 +159,9 @@ public class IndexationHelper {
      * @param message the message to be added
      * @return the final result as an IndexationResult object
      */
-    public IndexationResult getFullKOResult(IndexParameters indexParameters, String message) {
-        IndexationResult result = new IndexationResult();
-        List<IndexKO> koList = new ArrayList<>();
-        if (indexParameters.getTenants() != null) {
-            koList = new ArrayList<>(indexParameters.getTenants().size());
-            for (Integer tenant : indexParameters.getTenants()) {
-                koList.add(new IndexKO(indexParameters.getCollectionName() + "_" + tenant + "_*",
-                    tenant, message));
-            }
-        } else {
-            koList.add(new IndexKO(indexParameters.getCollectionName() + "_*", message));
-        }
-        result.setIndexKO(koList);
+    public ReindexationResult getFullKOResult(IndexParameters indexParameters, String message) {
+        ReindexationResult result = new ReindexationResult();
+        result.setIndexKO(Collections.singletonList(new ReindexationKO(indexParameters.getTenants(), null, message)));
         result.setCollectionName(indexParameters.getCollectionName());
         return result;
     }
@@ -221,13 +173,11 @@ public class IndexationHelper {
      * @param message the message to be added
      * @return the final result as an IndexationResult object
      */
-    public IndexationResult getKOResult(SwitchIndexParameters switchIndexParameters, String message) {
-        IndexationResult result = new IndexationResult();
-        List<IndexKO> koList = new ArrayList<>();
-        koList.add(new IndexKO(switchIndexParameters.getAlias() + "_*", message));
-        result.setIndexKO(koList);
-        result.setCollectionName(switchIndexParameters.getAlias());
-        return result;
+    public SwitchIndexResult getKOResult(SwitchIndexParameters switchIndexParameters, String message) {
+        return new SwitchIndexResult()
+            .setAlias(switchIndexParameters.getAlias())
+            .setIndexName(switchIndexParameters.getIndexName())
+            .setStatusCode(StatusCode.KO)
+            .setMessage(message);
     }
-
 }

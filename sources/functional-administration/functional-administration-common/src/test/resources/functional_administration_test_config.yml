@@ -1,0 +1,52 @@
+# Configuration MongoDB
+mongoDbNodes:
+  - dbHost: 172.17.0.2
+    dbPort: 27017
+dbName: masterdata
+dbAuthentication: true
+dbUserName: functional-admin
+dbPassword: azerty3
+
+#Basic Authentication
+adminBasicAuth:
+  - userName: adminUser
+    password: adminPassword
+
+jettyConfig: jetty-config.xml
+workspaceUrl: http://workspace.service.consul:8201/
+processingUrl: http://processing.service.consul:8203/
+
+# ElasticSearch
+clusterName: elasticsearch-data
+elasticsearchNodes:
+  - hostName: 172.17.0.2
+    httpPort: 9200
+
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    number_of_shards: 3
+    number_of_replicas: 10
+
+  ontology:
+    number_of_shards: 4
+    number_of_replicas: 11
+
+# ExternalId configuration
+listEnableExternalIdentifiers:
+  0:
+    - INGEST_CONTRACT
+    - ACCESS_CONTRACT
+    - MANAGEMENT_CONTRACT
+    - ARCHIVE_UNIT_PROFILE
+  1:
+    - INGEST_CONTRACT
+    - ACCESS_CONTRACT
+    - MANAGEMENT_CONTRACT
+    - PROFILE
+    - SECURITY_PROFILE
+    - CONTEXT
+
+listMinimumRuleDuration:
+  2:
+    AppraisalRule: 1 year

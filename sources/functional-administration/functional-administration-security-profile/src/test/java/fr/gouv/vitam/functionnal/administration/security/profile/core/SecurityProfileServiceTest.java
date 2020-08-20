@@ -58,9 +58,11 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
@@ -75,7 +77,6 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -117,6 +118,9 @@ public class SecurityProfileServiceTest {
     private static final Integer EXTERNAL_TENANT = 2;
     private static MongoDbAccessAdminImpl dbImpl;
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     private VitamCounterService vitamCounterService;
     private FunctionalBackupService functionalBackupService;
     private SecurityProfileService securityProfileService;
@@ -124,15 +128,16 @@ public class SecurityProfileServiceTest {
 
 
     @BeforeClass
-    public static void setUpBeforeClass() throws IOException, VitamException {
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+    public static void setUpBeforeClass() throws VitamException {
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
                 new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
+                        Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
+                    indexManager),
                 Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
     }
 
     @Before
@@ -142,9 +147,7 @@ public class SecurityProfileServiceTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
-        final List tenants = new ArrayList<>();
-        tenants.add(new Integer(TENANT_ID));
-        tenants.add(new Integer(EXTERNAL_TENANT));
+        final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         VitamConfiguration.setTenants(tenants);
         VitamConfiguration.setAdminTenant(TENANT_ID);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
@@ -159,18 +162,18 @@ public class SecurityProfileServiceTest {
 
         securityProfileService =
             new SecurityProfileService(
-                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
+                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager),
                 vitamCounterService, functionalBackupService, adminManagementClient);
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
     }
 
     @After
     public void afterTest() {
-        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
+        FunctionalAdminCollectionsTestUtils.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
         securityProfileService.close();
     }
 

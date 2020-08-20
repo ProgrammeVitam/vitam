@@ -34,6 +34,8 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -218,22 +220,22 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public JsonNode reindex(IndexParameters indexParam)
+    public ReindexationResult reindex(IndexParameters indexParam)
         throws InvalidParseOperationException, LogbookClientServerException {
         try (Response response = make(post().withPath("/reindex").withBody(indexParam, "The options are mandatory").withJson())) {
             check(response);
-            return response.readEntity(JsonNode.class);
+            return response.readEntity(ReindexationResult.class);
         } catch (LogbookClientNotFoundException | VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
     }
 
     @Override
-    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+    public SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, LogbookClientServerException {
         try (Response response = make(post().withPath("/alias").withBody(switchIndexParam, "The options are mandatory").withJson())) {
             check(response);
-            return response.readEntity(JsonNode.class);
+            return response.readEntity(SwitchIndexResult.class);
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException | VitamClientInternalException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }

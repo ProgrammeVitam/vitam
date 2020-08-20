@@ -68,7 +68,7 @@ import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.preservation.ProcessManagementWaiter;
@@ -91,6 +91,8 @@ import org.junit.Test;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -150,7 +152,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         FormatIdentifierFactory.getInstance().changeConfigurationFile(VitamServerRunner.FORMAT_IDENTIFIERS_CONF);
 
         ProcessingManagementClientFactory.changeConfigurationUrl(VitamServerRunner.PROCESSING_URL);
@@ -162,7 +164,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
     @AfterClass
     public static void afterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         VitamConfiguration.setPurgeTemporaryLFC(true);
         VitamClientFactory.resetConnections();
     }

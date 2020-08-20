@@ -33,11 +33,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class SwitchIndexParameters {
 
+    @JsonProperty("collection")
+    private String collectionName;
+
     @JsonProperty("alias")
     private String alias;
 
     @JsonProperty("indexName")
     private String indexName;
+
+    public String getCollectionName() {
+        return collectionName;
+    }
+
+    public void setCollectionName(String collectionName) {
+        this.collectionName = collectionName;
+    }
 
     public String getAlias() {
         return alias;

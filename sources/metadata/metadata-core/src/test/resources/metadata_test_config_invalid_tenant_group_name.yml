@@ -1,0 +1,29 @@
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+
+  default_config:
+    unit:
+      number_of_shards: 3
+      number_of_replicas: 10
+    objectgroup:
+      number_of_shards: 3
+      number_of_replicas: 11
+
+  dedicated_tenants:
+    - tenants: '10-20'
+      unit:
+        number_of_shards: 4
+        number_of_replicas: 12
+      objectgroup:
+        number_of_shards: 5
+        number_of_replicas: 13
+
+  grouped_tenants:
+    - name: 'invalid_name'
+      tenants: '21-22'
+      unit:
+        number_of_shards: 5
+        number_of_replicas: 14
+      objectgroup:
+        number_of_shards: 6
+        number_of_replicas: 15

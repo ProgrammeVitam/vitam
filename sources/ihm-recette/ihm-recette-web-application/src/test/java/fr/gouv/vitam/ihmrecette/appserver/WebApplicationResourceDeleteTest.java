@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -64,24 +65,34 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import fr.gouv.vitam.functional.administration.common.Context;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
+import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.ihmrecette.appserver.utils.MappingLoaderTestUtils;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
@@ -135,10 +146,18 @@ public class WebApplicationResourceDeleteTest {
 
     private static final Integer TENANT_ID = 0;
     private static final Integer ADMIN_TENANT_ID = 1;
-    static final List<Integer> tenantList = Arrays.asList(0);
+    static final List<Integer> tenantList = Arrays.asList(0, ADMIN_TENANT_ID);
 
     final static String tokenCSRF = XSRFHelper.generateCSRFToken();
     private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
+
+    private static final MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+    private static final ElasticsearchMetadataIndexManager metadataIndexManager =
+        MetadataCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap(), mappingLoader);
+    private static final ElasticsearchLogbookIndexManager logbookIndexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
+    private static final ElasticsearchFunctionalAdminIndexManager functionalAdminIndexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -149,17 +168,15 @@ public class WebApplicationResourceDeleteTest {
 
         List<ElasticsearchNode> nodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                nodes));
+                nodes, functionalAdminIndexManager));
 
-        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes, metadataIndexManager));
 
-        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes, mappingLoader), TENANT_ID, 1);
-
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes), TENANT_ID, 1);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes, logbookIndexManager));
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -172,6 +189,22 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setEnableSession(true);
         realAdminConfig.setEnableXsrFilter(true);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
+        realAdminConfig.setFunctionalAdminIndexationConfiguration(
+            new FunctionalAdminIndexationConfiguration()
+                .setDefaultConfiguration(new CollectionConfiguration(2, 1))
+        );
+        realAdminConfig.setMetadataIndexationConfiguration(
+            new MetadataIndexationConfiguration()
+                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
+                    .setUnit(new CollectionConfiguration(2, 1))
+                    .setObjectgroup(new CollectionConfiguration(2, 1)))
+        );
+        realAdminConfig.setLogbookIndexationConfiguration(
+            new LogbookIndexationConfiguration()
+                .setDefaultCollectionConfiguration(
+                    new fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration()
+                        .setLogbookoperation(new CollectionConfiguration(2, 1)))
+        );
         VitamConfiguration.setTenants(tenantList);
 
         realAdminConfig.getElasticsearchNodes().get(0).setHttpPort(ElasticsearchRule.PORT);
@@ -186,7 +219,8 @@ public class WebApplicationResourceDeleteTest {
         final DbConfigurationImpl adminConfiguration =
             new DbConfigurationImpl(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMasterdataDbName(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, Collections::emptyList);
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, Collections::emptyList,
+            functionalAdminIndexManager);
 
         try {
             application = new IhmRecetteMain(adminConfigFile.getAbsolutePath());
@@ -200,12 +234,13 @@ public class WebApplicationResourceDeleteTest {
 
         XSRFFilter.addToken("testId", tokenCSRF);
 
-        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ONTOLOGY), false);
+        FunctionalAdminCollectionsTestUtils
+            .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ONTOLOGY), false);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -213,11 +248,11 @@ public class WebApplicationResourceDeleteTest {
             LOGGER.error(e);
         }
 
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
 
-        MetadataCollections.afterTestClass(true, TENANT_ID, 1);
+        MetadataCollectionsTestUtils.afterTestClass(metadataIndexManager, true);
 
-        LogbookCollections.afterTestClass(true, TENANT_ID, 1);
+        LogbookCollectionsTestUtils.afterTestClass(logbookIndexManager, true);
 
         mongoDbAccessAdmin.close();
         junitHelper.releasePort(serverPort);
@@ -809,7 +844,7 @@ public class WebApplicationResourceDeleteTest {
         final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
-        GUID adminContext = null;
+        GUID adminContext;
         if (result.getCount() > 0) {
             adminContext = GUIDReader.getGUID(result.getDocuments(Context.class, ContextModel.class).get(0).getId());
         } else {
@@ -822,7 +857,7 @@ public class WebApplicationResourceDeleteTest {
             data1.put("EnableControl", true);
             final ObjectNode permissionNode = JsonHandler.createObjectNode();
             permissionNode.put("tenant", TENANT_ID);
-            data1.put("Permissions", JsonHandler.createArrayNode().add(permissionNode));
+            data1.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
             data1.put("SecurityProfile", "admin-security-profile");
             data1.put("Status", "ACTIVE");
             mongoDbAccessAdmin.insertDocument(data1, collection).close();
@@ -837,7 +872,7 @@ public class WebApplicationResourceDeleteTest {
         final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);
-        GUID adminContext = null;
+        GUID adminContext;
         if (result.getCount() > 0) {
             adminContext = GUIDReader.getGUID(result.getDocuments(Context.class, ContextModel.class).get(0).getId());
         } else {

@@ -88,6 +88,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -133,7 +134,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
 
         StorageClientFactory.getInstance().setVitamClientType(PRODUCTION);
         IngestInternalClientFactory.getInstance().setVitamClientType(PRODUCTION);
@@ -143,7 +144,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }

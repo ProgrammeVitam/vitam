@@ -61,9 +61,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -170,6 +172,10 @@ public class AdminManagementResourceTest {
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private final static String originatingAgency = "OriginatingAgency";
+
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     private InputStream streamErrorReport;
 
     @BeforeClass
@@ -177,9 +183,9 @@ public class AdminManagementResourceTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                esNodes));
+                esNodes, indexManager));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.getAbsolutePath());
@@ -203,7 +209,8 @@ public class AdminManagementResourceTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         mongoDbAccess =
             MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+                    indexManager);
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -224,13 +231,11 @@ public class AdminManagementResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         System.setProperty(VitamConfiguration.getVitamTmpProperty(), VitamConfiguration.getVitamTmpFolder());
         SystemPropertyUtil.refresh();
 
-
-        FunctionalAdminCollections
-            .afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
 
         LOGGER.debug("Ending tests");
         try {
@@ -243,7 +248,7 @@ public class AdminManagementResourceTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -257,7 +262,7 @@ public class AdminManagementResourceTest {
 
     @After
     public void tearDown() {
-        FunctionalAdminCollections.afterTest();
+        FunctionalAdminCollectionsTestUtils.afterTest();
     }
 
     @Test
@@ -480,7 +485,7 @@ public class AdminManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void givenFindDocumentWhenNotFoundThenReturnZeroResult()
-        throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
@@ -695,7 +700,7 @@ public class AdminManagementResourceTest {
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES).close();
+        mongoDbAccess.deleteCollectionForTesting(FunctionalAdminCollections.RULES).close();
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID1);
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
@@ -880,7 +885,7 @@ public class AdminManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void givenFindDocumentRulesFileWhenNotFoundThenReturnNotFound()
-        throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws Exception {
 
         String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);

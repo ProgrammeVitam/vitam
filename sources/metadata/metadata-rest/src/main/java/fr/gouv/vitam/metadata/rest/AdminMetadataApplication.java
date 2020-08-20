@@ -32,8 +32,10 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfigurationValidator;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -72,11 +74,21 @@ public class AdminMetadataApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final MetaDataConfiguration metaDataConfiguration =
                 PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+
+            // Validate configuration
+            MetaDataConfigurationValidator.validateConfiguration(metaDataConfiguration);
+
+            MappingLoader mappingLoader = new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
+
+            // Elasticsearch configuration
+            ElasticsearchMetadataIndexManager indexManager =
+                new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
+                    mappingLoader);
+
             adminApplication = new AdminApplication();
             // Hack to instance metadatas collections
-            MappingLoader mappingLoader = new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
             MongoDbAccessMetadataImpl mongoDbAccessMetadata =
-                MongoDbAccessMetadataFactory.create(metaDataConfiguration, mappingLoader);
+                MongoDbAccessMetadataFactory.create(metaDataConfiguration, mappingLoader, indexManager);
 
             // TODO: Ugly fix as we have to change all unit test
             if (null != metaDataConfiguration.getWorkspaceUrl() && !metaDataConfiguration.getWorkspaceUrl().isEmpty()) {
@@ -95,13 +107,13 @@ public class AdminMetadataApplication extends Application {
                 metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
                 metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
-                mappingLoader);
+                indexManager);
 
-            GraphFactory.initialize(vitamRepositoryProvider, metadata);
+            GraphFactory.initialize(vitamRepositoryProvider, metadata, indexManager);
 
             final MetadataManagementResource metadataReconstructionResource =
                 new MetadataManagementResource(vitamRepositoryProvider, offsetRepository,
-                    metadata, metaDataConfiguration);
+                    metadata, metaDataConfiguration, indexManager);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());

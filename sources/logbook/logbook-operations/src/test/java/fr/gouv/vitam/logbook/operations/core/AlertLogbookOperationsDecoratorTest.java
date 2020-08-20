@@ -40,6 +40,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -78,6 +79,7 @@ public class AlertLogbookOperationsDecoratorTest {
     private String eventType;
     private String outcome = "OK";
     private LogbookOperationParameters logbookParameters;
+    private ElasticsearchLogbookIndexManager indexManager;
 
     @Before
     public void setUp() throws Exception {
@@ -90,7 +92,9 @@ public class AlertLogbookOperationsDecoratorTest {
         StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
         when(storageClientFactory.getClient()).thenReturn(mock(StorageClient.class));
         IndexationHelper indexationHelper = mock(IndexationHelper.class);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,indexationHelper);
+        indexManager = mock(ElasticsearchLogbookIndexManager.class);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,indexationHelper,
+            indexManager);
         eventType = "STP_IMPORT_ACCESS_CONTRACT";
         logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);

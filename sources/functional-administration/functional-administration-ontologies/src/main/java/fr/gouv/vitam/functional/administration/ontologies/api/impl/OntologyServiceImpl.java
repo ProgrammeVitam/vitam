@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -52,7 +51,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -909,7 +907,6 @@ public class OntologyServiceImpl implements OntologyService {
             return;
         }
 
-        DbRequestSingle dbRequest = new DbRequestSingle(FunctionalAdminCollections.ONTOLOGY.getVitamCollection(), Collections::emptyList);
         try {
 
             List<String> ontologyIdentifiers = ontologyModels.stream()
@@ -920,11 +917,10 @@ public class OntologyServiceImpl implements OntologyService {
 
                 final Delete delete = new Delete();
                 delete.setQuery(in(OntologyModel.TAG_IDENTIFIER, ids.toArray(new String[0])));
-                dbRequest.execute(delete);
+                mongoAccess.deleteCollectionForTesting(FunctionalAdminCollections.ONTOLOGY, delete);
             }
 
-        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
-            DatabaseException | VitamDBException | SchemaValidationException e) {
+        } catch (InvalidCreateOperationException | DatabaseException e) {
             throw new RuntimeException("Could not delete ontologies", e);
         }
     }

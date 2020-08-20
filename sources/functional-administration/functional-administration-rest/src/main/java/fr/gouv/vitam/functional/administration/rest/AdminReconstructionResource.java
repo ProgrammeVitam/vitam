@@ -41,8 +41,9 @@ import fr.gouv.vitam.functional.administration.common.ReconstructionItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.ReconstructionResponseItem;
 import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -100,7 +101,8 @@ public class AdminReconstructionResource {
      * @param ontologyLoader
      */
     public AdminReconstructionResource(AdminManagementConfiguration configuration,
-        VitamRepositoryProvider reconstructionFactory, OntologyLoader ontologyLoader) {
+        VitamRepositoryProvider reconstructionFactory, OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =
@@ -111,9 +113,9 @@ public class AdminReconstructionResource {
                 new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName());
         }
-        this.mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader);
+        this.mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
         this.reconstructionService =
-            new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess));
+            new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess), indexManager);
     }
 
     /**

@@ -26,12 +26,35 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+import fr.gouv.vitam.common.database.index.model.ReindexationOK;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexSettings;
+import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
+import fr.gouv.vitam.common.error.ServiceName;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
+import org.bson.Document;
 
 import javax.validation.Valid;
 import javax.ws.rs.ApplicationPath;
@@ -42,44 +65,17 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.bson.Document;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCollection;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
-import fr.gouv.vitam.common.database.parameter.IndexParameters;
-import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
-import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
-import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
-import fr.gouv.vitam.common.error.ServiceName;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class ReindexationResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReindexationResource.class);
-    private static final String OPTIONS_IS_MANDATORY_PATAMETER =
+    private static final String OPTIONS_IS_MANDATORY_PARAMETER =
         "Parameters are mandatory";
 
     private static final String REINDEXATION_EXCEPTION_MSG =
@@ -100,27 +96,22 @@ public class ReindexationResource {
     private final MetaDataClientFactory metaDataClientFactory;
 
     private final IndexationHelper indexationHelper;
-    /**
-     * Constructor
-     *
-     * @param logbookOperationsClientFactory
-     * @param metaDataClientFactory
-     */
+
+    private final ElasticsearchFunctionalAdminIndexManager indexManager;
+
     @VisibleForTesting
     public ReindexationResource(LogbookOperationsClientFactory logbookOperationsClientFactory,
-        MetaDataClientFactory metaDataClientFactory, IndexationHelper indexationHelper) {
+        MetaDataClientFactory metaDataClientFactory, IndexationHelper indexationHelper,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
         this.indexationHelper = indexationHelper;
+        this.indexManager = indexManager;
         LOGGER.debug("init Reindexation Resource server");
     }
 
-
-    /**
-     * Default Constructor
-     * 
-     */
-    public ReindexationResource() {
+    public ReindexationResource(ElasticsearchFunctionalAdminIndexManager indexManager) {
+        this.indexManager = indexManager;
         logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
         metaDataClientFactory = MetaDataClientFactory.getInstance();
         this.indexationHelper = IndexationHelper.getInstance();
@@ -138,89 +129,110 @@ public class ReindexationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response reindex(@Valid List<IndexParameters> indexParameters) {
-        ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, indexParameters);
-        List<IndexationResult> results = new ArrayList<IndexationResult>();
-        AtomicBoolean atLeastOneKO = new AtomicBoolean(false);
-        AtomicBoolean atLeastOneOK = new AtomicBoolean(false);
+        ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PARAMETER, indexParameters);
+
+        List<ReindexationResult> results = new ArrayList<>();
         // call the reindexation service
-        indexParameters.forEach(index -> {
-            try (MetaDataClient metaDataClient = metaDataClientFactory.getClient(); LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()){
-                if (VitamCollectionHelper.isLogbookCollection(index.getCollectionName())) {
-                    results.add(JsonHandler.getFromJsonNode(logbookOperationsClient.reindex(index), IndexationResult.class));
-                    atLeastOneOK.set(true);
-                } else if (VitamCollectionHelper.isMetadataCollection(index.getCollectionName())) {
-                    results.add(JsonHandler.getFromJsonNode(metaDataClient.reindex(index), IndexationResult.class));
-                    atLeastOneOK.set(true);
-                } else {
-                    // Reindex of the given collection
-                    FunctionalAdminCollections collectionToReindex;
-                    try {
-                        collectionToReindex =
-                            FunctionalAdminCollections.valueOf(index.getCollectionName());
-
-                        boolean isMultiTenant =
-                            FunctionalAdminCollections.isCollectionMultiTenant(index.getCollectionName());
-
-                        if (isMultiTenant && index.getTenants() != null && index.getTenants().size() > 0) {
-                            String message = String
-                                .format("Try to reindex a multi tenant collection %s on multiple indexes", index
-                                    .getCollectionName());
-                            results.add(indexationHelper.getFullKOResult(index, message));
-                            atLeastOneKO.set(true);
-                        } else {
-                            MongoCollection<Document> mongoCollection = collectionToReindex.getCollection();
-                            try (InputStream mappingStream =
-                                ElasticsearchCollections.valueOf(index.getCollectionName().toUpperCase())
-                                    .getMappingAsInputStream()) {
-
-                                results.add(indexationHelper.reindex(mongoCollection, collectionToReindex.getName(), collectionToReindex.getEsClient(),
-                                    index.getTenants(), mappingStream));
-
-                                atLeastOneOK.set(true);
-                            } catch (IOException exc) {
-                                LOGGER.error("Cannot get {} elastic search mapping for tenants {}",
-                                    collectionToReindex.name(),
-                                    index.getTenants().stream().map(Object::toString)
-                                        .collect(Collectors.joining(", ")));
-                                results.add(indexationHelper.getFullKOResult(index, exc.getMessage()));
-                                atLeastOneKO.set(true);
-                            }
-                        }
-                    } catch (IllegalArgumentException ex) {
-                        String message = String.format("Try to reindex an unknown collection %s", index
-                            .getCollectionName());
-                        results.add(indexationHelper.getFullKOResult(index, message));
-                        atLeastOneKO.set(true);
-                        LOGGER.error(message, ex);
-                    }
-                }
-
-            } catch (LogbookClientServerException | MetaDataClientServerException |
-                MetaDataNotFoundException | InvalidParseOperationException e) {
-                results.add(indexationHelper.getFullKOResult(index, REINDEXATION_EXCEPTION_MSG));
-                atLeastOneKO.set(true);
-                LOGGER.error(REINDEXATION_EXCEPTION_MSG, e);
+        for (IndexParameters index : indexParameters) {
+            ReindexationResult indexationResult;
+            if (VitamCollectionHelper.isLogbookCollection(index.getCollectionName())) {
+                indexationResult = reindexLogbookCollection(index);
+            } else if (VitamCollectionHelper.isMetadataCollection(index.getCollectionName())) {
+                indexationResult = reindexMasterDataCollection(index);
+            } else {
+                indexationResult = reindexFunctionalAdminCollection(index);
             }
-        });
-        if (atLeastOneKO.get() && !atLeastOneOK.get()) {
+            results.add(indexationResult);
+        }
+
+        boolean atLeastOneOK = results.stream()
+            .anyMatch(indexationResult -> CollectionUtils.isNotEmpty(indexationResult.getIndexOK()));
+
+        boolean atLeastOneKO = results.stream()
+            .anyMatch(indexationResult -> CollectionUtils.isNotEmpty(indexationResult.getIndexKO()));
+
+        if (atLeastOneKO && !atLeastOneOK) {
             final Status returnedStatus = Status.INTERNAL_SERVER_ERROR;
-            Response response = Response.status(returnedStatus)
+            return Response.status(returnedStatus)
                 .entity(new VitamError(returnedStatus.name()).setHttpCode(returnedStatus.getStatusCode())
                     .setContext(ServiceName.FUNCTIONAL_ADMINISTRATION.getName())
                     .setState("code_vitam")
                     .setMessage(JsonHandler.unprettyPrint(results))
                     .setDescription("Internal error."))
                 .build();
-            return response;
-        } else if (atLeastOneKO.get() && atLeastOneOK.get()) {
+        } else if (atLeastOneKO) {
 
-            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK<ReindexationResult>()
                 .addAllResults(results).setHttpCode(Status.ACCEPTED.getStatusCode())).build();
         } else {
-            return Response.status(Status.CREATED).entity(new RequestResponseOK()
+            return Response.status(Status.CREATED).entity(new RequestResponseOK<ReindexationResult>()
                 .addAllResults(results).setHttpCode(Status.CREATED.getStatusCode())).build();
         }
+    }
 
+    private ReindexationResult reindexLogbookCollection(IndexParameters indexParameters) {
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            return logbookOperationsClient.reindex(indexParameters);
+        } catch (Exception e) {
+            LOGGER.error(REINDEXATION_EXCEPTION_MSG, e);
+            return indexationHelper.getFullKOResult(indexParameters, REINDEXATION_EXCEPTION_MSG);
+        }
+    }
+
+    private ReindexationResult reindexMasterDataCollection(IndexParameters indexParameters) {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+            return JsonHandler.getFromJsonNode(metaDataClient.reindex(indexParameters), ReindexationResult.class);
+        } catch (Exception e) {
+            LOGGER.error(REINDEXATION_EXCEPTION_MSG, e);
+            return indexationHelper.getFullKOResult(indexParameters, REINDEXATION_EXCEPTION_MSG);
+        }
+    }
+
+    private ReindexationResult reindexFunctionalAdminCollection(IndexParameters indexParameters) {
+
+        // Reindex of the given collection
+        FunctionalAdminCollections collectionToReindex;
+        try {
+            collectionToReindex =
+                FunctionalAdminCollections.valueOf(indexParameters.getCollectionName());
+        } catch (IllegalArgumentException ex) {
+            String message = String.format("Try to reindex an unknown collection %s", indexParameters
+                .getCollectionName());
+            LOGGER.error(message, ex);
+            return indexationHelper.getFullKOResult(indexParameters, message);
+        }
+
+        if (CollectionUtils.isNotEmpty(indexParameters.getTenants())) {
+            LOGGER.warn("Ignoring tenant list for collection " + collectionToReindex);
+        }
+
+        MongoCollection<Document> mongoCollection = collectionToReindex.getCollection();
+
+        try {
+
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collectionToReindex).resolveIndexName(null);
+            ElasticsearchIndexSettings indexSettings =
+                this.indexManager.getElasticsearchIndexSettings(collectionToReindex);
+
+            ReindexationOK reindexResult = indexationHelper.reindex(
+                mongoCollection,
+                collectionToReindex.getEsClient(),
+                indexAlias,
+                indexSettings,
+                collectionToReindex.getElasticsearchCollection(),
+                null,
+                null);
+
+            ReindexationResult indexationResult = new ReindexationResult();
+            indexationResult.setCollectionName(indexParameters.getCollectionName());
+            indexationResult.setIndexOK(Collections.singletonList(reindexResult));
+            return indexationResult;
+
+        } catch (Exception exc) {
+            LOGGER.error("Cannot reindex collection " + collectionToReindex.name() + ". Unexpected error");
+            return indexationHelper.getFullKOResult(indexParameters, exc.getMessage());
+        }
     }
 
     /**
@@ -234,68 +246,85 @@ public class ReindexationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response switchIndexes(@Valid List<SwitchIndexParameters> switchIndexParameters) {
-        ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, switchIndexParameters);
-        List<IndexationResult> results = new ArrayList<IndexationResult>();
-        AtomicBoolean atLeastOneKO = new AtomicBoolean(false);
-        AtomicBoolean atLeastOneOK = new AtomicBoolean(false);
+        ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PARAMETER, switchIndexParameters);
+        List<SwitchIndexResult> results = new ArrayList<>();
         // call the switch service
         switchIndexParameters.forEach(switchIndex -> {
-            try (MetaDataClient metaDataClient = metaDataClientFactory.getClient(); LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()){
+            try {
 
-                if (VitamCollectionHelper.isLogbookCollection(switchIndex.getAlias())) {
-                    String[] splits = switchIndex.getIndexName().split("_");
-                    switchIndex.setAlias(splits[0] + "_" + splits[1]);
-                    results.add(
-                        JsonHandler.getFromJsonNode(logbookOperationsClient.switchIndexes(switchIndex), IndexationResult.class));
-                    atLeastOneOK.set(true);
-                } else if (VitamCollectionHelper.isMetadataCollection(switchIndex.getAlias())) {
-                    String[] splits = switchIndex.getIndexName().split("_");
-                    switchIndex.setAlias(splits[0] + "_" + splits[1]);
-                    results.add(
-                        JsonHandler.getFromJsonNode(metaDataClient.switchIndexes(switchIndex), IndexationResult.class));
-                    atLeastOneOK.set(true);
+                SwitchIndexResult switchIndexResult;
+                if (VitamCollectionHelper.isLogbookCollection(switchIndex.getCollectionName())) {
+                    switchIndexResult = switchLogbookCollectionAlias(switchIndex);
+                } else if (VitamCollectionHelper.isMetadataCollection(switchIndex.getCollectionName())) {
+                    switchIndexResult = switchMetadataCollectionAlias(switchIndex);
                 } else {
-                    try {
-
-                        indexationHelper.switchIndex(switchIndex.getIndexName().split("_")[0],
-                            switchIndex.getIndexName().toLowerCase(),
-                            FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient());//We need an Es client, we take this one
-                        atLeastOneOK.set(true);
-                    } catch (IllegalArgumentException e) {
-                        String message = String.format("Try to switch indexes on unknown collection %s", switchIndex
-                            .getAlias());
-                        results.add(indexationHelper.getKOResult(switchIndex, message));
-                        atLeastOneKO.set(true);
-                        LOGGER.error(message, e);
-                    }
+                    switchIndexResult = switchFunctionalAdminCollection(switchIndex);
                 }
-            } catch (DatabaseException | LogbookClientServerException | InvalidParseOperationException |
-                MetaDataClientServerException | MetaDataNotFoundException e) {
-                atLeastOneKO.set(true);
-                String message = String.format("Error while switching indexes on collection %s", switchIndex
-                    .getAlias());
-                results.add(indexationHelper.getKOResult(switchIndex, message));
+
+                results.add(switchIndexResult);
+
+            } catch (Exception e) {
+                String message = String.format("Error while switching indexes for alias '%s' into '%s'",
+                    switchIndex.getAlias(), switchIndex.getIndexName());
                 LOGGER.error(message, e);
+                results.add(indexationHelper.getKOResult(switchIndex, message));
             }
         });
-        if (atLeastOneKO.get() && !atLeastOneOK.get()) {
+
+        boolean atLeastOneOK = results.stream()
+            .anyMatch(switchIndexResult -> switchIndexResult.getStatusCode() == StatusCode.OK);
+
+        boolean atLeastOneKO = results.stream()
+            .anyMatch(switchIndexResult -> switchIndexResult.getStatusCode() != StatusCode.OK);
+
+        if (atLeastOneKO && !atLeastOneOK) {
             final Status returnedStatus = Status.INTERNAL_SERVER_ERROR;
-            Response response = Response.status(returnedStatus)
+            return Response.status(returnedStatus)
                 .entity(new VitamError(returnedStatus.name()).setHttpCode(returnedStatus.getStatusCode())
                     .setContext(ServiceName.FUNCTIONAL_ADMINISTRATION.getName())
                     .setState("code_vitam")
                     .setMessage(JsonHandler.unprettyPrint(results))
                     .setDescription("Internal error."))
                 .build();
-            return response;
-        } else if (atLeastOneKO.get() && atLeastOneOK.get()) {
-            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+        } else if (atLeastOneKO) {
+            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK<SwitchIndexResult>()
                 .addAllResults(results).setHttpCode(Status.ACCEPTED.getStatusCode())).build();
         } else {
-            return Response.status(Status.OK).entity(new RequestResponseOK()
+            return Response.status(Status.OK).entity(new RequestResponseOK<SwitchIndexResult>()
                 .addAllResults(results).setHttpCode(Status.OK.getStatusCode())).build();
         }
-
     }
 
+    private SwitchIndexResult switchFunctionalAdminCollection(SwitchIndexParameters switchIndex)
+        throws DatabaseException {
+
+        ElasticsearchIndexAlias alias =
+            ElasticsearchIndexAlias.ofFullIndexName(switchIndex.getAlias());
+        ElasticsearchIndexAlias newIndex =
+            ElasticsearchIndexAlias.ofFullIndexName(switchIndex.getIndexName());
+
+        return indexationHelper.switchIndex(alias, newIndex,
+            FunctionalAdminCollections.ACCESS_CONTRACT
+                .getEsClient());//We need an Es client, we take this one
+    }
+
+    private SwitchIndexResult switchLogbookCollectionAlias(SwitchIndexParameters switchIndex) {
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+            return logbookOperationsClient.switchIndexes(switchIndex);
+        } catch (Exception e) {
+            String message = "Error while switching indexes on logbook collection " + switchIndex.getAlias();
+            LOGGER.error(message, e);
+            return indexationHelper.getKOResult(switchIndex, message);
+        }
+    }
+
+    private SwitchIndexResult switchMetadataCollectionAlias(SwitchIndexParameters switchIndex) {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+            return metaDataClient.switchIndexes(switchIndex);
+        } catch (Exception e) {
+            String message = "Error while switching indexes on metadata collection " + switchIndex.getAlias();
+            LOGGER.error(message, e);
+            return indexationHelper.getKOResult(switchIndex, message);
+        }
+    }
 }

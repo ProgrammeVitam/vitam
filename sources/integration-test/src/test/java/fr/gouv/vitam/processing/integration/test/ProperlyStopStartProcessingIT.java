@@ -93,6 +93,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -139,7 +141,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         // set bulk size to 1 for tests
         VitamConfiguration.setWorkerBulkSize(3);
         VitamConfiguration.setDistributeurBatchSize(10);
@@ -147,7 +149,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
 
         VitamConfiguration.setWorkerBulkSize(10);

@@ -142,7 +142,7 @@ public enum ElasticsearchCollections {
      *
      * @return Mapping as an InputStream
      */
-    public InputStream getMappingAsInputStream() throws FileNotFoundException {
+    public InputStream getMappingAsInputStream() {
         return ElasticsearchCollections.class.getResourceAsStream(getMapping());
     }
 }

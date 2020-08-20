@@ -503,8 +503,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
             .build());
-        JsonNode resp = client.switchIndexes(new SwitchIndexParameters());
-        assertNotNull(resp);
+        assertNotNull(client.switchIndexes(new SwitchIndexParameters()));
     }
 
     @Test

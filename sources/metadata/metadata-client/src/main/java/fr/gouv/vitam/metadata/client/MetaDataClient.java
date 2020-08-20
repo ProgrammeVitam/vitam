@@ -35,6 +35,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -226,7 +228,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataNotFoundException in case the index does not exist
      * @throws InvalidParseOperationException
      */
-    JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+    SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException;
 
     /**

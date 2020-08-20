@@ -33,15 +33,15 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import org.junit.AfterClass;
@@ -85,14 +85,16 @@ public class LogbookApplicationTest {
     private static final int TENANT_ID = 0;
     private static final List<Integer> tenantList = Lists.newArrayList(TENANT_ID);
     private static String configurationFile;
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), 0, 1);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         junitHelper = JunitHelper.getInstance();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
@@ -110,7 +112,7 @@ public class LogbookApplicationTest {
         logbookConfiguration.setOpEventsNotInWf(new ArrayList<>());
         logbookConfiguration.setOpWithLFC(new ArrayList<>());
 
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
         serverPort = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 
@@ -125,7 +127,7 @@ public class LogbookApplicationTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollections.afterTestClass(true, 0, 1);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
         mongoDbAccess.close();
         junitHelper.releasePort(serverPort);
         VitamServerFactory.setDefaultPort(oldPort);
@@ -143,8 +145,8 @@ public class LogbookApplicationTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void shouldRaiseException() throws VitamException {
-        new LogbookMain((String) null);
+    public final void shouldRaiseException() {
+        new LogbookMain(null);
     }
 
 }

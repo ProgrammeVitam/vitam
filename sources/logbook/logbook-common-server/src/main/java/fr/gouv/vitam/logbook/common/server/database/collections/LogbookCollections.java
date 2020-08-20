@@ -26,21 +26,16 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
-import org.bson.Document;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -70,78 +65,6 @@ public enum LogbookCollections {
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
     private VitamCollection vitamCollection;
-
-    @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final LogbookElasticsearchAccess esClient, Integer... tenants) {
-        beforeTestClass(db, prefix, esClient, Lists.newArrayList(LogbookCollections.values()), tenants);
-    }
-
-    @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final LogbookElasticsearchAccess esClient, Collection<LogbookCollections> logbookCollections,
-        Integer... tenants) {
-        for (LogbookCollections collection : logbookCollections) {
-            collection.vitamCollection
-                .setName(prefix + collection.getClasz().getSimpleName());
-            collection.initialize(db, false);
-            if (collection == LogbookCollections.OPERATION) {
-                if (collection.getEsClient() == null) {
-                    collection.initialize(esClient);
-                }
-                if (null != collection.getEsClient()) {
-                    for (Integer tenant : tenants) {
-                        Map<String, String> map = collection.getEsClient().addIndex(collection, tenant);
-                        if (map.isEmpty()) {
-                            throw new RuntimeException(
-                                "Index not created for the collection " + collection.getName() + " and tenant :" +
-                                    tenant);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    @VisibleForTesting
-    public static void afterTestClass(boolean deleteEsIndex, Integer... tenants) {
-        afterTestClass(Lists.newArrayList(LogbookCollections.values()), deleteEsIndex, tenants);
-    }
-
-    @VisibleForTesting
-    public static void afterTestClass(Collection<LogbookCollections> logbookCollections, boolean deleteEsIndex,
-        Integer... tenants) {
-        ParametersChecker.checkParameter("logbookCollections is required", logbookCollections);
-        for (LogbookCollections collection : logbookCollections) {
-
-            if (null != collection.vitamCollection.getCollection()) {
-                collection.vitamCollection.getCollection().deleteMany(new Document());
-            }
-
-            if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
-                for (Integer tenant : tenants) {
-                    if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndexByAlias(collection.getName().toLowerCase(), tenant);
-                    } else {
-                        collection.getEsClient().purgeIndex(collection.getName().toLowerCase(), tenant);
-                    }
-                }
-            }
-        }
-    }
-
-
-    @VisibleForTesting
-    public static void afterTest(Integer... tenants) {
-        afterTestClass(false, tenants);
-    }
-
-
-    @VisibleForTesting
-    public static void afterTest(Collection<LogbookCollections> logbookCollections, Integer... tenants) {
-        afterTestClass(logbookCollections, false, tenants);
-    }
 
     LogbookCollections(final Class<?> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
@@ -215,5 +138,19 @@ public enum LogbookCollections {
 
     public VitamDescriptionResolver getVitamDescriptionResolver() {
         return vitamDescriptionResolver;
+    }
+
+    public ElasticsearchCollections getElasticsearchCollection() {
+        switch (this) {
+            case OPERATION:
+                return ElasticsearchCollections.OPERATION;
+            case LIFECYCLE_UNIT:
+            case LIFECYCLE_UNIT_IN_PROCESS:
+            case LIFECYCLE_OBJECTGROUP:
+            case LIFECYCLE_OBJECTGROUP_IN_PROCESS:
+                throw new IllegalStateException("No ES index for collection " + this);
+            default:
+                throw new IllegalStateException("Unknown collection " + this);
+        }
     }
 }

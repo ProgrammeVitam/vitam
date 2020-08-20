@@ -1,0 +1,5 @@
+---
+
+- name: Check removed tenants
+  fail: msg="Invalid tenant configuration. Removed tenant(s) {{ vitam_removed_tenants | default([]) | intersect(vitam_tenant_ids) }} cannot be active (vitam_removed_tenants and vitam_tenant_ids should not intersect)"
+  when: 'vitam_removed_tenants | default([]) | intersect(vitam_tenant_ids) | length != 0'

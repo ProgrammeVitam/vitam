@@ -52,9 +52,11 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.format.model.FormatImportReport;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -111,13 +113,16 @@ public class ReferentialFormatFileImplTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         final List<MongoDbNode> mongoDbNodes = new ArrayList<>();
         mongoDbNodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
@@ -125,19 +130,19 @@ public class ReferentialFormatFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList), functionalBackupService,
+                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager), functionalBackupService,
             logbookOperationsClient);
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @After
     public void cleanup() {
-        FunctionalAdminCollections.afterTest();
+        FunctionalAdminCollectionsTestUtils.afterTest();
     }
 
     @Test

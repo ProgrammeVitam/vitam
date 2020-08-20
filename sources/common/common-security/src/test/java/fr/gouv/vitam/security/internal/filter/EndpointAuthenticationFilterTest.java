@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;

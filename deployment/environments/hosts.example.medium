@@ -239,10 +239,6 @@ dns_servers=["10.100.211.222", "8.8.8.8"]
 ### memory settings ###
 memory_opts="-Xms1024m -Xmx1024m"
 
-### tenants ###
-vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
-vitam_tenant_admin=1
-
 ### logback ###
 days_to_delete_logback_logfiles=30
 
