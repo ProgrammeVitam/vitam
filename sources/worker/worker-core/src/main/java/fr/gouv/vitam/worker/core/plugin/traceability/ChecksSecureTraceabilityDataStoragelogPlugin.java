@@ -53,8 +53,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.HandlerUtils;
@@ -64,8 +62,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,29 +78,27 @@ import static fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry.SEC
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.WorkspaceConstants.DATA_FILE;
 import static fr.gouv.vitam.common.model.WorkspaceConstants.ERROR_FLAG;
-import static fr.gouv.vitam.worker.common.utils.StorageUtils.loadStorageStrategies;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMessage;
 
-public class ChecksSecureTaceabilityDataStoragelogPlugin extends ActionHandler {
+public class ChecksSecureTraceabilityDataStoragelogPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ChecksSecureTaceabilityDataStoragelogPlugin.class);
+        VitamLoggerFactory.getInstance(ChecksSecureTraceabilityDataStoragelogPlugin.class);
     private static final String PLUGIN_NAME = "CHECKS_SECURE_TRACEABILITY_DATA_STORAGELOG";
 
-    private static final int STRATEGIES_IN_RANK = 0;
-    private static final int EVENT_DETAIL_DATA_IN_RANK = 1;
+    private static final int EVENT_DETAIL_DATA_IN_RANK = 0;
 
     private static final String DIGEST = "digest";
 
     private final StorageClientFactory storageClientFactory;
 
-    public ChecksSecureTaceabilityDataStoragelogPlugin() {
+    public ChecksSecureTraceabilityDataStoragelogPlugin() {
         this(StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    ChecksSecureTaceabilityDataStoragelogPlugin(StorageClientFactory storageClientFactory) {
+    ChecksSecureTraceabilityDataStoragelogPlugin(StorageClientFactory storageClientFactory) {
         this.storageClientFactory = storageClientFactory;
     }
 
@@ -123,39 +119,33 @@ public class ChecksSecureTaceabilityDataStoragelogPlugin extends ActionHandler {
                 // todo : add zip fingerprint to TraceabilityEvent
                 TraceabilityEvent traceabilityDataEvent =
                     JsonHandler.getFromJsonNode(handler.getJsonFromWorkspace(dataFilePath), TraceabilityEvent.class);
-                List<StorageStrategy> storageStrategies =
-                    loadStorageStrategies(handler.getInput(STRATEGIES_IN_RANK, File.class));
 
-                Map<String, Map<String, String>> digests = new HashMap<>();
+                Map<String, String> digests = new HashMap<>();
 
-                for (StorageStrategy storageStrategy : storageStrategies) {
-                    digests.put(storageStrategy.getId(), new HashMap<>());
-                    List<String> offerIds =
-                        storageStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
-                    Map<String, Boolean> existsMap = new HashMap<>(storageClient
-                        .exists(storageStrategy.getId(), DataCategory.STORAGELOG, traceabilityDataEvent.getFileName(),
-                            offerIds));
-                    boolean exists = existsMap.values().stream().allMatch(e -> e);
-                    if (!exists) {
-                        existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
-                            ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, KO, String
-                            .format("Cannot find storagelog data with filename %s in offers %s",
-                                traceabilityDataEvent.getFileName(), existsMap.keySet().toString()));
-                        updateReport(param, handler, t ->
-                            t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage()).setError(
-                                TraceabilityError.FILE_NOT_FOUND)
-                                .appendExtraData(
-                                    Map.of(FILE_ID, traceabilityDataEvent.getFileName(), OFFERS_HASHES, digests)));
-                        return result;
-                    }
-
-                    digests.get(storageStrategy.getId()).putAll(
-                        getOfferDigests(storageClient, DataCategory.STORAGELOG, traceabilityDataEvent.getFileName(),
-                            storageStrategy.getId(), offerIds));
+                List<String> offerIds = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
+                Map<String, Boolean> existsMap = new HashMap<>(storageClient
+                    .exists(VitamConfiguration.getDefaultStrategy(), DataCategory.STORAGELOG,
+                        traceabilityDataEvent.getFileName(),
+                        offerIds));
+                boolean exists = existsMap.values().stream().allMatch(e -> e);
+                if (!exists) {
+                    existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
+                    ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, KO, String
+                        .format("Cannot find storagelog data with filename %s in offers %s",
+                            traceabilityDataEvent.getFileName(), existsMap.keySet().toString()));
+                    updateReport(param, handler, t ->
+                        t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage()).setError(
+                            TraceabilityError.FILE_NOT_FOUND)
+                            .appendExtraData(
+                                Map.of(FILE_ID, traceabilityDataEvent.getFileName(), OFFERS_HASHES, digests)));
+                    return result;
                 }
 
-                Set<String> hashes =
-                    digests.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toSet());
+                digests.putAll(
+                    getOfferDigests(storageClient, traceabilityDataEvent.getFileName(),
+                        VitamConfiguration.getDefaultStrategy(), offerIds));
+
+                Set<String> hashes = new HashSet<>(digests.values());
                 if (hashes.isEmpty()) {
                     ItemStatus result =
                         buildItemStatusWithMessage(PLUGIN_NAME, KO, "Error: unable to retrive all hashes!");
@@ -207,9 +197,11 @@ public class ChecksSecureTaceabilityDataStoragelogPlugin extends ActionHandler {
             }
 
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK);
-        } catch (InvalidParseOperationException | IOException | StorageServerClientException | StorageNotFoundClientException | StorageNotFoundException e) {
+        } catch (InvalidParseOperationException | IOException | StorageServerClientException | StorageNotFoundClientException |
+            StorageNotFoundException e) {
             throw new ProcessingException(e);
         }
+
     }
 
     private void updateReport(WorkerParameters param, HandlerIO handlerIO, Consumer<TraceabilityReportEntry> updater)
@@ -221,10 +213,10 @@ public class ChecksSecureTaceabilityDataStoragelogPlugin extends ActionHandler {
         HandlerUtils.save(handlerIO, traceabilityReportEntry, path);
     }
 
-    private Map<String, String> getOfferDigests(StorageClient storageClient, DataCategory dataCategory,
+    private Map<String, String> getOfferDigests(StorageClient storageClient,
         String objectGuid,
         String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
-        JsonNode information = storageClient.getInformation(strategyId, dataCategory, objectGuid, offerIds, true);
+        JsonNode information = storageClient.getInformation(strategyId, DataCategory.STORAGELOG, objectGuid, offerIds, true);
 
         return offerIds.stream()
             .map(e -> new SimpleEntry<>(e, information.get(e)))

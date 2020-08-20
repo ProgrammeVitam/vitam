@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.batch.report.model.TraceabilityError;
 import fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -47,8 +48,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.HandlerUtils;
@@ -56,8 +55,8 @@ import fr.gouv.vitam.worker.core.handler.HandlerUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -67,7 +66,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.WorkspaceConstants.ERROR_FLAG;
-import static fr.gouv.vitam.worker.common.utils.StorageUtils.loadStorageStrategies;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMessage;
 
@@ -76,7 +74,6 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(RetrieveSecureTraceabilityDataFilePlugin.class);
     private static final String PLUGIN_NAME = "RETRIEVE_SECURE_TRACEABILITY_DATA_FILE";
-    private static final int STRATEGIES_IN_RANK = 0;
     private static final int TRACEABILITY_EVENT_OUT_RANK = 0;
     private static final int DIGEST_OUT_RANK = 1;
     private static final String DIGEST = "digest";
@@ -100,37 +97,30 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
             TraceabilityEvent traceabilityEvent = JsonHandler.getFromJsonNode(eventDetail, TraceabilityEvent.class);
             DataCategory dataCategory = getDataCategory(traceabilityEvent);
 
-            List<StorageStrategy> storageStrategies =
-                loadStorageStrategies(handler.getInput(STRATEGIES_IN_RANK, File.class));
-            Map<String, Map<String, String>> digests = new HashMap<>();
+            Map<String, String> digests = new HashMap<>();
 
-            for (StorageStrategy storageStrategy : storageStrategies) {
-                digests.put(storageStrategy.getId(), new HashMap<>());
-                List<String> offerIds =
-                    storageStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
-                Map<String, Boolean> existsMap = new HashMap<>(storageClient
-                    .exists(storageStrategy.getId(), dataCategory, traceabilityEvent.getFileName(), offerIds));
-                boolean exists = existsMap.values().stream().allMatch(e -> e);
-                if (!exists) {
-                    existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
-                    ItemStatus result =
-                        buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, String
-                            .format("Unable to find data file with name %s in all offers %s",
-                                traceabilityEvent.getFileName(), existsMap.keySet().toString()));
-                    saveReport(param, handler,
-                        createTraceabilityReportEntry(param, traceabilityEvent, digests, result,
-                            TraceabilityError.FILE_NOT_FOUND));
-                    HandlerUtils.save(handler, "", param.getObjectName() + File.separator + ERROR_FLAG);
-                    return result;
-                }
-
-                digests.get(storageStrategy.getId())
-                    .putAll(getOfferDigests(storageClient, dataCategory, traceabilityEvent.getFileName(),
-                        storageStrategy.getId(), offerIds));
+            List<String> offerIds = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
+            Map<String, Boolean> existsMap = new HashMap<>(storageClient
+                .exists(VitamConfiguration.getDefaultStrategy(), dataCategory, traceabilityEvent.getFileName(),
+                    offerIds));
+            boolean exists = existsMap.values().stream().allMatch(e -> e);
+            if (!exists) {
+                existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
+                ItemStatus result =
+                    buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, String
+                        .format("Unable to find data file with name %s in all offers %s",
+                            traceabilityEvent.getFileName(), existsMap.keySet().toString()));
+                saveReport(param, handler,
+                    createTraceabilityReportEntry(param, traceabilityEvent, digests, result,
+                        TraceabilityError.FILE_NOT_FOUND));
+                HandlerUtils.save(handler, "", param.getObjectName() + File.separator + ERROR_FLAG);
+                return result;
             }
 
-            Set<String> hashes =
-                digests.values().stream().map(Map::values).flatMap(Collection::stream).collect(Collectors.toSet());
+            digests.putAll(getOfferDigests(storageClient, dataCategory, traceabilityEvent.getFileName(),
+                VitamConfiguration.getDefaultStrategy(), offerIds));
+
+            Set<String> hashes = new HashSet<>(digests.values());
             if (hashes.isEmpty()) {
                 ItemStatus result =
                     buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, "Error: unable to retrive all hashes!");
@@ -161,11 +151,11 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
     }
 
     private TraceabilityReportEntry createTraceabilityReportEntry(WorkerParameters param,
-        TraceabilityEvent traceabilityEvent, Map<String, Map<String, String>> digests, ItemStatus result,
+        TraceabilityEvent traceabilityEvent, Map<String, String> digests, ItemStatus result,
         TraceabilityError error) {
         return new TraceabilityReportEntry(param.getObjectName(), traceabilityEvent.getLogType().name(),
-            result.getGlobalStatus().name(),
-            result.getMessage(), error, null, digests, traceabilityEvent.getFileName(), null);
+            result.getGlobalStatus().name(), result.getMessage(), error, null, digests, traceabilityEvent.getFileName(),
+            null);
     }
 
     private void saveReport(WorkerParameters param, HandlerIO handlerIO,
