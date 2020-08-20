@@ -31,34 +31,37 @@ import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Exception throw when csv to import is not well format or is bad to parse
- */
-public class FileRulesCsvException extends FileRulesReadException {
+public class FileRulesReadException extends ReferentialException {
+    private Map<Integer, List<ErrorReport>> errorsMap;
+
     /**
      * @param message message to associate with the exception
      * @param cause   cause to associate with the exception
      */
-    public FileRulesCsvException(String message, Throwable cause) {
+    public FileRulesReadException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
      * @param message message to associate with the exception
      */
-    public FileRulesCsvException(String message) {
+    public FileRulesReadException(String message) {
         super(message);
+    }
+
+    public FileRulesReadException(String message, Map<Integer, List<ErrorReport>> errorsMap) {
+        super(message);
+        this.errorsMap = errorsMap;
     }
 
     /**
      * @param cause cause to associate with the exception
      */
-    public FileRulesCsvException(Throwable cause) {
+    public FileRulesReadException(Throwable cause) {
         super(cause);
     }
 
-    public FileRulesCsvException(String message, Map<Integer, List<ErrorReport>> errorsMap) {
-        super(message, errorsMap);
-
+    public Map<Integer, List<ErrorReport>> getErrorsMap() {
+        return errorsMap;
     }
 }

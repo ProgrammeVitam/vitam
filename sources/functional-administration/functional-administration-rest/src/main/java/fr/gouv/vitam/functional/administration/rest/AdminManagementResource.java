@@ -88,6 +88,7 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
@@ -418,6 +419,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(errorReportInputStream,
                 Status.OK, headers);
+        } catch (FileRulesReadException e) {
+            LOGGER.error("Error while checking file ", e);
+            return handleGenerateReport(e.getErrorsMap(), usedDeletedRules, usedUpdatedRules, rulesOntologyLoader);
         } catch (Exception e) {
             LOGGER.error("Error while checking file ", e);
             return handleGenerateReport(errors, usedDeletedRules, usedUpdatedRules, rulesOntologyLoader);

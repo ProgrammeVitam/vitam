@@ -1887,10 +1887,11 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream =
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
-        FileInputStream streamErrorReport =
-            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_REFERENCE_WITH_WRONG_COMA));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport,
-            LINE_3);
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+
+        assertThatThrownBy(() -> client.checkRulesFile(stream))
+                .isInstanceOf(AdminManagementClientServerException.class)
+                .hasMessageContaining("\\u00C9chec du processus d'import du r\\u00E9f\\u00E9rentiel des r\\u00E8gles de gestion");
     }
 
     @Test

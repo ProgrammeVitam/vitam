@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
 
 /**
  * RulesManagerParser Manage the parse of a CSV file
@@ -85,6 +87,15 @@ public class RulesManagerParser {
             result.put(CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             result.put(UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             arrayNode.add(result);
+        }
+        return arrayNode;
+    }
+
+    public static ArrayNode convertFileRulesModelListToArrayNode(Collection<FileRulesModel> rules)
+            throws InvalidParseOperationException {
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        for (FileRulesModel rule : rules) {
+            arrayNode.add(JsonHandler.toJsonNode(rule));
         }
         return arrayNode;
     }

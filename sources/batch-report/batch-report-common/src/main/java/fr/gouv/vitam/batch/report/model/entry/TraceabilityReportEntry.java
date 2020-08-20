@@ -64,7 +64,7 @@ public class TraceabilityReportEntry {
     private String securedHash;
 
     @JsonProperty(OFFERS_HASHES)
-    private Map<String, Map<String, String>> offersHashes;
+    private Map<String, String> offersHashes;
 
     @JsonProperty(FILE_ID)
     private String fileId;
@@ -79,7 +79,7 @@ public class TraceabilityReportEntry {
         @JsonProperty(MESSAGE) String message,
         @JsonProperty(TRACEABILITY_ERROR) TraceabilityError error,
         @JsonProperty(SECURED_HASH) String securedHash,
-        @JsonProperty(OFFERS_HASHES) Map<String, Map<String, String>> offersHashes,
+        @JsonProperty(OFFERS_HASHES) Map<String, String> offersHashes,
         @JsonProperty(FILE_ID) String fileId,
         @JsonProperty(EXTRA_DATA) Map<String, Object> extraData) {
         this.operationId = operationId;
@@ -138,11 +138,11 @@ public class TraceabilityReportEntry {
         return this;
     }
 
-    public Map<String, Map<String, String>> getOffersHashes() {
+    public Map<String, String> getOffersHashes() {
         return offersHashes;
     }
 
-    public TraceabilityReportEntry setOffersHashes(Map<String, Map<String, String>> offersHashes) {
+    public TraceabilityReportEntry setOffersHashes(Map<String, String> offersHashes) {
         this.offersHashes = offersHashes;
         return this;
     }
