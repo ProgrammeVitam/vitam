@@ -4,7 +4,7 @@
     "Name": "SEC_PROFILE_2",
     "FullAccess": false,
     "Permissions": [
-      "permission_two:create"
+      "securityprofiles:id:read"
     ]
   }
 ]

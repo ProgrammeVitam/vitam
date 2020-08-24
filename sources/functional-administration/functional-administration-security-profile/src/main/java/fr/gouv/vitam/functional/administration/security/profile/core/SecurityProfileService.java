@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
@@ -71,11 +72,12 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.security.internal.utils.SecurityProfilePermissionsEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -109,6 +111,9 @@ public class SecurityProfileService implements VitamAutoCloseable {
     private static final String SECURITY_PROFILE_UPDATE_EVENT = "STP_UPDATE_SECURITY_PROFILE";
     private static final String SECURITY_PROFILE_DELETE_EVENT = "STP_DELETE_SECURITY_PROFILE";
     private static final String SECURITY_PROFILE_BACKUP_EVENT = "STP_BACKUP_SECURITY_PROFILE";
+    private static final String IMPORT_SECURITY_PROFILE_UNKNOW_PERMISSION_KEY = "STP_IMPORT_SECURITY_PROFILE.UNKNOWN_PERMISSION";
+    private static final String UPDATE_SECURITY_PROFILE_UNKNOW_PERMISSION_KEY = "STP_UPDATE_SECURITY_PROFILE.UNKNOWN_PERMISSION";
+    private static final String UNKNOW_PERMISSION_SECURITY_PROFILE_ERROR = "At least, one security pofile's permission is not valid";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
@@ -260,10 +265,25 @@ public class SecurityProfileService implements VitamAutoCloseable {
                 // Permission set incompatible with full access mode
                 if (!CollectionUtils.isEmpty(securityProfile.getPermissions())) {
                     error.addToErrors(getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
-                        String.format(ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS, securityProfile.getName()), StatusCode.KO));
+                            String.format(ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS, securityProfile.getName()), StatusCode.KO));
                     continue;
                 }
             }
+            // check Permissions validity
+            if (securityProfile.getPermissions() != null && !securityProfile.getPermissions().isEmpty()) {
+                checkSecurityProfilePermissions(securityProfile.getPermissions(), error, IMPORT_SECURITY_PROFILE_UNKNOW_PERMISSION_KEY);
+            }
+        }
+    }
+
+    private void checkSecurityProfilePermissions(Set<String> permissions, VitamError error, String messageKey) {
+        Boolean isPermissionsUnvalid = permissions.stream().map(elmt -> SecurityProfilePermissionsEnum.isPermissionValid(elmt))
+                .filter(isPermissionValid -> isPermissionValid.equals(Boolean.FALSE)).count() > 0 ? Boolean.TRUE : Boolean.FALSE;
+        if (isPermissionsUnvalid) {
+            error.addToErrors(getVitamErrorWithMessage(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
+                    UNKNOW_PERMISSION_SECURITY_PROFILE_ERROR,
+                    StatusCode.KO,
+                    VitamLogbookMessages.getCodeOp(messageKey, StatusCode.KO)));
         }
     }
 
@@ -324,6 +344,17 @@ public class SecurityProfileService implements VitamAutoCloseable {
         manager.logUpdateStarted(securityProfileModel.getId());
 
         try {
+            // Check permission validity
+            Set<String> permissions = new HashSet<>();
+            ArrayNode permissionsNode = (ArrayNode) queryDsl.findValue(Context.PERMISSION);
+            if (null != permissionsNode && !permissionsNode.isEmpty()) {
+                permissions = JsonHandler.getFromJsonNode(permissionsNode, Set.class);
+            }
+            checkSecurityProfilePermissions(permissions, error, UPDATE_SECURITY_PROFILE_UNKNOW_PERMISSION_KEY);
+            if (error.getErrors().size() > 0) {
+                error.setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                return error;
+            }
 
             JsonNode finalUpdate = enforceIdentifierInUpdateQuery(identifier, queryDsl);
 
@@ -667,5 +698,9 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
     private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
         return VitamErrorUtils.getVitamError(vitamCode, error, "SecurityProfile", statusCode);
+    }
+
+    private VitamError getVitamErrorWithMessage(String vitamCode, String error, StatusCode statusCode, String msg) {
+        return VitamErrorUtils.getVitamErrorWithMessage(vitamCode, error, "SecurityProfile", statusCode, msg);
     }
 }

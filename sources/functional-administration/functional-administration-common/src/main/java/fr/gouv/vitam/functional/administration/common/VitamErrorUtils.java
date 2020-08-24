@@ -45,4 +45,9 @@ public class VitamErrorUtils {
         return new VitamError(vitamCode).setMessage(collection + " service error").setState(state.name())
             .setContext("FunctionalModule-" + collection).setDescription(description);
     }
+
+    public static VitamError getVitamErrorWithMessage(String vitamCode, String description, String collection, StatusCode state, String message) {
+        return new VitamError(vitamCode).setMessage(message).setState(state.name())
+                .setContext("FunctionalModule-" + collection).setDescription(description);
+    }
 }

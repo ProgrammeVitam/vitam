@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -180,9 +181,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
         List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
         RequestResponse<SecurityProfileModel> response =
             securityProfileService.createSecurityProfiles(securityProfileModelList);
 
@@ -203,12 +202,25 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_missing_name.json");
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
+
+        verifyNoMoreInteractions(functionalBackupService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenSecurityProfilesTestUnknownPermission_KO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_unknown_permission.json");
+        final List<SecurityProfileModel> securityProfileModelList =
+                JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
+        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+
+        assertThat(response.isOk()).isFalse();
+        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("Au moins une permission n'existe pas.");
 
         verifyNoMoreInteractions(functionalBackupService);
     }
@@ -220,9 +232,7 @@ public class SecurityProfileServiceTest {
         final File securityProfileFiles = PropertiesUtils.getResourceFile(
             "security_profile_ok_duplicate_names_accepted.json");
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -236,9 +246,7 @@ public class SecurityProfileServiceTest {
             PropertiesUtils.getResourceFile("security_profile_ko_id_not_allowed_in_creation.json");
 
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
         RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -252,9 +260,7 @@ public class SecurityProfileServiceTest {
             PropertiesUtils.getResourceFile("security_profile_ok_identifier.json");
 
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
         RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -271,9 +277,7 @@ public class SecurityProfileServiceTest {
             PropertiesUtils.getResourceFile("security_profile_ok_identifier.json");
 
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -290,9 +294,7 @@ public class SecurityProfileServiceTest {
             PropertiesUtils.getResourceFile("security_profile_ko_duplicate_identifier_in_creation.json");
 
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -305,9 +307,8 @@ public class SecurityProfileServiceTest {
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
 
         List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
+        JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         final RequestResponseOK<SecurityProfileModel> responseCast = (RequestResponseOK<SecurityProfileModel>) response;
@@ -325,9 +326,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok_full_access.json");
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -340,9 +339,7 @@ public class SecurityProfileServiceTest {
         final File securityProfileFiles =
             PropertiesUtils.getResourceFile("security_profile_ko_permissions_with_full_access_mode.json");
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -374,9 +371,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
         List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         RequestResponse<SecurityProfileModel> createResponse =
             securityProfileService.createSecurityProfiles(securityProfileModelList);
 
@@ -404,7 +399,7 @@ public class SecurityProfileServiceTest {
         assertThat(findResponse.getResults().get(0).getIdentifier()).isNotEmpty();
         assertThat(findResponse.getResults().get(0).getName()).isEqualTo("SEC_PROFILE_1");
         assertThat(findResponse.getResults().get(0).getPermissions().size()).isEqualTo(3);
-        assertThat(findResponse.getResults().get(0).getPermissions()).contains("permission_one:read");
+        assertThat(findResponse.getResults().get(0).getPermissions()).contains("rules:id:read");
     }
 
     @Test
@@ -415,9 +410,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
         List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         RequestResponse<SecurityProfileModel> createResponse =
             securityProfileService.createSecurityProfiles(securityProfileModelList);
 
@@ -438,7 +431,7 @@ public class SecurityProfileServiceTest {
         assertThat(findResponse.get().getIdentifier()).isEqualTo(identifier);
         assertThat(findResponse.get().getName()).isEqualTo("SEC_PROFILE_1");
         assertThat(findResponse.get().getPermissions().size()).isEqualTo(3);
-        assertThat(findResponse.get().getPermissions()).contains("permission_one:read");
+        assertThat(findResponse.get().getPermissions()).contains("rules:id:read");
     }
 
     @Test
@@ -454,17 +447,15 @@ public class SecurityProfileServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSecurityProfileTestUpdatePermissions() throws Exception {
+    public void givenSecurityProfileTestUpdatePermissions_OK() throws Exception {
 
-        String NewPermission = "new_permission:read";
+        String NewPermission = "securityprofiles:read";
 
         // Create security profiles
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
         List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
         RequestResponse<SecurityProfileModel> createResponse =
             securityProfileService.createSecurityProfiles(securityProfileModelList);
 
@@ -508,6 +499,58 @@ public class SecurityProfileServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenSecurityProfileTestUnknownUpdatePermissions_KO() throws Exception {
+
+        String NewPermission = "test:test";
+
+        // Create security profiles
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
+        List<SecurityProfileModel> securityProfileModelList =
+                JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
+        RequestResponse<SecurityProfileModel> createResponse =
+                securityProfileService.createSecurityProfiles(securityProfileModelList);
+
+        assertThat(createResponse.isOk()).isTrue();
+        final RequestResponseOK<SecurityProfileModel> responseCast =
+                (RequestResponseOK<SecurityProfileModel>) createResponse;
+        assertThat(responseCast.getResults()).hasSize(2);
+
+        String identifier = responseCast.getResults().get(0).getIdentifier();
+
+        // Find security profile
+        final Optional<SecurityProfileModel> securityProfileModel =
+                securityProfileService.findOneByIdentifier(identifier);
+
+        assertThat(securityProfileModel.isPresent()).isTrue();
+        assertThat(securityProfileModel.get().getName()).isEqualTo("SEC_PROFILE_1");
+        assertThat(securityProfileModel.get().getPermissions().size()).isEqualTo(3);
+
+        // Add permission
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq(NAME, "SEC_PROFILE_1"));
+        final AddAction setActionAddPermission = UpdateActionHelper.add(PERMISSIONS, NewPermission);
+        update.addActions(setActionAddPermission);
+        updateParser.parse(update.getFinalUpdate());
+        final JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+
+        RequestResponse<SecurityProfileModel> updatedSecurityProfileResponse =
+                securityProfileService.updateSecurityProfile(securityProfileModel.get().getIdentifier(), queryDslForUpdate);
+        assertThat(updatedSecurityProfileResponse.isOk()).isFalse();
+        assertThat(((VitamError) updatedSecurityProfileResponse).getErrors().get(0).getMessage()).isEqualTo("Au moins une permission n'existe pas.");
+        // Retry finding security profiles
+        final Optional<SecurityProfileModel> securityProfileModel2 =
+                securityProfileService.findOneByIdentifier(identifier);
+
+        assertThat(securityProfileModel2.isPresent()).isTrue();
+        assertThat(securityProfileModel2.get().getName()).isEqualTo("SEC_PROFILE_1");
+        assertThat(securityProfileModel2.get().getPermissions().size()).isEqualTo(3);
+        assertThat(securityProfileModel2.get().getPermissions()).doesNotContain(NewPermission);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void givenSecurityProfilesTestFindAllThenReturnEmpty() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final RequestResponseOK<SecurityProfileModel> securityProfileModelList =
@@ -521,9 +564,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
         final List<SecurityProfileModel> securityProfileModelList =
-            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         final RequestResponseOK<SecurityProfileModel> responseCast = (RequestResponseOK<SecurityProfileModel>) response;
@@ -542,9 +583,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
         List<SecurityProfileModel> securityProfileModelList =
-                JsonHandler.getFromFileAsTypeReference(securityProfileFiles,
-                        new TypeReference<List<SecurityProfileModel>>() {
-                        });
+                JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         RequestResponse<SecurityProfileModel> createResponse =
                 securityProfileService.createSecurityProfiles(securityProfileModelList);
 
