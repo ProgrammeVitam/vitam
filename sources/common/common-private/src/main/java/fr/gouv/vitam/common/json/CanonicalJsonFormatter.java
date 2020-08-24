@@ -36,8 +36,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -66,6 +64,8 @@ import java.util.List;
  */
 public final class CanonicalJsonFormatter {
 
+    private static final char[] hexChars = "0123456789abcdef".toCharArray();
+
     /**
      * Serializes a json node object in a canonical deterministic encoding.
      *
@@ -74,7 +74,7 @@ public final class CanonicalJsonFormatter {
      */
     public static InputStream serialize(JsonNode node) {
         try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(1024);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(8192);
             serialize(node, outputStream);
             return outputStream.toInputStream();
         } catch (IOException e) {
@@ -90,7 +90,7 @@ public final class CanonicalJsonFormatter {
      */
     public static byte[] serializeToByteArray(JsonNode node) {
         try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(1024);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(8192);
             serialize(node, outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
@@ -101,21 +101,20 @@ public final class CanonicalJsonFormatter {
     /**
      * Serializes a json node object in a canonical deterministic encoding.
      *
-     * @param node         the json node
+     * @param node the json node
      * @param outputStream output stream to which json node is serialized.
      * @throws IOException
      */
     public static void serialize(JsonNode node, OutputStream outputStream) throws IOException {
-
-        try (OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+        try (AsciiWriter writer = new AsciiWriter(outputStream)) {
             new CanonicalJsonFormatter(writer).format(node);
             writer.flush();
         }
     }
 
-    private final OutputStreamWriter writer;
+    private final AsciiWriter writer;
 
-    private CanonicalJsonFormatter(OutputStreamWriter writer) {
+    private CanonicalJsonFormatter(AsciiWriter writer) {
         this.writer = writer;
     }
 
@@ -245,7 +244,11 @@ public final class CanonicalJsonFormatter {
                         writer.append("\\t");
                         break;
                     default:
-                        writer.append("\\u").append(String.format("%04x", (int) c));
+                        writer.append("\\u");
+                        writer.append(hexChars[((int) c) >> 12 & 0xf]);
+                        writer.append(hexChars[((int) c) >> 8 & 0xf]);
+                        writer.append(hexChars[((int) c) >> 4 & 0xf]);
+                        writer.append(hexChars[((int) c) & 0xf]);;
                         break;
                 }
             }
@@ -259,6 +262,44 @@ public final class CanonicalJsonFormatter {
     }
 
     private void formatBinary(byte[] data) throws IOException {
-        writer.append('"').append(BaseXx.getBase64(data)).append('"');
+        writer.append('"');
+        writer.append(BaseXx.getBase64(data));
+        writer.append('"');
+    }
+
+    private static final class AsciiWriter implements AutoCloseable {
+
+        private final OutputStream outputStream;
+
+        AsciiWriter(OutputStream os) {
+            outputStream = os;
+        }
+
+        public void append(char c) throws IOException {
+            outputStream.write(c);
+        }
+
+        public void append(String s) throws IOException {
+            int n = s.length();
+            for (int i = 0; i < n; i++) {
+                outputStream.write(s.charAt(i));
+            }
+        }
+
+        public void append(String s, int start, int end)
+            throws java.io.IOException {
+
+            for (int i = start; i < end; i++) {
+                outputStream.write(s.charAt(i));
+            }
+        }
+
+        public void flush() throws java.io.IOException {
+            outputStream.flush();
+        }
+
+        public void close() throws java.io.IOException {
+            outputStream.close();
+        }
     }
 }

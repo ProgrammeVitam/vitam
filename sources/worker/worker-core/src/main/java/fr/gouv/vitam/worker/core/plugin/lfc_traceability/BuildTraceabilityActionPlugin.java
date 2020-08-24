@@ -80,7 +80,9 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.io.output.NullOutputStream;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -293,8 +295,10 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
             JsonNode metadataWithLfc = getMetadataWithLifecycle(lifecycleType, lfcMetadataPair);
 
+            // Write to DigestOutputStream
             Digest digest = new Digest(digestType);
-            digest.update(CanonicalJsonFormatter.serialize(metadataWithLfc));
+            OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
+            CanonicalJsonFormatter.serialize(metadataWithLfc, new BufferedOutputStream(digestOutputStream, 256));
             String dbDigest = digest.digestHex();
 
             String id = lfcMetadataPair.getLfc().get(LogbookDocument.ID).textValue();
@@ -572,7 +576,8 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
      */
     public static String generateDigest(JsonNode jsonNode, DigestType digestType) throws IOException {
         final Digest digest = new Digest(digestType);
-        digest.update(CanonicalJsonFormatter.serialize(jsonNode));
+        OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
+        CanonicalJsonFormatter.serialize(jsonNode, new BufferedOutputStream(digestOutputStream, 256));
         return digest.digest64();
     }
 
