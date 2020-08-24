@@ -52,6 +52,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
@@ -84,6 +85,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -154,7 +156,7 @@ public class StorageDistributionImplTest {
             StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
         customDistribution = new StorageDistributionImpl(workspaceClientFactory, DigestType.SHA1, storageLogService,
-            Executors.newFixedThreadPool(16, VitamThreadFactory.getInstance()), 300, bulkStorageDistribution);
+            bulkStorageDistribution);
     }
 
     @After
@@ -772,5 +774,23 @@ public class StorageDistributionImplTest {
     @Test
     public void getStorageStrategiesOk() {
         assertThatCode(() -> customDistribution.getStrategies()).doesNotThrowAnyException();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getBatchObjectInformationDigestOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        List<BatchObjectInformationResponse> batchObjectInformation = customDistribution
+            .getBatchObjectInformation(VitamConfiguration.getDefaultStrategy(),
+                DataCategory.OBJECT,
+                Arrays.asList("guid1", "guid2"),
+                Collections.singletonList(OFFER_ID));
+        assertThat(batchObjectInformation).hasSize(2);
+        assertThat(batchObjectInformation.get(0).getObjectId()).isEqualTo("guid1");
+        assertThat(batchObjectInformation.get(0).getOfferDigests()).containsOnlyKeys(OFFER_ID);
+        assertThat(batchObjectInformation.get(0).getOfferDigests().get(OFFER_ID)).isEqualTo("digest-guid1");
+        assertThat(batchObjectInformation.get(1).getObjectId()).isEqualTo("guid2");
+        assertThat(batchObjectInformation.get(1).getOfferDigests()).containsOnlyKeys(OFFER_ID);
+        assertThat(batchObjectInformation.get(1).getOfferDigests().get(OFFER_ID)).isEqualTo("digest-guid2");
     }
 }

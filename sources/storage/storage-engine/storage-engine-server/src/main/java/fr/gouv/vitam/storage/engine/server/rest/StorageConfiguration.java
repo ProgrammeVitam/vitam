@@ -39,10 +39,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private Integer storageTraceabilityOverlapDelay;
     private int restoreBulkSize = 1000;
 
-    private int minBatchThreadPoolSize = 4;
-    private int maxBatchThreadPoolSize = 16;
-    private int batchDigestComputationTimeout = 300;
-
     private int offerSynchronizationBulkSize = 1000;
     private int offerSyncThreadPoolSize = 32;
 
@@ -187,30 +183,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     public void setRestoreBulkSize(int restoreBulkSize) {
 
         this.restoreBulkSize = restoreBulkSize;
-    }
-
-    public int getMinBatchThreadPoolSize() {
-        return minBatchThreadPoolSize;
-    }
-
-    public void setMinBatchThreadPoolSize(int minBatchThreadPoolSize) {
-        this.minBatchThreadPoolSize = minBatchThreadPoolSize;
-    }
-
-    public int getMaxBatchThreadPoolSize() {
-        return maxBatchThreadPoolSize;
-    }
-
-    public void setMaxBatchThreadPoolSize(int maxBatchThreadPoolSize) {
-        this.maxBatchThreadPoolSize = maxBatchThreadPoolSize;
-    }
-
-    public int getBatchDigestComputationTimeout() {
-        return batchDigestComputationTimeout;
-    }
-
-    public void setBatchDigestComputationTimeout(int batchDigestComputationTimeout) {
-        this.batchDigestComputationTimeout = batchDigestComputationTimeout;
     }
 
     public int getOfferSynchronizationBulkSize() {

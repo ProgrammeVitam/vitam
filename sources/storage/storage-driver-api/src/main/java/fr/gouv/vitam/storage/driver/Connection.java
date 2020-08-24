@@ -27,14 +27,17 @@
 package fr.gouv.vitam.storage.driver;
 
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -145,6 +148,16 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException
      */
     StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException;
+
+    /**
+     * Bulk get metadata of objects
+     *
+     * @param request
+     * @return a result that may contain information about the storage metadata
+     * @throws StorageDriverException
+     */
+    StorageBulkMetadataResult getBulkMetadata(StorageGetBulkMetadataRequest request)
+        throws StorageDriverException, InvalidParseOperationException;
 
     /**
      * List object on a container type

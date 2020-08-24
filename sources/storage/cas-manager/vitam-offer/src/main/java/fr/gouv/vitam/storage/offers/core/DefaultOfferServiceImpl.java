@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
@@ -48,6 +49,10 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
@@ -75,9 +80,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class DefaultOfferServiceImpl implements DefaultOfferService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
@@ -93,6 +106,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final StorageConfiguration configuration;
     private final OfferLogCompactionConfiguration offerLogCompactionConfig;
     private final OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService;
+    private final ExecutorService batchExecutorService;
+    private final int batchMetadataComputationTimeoutIsSeconds;
 
     public DefaultOfferServiceImpl(
         ContentAddressableStorage defaultStorage,
@@ -102,7 +117,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         OfferSequenceDatabaseService offerSequenceDatabaseService,
         StorageConfiguration configuration,
         OfferLogCompactionConfiguration offerLogCompactionConfig,
-        OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService) {
+        OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService,
+        int maxBatchThreadPoolSize, int batchMetadataComputationTimeout) {
 
         this.defaultStorage = defaultStorage;
         this.readRequestReferentialRepository = readRequestReferentialRepository;
@@ -112,6 +128,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         this.configuration = configuration;
         this.offerLogCompactionConfig = offerLogCompactionConfig;
         this.offerLogAndCompactedOfferLogService = offerLogAndCompactedOfferLogService;
+        this.batchMetadataComputationTimeoutIsSeconds = batchMetadataComputationTimeout;
+        this.batchExecutorService = ExecutorUtils.createScalableBatchExecutorService(maxBatchThreadPoolSize);
     }
 
     @Override
@@ -412,6 +430,63 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         } finally {
             log(times, containerName, "GET_METADATA");
         }
+    }
+
+    @Override
+    public StorageBulkMetadataResult getBulkMetadata(String containerName, List<String> objectIds, Boolean noCache)
+        throws ContentAddressableStorageException {
+
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            List<CompletableFuture<StorageBulkMetadataResultEntry>> completableFutures = new ArrayList<>();
+            for (String objectId : objectIds) {
+
+                CompletableFuture<StorageBulkMetadataResultEntry> objectInformationCompletableFuture =
+                    CompletableFuture.supplyAsync(() ->
+                        {
+                            try {
+                                MetadatasObject objectMetadata =
+                                    defaultStorage.getObjectMetadata(containerName, objectId, noCache);
+                                return new StorageBulkMetadataResultEntry(objectMetadata.getObjectName(),
+                                    objectMetadata.getDigest(), objectMetadata.getFileSize());
+
+                            }  catch (ContentAddressableStorageNotFoundException e) {
+                                LOGGER.info("Object " + objectId + " not found in container " + containerName, e);
+                                return new StorageBulkMetadataResultEntry(objectId, null, null);
+                            } catch (ContentAddressableStorageException | IOException e) {
+                                throw new RuntimeException("Could not get object metadata for "
+                                    + containerName + "/" + objectId + " (noCache=" + noCache + ")", e);
+                            }
+                        },
+                        batchExecutorService);
+                completableFutures.add(objectInformationCompletableFuture);
+            }
+
+            CompletableFuture<List<StorageBulkMetadataResultEntry>> batchObjectInformationFuture
+                = sequence(completableFutures);
+
+            try {
+                return new StorageBulkMetadataResult(batchObjectInformationFuture.get(
+                    batchMetadataComputationTimeoutIsSeconds, SECONDS));
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                // Abort pending tasks
+                for (CompletableFuture<StorageBulkMetadataResultEntry> completableFuture : completableFutures) {
+                    completableFuture.cancel(false);
+                }
+                throw new ContentAddressableStorageException("Batch object information timed out", e);
+            }
+        } finally {
+            log(times, containerName, "GET_BULK_METADATA");
+        }
+    }
+
+    private <T> CompletableFuture<List<T>> sequence(
+        List<CompletableFuture<T>> completableFutures) {
+        CompletableFuture<Void> allDoneFuture = CompletableFuture.allOf(
+            completableFutures.toArray(new CompletableFuture[0]));
+        return allDoneFuture
+            .thenApply(v -> completableFutures.stream().map(CompletableFuture::join)
+                .collect(Collectors.toList()));
     }
 
     @Override

@@ -20,3 +20,6 @@ offerLogCompaction:
   expirationValue: {{ vitam_offers[offer_conf].offer_log_compaction.expiration_value | default(21) }}
   expirationUnit: {{ vitam_offers[offer_conf].offer_log_compaction.expiration_unit | default("DAYS") }}
   compactionSize: {{ vitam_offers[offer_conf].offer_log_compaction.compaction_size | default(10000) }}
+
+maxBatchThreadPoolSize: {{ vitam_offers[offer_conf]["maxBatchThreadPoolSize"] | default(32) }}
+batchMetadataComputationTimeout: {{ vitam_offers[offer_conf]["batchMetadataComputationTimeout"] | default(600) }}

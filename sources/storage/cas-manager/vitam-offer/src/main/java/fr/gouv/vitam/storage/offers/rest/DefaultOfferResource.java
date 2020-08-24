@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.offers.rest;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -657,6 +659,45 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.warn(e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (ContentAddressableStorageException | IOException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Get bulk metadata of the objects by ids.
+     *
+     * @param type Object type to test
+     * @param xTenantId the id of the tenant
+     * @return metadata by object id
+     */
+    @GET
+    @Path("/bulk/objects/{type}/metadata")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getBulkObjectMetadata(@PathParam("type") DataCategory type,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_OFFER_NO_CACHE) Boolean noCache,
+        List<String> objectIds) {
+
+        if (Strings.isNullOrEmpty(xTenantId) || noCache == null) {
+            LOGGER.error("Missing tenant ID (X-Tenant-Id) or noCache");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        final String containerName = buildContainerName(type, xTenantId);
+        try {
+            ParametersChecker.checkParameter("ObjectIds cannot be null", objectIds);
+            ParametersChecker.checkParameter("ObjectIds cannot be null", objectIds.toArray());
+            for (String objectID : objectIds) {
+                SanityChecker.checkParameter(objectID);
+            }
+            StorageBulkMetadataResult result =
+                defaultOfferService.getBulkMetadata(containerName, objectIds, noCache);
+            return Response.status(Response.Status.OK).entity(result).build();
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
