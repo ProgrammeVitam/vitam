@@ -157,8 +157,10 @@ public enum SecurityProfilePermissionsEnum {
     }
 
     public static Boolean isPermissionValid(String permissionToCheck){
-        return Arrays.stream(SecurityProfilePermissionsEnum.values()).filter(elmt -> elmt.getPermission().equalsIgnoreCase(permissionToCheck)).count() == 0 ?
-                Boolean.FALSE :
-                Boolean.TRUE;
+        return Arrays.stream(SecurityProfilePermissionsEnum.values()).anyMatch(elmt -> elmt.getPermission().equalsIgnoreCase(permissionToCheck));
+    }
+
+    public String toString() {
+        return this.permission;
     }
 }

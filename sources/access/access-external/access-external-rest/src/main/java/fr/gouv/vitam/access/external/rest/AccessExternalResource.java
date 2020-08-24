@@ -103,6 +103,8 @@ import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.security.internal.utils.SecurityProfilePermissionsEnum.DIPEXPORT_CREATE;
+import static fr.gouv.vitam.security.internal.utils.SecurityProfilePermissionsEnum.UNITS_READ;
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 
 @Path("/access-external/v1")
@@ -167,7 +169,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:read", description = "Récupérer la liste des unités archivistiques")
+    @Secured(permission = UNITS_READ, description = "Récupérer la liste des unités archivistiques")
     @Operation(
         description = "Requête qui retourne des résultats contenant des Unités d'archives. La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.",
         requestBody = @RequestBody(description = "A SELECT MULTIPLE query.", content = @Content(examples = @ExampleObject("{\"$projection\":{\"$fields\":{\"#id\":1}}}"))),
@@ -240,7 +242,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "dipexport:create", description = "Générer le DIP à partir d'un DSL")
+    @Secured(permission = DIPEXPORT_CREATE, description = "Générer le DIP à partir d'un DSL")
     public Response exportDIP(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryJson);
