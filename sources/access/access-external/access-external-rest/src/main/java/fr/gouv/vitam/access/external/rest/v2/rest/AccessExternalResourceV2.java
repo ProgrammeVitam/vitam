@@ -54,6 +54,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.List;
 
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.DIPEXPORTV2_CREATE;
+
 @Path("/access-external/v2")
 @Tag(name = "Access")
 public class AccessExternalResourceV2 extends ApplicationStatusResource {
@@ -110,7 +112,7 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "dipexportv2:create", description = "Générer le DIP à partir d'un DSL")
+    @Secured(permission = DIPEXPORTV2_CREATE, description = "Générer le DIP à partir d'un DSL")
     public Response exportDIP(DipRequest dipRequest) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(dipRequest.getDslRequest());

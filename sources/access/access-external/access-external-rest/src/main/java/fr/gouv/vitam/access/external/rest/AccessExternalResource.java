@@ -103,8 +103,7 @@ import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.security.internal.utils.SecurityProfilePermissionsEnum.DIPEXPORT_CREATE;
-import static fr.gouv.vitam.security.internal.utils.SecurityProfilePermissionsEnum.UNITS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 
 @Path("/access-external/v1")
@@ -268,7 +267,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/transfers")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "transfers:create", description = "Générer le SIP pour transfer à partir d'un DSL")
+    @Secured(permission = TRANSFERS_CREATE, description = "Générer le SIP pour transfer à partir d'un DSL")
     public Response transfer(TransferRequest transferRequest) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(transferRequest.getDslRequest());
@@ -296,7 +295,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/transfers/reply")
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "transfers:reply", description = "Start transfer reply workflow.")
+    @Secured(permission = TRANSFERS_REPLY, description = "Start transfer reply workflow.")
     public Response transferReply(InputStream transferReply) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             return client.startTransferReplyWorkflow(transferReply).toResponse();
@@ -311,7 +310,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/transfers/{id}/sip")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "transfers:id:sip:read", description = "Récupérer le SIP du transfer")
+    @Secured(permission = TRANSFERS_ID_SIP_READ, description = "Récupérer le SIP du transfer")
     public Response findTransferByID(@PathParam("id") String id) {
 
         Status status;
@@ -339,7 +338,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/reclassification")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "reclassification:update", description = "Mise à jour d'arborescence des unités archivistiques")
+    @Secured(permission = RECLASSIFICATION_UPDATE, description = "Mise à jour d'arborescence des unités archivistiques")
     public Response reclassification(@Dsl(DslSchema.RECLASSIFICATION_QUERY) JsonNode queryJson) {
 
         ParametersChecker.checkParameter("Missing reclassification request", queryJson);
@@ -372,7 +371,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/elimination/analysis")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "elimination:analysis", description = "Analyse de l'élimination d'unités archivistiques")
+    @Secured(permission = ELIMINATION_ANALYSIS, description = "Analyse de l'élimination d'unités archivistiques")
     public Response startEliminationAnalysis(EliminationRequestBody eliminationRequestBody) {
 
         try {
@@ -418,7 +417,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/elimination/action")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "elimination:action", description = "Elimination définitive d'unités archivistiques")
+    @Secured(permission = ELIMINATION_ACTION, description = "Elimination définitive d'unités archivistiques")
     public Response startEliminationAction(EliminationRequestBody eliminationRequestBody) {
 
         try {
@@ -463,7 +462,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/dipexport/{id}/dip")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "dipexport:id:dip:read", description = "Récupérer le DIP")
+    @Secured(permission = DIPEXPORT_ID_DIP_READ, description = "Récupérer le DIP")
     public Response findExportByID(@PathParam("id") String id) {
 
         Status status;
@@ -493,7 +492,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:id:read:json",
+    @Secured(permission = UNITS_ID_READ_JSON,
         description = "Obtenir le détail d'une unité archivistique au format json")
     public Response getUnitById(@Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         ParametersChecker.checkParameter("unit id is required", idUnit);
@@ -542,7 +541,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:id:update", description = "Réaliser la mise à jour d'une unité archivistique")
+    @Secured(permission = UNITS_ID_UPDATE, description = "Réaliser la mise à jour d'une unité archivistique")
     public Response updateUnitById(@Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -607,7 +606,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/units/{idu}/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:id:objects:read:json",
+    @Secured(permission = UNITS_ID_OBJECTS_READ_JSON,
         description = "Télécharger le groupe d'objet technique de l'unité archivistique donnée")
     public Response getObjectGroupMetadataByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson) {
@@ -675,7 +674,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/units/{idu}/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "units:id:objects:read:binary", description = "Télecharger un objet")
+    @Secured(permission = UNITS_ID_OBJECTS_READ_BINARY, description = "Télecharger un objet")
     public Response getDataObjectByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId) {
 
         Status status;
@@ -731,7 +730,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:update", description = "Mise à jour en masse des unités archivistiques")
+    @Secured(permission = UNITS_UPDATE, description = "Mise à jour en masse des unités archivistiques")
     public Response massUpdateUnits(@Dsl(DslSchema.MASS_UPDATE) JsonNode queryJson) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -787,7 +786,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/units/rules")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:rules:update", description = "Mise à jour en masse des règles de gestion")
+    @Secured(permission = UNITS_RULES_UPDATE, description = "Mise à jour en masse des règles de gestion")
     public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         Status status;
         // Manually schema validation of DSL Query
@@ -849,7 +848,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "computeInheritedRules:action", description = "Lancer le processus de calcul des règles hérité pour la recherche")
+    @Secured(permission = COMPUTEINHERITEDRULES_ACTION, description = "Lancer le processus de calcul des règles hérité pour la recherche")
     public Response startComputeInheritedRules(@Dsl(value = DslSchema.BATCH_PROCESSING) JsonNode dslQuery) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -871,7 +870,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "computeInheritedRules:delete", description = "Lancer le processus de Suppression calcul des règles hérité pour la recherche")
+    @Secured(permission = COMPUTEINHERITEDRULES_DELETE, description = "Lancer le processus de Suppression calcul des règles hérité pour la recherche")
     public Response deleteComputeInheritedRules(@Dsl(value = DslSchema.BATCH_PROCESSING) JsonNode dslQuery) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -898,7 +897,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/unitsWithInheritedRules")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "unitsWithInheritedRules:read", description = "Récupérer la liste des unités archivistiques avec leurs règles de gestion héritées")
+    @Secured(permission = UNITSWITHINHERITEDRULES_READ, description = "Récupérer la liste des unités archivistiques avec leurs règles de gestion héritées")
     public Response selectUnitsWithInheritedRules(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -1080,7 +1079,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "objects:read", description = "Récupérer la liste des groupes d'objets")
+    @Secured(permission = OBJECTS_READ, description = "Récupérer la liste des groupes d'objets")
     public Response getObjects(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -1131,7 +1130,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "storageaccesslog:read:binary", description = "Télécharger les journaux d'accès")
+    @Secured(permission = STORAGEACCESSLOG_READ_BINARY, description = "Télécharger les journaux d'accès")
     public Response getAccessLog(JsonNode params) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -1174,7 +1173,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "preservation:update", description = "Lancer le processus de préservation")
+    @Secured(permission = PRESERVATION_UPDATE, description = "Lancer le processus de préservation")
     public Response startPreservation(PreservationRequest preservationRequest) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
