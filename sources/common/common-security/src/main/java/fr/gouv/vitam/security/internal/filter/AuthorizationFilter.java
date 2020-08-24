@@ -76,10 +76,10 @@ public class AuthorizationFilter implements DynamicFeature {
         context.register(new EndpointAdminOnlyAuthorizationFilter(securedAnnotation.isAdminOnly()),
             Priorities.AUTHORIZATION + 10);
         // Must go after EndpointPermissionAuthorizationFilter
-        context.register(new EndpointPermissionAuthorizationFilter(securedAnnotation.permission()),
+        context.register(new EndpointPermissionAuthorizationFilter(securedAnnotation.permission().getPermission()),
             Priorities.AUTHORIZATION + 20);
         // Must go after EndpointPermissionAuthorizationFilter
-        context.register(new EndpointPersonalCertificateAuthorizationFilter(securedAnnotation.permission()),
+        context.register(new EndpointPersonalCertificateAuthorizationFilter(securedAnnotation.permission().getPermission()),
             Priorities.AUTHORIZATION + 30);
     }
 }

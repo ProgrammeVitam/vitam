@@ -59,7 +59,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.List;
+
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
 
 @Path("/access-external/v1")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -96,7 +97,7 @@ public class LogbookExternalResource {
     @Path("/logbookoperations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "logbookoperations:read", description = "Lister toutes les opérations")
+    @Secured(permission = LOGBOOKOPERATIONS_READ, description = "Lister toutes les opérations")
     public Response selectOperation(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode query) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -142,7 +143,7 @@ public class LogbookExternalResource {
     @Path("/logbookoperations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "logbookoperations:id:read", description = "Récupérer le journal d'une opération donnée")
+    @Secured(permission = LOGBOOKOPERATIONS_ID_READ, description = "Récupérer le journal d'une opération donnée")
     public Response getOperationById(@PathParam("id_op") String operationId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
 
@@ -200,7 +201,7 @@ public class LogbookExternalResource {
      */
     @GET
     @Path("/logbookunitlifecycles/{id_lc}")
-    @Secured(permission = "logbookunitlifecycles:id:read",
+    @Secured(permission = LOGBOOKUNITLIFECYCLES_ID_READ,
         description = "Récupérer le journal de cycle de vie d'une unité archivistique")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
@@ -245,7 +246,7 @@ public class LogbookExternalResource {
      */
     @GET
     @Path("/logbookobjectslifecycles/{id_lc}")
-    @Secured(permission = "logbookobjectslifecycles:id:read",
+    @Secured(permission = LOGBOOKOBJECTSLIFECYCLES_ID_READ,
         description = "Récupérer le journal de cycle de vie d'un groupe d'objet")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
