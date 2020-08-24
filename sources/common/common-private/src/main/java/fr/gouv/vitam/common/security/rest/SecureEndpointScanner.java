@@ -98,7 +98,7 @@ public class SecureEndpointScanner implements DynamicFeature {
                 resourceInfo.getResourceClass().getName() + " . " + resourceInfo.getResourceMethod().getName());
         }
 
-        ensureUniqueEndpointId(securedAnnotation.permission());
+        ensureUniqueEndpointId(securedAnnotation.permission().getPermission());
 
         registerEndpoints(resourceInfo, securedAnnotation);
     }
@@ -132,7 +132,7 @@ public class SecureEndpointScanner implements DynamicFeature {
 
         for (String verb : httpVerbs) {
             EndpointInfo endpointInfo = new EndpointInfo();
-            endpointInfo.setPermission(securedAnnotation.permission());
+            endpointInfo.setPermission(securedAnnotation.permission().getPermission());
             endpointInfo.setVerb(verb);
             endpointInfo.setEndpoint(endpointPath);
             endpointInfo.setConsumedMediaTypes(consumedMediaTypes);
