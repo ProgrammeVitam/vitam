@@ -29,7 +29,7 @@ package fr.gouv.vitam.security.internal.utils;
 
 import java.util.Arrays;
 
-public enum SecurityProfilePermissionsEnum {
+public enum SecurityProfilePermissions {
 
     DIPEXPORT_CREATE("dipexport:create"),
     DIPEXPORTV2_CREATE("dipexportv2:create"),
@@ -148,7 +148,7 @@ public enum SecurityProfilePermissionsEnum {
 
     private final String permission;
 
-    SecurityProfilePermissionsEnum(String permission) {
+    SecurityProfilePermissions(String permission) {
         this.permission = permission;
     }
 
@@ -157,10 +157,7 @@ public enum SecurityProfilePermissionsEnum {
     }
 
     public static Boolean isPermissionValid(String permissionToCheck){
-        return Arrays.stream(SecurityProfilePermissionsEnum.values()).anyMatch(elmt -> elmt.getPermission().equalsIgnoreCase(permissionToCheck));
-    }
-
-    public String toString() {
-        return this.permission;
+        return Arrays.stream(SecurityProfilePermissions.values())
+                .anyMatch(elmt -> elmt.getPermission().equalsIgnoreCase(permissionToCheck));
     }
 }

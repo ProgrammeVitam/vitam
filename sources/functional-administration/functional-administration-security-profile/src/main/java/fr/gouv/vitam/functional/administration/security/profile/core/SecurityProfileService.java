@@ -77,7 +77,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.security.internal.utils.SecurityProfilePermissionsEnum;
+import fr.gouv.vitam.security.internal.utils.SecurityProfilePermissions;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -277,8 +277,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
     }
 
     private void checkSecurityProfilePermissions(Set<String> permissions, VitamError error, String messageKey) {
-        Boolean isPermissionsUnvalid = permissions.stream().map(elmt -> SecurityProfilePermissionsEnum.isPermissionValid(elmt))
-                .filter(isPermissionValid -> isPermissionValid.equals(Boolean.FALSE)).count() > 0 ? Boolean.TRUE : Boolean.FALSE;
+        Boolean isPermissionsUnvalid = permissions.stream().map(elmt -> SecurityProfilePermissions.isPermissionValid(elmt))
+                .anyMatch(isPermissionValid -> isPermissionValid.equals(Boolean.FALSE));
         if (isPermissionsUnvalid) {
             error.addToErrors(getVitamErrorWithMessage(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
                     UNKNOW_PERMISSION_SECURITY_PROFILE_ERROR,
