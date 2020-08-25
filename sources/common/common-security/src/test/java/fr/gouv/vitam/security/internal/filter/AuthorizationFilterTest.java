@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 
 public class AuthorizationFilterTest {
 
-    private static final String MY_PERMISSION = "my_permission";
+    private static final String MY_PERMISSION = "securityprofiles:create:json";
 
     @Test
     public void checkEndpointAuthorizationFilterRegistrationForSecuredMethod() throws Exception {
