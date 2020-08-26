@@ -56,9 +56,9 @@ La configuration des droits d'accès à VITAM est réalisée dans le fichier |re
      :language: yaml
      :linenos:
 
-.. note:: Pour la directive ``admin_context_certs`` concernant l'intégration de certificats :term:`SIA` au déploiement, se reporter à la section :ref:`external_sia_certs_integration`. 
+.. note:: Pour la directive ``admin_context_certs`` concernant l'intégration de certificats :term:`SIA` au déploiement, se reporter à la section :ref:`external_sia_certs_integration`.
 
-.. note:: Pour la directive ``admin_personal_certs`` concernant l'intégration de certificats personnels (*personae*) au déploiement, se reporter à la section :ref:`personal_certs_integration`. 
+.. note:: Pour la directive ``admin_personal_certs`` concernant l'intégration de certificats personnels (*personae*) au déploiement, se reporter à la section :ref:`personal_certs_integration`.
 
 Fichier ``offers_opts.yml``
 ----------------------------
@@ -79,11 +79,10 @@ Se référer aux commentaires dans le fichier pour le renseigner correctement.
 
 .. warning:: Ne pas oublier, en cas de connexion à un keystone en https, de répercuter dans la :term:`PKI` la clé publique de la :term:`CA` du keystone.
 
-
 Fichier ``cots_vars.yml``
 ----------------------------
 
-Fichier le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
+La configuration s'effectue dans le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
 
  .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
      :language: yaml
@@ -92,6 +91,27 @@ Fichier le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
 Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, il est possible de choisir entre ``syslog-ng`` et ``rsyslog``. Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par défaut est ``rsyslog``.
 
 .. note:: si vous  décommentez et renseignez les valeurs dans le bloc ``external_siem``, les messages seront envoyés (par ``syslog`` ou ``syslog-ng``, selon votre choix de déploiement) dans un :term:`SIEM` externe à la solution logicielle :term:`VITAM`, aux valeurs indiquées dans le bloc ; il n'est alors pas nécessaire de renseigner de partitions pour les groupes ansible ``[hosts_logstash]`` et ``[hosts_elasticsearch_log]``.
+
+Fichier ``tenants_vars.yml``
+----------------------------
+
+.. hint:: Fichier à créer depuis ``tenants_vars.yml.example`` et à paramétrer selon le besoin.
+
+Le fichier |repertoire_inventory| ``/group_vars/all/tenants_vars.yml`` permet de gérer les configurations spécifiques associés aux tenants de la plateforme (liste des tenants, regroupement de tenants, configuration du nombre de shards et replicas, etc...).
+
+ .. literalinclude:: ../../../../deployment/environments/group_vars/all/tenants_vars.yml
+     :language: yaml
+     :linenos:
+
+Se référer aux commentaires dans le fichier pour le renseigner correctement.
+
+Une attention particulère doit être porté à la configuration du nombre de shards et de replicas dans le paramètre ``vitam_elasticsearch_tenant_indexation.default_config`` (le fichier ``tenants_vars.yml.example`` représente les valeurs recommandées par Vitam dans le cadre d'un déploiement en production). Ce paramètre est obligatoire.
+
+.. seealso:: Se référer au chapitre "Gestion des indexes Elasticseach dans un contexte massivement multi-tenants" du :term:`DEX` pour plus d'informations sur cette fonctionnalité.
+
+.. warning:: Attention, en cas de modification de la distribution des tenants, une procédure de réindexation de la base elasticsearch-data est nécessaire. Cette procédure est à la charge de l'exploitation et nécessite un arrêt de service sur la plateforme. La durée d'exécution de cette réindexation dépend de la quantité de données à traiter.
+.. seealso:: Se référer au chapitre "Réindexation" du :term:`DEX` pour plus d'informations.
+
 
 .. _pkiconfsection:
 
@@ -165,7 +185,7 @@ Commande ansible-vault
 
 Certains fichiers présents sous |repertoire_inventory|/group_vars/all commençant par **vault-** doivent être protégés (encryptés) avec l'utilitaire ``ansible-vault``.
 
-.. note:: Ne pas oublier de mettre en conformité le fichier ``vault_pass.txt`` 
+.. note:: Ne pas oublier de mettre en conformité le fichier ``vault_pass.txt``
 
 Générer des fichiers *vaultés* depuis des fichier en clair
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -201,7 +221,7 @@ Exemple du fichier mapping de la collection ObjectGroup :
 
 .. note:: Le paramétrage de ce mapping se fait sur les deux composants ``Metadata`` et le composant extra``Ihm Recette``.
 
-.. caution::     
+.. caution::
     En cas de changement du mapping, il faut vailler à ce que cette mise à jour soit en accord avec l'Ontologie de :term:`VITAM`.
 
-    Le mapping est pris en compte lors de la première création des indexes. Pour une nouvelle installation de :term:`VITAM`,  les mapping seront automatiquement pris en compte. Cependant, la modification des mapping nécessite une réindexation via l'API dédiée si VITAM est déjà installé.    
+    Le mapping est pris en compte lors de la première création des indexes. Pour une nouvelle installation de :term:`VITAM`,  les mapping seront automatiquement pris en compte. Cependant, la modification des mapping nécessite une réindexation via l'API dédiée si VITAM est déjà installé.
