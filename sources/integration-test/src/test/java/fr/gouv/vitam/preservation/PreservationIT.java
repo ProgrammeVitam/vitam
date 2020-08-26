@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -85,6 +86,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -207,7 +209,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         String configurationPath = PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
         new DataLoader("integration-ingest-internal").prepareData();
@@ -245,7 +247,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -263,12 +265,14 @@ public class PreservationIT extends VitamRuleRunner {
             "ExtractedMetadata"
         ));
 
-        runAfterEs(Sets.newHashSet(
-            FunctionalAdminCollections.PRESERVATION_SCENARIO.getName().toLowerCase(),
-            FunctionalAdminCollections.GRIFFIN.getName().toLowerCase(),
-            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0"
-        ));
+        runAfterEs(
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.PRESERVATION_SCENARIO.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.GRIFFIN.getName())
+        );
     }
 
     @Test

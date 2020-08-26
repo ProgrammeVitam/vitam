@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
@@ -105,22 +106,21 @@ public class DbRequestSingle {
     private final VitamCollection vitamCollection;
     private final VarNameAdapter vaNameAdapter;
     private final OntologyLoader ontologyLoader;
+    private final ElasticsearchIndexAlias elasticsearchIndexAlias;
     private long count = 0;
     private long total = 0;
     private long offset = 0;
     private long limit = 0;
 
-    private static final String OFFSET_LIMIT_INCORRECT =
-        "Offset and limit are incorrect, the request could not be executed";
-
     /**
      * Constructor with VitamCollection
      *
-     * @param collection
      */
-    public DbRequestSingle(VitamCollection collection, OntologyLoader ontologyLoader) {
+    public DbRequestSingle(VitamCollection collection, OntologyLoader ontologyLoader,
+        ElasticsearchIndexAlias elasticsearchIndexAlias) {
         this.vitamCollection = collection;
         this.ontologyLoader = ontologyLoader;
+        this.elasticsearchIndexAlias = elasticsearchIndexAlias;
         this.vaNameAdapter = new SingleVarNameAdapter();
     }
 
@@ -226,7 +226,7 @@ public class DbRequestSingle {
             return;
         }
         this.vitamCollection.getEsClient()
-            .indexEntries(vitamCollection.getName().toLowerCase(), null, vitamDocumentList);
+            .indexEntries(this.elasticsearchIndexAlias, vitamDocumentList);
     }
 
     /**
@@ -399,7 +399,7 @@ public class DbRequestSingle {
         final QueryBuilder filter, List<SortBuilder> sorts, final int offset, final int limit)
         throws DatabaseException, BadRequestException {
         return vitamCollection.getEsClient()
-            .search(vitamCollection.getName().toLowerCase(), null, query, filter, VitamDocument.ES_FILTER_OUT, sorts,
+            .search(elasticsearchIndexAlias, query, filter, VitamDocument.ES_FILTER_OUT, sorts,
                 offset, limit);
     }
 
@@ -496,6 +496,7 @@ public class DbRequestSingle {
                             Thread.sleep(
                                 ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
                         } catch (InterruptedException e1) {
+                            Thread.currentThread().interrupt();
                             SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
                             throw new DatabaseException(e1);
                         }
@@ -579,7 +580,7 @@ public class DbRequestSingle {
             return;
         }
 
-        vitamCollection.getEsClient().delete(vitamCollection.getName().toLowerCase(), list, null);
+        vitamCollection.getEsClient().delete(elasticsearchIndexAlias, list);
     }
 
     public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.referential;
 
 import com.google.common.collect.Sets;
-import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -50,8 +49,6 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.collections4.IterableUtils;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -60,13 +57,12 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.functional.administration.common.Agencies.DESCRIPTION;
-import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER;
-import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -94,12 +90,12 @@ public class AgenciesIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
     }
 
     @AfterClass
-    public static void afterClass() throws Exception {
-        handleAfterClass(0, 1);
+    public static void afterClass() {
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }

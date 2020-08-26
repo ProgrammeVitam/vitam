@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -89,7 +90,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import okhttp3.OkHttpClient;
@@ -106,7 +106,6 @@ import org.junit.rules.TemporaryFolder;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
-import retrofit2.http.Body;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
@@ -115,6 +114,8 @@ import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -125,7 +126,6 @@ import static fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog.CONTAI
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.storage.engine.common.model.Order.ASC;
 import static fr.gouv.vitam.storage.engine.common.model.Order.DESC;
-import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -173,7 +173,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
 
         FormatIdentifierFactory.getInstance()
             .changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
@@ -191,7 +191,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -215,16 +215,16 @@ public class CompactionIT extends VitamRuleRunner {
 
         ));
 
-        runAfterEs(Sets.newHashSet(
-            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1",
-            LogbookCollections.OPERATION.getName().toLowerCase() + "_0",
-            LogbookCollections.OPERATION.getName().toLowerCase() + "_1",
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase()
-        ));
+        runAfterEs(
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+        );
     }
 
     @Before

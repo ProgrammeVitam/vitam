@@ -62,3 +62,127 @@ functionalAdminAdmin:
    adminBasicAuth:
       userName: {{ admin_basic_auth_user }}
       password: {{ admin_basic_auth_password }}
+
+# ES index configuration
+functionalAdminIndexationSettings:
+  default_config:
+    number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_shards }}
+    number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_replicas }}
+
+{% for collection in ["accesscontract", "accessionregisterdetail", "accessionregistersummary", "accessionregistersymbolic", "agencies", "archiveunitprofile", "context", "fileformat", "filerules", "griffin", "ingestcontract", "managementcontract", "ontology", "preservationscenario", "profile", "securityprofile"] %}
+{% if vitam_elasticsearch_tenant_indexation.masterdata[collection] is defined %}
+  {{collection}}:
+{% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards is defined %}
+    number_of_shards: {{ vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_shards }}
+{% endif %}
+{% if vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_replicas is defined %}
+    number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.masterdata[collection].number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+metadataIndexationSettings:
+
+  default_config:
+    unit:
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.unit.number_of_shards }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.unit.number_of_replicas }}
+    objectgroup:
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.objectgroup.number_of_shards }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.objectgroup.number_of_replicas }}
+
+{% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
+  dedicated_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
+{% if (entry.unit is defined and (entry.unit.number_of_shards is defined or entry.unit.number_of_replicas is defined)) or
+      (entry.objectgroup is defined and (entry.objectgroup.number_of_shards is defined or entry.objectgroup.number_of_replicas is defined)) %}
+  - tenants: '{{ entry.tenants }}'
+{% if entry.unit is defined %}
+    unit:
+{% if entry.unit.number_of_shards is defined %}
+      number_of_shards: {{ entry.unit.number_of_shards }}
+{% endif %}
+{% if entry.unit.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.unit.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% if entry.objectgroup is defined %}
+    objectgroup:
+{% if entry.objectgroup.number_of_shards is defined %}
+      number_of_shards: {{ entry.objectgroup.number_of_shards }}
+{% endif %}
+{% if entry.objectgroup.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
+  grouped_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
+{% if (entry.unit is defined and (entry.unit.number_of_shards is defined or entry.unit.number_of_replicas is defined)) or
+      (entry.objectgroup is defined and (entry.objectgroup.number_of_shards is defined or entry.objectgroup.number_of_replicas is defined)) %}
+  - name: '{{ entry.name }}'
+    tenants: '{{ entry.tenants }}'
+{% if entry.unit is defined %}
+    unit:
+{% if entry.unit.number_of_shards is defined %}
+      number_of_shards: {{ entry.unit.number_of_shards }}
+{% endif %}
+{% if entry.unit.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.unit.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% if entry.objectgroup is defined %}
+    objectgroup:
+{% if entry.objectgroup.number_of_shards is defined %}
+      number_of_shards: {{ entry.objectgroup.number_of_shards }}
+{% endif %}
+{% if entry.objectgroup.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.objectgroup.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+logbookIndexationSettings:
+  default_config:
+    logbookoperation:
+      number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_shards }}
+      number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_replicas }}
+
+{% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
+  dedicated_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.dedicated_tenants %}
+{% if (entry.logbookoperation is defined and (entry.logbookoperation.number_of_shards is defined or entry.logbookoperation.number_of_replicas is defined)) %}
+  - tenants: '{{ entry.tenants }}'
+    logbookoperation:
+{% if entry.logbookoperation.number_of_shards is defined %}
+      number_of_shards: {{ entry.logbookoperation.number_of_shards }}
+{% endif %}
+{% if entry.logbookoperation.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if vitam_elasticsearch_tenant_indexation.grouped_tenants is defined and vitam_elasticsearch_tenant_indexation.grouped_tenants is not none %}
+  grouped_tenants:
+{% for entry in vitam_elasticsearch_tenant_indexation.grouped_tenants %}
+{% if (entry.logbookoperation is defined and (entry.logbookoperation.number_of_shards is defined or entry.logbookoperation.number_of_replicas is defined)) %}
+  - name: '{{ entry.name }}'
+    tenants: '{{ entry.tenants }}'
+    logbookoperation:
+{% if entry.logbookoperation.number_of_shards is defined %}
+      number_of_shards: {{ entry.logbookoperation.number_of_shards }}
+{% endif %}
+{% if entry.logbookoperation.number_of_replicas is defined %}
+      number_of_replicas: {{ entry.logbookoperation.number_of_replicas }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}

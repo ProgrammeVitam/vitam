@@ -33,14 +33,14 @@ import static org.junit.Assert.assertNotNull;
 public class ElasticsearchTestHelperTest {
 
     @Test
-    public void loadUnitMapping() throws Exception {
-        String unitMapping = ElasticsearchTestHelper.loadMapping("Unit");
+    public void loadUnitMapping() {
+        String unitMapping = ElasticsearchTestHelper.loadUnitMapping();
         assertNotNull(unitMapping);
     }
 
     @Test
-    public void loadOgMapping() throws Exception {
-        String ogMapping = ElasticsearchTestHelper.loadMapping("ObjectGroup");
+    public void loadOgMapping() {
+        String ogMapping = ElasticsearchTestHelper.loadObjectGroupMapping();
         assertNotNull(ogMapping);
     }
 }

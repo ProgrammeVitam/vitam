@@ -1,0 +1,75 @@
+workspaceUrl: http://workspace.service.consul:8201/
+urlProcessing: http://processing.service.consul:8203/
+
+# Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+archiveUnitProfileCacheMaxEntries: 100
+archiveUnitProfileCacheTimeoutInSeconds: 300
+
+# Schema validator cache settings (max entries in cache & retention timeout in seconds)
+schemaValidatorCacheMaxEntries: 100
+schemaValidatorCacheTimeoutInSeconds: 300
+
+# DIP purge service (in minutes)
+dipTimeToLiveInMinutes: 10080
+
+# TRANSFER purge service (in minutes)
+transfersSIPTimeToLiveInMinutes: 10080
+
+# Configuration MongoDB
+mongoDbNodes:
+  - dbHost: 172.17.0.2
+    dbPort: 27017
+dbName: metadata
+dbAuthentication: true
+dbUserName: metadata
+dbPassword: azerty1
+
+jettyConfig: jetty-config.xml
+
+# ElasticSearch
+clusterName: elasticsearch-data
+elasticsearchNodes:
+  - hostName: 172.17.0.2
+    httpPort: 9200
+
+# ElasticSearch External Metadata Mapping
+elasticsearchExternalMetadataMappings:
+  - collection: Unit
+    mappingFile: /vitam/conf/metadata/mapping/unit-es-mapping.json
+  - collection: ObjectGroup
+    mappingFile: /vitam/conf/metadata/mapping/og-es-mapping.json
+
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+
+  default_config:
+    unit:
+      number_of_shards: 3
+      number_of_replicas: 10
+    objectgroup:
+      number_of_shards: 3
+      number_of_replicas: 11
+
+  dedicated_tenants:
+    - tenants: '10-20'
+      unit:
+        number_of_shards: 4
+        number_of_replicas: 12
+      objectgroup:
+        number_of_shards: 5
+        number_of_replicas: 13
+
+  grouped_tenants:
+    - name: 'grp1'
+      tenants: '21-22'
+      unit:
+        number_of_shards: 5
+        number_of_replicas: 14
+      objectgroup:
+        number_of_shards: 6
+        number_of_replicas: 15
+
+#Basic Authentication
+adminBasicAuth:
+  - userName: adminUser
+    password: adminPassword

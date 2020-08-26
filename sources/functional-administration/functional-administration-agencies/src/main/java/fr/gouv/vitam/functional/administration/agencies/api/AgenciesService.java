@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -53,7 +52,6 @@ import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -215,7 +213,7 @@ public class AgenciesService implements VitamAutoCloseable {
         Set<AgenciesModel> agenciesToUpdate,
         Set<AgenciesModel> usedAgenciesByAU,
         Set<AgenciesModel> usedAgenciesByContracts,
-        Set <AgenciesModel> unusedAgenciesToDelete,
+        Set<AgenciesModel> unusedAgenciesToDelete,
         OntologyLoader ontologyLoader) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
@@ -621,16 +619,19 @@ public class AgenciesService implements VitamAutoCloseable {
         }
 
         for (AgenciesModel agency : agenciesToDelete) {
-                Select select = new Select();
-                select.setQuery(
-                    QueryHelper.and().add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, agency.getIdentifier()) ));
-                final JsonNode queryDsl = select.getFinalSelect();
-                DbRequestResult result = mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-                RequestResponseOK<AccessionRegisterDetail> response = result.getRequestResponseOK(queryDsl, AccessionRegisterDetail.class);
+            Select select = new Select();
+            select.setQuery(
+                QueryHelper.and()
+                    .add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, agency.getIdentifier())));
+            final JsonNode queryDsl = select.getFinalSelect();
+            DbRequestResult result =
+                mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+            RequestResponseOK<AccessionRegisterDetail> response =
+                result.getRequestResponseOK(queryDsl, AccessionRegisterDetail.class);
 
-                if(response != null && !response.getResults().isEmpty()){
-                    throw new AgencyImportDeletionException("used Agencies want to be deleted");
-                }
+            if (response != null && !response.getResults().isEmpty()) {
+                throw new AgencyImportDeletionException("used Agencies want to be deleted");
+            }
         }
 
         // not used anywhere , then will be deleted
@@ -736,13 +737,11 @@ public class AgenciesService implements VitamAutoCloseable {
         final Delete delete = new Delete();
         DbRequestResult result;
 
-        DbRequestSingle dbRequest = new DbRequestSingle(FunctionalAdminCollections.AGENCIES.getVitamCollection(), ontologyLoader);
         try {
             delete.setQuery(eq(AgenciesModel.TAG_IDENTIFIER, fileAgenciesModel.getIdentifier()));
-            result = dbRequest.execute(delete);
+            result = mongoAccess.deleteCollectionForTesting(FunctionalAdminCollections.AGENCIES, delete);
             result.close();
-        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
-            DatabaseException | VitamDBException | SchemaValidationException e) {
+        } catch (InvalidCreateOperationException | DatabaseException e) {
             LOGGER.error(e);
         }
     }

@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -106,6 +107,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -303,7 +305,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         CONFIG_BIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(VitamServerRunner.FORMAT_IDENTIFIERS_CONF);
@@ -325,7 +327,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();
@@ -351,16 +353,16 @@ public class ProcessingIT extends VitamRuleRunner {
 
         ));
 
-        runAfterEs(Sets.newHashSet(
-            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1",
-            LogbookCollections.OPERATION.getName().toLowerCase() + "_0",
-            LogbookCollections.OPERATION.getName().toLowerCase() + "_1",
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase()
-        ));
+        runAfterEs(
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+        );
     }
 
     @RunWithCustomExecutor
@@ -536,7 +538,7 @@ public class ProcessingIT extends VitamRuleRunner {
     }
 
     private void writeUnitsLogbook(String bulkProcessId)
-        throws FileNotFoundException, InvalidParseOperationException, DatabaseException {
+        throws FileNotFoundException, InvalidParseOperationException, DatabaseException, LogbookExecutionException {
         InputStream logbookIs =
             PropertiesUtils.getResourceAsStream(INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON);
         JsonNode logbookJsonNode = JsonHandler.getFromInputStream(
@@ -553,14 +555,15 @@ public class ProcessingIT extends VitamRuleRunner {
         insertLogbookToElasticsearch(logbookDocument);
     }
 
-    private void insertLogbookToElasticsearch(VitamDocument vitamDocument) throws DatabaseException {
+    private void insertLogbookToElasticsearch(VitamDocument vitamDocument)
+        throws LogbookExecutionException {
         Integer tenantId = HeaderIdHelper.getTenantId();
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
         new LogbookTransformData().transformDataForElastic(vitamDocument);
         LogbookCollections.OPERATION.getEsClient()
-            .indexEntry(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId, id, vitamDocument);
+            .indexEntry(LogbookCollections.OPERATION, tenantId, id, vitamDocument);
     }
 
     @RunWithCustomExecutor

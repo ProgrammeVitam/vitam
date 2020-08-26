@@ -78,6 +78,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -130,7 +132,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         // set bulk size to 1 for tests
         VitamConfiguration.setWorkerBulkSize(1);
         VitamConfiguration.setDistributeurBatchSize(10);
@@ -161,7 +163,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         runAfter();
 
         // Delete override default ingest workflow. This important to ensure that other IT test do not use this configuration

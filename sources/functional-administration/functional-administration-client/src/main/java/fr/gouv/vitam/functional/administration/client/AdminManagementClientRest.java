@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -1154,7 +1154,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<IndexationResult> launchReindexation(JsonNode options)
+    public RequestResponse<ReindexationResult> launchReindexation(JsonNode options)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
 
@@ -1165,7 +1165,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseFromResponse(response, IndexationResult.class);
+            return RequestResponse.parseFromResponse(response, ReindexationResult.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1173,7 +1173,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<IndexationResult> switchIndexes(JsonNode options)
+    public RequestResponse<ReindexationResult> switchIndexes(JsonNode options)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
         VitamRequestBuilder request = post()
@@ -1183,7 +1183,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseFromResponse(response, IndexationResult.class);
+            return RequestResponse.parseFromResponse(response, ReindexationResult.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);

@@ -82,6 +82,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
@@ -91,7 +92,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadExc
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -193,7 +194,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final VitamRuleService vitamRuleService;
 
     public AdminManagementResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader,
-        OntologyLoader rulesOntologyLoader) {
+        OntologyLoader rulesOntologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager) {
         super(new BasicVitamStatusServiceImpl());
         this.rulesOntologyLoader = rulesOntologyLoader;
         DbConfigurationImpl adminConfiguration;
@@ -210,8 +212,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
         logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
         metaDataClientFactory = MetaDataClientFactory.getInstance();
-        elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
-        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader);
+        elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration, indexManager);
+        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
         vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());

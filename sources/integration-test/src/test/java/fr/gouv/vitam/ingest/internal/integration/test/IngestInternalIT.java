@@ -328,11 +328,11 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         // ES client
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes);
+        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes, logbookIndexManager);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
@@ -341,7 +341,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();
@@ -2087,7 +2087,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             .save(unitList);
 
         // Save units in Elasticsearch
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
             .save(unitList);
 
 

@@ -29,7 +29,8 @@ package fr.gouv.vitam.metadata.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -51,7 +52,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -909,25 +910,20 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(exc.getMessage()))
                 .build();
         }
-        IndexationResult result = metaData.reindex(indexParameters);
+        ReindexationResult result = metaData.reindex(indexParameters);
 
         if (result.getIndexKO() == null || result.getIndexKO().isEmpty()) {
             // No KO -> 201
-            return Response.status(Status.CREATED).entity(new RequestResponseOK()
-                .setHttpCode(Status.CREATED.getStatusCode())).entity(result).build();
+            return Response.status(Status.CREATED).entity(result).build();
         }
 
         // OK and at least one KO -> 202
         if (result.getIndexOK() != null && !result.getIndexOK().isEmpty()) {
-            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
-                .setHttpCode(Status.ACCEPTED.getStatusCode())).entity(result).build();
+            return Response.status(Status.ACCEPTED).entity(result).build();
         }
 
         // All KO -> 500
-        Status status = Status.INTERNAL_SERVER_ERROR;
-        VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_INDEXATION_ERROR,
-            status.getReasonPhrase());
-        return Response.status(status).entity(error).entity(result).build();
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(result).build();
     }
 
     /**
@@ -957,9 +953,9 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
         try {
-            metaData.switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
-            return Response.status(OK).entity(new RequestResponseOK().setHttpCode(OK.getStatusCode()))
-                .build();
+            SwitchIndexResult switchIndexResult = metaData
+                .switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
+            return Response.status(OK).entity(switchIndexResult).build();
         } catch (DatabaseException exc) {
             VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_SWITCH_INDEX_ERROR,
                 exc.getMessage());

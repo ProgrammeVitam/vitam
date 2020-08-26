@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.graph;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 
 /**
@@ -45,11 +46,11 @@ public class GraphFactory {
      * @return current instance of GraphFactory, create if null
      */
     public static synchronized GraphFactory initialize(VitamRepositoryProvider vitamRepositoryProvider,
-        MetaDataImpl metaData) {
+        MetaDataImpl metaData, ElasticsearchMetadataIndexManager indexManager) {
 
         if (instance == null) {
             instance = new GraphFactory();
-            graphComputeService = GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metaData);
+            graphComputeService = GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metaData, indexManager);
         }
         return instance;
 

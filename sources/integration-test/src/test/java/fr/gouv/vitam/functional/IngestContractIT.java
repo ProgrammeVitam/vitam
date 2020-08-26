@@ -68,6 +68,8 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
@@ -106,12 +108,12 @@ public class IngestContractIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
 
         // ES client
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        esClient = new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes);
+        esClient = new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes, logbookIndexManager);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
@@ -119,7 +121,7 @@ public class IngestContractIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        handleAfterClass(0, 1);
+        handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();

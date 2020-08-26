@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -527,13 +527,13 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse<IndexationResult> launchReindexation(JsonNode options)
+    public RequestResponse<ReindexationResult> launchReindexation(JsonNode options)
         throws AdminManagementClientServerException {
         return new RequestResponseOK();
     }
 
     @Override
-    public RequestResponse<IndexationResult> switchIndexes(JsonNode options)
+    public RequestResponse<ReindexationResult> switchIndexes(JsonNode options)
         throws AdminManagementClientServerException {
         return new RequestResponseOK();
     }

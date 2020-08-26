@@ -41,9 +41,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
+import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import org.junit.AfterClass;
@@ -54,7 +55,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,9 +76,12 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
     static LogbookMongoDbAccessImpl mongoDbAccess;
 
     private static final Integer TENANT_ID = 0;
-    private static final List<Integer> tenantList = Arrays.asList(0);
+    private static final List<Integer> tenantList = Collections.singletonList(TENANT_ID);
     private static final String user = "user-logbook";
     private static final String pwd = "user-logbook";
+
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -89,13 +92,13 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), TENANT_ID);
+        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        LogbookCollections.afterTestClass(true, TENANT_ID);
+        LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
         VitamClientFactory.resetConnections();
     }
 
@@ -115,7 +118,7 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
                 esNodes, true, user, pwd);
         VitamConfiguration.setTenants(tenantList);
         new LogbookMongoDbAccessFactory();
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(config, Collections::emptyList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(config, Collections::emptyList, indexManager);
         assertNotNull(mongoDbAccess);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {

@@ -30,6 +30,8 @@ import com.mongodb.ReadConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexSettings;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -70,7 +72,7 @@ public class VitamCollectionTest {
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
+        new ElasticsearchRule(ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
 
 
     @ClassRule
@@ -84,14 +86,15 @@ public class VitamCollectionTest {
         nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
 
         esClient = new ElasticsearchAccess(elasticsearchRule.getClusterName(), nodes);
-        esClient.createIndexAndAliasIfAliasNotExists(PREFIX + CollectionSample.class.getSimpleName(), "{}", null);
-
+        esClient.createIndexAndAliasIfAliasNotExists(
+            ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()),
+            new ElasticsearchIndexSettings(2, 2, () -> "{}"));
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws DatabaseException {
         mongoRule.handleAfterClass();
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.purgeIndices();
         esClient.close();
     }
 

@@ -27,8 +27,8 @@
 package fr.gouv.vitam.ihmrecette.appserver.utils;
 
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchTestHelper;
-import fr.gouv.vitam.metadata.api.config.ElasticsearchExternalMetadataMapping;
-import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 import java.util.Arrays;
@@ -36,14 +36,14 @@ import java.util.List;
 
 public class MappingLoaderTestUtils {
 
-    public static MappingLoader getTestMappingLoader() throws Exception {
+    public static MappingLoader getTestMappingLoader() {
         List<ElasticsearchExternalMetadataMapping> mappingData =
             Arrays.asList(
                 new ElasticsearchExternalMetadataMapping(MetadataCollections.UNIT.getName(),
-                    ElasticsearchTestHelper.loadMapping(MetadataCollections.UNIT.getName())
+                    ElasticsearchTestHelper.loadUnitMapping()
                 ),
                 new ElasticsearchExternalMetadataMapping(MetadataCollections.OBJECTGROUP.getName(),
-                    ElasticsearchTestHelper.loadMapping(MetadataCollections.OBJECTGROUP.getName())
+                    ElasticsearchTestHelper.loadObjectGroupMapping()
                 )
             );
         return new MappingLoader(mappingData);

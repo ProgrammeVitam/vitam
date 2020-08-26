@@ -26,30 +26,27 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.index.model.IndexOK;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
-import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.index.model.ReindexationOK;
+import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.GetAliasesResponse;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -59,29 +56,25 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 public class IndexationHelperTest {
     private static final String INDEX = "index" + GUIDFactory.newGUID().getId();
     private static final String ALIAS = "alias" + GUIDFactory.newGUID().getId();
 
     private static final String TEST_ES_MAPPING_JSON = "test-es-mapping.json";
-    private static final String INDEXATION_RESULT_WITHOUT_TENANT_JSON = "indexation_result_without_tenant.json";
-    private static final String INDEXATION_RESULT_WITH_TENANT_JSON = "indexation_result_with_tenant.json";
-    private static final String messageCause = "failed";
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -101,21 +94,17 @@ public class IndexationHelperTest {
         ArrayList<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
         elasticsearchAccess = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
-        elasticsearchRule.createIndex(ALIAS, INDEX, "{}");
-        elasticsearchRule.createIndex(ALIAS + "_0", INDEX + "_0", "{}");
-        elasticsearchRule.createIndex(ALIAS + "_1", INDEX + "_1", "{}");
-        elasticsearchRule.createIndex(ALIAS + "_2", INDEX + "_2", "{}");
 
-        elasticsearchRule.addIndexToBePurged(INDEX);
-        elasticsearchRule.addIndexToBePurged(INDEX + "_0");
-        elasticsearchRule.addIndexToBePurged(INDEX + "_1");
-        elasticsearchRule.addIndexToBePurged(INDEX + "_2");
+        elasticsearchRule.createIndex(ALIAS, INDEX, "{}");
+        elasticsearchRule.createIndex(ALIAS + "_0", INDEX + "_0_initialindex", "{}");
+        elasticsearchRule.createIndex(ALIAS + "_mygrp", INDEX + "_mygrp_initialindex", "{}");
+
     }
 
     @AfterClass
     public static void afterClass() {
         mongoRule.handleAfterClass();
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.purgeIndices();
         elasticsearchAccess.close();
     }
 
@@ -127,73 +116,120 @@ public class IndexationHelperTest {
     @Test
     public void should_reindex_and_switch_index_for_multiple_documents_with_tenant()
         throws IOException, DatabaseException {
+
         // Given
         final MongoCollection<Document> collection = mongoRule.getMongoCollection(ALIAS);
         List<Integer> tenants = Arrays.asList(0, 1, 2);
-        Map<String, Integer> mapIdsTenants = populating(collection, tenants);
+        ElasticsearchIndexAliasResolver indexAliasResolver =
+            (tenantId) -> {
+                switch (tenantId) {
+                    case 0:
+                        return ElasticsearchIndexAlias.ofMultiTenantCollection(ALIAS, tenantId);
+                    case 1:
+                    case 2:
+                        return ElasticsearchIndexAlias.ofMultiTenantCollection(ALIAS, "mygrp");
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + tenantId);
+                }
+            };
 
+        Map<String, Integer> mapIdsTenants = populating(collection, tenants, indexAliasResolver);
 
-        InputStream resourceAsStream = new FileInputStream(PropertiesUtils.findFile(TEST_ES_MAPPING_JSON));
+        String mapping = FileUtils.readFileToString(
+            PropertiesUtils.findFile(TEST_ES_MAPPING_JSON), StandardCharsets.UTF_8);
+        ElasticsearchIndexAlias indexAlias0 = indexAliasResolver.resolveIndexName(0);
+        ElasticsearchIndexAlias indexAliasGrp = indexAliasResolver.resolveIndexName(1);
+        ElasticsearchIndexSettings indexSettings = new ElasticsearchIndexSettings(2, 1, () -> mapping);
+
         // When
-        IndexationResult indexationResult =
-            indexationHelper.reindex(collection, INDEX, elasticsearchAccess, tenants, resourceAsStream);
+        ReindexationOK reindexTenant0 = indexationHelper.reindex(
+            collection, elasticsearchAccess, indexAlias0, indexSettings, ElasticsearchCollections.OBJECTGROUP,
+            singletonList(0), null);
+        ReindexationOK reindexTenantGroup = indexationHelper.reindex(
+            collection, elasticsearchAccess, indexAliasGrp, indexSettings, ElasticsearchCollections.OBJECTGROUP,
+            Arrays.asList(1, 2), "mygrp");
 
-        assertThat(indexationResult.getIndexKO()).isNull();
-        assertThat(indexationResult.getIndexOK()).hasSize(3);
+        // Then
+        ElasticsearchIndexAlias newIndex0 = ElasticsearchIndexAlias.ofFullIndexName(reindexTenant0.getIndexName());
+        ElasticsearchIndexAlias newIndexGrp =
+            ElasticsearchIndexAlias.ofFullIndexName(reindexTenantGroup.getIndexName());
 
-        for (IndexOK index : indexationResult.getIndexOK()) {
-            String[] split = index.getIndexName().split("_");
-            VitamElasticsearchRepository vitamElasticsearchRepository =
-                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), index.getIndexName(), false);
-            for (String id : mapIdsTenants.keySet()) {
-                Integer tenant = mapIdsTenants.get(id);
-                // check indexName if is the same that tenant.
-                if (split[1].equals(tenant.toString())) {
-                    Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, tenant);
-                    Document document = documentById.get();
-                    assertThat(document.get("Name", String.class)).contains("Description_" + tenant);
-                }
-            }
-            // Purge old index
-            elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), INDEX + "_" + index.getTenant());
+        assertThat(reindexTenant0.getAliasName()).isEqualTo(indexAlias0.getName());
+        assertThat(indexAlias0.isValidAliasOfIndex(newIndex0)).isTrue();
+        assertThat(reindexTenant0.getTenants()).containsExactlyInAnyOrder(0);
+        assertThat(reindexTenant0.getTenantGroup()).isNull();
+
+        assertThat(reindexTenantGroup.getAliasName()).isEqualTo(indexAliasGrp.getName());
+        assertThat(indexAliasGrp.isValidAliasOfIndex(newIndexGrp)).isTrue();
+        assertThat(reindexTenantGroup.getTenants()).containsExactlyInAnyOrder(1, 2);
+        assertThat(reindexTenantGroup.getTenantGroup()).isEqualTo("mygrp");
+
+        // Ensure new index exists
+        assertThat(elasticsearchAccess.existsIndex(newIndex0)).isTrue();
+        assertThat(elasticsearchAccess.existsIndex(newIndexGrp)).isTrue();
+
+        // Ensure aliases still reference old indexes
+        GetAliasesResponse alias0BeforeSwitch = elasticsearchAccess.getAlias(indexAlias0);
+        assertThat(alias0BeforeSwitch.getAliases()).containsOnlyKeys(INDEX + "_0_initialindex");
+
+        GetAliasesResponse aliasGrpBeforeSwitch = elasticsearchAccess.getAlias(indexAliasGrp);
+        assertThat(aliasGrpBeforeSwitch.getAliases()).containsOnlyKeys(INDEX + "_mygrp_initialindex");
+
+        // Switch indices
+        SwitchIndexResult switchIndexResult0 =
+            indexationHelper.switchIndex(indexAlias0, newIndex0, elasticsearchAccess);
+        SwitchIndexResult switchIndexResultGrp =
+            indexationHelper.switchIndex(indexAliasGrp, newIndexGrp, elasticsearchAccess);
+
+        assertThat(switchIndexResult0.getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(switchIndexResultGrp.getStatusCode()).isEqualTo(StatusCode.OK);
+
+        // Check alias references
+        GetAliasesResponse alias0AfterSwitch = elasticsearchAccess.getAlias(indexAlias0);
+        assertThat(alias0AfterSwitch.getAliases()).containsOnlyKeys(newIndex0.getName());
+
+        GetAliasesResponse aliasGrpAfterSwitch = elasticsearchAccess.getAlias(indexAliasGrp);
+        assertThat(aliasGrpAfterSwitch.getAliases()).containsOnlyKeys(newIndexGrp.getName());
+
+        // Purge old indices
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX);
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX + "_mygrp_initialindex");
+
+        // Check documents
+        elasticsearchAccess.refreshIndex(indexAlias0);
+        elasticsearchAccess.refreshIndex(indexAliasGrp);
+        VitamElasticsearchRepository vitamElasticsearchRepository =
+            new VitamElasticsearchRepository(elasticsearchAccess.getClient(), indexAliasResolver);
+
+        for (String id : mapIdsTenants.keySet()) {
+            Integer tenant = mapIdsTenants.get(id);
+            Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, tenant);
+            assertThat(documentById).isPresent();
+            Document document = documentById.get();
+            assertThat(document.get("Name", String.class)).contains("Description_" + tenant);
         }
-        assertThat(indexationResult.getCollectionName()).isEqualTo(INDEX);
-        assertThat(indexationResult.getIndexOK().size()).isEqualTo(3);
 
-        for (IndexOK indexOK : indexationResult.getIndexOK()) {
-            assertThat(indexOK.getIndexName()).isNotNull();
-            assertThat(indexOK.getTenant()).isNotNull();
-            String aliasName = ALIAS + "_" + indexOK.getTenant();
-            indexationHelper.switchIndex(aliasName, indexOK.getIndexName(), elasticsearchAccess);
+        assertThat(countDocumentsByQuery(indexAlias0, vitamElasticsearchRepository,
+            matchAllQuery())).isEqualTo(10);
+        assertThat(countDocumentsByQuery(indexAliasGrp, vitamElasticsearchRepository,
+            matchAllQuery())).isEqualTo(20);
 
-            GetAliasesResponse actualAliases = elasticsearchRule.getClient().indices()
-                .getAlias(new GetAliasesRequest().indices(INDEX + "_" + indexOK.getTenant(), indexOK.getIndexName()),
-                    RequestOptions.DEFAULT);
-            Collection<Set<AliasMetaData>> values = actualAliases.getAliases().values();
-            assertThat(values).hasSize(2);
-            for (Map.Entry<String, Set<AliasMetaData>> aliasMetaDataEntry : actualAliases.getAliases().entrySet()) {
-                String index = aliasMetaDataEntry.getKey();
-                Set<AliasMetaData> aliasMetaDataSet = aliasMetaDataEntry.getValue();
+        assertThat(countDocumentsByQuery(indexAlias0, vitamElasticsearchRepository,
+            QueryBuilders.termQuery("Identifier", "Identifier_0"))).isEqualTo(10);
+        assertThat(countDocumentsByQuery(indexAliasGrp, vitamElasticsearchRepository,
+            QueryBuilders.termQuery("Identifier", "Identifier_1"))).isEqualTo(10);
+        assertThat(countDocumentsByQuery(indexAliasGrp, vitamElasticsearchRepository,
+            QueryBuilders.termQuery("Identifier", "Identifier_2"))).isEqualTo(10);
 
-                // Old index does not have alias
-                if ((INDEX + "_" + indexOK.getTenant()).equals(index)) {
-                    assertThat(aliasMetaDataSet).hasSize(0);
-                }
+        elasticsearchAccess.deleteIndexForTesting(newIndex0);
+        elasticsearchAccess.deleteIndexForTesting(newIndexGrp);
+    }
 
-                if (indexOK.getIndexName().equals(index)) {
-                    assertThat(aliasMetaDataSet).hasSize(1);
-                    assertThat(aliasMetaDataSet.iterator().next().alias()).isEqualTo(ALIAS + "_" + indexOK.getTenant());
-                }
-            }
-
-
-            VitamElasticsearchRepository vitamElasticsearchRepository =
-                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), aliasName, false);
-
-            SearchResponse searchResponse = vitamElasticsearchRepository
-                .search(aliasName, QueryBuilders.termQuery("Identifier", "Identifier_" + indexOK.getTenant()));
-            assertThat(searchResponse.getHits().getTotalHits().value).isEqualTo(10);
-        }
+    private long countDocumentsByQuery(ElasticsearchIndexAlias indexAlias0,
+        VitamElasticsearchRepository vitamElasticsearchRepository, QueryBuilder query) throws IOException {
+        return vitamElasticsearchRepository
+            .search(indexAlias0.getName(), query)
+            .getHits().getTotalHits().value;
     }
 
 
@@ -201,127 +237,98 @@ public class IndexationHelperTest {
     public void should_reindex_and_switch_index_for_multiple_documents_without_tenant()
         throws IOException, DatabaseException {
         // Given
+        List<Integer> tenants = Arrays.asList(0, 1, 2);
+        ElasticsearchIndexAliasResolver indexAliasResolver =
+            (tenantId) -> ElasticsearchIndexAlias.ofCrossTenantCollection(ALIAS);
+        String mapping = FileUtils.readFileToString(
+            PropertiesUtils.findFile(TEST_ES_MAPPING_JSON), StandardCharsets.UTF_8);
+        ElasticsearchIndexAlias indexAlias = indexAliasResolver.resolveIndexName(null);
+
+        ElasticsearchIndexSettings indexSettings = new ElasticsearchIndexSettings(2, 1, () -> mapping);
+
         final MongoCollection<Document> collection = mongoRule.getMongoCollection(ALIAS);
-        List<Integer> tenants = new ArrayList<>();
-        Map<String, Integer> mapIdsTenants = populating(collection, tenants);
+        Map<String, Integer> mapIdsTenants = populating(collection, indexAliasResolver);
 
 
-        InputStream resourceAsStream = new FileInputStream(PropertiesUtils.findFile(TEST_ES_MAPPING_JSON));
         // When
-        IndexationResult indexationResult =
-            indexationHelper.reindex(collection, INDEX, elasticsearchAccess, tenants, resourceAsStream);
+        ReindexationOK indexationResult = indexationHelper.reindex(
+            collection, elasticsearchAccess, indexAlias, indexSettings, ElasticsearchCollections.OBJECTGROUP,
+            null, null);
 
-        assertThat(indexationResult.getIndexKO()).isNull();
-        assertThat(indexationResult.getIndexOK()).hasSize(1);
-
-        for (IndexOK index : indexationResult.getIndexOK()) {
-            String[] split = index.getIndexName().split("_");
-            VitamElasticsearchRepository vitamElasticsearchRepository =
-                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), index.getIndexName(), false);
-            for (String id : mapIdsTenants.keySet()) {
-                Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, null);
-                Document document = documentById.get();
-                assertThat(document.get("Name", String.class)).contains("Identifier_No_Tenant");
-            }
-            // Purge old index
-            elasticsearchRule.deleteIndex(elasticsearchRule.getClient(), INDEX);
-        }
-        assertThat(indexationResult.getCollectionName()).isEqualTo(INDEX);
-
-        for (IndexOK indexOK : indexationResult.getIndexOK()) {
-            assertThat(indexOK.getIndexName()).isNotNull();
-            assertThat(indexOK.getTenant()).isNull();
-            String aliasName = ALIAS;
-            indexationHelper.switchIndex(aliasName, indexOK.getIndexName(), elasticsearchAccess);
-
-            GetAliasesResponse actualAliases = elasticsearchRule.getClient().indices()
-                .getAlias(new GetAliasesRequest().indices(INDEX, indexOK.getIndexName()),
-                    RequestOptions.DEFAULT);
-            Collection<Set<AliasMetaData>> values = actualAliases.getAliases().values();
-            assertThat(values).hasSize(2);
-            for (Map.Entry<String, Set<AliasMetaData>> aliasMetaDataEntry : actualAliases.getAliases().entrySet()) {
-                String index = aliasMetaDataEntry.getKey();
-                Set<AliasMetaData> aliasMetaDataSet = aliasMetaDataEntry.getValue();
-
-                // Old index does not have alias
-                if (INDEX.equals(index)) {
-                    assertThat(aliasMetaDataSet).hasSize(0);
-                }
-
-                if (indexOK.getIndexName().equals(index)) {
-                    assertThat(aliasMetaDataSet).hasSize(1);
-                    assertThat(aliasMetaDataSet.iterator().next().alias()).isEqualTo(ALIAS);
-                }
-            }
-
-
-            VitamElasticsearchRepository vitamElasticsearchRepository =
-                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), aliasName, false);
-
-            SearchResponse searchResponse = vitamElasticsearchRepository
-                .search(aliasName, QueryBuilders.termQuery("Identifier", "Identifier_No_Tenant"));
-            assertThat(searchResponse.getHits().getTotalHits().value).isEqualTo(10);
-        }
-    }
-
-    @Test
-    public void should_retrieve_indexation_result_without_tenant() throws Exception {
-        // Given
-        final FileInputStream fileInputStream =
-            new FileInputStream(PropertiesUtils.getResourceFile(INDEXATION_RESULT_WITHOUT_TENANT_JSON));
-
-        final JsonNode indexationResultNode = JsonHandler.getFromInputStream(fileInputStream);
-        final String indexationResultTest = indexationResultNode.toString();
-        IndexParameters indexParameters = new IndexParameters();
-        indexParameters.setCollectionName("collection_name");
-        // When
-        IndexationResult koResult = indexationHelper.getFullKOResult(indexParameters, messageCause);
-        final String koResultToAssert = JsonHandler.unprettyPrint(koResult);
         // Then
-        assertThat(koResultToAssert).isEqualTo(indexationResultTest);
+        ElasticsearchIndexAlias newIndex = ElasticsearchIndexAlias.ofFullIndexName(indexationResult.getIndexName());
+
+        assertThat(indexationResult.getAliasName()).isEqualTo(indexAlias.getName());
+        assertThat(indexAlias.isValidAliasOfIndex(newIndex)).isTrue();
+        assertThat(indexationResult.getTenants()).isNull();
+        assertThat(indexationResult.getTenantGroup()).isNull();
+
+        // Ensure new index exists
+        assertThat(elasticsearchAccess.existsIndex(newIndex)).isTrue();
+
+        // Ensure aliases still reference old indexes
+        GetAliasesResponse aliasBeforeSwitch = elasticsearchAccess.getAlias(indexAlias);
+        assertThat(aliasBeforeSwitch.getAliases()).containsOnlyKeys(INDEX);
+
+        // Switch indices
+        SwitchIndexResult switchIndexResult = indexationHelper.switchIndex(indexAlias, newIndex, elasticsearchAccess);
+
+        assertThat(switchIndexResult.getStatusCode()).isEqualTo(StatusCode.OK);
+
+        // Check alias references
+        GetAliasesResponse aliasAfterSwitch = elasticsearchAccess.getAlias(indexAlias);
+        assertThat(aliasAfterSwitch.getAliases()).containsOnlyKeys(newIndex.getName());
+
+        // Purge old indices
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX);
+
+        // Check documents
+        elasticsearchAccess.refreshIndex(indexAlias);
+        VitamElasticsearchRepository vitamElasticsearchRepository =
+            new VitamElasticsearchRepository(elasticsearchAccess.getClient(), indexAliasResolver);
+
+        for (String id : mapIdsTenants.keySet()) {
+            Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, null);
+            assertThat(documentById).isPresent();
+            Document document = documentById.get();
+            assertThat(document.get("Name", String.class)).contains("Identifier_No_Tenant");
+        }
+
+        assertThat(countDocumentsByQuery(indexAlias, vitamElasticsearchRepository,
+            matchAllQuery())).isEqualTo(10);
+
+
+        assertThat(countDocumentsByQuery(indexAlias, vitamElasticsearchRepository,
+            QueryBuilders.termQuery("Identifier", "Identifier_No_Tenant"))).isEqualTo(10);
+
+        elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), newIndex.getName());
     }
 
-
-
-    @Test
-    public void should_retrieve_indexation_result_with_tenant() throws Exception {
-        // Given
-        final FileInputStream fileInputStream =
-            new FileInputStream(PropertiesUtils.getResourceFile(INDEXATION_RESULT_WITH_TENANT_JSON));
-
-        final JsonNode indexationResultNode = JsonHandler.getFromInputStream(fileInputStream);
-        final String indexationResultTest = indexationResultNode.toString();
-        IndexParameters indexParameters = new IndexParameters();
-        indexParameters.setCollectionName("collection_name");
-        indexParameters.setTenants(Arrays.asList(1, 2));
-        // When
-        IndexationResult koResult = indexationHelper.getFullKOResult(indexParameters, messageCause);
-        final String koResultToAssert = JsonHandler.unprettyPrint(koResult);
-        // Then
-        assertThat(koResultToAssert).isEqualTo(indexationResultTest);
+    private Map<String, Integer> populating(MongoCollection<Document> collection,
+        ElasticsearchIndexAliasResolver indexAliasResolver)
+        throws IOException, DatabaseException {
+        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
+        VitamElasticsearchRepository vitamElasticsearchRepository;
+        Map<String, Integer> ids = new HashMap<>();
+        vitamElasticsearchRepository =
+            new VitamElasticsearchRepository(elasticsearchRule.getClient(),
+                indexAliasResolver);
+        insertDocuments(vitamMongoRepository, vitamElasticsearchRepository, ids);
+        return ids;
     }
 
-
-
-    private Map<String, Integer> populating(MongoCollection<Document> collection, List<Integer> tenants)
+    private Map<String, Integer> populating(MongoCollection<Document> collection, List<Integer> tenants,
+        ElasticsearchIndexAliasResolver indexAliasResolver)
         throws IOException, DatabaseException {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
         VitamElasticsearchRepository vitamElasticsearchRepository;
 
         Map<String, Integer> ids = new HashMap<>();
-        if (!tenants.isEmpty()) {
-            for (Integer tenant : tenants) {
-                vitamElasticsearchRepository =
-                    new VitamElasticsearchRepository(elasticsearchRule.getClient(),
-                        collection.getNamespace().getCollectionName().toLowerCase(), true);
-                insertDocuments(vitamMongoRepository, vitamElasticsearchRepository, ids, tenant);
-            }
-        } else {
+        for (Integer tenant : tenants) {
             vitamElasticsearchRepository =
                 new VitamElasticsearchRepository(elasticsearchRule.getClient(),
-                    collection.getNamespace().getCollectionName().toLowerCase(), false);
-            insertDocuments(vitamMongoRepository, vitamElasticsearchRepository, ids);
-
+                    indexAliasResolver);
+            insertDocuments(vitamMongoRepository, vitamElasticsearchRepository, ids, tenant);
         }
         return ids;
     }
