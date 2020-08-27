@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -39,7 +40,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.File;
@@ -54,7 +54,7 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPlugin extends Genera
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(
             GenerateObjectGroupLifecycleTraceabilityActionPlugin.class);
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
+    private static final TypeReference<JsonNode> TYPE_REFERENCE = new TypeReference<>() {
     };
 
     private static final String ACTION_HANDLER_ID = "GENERATE_OG_LFC_TRACEABILITY";
@@ -90,7 +90,7 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPlugin extends Genera
 
         try (final LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
             InputStream is = new FileInputStream(traceabilityDataFile);
-            JsonLineGenericIterator<JsonLineModel> traceabilityDataIterator =
+            JsonLineGenericIterator<JsonNode> traceabilityDataIterator =
                 new JsonLineGenericIterator<>(is, TYPE_REFERENCE)) {
 
             LogbookLifeCycleTraceabilityHelper helper =

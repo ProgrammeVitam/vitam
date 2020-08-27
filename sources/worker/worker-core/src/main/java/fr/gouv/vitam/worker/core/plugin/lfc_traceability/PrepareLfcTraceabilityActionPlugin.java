@@ -50,7 +50,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
@@ -163,7 +162,7 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
 
                     LfcMetadataPair lfcMetadataPair = new LfcMetadataPair(rawMetadata, rawLfc);
 
-                    jsonLineWriter.addEntry(new JsonLineModel(id, null, JsonHandler.toJsonNode(lfcMetadataPair)));
+                    jsonLineWriter.addEntry(lfcMetadataPair);
                 }
             }
         } catch (IOException e) {

@@ -111,6 +111,8 @@ import static org.mockito.Mockito.when;
 
 public class PrepareUnitLfcTraceabilityActionPluginTest {
 
+    private static final TypeReference<LfcMetadataPair> LFC_METADATA_PAIR_TYPE_REFERENCE = new TypeReference<>() {
+    };
     private HandlerIOImpl handlerIO;
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
@@ -265,13 +267,10 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(new FileInputStream(savedLfcWithMetadataFile))) {
+        try (JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(savedLfcWithMetadataFile), LFC_METADATA_PAIR_TYPE_REFERENCE)) {
 
-            List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator)
-                .stream()
-                .map(JsonLineModel::getParams)
-                .map(this::parse)
-                .collect(Collectors.toList());
+            List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(3);
             assertThat(entries.get(0).getLfc().get("_id").textValue())
@@ -336,13 +335,10 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(new FileInputStream(savedLfcWithMetadataFile))) {
+        try (JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(savedLfcWithMetadataFile), LFC_METADATA_PAIR_TYPE_REFERENCE)) {
 
-            List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator)
-                .stream()
-                .map(JsonLineModel::getParams)
-                .map(this::parse)
-                .collect(Collectors.toList());
+            List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(3);
             assertThat(entries.get(0).getLfc().get("_id").textValue())
@@ -546,13 +542,10 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(new FileInputStream(savedLfcWithMetadataFile))) {
+        try (JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(savedLfcWithMetadataFile), LFC_METADATA_PAIR_TYPE_REFERENCE)) {
 
-            List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator)
-                .stream()
-                .map(JsonLineModel::getParams)
-                .map(this::parse)
-                .collect(Collectors.toList());
+            List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(13);
 
