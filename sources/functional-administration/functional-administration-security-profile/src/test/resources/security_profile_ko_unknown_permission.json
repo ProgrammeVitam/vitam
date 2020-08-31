@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "SEC_PROFILE_5",
+    "FullAccess": false,
+    "Permissions": [
+      "test:unknow:permission:1",
+      "test:unknow:permission:2"
+    ]
+  }
+]

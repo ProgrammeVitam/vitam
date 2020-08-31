@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.common.security.rest;
 
+
+import fr.gouv.vitam.utils.SecurityProfilePermissions;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -39,7 +42,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface Secured {
 
-    String permission();
+    SecurityProfilePermissions permission();
 
     String description();
 

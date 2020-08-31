@@ -148,6 +148,7 @@ import static fr.gouv.vitam.common.dsl.schema.DslSchema.SELECT_SINGLE;
 import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR;
 import static fr.gouv.vitam.common.error.VitamCodeHelper.getCode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -233,7 +234,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "formatsfile:check", isAdminOnly = true,
+    @Secured(permission = FORMATSFILE_CHECK, isAdminOnly = true,
         description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
     public Response checkDocument(InputStream document) {
 
@@ -251,7 +252,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "rulesfile:check",
+    @Secured(permission = RULESFILE_CHECK,
         description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
     public Response checkRules(InputStream document) {
         try {
@@ -272,7 +273,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "agenciesfile:check",
+    @Secured(permission = AGENCIESFILE_CHECK,
         description = "Vérifier si le référentiel de services producteurs que l'on souhaite importer est valide")
     public Response checkAgencies(InputStream document) {
         return asyncDownloadErrorReportAgencies(document);
@@ -373,7 +374,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "formats:create", description = "Importer un référentiel des formats", isAdminOnly = true)
+    @Secured(permission = FORMATS_CREATE, description = "Importer un référentiel des formats", isAdminOnly = true)
     public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -410,7 +411,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "rules:create", description = "Importer un référentiel des règles de gestion")
+    @Secured(permission = RULES_CREATE, description = "Importer un référentiel des règles de gestion")
     public Response importRulesFile(@Context HttpHeaders headers, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
@@ -499,7 +500,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "ingestcontracts:create:json",
+    @Secured(permission = INGESTCONTRACTS_CREATE_JSON,
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select) {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
@@ -542,7 +543,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "accesscontracts:create:json",
+    @Secured(permission = ACCESSCONTRACTS_CREATE_JSON,
         description = "Importer des contrats d'accès dans le référentiel")
     public Response importAccessContracts(JsonNode contract) {
 
@@ -586,7 +587,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "managementcontracts:create:json",
+    @Secured(permission = MANAGEMENTCONTRACTS_CREATE_JSON,
         description = "Importer des contrats de gestion dans le référentiel")
     public Response importManagementContracts(JsonNode contract) {
 
@@ -630,7 +631,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "contexts:create:json",
+    @Secured(permission = CONTEXTS_CREATE_JSON,
         description = "Importer des contextes dans le référentiel", isAdminOnly = true)
     public Response importContexts(JsonNode select) {
 
@@ -659,7 +660,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "profiles:create:binary", description = "Importer des profils dans le référentiel")
+    @Secured(permission = PROFILES_CREATE_BINARY, description = "Importer des profils dans le référentiel")
     public Response createProfiles(InputStream document) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -714,7 +715,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "profiles:create:json", description = "Ecrire un profil dans le référentiel")
+    @Secured(permission = PROFILES_CREATE_JSON, description = "Ecrire un profil dans le référentiel")
     public Response createProfiles(JsonNode select) {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
@@ -745,7 +746,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:create:binary",
+    @Secured(permission = ARCHIVEUNITPROFILES_CREATE_BINARY,
         description = "Importer un ou plusieurs document types dans le référentiel")
     public Response createArchiveUnitProfiles(InputStream document) {
 
@@ -791,7 +792,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:create:json",
+    @Secured(permission = ARCHIVEUNITPROFILES_CREATE_JSON,
         description = "Ecrire un ou plusieurs document type dans le référentiel")
     public Response createArchiveUnitProfiles(JsonNode select) {
 
@@ -824,7 +825,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "profiles:id:update:binaire", description = "Importer un fichier xsd ou rng dans un profil")
+    @Secured(permission = PROFILES_ID_UPDATE_BINAIRE, description = "Importer un fichier xsd ou rng dans un profil")
     public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("id") String profileMetadataId,
         InputStream profileFile) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -862,7 +863,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/profiles/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "profiles:id:read:binary",
+    @Secured(permission = PROFILES_ID_READ_BINARY,
         description = "Télecharger le fichier xsd ou rng attaché à un profil")
     public Response downloadProfileFile(
         @PathParam("id") String fileId) {
@@ -881,7 +882,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/traceability/{id}/datafiles")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "traceability:id:read",
+    @Secured(permission = TRACEABILITY_ID_READ,
         description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation")
     public Response downloadTraceabilityFile(
         @PathParam("id") String fileId) {
@@ -923,7 +924,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "formats:read", description = "Lister le contenu du référentiel des formats")
+    @Secured(permission = FORMATS_READ, description = "Lister le contenu du référentiel des formats")
     public Response getFormats(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -960,7 +961,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "rules:read", description = "Lister le contenu du référentiel des règles de gestion")
+    @Secured(permission = RULES_READ, description = "Lister le contenu du référentiel des règles de gestion")
     public Response getRules(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -996,7 +997,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "ingestcontracts:read",
+    @Secured(permission = INGESTCONTRACTS_READ,
         description = "Lister le contenu du référentiel des contrats d'entrée")
     public Response findIngestContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
@@ -1030,7 +1031,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "accesscontracts:read", description = "Lister le contenu du référentiel des contrats d'accès")
+    @Secured(permission = ACCESSCONTRACTS_READ, description = "Lister le contenu du référentiel des contrats d'accès")
     public Response findAccessContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1064,7 +1065,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "managementcontracts:read", description = "Lister le contenu du référentiel des contrats de gestion")
+    @Secured(permission = MANAGEMENTCONTRACTS_READ, description = "Lister le contenu du référentiel des contrats de gestion")
     public Response findManagementContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1098,7 +1099,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "profiles:read", description = "Lister le contenu du référentiel des profils")
+    @Secured(permission = PROFILES_READ, description = "Lister le contenu du référentiel des profils")
     public Response findProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1132,7 +1133,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:read",
+    @Secured(permission = ARCHIVEUNITPROFILES_READ,
         description = "Lister le contenu du référentiel des document types")
     public Response findArchiveUnitProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
@@ -1166,7 +1167,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "contexts:read", description = "Lister le contenu du référentiel des contextes")
+    @Secured(permission = CONTEXTS_READ, description = "Lister le contenu du référentiel des contextes")
     public Response findContexts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1201,7 +1202,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "agencies:create", description = "Importer un référentiel des services producteurs")
+    @Secured(permission = AGENCIES_CREATE, description = "Importer un référentiel des services producteurs")
     public Response importAgenciesFile(@Context HttpHeaders headers,
         InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
@@ -1257,7 +1258,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/agencies/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "agencies:id:read", description = "Trouver un service producteur avec son identifier")
+    @Secured(permission = AGENCIES_ID_READ, description = "Trouver un service producteur avec son identifier")
     public Response findAgencyByID(@PathParam("id_document") String documentId) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1297,7 +1298,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "agencies:read", description = "Lister le contenu du référentiel des services producteurs")
+    @Secured(permission = AGENCIES_READ, description = "Lister le contenu du référentiel des services producteurs")
     public Response findAgencies(@Dsl(value = SELECT_SINGLE) JsonNode select) throws IOException {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1329,8 +1330,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS +
-        ":read", description = "Lister le contenu du référentiel des registres des fonds")
+    @Secured(permission = ACCESSIONREGISTERS_READ,
+            description = "Lister le contenu du référentiel des registres des fonds")
     public Response getAccessionRegister(@Dsl(value = SELECT_SINGLE) JsonNode select) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
@@ -1370,7 +1371,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("accessionregisterssymbolic")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "accessionregisterssymbolic:read", description = "Get accession register symbolic")
+    @Secured(permission = ACCESSIONREGISTERSSYMBOLIC_READ, description = "Get accession register symbolic")
     public Response getAccessionRegisterSymbolic(@Dsl(value = SELECT_SINGLE) JsonNode select) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
@@ -1393,7 +1394,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/formats/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "formats:id:read", description = "Lire un format donné")
+    @Secured(permission = FORMATS_ID_READ, description = "Lire un format donné")
     public Response findFormatByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -1433,7 +1434,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/rules/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "rules:id:read", description = "Lire une règle de gestion donnée")
+    @Secured(permission = RULES_ID_READ, description = "Lire une règle de gestion donnée")
     public Response findRuleByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -1471,7 +1472,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/ingestcontracts/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "ingestcontracts:id:read", description = "Lire un contrat d'entrée donné")
+    @Secured(permission = INGESTCONTRACTS_ID_READ, description = "Lire un contrat d'entrée donné")
     public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -1511,7 +1512,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/accesscontracts/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "accesscontracts:id:read", description = "Lire un contrat d'accès donné")
+    @Secured(permission = ACCESSCONTRACTS_ID_READ, description = "Lire un contrat d'accès donné")
     public Response findAccessContractsByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -1551,7 +1552,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API + "/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "managementcontracts:id:read", description = "Lire un contrat de gestion donné")
+    @Secured(permission = MANAGEMENTCONTRACTS_ID_READ, description = "Lire un contrat de gestion donné")
     public Response findManagementContractsByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -1592,7 +1593,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/profiles/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "profiles:id:read:json", description = "Lire un profil donné")
+    @Secured(permission = PROFILES_ID_READ_JSON, description = "Lire un profil donné")
     public Response findProfilesByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -1632,7 +1633,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/archiveunitprofiles/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:id:read:json", description = "Lire un document type donné")
+    @Secured(permission = ARCHIVEUNITPROFILES_ID_READ_JSON, description = "Lire un document type donné")
     public Response findArchiveUnitProfilesByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -1673,7 +1674,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/contexts/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "contexts:id:read", description = "Lire un contexte donné")
+    @Secured(permission = CONTEXTS_ID_READ, description = "Lire un contexte donné")
     public Response findContextById(@PathParam("id_document") String documentId) {
 
         try {
@@ -1717,7 +1718,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "contexts:id:update",
+    @Secured(permission = CONTEXTS_ID_UPDATE,
         description = "Effectuer une mise à jour sur un contexte", isAdminOnly = true)
     public Response updateContext(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
@@ -1759,7 +1760,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "profiles:id:update:json", description = "Effectuer une mise à jour sur un profil")
+    @Secured(permission = PROFILES_ID_UPDATE_JSON, description = "Effectuer une mise à jour sur un profil")
     public Response updateProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
@@ -1800,7 +1801,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:id:update:json",
+    @Secured(permission = ARCHIVEUNITPROFILES_ID_UPDATE_JSON,
         description = "Effectuer une mise à jour sur un document type")
     public Response updateArchiveUnitProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
@@ -1842,7 +1843,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "accesscontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'accès")
+    @Secured(permission = ACCESSCONTRACTS_ID_UPDATE, description = "Effectuer une mise à jour sur un contrat d'accès")
     public Response updateAccessContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
@@ -1884,7 +1885,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "ingestcontracts:id:update",
+    @Secured(permission = INGESTCONTRACTS_ID_UPDATE,
         description = "Effectuer une mise à jour sur un contrat d'entrée")
     public Response updateIngestContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
@@ -1927,7 +1928,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "managementcontracts:id:update", description = "Effectuer une mise à jour sur un contrat de gestion")
+    @Secured(permission = MANAGEMENTCONTRACTS_ID_UPDATE, description = "Effectuer une mise à jour sur un contrat de gestion")
     public Response updateManagementContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
@@ -1978,7 +1979,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":id:" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL + ":read",
+    @Secured(permission = ACCESSIONREGISTERS_ID_ACCESSIONREGISTERDETAILS_READ,
         description = "Lister les détails d'un registre de fonds")
     public Response findAccessionRegisterDetail(@PathParam("id_document") String originatingAgency,
         @Dsl(value = SELECT_SINGLE) JsonNode select) {
@@ -2017,7 +2018,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.TRACEABILITY_API + "checks")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "traceabilitychecks:create", description = "Tester l'intégrité d'un journal sécurisé")
+    @Secured(permission = TRACEABILITYCHECKS_CREATE, description = "Tester l'intégrité d'un journal sécurisé")
     public Response checkOperationTraceability(@Dsl(value = SELECT_SINGLE) JsonNode query) {
 
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -2051,7 +2052,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.TRACEABILITY_API + "/linkedchecks")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "traceabilitylinkedchecks:create", description = "Tester l'intégrité d'un journal sécurisé")
+    @Secured(permission = TRACEABILITYLINKEDCHECKS_CREATE, description = "Tester l'intégrité d'un journal sécurisé")
     public Response linkedCheckOperationTraceability(JsonNode query) {
 
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
@@ -2085,7 +2086,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.AUDITS_API)
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "audits:create", description = "Lancer un audit de l'existance des objets")
+    @Secured(permission = AUDITS_CREATE, description = "Lancer un audit de l'existance des objets")
     public Response launchAudit(AuditOptions options) {
         checkParameter("audit options", options);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -2118,7 +2119,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:create:json", isAdminOnly = true,
+    @Secured(permission = SECURITYPROFILES_CREATE_JSON, isAdminOnly = true,
         description = "Importer des profiles de sécurité dans le référentiel")
     public Response importSecurityProfiles(JsonNode document) {
 
@@ -2147,7 +2148,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.EXPORT_PROBATIVE_VALUE)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "probativevalue:create", description = "Lancer un export du relevé de valeur probante")
+    @Secured(permission = PROBATIVEVALUE_CREATE, description = "Lancer un export du relevé de valeur probante")
     public Response exportProbativeValue(ProbativeValueRequest probativeValueRequest) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(probativeValueRequest.getDslQuery());
@@ -2172,7 +2173,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:read",
+    @Secured(permission = SECURITYPROFILES_READ,
         description = "Lister le contenu du référentiel des profiles de sécurité")
     public Response findSecurityProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
@@ -2205,7 +2206,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/securityprofiles/{identifier}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:id:read", description = "Lire un profile de sécurité donné")
+    @Secured(permission = SECURITYPROFILES_ID_READ, description = "Lire un profile de sécurité donné")
     public Response findSecurityProfileByIdentifier(@PathParam("identifier") String identifier) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -2243,11 +2244,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:id:update", isAdminOnly = true,
+    @Secured(permission = SECURITYPROFILES_ID_UPDATE, isAdminOnly = true,
         description = "Effectuer une mise à jour sur un profil de sécurité")
     public Response updateSecurityProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
+        throws AdminManagementClientServerException {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
@@ -2282,7 +2283,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/operations")
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "operations:read", description = "Récupérer les informations sur une opération donnée")
+    @Secured(permission = OPERATIONS_READ, description = "Récupérer les informations sur une opération donnée")
     public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
         try (IngestInternalClient client = ingestInternalClientFactory.getClient()) {
             return client.listOperationsDetails(query).toResponse();
@@ -2303,7 +2304,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("operations/{id}")
     @HEAD
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "operations:id:read:status", description = "Récupérer le code HTTP d'une opération donnée")
+    @Secured(permission = OPERATIONS_ID_READ_STATUS, description = "Récupérer le code HTTP d'une opération donnée")
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(id);
@@ -2346,7 +2347,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("operations/{id}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "operations:id:read", description = "Récupérer le statut d'une opération donnée")
+    @Secured(permission = OPERATIONS_ID_READ, description = "Récupérer le statut d'une opération donnée")
     public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
         Status status;
         try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
@@ -2381,7 +2382,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "operations:id:update", description = "Changer le statut d'une opération donnée")
+    @Secured(permission = OPERATIONS_ID_UPDATE, description = "Changer le statut d'une opération donnée")
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
         checkParameter("ACTION Request must not be null",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
@@ -2418,7 +2419,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("operations/{id}")
     @DELETE
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "operations:id:delete", description = "Annuler une opération donnée")
+    @Secured(permission = OPERATIONS_ID_DELETE, description = "Annuler une opération donnée")
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
 
         checkParameter("operationId must not be null", id);
@@ -2449,7 +2450,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/workflows")
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "workflows:read", description = "Récupérer la liste des tâches des workflows")
+    @Secured(permission = WORKFLOWS_READ, description = "Récupérer la liste des tâches des workflows")
     public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
         try (IngestInternalClient client = ingestInternalClientFactory.getClient()) {
             return client.getWorkflowDefinitions().toResponse();
@@ -2475,7 +2476,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/rulesreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "rulesreport:id:read",
+    @Secured(permission = RULESREPORT_ID_READ,
         description = "Récupérer le rapport pour une opération d'import de règles de gestion")
     public Response downloadRulesReportAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.RULES);
@@ -2484,7 +2485,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/batchreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "batchreport:id:read",
+    @Secured(permission = BATCHREPORT_ID_READ,
         description = "Récupérer le rapport pour un traitement de masse (Elimination, Preservation, Audit, Mise à jour)")
     public Response downloadBatchReportAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.BATCH_REPORT);
@@ -2493,7 +2494,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/distributionreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "distributionreport:id:read",
+    @Secured(permission = DISTRIBUTIONREPORT_ID_READ,
         description = "Récupérer le rapport pour une opération de mise à jour de masse distribuée")
     public Response downloadDistributionReportAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.DISTRIBUTIONREPORTS);
@@ -2502,7 +2503,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/rulesreferential/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "rulesreferential:id:read",
+    @Secured(permission = RULESREFERENTIAL_ID_READ,
         description = "Récupérer le référentiel pour une opération d'import de règles de gestion")
     public Response downloadAgenciesCsvAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.REFERENTIAL_RULES_CSV);
@@ -2511,7 +2512,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/agenciesreferential/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "agenciesreferential:id:read",
+    @Secured(permission = AGENCIESREFERENTIAL_ID_READ,
         description = "Récupérer le référentiel pour une opération d'import des service agents")
     public Response downloadRulesCsvAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.REFERENTIAL_AGENCIES_CSV);
@@ -2569,7 +2570,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "evidenceaudit:check", description = "Audit de traçabilité d'unités archivistiques")
+    @Secured(permission = EVIDENCEAUDIT_CHECK, description = "Audit de traçabilité d'unités archivistiques")
     public Response checkEvidenceAudit(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode select) {
         checkParameter("mandatory parameter", select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -2595,7 +2596,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "rectificationaudit:check", description = "rectification de données suite a un audit")
+    @Secured(permission = RECTIFICATIONAUDIT_CHECK, description = "rectification de données suite a un audit")
     public Response rectificationAudit(String operationId) {
         checkParameter("mandatory parameter", operationId);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -2621,7 +2622,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "ontologies:create:json", description = "Importer les ontologies dans le référentiel")
+    @Secured(permission = ONTOLOGIES_CREATE_JSON, description = "Importer les ontologies dans le référentiel")
     public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
         JsonNode ontologies) {
 
@@ -2663,7 +2664,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "ontologies:read", description = "Lister le contenu du référentiel des ontologies")
+    @Secured(permission = ONTOLOGIES_READ, description = "Lister le contenu du référentiel des ontologies")
     public Response findOntologies(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -2691,7 +2692,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/ontologies/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "ontologies:id:read:json", description = "Lire une ontologie")
+    @Secured(permission = ONTOLOGIES_ID_READ_JSON, description = "Lire une ontologie")
     public Response findOntologiesByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -2735,7 +2736,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "forcepause:check",
+    @Secured(permission = FORCEPAUSE_CHECK,
         description = "Force la pause sur un type d'operation et/ou sur un tenant")
     public Response forcePause(ProcessPause info) {
 
@@ -2763,7 +2764,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "removeforcepause:check",
+    @Secured(permission = REMOVEFORCEPAUSE_CHECK,
         description = "Retire la pause sur un type d'operation et/ou sur un tenant")
     public Response removeForcePause(ProcessPause info) {
 
@@ -2785,7 +2786,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/griffin")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "griffins:create", isAdminOnly = true, description = "Import du griffon")
+    @Secured(permission = GRIFFINS_CREATE, isAdminOnly = true, description = "Import du griffon")
     public Response importGriffin(JsonNode griffins) throws AdminManagementClientServerException {
 
         checkParameter("Json griffin is a mandatory parameter", griffins);
@@ -2812,7 +2813,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/griffin")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "griffins:read", description = "Lister le contenu du référentiel des griffons")
+    @Secured(permission = GRIFFINS_READ, description = "Lister le contenu du référentiel des griffons")
     public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select)
         throws AdminManagementClientServerException {
 
@@ -2835,7 +2836,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "preservationScenarios:read",
+    @Secured(permission = PRESERVATIONSCENARIOS_READ,
         description = "Lister le contenu du référentiel des préservation scénarios")
     public Response findPreservationScenarios(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
@@ -2863,7 +2864,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/preservationScenario")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "preservationScenarios:create", description = "Import des perservation scénarios")
+    @Secured(permission = PRESERVATIONSCENARIOS_CREATE, description = "Import des perservation scénarios")
     public Response importPreservationScenario(JsonNode preservationScenarios) {
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -2889,7 +2890,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/griffin/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "griffin:read", description = "lecture d'un griffin par identifier")
+    @Secured(permission = GRIFFIN_READ, description = "lecture d'un griffin par identifier")
     public Response findGriffinByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -2923,7 +2924,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/preservationScenario/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "preservationScenario:read", description = "lecture d'un scenario par identifier")
+    @Secured(permission = PRESERVATIONSCENARIO_READ, description = "lecture d'un scenario par identifier")
     public Response findPreservationByID(@PathParam("id_document") String documentId) {
 
         try {
@@ -2974,7 +2975,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.LOGBOOK_OPERATIONS)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "logbookoperations:create", description = "Créer une opération")
+    @Secured(permission = LOGBOOKOPERATIONS_CREATE, description = "Créer une opération")
     public Response createExternalOperation(LogbookOperationParameters operation) {
         Status status;
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {

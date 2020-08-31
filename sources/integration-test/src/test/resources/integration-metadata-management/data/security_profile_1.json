@@ -4,9 +4,9 @@
     "Name": "SEC_PROFILE_1",
     "FullAccess": false,
     "Permissions": [
-      "permission_one:read",
-      "permission_one:id:read",
-      "permission_one:id:update"
+      "rules:id:read",
+      "objects:read",
+      "securityprofiles:id:update"
     ]
   }
 ]

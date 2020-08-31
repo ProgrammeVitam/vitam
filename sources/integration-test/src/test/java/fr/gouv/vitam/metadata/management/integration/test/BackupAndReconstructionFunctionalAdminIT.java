@@ -41,7 +41,13 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.AddAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -54,6 +60,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -82,6 +90,7 @@ import java.util.Optional;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -116,6 +125,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         "integration-metadata-management/data/security_profile_1.json";
     private static final String INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON =
         "integration-metadata-management/data/security_profile_2.json";
+    private static final String IMPORT_SECURITY_PROFILE_3_JSON =
+        "integration-metadata-management/data/security_profile_3.json";
 
     private static final String SECURITY_PROFILE_IDENTIFIER_1 = "SEC_PROFILE-000001";
     private static final String SECURITY_PROFILE_IDENTIFIER_2 = "SEC_PROFILE-000002";
@@ -126,6 +137,9 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         "functional-admin/accession-register/accession-register-detail-2.json";
     private static final String ACCESSION_REGISTER_DETAIL_DATA_3 =
         "functional-admin/accession-register/accession-register-detail-3.json";
+
+    private static final String NAME = "Name";
+    public static final String PERMISSIONS = "Permissions";
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -338,7 +352,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
                     });
             client.importSecurityProfiles(securityProfileModelList);
         }
@@ -401,7 +415,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
                     });
             client.importSecurityProfiles(securityProfileModelList);
         }
@@ -913,5 +927,215 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
             metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
             .save(gots);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void importSecurityProfile_OK() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
+
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
+        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+
+        List<SecurityProfileModel> securityProfileModelList;
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            File securityProfileFiles = PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
+            securityProfileModelList =JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
+            client.importSecurityProfiles(securityProfileModelList);
+        }
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
+
+        final VitamMongoRepository securityProfileMongo =
+                vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+
+        final VitamElasticsearchRepository securityProfileEs =
+                vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+
+        Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo11 = securityProfileyDoc.get();
+        assertThat(inMogo11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inMogo11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+        assertThat(inMogo11.getList("Permissions", String.class).toString()).isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs11 = securityProfileyDoc.get();
+        assertThat(inEs11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inEs11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+        assertThat(inEs11.getList("Permissions", String.class).toString()).isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+
+        securityProfileMongo.purge();
+        securityProfileEs.purge();
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void importSecurityProfileUnknowPermission_KO() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
+
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
+        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+
+        List<SecurityProfileModel> securityProfileModelList;
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            File securityProfileFiles = PropertiesUtils.getResourceFile(IMPORT_SECURITY_PROFILE_3_JSON);
+            securityProfileModelList =JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
+            assertThatThrownBy(() -> client.importSecurityProfiles(securityProfileModelList))
+                    .isInstanceOf(AdminManagementClientServerException.class)
+                    .hasMessageContaining("Internal Server Error")
+                    .toString().contains("Au moins une permission n'existe pas.");
+        }
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
+
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+
+        Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void importSecurityProfileAndUpdatePermission_OK() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
+
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
+        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+
+        List<SecurityProfileModel> securityProfileModelList;
+        final String newPermission = "units:read";
+        // import security profile
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            File securityProfileFiles = PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
+            securityProfileModelList = JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
+            });
+            client.importSecurityProfiles(securityProfileModelList);
+
+            // update permissions in security profile
+            VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
+            final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+            final Update update = new Update();
+            update.setQuery(QueryHelper.eq(NAME, "SEC_PROFILE_1"));
+            final AddAction setActionAddPermission = UpdateActionHelper.add(PERMISSIONS, newPermission);
+            update.addActions(setActionAddPermission);
+            updateParser.parse(update.getFinalUpdate());
+            final JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+
+            client.updateSecurityProfile(SECURITY_PROFILE_IDENTIFIER_1,queryDslForUpdate);
+            securityProfileModelList.get(0).getPermissions().add(newPermission);
+        }
+
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+
+        Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo11 = securityProfileyDoc.get();
+        assertThat(inMogo11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inMogo11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+        assertThat(inMogo11.getList("Permissions", String.class).toString()).isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs11 = securityProfileyDoc.get();
+        assertThat(inEs11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inEs11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+        assertThat(inEs11.getList("Permissions", String.class).toString()).isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+
+        securityProfileMongo.purge();
+        securityProfileEs.purge();
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void importSecurityProfileAndUpdateUnknownPermission_KO() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
+
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
+        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+
+        List<SecurityProfileModel> securityProfileModelList;
+        final String newPermission = "test:test";
+        // import security profile
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            File securityProfileFiles = PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
+            securityProfileModelList = JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
+            });
+            client.importSecurityProfiles(securityProfileModelList);
+
+            // update permissions in security profile
+            VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
+            final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+            final Update update = new Update();
+            update.setQuery(QueryHelper.eq(NAME, "SEC_PROFILE_1"));
+            final AddAction setActionAddPermission = UpdateActionHelper.add(PERMISSIONS, newPermission);
+            update.addActions(setActionAddPermission);
+            updateParser.parse(update.getFinalUpdate());
+            final JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+
+            assertThatThrownBy(() -> client.updateSecurityProfile(SECURITY_PROFILE_IDENTIFIER_1,queryDslForUpdate))
+                    .isInstanceOf(AdminManagementClientBadRequestException.class)
+                    .hasMessageContaining("Update security profile error")
+                    .toString().contains("Au moins une permission n'existe pas.");
+        }
+
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+
+        Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo11 = securityProfileyDoc.get();
+        assertThat(inMogo11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inMogo11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+        assertThat(inMogo11.getList("Permissions", String.class).toString()).isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs11 = securityProfileyDoc.get();
+        assertThat(inEs11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inEs11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+        assertThat(inEs11.getList("Permissions", String.class).toString()).isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+
+        securityProfileMongo.purge();
+        securityProfileEs.purge();
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
     }
 }

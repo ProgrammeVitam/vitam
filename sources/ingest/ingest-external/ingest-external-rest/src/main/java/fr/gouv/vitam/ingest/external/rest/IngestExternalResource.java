@@ -35,6 +35,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
+import fr.gouv.vitam.utils.SecurityProfilePermissions;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
@@ -93,6 +95,8 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
 
 @Path("/ingest-external/v1")
 @Tag(name="Ingest")
@@ -154,7 +158,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:create", description = "Envoyer un SIP à Vitam afin qu'il en réalise l'entrée")
+    @Secured(permission = INGESTS_CREATE, description = "Envoyer un SIP à Vitam afin qu'il en réalise l'entrée")
     public void upload(
         @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION) String action,
@@ -184,7 +188,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Secured(permission = "ingests:local:create",
+    @Secured(permission = INGESTS_LOCAL_CREATE,
         description = "Envoyer un SIP en local à Vitam afin qu'il en réalise l'entrée")
     public void uploadLocal(
         @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
@@ -363,7 +367,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/ingests/{objectId}/archivetransferreply")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:id:archivetransfertreply:read",
+    @Secured(permission = INGESTS_ID_ARCHIVETRANSFERTREPLY_READ,
         description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
     public Response downloadArchiveTransferReplyAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.REPORTS);
@@ -382,7 +386,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/ingests/{objectId}/manifests")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:id:manifests:read",
+    @Secured(permission = INGESTS_ID_MANIFESTS_READ,
         description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
     public Response downloadIngestManifestsAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.MANIFESTS);

@@ -1,0 +1,10 @@
+[
+  {
+    "Identifier": "SEC_PROFILE-000003",
+    "Name": "SEC_PROFILE_3",
+    "FullAccess": false,
+    "Permissions": [
+      "test:test"
+    ]
+  }
+]
