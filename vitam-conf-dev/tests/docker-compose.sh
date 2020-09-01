@@ -17,5 +17,7 @@ else
     exit 1
 fi
 
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -e MINIO_SSL_CERTIF_FOLDER=${MINIO_SSL_CERTIF_FOLDER} -d"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up --rm
+echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up"
+docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up
+echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down"
+docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down
