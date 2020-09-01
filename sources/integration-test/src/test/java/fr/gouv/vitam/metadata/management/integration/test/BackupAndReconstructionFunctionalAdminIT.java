@@ -953,7 +953,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
 
         final VitamElasticsearchRepository securityProfileEs =
-                vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+                vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+                        functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
@@ -1004,7 +1005,9 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
         final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
-        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository
+                .getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+                        functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isEmpty();
@@ -1049,7 +1052,9 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
         final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
-        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository
+                .getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+                        functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
@@ -1113,7 +1118,9 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
         final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
-        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(
+                FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+                functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
