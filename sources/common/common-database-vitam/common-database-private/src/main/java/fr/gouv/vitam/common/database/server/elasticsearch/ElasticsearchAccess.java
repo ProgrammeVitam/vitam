@@ -46,6 +46,7 @@ import org.apache.http.util.Asserts;
 import org.bson.Document;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.DocWriteRequest;
+import org.elasticsearch.action.LatchedActionListener;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.indices.alias.Alias;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
@@ -71,6 +72,7 @@ import org.elasticsearch.action.support.DefaultShardOperationFailedException;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.Cancellable;
 import org.elasticsearch.client.GetAliasesResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
@@ -100,7 +102,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
@@ -187,15 +191,27 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
             request.waitForActiveShards(ActiveShardCount.DEFAULT);
 
-            CreateIndexResponse response =
-                getClient().indices().create(request, RequestOptions.DEFAULT);
+            VitamElasticListener listener = new VitamElasticListener();
+            final CountDownLatch latch = new CountDownLatch(1);
+            LOGGER.debug("async request to create index [" + indexName + "]");
 
-            boolean acknowledged = response.isAcknowledged();
-            boolean shardsAcknowledged = response.isShardsAcknowledged();
+            getClient().indices().createAsync(request, RequestOptions.DEFAULT, new LatchedActionListener<>(listener, latch));
 
-            if (!acknowledged || !shardsAcknowledged) {
-                throw new DatabaseException("Could not create index " + indexName + ". acknowledged: " + acknowledged +
-                    ", shardsAcknowledged: " + shardsAcknowledged);
+            try {
+                LOGGER.debug("request sent -> waiting for a response now");
+                latch.await();
+            } catch (InterruptedException e) {
+                throw new IOException(e);
+            }
+
+            Optional<Exception> hasException = Optional.ofNullable(listener.getException());
+            if (hasException.isPresent()) {
+                throw new IOException(hasException.get());
+            }
+
+            if (!listener.isAcknowledged() || !listener.isShardsAcknowledged()) {
+                throw new DatabaseException("Could not create index " + indexName + ". acknowledged: " + listener.isAcknowledged() +
+                    ", shardsAcknowledged: " + listener.isShardsAcknowledged());
             }
         } catch (IOException e) {
             throw new DatabaseException("Could not create index " + indexName, e);
