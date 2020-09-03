@@ -41,6 +41,10 @@ public enum VitamHttpHeader {
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
     STRATEGY_ID(GlobalDataRest.X_STRATEGY_ID, ".+"),
     /**
+     * The X_OFFER_ID header used in requests to get data from a specific offer
+     */
+    OFFER(GlobalDataRest.X_OFFER, ".+"),
+    /**
      * The X_OFFER_IDS header, used in HEAD requests to give list of offer id </br>
      */
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)

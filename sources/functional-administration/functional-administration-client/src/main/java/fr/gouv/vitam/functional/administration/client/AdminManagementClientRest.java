@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.exception.ForbiddenClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuditOptions;
@@ -66,6 +67,7 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.Profile;
@@ -129,6 +131,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String CONTEXT_URI = "/contexts";
     private static final String AUDIT_URI = "/audit";
     private static final String AUDIT_RULE_URI = "/auditRule";
+    private static final String REFERENTIAL_AUDIT_URI = "/audit/referential";
     private static final String UPDATE_CONTEXT_URI = "/context/";
     private static final String UPDATE_PROFIL_URI = "/profiles/";
     private static final String SECURITY_PROFILES_URI = "/securityprofiles";
@@ -1044,6 +1047,23 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withBody(options)
             .withJson();
 
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> launchReferentialAudit(AuditReferentialOptions auditReferentialOptions)
+        throws AdminManagementClientServerException {
+        VitamRequestBuilder request = post()
+            .withPath(REFERENTIAL_AUDIT_URI)
+            .withBody(auditReferentialOptions)
+            .withJsonContentType()
+            .withJsonAccept();
         try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response);

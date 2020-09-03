@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -484,6 +485,11 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<JsonNode> launchRuleAudit() throws AdminManagementClientServerException {
+        return new RequestResponseOK();
+    }
+
+    @Override
+    public RequestResponse<JsonNode> launchReferentialAudit(AuditReferentialOptions auditReferentialOptions) {
         return new RequestResponseOK();
     }
 

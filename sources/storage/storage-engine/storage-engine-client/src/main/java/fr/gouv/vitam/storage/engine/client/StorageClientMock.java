@@ -208,6 +208,14 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
+    public Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
+        AccessLogInfoModel logInfo) throws StorageServerClientException, StorageNotFoundException {
+        return new FakeInboundResponse(Status.OK,
+            IOUtils.toInputStream(MOCK_GET_FILE_CONTENT, Charset.defaultCharset()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
+    @Override
     public CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type) {
         throw new IllegalStateException("Stop use this please");
     }

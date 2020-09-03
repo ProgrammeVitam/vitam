@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -76,14 +77,17 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
+import fr.gouv.vitam.functional.administration.audit.service.ReferentialAuditService;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.AuditVitamException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -92,7 +96,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadExc
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -122,6 +125,10 @@ import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -164,7 +171,7 @@ import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
-@Tag(name="Functional-Administration")
+@Tag(name = "Functional-Administration")
 public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
 
@@ -175,6 +182,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
     private static final String AUDIT_URI = "/audit";
     private static final String AUDIT_RULE_URI = "/auditRule";
+    private static final String REFERENTIAL_AUDIT_URI = "/audit/referential";
     private static final String OPERATIONS_PATH = "logbookoperations";
     private static final String OPTIONS_IS_MANDATORY_PARAMETER = "The json option is mandatory";
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
@@ -190,6 +198,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
+    private final StorageClientFactory storageClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final VitamRuleService vitamRuleService;
 
@@ -212,6 +221,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
         logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
         metaDataClientFactory = MetaDataClientFactory.getInstance();
+        storageClientFactory = StorageClientFactory.getInstance();
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration, indexManager);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
         vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
@@ -774,6 +784,33 @@ public class AdminManagementResource extends ApplicationStatusResource {
             .build();
     }
 
+    /**
+     * Launch referential audit with options
+     *
+     * @return Response
+     */
+    @Path(REFERENTIAL_AUDIT_URI)
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response launchReferentialAudit(AuditReferentialOptions referentialAuditOptions) {
+        int tenant = VitamThreadUtils.getVitamSession().getTenantId();
+        ReferentialAuditService referentialAuditService =
+            new ReferentialAuditService(storageClientFactory, mongoAccess, vitamCounterService);
+        try {
+            referentialAuditService.runAudit(referentialAuditOptions.getCollectionName(), tenant);
+        } catch (StorageNotFoundClientException | StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        } catch (AuditVitamException e) {
+            final Status status = INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+        return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+            .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+    }
+
     @Path(AUDIT_RULE_URI)
     @POST
     @Consumes(APPLICATION_JSON)
@@ -878,10 +915,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Path("accession-register/symbolic")
     @Produces(APPLICATION_JSON)
     public Response createAccessionRegisterSymbolic() {
-        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(
-            mongoAccess, vitamCounterService); MetaDataClient client = metaDataClientFactory.getClient()) {
-
-            ;
+        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
+            vitamCounterService); MetaDataClient client = metaDataClientFactory.getClient()) {
             ArrayNode accessionRegisterSymbolic = (ArrayNode) client.createAccessionRegisterSymbolic()
                 .get("$results");
 

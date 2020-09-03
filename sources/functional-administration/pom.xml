@@ -27,6 +27,7 @@
         <module>functional-administration-archive-unit-profiles</module>
         <module>functional-administration-ontologies</module>
         <module>functional-administration-griffins</module>
+        <module>functional-administration-audit</module>
     </modules>
 
     <build>
