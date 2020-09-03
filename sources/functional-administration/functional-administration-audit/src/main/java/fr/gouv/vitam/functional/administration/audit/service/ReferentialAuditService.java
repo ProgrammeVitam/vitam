@@ -1,0 +1,285 @@
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
+
+package fr.gouv.vitam.functional.administration.audit.service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.AuditVitamException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.elasticsearch.common.util.set.Sets;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static fr.gouv.vitam.functional.administration.common.FunctionalBackupService.DEFAULT_EXTENSION;
+import static fr.gouv.vitam.functional.administration.common.FunctionalBackupService.FIELD_COLLECTION;
+
+
+public class ReferentialAuditService {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAuditService.class);
+    private static final AlertService alertService = new AlertServiceImpl();
+    private static final String DIGEST = "digest";
+
+    private final StorageClientFactory storageClientFactory;
+    private final FunctionalBackupService functionalBackupService;
+
+    public ReferentialAuditService(StorageClientFactory storageClientFactory, MongoDbAccess mongoDbAccess,
+        VitamCounterService vitamCounterService) {
+        this.storageClientFactory = storageClientFactory;
+        this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
+    }
+
+    @VisibleForTesting
+    ReferentialAuditService(StorageClientFactory storageClientFactory,
+        FunctionalBackupService functionalBackupService) {
+        this.storageClientFactory = storageClientFactory;
+        this.functionalBackupService = functionalBackupService;
+    }
+
+    public StatusCode runAudit(String collectionName, int tenant)
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageNotFoundClientException, AuditVitamException {
+        FunctionalAdminCollections collection = FunctionalAdminCollections.getFromValue(collectionName);
+
+        if (Objects.isNull(collection)) {
+            throw new AuditVitamException("collection not found");
+        }
+
+        if (!collection.isMultitenant() && tenant != VitamConfiguration.getAdminTenant()) {
+            throw new AuditVitamException("admin tenant required");
+        }
+
+        Optional<ObjectEntry> objectEntryToAudit =
+            StreamSupport.stream(iteratorToIterable(listObjectEntry()).spliterator(), false)
+                .filter(e -> matcherFilter(e, collection)).reduce(this::getLastBackupFile);
+
+        ArrayNode documentsInDB = findDocuments(tenant, collection);
+
+        if (objectEntryToAudit.isPresent()) {
+            ObjectEntry next = objectEntryToAudit.get();
+            List<String> offersIds = getOffers(VitamConfiguration.getDefaultStrategy());
+            Map<String, String> hashMap = isHashesEquals(offersIds, next);
+            return verifyCoherence(offersIds, documentsInDB, next, hashMap, collectionName, tenant);
+        } else if (!documentsInDB.isEmpty()) {
+            alertService.createAlert(VitamLogLevel.ERROR, String
+                .format("[KO] collection=%s, tenant=%s file not present in default offer (referent offer)", collectionName, tenant));
+            return StatusCode.KO;
+        }
+        return StatusCode.OK;
+    }
+
+    private StatusCode verifyCoherence(List<String> offerIds, ArrayNode documentsInDB, ObjectEntry next,
+        Map<String, String> mapOfHashes,
+        String collectionName, int tenant)
+        throws InvalidParseOperationException, StorageNotFoundException, StorageServerClientException {
+
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            boolean hasUniqueHash = (new HashSet<>(mapOfHashes.values())).size() == 1;
+            if (hasUniqueHash && mapOfHashes.keySet().containsAll(offerIds)) { // All offers are synchronized
+                Response response = storageClient
+                    .getContainerAsync(VitamConfiguration.getDefaultStrategy(), next.getObjectId(), DataCategory.BACKUP,
+                        AccessLogUtils.getNoLogAccessLog());
+
+                InputStream is = response.readEntity(InputStream.class);
+                ArrayNode documentsInJson = JsonHandler
+                    .getFromJsonNode(JsonHandler.getFromInputStream(is).get(FIELD_COLLECTION), new TypeReference<>() {
+                    });
+
+                List<String> list = diff(documentsInDB, documentsInJson);
+
+                if (!list.isEmpty()) {
+                    alertService.createAlert(VitamLogLevel.ERROR, String
+                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                            collectionName, tenant));
+                    return StatusCode.KO;
+                }
+            } else {
+                Map<String, Response> offersData = new HashMap<>();
+                for (String offer : mapOfHashes.keySet()) {
+                    offersData.put(offer, storageClient
+                        .getContainerAsync(VitamConfiguration.getDefaultStrategy(), offer, next.getObjectId(),
+                            DataCategory.BACKUP, AccessLogUtils.getNoLogAccessLog()));
+                }
+
+                Map<String, InputStream> collect = offersData.entrySet()
+                    .stream()
+                    .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().readEntity(InputStream.class)))
+                    .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+
+                Map<String, ArrayNode> documents = new HashMap<>();
+                Map<String, Boolean> corruptedFileOfferMap = new HashMap<>();
+                collect.forEach((offerId, is) -> {
+                    try {
+                        JsonNode fileJson = JsonHandler.getFromInputStream(is);
+                        if (fileJson != null && !(fileJson instanceof NullNode) &&
+                            fileJson.has(FIELD_COLLECTION)) {
+                            documents.put(offerId, JsonHandler
+                                .getFromJsonNode(fileJson.get(FIELD_COLLECTION),
+                                    new TypeReference<>() {
+                                    }));
+                        } else {
+                            corruptedFileOfferMap.put(offerId, true);
+                        }
+                    } catch (InvalidParseOperationException e) {
+                        corruptedFileOfferMap.put(offerId, true);
+                    }
+                });
+
+                Set<String> offersWhichCoherentWithDB = documents.entrySet()
+                    .stream()
+                    .filter(e -> !corruptedFileOfferMap.containsKey(e.getKey()))
+                    .filter(e -> diff(documentsInDB, e.getValue()).isEmpty())
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet());
+                if (offersWhichCoherentWithDB.isEmpty()) {
+                    alertService.createAlert(VitamLogLevel.ERROR, String
+                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                            collectionName, tenant));
+                    return StatusCode.KO;
+                } else {
+                    alertService.createAlert(VitamLogLevel.ERROR, String
+                        .format("[KO] collectionName=%s, tenant=%s some offers are incoherent with database\n\r" +
+                                "coherent offers = %s\n\r" +
+                                "incoherent offers = %s\n\r",
+                            collectionName, tenant,
+                            offersWhichCoherentWithDB,
+                            Sets.difference(new HashSet<>(offerIds), offersWhichCoherentWithDB)
+                        ));
+                    return StatusCode.KO;
+                }
+
+            }
+            return StatusCode.OK;
+        }
+    }
+
+    private ArrayNode findDocuments(int tenant, FunctionalAdminCollections collection)
+        throws InvalidParseOperationException {
+        MongoCursor currentCollection = this.functionalBackupService.getCurrentCollection(collection, tenant);
+        return this.functionalBackupService.getCollectionInJson(currentCollection);
+    }
+
+    private List<String> diff(ArrayNode source, ArrayNode target) {
+        return VitamDocument.getUnifiedDiff(
+            JsonHandler.prettyPrint(new String(CanonicalJsonFormatter.serializeToByteArray(source))),
+            JsonHandler.prettyPrint(new String(CanonicalJsonFormatter.serializeToByteArray(target))));
+    }
+
+    private List<String> getOffers(String strategyId)
+        throws StorageNotFoundClientException, StorageServerClientException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            return storageClient.getOffers(strategyId);
+        }
+    }
+
+    private ObjectEntry getLastBackupFile(ObjectEntry objectEntry, ObjectEntry objectEntry1) {
+        if (objectEntry.getObjectId().compareTo(objectEntry1.getObjectId()) > 0)
+            return objectEntry;
+        else
+            return objectEntry1;
+    }
+
+    private boolean matcherFilter(ObjectEntry next, FunctionalAdminCollections collection) {
+        Pattern pattern =
+            Pattern.compile("(\\d+)_([A-z0-9]+)_(\\d+)(\\." + DEFAULT_EXTENSION + ")");
+        Matcher matcher = pattern.matcher(next.getObjectId());
+        return matcher.matches() && matcher.group(2).equals(collection.getName());
+    }
+
+    private Iterator<ObjectEntry> listObjectEntry() throws StorageServerClientException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            return storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP);
+        }
+    }
+
+    private Map<String, String> isHashesEquals(List<String> offerIds, ObjectEntry next)
+        throws StorageServerClientException, StorageNotFoundClientException {
+        String strategyId = VitamConfiguration.getDefaultStrategy();
+
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+
+            JsonNode information =
+                storageClient.getInformation(strategyId, DataCategory.BACKUP, next.getObjectId(),
+                    offerIds, false);
+
+            Map<String, String> hashMap = offerIds.stream()
+                .map(e -> new SimpleEntry<>(e, information.get(e)))
+                .filter(e -> Objects.nonNull(e.getValue()))
+                .filter(e -> !e.getValue().isMissingNode())
+                .filter(e -> !e.getValue().isNull())
+                .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue())
+                ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            return hashMap;
+        }
+    }
+
+    private static <T> Iterable<T> iteratorToIterable(Iterator<T> iterator) {
+        return () -> iterator;
+    }
+}

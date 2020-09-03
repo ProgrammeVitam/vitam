@@ -428,14 +428,42 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
+    public Response getContainerAsync(String strategyId, String objectName, DataCategory type,
+        AccessLogInfoModel logInfo)
         throws StorageServerClientException, StorageNotFoundException {
         Integer tenantId = ParameterHelper.getTenantParameter();
-        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectName);
         VitamRequestBuilder request = get()
-            .withPath(type.getCollectionName() + "/" + guid)
+            .withPath(type.getCollectionName() + "/" + objectName)
             .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
             .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withBody(logInfo)
+            .withContentType(MediaType.APPLICATION_JSON_TYPE)
+            .withAccept(MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        try {
+            Response response = make(request);
+            return handleCommonResponseStatus(response);
+        } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        } catch (StorageNotFoundClientException e) {
+            throw new StorageNotFoundException(e);
+        }
+    }
+
+    @Override
+    public Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
+        AccessLogInfoModel logInfo)
+        throws StorageServerClientException, StorageNotFoundException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectName);
+        VitamRequestBuilder request = get()
+            .withPath(type.getCollectionName() + "/" + objectName)
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
+            .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withHeader(GlobalDataRest.X_OFFER, offerId)
             .withBody(logInfo)
             .withContentType(MediaType.APPLICATION_JSON_TYPE)
             .withAccept(MediaType.APPLICATION_OCTET_STREAM_TYPE);

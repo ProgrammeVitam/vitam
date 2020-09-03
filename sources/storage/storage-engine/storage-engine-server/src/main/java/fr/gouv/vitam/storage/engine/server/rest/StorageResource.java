@@ -559,9 +559,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
         try {
-            return new VitamAsyncInputStreamResponse(
-                getByCategory(backupfile, DataCategory.BACKUP, strategyId, vitamCode, null),
-                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            Response response;
+            if (HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFER)) {
+                String offerId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER).get(0);
+                response = getByCategory(backupfile, DataCategory.BACKUP, strategyId, vitamCode, offerId);
+            } else {
+                response = getByCategory(backupfile, DataCategory.BACKUP, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog());
+            }
+            return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
             vitamCode = VitamCode.STORAGE_NOT_FOUND;
@@ -579,6 +585,17 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return distribution
                 .getContainerByCategory(strategyId, StorageDistributionImpl.NORMAL_ORIGIN, objectId, category,
                     logInformation);
+        }
+        return buildErrorResponse(vitamCode);
+    }
+
+    private Response getByCategory(String objectId, DataCategory category,
+        String strategyId, VitamCode vitamCode, String offerId)
+        throws StorageException {
+        if (vitamCode == null) {
+            return distribution
+                .getContainerByCategory(strategyId, StorageDistributionImpl.NORMAL_ORIGIN, objectId, category,
+                    offerId);
         }
         return buildErrorResponse(vitamCode);
     }
@@ -653,7 +670,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(storageAccessLogFile, DataCategory.STORAGEACCESSLOG, strategyId, vitamCode, null),
+                getByCategory(storageAccessLogFile, DataCategory.STORAGEACCESSLOG, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -686,7 +704,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(storageAccessLogFile, DataCategory.STORAGELOG, strategyId, vitamCode, null),
+                getByCategory(storageAccessLogFile, DataCategory.STORAGELOG, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -739,7 +758,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(operationId, DataCategory.BACKUP_OPERATION, strategyId, vitamCode, null),
+                getByCategory(operationId, DataCategory.BACKUP_OPERATION, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -903,7 +923,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(objectId, DataCategory.LOGBOOK, strategyId, vitamCode, null),
+                getByCategory(objectId, DataCategory.LOGBOOK, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -956,7 +977,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(unitId, DataCategory.UNIT, strategyId, vitamCode, null),
+                getByCategory(unitId, DataCategory.UNIT, strategyId, vitamCode, AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -1010,7 +1031,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(metadataId, DataCategory.OBJECTGROUP, strategyId, vitamCode, null),
+                getByCategory(metadataId, DataCategory.OBJECTGROUP, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -1142,7 +1164,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(objectId, DataCategory.REPORT, strategyId, vitamCode, null),
+                getByCategory(objectId, DataCategory.REPORT, strategyId, vitamCode, AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -1174,7 +1196,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(objectId, DataCategory.DISTRIBUTIONREPORTS, strategyId, vitamCode, null),
+                getByCategory(objectId, DataCategory.DISTRIBUTIONREPORTS, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -1495,7 +1518,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(filename, DataCategory.STORAGETRACEABILITY, strategyId, vitamCode, null),
+                getByCategory(filename, DataCategory.STORAGETRACEABILITY, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -1779,7 +1803,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(profileFileName, DataCategory.PROFILE, strategyId, vitamCode, null),
+                getByCategory(profileFileName, DataCategory.PROFILE, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -1857,7 +1882,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(fileName, DataCategory.ACCESSION_REGISTER_DETAIL, strategyId, vitamCode, null),
+                getByCategory(fileName, DataCategory.ACCESSION_REGISTER_DETAIL, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -1909,7 +1935,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             return new VitamAsyncInputStreamResponse(
-                getByCategory(fileName, DataCategory.ACCESSION_REGISTER_SYMBOLIC, strategyId, vitamCode, null),
+                getByCategory(fileName, DataCategory.ACCESSION_REGISTER_SYMBOLIC, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);

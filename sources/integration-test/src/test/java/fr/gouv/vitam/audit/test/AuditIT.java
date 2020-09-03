@@ -33,41 +33,32 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.AuditOptions;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -84,7 +75,6 @@ import fr.gouv.vitam.worker.core.plugin.audit.AuditIntegrityService;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
-import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -92,14 +82,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -107,14 +89,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
-import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -123,21 +99,27 @@ import static org.assertj.core.api.Assertions.tuple;
  */
 
 public class AuditIT extends VitamRuleRunner {
-    private static final Integer tenantId = 0;
-    private static final String contractId = "contract";
-    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
-    private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
-
-    private static final HashSet<Class> servers = Sets.newHashSet(AccessInternalMain.class, AdminManagementMain.class,
-        ProcessManagementMain.class, LogbookMain.class, WorkspaceMain.class, MetadataMain.class, WorkerMain.class,
-        IngestInternalMain.class, StorageMain.class, DefaultOfferMain.class, BatchReportMain.class);
-
-    private static final String mongoName = mongoRule.getMongoDatabase().getName();
-    private static final String esName = elasticsearchRule.getClusterName();
+    private static final Integer TENANT_ID = 0;
+    private static final String CONTRACT_ID = "contract";
+    private static final String CONTEXT_ID = "Context_IT";
 
     @ClassRule
-    public static VitamServerRunner runner = new VitamServerRunner(AuditIT.class, mongoName, esName, servers);
+    public static VitamServerRunner runner =
+        new VitamServerRunner(AuditIT.class, mongoRule.getMongoDatabase().getName(),
+            ElasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                BatchReportMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class,
+                ProcessManagementMain.class,
+                AccessInternalMain.class,
+                IngestInternalMain.class
+            ));
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -157,72 +139,28 @@ public class AuditIT extends VitamRuleRunner {
 
     @Before
     public void setUpBefore() {
-        getVitamSession().setRequestId(newOperationLogbookGUID(0));
-        getVitamSession().setTenantId(tenantId);
-
-        AccessInternalClientFactory factory = AccessInternalClientFactory.getInstance();
-        factory.changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
-        factory.setVitamClientType(PRODUCTION);
-    }
-
-    private String doIngest(String zip) throws FileNotFoundException, VitamException {
-
-        final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession();
-
-        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
-
-        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(zip);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid, LogbookTypeProcess.INGEST,
-                StatusCode.STARTED, ingestOperationGuid.toString(), ingestOperationGuid);
-        params.add(initParameters);
-
-        // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(workflow);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
-
-        waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
-        return ingestOperationGuid.toString();
+        VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_execute_audit_workflow_existence_without_error() throws Exception {
 
-        String ingestOperationId1 = doIngest("elimination/TEST_ELIMINATION.zip");
-        String ingestOperationId2 = doIngest("preservation/OG_with_3_parents.zip");
+        String ingestOperationId1 = VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION.zip");
+        String ingestOperationId2 = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
 
         // Given
-        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
-            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
             AuditOptions options = new AuditOptions();
             options.setAuditActions(AuditExistenceService.CHECK_EXISTENCE_ID);
             options.setAuditType("tenant");
-            options.setObjectId("" + tenantId);
+            options.setObjectId(String.valueOf(TENANT_ID));
 
-            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
-            assertThat(response.isOk()).isTrue();
-            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            String operationId = runAudit(options);
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationId, new SelectMultiQuery().getFinalSelect()).toJsonNode()
                 .get("$results").get(0).get("events");
 
             // Then
@@ -230,19 +168,7 @@ public class AuditIT extends VitamRuleRunner {
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             // Check report
-            List<JsonNode> reportLines;
-            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                Response reportResponse = null;
-                try {
-                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                        operationGuid.toString() + ".jsonl", DataCategory.REPORT,
-                        AccessLogUtils.getNoLogAccessLog());
-                    assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-                    reportLines = getReport(reportResponse);
-                } finally {
-                    consumeAnyEntityAndClose(reportResponse);
-                }
-            }
+            List<JsonNode> reportLines = VitamTestHelper.getReports(operationId);
             assertThat(reportLines.size()).isEqualTo(3);
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(7);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
@@ -308,49 +234,29 @@ public class AuditIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_execute_audit_workflow_integrity_without_error() throws Exception {
 
-        doIngest("elimination/TEST_ELIMINATION.zip");
-        doIngest("preservation/OG_with_3_parents.zip");
+        VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION.zip");
+        VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
 
         // Given
-        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
-            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
 
             AuditOptions options = new AuditOptions();
             options.setAuditActions(AuditIntegrityService.CHECK_INTEGRITY_ID);
             options.setAuditType("originatingagency");
             options.setObjectId("FRAN_NP_009913");
 
-            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
-            assertThat(response.isOk()).as(response.toString()).isTrue();
-            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            String operationId = runAudit(options);
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationId, new SelectMultiQuery().getFinalSelect()).toJsonNode()
                 .get("$results").get(0).get("events");
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             // Check report
-            List<JsonNode> reportLines;
-            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                Response reportResponse = null;
-                try {
-                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                        operationGuid.toString() + ".jsonl", DataCategory.REPORT,
-                        AccessLogUtils.getNoLogAccessLog());
-                    assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-                    reportLines = getReport(reportResponse);
-                } finally {
-                    consumeAnyEntityAndClose(reportResponse);
-                }
-            }
+            List<JsonNode> reportLines = VitamTestHelper.getReports(operationId);
             assertThat(reportLines.size()).isEqualTo(3);
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(4);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
@@ -397,7 +303,7 @@ public class AuditIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_execute_audit_workflow_existence_with_error() throws Exception {
 
-        String ingestOperationId1 = doIngest("elimination/TEST_ELIMINATION.zip");
+        String ingestOperationId1 = VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION.zip");
         String binaryObjectId;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -419,16 +325,14 @@ public class AuditIT extends VitamRuleRunner {
         // Given
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
-            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
             AuditOptions options = new AuditOptions();
             options.setAuditActions(AuditExistenceService.CHECK_EXISTENCE_ID);
             options.setAuditType("tenant");
-            options.setObjectId("" + tenantId);
+            options.setObjectId("" + TENANT_ID);
 
             RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
             assertThat(response.isOk()).isTrue();
@@ -443,19 +347,7 @@ public class AuditIT extends VitamRuleRunner {
                 .anyMatch(outcome -> outcome.equals(StatusCode.KO.name()));
 
             // Check report
-            List<JsonNode> reportLines;
-            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                Response reportResponse = null;
-                try {
-                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                        operationGuid.toString() + ".jsonl", DataCategory.REPORT,
-                        AccessLogUtils.getNoLogAccessLog());
-                    assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-                    reportLines = getReport(reportResponse);
-                } finally {
-                    consumeAnyEntityAndClose(reportResponse);
-                }
-            }
+            List<JsonNode> reportLines = VitamTestHelper.getReports(operationGuid.toString());
 
 
             for (JsonNode report : reportLines) {
@@ -484,22 +376,19 @@ public class AuditIT extends VitamRuleRunner {
         }
     }
 
-    private List<JsonNode> getReport(Response reportResponse) throws IOException, InvalidParseOperationException {
-        List<JsonNode> reportLines = new ArrayList<>();
-        try (InputStream is = reportResponse.readEntity(InputStream.class)) {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-            PeekingIterator<String> linesPeekIterator = new PeekingIterator<>(bufferedReader.lines().iterator());
-            while (linesPeekIterator.hasNext()) {
-                reportLines.add(JsonHandler.getFromString(linesPeekIterator.next()));
-            }
+    private String runAudit(AuditOptions options) throws AdminManagementClientServerException {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
+            assertThat(response.isOk()).isTrue();
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
         }
-        return reportLines;
+        return operationGuid.toString();
     }
 
     @After
     public void afterTest() {
-        VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
-
         ProcessDataAccessImpl.getInstance().clearWorkflow();
         handleAfter();
     }

@@ -166,6 +166,11 @@ public class AccessExtAPI {
     public static final String AUDITS_API = "/" + AUDITS;
 
     /**
+     * Referenial audit uri
+     */
+    public static final String REFERENTIAL_AUDIT_API = "/" + AUDITS + "/referential";
+
+    /**
      * Operations base uri
      */
     public static final String OPERATIONS = "operations";

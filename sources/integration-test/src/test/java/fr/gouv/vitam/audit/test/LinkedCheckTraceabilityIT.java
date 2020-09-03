@@ -142,13 +142,6 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         new DataLoader("integration-ingest-internal").prepareData();
     }
 
-    @AfterClass
-    public static void tearDownAfterClass() {
-        handleAfterClass();
-        runAfter();
-        VitamClientFactory.resetConnections();
-    }
-
     @Before
     public void setUpBefore() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
@@ -366,8 +359,10 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("vitamResults").get(StatusCode.KO.name()).asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbOperations").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
-        assertEquals( OPERATION.name() ,report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText());
-        assertEquals(StatusCode.KO.name(),report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText());
+        assertEquals(OPERATION.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText());
+        assertEquals(StatusCode.KO.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText());
     }
 
     private void updateHash(String secureTenantOpId) {
@@ -494,10 +489,16 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         }
     }
 
+    @AfterClass
+    public static void tearDownAfterClass() {
+        handleAfterClass();
+        runAfter();
+        VitamClientFactory.resetConnections();
+    }
+
     @After
     public void tearDown() {
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
     }
-
 }

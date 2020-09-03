@@ -254,38 +254,4 @@ public class DataLoader {
         client.importAccessContracts(accessContractModelList);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
     }
-
-    public String doIngest(String zip) throws FileNotFoundException, VitamException {
-
-        String CONTEXT_ID = "DEFAULT_WORKFLOW";
-        String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-        WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
-        
-        final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession();
-
-        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
-
-        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(zip);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid, LogbookTypeProcess.INGEST,
-                StatusCode.STARTED, ingestOperationGuid.toString(), ingestOperationGuid);
-        params.add(initParameters);
-
-        // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(workflow);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
-
-        waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
-        return ingestOperationGuid.toString();
-    }
 }

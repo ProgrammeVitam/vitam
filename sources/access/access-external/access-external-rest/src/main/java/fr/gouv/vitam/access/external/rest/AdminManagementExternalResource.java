@@ -83,6 +83,7 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -156,7 +157,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Path("/admin-external/v1")
 @ApplicationPath("webresources")
-@Tag(name="Admin")
+@Tag(name = "Admin")
 public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     private static final String IDENTIFIER = "Identifier";
@@ -763,7 +764,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(requestResponse).build();
 
         } catch (IllegalArgumentException | ReferentialException e) {
-            LOGGER.error(e);return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
                 .toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -1898,7 +1900,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateIngestContract(identifier, update.getFinalUpdate());
             return getResponse(response);
-        } catch (AdminManagementClientBadRequestException |InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
                 .toResponse();
@@ -1994,7 +1996,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR, e.getMessage())
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
         } catch (InvalidParseOperationException e) {
@@ -2072,6 +2075,30 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED, e.getMessage())
+                .toResponse();
+        }
+    }
+
+    /**
+     * launch Audit
+     *
+     * @param options
+     * @return response
+     */
+    @POST
+    @Path(AccessExtAPI.REFERENTIAL_AUDIT_API)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = REFERENTIALAUDIT_CHECK, description = "Lancer un audit de référentiel")
+    public Response launchReferentialAudit(AuditReferentialOptions options) {
+        checkParameter("audit options", options);
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            RequestResponse<JsonNode> result = client.launchReferentialAudit(options);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (AdminManagementClientServerException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
                 .toResponse();
         }
     }
@@ -2220,7 +2247,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage()).toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
+                .toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();

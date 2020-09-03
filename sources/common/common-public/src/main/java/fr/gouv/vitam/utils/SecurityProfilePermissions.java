@@ -106,6 +106,7 @@ public enum SecurityProfilePermissions {
     SWITCHINDEX_CREATE("switchindex:create"),
     REINDEX_CREATE("reindex:create"),
     EVIDENCEAUDIT_CHECK("evidenceaudit:check"),
+    REFERENTIALAUDIT_CHECK("referentialaudit:check"),
     ARCHIVEUNITPROFILES_CREATE_BINARY("archiveunitprofiles:create:binary"),
     ARCHIVEUNITPROFILES_CREATE_JSON("archiveunitprofiles:create:json"),
     ARCHIVEUNITPROFILES_READ("archiveunitprofiles:read"),

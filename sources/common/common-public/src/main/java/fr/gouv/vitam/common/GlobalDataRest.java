@@ -104,6 +104,11 @@ public class GlobalDataRest {
      * The X_OFFER_IDS header, used in requests to give list of offer ids
      */
     public static final String X_OFFER_IDS = "X-Offer-Ids";
+
+    /**
+     * The X_OFFER header, used in requests to get data from a specific offer
+     */
+    public static final String X_OFFER = "X-Offer";
     /**
      * The X_OFFER_NO_CACHE header, used in requests to set cache policy when computing object digest
      */

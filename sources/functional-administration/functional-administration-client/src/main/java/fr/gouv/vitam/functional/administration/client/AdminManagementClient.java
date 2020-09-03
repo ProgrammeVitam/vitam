@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.audit.AuditReferentialOptions;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -564,6 +565,9 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws AdminManagementClientServerException
      */
     RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options)
+        throws AdminManagementClientServerException;
+
+    RequestResponse<JsonNode> launchReferentialAudit(AuditReferentialOptions auditReferentialOptions)
         throws AdminManagementClientServerException;
 
     /**

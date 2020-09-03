@@ -47,3 +47,14 @@ X-Access-Contract-Id: {{access-contract}}
     "$filter": {},
     "$projection": {}
 }
+
+
+### Lancement de l'audit sur les collections d'administration fonctionnelle et techniques
+POST {{url-access}}/admin-external/v1/audits/referential
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+  "collectionName": "Profile"
+}
