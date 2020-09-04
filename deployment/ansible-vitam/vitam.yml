@@ -1,17 +1,21 @@
 ---
 # Installation order
 #
-#   0. confirm playbook launch
-#   1. Normalize
-#   2. Consul
-# 3. Elasticsearch Log
-# 4. Log server
-# 5. rsyslog
-# 6. Elasticsearch Data
-# 7. Mongo
-# 8. Vitam applications
+#   0. Confirm playbook launch
+#   1. Network check
+#   2. Normalize
+#   3. Check ontology (when upgrade)
+#   4. Consul
+#   5. Prometheus node exporter
+#   6. Elasticsearch Log
+#   7. Log server
+#   8. Syslog
+#   9. Elasticsearch Data
+#  10. Kibana Data
+#  11. Mongo
+#  12. Vitam applications
 
-# Confirm launching this playbook
+### CONFIRM PLAYBOOK LAUNCH ###
 - hosts: all
   any_errors_fatal: yes
   gather_facts: no
@@ -25,7 +29,7 @@
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
 
-# ### HOSTS NETWORK VARS CHECK ###
+### HOSTS NETWORK VARS CHECK ###
 - hosts: vitam
   any_errors_fatal: true
   roles:
@@ -64,8 +68,6 @@
   roles:
     - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
 
-
-
 ### PROMETHEUS NODE EXPORTER INSTALLATION OR UNINSTALL ###
 - hosts: vitam
   gather_facts: no
@@ -74,7 +76,7 @@
   roles:
     - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled == true )" }
 
-# ### ELASTICSEARCH LOG INSTALLATION ###
+### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts_elasticsearch_log
   any_errors_fatal: true
   roles:
@@ -83,7 +85,6 @@
     - { role: curator, tags: curator_logs}
   vars:
     composant: "{{ elasticsearch.log }}"
-
 
 ### LOG SERVER INSTALLATION ###
 - hosts: hosts_logstash
@@ -99,12 +100,10 @@
     - kibana_dashboards
   vars:
     composant: "{{ kibana.log }}"
-    # groupe: log
     elasticsearch_host: "{{ elasticsearch.log.host }}"
     elasticsearch_port: "{{ elasticsearch.log.port_http }}"
-    # kibana_port: "{{ kibana.log.port }}"
 
-### syslog daemon configuration ###
+### SYSLOG DAEMON CONFIGURATION ###
 - hosts: vitam
   gather_facts: no
   any_errors_fatal: true
@@ -126,7 +125,6 @@
   roles:
     - role: cerebro
 
-# OMA: to be discussed wether place & servers are best one..
 - hosts: hosts_kibana_data
   gather_facts: no
   any_errors_fatal: true
@@ -135,7 +133,7 @@
   vars:
     vitam_struct: "{{ vitam.elastickibanainterceptor }}"
 
-## KIBANA DATA INSTALLATION ###
+### KIBANA DATA INSTALLATION ###
 - hosts: hosts_kibana_data
   gather_facts: no
   any_errors_fatal: true
@@ -153,7 +151,7 @@
 
 - import_playbook: mongodb_offer.yml
 
-## VITAM ####################################################################
+### VITAM ###
 - hosts: hosts_storage_offer_default
   gather_facts: no
   any_errors_fatal: true
@@ -184,8 +182,6 @@
     vitam_timestamp_usage: secure-storage
     timers_list: "{{ vitam_timers.storage }}"
 
-
-
 - hosts: hosts_metadata
   gather_facts: no
   any_errors_fatal: true
@@ -198,7 +194,6 @@
   vars:
     vitam_struct: "{{ vitam.metadata }}"
     timers_list: "{{ vitam_timers.metadata }}"
-
 
 - hosts: hosts_logbook
   gather_facts: no
@@ -213,7 +208,6 @@
     vitam_timestamp_usage: secure-logbook
     timers_list: "{{ vitam_timers.logbook }}"
 
-
 - hosts: hosts_workspace
   gather_facts: no
   any_errors_fatal: true
@@ -221,7 +215,6 @@
     - vitam
   vars:
     vitam_struct: "{{ vitam.workspace }}"
-
 
 - hosts: hosts_functional_administration
   gather_facts: no
@@ -234,7 +227,6 @@
   vars:
     vitam_struct: "{{ vitam.functional_administration }}"
     timers_list: "{{ vitam_timers.functional_administration }}"
-
 
 - hosts: hosts_security_internal
   gather_facts: no
