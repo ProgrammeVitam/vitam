@@ -1,6 +1,6 @@
 ---
 
-- name: restart the service {{ package_name }}
+- name: restart the service
   service:
     name: "{{ package_name }}"
     state: restarted
