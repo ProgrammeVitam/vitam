@@ -103,10 +103,9 @@ public class ProcessEngineTest extends ProcessEngineImpl {
 
 
     @Override
-    public CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters,
-        PauseRecover pauseRecover)
+    public CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters)
         throws ProcessingEngineException {
-        currentTask = super.start(step, workerParameters, pauseRecover);
+        currentTask = super.start(step, workerParameters);
         return null;
     }
 

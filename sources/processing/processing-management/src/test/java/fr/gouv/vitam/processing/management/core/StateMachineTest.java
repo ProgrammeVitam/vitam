@@ -260,7 +260,7 @@ public class StateMachineTest {
         final StateMachine stateMachine = StateMachineFactory.get()
             .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
 
-        doAnswer(invocation -> null).when(processEngine).start(any(), any(), any());
+        doAnswer(invocation -> null).when(processEngine).start(any(), any());
         stateMachine.next(workParams);
         try {
             stateMachine.next(workParams);
@@ -316,7 +316,7 @@ public class StateMachineTest {
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK);
-        when(processDistributorMock.distribute(any(), any(), any(), any()))
+        when(processDistributorMock.distribute(any(), any(), any()))
             .thenReturn(itemStatus);
         stateMachine.resume(workParams);
         waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
@@ -362,7 +362,7 @@ public class StateMachineTest {
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO);
-        when(processDistributorMock.distribute(any(), any(), any(), any()))
+        when(processDistributorMock.distribute(any(), any(), any()))
             .thenReturn(itemStatus);
         stateMachine.resume(workParams);
         waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
@@ -405,7 +405,7 @@ public class StateMachineTest {
             .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
-        when(processDistributorMock.distribute(any(), any(), any(), any()))
+        when(processDistributorMock.distribute(any(), any(), any()))
             .thenThrow(new RuntimeException("Fake Exception From Distributor"));
 
 
@@ -448,11 +448,11 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step FATAL call onError
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
             .thenThrow(new RuntimeException("Fake Exception From Distributor"));
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
             .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
         try {
             try {
@@ -498,11 +498,11 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step KO blocking call onComplete
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
             .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO));
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
             .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
 
         stateMachine.resume(workParams);
@@ -542,11 +542,11 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step FATAL blocking call onComplete
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
             .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.FATAL));
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
             .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
 
         stateMachine.resume(workParams);
@@ -585,11 +585,11 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step FATAL blocking call onComplete
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
             .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK));
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName(), PauseRecover.NO_RECOVER))
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
             .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
 
         stateMachine.resume(workParams);
@@ -620,8 +620,7 @@ public class StateMachineTest {
                 workParams.getContainerName()
             );
 
-        when(processDistributorMock.distribute(eq(workParams), any(Step.class), eq(workParams.getContainerName()),
-            eq(PauseRecover.NO_RECOVER))).thenReturn(new ItemStatus().increment(StatusCode.OK));
+        when(processDistributorMock.distribute(eq(workParams), any(Step.class), eq(workParams.getContainerName()))).thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setTargetState(ProcessState.PAUSE);

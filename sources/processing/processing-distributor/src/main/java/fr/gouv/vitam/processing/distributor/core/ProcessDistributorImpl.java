@@ -55,7 +55,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -71,7 +70,6 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceBufferingInputStream;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import io.prometheus.client.Histogram;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 
 import javax.ws.rs.core.Response;
@@ -158,16 +156,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
      * @param workParams of type {@link WorkerParameters}
      * @param step the execution step
      * @param operationId the operation id
-     * @param pauseRecover prevent recover from pause action
      * @return the final step status
      */
     @Override
-    public ItemStatus distribute(WorkerParameters workParams, Step step, String operationId,
-        PauseRecover pauseRecover) {
+    public ItemStatus distribute(WorkerParameters workParams, Step step, String operationId) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", operationId);
-        ParametersChecker.checkParameter("pauseRecover is a mandatory parameter", pauseRecover);
 
         /*
          * use index only if pauseCancelAction of the step is PauseOrCancelAction.ACTION_RECOVER
