@@ -53,14 +53,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class LogbookOperationTraceabilityHelperTest {
 
@@ -68,6 +71,7 @@ public class LogbookOperationTraceabilityHelperTest {
     public static final Integer OPERATION_TRACEABILITY_TEMPORIZATION_DELAY = 300;
     private static final String FILE_NAME = "0_operations_20171031_151118.zip";
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-10-31T15:11:15.405";
+    public static final int TRACEABILITY_EXPIRATION_IN_SECONDS = 24 * 60 * 60;
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
 
     private static final String LAST_OPERATION_HASH =
@@ -89,7 +93,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -110,7 +115,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -139,7 +145,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(null);
 
@@ -159,7 +166,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -189,7 +197,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -219,7 +228,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         // When
         String date = helper.getPreviousStartDate();
@@ -238,7 +248,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -264,7 +275,8 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -284,6 +296,105 @@ public class LogbookOperationTraceabilityHelperTest {
 
         // Then
         assertThat(size).isEqualTo(1);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_require_logbook_operation_traceability_when_last_traceability_not_expired_and_no_activity()
+        throws Exception {
+        // Given
+        LogbookOperations logbookOperations = mock(LogbookOperations.class);
+        GUID guid = GUIDFactory.newOperationLogbookGUID(0);
+
+        LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2017-10-31T15:11:18.569");
+        LocalDateTime now = LocalDateUtil.now();
+        long elapsedSeconds = now.minusSeconds(OPERATION_TRACEABILITY_TEMPORIZATION_DELAY).toEpochSecond(ZoneOffset.UTC)
+            - lastTraceabilityDate.toEpochSecond(ZoneOffset.UTC);
+        int traceabilityExpirationDelayInSeconds = (int) elapsedSeconds + 60;
+
+        LogbookOperationTraceabilityHelper helper =
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                traceabilityExpirationDelayInSeconds);
+
+        InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
+        JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
+        LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
+
+        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+        given(logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any()))
+            .willReturn(false);
+
+        helper.initialize();
+
+        // When
+        boolean traceabilityOperationRequired = helper.isTraceabilityOperationRequired();
+
+        // Then
+        assertThat(traceabilityOperationRequired).isFalse();
+        verify(logbookOperations).checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_require_logbook_operation_traceability_when_last_traceability_not_expired_and_existing_activity()
+        throws Exception {
+        // Given
+        LogbookOperations logbookOperations = mock(LogbookOperations.class);
+        GUID guid = GUIDFactory.newOperationLogbookGUID(0);
+
+        LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate("2017-10-31T15:11:18.569");
+        LocalDateTime now = LocalDateUtil.now();
+        long elapsedSeconds = now.minusSeconds(OPERATION_TRACEABILITY_TEMPORIZATION_DELAY).toEpochSecond(ZoneOffset.UTC)
+            - lastTraceabilityDate.toEpochSecond(ZoneOffset.UTC);
+        int traceabilityExpirationDelayInSeconds = (int) elapsedSeconds + 60;
+
+        LogbookOperationTraceabilityHelper helper =
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                traceabilityExpirationDelayInSeconds);
+
+        InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
+        JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
+        LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
+
+        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+        given(logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any()))
+            .willReturn(true);
+
+        helper.initialize();
+
+        // When
+        boolean traceabilityOperationRequired = helper.isTraceabilityOperationRequired();
+
+        // Then
+        assertThat(traceabilityOperationRequired).isTrue();
+        verify(logbookOperations).checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_require_logbook_operation_traceability_when_last_traceability_expired() throws Exception {
+        // Given
+        LogbookOperations logbookOperations = mock(LogbookOperations.class);
+        GUID guid = GUIDFactory.newOperationLogbookGUID(0);
+
+        LogbookOperationTraceabilityHelper helper =
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY,
+                TRACEABILITY_EXPIRATION_IN_SECONDS);
+
+        InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
+        JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
+        LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
+
+        given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
+
+        helper.initialize();
+
+        // When
+        boolean traceabilityOperationRequired = helper.isTraceabilityOperationRequired();
+
+        // Then
+        assertThat(traceabilityOperationRequired).isTrue();
+        verify(logbookOperations, never()).checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(any(), any());
     }
 
     private MongoCursor<LogbookOperation> getMongoCursorFor(LogbookOperation logbookOperation) {

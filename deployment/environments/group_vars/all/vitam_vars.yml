@@ -443,6 +443,14 @@ vitam:
         # Temporization delay (in seconds) for recent logbook operation events.
         # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
         operationTraceabilityTemporizationDelay: 300
+        # Max delay between 2 logbook operation traceability operations.
+        # A new logbook operation traceability is generated after this delay, even if tenant has no
+        # new logbook operations to secure
+        # Unit can be in DAYS, HOURS, MINUTES, SECONDS
+        # Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hours (supposing
+        # logbook operation traceability timer run every hour +/- some clock delays)
+        operationTraceabilityMaxRenewalDelay: 690
+        operationTraceabilityMaxRenewalDelayUnit: MINUTES
         # Temporization delay (in seconds) for recent logbook lifecycle events.
         # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
         lifecycleTraceabilityTemporizationDelay: 300

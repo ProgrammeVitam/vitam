@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -114,6 +115,12 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
         createAlertIfNecessary(operationArray);
     }
 
+    @Override
+    public boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(LocalDateTime traceabilityStartDate,
+        LocalDateTime traceabilityEndDate) throws LogbookDatabaseException {
+        return logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
+            traceabilityStartDate, traceabilityEndDate);
+    }
 
     /**
      * Create an alert for the configured LogbookOperationParameters eventType and outcome if the specified eventType should raise an alert

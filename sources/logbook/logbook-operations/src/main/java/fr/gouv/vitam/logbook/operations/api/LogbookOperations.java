@@ -202,4 +202,8 @@ public interface LogbookOperations {
      * @return
      */
     SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException;
+
+    boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
+        LocalDateTime traceabilityStartDate, LocalDateTime traceabilityEndDate)
+        throws LogbookDatabaseException;
 }

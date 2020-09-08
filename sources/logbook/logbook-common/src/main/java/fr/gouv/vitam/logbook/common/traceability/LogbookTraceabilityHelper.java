@@ -49,14 +49,6 @@ public interface LogbookTraceabilityHelper {
     LocalDateTime INITIAL_START_DATE = LocalDateTime.of(1970, 1, 1, 0, 0);
 
     /**
-     * Initialize traceability.
-     * Sets traceability start date and end date.
-     * 
-     * @throws TraceabilityException for any error
-     */
-    void initialize() throws TraceabilityException;
-
-    /**
      * Search for entries to secure with the traceability process and store data in the given Traceability zip file.<br/>
      * Also, Merkle Algorithm should be updated by adding each wanted entry as a leaf of the tree.
      * 
@@ -69,11 +61,11 @@ public interface LogbookTraceabilityHelper {
         throws IOException, TraceabilityException;
 
     /**
-     * initialize the traceability entry in the logbook collection
-     * 
+     * Prepare and start the traceability operation
+     *
      * @throws TraceabilityException if any error occurs
      */
-    void createLogbookOperationStructure() throws TraceabilityException;
+    void startTraceability() throws TraceabilityException;
 
     /**
      * Update or finalize the traceability entry in the logbook collection

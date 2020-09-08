@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -60,6 +61,14 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      * commited" or with "server clock difference".
      */
     private Integer operationTraceabilityTemporizationDelay;
+
+    /**
+     * Max delay between 2 logbook operation traceability operations.
+     * A new logbook operation traceability is required if tenant is active (new logbook operations,
+     * other than traceability operations, are found), or last traceability operation is too old.
+     */
+    private Integer operationTraceabilityMaxRenewalDelay;
+    private ChronoUnit operationTraceabilityMaxRenewalDelayUnit;
 
     /**
      * Temporization delay (in seconds) for recent logbook lifecycle events.
@@ -324,6 +333,24 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      */
     public void setLifecycleTraceabilityMaxEntries(Integer lifecycleTraceabilityMaxEntries) {
         this.lifecycleTraceabilityMaxEntries = lifecycleTraceabilityMaxEntries;
+    }
+
+    public Integer getOperationTraceabilityMaxRenewalDelay() {
+        return operationTraceabilityMaxRenewalDelay;
+    }
+
+    public void setOperationTraceabilityMaxRenewalDelay(Integer operationTraceabilityMaxRenewalDelay) {
+        this.operationTraceabilityMaxRenewalDelay = operationTraceabilityMaxRenewalDelay;
+    }
+
+    public ChronoUnit getOperationTraceabilityMaxRenewalDelayUnit() {
+        return operationTraceabilityMaxRenewalDelayUnit;
+    }
+
+    public LogbookConfiguration setOperationTraceabilityMaxRenewalDelayUnit(
+        ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
+        this.operationTraceabilityMaxRenewalDelayUnit = operationTraceabilityMaxRenewalDelayUnit;
+        return this;
     }
 
     public LogbookIndexationConfiguration getLogbookTenantIndexation() {

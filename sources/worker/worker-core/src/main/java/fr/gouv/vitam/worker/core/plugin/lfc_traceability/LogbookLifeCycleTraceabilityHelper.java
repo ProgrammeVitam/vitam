@@ -120,7 +120,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public void initialize()
+    public void startTraceability()
         throws TraceabilityException {
 
         try {
@@ -158,12 +158,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("endDate").asText());
         this.maxEntriesReached
             = traceabilityInformation.get("maxEntriesReached").asBoolean();
-    }
-
-    @Override
-    public void createLogbookOperationStructure()
-        throws TraceabilityException {
-        // Nothing to do: Master event is make and updated by workflow
     }
 
     @Override

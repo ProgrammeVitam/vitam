@@ -87,6 +87,7 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -97,6 +98,7 @@ import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -196,6 +198,9 @@ public class LogbookResourceIT {
             logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
             logbookConf.setOpWithLFC(new ArrayList<>());
             logbookConf.setOpEventsNotInWf(new ArrayList<>());
+            logbookConf.setOperationTraceabilityTemporizationDelay(300);
+            logbookConf.setOperationTraceabilityMaxRenewalDelay(12);
+            logbookConf.setOperationTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
             logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
                     new CollectionConfiguration(2, 1))));
@@ -248,6 +253,11 @@ public class LogbookResourceIT {
         junitHelper.releasePort(serverPort);
         junitHelper.releasePort(workspacePort);
         VitamClientFactory.resetConnections();
+    }
+
+    @After
+    public void cleanup() {
+        LogbookCollectionsTestUtils.afterTest(indexManager);
     }
 
     @RunWithCustomExecutor

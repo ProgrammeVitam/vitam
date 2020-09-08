@@ -51,6 +51,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -111,6 +112,10 @@ public class LogbookApplicationTest {
         logbookConfiguration.setOpLfcEventsToSkip(new ArrayList<>());
         logbookConfiguration.setOpEventsNotInWf(new ArrayList<>());
         logbookConfiguration.setOpWithLFC(new ArrayList<>());
+
+        logbookConfiguration.setOperationTraceabilityTemporizationDelay(300);
+        logbookConfiguration.setOperationTraceabilityMaxRenewalDelay(12);
+        logbookConfiguration.setOperationTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
 
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
         serverPort = junitHelper.findAvailablePort();

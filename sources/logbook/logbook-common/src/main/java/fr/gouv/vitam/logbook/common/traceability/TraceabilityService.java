@@ -89,10 +89,9 @@ public class TraceabilityService {
      * @throws TraceabilityException if any error or problem occurs
      */
     public void secureData(String strategyId) throws TraceabilityException {
-        // Start Traceability
-        helper.createLogbookOperationStructure();
 
-        helper.initialize();
+        helper.startTraceability();
+
         TraceabilityEvent event;
 
         // Call createZipFile

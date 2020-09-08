@@ -29,7 +29,6 @@ package fr.gouv.vitam.audit.test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
@@ -56,10 +55,14 @@ import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
@@ -85,8 +88,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -132,6 +137,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
                 IngestInternalMain.class
             ));
 
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
@@ -151,6 +159,11 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_execute_linked_check_traceability_audit_workflow_on_traceability_event_without_error() {
         VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
+
+        // Inject test data
+        injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
         // run operations to audit
         String secureTenantOpId = secureTenant();
         // run LinkedCheckTraceabilityWorkflow
@@ -317,6 +330,8 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
 
         VitamServerRunner.cleanOffers();
 
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
         secureOpGUID.add(secureTenant());
 
         // run LinkedCheckTraceabilityWorkflow
@@ -344,6 +359,11 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void given_incorrect_hash_should_execute_linked_check_traceability_audit_workflow_with_ko() {
         VitamTestHelper.prepareVitamSession(TENANT_ID, CONTRACT_ID, CONTEXT_ID);
+
+        // Inject test data
+        injectTestLogbookOperation();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
         String secureTenantOpId = secureTenant();
 
         updateHash(secureTenantOpId);
@@ -487,6 +507,24 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
             fail("error while building query", e);
             return null;
         }
+    }
+
+    private String injectTestLogbookOperation() {
+
+        String id = GUIDFactory.newGUID().getId();
+        VitamThreadUtils.getVitamSession().setRequestId(id);
+        try (AdminManagementClient adminManagementClient =
+            AdminManagementClientFactory.getInstance().getClient()) {
+
+            SecurityProfileModel securityProfileModel = new SecurityProfileModel();
+            securityProfileModel.setIdentifier("Identifier" + id);
+            securityProfileModel.setName("Name" + id);
+            securityProfileModel.setFullAccess(true);
+            adminManagementClient.importSecurityProfiles(Collections.singletonList(securityProfileModel));
+        } catch (Exception e) {
+            fail("error while injecting test data", e);
+        }
+        return id;
     }
 
     @AfterClass

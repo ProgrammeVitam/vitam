@@ -26,43 +26,59 @@
  */
 package fr.gouv.vitam.logbook.administration.core;
 
-import java.io.File;
-
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 
+import java.io.File;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
 /**
  * Business class for Logbook Administration (traceability)
  */
 public class LogbookAdministration {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookAdministration.class);
 
     private final LogbookOperations logbookOperations;
     private final TimestampGenerator timestampGenerator;
 
     private final File tmpFolder;
     private final int operationTraceabilityTemporizationDelayInSeconds;
+    private final int operationTraceabilityMaxRenewalDelayInSeconds;
 
-    @VisibleForTesting //
+    @VisibleForTesting
     LogbookAdministration(LogbookOperations logbookOperations,
         TimestampGenerator timestampGenerator, File tmpFolder,
-        Integer operationTraceabilityTemporizationDelay) {
+        Integer operationTraceabilityTemporizationDelayInSeconds,
+        Integer operationTraceabilityMaxRenewalDelay,
+        ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
+
+        ParametersChecker.checkParameter("Missing max renewal delay or unit",
+            operationTraceabilityMaxRenewalDelay, operationTraceabilityMaxRenewalDelayUnit);
+        ParametersChecker.checkValue("Invalid max renewal delay", operationTraceabilityMaxRenewalDelay, 1);
         this.logbookOperations = logbookOperations;
         this.timestampGenerator = timestampGenerator;
         this.tmpFolder = tmpFolder;
         this.operationTraceabilityTemporizationDelayInSeconds =
-            validateAndGetTraceabilityTemporizationDelay(operationTraceabilityTemporizationDelay);
+            validateAndGetTraceabilityTemporizationDelay(operationTraceabilityTemporizationDelayInSeconds);
+        this.operationTraceabilityMaxRenewalDelayInSeconds = (int)
+            Duration.of(operationTraceabilityMaxRenewalDelay, operationTraceabilityMaxRenewalDelayUnit).toSeconds();
     }
 
     private static int validateAndGetTraceabilityTemporizationDelay(Integer operationTraceabilityTemporizationDelay) {
         if (operationTraceabilityTemporizationDelay == null) {
-             return 0;
+            return 0;
         }
         if (operationTraceabilityTemporizationDelay < 0) {
             throw new IllegalArgumentException("Operation traceability temporization delay cannot be negative");
@@ -70,35 +86,42 @@ public class LogbookAdministration {
         return operationTraceabilityTemporizationDelay;
     }
 
-    /**
-     * Constructor
-     *
-     * @param logbookOperations                 logbook operation
-     * @param operationTraceabilityOverlapDelay
-     */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
-        Integer operationTraceabilityOverlapDelay) {
+        Integer operationTraceabilityOverlapDelayInSeconds,
+        Integer operationTraceabilityMaxRenewalDelay,
+        ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
         this(logbookOperations, timestampGenerator,
-            PropertiesUtils.fileFromTmpFolder("secure"), operationTraceabilityOverlapDelay);
+            PropertiesUtils.fileFromTmpFolder("secure"), operationTraceabilityOverlapDelayInSeconds,
+            operationTraceabilityMaxRenewalDelay, operationTraceabilityMaxRenewalDelayUnit);
     }
+
     /**
      * secure the logbook operation since last securisation.
      *
      * @throws TraceabilityException if error on generating secure logbook
      */
     // TODO: use a distributed lock to launch this function only on one server (cf consul)
-    public synchronized void generateSecureLogbook(GUID guid)
+    public synchronized boolean generateSecureLogbook(GUID guid)
         throws TraceabilityException {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
 
         LogbookOperationTraceabilityHelper helper =
             new LogbookOperationTraceabilityHelper(logbookOperations, guid,
-                operationTraceabilityTemporizationDelayInSeconds);
+                operationTraceabilityTemporizationDelayInSeconds, operationTraceabilityMaxRenewalDelayInSeconds);
+
+        helper.initialize();
+
+        if (!helper.isTraceabilityOperationRequired()) {
+            LOGGER.info("No need for traceability operation. No recent activity to secure...");
+            return false;
+        }
 
         TraceabilityService generator =
             new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
 
         generator.secureData(VitamConfiguration.getDefaultStrategy());
+
+        return true;
     }
 }
