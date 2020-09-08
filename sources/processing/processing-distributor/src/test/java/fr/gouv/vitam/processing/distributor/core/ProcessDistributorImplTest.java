@@ -53,7 +53,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
@@ -324,7 +323,7 @@ public class ProcessDistributorImplTest {
 
         try {
             processDistributor
-                .distribute(null, getStep(DistributionKind.REF, "manifest.xml"), operationId, PauseRecover.NO_RECOVER);
+                .distribute(null, getStep(DistributionKind.REF, "manifest.xml"), operationId);
 
             fail("Should throw an exception");
         } catch (Exception e) {
@@ -333,7 +332,7 @@ public class ProcessDistributorImplTest {
 
         try {
             processDistributor
-                .distribute(workerParameters, null, operationId, PauseRecover.NO_RECOVER);
+                .distribute(workerParameters, null, operationId);
 
             fail("Should throw an exception");
         } catch (Exception e) {
@@ -342,17 +341,7 @@ public class ProcessDistributorImplTest {
 
         try {
             processDistributor
-                .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), null,
-                    PauseRecover.NO_RECOVER);
-
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
-        try {
-            processDistributor
-                .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), operationId, null);
+                .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), null);
 
             fail("Should throw an exception");
         } catch (Exception e) {
@@ -370,8 +359,7 @@ public class ProcessDistributorImplTest {
 
         ProcessStep step = getStep(DistributionKind.REF, "manifest.xml");
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, step, operationId,
-                PauseRecover.NO_RECOVER);
+            .distribute(workerParameters, step, operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -384,8 +372,7 @@ public class ProcessDistributorImplTest {
     public void givenMetaDataDownWhenDistributeManifestThenFATAL() throws MetaDataClientServerException {
         when(metaDataClient.refreshUnits()).thenThrow(new MetaDataClientServerException(""));
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), operationId,
-                PauseRecover.NO_RECOVER);
+            .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), operationId);
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -397,8 +384,7 @@ public class ProcessDistributorImplTest {
         when(workspaceClient.getObject(anyString(), anyString(), anyLong(), anyLong()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, "manifest.xml"), operationId,
-                PauseRecover.NO_RECOVER);
+            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, "manifest.xml"), operationId);
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -411,8 +397,7 @@ public class ProcessDistributorImplTest {
             .thenAnswer(invocation -> getMockedItemStatus(StatusCode.FATAL));
         ProcessStep step = getStep(DistributionKind.REF, "manifest.xml");
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, step, operationId,
-                PauseRecover.NO_RECOVER);
+            .distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(step.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_RUN);
@@ -429,8 +414,7 @@ public class ProcessDistributorImplTest {
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
-                PauseRecover.NO_RECOVER);
+                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
         assertNotNull(itemStatus);
 
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -461,8 +445,7 @@ public class ProcessDistributorImplTest {
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
-                PauseRecover.NO_RECOVER);
+                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
         assertNotNull(itemStatus);
         assertEquals(StatusCode.KO, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
@@ -490,8 +473,7 @@ public class ProcessDistributorImplTest {
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
-                PauseRecover.NO_RECOVER);
+                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
         assertNotNull(itemStatus);
         assertEquals(StatusCode.WARNING, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
@@ -514,8 +496,7 @@ public class ProcessDistributorImplTest {
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
-                PauseRecover.NO_RECOVER);
+                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
         assertNotNull(itemStatus);
         assertEquals(StatusCode.FATAL, itemStatus.getGlobalStatus());
     }
@@ -528,8 +509,7 @@ public class ProcessDistributorImplTest {
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
-                getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_WITH_GUIDS), operationId,
-                PauseRecover.NO_RECOVER);
+                getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_WITH_GUIDS), operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -547,8 +527,7 @@ public class ProcessDistributorImplTest {
         givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", FILE_FULL_GUIDS);
 
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS), operationId,
-                PauseRecover.NO_RECOVER);
+            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS), operationId);
 
         assertThat(itemStatus).isNotNull();
 
@@ -601,8 +580,7 @@ public class ProcessDistributorImplTest {
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, file.getAbsolutePath()),
-                operationId,
-                PauseRecover.NO_RECOVER);
+                operationId);
 
         verify(workerClient, times(750)).submitStep(any());
 
@@ -664,7 +642,7 @@ public class ProcessDistributorImplTest {
         when(processDataManagement.getDistributorIndex(operationId)).thenReturn(Optional.of(distributorIndex));
 
         ItemStatus itemStatus =
-            processDistributor.distribute(workerParameters, step, operationId, PauseRecover.RECOVER_FROM_API_PAUSE);
+            processDistributor.distribute(workerParameters, step, operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -706,8 +684,7 @@ public class ProcessDistributorImplTest {
         givenWorkspaceClientReturnsFileContent(invalidJsonLFile, operationId, FILE_GUIDS_INVALID);
 
         ItemStatus itemStatus = processDistributor.distribute(workerParameters,
-            getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_GUIDS_INVALID), operationId,
-            PauseRecover.NO_RECOVER);
+            getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_GUIDS_INVALID), operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.FATAL, itemStatus.getGlobalStatus());
@@ -721,8 +698,7 @@ public class ProcessDistributorImplTest {
         givenWorkspaceClientReturnsFileContent(file, operationId, FILE_EMPTY_GUIDS);
 
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_EMPTY_GUIDS), operationId,
-                PauseRecover.NO_RECOVER);
+            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_EMPTY_GUIDS), operationId);
 
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
@@ -749,10 +725,7 @@ public class ProcessDistributorImplTest {
         ProcessStep step = getStep(DistributionKind.LIST_IN_FILE, list_elements, 5);
 
         // When
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                step, operationId,
-                PauseRecover.NO_RECOVER);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
         countDownLatchSubmit.await();
 
@@ -802,7 +775,7 @@ public class ProcessDistributorImplTest {
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final ItemStatus[] itemStatus = new ItemStatus[1];
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-            itemStatus[0] = processDistributor.distribute(workerParameters, step, operationId, PauseRecover.NO_RECOVER);
+            itemStatus[0] = processDistributor.distribute(workerParameters, step, operationId);
 
             countDownLatch.countDown();
         });
@@ -864,8 +837,7 @@ public class ProcessDistributorImplTest {
         final ItemStatus[] itemStatus = new ItemStatus[1];
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
             itemStatus[0] = processDistributor
-                .distribute(workerParameters, step, operationId,
-                    PauseRecover.NO_RECOVER);
+                .distribute(workerParameters, step, operationId);
             countDownLatch.countDown();
         });
         try {
@@ -923,8 +895,8 @@ public class ProcessDistributorImplTest {
         final ItemStatus[] itemStatus = new ItemStatus[1];
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
             itemStatus[0] = processDistributor
-                .distribute(workerParameters, step, operationId,
-                    PauseRecover.NO_RECOVER);
+                .distribute(workerParameters, step, operationId
+                );
             countDownLatch.countDown();
         });
 

@@ -142,7 +142,7 @@ public class ProcessEngineImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(processDistributor.distribute(any(), any(), any(), any()))
+        when(processDistributor.distribute(any(), any(), any()))
             .thenReturn(new ItemStatus().increment(StatusCode.KO));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
@@ -153,7 +153,7 @@ public class ProcessEngineImplTest {
         doAnswer(o -> step.setStepStatusCode(StatusCode.KO)).when(iEventsProcessEngine)
             .onProcessEngineCompleteStep(any(), any());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
-        processEngine.start(step, workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(step, workParams);
 
         // Because of start is async
         // Sleep to be sur that completableFeature is called in the Engine
@@ -165,7 +165,7 @@ public class ProcessEngineImplTest {
 
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
         inOrders.verify(iEventsProcessEngine).onUpdate(any());
-        inOrders.verify(processDistributor).distribute(any(), any(), any(), any());
+        inOrders.verify(processDistributor).distribute(any(), any(), any());
         inOrders.verify(iEventsProcessEngine).onProcessEngineCompleteStep(any(), any());
         Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.KO);
     }
@@ -181,7 +181,7 @@ public class ProcessEngineImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(processDistributor.distribute(any(), any(), any(), any()))
+        when(processDistributor.distribute(any(), any(), any()))
             .thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
@@ -193,7 +193,7 @@ public class ProcessEngineImplTest {
             .onProcessEngineCompleteStep(any(), any());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
 
-        processEngine.start(step, workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(step, workParams);
 
         // Because of start is async
         // Sleep to be sur that completableFeature is called in the Engine
@@ -205,7 +205,7 @@ public class ProcessEngineImplTest {
 
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
         inOrders.verify(iEventsProcessEngine).onUpdate(any());
-        inOrders.verify(processDistributor).distribute(any(), any(), any(), any());
+        inOrders.verify(processDistributor).distribute(any(), any(), any());
         inOrders.verify(iEventsProcessEngine).onProcessEngineCompleteStep(any(), any());
         Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.OK);
 
@@ -220,7 +220,7 @@ public class ProcessEngineImplTest {
             );
         processEngine.setStateMachineCallback(null);
 
-        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams);
     }
 
     @Test
@@ -238,7 +238,7 @@ public class ProcessEngineImplTest {
 
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
-            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+            .distribute(any(), any(), anyString())).thenReturn(itemStatus);
         doNothing().when(logbookOperationsClient).update(any());
 
         doAnswer(o ->
@@ -262,7 +262,7 @@ public class ProcessEngineImplTest {
             return o;
         }).when(logbookOperationsClient).bulkUpdate(anyString(), any());
 
-        processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(processWorkflow.getSteps().get(0), workParams);
 
         countDownLatch.await();
 
@@ -284,7 +284,7 @@ public class ProcessEngineImplTest {
 
         doThrow(new LogbookClientServerException("")).when(logbookOperationsClient).update(any());
 
-        processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(processWorkflow.getSteps().get(0), workParams);
     }
 
     @Test
@@ -305,7 +305,7 @@ public class ProcessEngineImplTest {
 
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
-            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+            .distribute(any(), any(), anyString())).thenReturn(itemStatus);
 
         doAnswer(o ->
         {
@@ -323,7 +323,7 @@ public class ProcessEngineImplTest {
             return o;
         }).when(logbookOperationsClient).update(any());
 
-        processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(processStep, workParams);
 
         countDownLatch.await();
 
@@ -351,7 +351,7 @@ public class ProcessEngineImplTest {
 
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
-            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+            .distribute(any(), any(), anyString())).thenReturn(itemStatus);
 
         doAnswer(o ->
         {
@@ -369,7 +369,7 @@ public class ProcessEngineImplTest {
             return o;
         }).when(logbookOperationsClient).update(any());
 
-        processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(processStep, workParams);
 
         countDownLatch.await();
 
@@ -395,7 +395,7 @@ public class ProcessEngineImplTest {
 
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
-            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+            .distribute(any(), any(), anyString())).thenReturn(itemStatus);
         doAnswer(o ->
         {
             countDownLatch.countDown();
@@ -417,7 +417,7 @@ public class ProcessEngineImplTest {
             return o;
         }).when(logbookOperationsClient).bulkUpdate(anyString(), any());
 
-        processEngine.start(processStep, workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(processStep, workParams);
 
         countDownLatch.await();
 
@@ -442,7 +442,7 @@ public class ProcessEngineImplTest {
         CountDownLatch countDownLatch = new CountDownLatch(2);
         when(stateMachineCallback.getCurrentProcessWorkflowStatus()).thenReturn(StatusCode.OK);
         when(processDistributor
-            .distribute(any(), any(), anyString(), any())).thenReturn(itemStatus);
+            .distribute(any(), any(), anyString())).thenReturn(itemStatus);
         doNothing().when(logbookOperationsClient).update(any());
         doAnswer(o ->
         {
@@ -455,7 +455,7 @@ public class ProcessEngineImplTest {
             return o;
         }).when(stateMachineCallback).onError(any());
         doThrow(new LogbookClientServerException("")).when(logbookOperationsClient).bulkUpdate(any(), any());
-        processEngine.start(processWorkflow.getSteps().get(0), workParams, PauseRecover.NO_RECOVER);
+        processEngine.start(processWorkflow.getSteps().get(0), workParams);
 
         countDownLatch.await();
 

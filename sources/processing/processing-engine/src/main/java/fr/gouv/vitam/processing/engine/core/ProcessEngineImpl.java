@@ -61,7 +61,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
-import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -109,8 +108,7 @@ public class ProcessEngineImpl implements ProcessEngine {
     }
 
     @Override
-    public CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters,
-        PauseRecover pauseRecover)
+    public CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters)
         throws ProcessingEngineException {
 
         if (null == stateMachineCallback) {
@@ -157,7 +155,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         return CompletableFuture
             // call distributor in async mode
-            .supplyAsync(() -> callDistributor(step, this.workerParameters, operationId, pauseRecover),
+            .supplyAsync(() -> callDistributor(step, this.workerParameters, operationId),
                 VitamThreadPoolExecutor.getDefaultExecutor())
             // When the distributor responds, finalize the logbook persistence
             .thenApply(distributorResponse -> {
@@ -265,14 +263,13 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @param operationId
      * @return
      */
-    private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId,
-        PauseRecover pauseRecover) {
+    private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId) {
         Histogram.Timer stepExecutionDurationTimer =
             CommonProcessingMetrics.PROCESS_WORKFLOW_STEP_EXECUTION_DURATION_HISTOGRAM
                 .labels(workParams.getLogbookTypeProcess().name(), step.getStepName())
                 .startTimer();
         try {
-            return processDistributor.distribute(workParams, step, operationId, pauseRecover);
+            return processDistributor.distribute(workParams, step, operationId);
         } finally {
             stepExecutionDurationTimer.observeDuration();
         }

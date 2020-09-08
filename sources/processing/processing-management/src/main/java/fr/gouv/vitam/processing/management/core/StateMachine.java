@@ -344,7 +344,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.processWorkflow.setTargetState(targetState);
         this.processWorkflow.setStepByStep(ProcessState.PAUSE.equals(targetState));
 
-        findAndExecuteNextStep(workerParameters, processWorkflow.getPauseRecover(), false);
+        findAndExecuteNextStep(workerParameters, false);
     }
 
     /**
@@ -364,16 +364,14 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.processWorkflow.setTargetState(ProcessState.PAUSE);
         this.processWorkflow.setStepByStep(true);
 
-        findAndExecuteNextStep(workerParameters, processWorkflow.getPauseRecover(), true);
+        findAndExecuteNextStep(workerParameters, true);
     }
 
     /**
      * @param workerParameters
-     * @param pauseRecover
      * @param replayCurrentStep
      */
-    protected void findAndExecuteNextStep(WorkerParameters workerParameters, PauseRecover pauseRecover,
-        boolean replayCurrentStep) {
+    protected void findAndExecuteNextStep(WorkerParameters workerParameters, boolean replayCurrentStep) {
 
         if (replayCurrentStep && stepIndex > 0) {
             stepIndex--;
@@ -413,7 +411,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
 
             workerParameters.setPreviousStep(replayCurrentStep ? currentStep.getStepName() : null);
-            this.processEngine.start(currentStep, workerParameters, pauseRecover);
+            this.processEngine.start(currentStep, workerParameters);
         } catch (Exception e) {
             onError(e);
         }
@@ -432,7 +430,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         currentStep.setLastStep(true);
 
         try {
-            this.processEngine.start(currentStep, workerParameters, PauseRecover.NO_RECOVER);
+            this.processEngine.start(currentStep, workerParameters);
         } catch (Exception e) {
             onError(e);
         }
@@ -559,7 +557,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                             }
                         }
                     } else {
-                        this.findAndExecuteNextStep(workerParameters, PauseRecover.NO_RECOVER, false);
+                        this.findAndExecuteNextStep(workerParameters, false);
                     }
                 }
             }

@@ -55,10 +55,9 @@ public interface ProcessEngine {
      *
      * @param step the ProcessStep object
      * @param workerParameters the worker parameters
-     * @param pauseRecover prevent recover from pause action
      * @throws ProcessingEngineException thrown if step could not be started
      * @return
      */
-    CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
+    CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters)
         throws ProcessingEngineException;
 }
