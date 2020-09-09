@@ -221,6 +221,33 @@ public class JunitHelper extends ExternalResource {
         return read;
     }
 
+    public static InputStream getPerByteInputStream(InputStream inputStream) {
+        return new InputStream() {
+            @Override
+            public int read() throws IOException {
+                return inputStream.read();
+            }
+
+            @Override
+            public int read(byte[] b) throws IOException {
+                return read(b, 0, b.length);
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                if (len == 0) {
+                    return 0;
+                }
+                int read = read();
+                if (read == -1) {
+                    return -1;
+                }
+                b[off] = (byte) read;
+                return 1;
+            }
+        };
+    }
+
     /**
      * For benchmark: clean the used memory using a full GC.</br>
      * </br>
