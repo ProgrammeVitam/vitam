@@ -168,7 +168,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
             throw new ProcessingException("Could not load storage information", e);
         }
 
-        handler.addOutputResult(TRACEABILITY_DATA_OUT_RANK, traceabilityDataFile, true, false);
+        handler.addOutputResult(TRACEABILITY_DATA_OUT_RANK, traceabilityDataFile, false, false);
 
         TraceabilityStatistics traceabilityStatistics = getTraceabilityStatistics(digestValidator);
         try {
@@ -176,7 +176,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 handler.getOutput(TRACEABILITY_STATISTICS_OUT_RANK).getPath());
             JsonHandler.writeAsFile(traceabilityStatistics, traceabilityStatsFile);
 
-            handler.addOutputResult(TRACEABILITY_STATISTICS_OUT_RANK, traceabilityStatsFile, true, false);
+            handler.addOutputResult(TRACEABILITY_STATISTICS_OUT_RANK, traceabilityStatsFile, false, false);
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException("Could not serialize validation statistics", e);
         }

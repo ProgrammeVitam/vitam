@@ -169,7 +169,7 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
             throw new ProcessingException("Could not export lfc and metadata for traceability", e);
         }
 
-        handlerIO.addOutputResult(LFC_AND_METADATA_OUT_RANK, lfcWithMetadataFile, true, false);
+        handlerIO.addOutputResult(LFC_AND_METADATA_OUT_RANK, lfcWithMetadataFile, false, false);
 
         boolean maxEntriesReached = nbExportedEntries >= lifecycleTraceabilityMaxEntries;
         if (maxEntriesReached) {
@@ -219,10 +219,11 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         traceabilityInformation.put("maxEntriesReached", maxEntriesReached);
 
         // export in workspace
+
         File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(TRACEABILITY_INFORMATION_OUT_RANK).getPath());
         // Create json file
         JsonHandler.writeAsFile(traceabilityInformation, tempFile);
-        handlerIO.addOutputResult(TRACEABILITY_INFORMATION_OUT_RANK, tempFile, true, false);
+        handlerIO.addOutputResult(TRACEABILITY_INFORMATION_OUT_RANK, tempFile, false, false);
     }
 
     @Override
