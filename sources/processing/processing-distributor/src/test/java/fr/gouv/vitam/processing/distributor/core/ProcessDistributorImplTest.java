@@ -90,15 +90,15 @@ import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_CHUNK_LENGTH;
 import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
+import static fr.gouv.vitam.processing.distributor.api.ProcessDistributor.JSON_EXTENSION;
 import static fr.gouv.vitam.processing.distributor.api.ProcessDistributor.OBJECTS_LIST_EMPTY;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
@@ -108,6 +108,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -167,9 +168,7 @@ public class ProcessDistributorImplTest {
 
         workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(workerClient.submitStep(any()))
-            .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
-
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
         metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
 
@@ -358,8 +357,7 @@ public class ProcessDistributorImplTest {
                 workspaceClientFactory, metaDataClientFactory, workerClientFactory);
 
         ProcessStep step = getStep(DistributionKind.REF, "manifest.xml");
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, step, operationId);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -371,8 +369,8 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void givenMetaDataDownWhenDistributeManifestThenFATAL() throws MetaDataClientServerException {
         when(metaDataClient.refreshUnits()).thenThrow(new MetaDataClientServerException(""));
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), operationId);
+        ProcessStep step = getStep(DistributionKind.REF, "manifest.xml");
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -383,8 +381,8 @@ public class ProcessDistributorImplTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         when(workspaceClient.getObject(anyString(), anyString(), anyLong(), anyLong()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, "manifest.xml"), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, "manifest.xml");
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -396,8 +394,7 @@ public class ProcessDistributorImplTest {
         when(workerClient.submitStep(any()))
             .thenAnswer(invocation -> getMockedItemStatus(StatusCode.FATAL));
         ProcessStep step = getStep(DistributionKind.REF, "manifest.xml");
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, step, operationId);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(step.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_RUN);
@@ -412,9 +409,8 @@ public class ProcessDistributorImplTest {
 
         givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
 
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -443,9 +439,8 @@ public class ProcessDistributorImplTest {
             return getMockedItemStatus(StatusCode.OK);
         });
 
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertEquals(StatusCode.KO, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
@@ -471,9 +466,8 @@ public class ProcessDistributorImplTest {
             return getMockedItemStatus(StatusCode.OK);
         });
 
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertEquals(StatusCode.WARNING, itemStatus.getGlobalStatus());
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
@@ -494,9 +488,8 @@ public class ProcessDistributorImplTest {
 
         when(workerClient.submitStep(any())).thenThrow(new RuntimeException("WorkerException"));
 
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertEquals(StatusCode.FATAL, itemStatus.getGlobalStatus());
     }
@@ -507,9 +500,8 @@ public class ProcessDistributorImplTest {
         File file = PropertiesUtils.getResourceFile(FILE_WITH_GUIDS);
         givenWorkspaceClientReturnsFileContent(file, operationId, FILE_WITH_GUIDS);
 
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_WITH_GUIDS), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_WITH_GUIDS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -526,8 +518,8 @@ public class ProcessDistributorImplTest {
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
         givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", FILE_FULL_GUIDS);
 
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
         assertThat(itemStatus).isNotNull();
 
@@ -641,8 +633,7 @@ public class ProcessDistributorImplTest {
 
         when(processDataManagement.getDistributorIndex(operationId)).thenReturn(Optional.of(distributorIndex));
 
-        ItemStatus itemStatus =
-            processDistributor.distribute(workerParameters, step, operationId);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -683,8 +674,8 @@ public class ProcessDistributorImplTest {
         File invalidJsonLFile = PropertiesUtils.getResourceFile(FILE_GUIDS_INVALID);
         givenWorkspaceClientReturnsFileContent(invalidJsonLFile, operationId, FILE_GUIDS_INVALID);
 
-        ItemStatus itemStatus = processDistributor.distribute(workerParameters,
-            getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_GUIDS_INVALID), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_GUIDS_INVALID);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
         assertNotNull(itemStatus);
         assertEquals(StatusCode.FATAL, itemStatus.getGlobalStatus());
@@ -697,8 +688,8 @@ public class ProcessDistributorImplTest {
         File file = PropertiesUtils.getResourceFile(FILE_EMPTY_GUIDS);
         givenWorkspaceClientReturnsFileContent(file, operationId, FILE_EMPTY_GUIDS);
 
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_EMPTY_GUIDS), operationId);
+        ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_EMPTY_GUIDS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
@@ -716,18 +707,12 @@ public class ProcessDistributorImplTest {
         File chainedFile = PropertiesUtils.getResourceFile(list_elements);
         givenWorkspaceClientReturnsFileContent(chainedFile, operationId, list_elements);
 
-        final CountDownLatch countDownLatchSubmit = new CountDownLatch(2);
-        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
-            countDownLatchSubmit.countDown();
-            return getMockedItemStatus(StatusCode.OK);
-        });
 
         ProcessStep step = getStep(DistributionKind.LIST_IN_FILE, list_elements, 5);
 
         // When
         ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
 
-        countDownLatchSubmit.await();
 
         // Then
         assertNotNull(itemStatus);
@@ -762,54 +747,28 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributePauseOK() throws Exception {
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
-
-        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
-        final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
-        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
-            countDownLatchSubmit.countDown();
-            return getMockedItemStatus(StatusCode.OK);
-        });
-
         Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
+        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        final ItemStatus[] itemStatus = new ItemStatus[1];
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-            itemStatus[0] = processDistributor.distribute(workerParameters, step, operationId);
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "t"))))
+            .thenAnswer(invocation -> {
+                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+                return getMockedItemStatus(StatusCode.OK);
+            });
 
-            countDownLatch.countDown();
-        });
+        final ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
 
-        try {
-            countDownLatchSubmit.await(); // 9 times
-        } catch (InterruptedException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            Thread.currentThread().interrupt();
-        }
-
-        TimeUnit.MILLISECONDS.sleep(1);
-
-        step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
-
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            Thread.currentThread().interrupt();
-        }
-
-        ItemStatus is = itemStatus[0];
         assertThat(is).isNotNull();
         assertThat(is.getStatusMeter().get(StatusCode.OK.getStatusLevel()))
             .isLessThan(VitamConfiguration.getRestoreBulkSize()); // statusCode OK
-        // Why 16, because to execute in the file ingestLevelStack we have
+        // Why 26, because to execute in the file ingestLevelStack we have
         // "level_0" : [], Execute 0
         // "level_1" : [ "a" ], Execute 1
         // "level_2" : [ "a", "b" ], Execute 2
         // "level_3" : [ "a", "b", "c" ], Execute 3
-        // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 20
+        // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",..., "t"] Execute batchSize = 20
         // Total = 0 + 1 + 2 + 3 + 20 = 26
-        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(7, 26);
+        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isEqualTo(26);
     }
 
 
@@ -819,57 +778,30 @@ public class ProcessDistributorImplTest {
         final File resourceFile = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
         givenWorkspaceClientReturnsFileContent(resourceFile, any(), any());
-
-        final CountDownLatch countDownLatchException = new CountDownLatch(1);
-
-        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
-            DescriptionStep descriptionStep = invocation.getArgument(0);
-            if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("d.json")) {
-                countDownLatchException.countDown();
-                throw new RuntimeException("Exception While Executing d");
-            }
-            return getMockedItemStatus(StatusCode.OK);
-        });
-
         Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
 
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        final ItemStatus[] itemStatus = new ItemStatus[1];
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-            itemStatus[0] = processDistributor
-                .distribute(workerParameters, step, operationId);
-            countDownLatch.countDown();
-        });
-        try {
-            countDownLatchException.await();
-        } catch (InterruptedException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            Thread.currentThread().interrupt();
-        }
-        step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d"))))
+            .thenThrow(new WorkerServerClientException("Exception While Executing d"));
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "t"))))
+            .thenAnswer(invocation -> {
+                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+                return getMockedItemStatus(StatusCode.OK);
+            });
 
-        // Wait until distributor responds
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            Thread.currentThread().interrupt();
-        }
-
-        ItemStatus is = itemStatus[0];
+        final ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
 
         assertThat(is).isNotNull();
         assertThat(is.getItemsStatus().get("FakeStepName")).isNotNull();
         assertThat(is.getStatusMeter().get(StatusCode.OK.getStatusLevel())).isGreaterThan(0); // statusCode OK
         assertThat(is.getStatusMeter().get(StatusCode.FATAL.getStatusLevel())).isEqualTo(1); // statusCode FATAL
-        // Why 16, because to execute in the file ingestLevelStack we have
+        // Why 26, because to execute in the file ingestLevelStack we have
         // "level_0" : [], Execute 0
         // "level_1" : [ "a" ], Execute 1
         // "level_2" : [ "a", "b" ], Execute 2
         // "level_3" : [ "a", "b", "c" ], Execute 3
         // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 20
         // Total = 0 + 1 + 2 + 3 + 20 = 26
-        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(7, 26);
+        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isEqualTo(26);
     }
 
     @Test
@@ -877,52 +809,37 @@ public class ProcessDistributorImplTest {
     public void whenDistributeCancelOK() throws Exception {
 
         final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
-
+        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
         givenWorkspaceClientReturnsFileContent(ingestLevelStack, any(), any());
 
-        final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
-        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
-            try {
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d"))))
+            .thenAnswer(invocation -> {
+                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
                 return getMockedItemStatus(StatusCode.OK);
-            } finally {
-                countDownLatchSubmit.countDown();
-            }
-        });
+            });
 
-        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
-
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        final ItemStatus[] itemStatus = new ItemStatus[1];
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-            itemStatus[0] = processDistributor
-                .distribute(workerParameters, step, operationId
-                );
-            countDownLatch.countDown();
-        });
-
-        try {
-            countDownLatchSubmit.await(); // 9 times
-        } catch (InterruptedException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            Thread.currentThread().interrupt();
-        }
-
-        step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
-
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            Thread.currentThread().interrupt();
-        }
-
-        ItemStatus is = itemStatus[0];
+        ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
         assertThat(is).isNotNull();
         assertThat(is.getStatusMeter()).isNotNull();
 
         int treatedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
         AtomicLong processedElements = ((ProcessStep) step).getElementProcessed();
         assertThat(treatedElements).isEqualTo(processedElements.get());
-        assertThat(processedElements.get()).isGreaterThanOrEqualTo(9);
+        // Why 10, because to execute in the file ingestLevelStack we have
+        // "level_0" : [], Execute 0
+        // "level_1" : [ "a" ], Execute 1
+        // "level_2" : [ "a", "b" ], Execute 2
+        // "level_3" : [ "a", "b", "c" ], Execute 3
+        // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] when executing "d" we fire the cancel action so Execute 4 ("a","b","c","d")
+        // Total = 0 + 1 + 2 + 3 + 4 = 10
+        // Why is greater or equal to 10 ? because while we change PauseOrCancelAction, one or two more element can be treated
+        assertThat(processedElements.get()).isBetween(10L,26L);
+    }
+
+    private boolean matcher(DescriptionStep descriptionStep, String elementName) {
+        if (Objects.nonNull(descriptionStep))
+            return descriptionStep.getWorkParams().getObjectNameList().contains(elementName + JSON_EXTENSION);
+        else
+            return false;
     }
 }

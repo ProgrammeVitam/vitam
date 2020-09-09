@@ -61,7 +61,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.storage.offers.tape.cas.TarTestHelper.checkEntryAtPos;
@@ -271,9 +270,7 @@ public class FileBucketTarCreatorTest {
             TimeUnit.SECONDS, inputTarStoragePath.toString(),
             maxTarEntrySize, maxTarFileSize);
 
-        CountDownLatch countDownLatch = new CountDownLatch(objectsToWrite.size());
         doAnswer((args) -> {
-            countDownLatch.countDown();
             return null;
         }).when(basicFileStorage).deleteFile(any(), any());
 
@@ -302,9 +299,6 @@ public class FileBucketTarCreatorTest {
 
             Thread.sleep(1000 * objectToWrite.sleepDelayInSeconds);
         }
-
-        // Await termination
-        assertThat(countDownLatch.await(1, TimeUnit.MINUTES)).isTrue();
 
         // Then
 
