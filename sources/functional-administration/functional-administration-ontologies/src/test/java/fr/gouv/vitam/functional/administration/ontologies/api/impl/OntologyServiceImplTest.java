@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -934,7 +934,7 @@ public class OntologyServiceImplTest {
 
         FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection().find(Filters.eq(OntologyModel.TAG_ORIGIN, "EXTERNAL"));
         for (Document document : documents) {
-            models.add(JsonHandler.getFromString(BsonHelper.stringify(document), Ontology.class));
+            models.add(BsonHelper.fromDocumentToObject(document, Ontology.class));
         }
 
         return models;

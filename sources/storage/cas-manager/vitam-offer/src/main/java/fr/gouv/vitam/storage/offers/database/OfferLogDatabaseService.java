@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.collection.CloseableIterable;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
@@ -147,7 +147,7 @@ public class OfferLogDatabaseService {
 
     private OfferLog transformDocumentToOfferLog(Document document) {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(document), OfferLog.class);
+            return BsonHelper.fromDocumentToObject(document, OfferLog.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }

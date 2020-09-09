@@ -31,7 +31,7 @@ import java.util.List;
 
 import com.mongodb.client.model.Projections;
 import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,7 +52,6 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
@@ -414,7 +413,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             @Override
             public JsonNode next() {
                 try {
-                    return JsonHandler.getFromString(BsonHelper.stringify(lifecycleIterator.next()));
+                    return BsonHelper.fromDocumentToJsonNode(lifecycleIterator.next());
                 } catch (InvalidParseOperationException e) {
                     throw new RuntimeException(e);
                 }
@@ -518,7 +517,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             throw new LogbookNotFoundException("Could not find raw lifecycle by id " + id);
         }
 
-        return JsonHandler.getFromString(BsonHelper.stringify(document));
+        return BsonHelper.fromDocumentToJsonNode(document);
     }
 
     private List<JsonNode> getRawLifecycleByIds(List<String> ids, LogbookCollections collection)
@@ -533,7 +532,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
             List<JsonNode> results = new ArrayList<>();
             while (documents.hasNext()) {
-                results.add(JsonHandler.getFromString(BsonHelper.stringify(documents.next())));
+                results.add(BsonHelper.fromDocumentToJsonNode(documents.next()));
             }
 
             if (results.size() < ids.size()) {

@@ -30,8 +30,7 @@ package fr.gouv.vitam.functional.administration.common;
  import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
  import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  import fr.gouv.vitam.common.exception.VitamRuntimeException;
- import fr.gouv.vitam.common.json.BsonHelper;
- import fr.gouv.vitam.common.json.JsonHandler;
+ import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
  import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
  import org.bson.Document;
 
@@ -74,7 +73,7 @@ public class PreservationScenario extends VitamDocument<PreservationScenario> {
 
     public PreservationScenarioModel toModel() {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(this), PreservationScenarioModel.class);
+            return BsonHelper.fromDocumentToObject(this, PreservationScenarioModel.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }

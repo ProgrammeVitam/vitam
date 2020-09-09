@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -229,7 +229,7 @@ public class QueueRepositoryImpl implements QueueRepository {
         }
 
         try {
-            return Optional.of(JsonHandler.getFromString(BsonHelper.stringify(sequence), (Class<T>) messageType.getClazz()));
+            return Optional.of(BsonHelper.fromDocumentToObject(sequence, (Class<T>) messageType.getClazz()));
         } catch (InvalidParseOperationException e) {
             throw new QueueException(e);
         }

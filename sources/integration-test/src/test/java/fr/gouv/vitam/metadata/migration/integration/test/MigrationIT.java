@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -342,7 +342,7 @@ public class MigrationIT extends VitamRuleRunner {
         }
     }
 
-    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile,
+    private <T extends Document> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile,
         boolean replaceFields)
         throws InvalidParseOperationException, FileNotFoundException {
 
@@ -357,7 +357,7 @@ public class MigrationIT extends VitamRuleRunner {
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
-    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean replaceFields)
+    private <T extends Document> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean replaceFields)
         throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
@@ -365,7 +365,7 @@ public class MigrationIT extends VitamRuleRunner {
             .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
-            ObjectNode docObjectNode = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(document));
+            ObjectNode docObjectNode = (ObjectNode) BsonHelper.fromDocumentToJsonNode(document);
             if (replaceFields) {
                 // Replace _glpd with marker
                 assertThat(docObjectNode.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();

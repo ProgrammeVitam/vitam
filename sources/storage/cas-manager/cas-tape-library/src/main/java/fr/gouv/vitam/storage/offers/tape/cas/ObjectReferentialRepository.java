@@ -36,7 +36,7 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
@@ -172,6 +172,6 @@ public class ObjectReferentialRepository {
 
     private <T> T fromBson(Document document, Class<T> clazz)
         throws InvalidParseOperationException {
-        return JsonHandler.getFromString(BsonHelper.stringify(document), clazz);
+        return BsonHelper.fromDocumentToObject(document, clazz);
     }
 }
