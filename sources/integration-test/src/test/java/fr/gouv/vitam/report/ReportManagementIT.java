@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -360,7 +359,8 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         Map<String, String> reportEntriesById = new HashMap<>();
 
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(inputStream)) {
+        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
+            new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE)) {
 
             while (jsonLineIterator.hasNext()) {
                 JsonLineModel entry = jsonLineIterator.next();

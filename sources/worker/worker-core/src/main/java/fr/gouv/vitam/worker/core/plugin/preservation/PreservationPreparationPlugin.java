@@ -68,7 +68,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -120,6 +120,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationPreparationPlugin.class);
 
     private static final String PRESERVATION_PREPARATION = "PRESERVATION_PREPARATION";
+    private static final TypeReference<JsonLineModel> JSON_LINE_MODEL_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     private final AdminManagementClientFactory adminManagementClientFactory;
 
@@ -269,7 +271,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
                 cpt++;
 
                 try (final InputStream inputStream = new FileInputStream(distributionFileForFormatId);
-                    JsonLineIterator jsonLineIterator = new JsonLineIterator(inputStream)) {
+                    JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(inputStream,
+                        JSON_LINE_MODEL_TYPE_REFERENCE)) {
 
                     while (jsonLineIterator.hasNext()) {
                         JsonLineModel model = jsonLineIterator.next();

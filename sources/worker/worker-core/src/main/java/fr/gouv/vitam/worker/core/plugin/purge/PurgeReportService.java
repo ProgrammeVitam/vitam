@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin.purge;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -56,7 +56,8 @@ public class PurgeReportService {
     static final String OBJECT_GROUP_REPORT_JSONL = "objectGroupReport.jsonl";
     static final String DISTINCT_REPORT_JSONL = "unitObjectGroups.jsonl";
     static final String ACCESSION_REGISTER_REPORT_JSONL = "accession_register.jsonl";
-
+    private static final TypeReference<JsonLineModel> JSON_LINE_MODEL_TYPE_REFERENCE = new TypeReference<>() {
+    };
     private final BatchReportClientFactory batchReportClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
 
@@ -115,7 +116,9 @@ public class PurgeReportService {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             Response reportResponse = workspaceClient.getObject(processId, DISTINCT_REPORT_JSONL);
-            JsonLineIterator jsonLineIterator = new JsonLineIterator(new VitamAsyncInputStream(reportResponse));
+            JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
+                new JsonLineGenericIterator<>(new VitamAsyncInputStream(reportResponse),
+                    JSON_LINE_MODEL_TYPE_REFERENCE);
 
             return CloseableIteratorUtils.map(jsonLineIterator, JsonLineModel::getId);
 
