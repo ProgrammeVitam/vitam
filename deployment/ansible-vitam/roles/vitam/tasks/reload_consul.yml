@@ -1,0 +1,32 @@
+---
+
+- debug:
+    msg: "Reload vitam-{{ consul_component }} service"
+- name: reload consul
+  service:
+    name: "vitam-{{ consul_component }}"
+    state: reloaded
+
+- name: check if service name is resolved
+  block:
+  - debug:
+      msg: "Check {{ vitam_struct.host }}:{{ vitam_struct.port_service }} is started"
+  - wait_for:
+      host: "{{ vitam_struct.host }}"
+      port: "{{ vitam_struct.port_service }}"
+      state: started
+  when: ( vitam_struct.vitam_component != vitam.storageofferdefault.vitam_component ) and
+        ( ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components ) )
+
+- name: check if service name is resolved
+  block:
+  - debug:
+      msg: "Check {{ offer_conf }}.service.{{ consul_domain }}:{{ vitam_struct.port_service }} is started"
+  - wait_for:
+      host: "{{ offer_conf }}.service.{{ consul_domain }}"
+      port: "{{ vitam_struct.port_service }}"
+      state: started
+  when: ( vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component ) and
+        ( ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components ) )

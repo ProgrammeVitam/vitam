@@ -1,0 +1,25 @@
+---
+
+- debug:
+    msg: Restart and check {{ package_name }} service
+
+- name: restart the service
+  service:
+    name: "{{ package_name }}"
+    state: restarted
+
+- name: "Check if service is listening on service port (tcp check)"
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ vitam_struct.port_service }}"
+    state: started
+
+- name: "Check if service is listening on service port (http check)"
+  uri:
+    url: "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/admin/v1/status"
+  register: result
+  until:
+    - result.status is defined
+    - result.status == 200
+  retries: "{{ vitam_defaults.services.status_retries_number }}"
+  delay: "{{ vitam_defaults.services.status_retries_delay }}"
