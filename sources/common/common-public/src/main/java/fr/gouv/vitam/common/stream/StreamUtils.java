@@ -54,7 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class StreamUtils {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StreamUtils.class);
-    private static final int BUFFER_SIZE = 65536;
+    private static final int BUFFER_SIZE = 8192;
 
     private StreamUtils() {
         // Empty
@@ -202,8 +202,14 @@ public class StreamUtils {
         if (inputStream == null) {
             return read;
         }
-        final byte[] buffer = new byte[BUFFER_SIZE];
         try {
+            // Try read first byte before allocating buffers...
+            if(inputStream.read() == -1) {
+                return read;
+            }
+            read++;
+
+            final byte[] buffer = new byte[BUFFER_SIZE];
             int len;
             while ((len = inputStream.read(buffer)) >= 0) {
                 read += len;

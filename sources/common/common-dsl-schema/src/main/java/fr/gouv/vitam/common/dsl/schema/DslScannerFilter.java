@@ -41,13 +41,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -86,19 +85,19 @@ public class DslScannerFilter implements ContainerRequestFilter {
         try {
             final InputStream bodyInputStream = requestContext.getEntityStream();
             final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            StreamUtils.copy(bodyInputStream, bout);
+            bodyInputStream.transferTo(bout);
             switch (this.dslSchema) {
                 case SELECT_MULTIPLE:
-                    selectMultipleSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    selectMultipleSchemaValidator.validate(JsonHandler.getFromInputStream(bout.toInputStream()));
                     break;
                 case SELECT_SINGLE:
-                    selectSingleSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    selectSingleSchemaValidator.validate(JsonHandler.getFromInputStream(bout.toInputStream()));
                     break;
                 case BATCH_PROCESSING:
-                    batchProcessingQuerySchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    batchProcessingQuerySchemaValidator.validate(JsonHandler.getFromInputStream(bout.toInputStream()));
                     break;
                 case GET_BY_ID:
-                    getByIdSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    getByIdSchemaValidator.validate(JsonHandler.getFromInputStream(bout.toInputStream()));
                     break;
                 case UPDATE_BY_ID:
                     updateByIdSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
@@ -116,7 +115,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
                             .toResponse());
 
             }
-            requestContext.setEntityStream(new ByteArrayInputStream(bout.toByteArray()));
+            requestContext.setEntityStream(bout.toInputStream());
         } catch (ValidationException e) {
             LOGGER.warn(e);
             requestContext.abortWith(
