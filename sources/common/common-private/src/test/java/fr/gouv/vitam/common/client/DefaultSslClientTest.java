@@ -150,13 +150,12 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
     }
 
     @Test
-    @Ignore("certificate is expired, until this certif is not re-generated, we are forced to skip this..")
     public void givenCertifValidThenReturnOK() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+            new VitamClientFactory<>(configuration, BASE_URI) {
 
                 @Override
                 public DefaultClient getClient() {
@@ -190,7 +189,7 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+            new VitamClientFactory<>(configuration, BASE_URI) {
 
                 @Override
                 public DefaultClient getClient() {
@@ -218,8 +217,9 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
+        // TODO: remake this test. Check if it's the correct exception (expired and not just Internal Server Error)
         final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+            new VitamClientFactory<>(configuration, BASE_URI) {
 
                 @Override
                 public DefaultClient getClient() {
