@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.serverv2.SslConfig;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.Path;
@@ -154,7 +155,7 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+            new VitamClientFactory<>(configuration, BASE_URI) {
 
                 @Override
                 public DefaultClient getClient() {
@@ -188,7 +189,7 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+            new VitamClientFactory<>(configuration, BASE_URI) {
 
                 @Override
                 public DefaultClient getClient() {
@@ -216,8 +217,9 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
+        // TODO: remake this test. Check if it's the correct exception (expired and not just Internal Server Error)
         final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+            new VitamClientFactory<>(configuration, BASE_URI) {
 
                 @Override
                 public DefaultClient getClient() {
