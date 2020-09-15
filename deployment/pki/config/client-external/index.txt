@@ -110,3 +110,4 @@ V	99991231235959Z		012F	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=gatling
 V	99991231235959Z		0130	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=vitam-admin-int
 V	99991231235959Z		0131	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette
 V	99991231235959Z		0132	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=reverse
+V	200601235959Z		0133	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=client-expired
