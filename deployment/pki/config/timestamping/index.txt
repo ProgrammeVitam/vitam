@@ -44,3 +44,7 @@ V	281016083101Z		CE	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_ro
 V	281016083102Z		CF	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_timestamping
 V	211018084059Z		D0	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook
 V	211018084100Z		D1	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-storage
+V	99991231235959Z		D2	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_timestamping
+V	99991231235959Z		D3	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_timestamping
+V	99991231235959Z		D4	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-logbook
+V	99991231235959Z		D5	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=secure-storage
