@@ -119,6 +119,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.util.Lists.newArrayList;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * StorageTwoOffersIT class
@@ -509,7 +510,7 @@ public class StorageTwoOffersIT {
 
         // Given
         Random random = new Random();
-        int NB_ACTIONS = 400;
+        int NB_ACTIONS = 200;
         List<String> existingFileNames = new ArrayList<>();
         int cpt = 0;
 
@@ -736,12 +737,13 @@ public class StorageTwoOffersIT {
         throws IOException {
         assertThat(offerSyncResponseItemCall.code()).isEqualTo(200);
 
-        awaitSynchronizationTermination(60);
+        awaitSynchronizationTermination(120);
 
         Response<OfferSyncStatus> offerSyncStatusResponse =
             offerSyncAdminResource.getLastOfferSynchronizationStatus(getBasicAuthnToken()).execute();
         assertThat(offerSyncStatusResponse.code()).isEqualTo(200);
         OfferSyncStatus offerSyncStatus = offerSyncStatusResponse.body();
+        assertNotNull(offerSyncStatus);
         assertThat(offerSyncStatus.getStatusCode()).isEqualTo(StatusCode.OK);
         assertThat(offerSyncStatus.getStartDate()).isNotNull();
         assertThat(offerSyncStatus.getEndDate()).isNotNull();
@@ -766,7 +768,7 @@ public class StorageTwoOffersIT {
         StopWatch stopWatch = StopWatch.createStarted();
         boolean isRunning = true;
         while (isRunning && stopWatch.getTime(TimeUnit.SECONDS) < timeoutInSeconds) {
-            Response offerSynchronizationRunning =
+            Response<Void> offerSynchronizationRunning =
                 offerSyncAdminResource.isOfferSynchronizationRunning(getBasicAuthnToken()).execute();
             assertThat(offerSynchronizationRunning.code()).isEqualTo(200);
             isRunning = Boolean.parseBoolean(offerSynchronizationRunning.headers().get("Running"));

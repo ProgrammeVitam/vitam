@@ -102,10 +102,10 @@
     <!-- =========================================================== -->            
     <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory$Server">
         <Set name="KeyStorePath">src/test/resources/tls/server/keystore.jks</Set>
-        <Set name="KeyStorePassword">azerty</Set>
-        <Set name="KeyManagerPassword">azerty</Set>
+        <Set name="KeyStorePassword">azerty3</Set>
+        <Set name="KeyManagerPassword">azerty3</Set>
         <Set name="TrustStorePath">src/test/resources/tls/server/truststore.jks</Set> 
-        <Set name="TrustStorePassword">tazerty</Set> 
+        <Set name="TrustStorePassword">azerty10</Set> 
         <Set name="TrustStoreType">JKS</Set>
         <Set name="NeedClientAuth">false</Set>
         <Set name="WantClientAuth">true</Set>
