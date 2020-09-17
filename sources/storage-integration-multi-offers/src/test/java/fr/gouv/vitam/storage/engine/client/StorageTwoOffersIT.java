@@ -510,7 +510,7 @@ public class StorageTwoOffersIT {
 
         // Given
         Random random = new Random();
-        int NB_ACTIONS = 400;
+        int NB_ACTIONS = 200;
         List<String> existingFileNames = new ArrayList<>();
         int cpt = 0;
 
