@@ -737,7 +737,7 @@ public class StorageTwoOffersIT {
         throws IOException {
         assertThat(offerSyncResponseItemCall.code()).isEqualTo(200);
 
-        awaitSynchronizationTermination(120);
+        awaitSynchronizationTermination(240);
 
         Response<OfferSyncStatus> offerSyncStatusResponse =
             offerSyncAdminResource.getLastOfferSynchronizationStatus(getBasicAuthnToken()).execute();
