@@ -1,6 +1,8 @@
 Notes et procédures spécifiques R15
 ###################################
 
+.. |repertoire_inventory| replace:: ``environments``
+
 
 Étapes préalables à la montée de version
 ========================================
