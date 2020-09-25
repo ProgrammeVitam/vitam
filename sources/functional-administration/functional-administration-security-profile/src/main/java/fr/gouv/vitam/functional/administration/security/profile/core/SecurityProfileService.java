@@ -353,6 +353,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
             checkSecurityProfilePermissions(permissions, error, UPDATE_SECURITY_PROFILE_UNKNOW_PERMISSION_KEY);
             if (error.getErrors().size() > 0) {
                 error.setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                String errorsDetails = error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+                manager.logValidationError(errorsDetails, SECURITY_PROFILE_UPDATE_EVENT);
                 return error;
             }
 

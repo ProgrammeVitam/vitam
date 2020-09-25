@@ -32,10 +32,49 @@ X-Tenant-Id: {{tenant}}
     "Name": "demo-security-profile007",
     "FullAccess": false,
     "Permissions": [
-        "securityprofiles:create",
+        "securityprofiles:create:json",
         "securityprofiles:read",
         "securityprofiles:id:read",
         "securityprofiles:id:update"
     ]
   }
 ]
+
+### Création d'un profil de sécurité avec le nom 'demo-security-profile008' avec une permission inexistante
+POST {{url-access}}/admin-external/v1/securityprofiles/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+  {
+    "Identifier": "demo-security-profile008",
+    "Name": "demo-security-profile008",
+    "FullAccess": false,
+    "Permissions": [
+        "securityprofiles:test",
+        "securityprofiles:read",
+        "securityprofiles:id:read",
+        "securityprofiles:id:update"
+    ]
+  }
+]
+
+### Mise à jour du profil de sécurité 'admin-security-profile' avec une permission qui n'existe pas
+PUT {{url-access}}/admin-external/v1/securityprofiles/demo-security-profile009
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Security-Profile-Id: admin-security-profile
+
+{
+  "$action": [
+      {
+          "$set": {
+              "Permissions": [
+                  "toto"
+               ]
+           }
+       }
+  ]
+}
