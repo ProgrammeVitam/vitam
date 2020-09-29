@@ -101,3 +101,10 @@ V	211018084050Z		0107	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.se
 V	211018084053Z		0108	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer.service.consul
 V	211018084055Z		0109	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.consul
 V	211018084057Z		010A	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.consul
+V	99991231235959Z		010B	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_server
+V	99991231235959Z		010C	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_server
+V	99991231235959Z		010D	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.service.local.consul
+V	99991231235959Z		010E	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.local.consul
+V	99991231235959Z		010F	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer.service.local.consul
+V	99991231235959Z		0110	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.local.consul
+V	99991231235959Z		0111	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.local.consul

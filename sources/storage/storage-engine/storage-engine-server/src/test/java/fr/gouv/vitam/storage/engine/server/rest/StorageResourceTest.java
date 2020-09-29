@@ -890,7 +890,7 @@ public class StorageResourceTest {
 
                 TimeStampSignature timeStampSignature;
                 try {
-                    final File file = PropertiesUtils.findFile("keystore_logbook.p12");
+                    final File file = PropertiesUtils.findFile("keystore_secure-logbook.p12");
                     timeStampSignature =
                         new TimeStampSignatureWithKeystore(file, "azerty8".toCharArray());
                 } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
