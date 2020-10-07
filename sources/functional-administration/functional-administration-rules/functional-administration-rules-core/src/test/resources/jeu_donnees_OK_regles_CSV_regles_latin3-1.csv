@@ -109,3 +109,6 @@ APP-1069004,AppraisalRule,Certificat de nationalité,"Durée de conservation des d
 L'échéance est calculée à partir de la date de naissance de l'agent",10,Year
 DIS-1069001,DisseminationRule,Actes de décès,"Délai de diffusion en ligne des actes de décès
 L'échéance est calculée à partir de la date d'enregistrement du décès",50,Year
+HOL-00001,HoldRule,Règle de gel sans durée déterminée,"Nouvelle description",,
+HOL-00002,HoldRule,Règle de gel avec durée fixe,"Durée de gel des archives de 5 ans",5,YEAR
+HOL-00003,HoldRule,Règle de gel avec durée fixe,"Durée de gel des archives de 1 ans",1,YEAR

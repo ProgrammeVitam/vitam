@@ -1,0 +1,2 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+HOL-00001,HoldRule,Règle de gel sans durée mais avec mesure,"Règle de gel sans durée mais avec mesure",,YEAR
