@@ -85,9 +85,14 @@ describe('SearchReferentialsComponent', () => {
     expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithRuleMeasurement)).toEqual('40 mois');
 
     const itemWithoutRuleMeasurement = {
-      'RuleDuration': '40'
+      'RuleDuration': 'UNLIMITED',
+      'RuleMeasurement': 'year'
     };
-    expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithoutRuleMeasurement)).toEqual('40');
+    expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithoutRuleMeasurement)).toEqual('illimitée');
+
+    const itemWithoutRuleMeasurementAndDuration = {
+    };
+    expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithoutRuleMeasurementAndDuration)).toEqual('indéterminée');
   });
 
   it('should do initial sort', () => {
