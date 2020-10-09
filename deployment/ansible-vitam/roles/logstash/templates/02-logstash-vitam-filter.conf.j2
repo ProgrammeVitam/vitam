@@ -268,7 +268,7 @@ filter
              keep_empty_captures => true
              match => [
                  "message",
-                 "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<java_thread>.*)\]\]%{SPACE}\[(?<request_id>.*)?\]%{SPACE}%{LOGLEVEL:log_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
+                 "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<java_thread>[\w-]*)\]\]%{SPACE}\[(?<request_id>\w*)\]%{SPACE}%{LOGLEVEL:log_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
              ]
              match => [
                  "msg_data",
