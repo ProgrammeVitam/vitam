@@ -425,7 +425,7 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException {
+    public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException, StorageDriverNotFoundException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
@@ -445,7 +445,7 @@ public class ConnectionImpl extends AbstractConnection {
             }
             InputStream rawResponseInputStream = response.readEntity(InputStream.class);
             return new ObjectEntryReader(rawResponseInputStream);
-        } catch (Exception exc) {
+        } catch (VitamClientInternalException exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageDriverException(getDriverName(), true, exc);
         }

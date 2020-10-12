@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -380,7 +381,7 @@ public class StorageTestMultiIT {
                 ObjectEntry node = result.next();
                 TestCase.assertNotNull(node);
                 Assert.assertFalse(result.hasNext());
-            } catch (StorageServerClientException exc) {
+            } catch (StorageClientException exc) {
                 Assert.fail("Should not raize an exception");
             }
         }
@@ -435,7 +436,7 @@ public class StorageTestMultiIT {
                 ObjectEntry node = result.next();
                 TestCase.assertNotNull(node);
                 Assert.assertFalse(result.hasNext());
-            } catch (StorageServerClientException exc) {
+            } catch (StorageClientException exc) {
                 Assert.fail("Should not raize an exception");
             }
 
@@ -770,7 +771,7 @@ public class StorageTestMultiIT {
                 TestCase.assertNotNull(result.next());
             }
             TestCase.assertEquals(150, count);
-        } catch (StorageServerClientException exc) {
+        } catch (StorageClientException exc) {
             Assert.fail("Should not raize an exception");
         }
     }

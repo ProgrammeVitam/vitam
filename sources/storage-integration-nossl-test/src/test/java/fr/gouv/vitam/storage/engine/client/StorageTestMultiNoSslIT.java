@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -326,7 +327,7 @@ public class StorageTestMultiNoSslIT {
             ObjectEntry node = result.next();
             TestCase.assertNotNull(node);
             Assert.assertFalse(result.hasNext());
-        } catch (StorageServerClientException exc) {
+        } catch (StorageClientException exc) {
             Assert.fail("Should not raize an exception");
         }
         Thread.sleep(10);
@@ -379,7 +380,7 @@ public class StorageTestMultiNoSslIT {
                 ObjectEntry node = result.next();
                 TestCase.assertNotNull(node);
                 Assert.assertFalse(result.hasNext());
-            } catch (StorageServerClientException exc) {
+            } catch (StorageClientException exc) {
                 Assert.fail("Should not raize an exception");
             }
 
@@ -605,7 +606,7 @@ public class StorageTestMultiNoSslIT {
                 TestCase.assertNotNull(result.next());
             }
             TestCase.assertEquals(150, count);
-        } catch (StorageServerClientException exc) {
+        } catch (StorageClientException exc) {
             Assert.fail("Should not raize an exception");
         }
     }
