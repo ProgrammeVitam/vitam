@@ -186,13 +186,14 @@ public class LogbookLFCAdministration {
         LogbookOperation lastLfcTraceabilityOperation) throws VitamException {
 
         if (lastLfcTraceabilityOperation == null) {
-            // Very first traceability operation
+            LOGGER.info("No traceability with Zip. This is the very first traceability operation");
             return null;
         }
 
         // Check if last traceability has a zip file
         TraceabilityEvent traceabilityEvent = getTraceabilityEvent(lastLfcTraceabilityOperation);
         if (traceabilityEvent != null && traceabilityEvent.getFileName() != null) {
+            LOGGER.info("Last traceability operation " + lastLfcTraceabilityOperation.getId() + "has a Zip.");
             return lastLfcTraceabilityOperation;
         }
 
@@ -206,7 +207,7 @@ public class LogbookLFCAdministration {
         throws InvalidParseOperationException {
 
         if (lastLfcTraceabilityOperation == null) {
-            // Very first traceability operation
+            LOGGER.info("Very first traceability operation. Traceability required");
             return true;
         }
 

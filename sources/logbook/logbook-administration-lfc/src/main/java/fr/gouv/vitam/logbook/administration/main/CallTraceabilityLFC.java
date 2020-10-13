@@ -153,7 +153,7 @@ public class CallTraceabilityLFC {
                 operationId = runLfcTraceability(tenantId, traceabilityType, client);
 
                 if(operationId == null) {
-                    // No traceability required
+                    LOGGER.info("No " + traceabilityType + " LFC traceability required for tenant " + tenantId);
                     return false;
                 }
 
