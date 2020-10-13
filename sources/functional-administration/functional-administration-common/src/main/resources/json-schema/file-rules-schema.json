@@ -56,5 +56,13 @@
       "$ref": "#/definitions/date-opt-time"
     }
   },
-  "required": ["_id", "_tenant", "_v", "RuleId", "RuleType", "RuleValue", "RuleDuration", "RuleMeasurement", "CreationDate", "UpdateDate"]
+  "required": ["_id", "_tenant", "_v", "RuleId", "RuleType", "RuleValue", "CreationDate", "UpdateDate"],
+  "anyOf": [
+    {
+      "properties": {
+        "RuleType": { "enum" : ["HoldRule"] }
+      }
+    },
+    { "required": ["RuleDuration", "RuleMeasurement"] }
+  ]
 }

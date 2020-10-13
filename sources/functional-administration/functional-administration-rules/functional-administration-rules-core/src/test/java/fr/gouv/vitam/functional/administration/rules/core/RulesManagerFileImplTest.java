@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
@@ -705,17 +704,15 @@ public class RulesManagerFileImplTest {
         assertThatCode(() -> when(logbookOperationsClient.selectOperation(Matchers.anyObject()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, 0))).doesNotThrowAnyException();
 
-        Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
-        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-
         // When
         assertThatThrownBy(() -> rulesFileManager
             .getRulesFromCSV(new FileInputStream(PropertiesUtils.findFile(filename))))
             .isInstanceOf(IOException.class);
 
-        return rulesFileManager.generateReportContent(errorsMap, usedDeletedRules, usedUpdatedRules,
-            Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), StatusCode.KO, null);
+        return rulesFileManager
+            .generateReportContent(Collections.emptyMap(), Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                StatusCode.KO, null);
     }
 
     @Test
@@ -840,7 +837,7 @@ public class RulesManagerFileImplTest {
         return rulesFileManager
             .generateReportContent(((FileRulesReadException) thrown).getErrorsMap(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                StatusCode.KO, null);
+                Collections.emptyList(), StatusCode.KO, null);
     }
 
     @Test

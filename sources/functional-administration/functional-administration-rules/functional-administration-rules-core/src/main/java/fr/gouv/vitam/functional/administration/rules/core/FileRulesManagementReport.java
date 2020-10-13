@@ -47,6 +47,8 @@ public class FileRulesManagementReport {
     @JsonProperty("deletedRules")
     private List<String> fileRulesToDelete = new ArrayList<>();
 
+    @JsonProperty("usedRulesWithDurationModeUpdate")
+    private List<String> usedRulesWithDurationModeUpdate = new ArrayList<>();
     @JsonProperty("usedFileRulesToDelete")
     private List<String> usedFileRulesToDelete = new ArrayList<>();
     @JsonProperty("usedFileRulesToUpdate")
@@ -112,6 +114,14 @@ public class FileRulesManagementReport {
 
     public void setUsedFileRulesToUpdate(List<String> usedFileRulesToUpdate) {
         this.usedFileRulesToUpdate = usedFileRulesToUpdate;
+    }
+
+    public List<String> getUsedRulesWithDurationModeUpdate() {
+        return usedRulesWithDurationModeUpdate;
+    }
+
+    public void setUsedRulesWithDurationModeUpdate(List<String> usedRulesWithDurationModeUpdate) {
+        this.usedRulesWithDurationModeUpdate = usedRulesWithDurationModeUpdate;
     }
 
     /**

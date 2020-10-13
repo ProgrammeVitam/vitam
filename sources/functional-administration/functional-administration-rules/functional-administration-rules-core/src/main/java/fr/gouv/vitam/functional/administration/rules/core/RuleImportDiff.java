@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.rules.core;
 
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,34 +43,36 @@ public class RuleImportDiff {
     private final List<FileRulesModel> rulesToUpdateUnsafely;
     private final List<FileRulesModel> rulesToUpdate;
     private final List<FileRulesModel> rulesToDelete;
+    private final List<FileRulesModel> rulesWithDurationModeUpdate;
 
     private RuleImportDiff() {
         this.rulesToInsert = new ArrayList<>();
         this.rulesToUpdateUnsafely = new ArrayList<>();
         this.rulesToDelete = new ArrayList<>();
         this.rulesToUpdate = new ArrayList<>();
+        this.rulesWithDurationModeUpdate = new ArrayList<>();
     }
 
     RuleImportDiff(List<FileRulesModel> rulesFromFileIds,
-                   List<FileRulesModel> rulesInDatabaseIds) {
+        List<FileRulesModel> rulesInDatabaseIds) {
         this();
         getDiff(Optional.ofNullable(rulesFromFileIds).orElse(Collections.emptyList()),
-                Optional.ofNullable(rulesInDatabaseIds).orElse(Collections.emptyList()));
+            Optional.ofNullable(rulesInDatabaseIds).orElse(Collections.emptyList()));
     }
 
     RuleImportDiff(Map<String, FileRulesModel> rulesFromFile,
-                   Map<String, FileRulesModel> rulesInDatabase) {
+        Map<String, FileRulesModel> rulesInDatabase) {
         this();
         getDiff(Optional.ofNullable(rulesFromFile).orElse(Collections.emptyMap()),
-                Optional.ofNullable(rulesInDatabase).orElse(Collections.emptyMap()));
+            Optional.ofNullable(rulesInDatabase).orElse(Collections.emptyMap()));
     }
-    
+
     private void getDiff(List<FileRulesModel> rulesFromFileIds,
-                         List<FileRulesModel> rulesInDatabaseIds) {
+        List<FileRulesModel> rulesInDatabaseIds) {
         Map<String, FileRulesModel> rulesInDatabase = rulesInDatabaseIds.stream()
-                .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
+            .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
         Map<String, FileRulesModel> rulesFromFile = rulesFromFileIds.stream()
-                .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
+            .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
         getDiff(rulesFromFile, rulesInDatabase);
     }
 
@@ -79,9 +82,14 @@ public class RuleImportDiff {
             if (ruleInDatabase != null) {
                 if (!ruleInDatabase.equals(rule)) {
                     addRuleToUpdate(rule);
-                    if (!ruleInDatabase.getRuleDuration().equals(rule.getRuleDuration())
-                            || !ruleInDatabase.getRuleMeasurement().equals(rule.getRuleMeasurement())) {
+
+                    if (hasRuleDurationChanged(ruleInDatabase, rule)) {
                         addRuleToUpdateUnsafely(rule);
+                    }
+
+                    if (isUpdateOfOldRuleWithoutDurationToNewRuleWithDuration(ruleInDatabase, rule) ||
+                        isUpdateOfOldRuleWithDurationToNewRuleWithoutDuration(ruleInDatabase, rule)) {
+                        addRuleToUpdateWithDurationModeSwitch(rule);
                     }
                 }
             } else {
@@ -90,10 +98,30 @@ public class RuleImportDiff {
         }
 
         for (FileRulesModel databaseRule : rulesInDatabase.values()) {
-            if(!rulesFromFile.containsKey(databaseRule.getRuleId())) {
+            if (!rulesFromFile.containsKey(databaseRule.getRuleId())) {
                 addRuleToDelete(databaseRule);
             }
         }
+    }
+
+    private boolean hasRuleDurationChanged(FileRulesModel oldRule, FileRulesModel newRule) {
+        boolean sameRuleDuration = StringUtils.equals(oldRule.getRuleDuration(), newRule.getRuleDuration());
+        boolean sameRuleMeasurement = StringUtils.equals(oldRule.getRuleMeasurement(), newRule.getRuleMeasurement());
+        return !sameRuleDuration || !sameRuleMeasurement;
+    }
+
+    private boolean isUpdateOfOldRuleWithoutDurationToNewRuleWithDuration(FileRulesModel oldRule,
+        FileRulesModel newRule) {
+        return !hasRuleDuration(oldRule) && hasRuleDuration(newRule);
+    }
+
+    private boolean isUpdateOfOldRuleWithDurationToNewRuleWithoutDuration(FileRulesModel oldRule,
+        FileRulesModel newRule) {
+        return hasRuleDuration(oldRule) && !hasRuleDuration(newRule);
+    }
+
+    private boolean hasRuleDuration(FileRulesModel rule) {
+        return rule.getRuleDuration() != null;
     }
 
     private void addRuleToInsert(FileRulesModel rule) {
@@ -102,6 +130,10 @@ public class RuleImportDiff {
 
     private void addRuleToUpdateUnsafely(FileRulesModel rule) {
         rulesToUpdateUnsafely.add(rule);
+    }
+
+    private void addRuleToUpdateWithDurationModeSwitch(FileRulesModel rule) {
+        rulesWithDurationModeUpdate.add(rule);
     }
 
     private void addRuleToUpdate(FileRulesModel rule) {
@@ -118,6 +150,10 @@ public class RuleImportDiff {
 
     public List<FileRulesModel> getRulesToUpdateUnsafely() {
         return rulesToUpdateUnsafely;
+    }
+
+    public List<FileRulesModel> getRulesWithDurationModeUpdate() {
+        return rulesWithDurationModeUpdate;
     }
 
     public List<FileRulesModel> getRulesToDelete() {
