@@ -112,7 +112,7 @@ public class StorageTestMultiNoSslIT {
     private static int workspacePort = 8987;
     private static int defaultOfferPort = 8575;
     private static int storageEnginePort = 8583;
-    
+
     private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
     private static DefaultOfferMain defaultOfferApplication;
@@ -182,7 +182,7 @@ public class StorageTestMultiNoSslIT {
         serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
 
         PropertiesUtils.writeYaml(storageConfigurationFile, serverConfiguration);
-        
+
         File staticOffersFile = PropertiesUtils.findFile("static-offer.json");
         ArrayNode staticOffers = (ArrayNode) JsonHandler.getFromFile(staticOffersFile);
         ObjectNode defaultOffer = (ObjectNode) staticOffers.get(0);
@@ -190,7 +190,7 @@ public class StorageTestMultiNoSslIT {
         try (FileOutputStream outputStream = new FileOutputStream(staticOffersFile)) {
             IOUtils.write(JsonHandler.prettyPrint(staticOffers), outputStream, CharsetUtils.UTF_8);
         }
-        
+
         // prepare storage
         storageEnginePort = JunitHelper.getInstance().findAvailablePort();
         SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, storageEnginePort);
@@ -609,6 +609,19 @@ public class StorageTestMultiNoSslIT {
         } catch (StorageClientException exc) {
             Assert.fail("Should not raize an exception");
         }
+
     }
 
+
+    @RunWithCustomExecutor
+    @Test(expected = StorageNotFoundClientException.class)
+    public void listingTestErrorWhenContainerNotFound() throws StorageNotFoundClientException {
+        VitamThreadUtils.getVitamSession().setTenantId(99);
+        try (CloseableIterator<ObjectEntry> ignored = storageClient
+            .listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
+            Assert.fail("Should raize StorageNotFoundClientException exception");
+        } catch (StorageServerClientException e) {
+            Assert.fail("Should raize StorageNotFoundClientException exception");
+        }
+    }
 }
