@@ -796,7 +796,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response launchReferentialAudit(AuditReferentialOptions referentialAuditOptions) {
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         ReferentialAuditService referentialAuditService =
-            new ReferentialAuditService(storageClientFactory, mongoAccess, vitamCounterService);
+            new ReferentialAuditService(storageClientFactory, vitamCounterService);
         try {
             referentialAuditService.runAudit(referentialAuditOptions.getCollectionName(), tenant);
         } catch (StorageNotFoundClientException | StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
