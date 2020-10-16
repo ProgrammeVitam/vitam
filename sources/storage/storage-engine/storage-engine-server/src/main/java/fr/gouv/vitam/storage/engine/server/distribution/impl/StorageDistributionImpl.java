@@ -988,6 +988,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             StorageListRequest request = new StorageListRequest(tenantId, category.getFolder());
             return connection.listObjects(request);
 
+        } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
+            throw new StorageDriverNotFoundException(exc);
         } catch (final StorageDriverException exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageTechnicalException(exc);

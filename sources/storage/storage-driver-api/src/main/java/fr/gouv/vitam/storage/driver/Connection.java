@@ -93,9 +93,11 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      * @throws IllegalArgumentException if request is wrong
      */
-    RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(StorageObjectRequest request) throws StorageDriverException;
+    RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(StorageObjectRequest request)
+        throws StorageDriverException;
 
-    RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException;
+    RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(String readOrderRequestId, int tenant)
+        throws StorageDriverException;
 
     void removeReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException;
 
@@ -112,6 +114,7 @@ public interface Connection extends AutoCloseable {
 
     /**
      * Bulk put object files into the storage offer.
+     *
      * @throws StorageDriverException if any problem occurs during request
      */
     StorageBulkPutResult bulkPutObjects(StorageBulkPutRequest request) throws StorageDriverException;
@@ -136,7 +139,7 @@ public interface Connection extends AutoCloseable {
 
     /**
      * Get metadata of object
-     * 
+     *
      * @param request
      * @return a result that may contain information about the storage metadata
      * @throws StorageDriverException
@@ -150,11 +153,12 @@ public interface Connection extends AutoCloseable {
      * @return an iterator with each object metadata
      * @throws StorageDriverException
      */
-    CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException;
+    CloseableIterator<ObjectEntry> listObjects(StorageListRequest request)
+        throws StorageDriverException, StorageDriverNotFoundException;
 
     /**
      * Get a listing of offer logs on a container type
-     * 
+     *
      * @param request the request contains data needed to retrieve the listing of the container
      * @return the listing of last objects save according to the request
      * @throws StorageDriverException to be thrown in case of any driver exception
