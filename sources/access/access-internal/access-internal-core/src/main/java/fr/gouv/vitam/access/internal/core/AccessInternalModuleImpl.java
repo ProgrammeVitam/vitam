@@ -530,7 +530,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 new WorkspaceAutoCleanableStreamingOutput((InputStream) response.getEntity(), workspaceClient,
                     containerName);
             return Response.ok(so).build();
-        } catch (final StorageServerClientException | ContentAddressableStorageException e) {
+        } catch (final StorageClientException | ContentAddressableStorageException e) {
             throw new AccessInternalExecutionException(e);
         }
     }

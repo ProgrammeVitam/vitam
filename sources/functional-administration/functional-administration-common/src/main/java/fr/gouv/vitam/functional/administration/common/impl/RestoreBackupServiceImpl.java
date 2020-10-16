@@ -46,6 +46,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -116,6 +117,8 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
 
         } catch (StorageServerClientException e) {
             LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
+        } catch (StorageNotFoundClientException e) {
+            return Optional.empty();
         }
         return Optional.empty();
 

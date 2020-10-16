@@ -26,16 +26,7 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -56,6 +47,12 @@ import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformation
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Storage Client interface
@@ -189,7 +186,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException thrown if the server got an internal error
      */
     CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type)
-        throws StorageServerClientException;
+        throws StorageServerClientException, StorageNotFoundClientException;
 
 
     /**
