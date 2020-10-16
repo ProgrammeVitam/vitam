@@ -422,7 +422,7 @@ public class VitamServerRunner extends ExternalResource {
                 "upload_").toFile().getAbsolutePath());
 
         String dir = Paths.get("").toAbsolutePath().toString();
-        String userDir = StringUtils.substringBefore(dir, "/sources/");
+        String userDir = StringUtils.substringBeforeLast(dir, "/sources/");
 
         LOGGER.error("User dir :" + userDir);
         serverConfiguration.setAntiVirusScriptName(userDir + DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH);
