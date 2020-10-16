@@ -57,6 +57,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.commons.collections4.iterators.ArrayIterator;
 import org.elasticsearch.common.util.set.Sets;
 
 import javax.ws.rs.core.Response;
@@ -254,6 +255,8 @@ public class ReferentialAuditService {
     private Iterator<ObjectEntry> listObjectEntry() throws StorageServerClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             return storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP);
+        } catch (StorageNotFoundClientException e) {
+            return new ArrayIterator<>(new ObjectEntry[]{});
         }
     }
 

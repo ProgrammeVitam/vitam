@@ -482,7 +482,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type)
-        throws StorageServerClientException {
+        throws StorageServerClientException, StorageNotFoundClientException {
         ParametersChecker.checkParameter("Type cannot be null", type);
         VitamRequestBuilder request = VitamRequestBuilder.get()
             .withPath("/" + type.name())
@@ -493,16 +493,15 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             Response response = make(request);
 
             try {
-                check(response);
 
-                return new ObjectEntryReader(response.readEntity(InputStream.class));
+                return new ObjectEntryReader(handleCommonResponseStatus(response).readEntity(InputStream.class));
 
             } catch (Exception e) {
                 StreamUtils.consumeAnyEntityAndClose(response);
                 throw e;
             }
 
-        } catch (final VitamClientInternalException e) {
+        } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
         }
     }
