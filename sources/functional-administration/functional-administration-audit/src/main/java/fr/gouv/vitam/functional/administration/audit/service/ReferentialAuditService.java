@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
@@ -89,8 +88,7 @@ public class ReferentialAuditService {
     private final StorageClientFactory storageClientFactory;
     private final FunctionalBackupService functionalBackupService;
 
-    public ReferentialAuditService(StorageClientFactory storageClientFactory, MongoDbAccess mongoDbAccess,
-        VitamCounterService vitamCounterService) {
+    public ReferentialAuditService(StorageClientFactory storageClientFactory, VitamCounterService vitamCounterService) {
         this.storageClientFactory = storageClientFactory;
         this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
     }
@@ -128,7 +126,8 @@ public class ReferentialAuditService {
             return verifyCoherence(offersIds, documentsInDB, next, hashMap, collectionName, tenant);
         } else if (!documentsInDB.isEmpty()) {
             alertService.createAlert(VitamLogLevel.ERROR, String
-                .format("[KO] collection=%s, tenant=%s file not present in default offer (referent offer)", collectionName, tenant));
+                .format("[KO] collection=%s, tenant=%s file not present in default offer (referent offer)",
+                    collectionName, tenant));
             return StatusCode.KO;
         }
         return StatusCode.OK;
@@ -137,7 +136,7 @@ public class ReferentialAuditService {
     private StatusCode verifyCoherence(List<String> offerIds, ArrayNode documentsInDB, ObjectEntry next,
         Map<String, String> mapOfHashes,
         String collectionName, int tenant)
-        throws InvalidParseOperationException, StorageNotFoundException, StorageServerClientException {
+        throws StorageNotFoundException, StorageServerClientException {
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             boolean hasUniqueHash = (new HashSet<>(mapOfHashes.values())).size() == 1;
@@ -145,15 +144,22 @@ public class ReferentialAuditService {
                 Response response = storageClient
                     .getContainerAsync(VitamConfiguration.getDefaultStrategy(), next.getObjectId(), DataCategory.BACKUP,
                         AccessLogUtils.getNoLogAccessLog());
+                try {
+                    InputStream is = response.readEntity(InputStream.class);
+                    ArrayNode documentsInJson = JsonHandler
+                        .getFromJsonNode(JsonHandler.getFromInputStream(is).get(FIELD_COLLECTION),
+                            new TypeReference<>() {
+                            });
 
-                InputStream is = response.readEntity(InputStream.class);
-                ArrayNode documentsInJson = JsonHandler
-                    .getFromJsonNode(JsonHandler.getFromInputStream(is).get(FIELD_COLLECTION), new TypeReference<>() {
-                    });
+                    List<String> list = diff(documentsInDB, documentsInJson);
 
-                List<String> list = diff(documentsInDB, documentsInJson);
-
-                if (!list.isEmpty()) {
+                    if (!list.isEmpty()) {
+                        alertService.createAlert(VitamLogLevel.ERROR, String
+                            .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                                collectionName, tenant));
+                        return StatusCode.KO;
+                    }
+                }catch (InvalidParseOperationException e) {
                     alertService.createAlert(VitamLogLevel.ERROR, String
                         .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
                             collectionName, tenant));
@@ -172,28 +178,27 @@ public class ReferentialAuditService {
                     .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().readEntity(InputStream.class)))
                     .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
-                Map<String, ArrayNode> documents = new HashMap<>();
-                Map<String, Boolean> corruptedFileOfferMap = new HashMap<>();
+                Map<String, ArrayNode> documentsByOffer = new HashMap<>();
+                Set<String> listOffersThatContainsCorruptedFile = new HashSet<>();
                 collect.forEach((offerId, is) -> {
                     try {
                         JsonNode fileJson = JsonHandler.getFromInputStream(is);
                         if (fileJson != null && !(fileJson instanceof NullNode) &&
                             fileJson.has(FIELD_COLLECTION)) {
-                            documents.put(offerId, JsonHandler
-                                .getFromJsonNode(fileJson.get(FIELD_COLLECTION),
-                                    new TypeReference<>() {
-                                    }));
+                            documentsByOffer.put(offerId,
+                                JsonHandler.getFromJsonNode(fileJson.get(FIELD_COLLECTION), new TypeReference<>() {
+                                }));
                         } else {
-                            corruptedFileOfferMap.put(offerId, true);
+                            listOffersThatContainsCorruptedFile.add(offerId);
                         }
                     } catch (InvalidParseOperationException e) {
-                        corruptedFileOfferMap.put(offerId, true);
+                        listOffersThatContainsCorruptedFile.add(offerId);
                     }
                 });
 
-                Set<String> offersWhichCoherentWithDB = documents.entrySet()
+                Set<String> offersWhichCoherentWithDB = documentsByOffer.entrySet()
                     .stream()
-                    .filter(e -> !corruptedFileOfferMap.containsKey(e.getKey()))
+                    .filter(e -> !listOffersThatContainsCorruptedFile.contains(e.getKey()))
                     .filter(e -> diff(documentsInDB, e.getValue()).isEmpty())
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
@@ -268,13 +273,14 @@ public class ReferentialAuditService {
 
             JsonNode information =
                 storageClient.getInformation(strategyId, DataCategory.BACKUP, next.getObjectId(),
-                    offerIds, false);
+                    offerIds, true);
 
             Map<String, String> hashMap = offerIds.stream()
                 .map(e -> new SimpleEntry<>(e, information.get(e)))
                 .filter(e -> Objects.nonNull(e.getValue()))
                 .filter(e -> !e.getValue().isMissingNode())
                 .filter(e -> !e.getValue().isNull())
+                .filter(e -> e.getValue().has(DIGEST))
                 .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue())
                 ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
