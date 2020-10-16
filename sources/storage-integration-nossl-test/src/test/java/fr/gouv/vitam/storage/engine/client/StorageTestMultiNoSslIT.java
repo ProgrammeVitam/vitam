@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -111,7 +112,7 @@ public class StorageTestMultiNoSslIT {
     private static int workspacePort = 8987;
     private static int defaultOfferPort = 8575;
     private static int storageEnginePort = 8583;
-    
+
     private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
     private static DefaultOfferMain defaultOfferApplication;
@@ -181,7 +182,7 @@ public class StorageTestMultiNoSslIT {
         serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
 
         PropertiesUtils.writeYaml(storageConfigurationFile, serverConfiguration);
-        
+
         File staticOffersFile = PropertiesUtils.findFile("static-offer.json");
         ArrayNode staticOffers = (ArrayNode) JsonHandler.getFromFile(staticOffersFile);
         ObjectNode defaultOffer = (ObjectNode) staticOffers.get(0);
@@ -189,7 +190,7 @@ public class StorageTestMultiNoSslIT {
         try (FileOutputStream outputStream = new FileOutputStream(staticOffersFile)) {
             IOUtils.write(JsonHandler.prettyPrint(staticOffers), outputStream, CharsetUtils.UTF_8);
         }
-        
+
         // prepare storage
         storageEnginePort = JunitHelper.getInstance().findAvailablePort();
         SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, storageEnginePort);
@@ -326,7 +327,7 @@ public class StorageTestMultiNoSslIT {
             ObjectEntry node = result.next();
             TestCase.assertNotNull(node);
             Assert.assertFalse(result.hasNext());
-        } catch (StorageServerClientException exc) {
+        } catch (StorageClientException exc) {
             Assert.fail("Should not raize an exception");
         }
         Thread.sleep(10);
@@ -379,7 +380,7 @@ public class StorageTestMultiNoSslIT {
                 ObjectEntry node = result.next();
                 TestCase.assertNotNull(node);
                 Assert.assertFalse(result.hasNext());
-            } catch (StorageServerClientException exc) {
+            } catch (StorageClientException exc) {
                 Assert.fail("Should not raize an exception");
             }
 
@@ -605,9 +606,22 @@ public class StorageTestMultiNoSslIT {
                 TestCase.assertNotNull(result.next());
             }
             TestCase.assertEquals(150, count);
-        } catch (StorageServerClientException exc) {
+        } catch (StorageClientException exc) {
             Assert.fail("Should not raize an exception");
         }
+
     }
 
+
+    @RunWithCustomExecutor
+    @Test(expected = StorageNotFoundClientException.class)
+    public void listingTestErrorWhenContainerNotFound() throws StorageNotFoundClientException {
+        VitamThreadUtils.getVitamSession().setTenantId(99);
+        try (CloseableIterator<ObjectEntry> ignored = storageClient
+            .listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
+            Assert.fail("Should raize StorageNotFoundClientException exception");
+        } catch (StorageServerClientException e) {
+            Assert.fail("Should raize StorageNotFoundClientException exception");
+        }
+    }
 }
