@@ -316,6 +316,22 @@ public interface LogbookLifeCycles {
         throws InvalidParseOperationException;
 
     /**
+     * Checks existence of new unit life cycles
+     *
+     * @param startDate the selection start date
+     * @param endDate the selection end date
+     */
+    boolean checkUnitLifecycleEntriesExistenceByLastPersistedDate(String startDate, String endDate);
+
+    /**
+     * Checks existence of new object group life cycles
+     *
+     * @param startDate the selection start date
+     * @param endDate the selection end date
+     */
+    boolean checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(String startDate, String endDate);
+
+    /**
      * returns the raw version of unit life cycle
      *
      * @param id the id to retrieve

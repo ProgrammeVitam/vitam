@@ -193,16 +193,18 @@ public class LogbookResource extends ApplicationStatusResource {
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
 
-        logbookLFCAdministration = new LogbookLFCAdministration(logbookOperation, processClientFactory,
+        logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
+
+        logbookLFCAdministration = new LogbookLFCAdministration(logbookOperation, logbookLifeCycle,
+            processClientFactory,
             clientFactory, configuration.getLifecycleTraceabilityTemporizationDelay(),
+            configuration.getLifecycleTraceabilityMaxRenewalDelay(),
+            configuration.getLifecycleTraceabilityMaxRenewalDelayUnit(),
             configuration.getLifecycleTraceabilityMaxEntries());
 
         logbookAuditAdministration = new LogbookAuditAdministration(logbookOperation);
 
-        LOGGER.debug("LogbookResource operation initialized");
-
-        logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
-        LOGGER.debug("LogbookResource lifecycles initialized");
+        LOGGER.debug("LogbookResource operation & lifecycles initialized");
     }
 
     /**
@@ -2173,23 +2175,31 @@ public class LogbookResource extends ApplicationStatusResource {
             Integer tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            final GUID guid = logbookLFCAdministration.generateSecureLogbookLFC(lfcTraceabilityType);
-            final List<String> resultAsJson = new ArrayList<>();
+            final GUID guid = GUIDFactory.newOperationLogbookGUID(
+                VitamThreadUtils.getVitamSession().getTenantId());
+            VitamThreadUtils.getVitamSession().setRequestId(guid);
 
-            resultAsJson.add(guid.toString());
-            return Response.status(Status.OK)
-                .entity(new RequestResponseOK<String>()
-                    .addAllResults(resultAsJson)
-                    .setHits(1, 0, 1)
-                    .setHttpCode(Status.OK.getStatusCode()))
-                .build();
-
+            if(logbookLFCAdministration.generateSecureLogbookLFC(guid, lfcTraceabilityType)) {
+                return Response.status(Status.OK)
+                    .entity(new RequestResponseOK<String>()
+                        .addResult(guid.getId())
+                        .setHits(1, 0, 1)
+                        .setHttpCode(Status.OK.getStatusCode()))
+                    .build();
+            } else {
+                return Response.status(Status.ACCEPTED)
+                    .entity(new RequestResponseOK<String>()
+                        .setHits(0, 0, 0)
+                        .setHttpCode(Status.ACCEPTED.getStatusCode()))
+                    .build();
+            }
         } catch (VitamException e) {
             LOGGER.error("unable to generate traceability log", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new RequestResponseOK()
-                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
-                .build();
+            Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
+            VitamError vitamError = new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setMessage("Unable to generate traceability log")
+                .setDescription("Unable to generate traceability log");
+            return Response.status(status).entity(vitamError).build();
         }
     }
 

@@ -31,6 +31,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -50,6 +52,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -64,6 +67,7 @@ import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -95,6 +99,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
@@ -160,7 +165,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
+    public RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
             throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
         VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced);
         List<LogbookOperation> operations = new ArrayList<>();
@@ -319,14 +324,44 @@ public class LogbookOperationsImpl implements LogbookOperations {
         select.setLimitFilter(0, 1);
         select.setQuery(QueryHelper.and().add(type, findEvent));
         select.addOrderByDescFilter("evDateTime");
-        LogbookOperation logbookOperation = null;
         try {
-            logbookOperation =
-                mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();
+            return mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false).next();
         } catch (VitamDBException e) {
-            LOGGER.error(e);
+            throw new LogbookDatabaseException(e);
         }
-        return logbookOperation;
+    }
+
+    @Override
+    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly) throws VitamException {
+        try {
+            final Select query = new Select();
+            final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
+            final Query eventStatus = QueryHelper
+                .in(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
+                    eventType + ".OK", eventType + ".WARNING");
+
+            BooleanQuery add = and().add(type, eventStatus);
+            if(traceabilityWithZipOnly) {
+                ExistsQuery hasTraceabilityFile = exists("events.evDetData.FileName");
+                add.add(hasTraceabilityFile);
+            }
+            query.setQuery(add);
+            query.setLimitFilter(0, 1);
+
+            query.addOrderByDescFilter("evDateTime");
+
+            List<LogbookOperation> operations = select(query.getFinalSelect());
+            if (operations.isEmpty()) {
+                return null;
+            }
+            return operations.get(0);
+
+        } catch (LogbookNotFoundException e) {
+            LOGGER.debug("Logbook not found, this is the first Operation of this type");
+            return null;
+        } catch (InvalidCreateOperationException e) {
+            throw new VitamException("Could not find last LFC traceability", e);
+        }
     }
 
     @Override

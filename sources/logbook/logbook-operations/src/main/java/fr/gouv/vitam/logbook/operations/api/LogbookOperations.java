@@ -26,12 +26,8 @@
  */
 package fr.gouv.vitam.logbook.operations.api;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
@@ -39,12 +35,17 @@ import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Logbook operations interface for database operations
@@ -56,9 +57,9 @@ public interface LogbookOperations {
      *
      * @param parameters the entry parameters
      * @throws fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException if an operation with the same
-     *         eventIdentifierProcess and outcome="Started" already exists
+     * eventIdentifierProcess and outcome="Started" already exists
      * @throws fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException if errors occur while connecting
-     *         or writing to the database
+     * or writing to the database
      */
     void create(LogbookOperationParameters parameters) throws LogbookAlreadyExistsException, LogbookDatabaseException;
 
@@ -67,9 +68,9 @@ public interface LogbookOperations {
      *
      * @param parameters the entry parameters
      * @throws fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException if no operation with the same
-     *         eventIdentifierProcess exists
+     * eventIdentifierProcess exists
      * @throws fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException if errors occur while connecting
-     *         or writing to the database
+     * or writing to the database
      */
     void update(LogbookOperationParameters parameters) throws LogbookNotFoundException, LogbookDatabaseException;
 
@@ -87,10 +88,10 @@ public interface LogbookOperations {
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     RequestResponse<LogbookOperation> selectOperations(JsonNode select)
-            throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
-    RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
-            throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException;
+    RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
+        throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException;
 
     /**
      * Select logbook operation entries
@@ -120,7 +121,6 @@ public interface LogbookOperations {
      * Create one Logbook Operation with already multiple sub-events
      *
      * @param operationArray with first and next events to add/update
-     *
      * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookAlreadyExistsException if logbook already exists
@@ -134,7 +134,6 @@ public interface LogbookOperations {
      * It adds this new entry within the very same Logbook Operaton entry in "events" array.
      *
      * @param operationArray containing all operations Logbook in order
-     *
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if no operation selected cannot be found
@@ -174,16 +173,28 @@ public interface LogbookOperations {
 
     /**
      * Find last successful traceability operation
-     * 
+     *
      * @return the last valid traceability operation
      * @throws InvalidCreateOperationException if the query could not be created
-     * @throws LogbookNotFoundException  if no operation selected cannot be found
+     * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if the query could not be created
      */
     LogbookOperation findLastTraceabilityOperationOK()
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
         InvalidParseOperationException;
+
+    /**
+     * Find last OK or WARNING LFC traceability operation (even if no traceability zip has been generated)
+     *
+     * @param eventType Logbook event type
+     * @param traceabilityWithZipOnly if true, skip operation without Zip (empty operations)
+     * @return the last valid traceability operation
+     * @throws VitamException if errors occur while retrieving data
+     */
+    LogbookOperation findLastLifecycleTraceabilityOperation(
+        String eventType,
+        boolean traceabilityWithZipOnly) throws VitamException;
 
     /**
      * Reindex one or more collections

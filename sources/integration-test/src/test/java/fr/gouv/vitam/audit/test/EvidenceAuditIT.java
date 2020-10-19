@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -63,6 +62,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -89,9 +89,11 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -132,6 +134,9 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             ));
     private static DataLoader dataLoader = new DataLoader("integration-ingest-internal");
 
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
@@ -159,6 +164,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
         // Given
         String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
         doTraceabilityUnits();
         doTraceabilityGots();
 
@@ -191,6 +197,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
         // Given
         String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
         doTraceabilityUnits();
         doTraceabilityGots();
         deleteObjectInStorage(ingestOperationId);

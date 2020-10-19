@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.lifecycles.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mongodb.client.model.Projections;
 import fr.gouv.vitam.common.json.BsonHelper;
 import org.bson.Document;
 
@@ -141,8 +142,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public LogbookLifeCycle selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException, InvalidCreateOperationException {
+    public LogbookLifeCycle selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced,
+        LogbookCollections collection)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException,
+        InvalidCreateOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         if (queryDsl != null) {
             parser.parse(queryDsl);
@@ -151,7 +154,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), lifecycleId));
         return mongoDbAccess.getOneLogbookLifeCycle(select.getFinalSelect(), sliced, collection);
     }
-    
+
     @Override
     public List<LogbookLifeCycle> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
@@ -386,6 +389,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     private List<JsonNode> getRawLifecyclesByLastPersistedDate(LogbookCollections collection, String startDate,
         String endDate, int limit) throws InvalidParseOperationException {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
+        // Get new LFC entries last operation
+        // Select operations greater OR equal to startDate to include last secured elements in next traceability
         List<JsonNode> result = new ArrayList<>();
         try (MongoCursor<Document> lifecycles =
             vitamMongoRepository.findDocuments(
@@ -404,6 +409,35 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean checkUnitLifecycleEntriesExistenceByLastPersistedDate(String startDate, String endDate) {
+        return checkNewLifecycleEntriesByLastPersistedDate(LogbookCollections.LIFECYCLE_UNIT, startDate, endDate);
+    }
+
+    @Override
+    public boolean checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(String startDate, String endDate) {
+        return checkNewLifecycleEntriesByLastPersistedDate(LogbookCollections.LIFECYCLE_OBJECTGROUP, startDate,
+            endDate);
+    }
+
+    private boolean checkNewLifecycleEntriesByLastPersistedDate(LogbookCollections collection, String startDate,
+        String endDate) {
+        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
+
+        // Check if new LFC entries exist since last operation
+        // /!\ Only check for operations strictly greater startDate to "ignore" last secured elements
+        Document firstLifecycle = vitamMongoRepository.findDocuments(
+            Filters.and(
+                Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
+                Filters.gt(LogbookDocument.LAST_PERSISTED_DATE, startDate),
+                Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
+            , VitamConfiguration.getBatchSize())
+            .projection(Projections.include("_id"))
+            .limit(1).first();
+
+        return firstLifecycle != null;
     }
 
     @Override
@@ -431,7 +465,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void updateLogbookLifeCycleBulk(LogbookCollections logbookCollections, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+    public void updateLogbookLifeCycleBulk(LogbookCollections logbookCollections,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
         mongoDbAccess.updateLogbookLifeCycle(logbookCollections, logbookLifeCycleParametersBulk);
     }
 
@@ -474,7 +509,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws InvalidParseOperationException, LogbookNotFoundException {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
 
-        try(MongoCursor<Document> documents = vitamMongoRepository.findDocuments(
+        try (MongoCursor<Document> documents = vitamMongoRepository.findDocuments(
             Filters.and(
                 Filters.in(LogbookDocument.ID, ids),
                 Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
@@ -485,7 +520,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
                 results.add(JsonHandler.getFromString(BsonHelper.stringify(documents.next())));
             }
 
-            if(results.size() < ids.size()) {
+            if (results.size() < ids.size()) {
                 throw new LogbookNotFoundException("Could not find raw lifecycle by ids " + ids);
             }
             return results;

@@ -32,6 +32,8 @@ import org.junit.rules.ExternalResource;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 public class LogicalClockRule extends ExternalResource {
@@ -43,5 +45,14 @@ public class LogicalClockRule extends ExternalResource {
 
     public void logicalSleep(int amount, ChronoUnit unit) {
         LocalDateUtil.setClock(Clock.offset(LocalDateUtil.getClock(), Duration.of(amount, unit)));
+    }
+
+    public void freezeTime() {
+        LocalDateUtil.setClock(Clock.fixed(LocalDateUtil.now().toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
+    }
+
+    public void resumeTime() {
+        Duration shift = Duration.between(Clock.systemUTC().instant(), LocalDateUtil.getClock().instant());
+        LocalDateUtil.setClock(Clock.offset(Clock.systemUTC(), shift));
     }
 }

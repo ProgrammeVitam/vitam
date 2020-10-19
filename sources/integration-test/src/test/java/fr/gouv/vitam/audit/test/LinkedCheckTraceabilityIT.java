@@ -221,6 +221,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         } catch (VitamException e) {
             fail("error while ingest", e);
         }
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
         String secureUnitLFCDataOpId = secureUnitLFCData();
         VitamTestHelper.verifyOperation(secureUnitLFCDataOpId, StatusCode.OK);
 
@@ -252,6 +255,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         } catch (VitamException e) {
             fail("error while ingest", e);
         }
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
         String secureGOTLFCDataOpId = secureGOTLFCData();
         VitamTestHelper.verifyOperation(secureGOTLFCDataOpId, StatusCode.OK);
 

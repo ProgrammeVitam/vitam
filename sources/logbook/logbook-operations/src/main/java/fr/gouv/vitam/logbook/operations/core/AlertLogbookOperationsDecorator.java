@@ -37,8 +37,10 @@ import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -97,7 +99,7 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced) throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
+    public RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced) throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
         return logbookOperations.selectOperations(select, sliced);
     }
 
@@ -113,6 +115,12 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
             throws LogbookDatabaseException, LogbookNotFoundException {
         logbookOperations.updateBulkLogbookOperation(operationArray);
         createAlertIfNecessary(operationArray);
+    }
+
+    @Override
+    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly)
+        throws VitamException {
+        return logbookOperations.findLastLifecycleTraceabilityOperation(eventType, traceabilityWithZipOnly);
     }
 
     @Override

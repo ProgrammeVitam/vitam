@@ -454,6 +454,14 @@ vitam:
         # Temporization delay (in seconds) for recent logbook lifecycle events.
         # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
         lifecycleTraceabilityTemporizationDelay: 300
+        # Max delay between 2 lifecycle traceability operations.
+        # A new unit/objectgroup lifecycle traceability is generated after this delay, even if tenant has no
+        # new unit/objectgroups to secure
+        # Unit can be in DAYS, HOURS, MINUTES, SECONDS
+        # Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hours (supposing
+        # LFC traceability timers run every hour +/- some clock delays)
+        lifecycleTraceabilityMaxRenewalDelay: 690
+        lifecycleTraceabilityMaxRenewalDelayUnit: MINUTES
         # Max entries selected per (Unit or Object Group) LFC traceability operation
         lifecycleTraceabilityMaxEntries: 100000
         # log_level: "DEBUG"

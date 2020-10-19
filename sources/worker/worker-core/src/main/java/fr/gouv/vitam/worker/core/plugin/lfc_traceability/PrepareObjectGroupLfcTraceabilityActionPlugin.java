@@ -78,9 +78,8 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
     @VisibleForTesting
     PrepareObjectGroupLfcTraceabilityActionPlugin(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory,
         int batchSize) {
-        super(metaDataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, batchSize);
+        super(metaDataClientFactory, logbookLifeCyclesClientFactory, batchSize);
     }
 
     @Override
@@ -105,8 +104,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
         } catch (ProcessingException | LogbookClientException | VitamFatalRuntimeException e) {
             LOGGER.error("Logbook exception", e);
             itemStatus.increment(StatusCode.FATAL);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException
-            | VitamKoRuntimeException e) {
+        } catch (InvalidParseOperationException | VitamKoRuntimeException e) {
             LOGGER.error("Processing exception", e);
             itemStatus.increment(StatusCode.KO);
         }

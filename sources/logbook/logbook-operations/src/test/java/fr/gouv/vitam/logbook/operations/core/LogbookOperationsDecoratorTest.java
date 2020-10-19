@@ -29,8 +29,10 @@ package fr.gouv.vitam.logbook.operations.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -87,7 +89,13 @@ public class LogbookOperationsDecoratorTest {
         }
 
         @Override
-        public RequestResponse<LogbookOperation> selectOperations(JsonNode select, boolean sliced) {
+        public RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced) {
+            return null;
+        }
+
+        @Override
+        public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType,
+            boolean traceabilityWithZipOnly) throws VitamException {
             return null;
         }
     }
