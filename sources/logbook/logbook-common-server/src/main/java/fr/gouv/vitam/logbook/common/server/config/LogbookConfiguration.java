@@ -91,6 +91,11 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     private Integer lifecycleTraceabilityMaxEntries;
 
     /**
+     * Number of logbook operations that can be run in parallel.
+     */
+    private Integer operationTraceabilityThreadPoolSize;
+
+    /**
      * List of events that are generated in a wf-operation but are not declared in the wf itself
      */
     private List<String> opEventsNotInWf;
@@ -375,6 +380,14 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
 
     public void setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit lifecycleTraceabilityMaxRenewalDelayUnit) {
         this.lifecycleTraceabilityMaxRenewalDelayUnit = lifecycleTraceabilityMaxRenewalDelayUnit;
+    }
+
+    public Integer getOperationTraceabilityThreadPoolSize() {
+        return operationTraceabilityThreadPoolSize;
+    }
+
+    public void setOperationTraceabilityThreadPoolSize(int operationTraceabilityThreadPoolSize) {
+        this.operationTraceabilityThreadPoolSize = operationTraceabilityThreadPoolSize;
     }
 
     public LogbookIndexationConfiguration getLogbookTenantIndexation() {

@@ -105,7 +105,6 @@ import static org.hamcrest.Matchers.equalTo;
 @RunWithCustomExecutor
 public class LogbookResourceTest {
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
@@ -159,6 +158,7 @@ public class LogbookResourceTest {
     private static LogbookConfiguration realLogbook;
 
     private static final int TENANT_ID = 0;
+    private static final int ADMIN_TENANT_ID = 1;
     private static final List<Integer> tenantList = Collections.singletonList(TENANT_ID);
     private final static ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
         .createTestIndexManager(tenantList, Collections.emptyMap());
@@ -289,7 +289,10 @@ public class LogbookResourceTest {
     @Test
     public final void testTraceability() {
         given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_TENANT_ID, ADMIN_TENANT_ID)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.unprettyPrint(Collections.singletonList(TENANT_ID)))
             .post(TRACEABILITY_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());

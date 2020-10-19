@@ -149,8 +149,8 @@ public class LogbookResourceIT {
     private static LogbookMain application;
     private static final int NB_TEST = 100;
     private static final Integer tenantId = 0;
-    private static final Integer adminTenant = 0;
-    private static final Integer secondTenant = 1;
+    private static final Integer adminTenant = 1;
+    private static final Integer secondTenant = 0;
     private static final List<Integer> tenantList = newArrayList(tenantId, secondTenant);
     private static final ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
         .createTestIndexManager(tenantList, Collections.emptyMap());
@@ -211,6 +211,7 @@ public class LogbookResourceIT {
             logbookConf.setLifecycleTraceabilityTemporizationDelay(300);
             logbookConf.setLifecycleTraceabilityMaxRenewalDelay(12);
             logbookConf.setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
+            logbookConf.setOperationTraceabilityThreadPoolSize(4);
             logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
                     new CollectionConfiguration(2, 1))));

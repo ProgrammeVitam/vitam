@@ -30,18 +30,29 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 
 import java.io.File;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Business class for Logbook Administration (traceability)
@@ -52,17 +63,20 @@ public class LogbookAdministration {
 
     private final LogbookOperations logbookOperations;
     private final TimestampGenerator timestampGenerator;
+    private final AlertService alertService = new AlertServiceImpl();
 
     private final File tmpFolder;
     private final int operationTraceabilityTemporizationDelayInSeconds;
     private final int operationTraceabilityMaxRenewalDelayInSeconds;
+    private final int operationTraceabilityThreadPoolSize;
 
     @VisibleForTesting
     LogbookAdministration(LogbookOperations logbookOperations,
         TimestampGenerator timestampGenerator, File tmpFolder,
         Integer operationTraceabilityTemporizationDelayInSeconds,
         Integer operationTraceabilityMaxRenewalDelay,
-        ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
+        ChronoUnit operationTraceabilityMaxRenewalDelayUnit, int operationTraceabilityThreadPoolSize) {
+        this.operationTraceabilityThreadPoolSize = operationTraceabilityThreadPoolSize;
 
         ParametersChecker.checkParameter("Missing max renewal delay or unit",
             operationTraceabilityMaxRenewalDelay, operationTraceabilityMaxRenewalDelayUnit);
@@ -89,22 +103,26 @@ public class LogbookAdministration {
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
         Integer operationTraceabilityOverlapDelayInSeconds,
         Integer operationTraceabilityMaxRenewalDelay,
-        ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
+        ChronoUnit operationTraceabilityMaxRenewalDelayUnit, int operationTraceabilityThreadPoolSize) {
         this(logbookOperations, timestampGenerator,
             PropertiesUtils.fileFromTmpFolder("secure"), operationTraceabilityOverlapDelayInSeconds,
-            operationTraceabilityMaxRenewalDelay, operationTraceabilityMaxRenewalDelayUnit);
+            operationTraceabilityMaxRenewalDelay, operationTraceabilityMaxRenewalDelayUnit,
+            operationTraceabilityThreadPoolSize);
     }
 
     /**
      * secure the logbook operation since last securisation.
      *
+     * @return operation Id if traceability operation has not been skipped
      * @throws TraceabilityException if error on generating secure logbook
      */
-    // TODO: use a distributed lock to launch this function only on one server (cf consul)
-    public synchronized boolean generateSecureLogbook(GUID guid)
+    public String generateSecureLogbook(int tenantId)
         throws TraceabilityException {
 
-        Integer tenantId = ParameterHelper.getTenantParameter();
+        GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
+
+        LOGGER.info("Starting traceability operation for tenant " + tenantId);
 
         LogbookOperationTraceabilityHelper helper =
             new LogbookOperationTraceabilityHelper(logbookOperations, guid,
@@ -114,7 +132,7 @@ public class LogbookAdministration {
 
         if (!helper.isTraceabilityOperationRequired()) {
             LOGGER.info("No need for traceability operation. No recent activity to secure...");
-            return false;
+            return null;
         }
 
         TraceabilityService generator =
@@ -122,6 +140,61 @@ public class LogbookAdministration {
 
         generator.secureData(VitamConfiguration.getDefaultStrategy());
 
-        return true;
+        LOGGER.info("Traceability operation succeeded for tenant " + tenantId);
+        return guid.getId();
+    }
+
+    public synchronized List<TenantLogbookOperationTraceabilityResult> generateSecureLogbooks(List<Integer> tenants)
+        throws TraceabilityException {
+
+        int threadPoolSize = Math.min(this.operationTraceabilityThreadPoolSize, tenants.size());
+        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
+
+        try {
+            List<CompletableFuture<TenantLogbookOperationTraceabilityResult>> completableFutures = new ArrayList<>();
+
+            for (Integer tenantId : tenants) {
+                CompletableFuture<TenantLogbookOperationTraceabilityResult> traceabilityCompletableFuture =
+                    CompletableFuture.supplyAsync(() -> {
+                        Thread.currentThread().setName("OperationTraceability-" + tenantId);
+                        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                        try {
+                            String operationId = generateSecureLogbook(tenantId);
+                            return new TenantLogbookOperationTraceabilityResult()
+                                .setTenantId(tenantId)
+                                .setOperationId(operationId);
+                        } catch (Exception e) {
+                            alertService.createAlert(VitamLogLevel.ERROR,
+                                "An error occurred during logbook operation traceability for tenant " + tenantId);
+                            throw new RuntimeException(
+                                "An error occurred during logbook operation traceability for tenant " + tenantId, e);
+                        }
+                    }, executorService);
+                completableFutures.add(traceabilityCompletableFuture);
+            }
+
+            boolean allTenantsSucceeded = true;
+            List<TenantLogbookOperationTraceabilityResult> results = new ArrayList<>();
+            for (CompletableFuture<TenantLogbookOperationTraceabilityResult> completableFuture : completableFutures) {
+                try {
+                    results.add(completableFuture.get());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new TraceabilityException("Traceability interrupted", e);
+                } catch (ExecutionException e) {
+                    LOGGER.error("Traceability operation failed", e);
+                    allTenantsSucceeded = false;
+                }
+            }
+
+            if (!allTenantsSucceeded) {
+                throw new TraceabilityException("One or more traceability operations failed");
+            }
+
+            return results;
+
+        } finally {
+            executorService.shutdown();
+        }
     }
 }

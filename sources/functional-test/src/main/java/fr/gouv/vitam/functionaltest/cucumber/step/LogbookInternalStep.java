@@ -26,15 +26,19 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
+
+import java.util.Collections;
+
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 public class LogbookInternalStep {
 
@@ -51,17 +55,17 @@ public class LogbookInternalStep {
     @When("^je génère un journal des opérations sécurisé")
     public void generate_secured_logbook() {
         runInVitamThread(() -> {
-            RequestResponseOK response;
             try {
-                VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
-                response = world.getLogbookOperationsClient().traceability();
-                String operationId = response.getResults().get(0).toString();
+                RequestResponseOK<TenantLogbookOperationTraceabilityResult> response =
+                    world.getLogbookOperationsClient().traceability(Collections.singletonList(world.getTenantId()));
+
+                String operationId = response.getResults().get(0).getOperationId();
                 world.setOperationId(operationId);                
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
             } catch (Exception e) {
                 fail("should not produce an exception ", e);
-                //throw new RuntimeException(e);
             }
         });
     }

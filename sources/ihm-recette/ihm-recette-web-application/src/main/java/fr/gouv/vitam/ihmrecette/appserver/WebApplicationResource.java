@@ -82,6 +82,7 @@ import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -565,17 +566,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
-            RequestResponseOK result;
-            try {
-                // TODO add tenantId as param
-                VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
-                result = logbookOperationsClient.traceability();
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error("The reporting json can't be created", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .build();
-            }
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+            RequestResponseOK<TenantLogbookOperationTraceabilityResult> result
+                = logbookOperationsClient.traceability(Collections.singletonList(Integer.parseInt(xTenantId)));
             return Response.status(Status.OK).entity(result).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("The reporting json can't be created", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .build();
         }
     }
 

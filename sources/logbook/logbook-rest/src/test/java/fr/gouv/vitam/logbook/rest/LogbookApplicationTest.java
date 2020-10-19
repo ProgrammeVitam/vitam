@@ -119,6 +119,7 @@ public class LogbookApplicationTest {
         logbookConfiguration.setLifecycleTraceabilityTemporizationDelay(300);
         logbookConfiguration.setLifecycleTraceabilityMaxRenewalDelay(12);
         logbookConfiguration.setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
+        logbookConfiguration.setOperationTraceabilityThreadPoolSize(4);
 
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
         serverPort = junitHelper.findAvailablePort();

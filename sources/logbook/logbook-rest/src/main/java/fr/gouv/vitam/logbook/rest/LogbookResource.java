@@ -79,6 +79,7 @@ import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -109,6 +110,7 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -134,7 +136,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Path("/logbook/v1")
 @Tag(name = "Logbook")
@@ -198,7 +202,8 @@ public class LogbookResource extends ApplicationStatusResource {
         logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
             configuration.getOperationTraceabilityTemporizationDelay(),
             configuration.getOperationTraceabilityMaxRenewalDelay(),
-            configuration.getOperationTraceabilityMaxRenewalDelayUnit());
+            configuration.getOperationTraceabilityMaxRenewalDelayUnit(),
+            configuration.getOperationTraceabilityThreadPoolSize());
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
@@ -409,34 +414,53 @@ public class LogbookResource extends ApplicationStatusResource {
      */
     @POST
     @Path("/operations/traceability")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response generateOperationTraceabilities(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        List<Integer> tenants) {
+
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+
+        int tenantId = Integer.parseInt(xTenantId);
+        if (!VitamConfiguration.getAdminTenant().equals(tenantId)) {
+            LOGGER.error("Expecting admin tenant " + VitamConfiguration.getAdminTenant() + ", found: " + tenantId);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (CollectionUtils.isEmpty(tenants)) {
+            LOGGER.error("Expecting non empty list of tenants to secure");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (tenants.contains(null)) {
+            LOGGER.error("Null tenant to secure");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (new HashSet<>(tenants).size() != tenants.size()) {
+            LOGGER.error("Duplicate tenants to secure");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        Set<Integer> unknownTenants =
+            SetUtils.difference(new HashSet<>(tenants), new HashSet<>(VitamConfiguration.getTenants()));
+        if (!unknownTenants.isEmpty()) {
+            LOGGER.error("Unknown tenants to secure " + unknownTenants);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
         try {
-            int tenantId = Integer.parseInt(xTenantId);
-            GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            // FIXME: 01/01/2020 request id should be set in the external headers by filter
-            VitamThreadUtils.getVitamSession().setRequestId(guid);
-
-            if (logbookAdministration.generateSecureLogbook(guid)) {
-                return Response.status(Status.OK)
-                    .entity(new RequestResponseOK<String>()
-                        .addResult(guid.getId())
-                        .setHits(1, 0, 1)
-                        .setHttpCode(Status.OK.getStatusCode()))
-                    .build();
-            } else {
-                return Response.status(Status.ACCEPTED)
-                    .entity(new RequestResponseOK<String>()
-                        .setHits(0, 0, 0)
-                        .setHttpCode(Status.ACCEPTED.getStatusCode()))
-                    .build();
-            }
+            List<TenantLogbookOperationTraceabilityResult> results =
+                logbookAdministration.generateSecureLogbooks(tenants);
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<TenantLogbookOperationTraceabilityResult>()
+                    .setHttpCode(Status.OK.getStatusCode())
+                    .addAllResults(results))
+                .build();
         } catch (TraceabilityException e) {
             LOGGER.error("unable to generate traceability log", e);
             Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;

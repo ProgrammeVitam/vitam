@@ -52,6 +52,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -87,7 +88,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -118,7 +121,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
+        handleBeforeClass(Arrays.asList(0, 1, 2), Collections.emptyMap());
         VitamServerRunner.cleanOffers();
     }
 
@@ -143,7 +146,8 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
-            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1)
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 2)
         );
     }
 
@@ -424,6 +428,31 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         assertThat(ids).doesNotContain(operation1, operation4);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testOperationTraceability_GivenMultipleTenantsThenTraceabilityOKForAllTenants()
+        throws Exception {
+
+        // Give : Data set for all tenants
+        for (int tenantId = 0; tenantId < 3; tenantId++) {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            injectTestLogbookOperation();
+        }
+        logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
+
+        // When : Run traceability for all tenants
+        Map<Integer, String> operationIds = runTraceabilityOperations(0, 1, 2);
+
+        // Then
+        for (int tenantId = 0; tenantId < 3; tenantId++) {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            LogbookOperation logbookOperation = getLogbookInformation(operationIds.get(tenantId));
+            assertThat(logbookOperation).isNotNull();
+            LogbookEventOperation lastEvent = logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1);
+            assertThat(lastEvent.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
+        }
+    }
+
     private String injectTestLogbookOperation()
         throws Exception {
 
@@ -442,12 +471,22 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     }
 
     private String runTraceability() throws LogbookClientServerException, InvalidParseOperationException {
+        return runTraceabilityOperations(TENANT_0).get(TENANT_0);
+    }
+
+    private Map<Integer, String> runTraceabilityOperations(Integer... tenants)
+        throws LogbookClientServerException, InvalidParseOperationException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try (final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient()) {
-            RequestResponseOK<String> result = client.traceability();
-            assertThat(result.getStatus())
-                .isIn(Response.Status.OK.getStatusCode(), Response.Status.ACCEPTED.getStatusCode());
-            return result.getFirstResult();
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+            RequestResponseOK<TenantLogbookOperationTraceabilityResult> result =
+                client.traceability(Arrays.asList(tenants));
+            // Collect to map with null values throws exceptions (https://bugs.openjdk.java.net/browse/JDK-8148463)
+            return result.getResults().stream()
+                .collect(HashMap::new, (m,v)->m.put(v.getTenantId(), v.getOperationId()), HashMap::putAll);
+        } finally {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         }
     }
 

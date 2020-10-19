@@ -457,6 +457,8 @@ vitam:
         # logbook operation traceability timer run every hour +/- some clock delays)
         operationTraceabilityMaxRenewalDelay: 690
         operationTraceabilityMaxRenewalDelayUnit: MINUTES
+        # Number of logbook operations that can be run in parallel.
+        operationTraceabilityThreadPoolSize: 16
         # Temporization delay (in seconds) for recent logbook lifecycle events.
         # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
         lifecycleTraceabilityTemporizationDelay: 300

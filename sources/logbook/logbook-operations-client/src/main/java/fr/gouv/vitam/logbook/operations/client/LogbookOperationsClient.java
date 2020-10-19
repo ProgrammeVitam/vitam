@@ -42,8 +42,11 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+
+import java.util.List;
 
 /**
  * Logbook client interface
@@ -180,16 +183,15 @@ public interface LogbookOperationsClient extends BasicClient {
     void commitUpdateDelegate(String eventIdProc)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
-
     /**
-     * Call traceability logbook operation <br>
-     * <br>
+     * Call traceability logbook operation for requested tenants
      *
-     * @return logbook operation as String
+     * @return logbook operation result per tenant
      * @throws LogbookClientServerException
      * @throws InvalidParseOperationException
      */
-    RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException;
+    RequestResponseOK<TenantLogbookOperationTraceabilityResult> traceability(List<Integer> tenants)
+        throws LogbookClientServerException, InvalidParseOperationException;
 
     /**
      * Starts Unit logbook lifecycle traceability
