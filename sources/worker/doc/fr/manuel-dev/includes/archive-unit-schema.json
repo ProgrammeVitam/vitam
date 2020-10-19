@@ -579,6 +579,53 @@
             "ClassificationOwner"
           ]
         },
+        "HoldRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "Rule": {
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "$ref": "#/definitions/date"
+                  },
+                  "EndDate": {
+                    "$ref": "#/definitions/date"
+                  },
+                  "HoldEndDate": {
+                    "$ref": "#/definitions/date"
+                  },
+                  "HoldOwner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "HoldReason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "HoldReassessingDate": {
+                    "$ref": "#/definitions/date-time-opt"
+                  },
+                  "PreventRearrangement": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "Rule"
+                ]
+              }
+            },
+            "Inheritance": {
+              "$ref": "#/definitions/inheritance"
+            }
+          }
+        },
         "LogBook": {
           "type": "object",
           "additionalProperties": false,
