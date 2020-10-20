@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.server.offersynchronization;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -95,11 +96,7 @@ public class OfferSyncService implements AutoCloseable {
         this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
         this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
         this.offerSyncWaitingTime = offerSyncWaitingTime;
-        // Keep at most 1 thread if all thread are idle
-        this.executor = new ThreadPoolExecutor(1, offerSyncThreadPoolSize,
-            0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(),
-            VitamThreadFactory.getInstance());
+        this.executor = ExecutorUtils.createScalableBatchExecutorService(offerSyncThreadPoolSize);
     }
 
     public boolean startSynchronization(String sourceOffer, String targetOffer, String strategyId,
