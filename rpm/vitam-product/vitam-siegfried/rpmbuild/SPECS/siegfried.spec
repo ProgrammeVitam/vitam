@@ -41,6 +41,8 @@ function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -t
 mkdir -p ./_build/src/github.com/richardlehane
 ln -s $(pwd) ./_build/src/github.com/richardlehane/siegfried
 export GOPATH=$(pwd)/_build
+# fix for strange behavior in dependencies required
+go mod vendor
 gobuild -o sf github.com/richardlehane/siegfried/cmd/sf
 gobuild -o roy github.com/richardlehane/siegfried/cmd/roy
 
