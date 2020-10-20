@@ -68,7 +68,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -270,6 +269,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     if (rulesToApplyArray.size() > 0) {
                         rulesToApply = Sets
                             .newHashSet(Splitter.on(SedaConstants.RULE_SEPARATOR)
+                                .omitEmptyStrings()
                                 .split(rulesToApplyArray.iterator().next().asText()));
                     }
                 } else {
@@ -311,8 +311,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
             }
             JsonHandler.writeAsFile(archiveUnit, fileWithEndDate);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | FileRulesException |
-            ParseException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
         }
@@ -390,6 +389,15 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 }
             }
 
+            if (null != managementModel.getHold()) {
+                if (null != managementModel.getHold().getInheritance() &&
+                    null != managementModel.getHold().getInheritance().getPreventRulesId()) {
+                    validatePreventRuleCategory(unit, SedaConstants.TAG_RULE_HOLD, report,
+                        managementModel.getHold().getInheritance().getPreventRulesId(),
+                        adminManagementClient);
+                }
+            }
+
         } catch (final VitamException e) {
             throw new ProcessingException(e);
         }
@@ -454,28 +462,82 @@ public class UnitsRulesComputePlugin extends ActionHandler {
      * @param ruleNode current ruleNode from archive unit
      * @param rulesResults rules referential
      * @param ruleType current rule type
-     * @throws FileRulesException
-     * @throws InvalidParseOperationException
      * @throws ProcessingException
-     * @throws ParseException
      */
     private void computeRuleNode(ObjectNode ruleNode, JsonNode rulesResults, String ruleType, String unitId)
-        throws FileRulesException, InvalidParseOperationException, InvalidRuleException, ParseException,
-        ProcessingException {
+        throws ProcessingException {
+
         String ruleId = ruleNode.get(SedaConstants.TAG_RULE_RULE).asText();
-        String startDate = "";
+        String startDate = ruleNode.hasNonNull(SedaConstants.TAG_RULE_START_DATE) ?
+            ruleNode.get(SedaConstants.TAG_RULE_START_DATE).asText() : null;
+        String holdEndDate = ruleNode.hasNonNull(SedaConstants.TAG_RULE_HOLD_END_DATE) ?
+            ruleNode.get(SedaConstants.TAG_RULE_HOLD_END_DATE).asText() : null;
 
-        checkRuleNodeByID(ruleId, ruleType, rulesResults, unitId);
+        JsonNode referencedRule = checkRuleNodeByID(ruleId, ruleType, rulesResults, unitId);
 
-        if (ruleNode.get(SedaConstants.TAG_RULE_START_DATE) != null) {
-            startDate = ruleNode.get(SedaConstants.TAG_RULE_START_DATE).asText();
+        if(hasUndefinedHoldRuleDuration(ruleType, referencedRule)) {
+
+            ensureStartDateIsBeforeHoldEndDate(startDate, holdEndDate, unitId, ruleId);
+
+            computeEndDateForUndefinedHoldRuleDuration(ruleNode, ruleType, unitId, ruleId, holdEndDate);
+            return;
         }
-        LocalDate endDate = getEndDate(startDate, ruleId, rulesResults, ruleType, unitId);
+
+        ensureHoldEndRuleNotDefined(unitId, ruleId, holdEndDate);
+
+        LocalDate endDate = computeEndDateForRuleWithDuration(startDate, ruleId, ruleType, referencedRule);
         if (endDate != null) {
             ruleNode.put(SedaConstants.TAG_RULE_END_DATE, endDate.format(DATE_TIME_FORMATTER));
         }
     }
 
+    private void ensureHoldEndRuleNotDefined(String unitId, String ruleId, String holdEndDate)
+        throws InvalidRuleException {
+        if(holdEndDate != null) {
+            String errorMessage = String.format("Cannot set %s for rule %s with defined duration.",
+                SedaConstants.TAG_RULE_HOLD_END_DATE, ruleId);
+            ObjectNode json = JsonHandler.createObjectNode();
+            json.put("evDetTechData", errorMessage);
+            throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, JsonHandler.unprettyPrint(json), unitId);
+        }
+    }
+
+    private boolean hasUndefinedHoldRuleDuration(String ruleType, JsonNode referencedRule) {
+        return SedaConstants.TAG_RULE_HOLD.equals(ruleType)
+            && !referencedRule.hasNonNull(FileRules.RULEDURATION);
+    }
+
+    private void computeEndDateForUndefinedHoldRuleDuration(ObjectNode ruleNode, String ruleType, String unitId,
+        String ruleId, String holdEndDate) {
+
+        if(holdEndDate == null) {
+            LOGGER.debug(String.format("EndDate cannot be computed for %s rule %s for unit %s since " +
+                "no HoldEndDate provided & rule has no defined duration", ruleType, ruleId, unitId));
+            return;
+        }
+
+        LOGGER.debug(String.format("EndDate will be set to HoldEndDate for %s rule %s for unit %s since " +
+            "hold rule has no defined duration", ruleType, ruleId, unitId));
+        ruleNode.put(SedaConstants.TAG_RULE_END_DATE, holdEndDate);
+    }
+
+    private void ensureStartDateIsBeforeHoldEndDate(String startDate, String holdEndDate, String unitId, String ruleId)
+        throws InvalidRuleException {
+        if(startDate != null && holdEndDate != null) {
+            LocalDate localStartDate = LocalDate.parse(startDate, DATE_TIME_FORMATTER);
+            LocalDate localHoldEndDate = LocalDate.parse(holdEndDate, DATE_TIME_FORMATTER);
+
+            if(localHoldEndDate.isBefore(localStartDate)) {
+                String errorMessage = "Illegal " + SedaConstants.TAG_RULE_HOLD_END_DATE + "(" + holdEndDate + ") for " +
+                    ruleId + "." +
+                    " Cannot be lower than " + SedaConstants.TAG_RULE_START_DATE + "(" + startDate + ")";
+                ObjectNode json = JsonHandler.createObjectNode();
+                json.put("evDetTechData", errorMessage);
+                throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, JsonHandler.unprettyPrint(json),
+                    unitId);
+            }
+        }
+    }
 
     private JsonNode checkRuleNodeByID(String ruleId, String ruleType, JsonNode jsonResult, String unitId)
         throws InvalidRuleException {
@@ -510,9 +572,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, JsonHandler.unprettyPrint(json), unitId);
     }
 
-    private LocalDate getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType,
-        String unitId)
-        throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
+    private LocalDate computeEndDateForRuleWithDuration(String startDateString, String ruleId, String currentRuleType, JsonNode ruleNode)
+        throws ProcessingException {
 
         if (!ParametersChecker.isNotEmpty(startDateString)) {
             return null;
@@ -520,8 +581,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         if (ParametersChecker.isNotEmpty(ruleId, currentRuleType)) {
 
             LocalDate startDate = LocalDate.parse(startDateString, DATE_TIME_FORMATTER);
-
-            final JsonNode ruleNode = checkRuleNodeByID(ruleId, currentRuleType, rulesResults, unitId);
 
             if (checkRulesParameters(ruleNode)) {
                 final String duration = ruleNode.get(FileRules.RULEDURATION).asText();

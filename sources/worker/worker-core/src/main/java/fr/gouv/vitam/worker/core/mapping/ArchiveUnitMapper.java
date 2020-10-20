@@ -37,6 +37,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionAppraisalCodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionStorageCodeType;
+import fr.gouv.culture.archivesdefrance.seda.v2.HoldRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
@@ -204,6 +205,7 @@ public class ArchiveUnitMapper {
             fillAppraisalRule(managementType, managementModel);
             fillDisseminationRule(managementType, managementModel);
             fillReuseRule(managementType, managementModel);
+            fillHoldRule(managementType, managementModel);
         }
     }
 
@@ -326,6 +328,16 @@ public class ArchiveUnitMapper {
             } else {
                 throw new ProcessingMalformedDataException("FinalAction is required for AppraisalRule");
             }
+        }
+    }
+
+    private void fillHoldRule(ManagementType managementType, ManagementModel managementModel) {
+        HoldRuleType holdRule = managementType.getHoldRule();
+        RuleCategoryModel holdRuleCategory = ruleMapper.fillHoldRule(holdRule);
+        if (managementModel.getHold() != null) {
+            managementModel.getHold().merge(holdRuleCategory);
+        } else {
+            managementModel.setHold(holdRuleCategory);
         }
     }
 

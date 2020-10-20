@@ -30,9 +30,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import fr.gouv.culture.archivesdefrance.seda.v2.HoldRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.unit.CommonRule;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
@@ -97,4 +101,79 @@ public class RuleMapper {
 
     }
 
+    public RuleCategoryModel fillHoldRule(HoldRuleType rule) {
+        if (rule == null) {
+            return null;
+        }
+
+        boolean ruleUsed = false;
+        RuleCategoryModel ruleCategoryModel = new RuleCategoryModel();
+        RuleModel ruleModel = null;
+
+        List<RuleModel> rules = new ArrayList<>();
+
+        for (JAXBElement<?> ruleEntry : rule.getHoldRuleDefGroup()) {
+            String fieldLocalName = ruleEntry.getName().getLocalPart();
+            switch (fieldLocalName) {
+                case SedaConstants.TAG_RULE_RULE:
+                    ruleModel = new RuleModel();
+                    rules.add(ruleModel);
+                    String ruleId = ((RuleIdType) ruleEntry.getValue()).getValue();
+                    ruleModel.setRule(ruleId);
+                    break;
+                case SedaConstants.TAG_RULE_START_DATE:
+                    assert(ruleModel != null);
+                    XMLGregorianCalendar startDate = (XMLGregorianCalendar) ruleEntry.getValue();
+                    ruleModel.setStartDate(startDate.toString());
+                    break;
+                case SedaConstants.TAG_RULE_HOLD_END_DATE:
+                    assert(ruleModel != null);
+                    XMLGregorianCalendar holdEndDate = (XMLGregorianCalendar) ruleEntry.getValue();
+                    ruleModel.setHoldEndDate(holdEndDate.toString());
+                    break;
+                case SedaConstants.TAG_RULE_HOLD_OWNER:
+                    assert(ruleModel != null);
+                    String holdOwner = (String) ruleEntry.getValue();
+                    ruleModel.setHoldOwner(holdOwner);
+                    break;
+                case SedaConstants.TAG_RULE_HOLD_REASSESSING_DATE:
+                    assert(ruleModel != null);
+                    XMLGregorianCalendar holdReassessingDate = (XMLGregorianCalendar) ruleEntry.getValue();
+                    ruleModel.setHoldReassessingDate(holdReassessingDate.toString());
+                    break;
+                case SedaConstants.TAG_RULE_HOLD_REASON:
+                    assert(ruleModel != null);
+                    String holdReason = (String) ruleEntry.getValue();
+                    ruleModel.setHoldReason(holdReason);
+                    break;
+                case SedaConstants.TAG_RULE_PREVENT_REARRANGEMENT:
+                    assert(ruleModel != null);
+                    Boolean preventRearrangement = (Boolean) ruleEntry.getValue();
+                    ruleModel.setPreventRearrangement(preventRearrangement);
+                    break;
+            }
+        }
+
+        if (!rules.isEmpty()) {
+            ruleUsed = true;
+            ruleCategoryModel.getRules().addAll(rules);
+        }
+
+        if (rule.isPreventInheritance() != null) {
+            ruleUsed = true;
+            ruleCategoryModel.setPreventInheritance(rule.isPreventInheritance());
+        }
+
+        if (!rule.getRefNonRuleId().isEmpty()) {
+            ruleUsed = true;
+            List<String> refNonRuleId =
+                rule.getRefNonRuleId().stream().map(RuleIdType::getValue).collect(Collectors.toList());
+            ruleCategoryModel.addAllPreventRulesId(refNonRuleId);
+        }
+
+        if (!ruleUsed) {
+            return null;
+        }
+        return ruleCategoryModel;
+    }
 }

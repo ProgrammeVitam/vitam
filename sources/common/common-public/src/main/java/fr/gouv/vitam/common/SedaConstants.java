@@ -482,6 +482,10 @@ public class SedaConstants {
      */
     public static final String TAG_RULE_CLASSIFICATION = "ClassificationRule";
     /**
+     * tag of HoldRule
+     */
+    public static final String TAG_RULE_HOLD = "HoldRule";
+    /**
      * tag of Rule
      */
     public static final String TAG_RULE_RULE = "Rule";
@@ -526,6 +530,12 @@ public class SedaConstants {
      * tag of NeedAuthorization
      */
     public static final String TAG_RULE_NEED_AUTHORISATION = "NeedAuthorization";
+
+    public static final String TAG_RULE_HOLD_END_DATE = "HoldEndDate";
+    public static final String TAG_RULE_HOLD_OWNER = "HoldOwner";
+    public static final String TAG_RULE_HOLD_REASSESSING_DATE = "HoldReassessingDate";
+    public static final String TAG_RULE_HOLD_REASON = "HoldReason";
+    public static final String TAG_RULE_PREVENT_REARRANGEMENT = "PreventRearrangement";
 
     // Tag's attributes used in SEDA
     public static final String TAG_ATTRIBUTE_LANG = "lang";
@@ -649,7 +659,7 @@ public class SedaConstants {
     public static final String LFC_UNITS_FOLDER = "LFCUnits";
 
     public static final String TAG_LOGBOOK = "LogBook";
-    
+
     private SedaConstants() {
         // Empty constructor
     }
@@ -666,6 +676,7 @@ public class SedaConstants {
             RULES_TYPE.add(SedaConstants.TAG_RULE_APPRAISAL);
             RULES_TYPE.add(SedaConstants.TAG_RULE_CLASSIFICATION);
             RULES_TYPE.add(SedaConstants.TAG_RULE_DISSEMINATION);
+            RULES_TYPE.add(SedaConstants.TAG_RULE_HOLD);
         }
         return RULES_TYPE;
     }
