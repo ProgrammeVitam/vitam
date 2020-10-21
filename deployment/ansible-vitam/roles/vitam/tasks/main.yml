@@ -226,6 +226,7 @@
     - update_vitam_certificates
   notify:
     - restart service
+    - reload consul configuration
 
 - name: "Copy truststore"
   copy:
@@ -239,6 +240,7 @@
     - update_vitam_certificates
   notify:
     - restart service
+    - reload consul configuration
 
 - name: "Copy server grantedstore"
   copy:
@@ -252,6 +254,7 @@
     - update_vitam_certificates
   notify:
     - restart service
+    - reload consul configuration
 
 - name: "Copy {{ vitam_struct.vitam_component }} p12 keystore (clients)"
   copy:
@@ -265,6 +268,7 @@
     - update_vitam_certificates
   notify:
     - restart service
+    - reload consul configuration
 
 - name: "Copy timestamp keystore"
   copy:
@@ -278,6 +282,7 @@
     - update_vitam_certificates
   notify:
     - restart service
+    - reload consul configuration
 
 - include_tasks: remove_metrics.yml
   when: vitam_struct.metrics_enabled |lower != "true"
