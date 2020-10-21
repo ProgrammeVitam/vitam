@@ -355,6 +355,17 @@ pipeline {
                     }
                 )
             }
+            post {
+                success {
+                    slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+                }
+                unstable {
+                    slackSend (color: '#ffaa00', message: "Build Unstable de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+                }
+                failure {
+                    slackSend (color: '#a30000', message: "Build KO de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+                }
+            }
         }
         stage("Update symlink") {
             when {
@@ -371,43 +382,42 @@ pipeline {
                 }
             }
         }
-        stage("Checkmarx analysis") {
-            when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                }
-            }
-            steps {
-                // KWA Note : ${WORKSPACE} doesn't work correctly inside docker containers
-                sh 'mkdir -p target'
-                sh 'mkdir -p logs'
-                // KWA : Visibly, backslash escape hell. \\ => \ in groovy string.
-                sh '/opt/CxConsole/runCxConsole.sh scan --verbose -Log "${PWD}/logs/cxconsole.log" -CxServer "$SERVICE_CHECKMARX_URL" -CxUser "VITAM openLDAP\\\\$CI_USR" -CxPassword \\"$CI_PSW\\" -ProjectName "CxServer\\SP\\Vitam\\Users\\vitam-parent $GIT_BRANCH" -LocationType folder -locationPath "${PWD}/sources"  -Preset "Default 2014" -LocationPathExclude test target bower_components node_modules dist -forcescan -ReportPDF "${PWD}/target/checkmarx-report.pdf"'
-            }
-            post {
-                success {
-                    archiveArtifacts (
-                        artifacts: 'target/checkmarx-report.pdf',
-                        fingerprint: true
-                    )
-                    slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-                }
-                unstable {
-                    slackSend (color: '#ffaa00', message: "Build Unstable de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-                }
-                failure {
-                    archiveArtifacts (
-                        artifacts: 'logs/cxconsole.log',
-                        fingerprint: true
-                    )
-                    slackSend (color: '#a30000', message: "Build KO de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-                }
-            }
-
-        }
+        //stage("Checkmarx analysis") {
+        //    when {
+        //        anyOf {
+        //            branch "develop*"
+        //            branch "master_*"
+        //            branch "master"
+        //            tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+        //        }
+        //    }
+        //    steps {
+        //        // KWA Note : ${WORKSPACE} doesn't work correctly inside docker containers
+        //        sh 'mkdir -p target'
+        //        sh 'mkdir -p logs'
+        //        // KWA : Visibly, backslash escape hell. \\ => \ in groovy string.
+        //        sh '/opt/CxConsole/runCxConsole.sh scan --verbose -Log "${PWD}/logs/cxconsole.log" -CxServer "$SERVICE_CHECKMARX_URL" -CxUser "VITAM openLDAP\\\\$CI_USR" -CxPassword \\"$CI_PSW\\" -ProjectName "CxServer\\SP\\Vitam\\Users\\vitam-parent $GIT_BRANCH" -LocationType folder -locationPath "${PWD}/sources"  -Preset "Default 2014" -LocationPathExclude test target bower_components node_modules dist -forcescan -ReportPDF "${PWD}/target/checkmarx-report.pdf"'
+        //    }
+        //    post {
+        //        success {
+        //            archiveArtifacts (
+        //                artifacts: 'target/checkmarx-report.pdf',
+        //                fingerprint: true
+        //            )
+        //            slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+        //        }
+        //        unstable {
+        //            slackSend (color: '#ffaa00', message: "Build Unstable de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+        //        }
+        //        failure {
+        //            archiveArtifacts (
+        //                artifacts: 'logs/cxconsole.log',
+        //                fingerprint: true
+        //            )
+        //            slackSend (color: '#a30000', message: "Build KO de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+        //        }
+        //    }
+        //}
 
         stage("Information") {
             steps {
