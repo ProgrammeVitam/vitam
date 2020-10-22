@@ -1,0 +1,158 @@
+[
+  {
+    "Title": "Unit1",
+    "#management": {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00003",
+            "StartDate": "2000-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel HOL-00003",
+            "HoldReason": "Motif du gel HOL-00003",
+            "HoldReassessingDate": "2005-01-01",
+            "PreventRearrangement": false,
+            "EndDate": "2010-01-01"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Title": "Unit2",
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002",
+            "StartDate": "2000-01-01",
+            "EndDate": "2005-01-01"
+          }
+        ],
+        "FinalAction": "Keep"
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "StartDate": "2000-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel",
+            "HoldReason": "Motif du gel",
+            "HoldReassessingDate": "2005-01-01",
+            "PreventRearrangement": true,
+            "EndDate": "2001-01-01"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Title": "Unit3",
+    "#management": {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Title": "Unit4",
+    "#management": {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00002",
+            "StartDate": "2000-01-01",
+            "HoldEndDate": "2010-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel",
+            "HoldReason": "Motif du gel",
+            "HoldReassessingDate": "2005-01-01",
+            "PreventRearrangement": false,
+            "EndDate": "2010-01-01"
+          },
+          {
+            "Rule": "HOL-00003",
+            "StartDate": "2000-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel HOL-00003",
+            "HoldReason": "Motif du gel HOL-00003",
+            "HoldReassessingDate": "2005-01-01",
+            "PreventRearrangement": false,
+            "EndDate": "2010-01-01"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Title": "Unit5",
+    "#management": {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00002",
+            "StartDate": "2000-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel",
+            "HoldReassessingDate": "2005-01-01",
+            "PreventRearrangement": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "Title": "Unit6",
+    "#management": {
+      "HoldRule": {
+        "Inheritance": {
+          "PreventRulesId": [
+            "HOL-00001"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "Title": "Unit7",
+    "#management": {
+      "HoldRule": {
+        "Inheritance": {
+          "PreventInheritance": true,
+          "PreventRulesId": []
+        }
+      }
+    }
+  },
+  {
+    "Title": "Unit8",
+    "#management": {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "StartDate": "2000-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel HOL-00001",
+            "EndDate": "2001-01-01"
+          },
+          {
+            "Rule": "HOL-00002",
+            "HoldEndDate": "2010-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel HOL-00002",
+            "HoldReassessingDate": "2005-01-01",
+            "PreventRearrangement": false,
+            "EndDate": "2010-01-01"
+          },
+          {
+            "Rule": "HOL-00003"
+          }
+        ],
+        "Inheritance": {
+          "PreventRulesId": [
+            "HOL-00004"
+          ]
+        }
+      }
+    }
+  }
+]

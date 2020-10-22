@@ -99,3 +99,8 @@ REU-00001,ReuseRule,Actes de décès,"Durée d’exclusivité accordé à la soc
 L’échéance est calculée à partir de la date de signature du contrat",10,YEAR
 CLASS-00001,ClassificationRule,Réévaluation par défaut de la classification des documents protégés au titre du secret de la défense nationale,"Délai de réévaluation par défaut du niveau de protection d’un document au titre du secret de la défense nationale
 L’échéance est calculée à partir de la date d’émission du document",10,YEAR
+HOL-00001,HoldRule,Règle de gel d'un an,"Gel pour une durée définie d'1 an",1,Year
+HOL-00002,HoldRule,Règle de gel sans durée,"Gel pour une indéfinie",,
+HOL-00003,HoldRule,Règle de gel décennale,"Gel pour une durée définie de 10 an",10,Year
+HOL-00004,HoldRule,Règle de gel illimitée,"Gel pour une durée définie illimitée",unlimited,Year
+

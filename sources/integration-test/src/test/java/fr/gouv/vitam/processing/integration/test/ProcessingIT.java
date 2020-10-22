@@ -91,6 +91,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.JsonSorter;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
@@ -257,6 +258,18 @@ public class ProcessingIT extends VitamRuleRunner {
 
     private static final String SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";
     private static final String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
+    private static final String SIP_OK_HOLD_RULES = "integration-processing/SIP_OK_HoldRules.zip";
+    private static final String SIP_OK_HOLD_RULES_JSON = "integration-processing/SIP_OK_HoldRules.json";
+    private static final String SIP_OK_HOLD_RULES_WITH_MANAGEMENT_MEDATADA =
+        "integration-processing/SIP_OK_HoldRules_ManagementMetadata.zip";
+    private static final String SIP_OK_HOLD_RULES_WITH_MANAGEMENT_MEDATADA_JSON =
+        "integration-processing/SIP_OK_HoldRules_ManagementMetadata.json";
+    private static final String SIP_KO_HOLD_RULES_HOLD_END_DATE_BEFORE_START_DATE =
+        "integration-processing/SIP_KO_HoldRules_HoldEndDateBeforeStartDate.zip";
+    private static final String SIP_KO_HOLD_RULES_HOLD_END_DATE_FOR_RULE_WITH_DEFINED_DURATION =
+        "integration-processing/SIP_KO_HoldRules_HoldEndDateForRuleWithDefinedDuration.zip";
+    private static final String SIP_KO_HOLD_RULES_REF_NON_RULE_ID_UNKNOWN_RULE =
+        "integration-processing/SIP_KO_HoldRule_RefNonRuleIdUnknownRule.zip";
     private static final String SIP_INGEST_CONTRACT_UNKNOW = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
     private static final String SIP_INGEST_CONTRACT_NOT_IN_CONTEXT =
         "integration-processing/SIP_INGEST_CONTRACT_NOT_IN_CONTEXT.zip";
@@ -266,7 +279,8 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String SIP_FILE_ADD_AU_LINK_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK";
     private static final String link_to_manifest_and_existing_unit =
         "integration-processing/link_to_manifest_and_existing_unit";
-    private static final String SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK_BY_QUERY";
+    private static final String SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME =
+        "integration-processing/OK_SIP_ADD_AU_LINK_BY_QUERY";
 
     private static final String LINK_AU_TO_EXISTING_GOT_OK_NAME = "integration-processing/OK_LINK_AU_TO_EXISTING_GOT";
     private static final String LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET = "integration-processing";
@@ -361,8 +375,10 @@ public class ProcessingIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
-            ElasticsearchIndexAlias.ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+            ElasticsearchIndexAlias
+                .ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias
+                .ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
         );
     }
 
@@ -487,7 +503,8 @@ public class ProcessingIT extends VitamRuleRunner {
             // lets check the accession register
             Select query = new Select();
             query.setLimitFilter(0, 1);
-            RequestResponse<AccessionRegisterSummaryModel> resp = functionalClient.getAccessionRegister(query.getFinalSelect());
+            RequestResponse<AccessionRegisterSummaryModel> resp =
+                functionalClient.getAccessionRegister(query.getFinalSelect());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
             assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) resp).getHits().getTotal()).isEqualTo(1);
             assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) resp).getHits().getSize()).isEqualTo(1);
@@ -631,7 +648,8 @@ public class ProcessingIT extends VitamRuleRunner {
             // lets check the accession register
             Select select = new Select();
             select.setQuery(QueryHelper.eq("OriginatingAgency", "producteur1"));
-            RequestResponse<AccessionRegisterSummaryModel> resp = functionalClient.getAccessionRegister(select.getFinalSelect());
+            RequestResponse<AccessionRegisterSummaryModel> resp =
+                functionalClient.getAccessionRegister(select.getFinalSelect());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
             assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) resp).getHits().getTotal()).isEqualTo(1);
             assertThat(((RequestResponseOK<AccessionRegisterSummaryModel>) resp).getHits().getSize()).isEqualTo(1);
@@ -1414,7 +1432,8 @@ public class ProcessingIT extends VitamRuleRunner {
             }
             updateParserActive.parse(updateLinkParent.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
-            RequestResponse<IngestContractModel> requestResponse = client.updateIngestContract("ArchivalAgreement0", queryDsl);
+            RequestResponse<IngestContractModel> requestResponse =
+                client.updateIngestContract("ArchivalAgreement0", queryDsl);
             assertTrue(requestResponse.isOk());
         }
     }
@@ -3320,6 +3339,88 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
+    public void testIngestHoldRulesThenOK() throws Exception {
+        prepareVitamSession();
+
+        final String ingestOperation = ingestSIP(SIP_OK_HOLD_RULES, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+
+        JsonNode units;
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation));
+            select.addUsedProjection("Title", VitamFieldsHelper.management());
+
+            JsonNode resp = metaDataClient.selectUnits(select.getFinalSelect());
+            units = resp.get("$results");
+        }
+
+        JsonNode expectedJson = JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(SIP_OK_HOLD_RULES_JSON));
+
+        JsonSorter.sortJsonEntriesByKeys(units, Arrays.asList("Title", "Rule"));
+        JsonSorter.sortJsonEntriesByKeys(expectedJson, Arrays.asList("Title", "Rule"));
+
+        JsonAssert.assertJsonEquals(units, expectedJson);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestHoldRulesWithManagementMetadataThenOK() throws Exception {
+        prepareVitamSession();
+
+        final String ingestOperation =
+            ingestSIP(SIP_OK_HOLD_RULES_WITH_MANAGEMENT_MEDATADA, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+
+        JsonNode units;
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation));
+            select.addUsedProjection("Title", VitamFieldsHelper.management());
+
+            JsonNode resp = metaDataClient.selectUnits(select.getFinalSelect());
+            units = resp.get("$results");
+        }
+
+        JsonNode expectedJson = JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(SIP_OK_HOLD_RULES_WITH_MANAGEMENT_MEDATADA_JSON));
+
+        JsonSorter.sortJsonEntriesByKeys(units, Arrays.asList("Title", "Rule"));
+        JsonSorter.sortJsonEntriesByKeys(expectedJson, Arrays.asList("Title", "Rule"));
+
+        JsonAssert.assertJsonEquals(units, expectedJson);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestHoldRulesWithHoldEndDateBeforeStartDateThenKO() throws Exception {
+        prepareVitamSession();
+
+        ingestSIP(SIP_KO_HOLD_RULES_HOLD_END_DATE_BEFORE_START_DATE, DEFAULT_WORKFLOW.name(),
+            StatusCode.KO);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestHoldRulesWithHoldEndDateForRuleWithDefinedDurationThenKO() throws Exception {
+        prepareVitamSession();
+
+        ingestSIP(SIP_KO_HOLD_RULES_HOLD_END_DATE_FOR_RULE_WITH_DEFINED_DURATION, DEFAULT_WORKFLOW.name(),
+            StatusCode.KO);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestHoldRulesWithRefNonRuleIdOfUnknownRuleThenKO() throws Exception {
+        prepareVitamSession();
+
+        ingestSIP(SIP_KO_HOLD_RULES_REF_NON_RULE_ID_UNKNOWN_RULE, DEFAULT_WORKFLOW.name(),
+            StatusCode.KO);
+    }
+
+    @RunWithCustomExecutor
+    @Test
     public void testWorkflowReclassificationWithComputedInheritedRules() throws Exception {
         prepareVitamSession();
 
@@ -3559,8 +3660,8 @@ public class ProcessingIT extends VitamRuleRunner {
 
     private void verifyEvent(JsonNode events, String s) {
         List<JsonNode> massUpdateFinalized = events.findValues(OUT_DETAIL).stream()
-                .filter(e -> e.asText().equals(s))
-                .collect(Collectors.toList());
+            .filter(e -> e.asText().equals(s))
+            .collect(Collectors.toList());
         assertThat(massUpdateFinalized.size()).isGreaterThan(0);
     }
 }
