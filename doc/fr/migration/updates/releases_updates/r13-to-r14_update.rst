@@ -101,7 +101,7 @@ Ce playbook a pour but d'importer un ensemble de playbook pour la solution VITAM
 Installation check r13
 ----------------------
 
-Ce playbook permet de vérifier le bon fonctionnement de VITAM et ses services installés
+Ce playbook permet de vérifier le bon fonctionnement de VITAM et ses services installés ::
 
    ansible-playbook ansible-vitam-exploitation/status_vitam.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
