@@ -306,7 +306,7 @@ Ce playbook a pour but d'importer un ensemble de playbook pour la solution VITAM
 Start Cerebro r14 - TEMP
 -------------------------
 
-Cette étape est temporaire. Elle a été mise en place suite a des problèmes de démarrage du service Cerebro.
+Cette étape est temporaire. Elle a été mise en place suite a des problèmes de démarrage du service Cerebro ::
 
    ansible-playbook ansible-vitam-exploitation/start_vitam_admin.yml -i environments/hosts -l hosts_cerebro --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
@@ -314,7 +314,7 @@ Cette étape est temporaire. Elle a été mise en place suite a des problèmes d
 Installation check R14
 ----------------------
 
-Ce playbook permet de vérifier le bon fonctionnement de VITAM et ses services installés
+Ce playbook permet de vérifier le bon fonctionnement de VITAM et ses services installés ::
 
    ansible-playbook ansible-vitam-exploitation/status_vitam.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
