@@ -50,18 +50,27 @@ Deployment preparation r13
 ---------------------------
 
 Génération des certificats ::
+
    pki/scripts/generate_ca.sh
+   
    pki/scripts/generate_certs.sh environments/hosts
+   
    ./generate_stores.sh environments/hosts
 
 
 Génération des variables des environnement ::
+
    ansible-playbook ansible-vitam/generate_hostvars_for_1_network_interface.yml -i environments/hosts --private-key <path_to_private_key>  -u centos --vault-password-file vault_pass.txt --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
+
 Mise en place de la configuartion réseaux
 
+
 Mis à jour des repositories ::
+
    ./check-repositories.py
+   
    ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
+
 Mis à jour des repositories servant à gérer la récupération des packages
 
 
@@ -69,12 +78,15 @@ Vitam deployment r13
 ---------------------
 
 Configuration du repositorie VITAM ::
+
    ansible-playbook ansible-vitam-extra/browser.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
 Déploiement de la version R13 de vitam ::
+
    ansible-playbook ansible-vitam/vitam.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
 Reverse proxy pour les composants VITAM ::
+
    ansible-playbook ansible-vitam-extra/reverse.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
 
@@ -127,13 +139,13 @@ Cette commande réalise un audit sur les tenants et leur contrat d'accès associ
 Arrêt des *timers* systemd
 --------------------------
 
-Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur la version VITAM :
+Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur la version VITAM ::
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --private-key <path_to_private_key> --vault-password-file vault_pass.txt``
+   ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --private-key <path_to_private_key> --vault-password-file vault_pass.txt
 
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
+ou, si ``vault_pass.txt`` n'a pas été renseigné ::
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass``
+   ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass
 
 A l'issue de l'exécution du `playbook`, les *timers* systemd ont été arrêtés, afin de ne pas perturber la migration.
 
@@ -143,13 +155,13 @@ Il est également recommandé de ne lancer la procédure de migration qu'après 
 Arrêt des composants *externals*
 ---------------------------------
 
-Les commandes suivantes sont aussi à lancer depuis le répertoire ``deployment`` :
+Les commandes suivantes sont aussi à lancer depuis le répertoire ``deployment`` ::
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --private-key <path_to_private_key> --vault-password-file vault_pass.txt``
+   ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --private-key <path_to_private_key> --vault-password-file vault_pass.txt
 
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
+ou, si ``vault_pass.txt`` n'a pas été renseigné ::
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass``
+   `ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
 
 A l'issue de l'exécution du `playbook`, les composants *externals* ont été arrêtés, afin de ne pas perturber la migration.
 
@@ -214,7 +226,6 @@ Il faut avant ça mettre à jour l'environnement avec les informations associés
    
 Il faut récupérer les sources de la version R14, changer les version de branche et de griffins
 
-   R
 La commande à lancer est ::
 
    cd deployment
@@ -272,12 +283,15 @@ Vitam deployment R14
 ---------------------
 
 Configuration du repositorie VITAM ::
+
    ansible-playbook ansible-vitam-extra/browser.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
 Déploiement de la version R14 de vitam ::
+
    ansible-playbook ansible-vitam/vitam.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
 Reverse proxy pour les composants VITAM ::
+
    ansible-playbook ansible-vitam-extra/reverse.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e confirmation=yes --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
 
@@ -313,110 +327,32 @@ Execution des tests ::
    ansible-playbook ansible-vitam-extra/load_tnr.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Migration des données de certificats
-------------------------------------
-
-La *release* R11 apporte une modification quant à la déclaration des certificats. En effet, un bug empêchait l'intégration dans la solution :term:`VITAM` de certificats possédant un serial number long. 
-
-La commande suivante est à exécuter depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R10_upgrade_serial_number.yml --vault-password-file vault_pass.txt``
-
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R10_upgrade_serial_number.yml --ask-vault-pass``
-
-Migration des contrats d'entrée
--------------------------------
-
-La montée de version vers la *release* R11 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide du playbook :
-
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --vault-password-file vault_pass.txt``
-
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --ask-vault-pass``
-
-Le template ``upgrade_contracts.js`` contient : 
-
-.. literalinclude::  ../../../../../deployment/ansible-vitam-exploitation/roles/upgrade_R10_contracts/templates/upgrade_contracts.js.j2
-   :language: javascript
-
-Nettoyage des DIPs depuis les offres
-------------------------------------
-
-Dans le cadre d'une montée de version vers la *release* R12, il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`.
-
-La migration s'effectue, uniquement sur le site principal, à l'aide de la commande suivante :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r11_r12_dip_cleanup.yml --vault-password-file vault_pass.txt``
-
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r11_r12_dip_cleanup.yml --ask-vault-pass``
-
-.. warning:: Selon la volumétrie des données précédement chargées, le `playbook` peut durer quelques minutes.
-
 Réindexation ES Data
 --------------------
 
-La montée de version vers la *release* R11 requiert une réindexation totale d'ElasticSearch. Cette réindexation s'effectue à l'aide du playbook :
+La montée de version vers la *release* R11 requiert une réindexation totale d'ElasticSearch. Cette réindexation s'effectue à l'aide du playbook ::
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt``
+   ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt
 
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
+ou, si ``vault_pass.txt`` n'a pas été renseigné ::
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml  --ask-vault-pass``
+   ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml  --ask-vault-pass
 
 .. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de vérifier que la procédure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être réalisée manuellement.
 
-Mise à jour des métadonnées de reconstruction (cas d'un site secondaire)
-------------------------------------------------------------------------
 
-Dans le cadre d'une montée de version vers R13 sur un site secondaire, il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`.
+Get p12 for R14 audit
+---------------------
 
-Le `playbook` ajoute dans les données des collections `Offset` des bases `masterdata`, `logbook` et `metadata` du site secondaire la valeur ``"strategy" : "default"``.
+Récupérer les clés de cryptage p12 pour l'audit de cohérence ::
+   
+   ansible-playbook getKeystoreforAudit.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
-La migration s'effectue, uniquement sur le site secondaire, à l'aide de la commande suivante :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r12_r13_upgrade_offset_strategy.yml --vault-password-file vault_pass.txt``
+Audit coherence R14
+-------------------
 
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
+Cette commande réalise un audit sur les tenants et leur contrat d'accès associés ::
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r12_r13_upgrade_offset_strategy.yml --ask-vault-pass``
+   ansible-playbook ansible-vitam-exploitation/audit_coherence.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e access_contract=ContratTNR -e tenants=[0,1] --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
 
-Vérification de la bonne migration des données
-----------------------------------------------
-
-A l'issue de la migration, il est fortement conseillé de lancer un "Audit de cohérence" sur les différents tenants. Pour rappel du :term:`DEX`, pour lancer un audit de cohérence, il faut lancer le *playbook* comme suit :
-
-   ansible-playbook -i <inventaire> ansible-playbok-exploitation/audit_coherence.yml --ask-vault-pass -e "access_contract=<contrat multitenant>"
-
-Ou, si un fichier vault-password-file existe ::
-
-    ansible-playbook -i <inventaire> ansible-playbok-exploitation/audit_coherence.yml --vault-password-file vault_pass.txt -e "access_contract=<contrat multitenant>"
-
-.. note:: L'audit est lancé sur tous les *tenants* ; cependant, il est nécessaire de donner le contrat d'accès adapté. Se rapprocher du métier pour cet *id* de contrat. Pour limiter la liste des *tenants*, il faut rajouter un *extra var* à la ligne de commande ansible. Exemple ::
-
-   -e vitam_tenant_ids=[0,1]
-
-   pour limiter aux `tenants` 0 et 1.
