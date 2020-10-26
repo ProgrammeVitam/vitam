@@ -45,6 +45,7 @@ import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
@@ -539,5 +540,9 @@ public class BatchReportServiceImpl {
         if (!tempFile.delete()) {
             LOGGER.warn("Could not delete file " + tempFile.getAbsolutePath());
         }
+    }
+
+    public void appendUnitReport(List<UpdateUnitMetadataReportEntry> unitEntries) {
+        updateUnitReportRepository.bulkAppendReport(unitEntries);
     }
 }

@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -59,6 +60,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * public resource to mass-report
@@ -83,32 +86,49 @@ public class BatchReportResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response appendReport(ReportBody<JsonNode> reportBody,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId) {
-
-        switch (reportBody.getReportType()) {
-            case ELIMINATION_ACTION_UNIT:
-                batchReportServiceImpl
-                    .appendEliminationActionUnitReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
-                break;
-            case ELIMINATION_ACTION_OBJECTGROUP:
-                batchReportServiceImpl.appendEliminationActionObjectGroupReport(reportBody.getProcessId(), reportBody.getEntries(),
-                    tenantId);
-                break;
-            case PRESERVATION:
-                try {
-                    batchReportServiceImpl.appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
-                } catch (BatchReportException e) {
-                    LOGGER.error(e);
-                    Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
-                }
-                break;
-            case EVIDENCE_AUDIT:
-                    batchReportServiceImpl.appendEvidenceAuditReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
-                break;
-
-            default:
-                throw new IllegalStateException("Unsupported report type " + reportBody.getReportType());
+        try {
+            switch (reportBody.getReportType()) {
+                case ELIMINATION_ACTION_UNIT:
+                    batchReportServiceImpl
+                        .appendEliminationActionUnitReport(reportBody.getProcessId(), reportBody.getEntries(),
+                            tenantId);
+                    break;
+                case ELIMINATION_ACTION_OBJECTGROUP:
+                    batchReportServiceImpl
+                        .appendEliminationActionObjectGroupReport(reportBody.getProcessId(), reportBody.getEntries(),
+                            tenantId);
+                    break;
+                case PRESERVATION:
+                    try {
+                        batchReportServiceImpl
+                            .appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
+                    } catch (BatchReportException e) {
+                        LOGGER.error(e);
+                        Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
+                    }
+                    break;
+                case EVIDENCE_AUDIT:
+                    batchReportServiceImpl
+                        .appendEvidenceAuditReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
+                    break;
+                case UPDATE_UNIT:
+                    List<JsonNode> entries = reportBody.getEntries();
+                    List<UpdateUnitMetadataReportEntry> documents = new ArrayList<>();
+                    for (JsonNode entry : entries) {
+                        documents.add(JsonHandler.getFromJsonNode(entry,
+                            new TypeReference<UpdateUnitMetadataReportEntry>() {
+                            }));
+                    }
+                    batchReportServiceImpl.appendUnitReport(documents);
+                    break;
+                default:
+                    throw new IllegalStateException("Unsupported report type " + reportBody.getReportType());
+            }
+            return Response.status(Response.Status.CREATED).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
-        return Response.status(Response.Status.CREATED).build();
     }
 
 
