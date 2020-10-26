@@ -16,7 +16,7 @@ Mise à jour de l'inventaire R13
 
 Les versions récentes de ansible préconisent de ne plus utiliser le caractère "-" dans les noms de groupes ansible.
 
-Pour effectuer cette modification, un script de migration est mis à disposition pour mettre en conformité votre "ancien" inventaire dans une forme compatible avec les outils de déploiement de la *release* R12.
+Pour effectuer cette modification, un script de migration est mis à disposition.
 
 La commande à lancer est ::
 
@@ -330,7 +330,7 @@ Execution des tests ::
 Réindexation ES Data
 --------------------
 
-La montée de version vers la *release* R11 requiert une réindexation totale d'ElasticSearch. Cette réindexation s'effectue à l'aide du playbook ::
+La montée de version vers la *release* R14 requiert une réindexation totale d'ElasticSearch. Cette réindexation s'effectue à l'aide du playbook ::
 
    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt
 
