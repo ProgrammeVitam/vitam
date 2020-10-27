@@ -13,9 +13,9 @@
       "remained": 5.0
     },
     "TotalUnits": {
-      "ingested": 11.0,
+      "ingested": 13.0,
       "deleted": 3.0,
-      "remained": 8.0
+      "remained": 10.0
     },
     "ObjectSize": {
       "ingested": 36.0,
