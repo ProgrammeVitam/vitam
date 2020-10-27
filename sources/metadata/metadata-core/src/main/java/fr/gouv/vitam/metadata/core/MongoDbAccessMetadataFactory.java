@@ -30,13 +30,13 @@ import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +71,6 @@ public class MongoDbAccessMetadataFactory {
         for (final MetadataCollections e : MetadataCollections.class.getEnumConstants()) {
             classList.add(e.getClasz());
         }
-        MetadataCollections.class.getEnumConstants();
 
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));

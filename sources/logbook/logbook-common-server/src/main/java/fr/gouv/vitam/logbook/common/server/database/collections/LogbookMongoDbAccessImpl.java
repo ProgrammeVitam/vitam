@@ -204,34 +204,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     /**
-     * @return The MongoCLientOptions to apply to MongoClient
-     */
-    public static MongoClientOptions getMongoClientOptions() {
-        final VitamDocumentCodec<LogbookOperation> operationCodec = new VitamDocumentCodec<>(LogbookOperation.class);
-
-        final VitamDocumentCodec<LogbookLifeCycleUnit> lifecycleUnitCodec =
-            new VitamDocumentCodec<>(LogbookLifeCycleUnit.class);
-
-        final VitamDocumentCodec<LogbookLifeCycleObjectGroup> lifecycleObjectGroupCodec =
-            new VitamDocumentCodec<>(LogbookLifeCycleObjectGroup.class);
-
-        final VitamDocumentCodec<LogbookLifeCycleUnitInProcess> lifecycleUnitInProcessCodec =
-            new VitamDocumentCodec<>(LogbookLifeCycleUnitInProcess.class);
-
-        final VitamDocumentCodec<LogbookLifeCycleObjectGroupInProcess> lifecycleObjectGroupInProcessCodec =
-            new VitamDocumentCodec<>(LogbookLifeCycleObjectGroupInProcess.class);
-
-
-        final CodecRegistry codecRegistry = CodecRegistries
-            .fromRegistries(CodecRegistries.fromCodecs(operationCodec, lifecycleUnitCodec, lifecycleObjectGroupCodec,
-                lifecycleUnitInProcessCodec, lifecycleObjectGroupInProcessCodec,
-                new VitamDocumentCodec<>(VitamDocument.class)), MongoClient.getDefaultCodecRegistry());
-
-
-        return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
-    }
-
-    /**
      * Close database access
      */
     @Override
@@ -1106,7 +1078,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     // Not check, test feature !
     @Override
     @VisibleForTesting
-    public void deleteCollectionForTesting(LogbookCollections collection) throws DatabaseException, LogbookExecutionException {
+    public void deleteCollectionForTesting(LogbookCollections collection)
+        throws DatabaseException, LogbookExecutionException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final long count = collection.getCollection().countDocuments(Filters.eq(VitamDocument.TENANT_ID, tenantId));
         if (LOGGER.isDebugEnabled()) {

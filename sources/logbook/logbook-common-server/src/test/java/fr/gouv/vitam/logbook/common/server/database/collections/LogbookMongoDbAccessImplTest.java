@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -54,15 +55,19 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class LogbookMongoDbAccessImplTest {
 
+    private final static List<Class<?>> classList =
+        List.of(LogbookOperation.class, LogbookLifeCycleUnit.class, LogbookLifeCycleObjectGroup.class,
+            LogbookLifeCycleUnitInProcess.class, LogbookLifeCycleObjectGroupInProcess.class
+        );
+
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions());
+        new MongoRule(VitamCollection.getMongoClientOptions(classList));
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -87,7 +92,8 @@ public class LogbookMongoDbAccessImplTest {
     }
 
     private LogbookMongoDbAccessImpl logbookMongoDbAccess =
-        new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true, mock(LogbookElasticsearchAccess.class),
+        new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true,
+            mock(LogbookElasticsearchAccess.class),
             new LogbookTransformData(), Collections::emptyList);
 
 

@@ -127,11 +127,9 @@ public class ReconstructionService {
      *
      * @param reconstructionItem request for reconstruction
      * @return response of reconstruction
-     * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      */
-    public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem)
-        throws DatabaseException {
+    public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem) {
         ParametersChecker.checkParameter(RECONSTRUCTION_ITEM_MONDATORY_MSG, reconstructionItem);
         ParametersChecker.checkParameter(RECONSTRUCTION_TENANT_MONDATORY_MSG, reconstructionItem.getTenant());
         if (reconstructionItem.getLimit() < 0) {
@@ -151,12 +149,10 @@ public class ReconstructionService {
      * @param tenant tenant
      * @param limit number of data to reconstruct
      * @return response of reconstruction
-     * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      * @throws VitamRuntimeException storage error
      */
-    private ReconstructionResponseItem reconstructCollection(int tenant, int limit)
-        throws DatabaseException {
+    private ReconstructionResponseItem reconstructCollection(int tenant, int limit) {
 
         final long offset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
 
@@ -172,8 +168,6 @@ public class ReconstructionService {
         final VitamElasticsearchRepository esRepository =
             vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION.getVitamCollection(),
                 indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION));
-
-        long newOffset = offset;
 
         try {
             // This is a hack, we must set manually the tenant is the VitamSession (used and transmitted in the
@@ -215,7 +209,7 @@ public class ReconstructionService {
                 if (!bulkData.isEmpty()) {
                     reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
                     LogbookBackupModel last = Iterables.getLast(bulkData);
-                    newOffset = last.getOffset();
+                    offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK, last.getOffset());
                 }
 
                 // log the reconstruction of Vitam collection.
@@ -228,14 +222,11 @@ public class ReconstructionService {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
                 DataCategory.BACKUP_OPERATION.name(), tenant, offset), em);
-            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } catch (StorageException se) {
             LOGGER.error(se.getMessage());
-            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
-            offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK, newOffset);
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;

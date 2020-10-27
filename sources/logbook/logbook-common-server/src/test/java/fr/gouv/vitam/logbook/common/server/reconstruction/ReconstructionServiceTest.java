@@ -61,9 +61,12 @@ import static fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionS
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -88,6 +91,10 @@ public class ReconstructionServiceTest {
     private OffsetRepository offsetRepository;
     private ElasticsearchLogbookIndexManager indexManager;
 
+    private static final long OFFSET = 100L;
+    private static final long NEXT_OFFSET = OFFSET + 1L;
+    private static final int TENANT = 10;
+
     @Before
     public void setup() {
         vitamRepositoryProvider = mock(VitamRepositoryFactory.class);
@@ -102,7 +109,7 @@ public class ReconstructionServiceTest {
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
         requestItem = new ReconstructionRequestItem();
-        requestItem.setTenant(10).setLimit(100);
+        requestItem.setTenant(TENANT).setLimit(100);
 
         offsetRepository = mock(OffsetRepository.class);
         indexManager = mock(ElasticsearchLogbookIndexManager.class);
@@ -113,15 +120,15 @@ public class ReconstructionServiceTest {
     public void should_return_new_offset_when_item_unit_is_ok()
         throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(OFFSET);
 
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
             requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
-            .thenReturn(getLogbookBackupModel("100", 100L));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbookBackupModel("101", 101L));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", OFFSET))
+            .thenReturn(getLogbookBackupModel("100", OFFSET));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", NEXT_OFFSET))
+            .thenReturn(getLogbookBackupModel("101", NEXT_OFFSET));
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
@@ -133,8 +140,8 @@ public class ReconstructionServiceTest {
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        verify(offsetRepository).createOrUpdateOffset(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 101L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        verify(offsetRepository).createOrUpdateOffset(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK, NEXT_OFFSET);
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
 
@@ -143,15 +150,15 @@ public class ReconstructionServiceTest {
     public void should_fail_when_item_unit_is_missing()
         throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(OFFSET);
 
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
             requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", OFFSET))
             .thenThrow(new StorageNotFoundException(""));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbookBackupModel("101", 101L));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", NEXT_OFFSET))
+            .thenReturn(getLogbookBackupModel("101", NEXT_OFFSET));
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
@@ -163,8 +170,8 @@ public class ReconstructionServiceTest {
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        verify(offsetRepository).createOrUpdateOffset(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 100L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        verify(offsetRepository, times(0)).createOrUpdateOffset(eq(TENANT), eq(VitamConfiguration.getDefaultStrategy()), eq(LOGBOOK), anyLong());
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
 
@@ -172,10 +179,10 @@ public class ReconstructionServiceTest {
     @Test
     public void should_return_request_offset_when_item_limit_zero() throws DatabaseException {
         // given
-        when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(OFFSET);
 
         requestItem.setLimit(0);
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
             requestItem.getLimit())).thenReturn(IteratorUtils.emptyIterator());
 
         ReconstructionService reconstructionService =
@@ -185,8 +192,9 @@ public class ReconstructionServiceTest {
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        verify(offsetRepository).createOrUpdateOffset(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 100L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        // we don't update offset if there no data to reconstruct
+        verify(offsetRepository, times(0)).createOrUpdateOffset(eq(TENANT), eq(VitamConfiguration.getDefaultStrategy()), eq(LOGBOOK), anyLong());
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
 
@@ -232,14 +240,14 @@ public class ReconstructionServiceTest {
     public void should_return_request_offset_when_mongo_exception()
         throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(OFFSET);
 
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, requestItem.getLimit()))
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
-            .thenReturn(getLogbookBackupModel("100", 100L));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbookBackupModel("101", 101L));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", OFFSET))
+            .thenReturn(getLogbookBackupModel("100", OFFSET));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", NEXT_OFFSET))
+            .thenReturn(getLogbookBackupModel("101", NEXT_OFFSET));
         doThrow(new DatabaseException("mongo error")).when(mongoRepository).save(anyList());
         when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(
             new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
@@ -252,8 +260,8 @@ public class ReconstructionServiceTest {
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        verify(offsetRepository).createOrUpdateOffset(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 101L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        verify(offsetRepository).createOrUpdateOffset(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK, NEXT_OFFSET);
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
 
@@ -262,13 +270,13 @@ public class ReconstructionServiceTest {
     public void should_return_request_offset_when_es_exception()
         throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, requestItem.getLimit()))
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(OFFSET);
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
-            .thenReturn(getLogbookBackupModel("100", 100L));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbookBackupModel("101", 101L));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", OFFSET))
+            .thenReturn(getLogbookBackupModel("100", OFFSET));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", NEXT_OFFSET))
+            .thenReturn(getLogbookBackupModel("101", NEXT_OFFSET));
         doThrow(new DatabaseException("mongo error")).when(esRepository).save(anyList());
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
             .thenReturn(new RequestResponseOK<>());
@@ -280,8 +288,8 @@ public class ReconstructionServiceTest {
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        verify(offsetRepository).createOrUpdateOffset(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 100L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        verify(offsetRepository, times(0)).createOrUpdateOffset(eq(TENANT), eq(VitamConfiguration.getDefaultStrategy()), eq(LOGBOOK), anyLong());
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
 
@@ -291,16 +299,16 @@ public class ReconstructionServiceTest {
     public void should_return_request_offset_when_logbook_null()
         throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(100L);
-        LogbookBackupModel logbookBackupModel100 = getLogbookBackupModel("100", 100L);
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(OFFSET);
+        LogbookBackupModel logbookBackupModel100 = getLogbookBackupModel("100", OFFSET);
         logbookBackupModel100.setLogbookOperation(null);
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
             requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", OFFSET))
             .thenReturn(logbookBackupModel100);
-        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
-            .thenReturn(getLogbookBackupModel("101", 101L));
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", NEXT_OFFSET))
+            .thenReturn(getLogbookBackupModel("101", NEXT_OFFSET));
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
                 new LogbookTransformData(), offsetRepository, indexManager);
@@ -308,8 +316,9 @@ public class ReconstructionServiceTest {
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        verify(offsetRepository).createOrUpdateOffset(10, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 100L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        // we don't update offset if there no data to reconstruct
+        verify(offsetRepository, times(0)).createOrUpdateOffset(eq(TENANT), eq(VitamConfiguration.getDefaultStrategy()), eq(LOGBOOK), anyLong());
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
 
