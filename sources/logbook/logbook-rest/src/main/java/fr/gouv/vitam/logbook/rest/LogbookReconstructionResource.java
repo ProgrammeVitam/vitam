@@ -131,7 +131,7 @@ public class LogbookReconstructionResource {
                     .labels(String.valueOf(item.getTenant()), LogbookCollections.OPERATION.name()).startTimer();
                 try {
                     responses.add(reconstructionService.reconstruct(item));
-                } catch (DatabaseException | IllegalArgumentException e) {
+                } catch (IllegalArgumentException e) {
                     LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
                     responses.add(new ReconstructionResponseItem(item, StatusCode.KO));
                 } finally {
