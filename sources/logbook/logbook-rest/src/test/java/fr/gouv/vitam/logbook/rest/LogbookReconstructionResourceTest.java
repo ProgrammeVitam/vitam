@@ -97,22 +97,6 @@ public class LogbookReconstructionResourceTest {
     }
 
     @Test
-    public void should_return_request_offset_when_reconstruction_throws_database_exception() throws DatabaseException {
-        // given
-        when(reconstructionService.reconstruct(requestItem)).thenThrow(new DatabaseException("Database error"));
-        LogbookReconstructionResource reconstructionResource =
-            new LogbookReconstructionResource(reconstructionService);
-        // when
-        Response response = reconstructionResource.reconstructCollection(Arrays.asList(requestItem));
-        // then
-        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-        List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity.size()).isEqualTo(1);
-        assertThat(responseEntity.get(0).getTenant()).isEqualTo(10);
-    }
-
-    @Test
     public void should_return_ok_when__request_item_no_offset() {
         // given
         LogbookReconstructionResource reconstructionResource =
