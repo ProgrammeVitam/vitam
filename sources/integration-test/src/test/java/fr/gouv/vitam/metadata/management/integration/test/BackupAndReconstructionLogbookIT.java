@@ -56,8 +56,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -110,18 +110,18 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(BackupAndReconstructionLogbookIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            AdminManagementMain.class,
-                            LogbookMain.class,
-                            WorkspaceMain.class,
-                            StorageMain.class,
-                            DefaultOfferMain.class
-                    ));
+        new VitamServerRunner(BackupAndReconstructionLogbookIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class
+            ));
 
     private static final String ACCESS_CONTRACT =
-            "integration-metadata-management/data/access_contract_every_originating_angency.json";
+        "integration-metadata-management/data/access_contract_every_originating_angency.json";
 
     private static final String LOGBOOK_0_GUID = "aecaaaaaaceeytj5abrzmalbvy426faaaaaq";
     private static final String LOGBOOK_0_EVENT_GUID = "aedqaaaaaceeytj5abrzmalbvy43cpyaaaba";
@@ -141,9 +141,10 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
 
     private static StorageClient storageClient;
+    private static LogbookOperationsClient logbookOperationsClient;
+    private static AdminManagementClient adminManagementClient;
     private static LogbookReconstructionService reconstructionService;
-
-    static OffsetRepository offsetRepository;
+    private static OffsetRepository offsetRepository;
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
@@ -151,23 +152,25 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .readTimeout(600, TimeUnit.SECONDS)
-                .connectTimeout(600, TimeUnit.SECONDS)
-                .build();
+            .readTimeout(600, TimeUnit.SECONDS)
+            .connectTimeout(600, TimeUnit.SECONDS)
+            .build();
         Retrofit retrofit =
-                new Retrofit.Builder().client(okHttpClient).baseUrl(runner.LOGBOOK_URL)
-                        .addConverterFactory(JacksonConverterFactory.create()).build();
+            new Retrofit.Builder().client(okHttpClient).baseUrl(VitamServerRunner.LOGBOOK_URL)
+                .addConverterFactory(JacksonConverterFactory.create()).build();
         reconstructionService = retrofit.create(LogbookReconstructionService.class);
         storageClient = StorageClientFactory.getInstance().getClient();
-        MongoDbAccess mongoDbAccess =
-                new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
-        offsetRepository = new OffsetRepository(mongoDbAccess);
+        logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
+        MongoDbAccess mongoDbAccess =
+            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        offsetRepository = new OffsetRepository(mongoDbAccess);
     }
 
 
     @AfterClass
-    public static void afterClass() throws Exception {
+    public static void afterClass() {
         handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();
@@ -197,15 +200,15 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         ReconstructionRequestItem reconstructionItem2;
         Response<List<ReconstructionResponseItem>> response;
         JsonNode logbookResponse;
-        LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
-        AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
         String TENANT_0_PREFIXED = VitamConfiguration.getEnvironmentName() + "_" + TENANT_0;
         String TENANT_1_PREFIXED = VitamConfiguration.getEnvironmentName() + "_" + TENANT_1;
 
         // 0. Init data
-        Path backup0Folder = Paths.get(getOfferPath(), TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
-        Path backup1Folder = Paths.get(getOfferPath(), TENANT_1_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+        Path backup0Folder =
+            Paths.get(getOfferPath(), TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+        Path backup1Folder =
+            Paths.get(getOfferPath(), TENANT_1_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
 
         assertThat(java.nio.file.Files.exists(backup0Folder)).isFalse();
         assertThat(java.nio.file.Files.exists(backup1Folder)).isFalse();
@@ -214,63 +217,68 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_1_GUID))).isFalse();
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_2_GUID))).isFalse();
 
-        client.create(getParamatersStart(LOGBOOK_0_GUID));
+        logbookOperationsClient.create(getParamatersStart(LOGBOOK_0_GUID));
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_0_GUID))).isTrue();
-        client.update(getParamatersAppend(LOGBOOK_0_GUID, LOGBOOK_0_EVENT_GUID, REGISTER_0_JSON, StatusCode.OK));
+        logbookOperationsClient
+            .update(getParamatersAppend(LOGBOOK_0_GUID, LOGBOOK_0_EVENT_GUID, REGISTER_0_JSON, StatusCode.OK));
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_0_GUID))).isTrue();
 
-        client.create(getParamatersStart(LOGBOOK_1_GUID));
+        logbookOperationsClient.create(getParamatersStart(LOGBOOK_1_GUID));
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_1_GUID))).isTrue();
-        client.update(getParamatersAppend(LOGBOOK_1_GUID, LOGBOOK_1_EVENT_GUID, REGISTER_1_JSON, StatusCode.WARNING));
+        logbookOperationsClient
+            .update(getParamatersAppend(LOGBOOK_1_GUID, LOGBOOK_1_EVENT_GUID, REGISTER_1_JSON, StatusCode.WARNING));
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_1_GUID))).isTrue();
 
-        client.create(getParamatersStart(LOGBOOK_2_GUID));
+        logbookOperationsClient.create(getParamatersStart(LOGBOOK_2_GUID));
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_2_GUID))).isTrue();
-        client.update(getParamatersAppend(LOGBOOK_2_GUID, LOGBOOK_2_EVENT_GUID, null, StatusCode.KO));
+        logbookOperationsClient.update(getParamatersAppend(LOGBOOK_2_GUID, LOGBOOK_2_EVENT_GUID, null, StatusCode.KO));
         assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), LOGBOOK_2_GUID))).isTrue();
 
         // import access contract
         File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
         List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+            .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+            });
         adminManagementClient.importAccessContracts(accessContractModelList);
 
         mongoRule.getMongoCollection(LogbookCollections.OPERATION.getName())
-                .deleteMany(new Document());
+            .deleteMany(new Document());
 
         assertThatCode(() -> {
-            client.selectOperationById(LOGBOOK_0_GUID);
+            logbookOperationsClient.selectOperationById(LOGBOOK_0_GUID);
         }).isInstanceOf(LogbookClientNotFoundException.class);
 
 
         RequestResponse<OfferLog> offerLogResponse1 =
-                storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 0L, 10,
+                Order.ASC);
         assertThat(offerLogResponse1).isNotNull();
         assertThat(offerLogResponse1.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().size()).isEqualTo(9);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getSequence()).isEqualTo(1L);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getContainer())
-                .isEqualTo(TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+            .isEqualTo(TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getFileName())
-                .isEqualTo(LOGBOOK_0_GUID);
+            .isEqualTo(LOGBOOK_0_GUID);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getSequence()).isEqualTo(2L);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getContainer())
-                .isEqualTo(TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+            .isEqualTo(TENANT_0_PREFIXED + "_" + DataCategory.BACKUP_OPERATION.getFolder());
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getFileName())
-                .isEqualTo(LOGBOOK_0_GUID);
+            .isEqualTo(LOGBOOK_0_GUID);
 
         RequestResponse<OfferLog> offerLogResponse2 =
-                storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 1L, 10, Order.DESC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 1L, 10,
+                Order.DESC);
         assertThat(offerLogResponse2).isNotNull();
         assertThat(offerLogResponse2.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse2).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse2).getResults().get(0).getSequence()).isEqualTo(1L);
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse2).getResults().get(0).getFileName())
-                .isEqualTo(LOGBOOK_0_GUID);
+            .isEqualTo(LOGBOOK_0_GUID);
 
         RequestResponse<OfferLog> offerLogResponse3 =
-                storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, null, 10, Order.DESC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, null, 10,
+                Order.DESC);
         assertThat(offerLogResponse3).isNotNull();
         assertThat(offerLogResponse3.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse3).getResults().size()).isEqualTo(9);
@@ -281,15 +289,15 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         reconstructionItem1.setLimit(2);
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = reconstructionService.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), "logbook")).isEqualTo(2L);
-
-        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
+        assertThat(response.body().get(0).getTenant()).isEqualTo(TENANT_0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK))
+            .isEqualTo(2L);
 
-        logbookResponse = client.selectOperationById(LOGBOOK_0_GUID);
+        logbookResponse = logbookOperationsClient.selectOperationById(LOGBOOK_0_GUID);
         RequestResponseOK<JsonNode> logbookOK = new RequestResponseOK<JsonNode>().getFromJsonNode(logbookResponse);
         assertThat((logbookOK).getResults().size()).isEqualTo(1);
         assertThat((logbookOK).getFirstResult().get("_id").asText()).isEqualTo(LOGBOOK_0_GUID);
@@ -301,11 +309,13 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         reconstructionItems.add(reconstructionItem1);
         offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 0);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = reconstructionService.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(2L);
+        assertThat(response.body().get(0).getTenant()).isEqualTo(TENANT_0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK))
+            .isEqualTo(2L);
 
 
         // 3. reconstruct next operation
@@ -316,19 +326,20 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         reconstructionItem2.setLimit(2);
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = reconstructionService.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(6L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK))
+            .isEqualTo(6L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        logbookResponse = client.selectOperationById(LOGBOOK_0_GUID);
+        logbookResponse = logbookOperationsClient.selectOperationById(LOGBOOK_0_GUID);
         assertThat(logbookResponse.get("httpCode").asInt()).isEqualTo(200);
         assertThatCode(() -> {
-            JsonNode localeResponse = client.selectOperationById(LOGBOOK_1_GUID);
+            JsonNode localeResponse = logbookOperationsClient.selectOperationById(LOGBOOK_1_GUID);
             System.out.println(JsonHandler.prettyPrint(localeResponse));
         }).isInstanceOf(LogbookClientNotFoundException.class);
-        logbookResponse = client.selectOperationById(LOGBOOK_2_GUID);
+        logbookResponse = logbookOperationsClient.selectOperationById(LOGBOOK_2_GUID);
         assertThat(logbookResponse.get("httpCode").asInt()).isEqualTo(200);
 
         // 4. reconstruct nothing for logbook operation
@@ -337,10 +348,11 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 7L);
 
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = reconstructionService.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(9L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK))
+            .isEqualTo(9L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         // 5. reconstruct on unused tenants
@@ -349,10 +361,11 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         reconstructionItem1.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem1);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = reconstructionService.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(0L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK))
+            .isEqualTo(0L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         // 5. reconstruct all operations
@@ -362,10 +375,11 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         reconstructionItem1.setLimit(15);
         reconstructionItems.add(reconstructionItem1);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = reconstructionService.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(10L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK))
+            .isEqualTo(10L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         VitamConfiguration.setEnvironmentName("");
@@ -373,21 +387,21 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
     private LogbookOperationParameters getParamatersStart(String eip) throws InvalidGuidOperationException {
         return LogbookParameterHelper
-                .newLogbookOperationParameters(GUIDReader.getGUID(eip), "eventType", GUIDReader.getGUID(eip),
-                        LogbookTypeProcess.INGEST,
-                        StatusCode.STARTED, "start ingest", GUIDReader.getGUID(eip));
+            .newLogbookOperationParameters(GUIDReader.getGUID(eip), "eventType", GUIDReader.getGUID(eip),
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", GUIDReader.getGUID(eip));
     }
 
     private LogbookOperationParameters getParamatersAppend(String eip, String eiEvent, String evDetDataFile,
-                                                           StatusCode statusCode)
-            throws InvalidGuidOperationException, InvalidParseOperationException, FileNotFoundException {
+        StatusCode statusCode)
+        throws InvalidGuidOperationException, InvalidParseOperationException, FileNotFoundException {
 
         LogbookOperationParameters params = LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDReader.getGUID(eiEvent), "ACCESSION_REGISTRATION", GUIDReader.getGUID(eip), LogbookTypeProcess.INGEST,
-                statusCode, "end ingest", GUIDReader.getGUID(eip));
+            GUIDReader.getGUID(eiEvent), "ACCESSION_REGISTRATION", GUIDReader.getGUID(eip), LogbookTypeProcess.INGEST,
+            statusCode, "end ingest", GUIDReader.getGUID(eip));
         if (evDetDataFile != null) {
             params.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler
-                    .unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(evDetDataFile))));
+                .unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(evDetDataFile))));
         }
         return params;
     }
@@ -395,10 +409,10 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
     public interface LogbookReconstructionService {
         @POST("/logbook/v1/reconstruction/operations")
         @Headers({
-                "Accept: application/json",
-                "Content-Type: application/json"
+            "Accept: application/json",
+            "Content-Type: application/json"
         })
-        Call<List<ReconstructionResponseItem>> reconstructCollection(@Header("X-Tenant-Id") String tenant,
-                                                                     @Body List<ReconstructionRequestItem> reconstructionItems);
+        Call<List<ReconstructionResponseItem>> reconstructCollection(
+            @Body List<ReconstructionRequestItem> reconstructionItems);
     }
 }

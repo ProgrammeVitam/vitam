@@ -26,17 +26,16 @@
  */
 package fr.gouv.vitam.common.database.offset;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * Offset collection repository (use for logbook and metadata database)
@@ -98,9 +97,8 @@ public class OffsetRepository {
             eq("strategy", strategy),
             eq("collection", collection)
         );
-        FindIterable<Document> documents = offerCollection.find(offsetFilter);
 
-        Document first = documents.first();
+        Document first = offerCollection.find(offsetFilter).first();
         if (first == null) {
             return 0L;
         }
