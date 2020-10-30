@@ -55,6 +55,7 @@ import org.bson.conversions.Bson;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 /**
  * DbRequest Helper common for Single and Multiple
@@ -148,10 +149,9 @@ public class DbRequestHelper {
         }
         // Build aggregate $project condition
         final int nb = list.size();
-        final List<VitamDocument<?>> firstList = new ArrayList<>(nb);
-        for (final String id : list) {
-            firstList.add(new FakeVitamDocument());
-        }
+        final List<VitamDocument<?>> firstList = list.stream()
+                .map(id -> new FakeVitamDocument())
+                .collect(Collectors.toCollection(() -> new ArrayList<>(nb)));
         ServerAddress serverAddress;
         int nbFinal = 0;
         try (MongoCursor<VitamDocument<?>> cursor = find.iterator()) {
@@ -173,11 +173,11 @@ public class DbRequestHelper {
             for (int i = 0; i < nb; i++) {
                 VitamDocument<?> vitamDocument = firstList.get(i);
                 if (!(vitamDocument instanceof FakeVitamDocument)) {
-                    Float score = Float.valueOf(1);
+                    Float score = 1f;
                     try {
                         score = scores.get(i);
                         if (score.isNaN()) {
-                            score = Float.valueOf(1);
+                            score = 1f;
                         }
                     } catch (IndexOutOfBoundsException e) {
                         SysErrLogger.FAKE_LOGGER.ignoreLog(e);

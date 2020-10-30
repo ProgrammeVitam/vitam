@@ -72,14 +72,12 @@ import org.elasticsearch.action.support.DefaultShardOperationFailedException;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.Cancellable;
 import org.elasticsearch.client.GetAliasesResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.settings.Settings;
@@ -452,17 +450,16 @@ public class ElasticsearchAccess implements DatabaseConnection {
         return search(indexAlias, query, filter, esProjection, sorts, offset, limit, null, null, null);
     }
 
-
-    public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
-        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
-        int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
-        throws DatabaseException, BadRequestException {
+    public final SearchResponse searchCrossIndices(Set<ElasticsearchIndexAlias> indexAliases,
+                                       final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
+                                       int offset, Integer limit,
+                                       final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+            throws DatabaseException, BadRequestException {
         SearchResponse response;
         SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.searchSource()
-            .explain(false)
-            .query(query)
-            .size(VitamConfiguration.getElasticSearchScrollLimit());
+                .explain(false)
+                .query(query)
+                .size(VitamConfiguration.getElasticSearchScrollLimit());
 
         if (null != filter) {
             searchSourceBuilder.postFilter(filter);
@@ -477,14 +474,14 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
 
         SearchRequest searchRequest = new SearchRequest()
-            .indices(indexAlias.getName())
-            .source(searchSourceBuilder)
-            .searchType(SearchType.DFS_QUERY_THEN_FETCH);
+                .indices(indexAliases.stream().map(ElasticsearchIndexAlias::getName).toArray(String[]::new))
+                .source(searchSourceBuilder)
+                .searchType(SearchType.DFS_QUERY_THEN_FETCH);
 
         if (scrollId != null && !scrollId.isEmpty()) {
             int limitES = (limit != null && limit > 0) ? limit : DEFAULT_LIMIT_SCROLL;
             int scrollTimeoutES =
-                (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : DEFAULT_SCROLL_TIMEOUT;
+                    (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : DEFAULT_SCROLL_TIMEOUT;
             searchRequest.scroll(TimeValue.timeValueMillis(scrollTimeoutES));
             searchSourceBuilder.size(limitES);
 
@@ -493,8 +490,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     response = getClient().search(searchRequest, RequestOptions.DEFAULT);
                 } else {
                     response = getClient()
-                        .scroll(new SearchScrollRequest(scrollId).scroll(new TimeValue(scrollTimeoutES)),
-                            RequestOptions.DEFAULT);
+                            .scroll(new SearchScrollRequest(scrollId).scroll(new TimeValue(scrollTimeoutES)),
+                                    RequestOptions.DEFAULT);
                 }
             } catch (IOException e) {
                 throw new DatabaseException(e);
@@ -538,6 +535,15 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
 
         return response;
+    }
+
+    public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
+        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
+        int offset, Integer limit,
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        throws DatabaseException, BadRequestException {
+        return searchCrossIndices(Set.of(indexAlias), query, filter,  esProjection,  sorts,
+        offset, limit, facets, scrollId, scrollTimeout);
     }
 
     public void clearScroll(String scrollId) throws DatabaseException {

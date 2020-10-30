@@ -47,3 +47,21 @@ GET {{url-ingest}}/ingest-external/v1/ingests/{{operation-id}}/archivetransferre
 Accept: application/octet-stream
 X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}
+
+
+###
+
+GET {{url-access}}/access-external/v1/logbookoperations
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: 0
+
+{
+  "$query": {},
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100
+  },
+  "$projection": {}
+}

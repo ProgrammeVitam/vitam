@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAliasResolver;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
@@ -69,6 +70,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -104,6 +106,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
+import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.outcomeDetail;
 import static java.util.function.Predicate.not;
 
@@ -174,6 +177,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             filterFinalResponse(doc);
             operations.add(doc);
         }
+
         long offset = 0;
         long limit = 0;
         if (select.get("$filter") != null) {
@@ -185,12 +189,12 @@ public class LogbookOperationsImpl implements LogbookOperations {
             }
         }
 
-        DatabaseCursor hitss = (cursor.getScrollId() != null) ?
+        DatabaseCursor hits = (cursor.getScrollId() != null) ?
                 new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
                 :
                 new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
         return new RequestResponseOK<LogbookOperation>(select)
-                .addAllResults(operations).setHits(hitss);
+                .addAllResults(operations).setHits(hits);
     }
 
     private void filterFinalResponse(VitamDocument<?> document) {
