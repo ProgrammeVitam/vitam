@@ -334,6 +334,44 @@ documentation:
       is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
 
 
+
+/traceability:
+  displayName: Traceability
+  description: |
+    Ce point d'entrée permet d'auditer une ou plusieur opérations de sécurisation des journaux.
+
+  /check:
+    post:
+      description: Permet de vérifier une opération de sécurisation des journaux
+      is: [LogbookTraits.TraceabilityCheckResponse]
+
+  /linkedcheck:
+    post:
+      description: Permet de vérifier des opérations de sécurisation des journaux
+      body:
+            application/json:
+              description: |
+                Requête DSL de sélection des éléments à auditer
+              type: object
+              example: !include libraries/examples/dslQuery.json
+      responses:
+        200:
+          description: Succès
+          body:
+            application/json:
+              description: Success response
+        400:
+          description: Precondition Failed
+          body:
+            application/json:
+              description: some predicates are incorrect, therefore the operation is not possible.
+        500:
+          description: Internal Server Error
+           body:
+            application/json:
+              description: server has encountered a problem
+
+
 /status:
   get:
     is: [ StandardTraits.Status, StandardTraits.StandardHeader200,
