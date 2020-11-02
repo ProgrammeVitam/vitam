@@ -3,7 +3,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>functional-administration</artifactId>
-        <version>3.12.0-SNAPSHOT</version>
+        <version>3.16.0-SNAPSHOT</version>
     </parent>
     <artifactId>functional-administration-archive-unit-profiles</artifactId>
     <dependencies>

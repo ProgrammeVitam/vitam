@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>worker</artifactId>
-		<version>3.12.0-SNAPSHOT</version>
+		<version>3.16.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>worker-common</artifactId>
 	<name>Worker Common</name>
