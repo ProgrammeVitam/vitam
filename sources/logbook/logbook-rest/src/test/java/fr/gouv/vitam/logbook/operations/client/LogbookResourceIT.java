@@ -188,6 +188,7 @@ public class LogbookResourceIT {
             logbookConf.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
             logbookConf.setElasticsearchNodes(esNodes);
             VitamConfiguration.setTenants(tenantList);
+            VitamConfiguration.setAdminTenant(tenantId);
             final List<LogbookEvent> alertEvents = new ArrayList<>();
             LogbookEvent alertEvent = new LogbookEvent();
             alertEvent.setEvType(ALERT_EVENT_TYPE);

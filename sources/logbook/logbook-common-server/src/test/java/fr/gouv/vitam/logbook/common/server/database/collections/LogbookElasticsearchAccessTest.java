@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -54,6 +56,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -102,6 +105,7 @@ public class LogbookElasticsearchAccessTest {
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
         esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager);
+        VitamConfiguration.setAdminTenant(tenantId);
     }
 
     @AfterClass
@@ -110,6 +114,10 @@ public class LogbookElasticsearchAccessTest {
         esClient.close();
     }
 
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+    }
 
     @Test
     @RunWithCustomExecutor

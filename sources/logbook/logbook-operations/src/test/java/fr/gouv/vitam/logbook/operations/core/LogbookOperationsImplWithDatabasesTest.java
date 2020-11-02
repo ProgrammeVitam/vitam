@@ -106,7 +106,7 @@ public class LogbookOperationsImplWithDatabasesTest {
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final int tenantId = 0;
-    private static final List<Integer> tenantList = Collections.singletonList(0);
+    private static final List<Integer> tenantList = Collections.singletonList(tenantId);
     private final static GUID eip = GUIDFactory.newEventGUID(tenantId);
     private final static GUID eip1 = GUIDFactory.newEventGUID(tenantId);
     private final static GUID eip2 = GUIDFactory.newEventGUID(tenantId);
@@ -164,6 +164,7 @@ public class LogbookOperationsImplWithDatabasesTest {
             new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
                 esNodes);
         VitamConfiguration.setTenants(tenantList);
+        VitamConfiguration.setAdminTenant(tenantId);
 
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
 

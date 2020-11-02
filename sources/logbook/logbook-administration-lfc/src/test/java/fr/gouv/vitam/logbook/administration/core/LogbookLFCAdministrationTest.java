@@ -136,7 +136,7 @@ public class LogbookLFCAdministrationTest {
     public static TemporaryFolder esTempFolder = new TemporaryFolder();
 
     private static final Integer tenantId = 0;
-    static final List<Integer> tenantList = Collections.singletonList(0);
+    static final List<Integer> tenantList = Collections.singletonList(tenantId);
     private final static ElasticsearchLogbookIndexManager indexManager =
         LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
@@ -172,6 +172,7 @@ public class LogbookLFCAdministrationTest {
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
+        VitamConfiguration.setAdminTenant(tenantId);
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
     }
 

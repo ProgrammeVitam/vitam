@@ -160,7 +160,7 @@ public class LogbookResourceTest {
     private static LogbookConfiguration realLogbook;
 
     private static final int TENANT_ID = 0;
-    private static final List<Integer> tenantList = Collections.singletonList(0);
+    private static final List<Integer> tenantList = Collections.singletonList(TENANT_ID);
     private final static ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
         .createTestIndexManager(tenantList, Collections.emptyMap());
 
@@ -198,6 +198,7 @@ public class LogbookResourceTest {
         realLogbook.setWorkspaceUrl("http://localhost:" + workspacePort);
         realLogbook.setProcessingUrl("http://localhost:" + processingPort);
         VitamConfiguration.setTenants(tenantList);
+        VitamConfiguration.setAdminTenant(TENANT_ID);
         serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
