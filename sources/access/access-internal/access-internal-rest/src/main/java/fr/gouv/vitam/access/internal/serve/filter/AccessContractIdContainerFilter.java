@@ -52,6 +52,7 @@ public class AccessContractIdContainerFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) {
         if (requestContext.getUriInfo().getPath().contains("/status")
+            || requestContext.getUriInfo().getPath().contains("/slicedOperations")
             || requestContext.getUriInfo().getPath().contains("/operations")) {
             return;
         }
