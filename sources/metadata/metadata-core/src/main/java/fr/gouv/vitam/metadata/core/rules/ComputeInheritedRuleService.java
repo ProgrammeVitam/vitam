@@ -102,11 +102,12 @@ public class ComputeInheritedRuleService {
      *
      * Basic domain rules / constraints:
      * - Rules are organized by categories (AppraisalRule, ReuseRule...)
-     * - Every category declares rules & properties
+     * - Every category may declare rules and/or properties
      * - Rules & properties are inherited from parents unless :
      * --> PreventInheritance flag is defined
      * --> PreventRulesId is defined (rules only)
      * --> Child unit redefines a specific rule (same rule id) or property (property name)
+     * - Rules have ids and optional attributes (eg: StartDate, EndDate, HoldOwner...)
      * - Properties may have implicit default value : If not explicitly defined (same property name, same Originating
      * Agency) => a default/implicit local property is assumed (which might redefine similar inherited properties
      * from a different Originating Agency)
@@ -168,7 +169,7 @@ public class ComputeInheritedRuleService {
         return ruleCategoryModel.getRules().stream()
             .map(ruleModel -> new InheritedRuleResponseModel(unitRuleModel.getId(),
                 unitRuleModel.getOriginatingAgency(), singletonList(singletonList(unitRuleModel.getId())),
-                ruleModel.getRule(), ruleModel.getStartDate(), ruleModel.getEndDate()))
+                ruleModel.getRule(), ruleModel.getRuleAttributes()))
             .collect(Collectors.toList());
     }
 
@@ -209,7 +210,7 @@ public class ComputeInheritedRuleService {
                 .forEach(rule -> inheritedRulesFromParents.add(new InheritedRuleResponseModel(
                     rule.getUnitId(), rule.getOriginatingAgency(),
                     prependPaths(rule.getPaths(), unitRuleModel.getId()), rule.getRuleId(),
-                    rule.getStartDate(), rule.getEndDate()
+                    rule.getRuleAttributes()
                 )));
         }
 
@@ -255,7 +256,7 @@ public class ComputeInheritedRuleService {
 
                 inheritedRule = new InheritedRuleResponseModel(firstInheritedRule.getUnitId(),
                     firstInheritedRule.getOriginatingAgency(), mergedPaths, firstInheritedRule.getRuleId(),
-                    firstInheritedRule.getStartDate(), firstInheritedRule.getEndDate());
+                    firstInheritedRule.getRuleAttributes());
             }
             result.add(inheritedRule);
         }

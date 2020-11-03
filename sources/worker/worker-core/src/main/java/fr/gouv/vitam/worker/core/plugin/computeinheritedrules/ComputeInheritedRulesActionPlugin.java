@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
@@ -85,6 +86,7 @@ import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.Compu
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.DISSEMINATION_RULE;
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.REUSE_RULE;
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.STORAGE_RULE;
+import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.HOLD_RULE;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
 public class ComputeInheritedRulesActionPlugin extends ActionHandler {
@@ -240,6 +242,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             case DISSEMINATION_RULE:
             case ACCESS_RULE:
             case REUSE_RULE:
+            case HOLD_RULE:
                 return new SimpleImmutableEntry<>(category, new InheritedRule(maxEndDateByCategory, ruleIdToRule));
             default:
                 throw new VitamRuntimeException(String.format("Category rule cannot be of type '%s'.", category));

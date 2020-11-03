@@ -26,9 +26,15 @@
  */
 package fr.gouv.vitam.common.model.rules;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Pojo for computed inherited rule
@@ -38,22 +44,28 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
     @JsonProperty("Rule")
     private String ruleId;
 
-    @JsonProperty("StartDate")
-    private String startDate;
+    @JsonIgnore
+    private Map<String, Object> ruleAttributes = new HashMap<>();
 
-    @JsonProperty("EndDate")
-    private String endDate;
+    @JsonAnyGetter
+    public Map<String, Object> getRuleAttributes() {
+        return ruleAttributes;
+    }
+
+    @JsonAnySetter
+    public void setAny(String key, Object value) {
+        this.ruleAttributes.put(key, value);
+    }
 
     public InheritedRuleResponseModel() {
         // Empty constructor for deserialization
     }
 
     public InheritedRuleResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths, String ruleId, String startDate, String endDate) {
+        List<List<String>> paths, String ruleId, Map<String, Object> ruleAttributes) {
         super(unitId, originatingAgency, paths);
         this.ruleId = ruleId;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.ruleAttributes = ruleAttributes;
     }
 
     public String getRuleId() {
@@ -64,20 +76,21 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
         this.ruleId = ruleId;
     }
 
+    @JsonIgnore
     public String getStartDate() {
-        return startDate;
+        return (String)this.ruleAttributes.get(RuleModel.START_DATE);
     }
 
     public void setStartDate(String startDate) {
-        this.startDate = startDate;
+        this.ruleAttributes.put(RuleModel.START_DATE, startDate);
     }
 
+    @JsonIgnore
     public String getEndDate() {
-        return endDate;
+        return (String)this.ruleAttributes.get(RuleModel.END_DATE);
     }
 
     public void setEndDate(String endDate) {
-        this.endDate = endDate;
+        this.ruleAttributes.put(RuleModel.START_DATE, endDate);
     }
-
 }

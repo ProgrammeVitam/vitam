@@ -28,34 +28,27 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoFinalActionInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoKeepAccessSp;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EliminationAnalysisServiceTest {
 
     private static final String OPERATION_ID = "opId";
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
 
     @Test
     public void analyzeElimination_EmptyRulesAndProperties() {
@@ -108,7 +101,8 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Destroy final action + Non expired rule
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2020-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2020-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
                 "Destroy"));
@@ -133,7 +127,8 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Destroy final action + rule without end date
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", null, null));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes(null, null)));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
                 "Destroy"));
@@ -158,7 +153,8 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Destroy final action + expired rule
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2015-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
                 "Destroy"));
@@ -183,7 +179,8 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Multiple Keep / Destroy final actions
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2015-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
             new InheritedPropertyResponseModel("unit2", "sp1", paths("unit2"), "FinalAction", "Keep"),
@@ -213,7 +210,8 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Multiple Destroy final actions
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2015-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
             new InheritedPropertyResponseModel("unit2", "sp1", paths("unit2"), "FinalAction", "Destroy"));
@@ -238,8 +236,10 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Multiple Destroyable SP (Destroy final action & expired rule for SP1 + SP2)
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2015-01-01"),
-            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2", "2010-01-01", "2012-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")),
+            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2",
+                ruleAttributes("2010-01-01", "2012-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
             new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
@@ -265,7 +265,8 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Multiple non destroyable SP (Keep + expired rule for SP1 : Destroy final action for SP2)
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2015-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Keep"),
             new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
@@ -291,8 +292,10 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Destroy final action + non expired rule for SP1 : Destroy final action + expired rule for SP2
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2020-01-01"),
-            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2", "2010-01-01", "2015-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2020-01-01")),
+            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2",
+                ruleAttributes("2010-01-01", "2015-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
             new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
@@ -317,8 +320,10 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Destroy final action + expired rule for SP1 : Destroy final action + non expired rule for SP2 ==> keep access to SP1
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", "2010-01-01", "2015-01-01"),
-            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2", "2010-01-01", "2020-01-01"));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")),
+            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2",
+                ruleAttributes("2010-01-01", "2020-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
             new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
@@ -345,10 +350,10 @@ public class EliminationAnalysisServiceTest {
 
         // Given : Parent unit2 brings 2 SP : non destroyable SP1 & destroyable SP2
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "R2", "2010-01-01",
-                "2020-01-01"),
-            new InheritedRuleResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "R3", "2010-01-01",
-                "2015-01-01"));
+            new InheritedRuleResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "R2",
+                ruleAttributes("2010-01-01", "2020-01-01")),
+            new InheritedRuleResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "R3",
+                ruleAttributes("2010-01-01", "2015-01-01")));
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "FinalAction",
                 "Destroy"),
@@ -390,11 +395,12 @@ public class EliminationAnalysisServiceTest {
         //  - Access link inconsistency via parent unit : SP1 non destroyable & SP2 destroyable
 
         List<InheritedRuleResponseModel> rules = Arrays.asList(
-            new InheritedRuleResponseModel("unit5", "sp1", paths("unit1", "unit2", "unit5"), "R1", "2010-01-01",
-                "2015-01-01"),
-            new InheritedRuleResponseModel("unit4", "sp2", paths("unit1", "unit2", "unit4"), "R2", "2010-01-01",
-                "2015-01-01"),
-            new InheritedRuleResponseModel("unit7", "sp1", paths("unit7"), "R3", "2010-01-01", "2015-01-01"));
+            new InheritedRuleResponseModel("unit5", "sp1", paths("unit1", "unit2", "unit5"), "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")),
+            new InheritedRuleResponseModel("unit4", "sp2", paths("unit1", "unit2", "unit4"), "R2",
+                ruleAttributes("2010-01-01", "2015-01-01")),
+            new InheritedRuleResponseModel("unit7", "sp1", paths("unit7"), "R3",
+                ruleAttributes("2010-01-01", "2015-01-01")));
 
         List<InheritedPropertyResponseModel> properties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
@@ -433,5 +439,16 @@ public class EliminationAnalysisServiceTest {
 
     private List<List<String>> paths(String... ids) {
         return Collections.singletonList(Arrays.asList(ids));
+    }
+
+    private Map<String, Object> ruleAttributes(String startDate, String endDate) {
+        Map<String, Object> attributes = new HashMap<>();
+        if (startDate != null) {
+            attributes.put(RuleModel.START_DATE, startDate);
+        }
+        if (endDate != null) {
+            attributes.put(RuleModel.END_DATE, endDate);
+        }
+        return attributes;
     }
 }
