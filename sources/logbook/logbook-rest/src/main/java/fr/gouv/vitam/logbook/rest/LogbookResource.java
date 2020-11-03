@@ -79,9 +79,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
@@ -406,7 +406,7 @@ public class LogbookResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            Integer tenantId = Integer.parseInt(xTenantId);
+            int tenantId = Integer.parseInt(xTenantId);
             GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -574,8 +574,6 @@ public class LogbookResource extends ApplicationStatusResource {
         return Response.status(Response.Status.OK).build();
     }
 
-    /***** LIFE CYCLES UNIT - START *****/
-
     /**
      * GET multiple Unit Life Cycles
      *
@@ -669,9 +667,7 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setDescription(e.getMessage()))
                     .build();
             }
-            /**
-             * create unit logbook Life cycle
-             */
+
             logbookLifeCycle.createUnit(operationId, unitLcId, parameters);
 
         } catch (final LogbookAlreadyExistsException exc) {
@@ -748,15 +744,16 @@ public class LogbookResource extends ApplicationStatusResource {
 
         return Response.status(Response.Status.CREATED).build();
     }
-        /**
-         * Update Unit Life Cycle
-         *
-         * @param operationId the operation id
-         * @param unitLcId the life cycle id
-         * @param evtStatus the operation type : Update or Commit the lifeCycle
-         * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
-         * @return the response with a specific HTTP status
-         */
+
+    /**
+     * Update Unit Life Cycle
+     *
+     * @param operationId the operation id
+     * @param unitLcId the life cycle id
+     * @param evtStatus the operation type : Update or Commit the lifeCycle
+     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
+     * @return the response with a specific HTTP status
+     */
     @PUT
     @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -1351,9 +1348,6 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
-    /***** LIFE CYCLES UNIT - END *****/
-
-    /***** LIFE CYCLES OBJECT GROUP - START *****/
     /**
      * GET multiple Unit Life Cycles
      *
@@ -1433,9 +1427,7 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setDescription(e.getMessage()))
                     .build();
             }
-            /**
-             * create objectgroup logbook Life cycle
-             */
+
             logbookLifeCycle.createObjectGroup(operationId, objGrpId, parameters);
 
         } catch (final LogbookAlreadyExistsException exc) {
@@ -1505,9 +1497,7 @@ public class LogbookResource extends ApplicationStatusResource {
                             .setDescription(e.getMessage()))
                         .build();
                 }
-                /**
-                 * update object group logbook Life cycle
-                 */
+
                 logbookLifeCycle.updateObjectGroup(operationId, objGrpId, parameters);
             } else {
                 if (null == parameters || parameters.getMapParameters().isEmpty()) {
@@ -2016,8 +2006,6 @@ public class LogbookResource extends ApplicationStatusResource {
                 .build();
         }
     }
-
-    /***** LIFE CYCLES OBJECT GROUP - END *****/
 
     /**
      * Deletes all temporary Unit lifeCycles created during a given operation

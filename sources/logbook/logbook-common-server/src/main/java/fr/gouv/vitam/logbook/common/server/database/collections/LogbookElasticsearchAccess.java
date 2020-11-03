@@ -38,8 +38,6 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
@@ -55,18 +53,21 @@ import org.elasticsearch.search.sort.SortBuilder;
 import java.util.Collection;
 import java.util.List;
 
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.IMPORT_ONTOLOGY;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFERENTIAL_FORMAT_IMPORT;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFRENTIAL_FORMAT_DELETE;
+
 /**
  * ElasticSearch model with MongoDB as main database with management of index and index entries
  */
 public class LogbookElasticsearchAccess extends ElasticsearchAccess {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccess.class);
     public static final String MAPPING_LOGBOOK_OPERATION_FILE = "/logbook-es-mapping.json";
 
     private static final String[] MULTI_TENANT_EV_TYPES = {
-            "IMPORT_ONTOLOGY",
-            "STP_REFERENTIAL_FORMAT_IMPORT",
-            "STP_DELETE_FORMAT"
+            IMPORT_ONTOLOGY.getEventType(),
+            REFERENTIAL_FORMAT_IMPORT.getEventType(),
+            REFRENTIAL_FORMAT_DELETE.getEventType()
     };
 
     private final ElasticsearchLogbookIndexManager indexManager;

@@ -26,10 +26,6 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-/**
- * TODO: to review, hack for release 4 and demo Note US #2774: Moving Contexts enum from ingestExternal and little
- * refactoring
- */
 public enum Contexts {
 
     BLANK_TEST(LogbookTypeProcess.INGEST_TEST, "PROCESS_SIP_UNITARY"),
@@ -59,10 +55,13 @@ public enum Contexts {
     PRESERVATION(LogbookTypeProcess.PRESERVATION, "PRESERVATION"),
     COMPUTE_INHERITED_RULES(LogbookTypeProcess.COMPUTE_INHERITED_RULES, "COMPUTE_INHERITED_RULES"),
     COMPUTE_INHERITED_RULES_DELETE(LogbookTypeProcess.COMPUTE_INHERITED_RULES_DELETE, "COMPUTE_INHERITED_RULES_DELETE"),
+    IMPORT_ONTOLOGY(LogbookTypeProcess.MASTERDATA, "IMPORT_ONTOLOGY"),
+    REFERENTIAL_FORMAT_IMPORT(LogbookTypeProcess.MASTERDATA, "STP_REFERENTIAL_FORMAT_IMPORT"),
+    REFRENTIAL_FORMAT_DELETE(LogbookTypeProcess.MASTERDATA, "STP_DELETE_FORMAT"),
     INGEST_CLEANUP(LogbookTypeProcess.INTERNAL_OPERATING_OP, "INGEST_CLEANUP");
 
-    private LogbookTypeProcess logbookTypeProcess;
-    private String eventType;
+    private final LogbookTypeProcess logbookTypeProcess;
+    private final String eventType;
 
     Contexts(LogbookTypeProcess logbookTypeProcess, String eventType) {
         this.logbookTypeProcess = logbookTypeProcess;

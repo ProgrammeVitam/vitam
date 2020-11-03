@@ -77,8 +77,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -101,13 +101,13 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.CREATED_DATE;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.PUID;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.UPDATE_DATE;
 import static fr.gouv.vitam.functional.administration.common.FileFormat.VERSION_PRONOM;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFERENTIAL_FORMAT_IMPORT;
 
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
@@ -119,11 +119,10 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     private static final int UPDATE_THREAD_POOL_SIZE = 16;
     private final MongoDbAccessAdminImpl mongoAccess;
     public static final String FILE_FORMAT_REPORT = "FILE_FORMAT_REPORT";
-    private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
     private static final String VERSION = " version ";
     private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
     private final FunctionalBackupService backupService;
-    private LogbookOperationsClient logbookOperationsClient;
+    private final LogbookOperationsClient logbookOperationsClient;
 
     /**
      * Constructor
@@ -431,11 +430,10 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
     private LogbookOperationParameters createLogbookOperationParametersKo(GUID eip, GUID eip1) {
 
-        final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
-            .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+        return LogbookParameterHelper
+            .newLogbookOperationParameters(eip1, REFERENTIAL_FORMAT_IMPORT.getEventType(), eip,
                 LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip);
-        return logbookParametersEnd;
+                VitamLogbookMessages.getCodeOp(REFERENTIAL_FORMAT_IMPORT.getEventType(), StatusCode.KO), eip);
     }
 
     private void updateLogbook(LogbookOperationParameters logbookParametersEnd) throws ReferentialException {
@@ -453,9 +451,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         GUID eip, GUID eip1, FormatImportReport report) throws InvalidParseOperationException {
 
         final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
-            .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-                LogbookTypeProcess.MASTERDATA, report.getStatusCode(),
-                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, report.getStatusCode()) + VERSION +
+            .newLogbookOperationParameters(eip1, REFERENTIAL_FORMAT_IMPORT.getEventType(), eip,
+                    REFERENTIAL_FORMAT_IMPORT.getLogbookTypeProcess(), report.getStatusCode(),
+                VitamLogbookMessages.getCodeOp(REFERENTIAL_FORMAT_IMPORT.getEventType(), report.getStatusCode()) + VERSION +
                     pronomList.get(0).getVersionPronom() + FILE_PRONOM,
                 eip);
 
@@ -479,9 +477,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         try {
             eip = GUIDReader.getGUID(operationId);
             final LogbookOperationParameters logbookParametersStart = LogbookParameterHelper
-                .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                .newLogbookOperationParameters(eip, REFERENTIAL_FORMAT_IMPORT.getEventType(), eip,
                     LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
+                    VitamLogbookMessages.getCodeOp(REFERENTIAL_FORMAT_IMPORT.getEventType(), StatusCode.STARTED), eip);
             logbookOperationsClient.create(logbookParametersStart);
 
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
