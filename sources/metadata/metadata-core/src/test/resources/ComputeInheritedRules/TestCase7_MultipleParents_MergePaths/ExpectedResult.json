@@ -73,6 +73,41 @@
     "ClassificationRule": {
       "Rules": [],
       "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01",
+          "HoldOwner": "Owner HOL-00001 guid1",
+          "HoldReason": "Reason HOL-00001 guid1"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00002",
+          "EndDate": "2010-01-01",
+          "HoldEndDate": "2010-01-01",
+          "HoldOwner": "Owner HOL-00002 guid1",
+          "HoldReason": "Reason HOL-00002 guid1",
+          "HoldReassessingDate": "2005-01-01",
+          "PreventRearrangement": true
+        }
+      ],
+      "Properties": []
     }
   },
   "guid2": {
@@ -153,6 +188,43 @@
     "StorageRule": {
       "Rules": [],
       "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid2",
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01",
+          "HoldOwner": "Owner HOL-00001 guid1",
+          "HoldReason": "Reason HOL-00001 guid1"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid2",
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00002",
+          "EndDate": "2010-01-01",
+          "HoldEndDate": "2010-01-01",
+          "HoldOwner": "Owner HOL-00002 guid1",
+          "HoldReason": "Reason HOL-00002 guid1",
+          "HoldReassessingDate": "2005-01-01",
+          "PreventRearrangement": true
+        }
+      ],
+      "Properties": []
     }
   },
   "guid3": {
@@ -232,6 +304,43 @@
     },
     "StorageRule": {
       "Rules": [],
+      "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01",
+          "HoldOwner": "Owner HOL-00001 guid1",
+          "HoldReason": "Reason HOL-00001 guid1"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid3",
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00002",
+          "EndDate": "2010-01-01",
+          "HoldEndDate": "2010-01-01",
+          "HoldOwner": "Owner HOL-00002 guid1",
+          "HoldReason": "Reason HOL-00002 guid1",
+          "HoldReassessingDate": "2005-01-01",
+          "PreventRearrangement": true
+        }
+      ],
       "Properties": []
     }
   },
@@ -352,6 +461,63 @@
     },
     "StorageRule": {
       "Rules": [],
+      "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid3",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01",
+          "HoldOwner": "Owner HOL-00001 guid1",
+          "HoldReason": "Reason HOL-00001 guid1"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid4",
+              "guid2",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid3",
+              "guid1"
+            ],
+            [
+              "guid4",
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00002",
+          "EndDate": "2010-01-01",
+          "HoldEndDate": "2010-01-01",
+          "HoldOwner": "Owner HOL-00002 guid1",
+          "HoldReason": "Reason HOL-00002 guid1",
+          "HoldReassessingDate": "2005-01-01",
+          "PreventRearrangement": true
+        }
+      ],
       "Properties": []
     }
   }

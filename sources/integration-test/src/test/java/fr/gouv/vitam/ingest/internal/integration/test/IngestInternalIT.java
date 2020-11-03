@@ -98,10 +98,12 @@ import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
+import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -310,6 +312,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
     private static String OK_RULES_COMPLEX_COMPLETE_SIP =
         "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
+    private static String OK_RULES_COMPLEX_COMPLETE_V2_SIP =
+        "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE_V2.zip";
     private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
         "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_ALGO_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_INCORRECT_ALGORITHM.zip";
@@ -2258,7 +2262,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
+            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_V2_SIP);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
@@ -2374,6 +2378,65 @@ public class IngestInternalIT extends VitamRuleRunner {
             unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_ACCESS);
         assertThat(accessRuleCategory.getProperties()).hasSize(0);
         assertThat(accessRuleCategory.getRules()).hasSize(3);
+
+        InheritedRuleCategoryResponseModel holdRuleCategory =
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_HOLD);
+
+        assertThat(holdRuleCategory.getRules()).hasSize(4);
+
+        InheritedRuleResponseModel hol00001 = holdRuleCategory.getRules().stream()
+            .filter(r -> r.getRuleId().equals("HOL-00001")).findFirst().orElseThrow();
+
+        InheritedRuleResponseModel hol00002 = holdRuleCategory.getRules().stream()
+            .filter(r -> r.getRuleId().equals("HOL-00002")).findFirst().orElseThrow();
+
+        InheritedRuleResponseModel hol00004_form_root = holdRuleCategory.getRules().stream()
+            .filter(r -> r.getRuleId().equals("HOL-00004"))
+            .filter(r -> r.getPaths().get(0).size() == 4)
+            .findFirst().orElseThrow();
+
+        InheritedRuleResponseModel hol00004_form_other_parent = holdRuleCategory.getRules().stream()
+            .filter(r -> r.getRuleId().equals("HOL-00004"))
+            .filter(r -> r.getPaths().get(0).size() == 3)
+            .findFirst().orElseThrow();
+
+        assertThat(hol00001.getRuleId()).isEqualTo("HOL-00001");
+        assertThat(hol00001.getPaths()).hasSize(2);
+        assertThat(hol00001.getPaths().get(0)).hasSize(4);
+        assertThat(hol00001.getPaths().get(1)).hasSize(4);
+        assertThat(hol00001.getRuleAttributes()).containsOnlyKeys(
+            RuleModel.START_DATE, RuleModel.END_DATE, RuleModel.HOLD_OWNER, RuleModel.PREVENT_REARRANGEMENT);
+        assertThat(hol00001.getStartDate()).isEqualTo("2000-01-01");
+        assertThat(hol00001.getEndDate()).isEqualTo("2001-01-01");
+        assertThat(hol00001.getRuleAttributes().get(RuleModel.HOLD_OWNER)).isEqualTo("Owner");
+        assertThat(hol00001.getRuleAttributes().get(RuleModel.PREVENT_REARRANGEMENT)).isEqualTo(false);
+
+        assertThat(hol00002.getRuleId()).isEqualTo("HOL-00002");
+        assertThat(hol00002.getPaths()).hasSize(1);
+        assertThat(hol00002.getPaths().get(0)).hasSize(4);
+        assertThat(hol00002.getRuleAttributes()).containsOnlyKeys(
+            RuleModel.END_DATE, RuleModel.HOLD_END_DATE, RuleModel.HOLD_REASON, RuleModel.HOLD_REASSESSING_DATE);
+        assertThat(hol00002.getStartDate()).isNull();
+        assertThat(hol00002.getEndDate()).isEqualTo("2010-01-01");
+        assertThat(hol00002.getRuleAttributes().get(RuleModel.HOLD_END_DATE)).isEqualTo("2010-01-01");
+        assertThat(hol00002.getRuleAttributes().get(RuleModel.HOLD_REASON)).isEqualTo("Reason");
+        assertThat(hol00002.getRuleAttributes().get(RuleModel.HOLD_REASSESSING_DATE)).isEqualTo("2005-01-01");
+
+        assertThat(hol00004_form_root.getRuleId()).isEqualTo("HOL-00004");
+        assertThat(hol00004_form_root.getPaths()).hasSize(1);
+        assertThat(hol00004_form_root.getPaths().get(0)).hasSize(4);
+        assertThat(hol00004_form_root.getRuleAttributes()).isEmpty();
+        assertThat(hol00004_form_root.getStartDate()).isNull();
+        assertThat(hol00004_form_root.getEndDate()).isNull();
+
+        assertThat(hol00004_form_other_parent.getRuleId()).isEqualTo("HOL-00004");
+        assertThat(hol00004_form_other_parent.getPaths()).hasSize(1);
+        assertThat(hol00004_form_other_parent.getPaths().get(0)).hasSize(3);
+        assertThat(hol00004_form_other_parent.getRuleAttributes()).containsOnlyKeys(RuleModel.HOLD_OWNER);
+        assertThat(hol00004_form_other_parent.getStartDate()).isNull();
+        assertThat(hol00004_form_other_parent.getEndDate()).isNull();
+        assertThat(hol00004_form_other_parent.getRuleAttributes().get(RuleModel.HOLD_OWNER))
+            .isEqualTo("Owner HOL-00004");
     }
 
     @RunWithCustomExecutor

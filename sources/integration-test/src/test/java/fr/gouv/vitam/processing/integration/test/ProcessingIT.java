@@ -298,7 +298,7 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String SIP_BORD_AU_REF_PHYS_OBJECT = "integration-processing/KO_BORD_AUrefphysobject.zip";
     private static final String SIP_MANIFEST_INCORRECT_REFERENCE = "integration-processing/KO_Reference_Unexisting.zip";
     private static final String SIP_REFERENCE_CONTRACT_KO = "integration-processing/KO_SIP_2_GO_contract.zip";
-    private static final String SIP_COMPLEX_RULES = "integration-processing/OK_RULES_COMPLEXE_COMPLETE.zip";
+    private static final String SIP_COMPLEX_RULES_V2 = "integration-processing/OK_RULES_COMPLEXE_COMPLETE_V2.zip";
     private static final String SIP_APPRAISAL_RULES = "integration-processing/bug_appraisal.zip";
 
     private static final String SIP_FILE_KO_AU_REF_BDO = "integration-processing/SIP_KO_ArchiveUnit_ref_BDO.zip";
@@ -2230,7 +2230,7 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
 
         // Given ingest
-        final String ingestOperation = ingestSIP(SIP_COMPLEX_RULES, DEFAULT_WORKFLOW.name(), StatusCode.OK);
+        final String ingestOperation = ingestSIP(SIP_COMPLEX_RULES_V2, DEFAULT_WORKFLOW.name(), StatusCode.OK);
 
         // Ensure no computed inherited rules by default
         SelectMultiQuery select = new SelectMultiQuery();
@@ -2303,7 +2303,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowRulesUpdateWithoutComputedInheritedRules() throws Exception {
         prepareVitamSession();
 
-        final String ingestOperation = ingestSIP(SIP_COMPLEX_RULES, DEFAULT_WORKFLOW.name(), StatusCode.OK);
+        final String ingestOperation = ingestSIP(SIP_COMPLEX_RULES_V2, DEFAULT_WORKFLOW.name(), StatusCode.OK);
 
         // Check no computed inherited rules by default
         SelectMultiQuery select = new SelectMultiQuery();
@@ -2394,7 +2394,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowRulesUpdateWithValidComputedInheritedRules() throws Exception {
         prepareVitamSession();
 
-        final String ingestOperation = ingestSIP(SIP_COMPLEX_RULES, DEFAULT_WORKFLOW.name(), StatusCode.OK);
+        final String ingestOperation = ingestSIP(SIP_COMPLEX_RULES_V2, DEFAULT_WORKFLOW.name(), StatusCode.OK);
 
         // computedInheritedRules
         final String computedInheritedRulesProcess = createOperationContainer();

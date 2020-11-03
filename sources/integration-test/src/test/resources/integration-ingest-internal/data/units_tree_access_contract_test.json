@@ -89,7 +89,8 @@
       },
       "AccessRule": {},
       "ReuseRule": {},
-      "ClassificationRule": {}
+      "ClassificationRule": {},
+      "HoldRule": {}
     },
     "_min": 1,
     "_max": 2,
@@ -148,7 +149,8 @@
       },
       "AccessRule": {},
       "ReuseRule": {},
-      "ClassificationRule": {}
+      "ClassificationRule": {},
+      "HoldRule": {}
     },
     "_min": 1,
     "_max": 2,
@@ -202,7 +204,8 @@
       "DisseminationRule": {},
       "AccessRule": {},
       "ReuseRule": {},
-      "ClassificationRule": {}
+      "ClassificationRule": {},
+      "HoldRule": {}
     },
     "_min": 1,
     "_max": 2,

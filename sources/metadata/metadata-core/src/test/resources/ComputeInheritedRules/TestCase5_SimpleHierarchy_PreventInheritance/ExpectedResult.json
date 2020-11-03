@@ -61,6 +61,23 @@
     "ClassificationRule": {
       "Rules": [],
       "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        }
+      ],
+      "Properties": []
     }
   },
   "guid2": {
@@ -123,6 +140,10 @@
       "Properties": []
     },
     "StorageRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "HoldRule": {
       "Rules": [],
       "Properties": []
     }
