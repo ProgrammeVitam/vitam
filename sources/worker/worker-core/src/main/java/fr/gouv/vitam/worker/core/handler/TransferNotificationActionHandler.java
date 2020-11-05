@@ -135,7 +135,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String XML = ".xml";
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.1";
-    private static final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     private static final ObjectFactory objectFactory = new ObjectFactory();
 
     private static final String EVENT_ID_PROCESS = "evIdProc";
@@ -331,6 +330,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             addDataObjectPackage(handlerIO, archiveTransferReply, params.getContainerName(), statusToBeChecked,
                 workflowStatus);
 
+            MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
             Marshaller archiveTransferReplyMarshaller =
                 marshallerObjectCache.getMarshaller(ArchiveTransferReplyType.class);
             archiveTransferReplyMarshaller
