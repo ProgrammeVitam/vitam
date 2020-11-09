@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -148,7 +148,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
             // Check digest against offer
             if (!globalDigest.digestHex().equals(putObjectResult.getDigestHashBase16())) {
                 LOGGER.error("Digest invalid for tenant: {} offer: {} id: {}",
-                    HeaderIdHelper.getTenantId(), offer.getId(), request.getGuid());
+                        ParameterHelper.getTenantParameter(), offer.getId(), request.getGuid());
                 throw new StorageInconsistentStateException("[Driver:" + driver.getName() + "] Content "
                     + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid()
                     + " sent digest: " + globalDigest.digestHex()

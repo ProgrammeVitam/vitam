@@ -73,7 +73,6 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.conversions.Bson;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -94,7 +93,6 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getConcernedDiffLines;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getUnifiedDiff;
-import static fr.gouv.vitam.common.server.HeaderIdHelper.getTenantId;
 
 /**
  * This class execute all request single in Vitam
@@ -259,7 +257,7 @@ public class DbRequestSingle {
             final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
             parser.parse(select);
             if (vitamCollection.isMultiTenant()) {
-                parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), getTenantId()));
+                parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), ParameterHelper.getTenantParameter()));
             }
             if (vitamCollection.getEsClient() != null) {
                 return selectElasticsearchExecute(parser, parserTokens);
@@ -420,7 +418,7 @@ public class DbRequestSingle {
         final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
         parser.parse(request);
         if (vitamCollection.isMultiTenant()) {
-            parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), HeaderIdHelper.getTenantId()));
+            parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), ParameterHelper.getTenantParameter()));
         }
         final Select selectQuery = new Select();
         selectQuery.setQuery(parser.getRequest().getQuery());
@@ -617,7 +615,7 @@ public class DbRequestSingle {
         VitamCollection vitamCollection) {
 
         if (vitamCollection.isMultiTenant()) {
-            return and(eq(identifierKey, identifierValue), eq(VitamDocument.TENANT_ID, getTenantId()));
+            return and(eq(identifierKey, identifierValue), eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
         }
 
         return eq(identifierKey, identifierValue);

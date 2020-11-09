@@ -28,6 +28,10 @@ package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -38,6 +42,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -53,12 +58,16 @@ import static org.mockito.Mockito.verify;
 
 public class TransferThreadTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     private static final String OFFER_ID = "OfferId";
 
     @Test
     public void testTransferThread() throws Exception {
 
-        // Given
+        // GiventestTransferThreadWhenDigestMismatchThenThrowStorageInconsistentStateException
         byte[] data = "test-date".getBytes();
         Digest globalDigest = new Digest(DigestType.SHA512);
         globalDigest.update(data);
@@ -96,9 +105,11 @@ public class TransferThreadTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testTransferThreadWhenDigestMismatchThenThrowStorageInconsistentStateException() throws Exception {
 
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         byte[] data = "test-date".getBytes();
         Digest globalDigest = new Digest(DigestType.SHA512);
         globalDigest.update(data);

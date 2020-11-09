@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -58,7 +58,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -153,7 +152,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(getHandlerId());
 
-        int tenantId = HeaderIdHelper.getTenantId();
+        int tenantId = ParameterHelper.getTenantParameter();
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             AccessionRegisterInfo accessionRegisterInfo = new AccessionRegisterInfo();
