@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,19 +141,18 @@ public enum FunctionalAdminCollections {
     ONTOLOGY(Ontology.class, false, false);
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
-    private VitamCollection vitamCollection;
+    private final VitamCollection<? extends VitamDocument<?>> vitamCollection;
 
     final private boolean multitenant;
     final private boolean usingScore;
 
-    FunctionalAdminCollections(final Class<?> clasz, boolean multiTenant, boolean usingScore) {
+    FunctionalAdminCollections(final Class<? extends VitamDocument<?>> clasz, boolean multiTenant, boolean usingScore) {
         this.multitenant = multiTenant;
         this.usingScore = usingScore;
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
         vitamCollection =
             VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "", vitamDescriptionResolver);
-
     }
 
 
@@ -212,22 +213,23 @@ public enum FunctionalAdminCollections {
     /**
      * @return the associated MongoCollection
      */
-    @SuppressWarnings("rawtypes")
-    public MongoCollection getCollection() {
-        return vitamCollection.getCollection();
+    @SuppressWarnings("unchecked")
+    public <T extends Document> MongoCollection<T> getCollection() {
+        return (MongoCollection<T>) vitamCollection.getCollection();
     }
 
     /**
      * @return the associated VitamCollection
      */
-    public VitamCollection getVitamCollection() {
-        return vitamCollection;
+    @SuppressWarnings("unchecked")
+    public <T extends VitamDocument<?>> VitamCollection<T> getVitamCollection() {
+        return (VitamCollection<T>) vitamCollection;
     }
 
     /**
      * @return the associated class
      */
-    protected Class<?> getClasz() {
+    protected Class<? extends VitamDocument<?>> getClasz() {
         return vitamCollection.getClasz();
     }
 

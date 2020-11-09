@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
+import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ import java.util.List;
 /**
  * Metadata Collection
  */
-public enum MetadataCollections {
+public enum  MetadataCollections {
     /**
      * vitamCollection
      * Unit Collection
@@ -52,13 +53,12 @@ public enum MetadataCollections {
     OBJECTGROUP(ObjectGroup.class);
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
-    private final VitamCollection vitamCollection;
+    private final VitamCollection<? extends  MetadataDocument<?>> vitamCollection;
 
-    MetadataCollections(final Class<?> clasz) {
+    MetadataCollections(final Class<? extends MetadataDocument<?>> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
-        vitamCollection =
-            VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
     }
 
     public static List<Class<?>> getClasses() {
@@ -102,21 +102,24 @@ public enum MetadataCollections {
     /**
      * @return the associated MongoCollection
      */
-    @SuppressWarnings("rawtypes")
-    public MongoCollection getCollection() {
-        return vitamCollection.getCollection();
+    @SuppressWarnings("unchecked")
+    public <T extends Document> MongoCollection<T> getCollection() {
+        return (MongoCollection<T>) vitamCollection.getCollection();
+    }
+
+    /**
+     * @return the associated VitamCollection
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends MetadataDocument<T>> VitamCollection<T> getVitamCollection() {
+        return (VitamCollection<T>) vitamCollection;
     }
 
     /**
      * @return the associated class
      */
-    public Class<?> getClasz() {
+    public Class<? extends MetadataDocument<?>> getClasz() {
         return vitamCollection.getClasz();
-    }
-
-
-    public VitamCollection getVitamCollection() {
-        return vitamCollection;
     }
 
     /**

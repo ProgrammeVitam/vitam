@@ -65,7 +65,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
@@ -79,6 +78,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -178,7 +178,7 @@ public class LogbookResourceIT {
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
             final List<MongoDbNode> nodes = new ArrayList<>();
-            nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+            nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
             logbookConf.setMongoDbNodes(nodes).setDbName(mongoRule.getMongoDatabase().getName());
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
@@ -653,10 +653,10 @@ public class LogbookResourceIT {
 
             // Update multiple OK
 
-            FindIterable<LogbookLifeCycleObjectGroupModel> objects =
-                (FindIterable<LogbookLifeCycleObjectGroupModel>) LIFECYCLE_OBJECTGROUP_IN_PROCESS.getVitamCollection()
+            FindIterable<LogbookLifeCycleObjectGroup> objects =
+                 LIFECYCLE_OBJECTGROUP_IN_PROCESS.<LogbookLifeCycleObjectGroup>getVitamCollection()
                     .getCollection().find();
-            ArrayList<LogbookLifeCycleObjectGroupModel> objects1 = Lists.newArrayList(objects);
+            ArrayList<LogbookLifeCycleObjectGroup> objects1 = Lists.newArrayList(objects);
             assertThat(objects1).hasSize(2).extracting("_id").containsExactly(eip.toString(), eip2.toString());
         }
     }

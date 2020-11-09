@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -78,7 +79,7 @@ public class AgenciesIT extends VitamRuleRunner {
         new VitamServerRunner(
             AgenciesIT.class,
             mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 LogbookMain.class,
@@ -142,8 +143,8 @@ public class AgenciesIT extends VitamRuleRunner {
         // Then
         List<AgenciesModel> agencies = new ArrayList<>();
         FunctionalAdminCollections.AGENCIES
-            .getVitamCollection()
-            .<Agencies>getTypedCollection()
+            .<Agencies>getVitamCollection()
+            .getCollection()
             .find()
             .map(d -> new AgenciesModel(d.getIdentifier(), d.getName(), d.getDescription(), d.getTenantId()))
             .forEach((Consumer<AgenciesModel>) agencies::add);

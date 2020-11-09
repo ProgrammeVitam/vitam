@@ -163,8 +163,8 @@ public class DbRequest {
 
     public DbRequest() {
         this(
-            new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT::getCollection),
-            new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP::getCollection),
+            new MongoDbMetadataRepository<>(MetadataCollections.UNIT::getCollection),
+            new MongoDbMetadataRepository<>(MetadataCollections.OBJECTGROUP::getCollection),
             new FieldHistoryManager(HISTORY_TRIGGER_NAME));
     }
 
@@ -670,9 +670,8 @@ public class DbRequest {
                 MongoDbHelper.bsonToString(group, false));
         }
         final List<Bson> pipeline = Arrays.asList(match, group);
-        @SuppressWarnings("unchecked")
         final AggregateIterable<Unit> aggregateIterable =
-            MetadataCollections.UNIT.getCollection().aggregate(pipeline);
+            MetadataCollections.UNIT.<Unit>getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
@@ -991,7 +990,7 @@ public class DbRequest {
         MetadataDocument<?> document) {
         Optional<Action> actionWithOp = requestParser.getRequest().getActions().stream()
             .filter(a -> !a.getCurrentAction().at(JSON_POINTER_TO_OPS).isMissingNode()).findFirst();
-        if (!actionWithOp.isPresent()) {
+        if (actionWithOp.isEmpty()) {
             return false;
         }
         String opsToAdd = actionWithOp.get().getCurrentObject().at(JSON_POINTER_TO_OPS).asText();

@@ -132,8 +132,8 @@ public class FunctionalBackupServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        FunctionalAdminCollections.AGENCIES.getCollection().insertOne(Document.parse(DOC1_TENANT0));
-        FunctionalAdminCollections.AGENCIES.getCollection().insertOne(Document.parse(DOC2_TENANT1));
+        FunctionalAdminCollections.AGENCIES.getCollection().insertOne(new Agencies(DOC1_TENANT0));
+        FunctionalAdminCollections.AGENCIES.getCollection().insertOne(new Agencies(DOC2_TENANT1));
 
         VitamSequence vitamSequence =
             new VitamSequence(Document.parse(SEQUENCE_DOC));

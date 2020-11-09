@@ -74,7 +74,6 @@ import static com.mongodb.client.model.Sorts.descending;
  */
 public class VitamCounterService {
 
-    private static final Supplier<Integer> DEFAULT_ADMIN_TENANT = () -> VitamConfiguration.getAdminTenant();
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);
@@ -161,7 +160,7 @@ public class VitamCounterService {
         if (sequenceType.getCollection().isMultitenant())
             return true;
 
-        return Objects.equals(tenantId, DEFAULT_ADMIN_TENANT.get());
+        return Objects.equals(tenantId, VitamConfiguration.getAdminTenant());
     }
 
     private void createSequenceIfNotExists(Integer tenantId, String sequenceName)
@@ -324,16 +323,15 @@ public class VitamCounterService {
         }
 
         try {
-            final Collection<FunctionalAdminCollections>
-                result =
-                FunctionalAdminCollections.VITAM_SEQUENCE.getCollection().find(query).sort(descending("Counter"))
-                    .limit(1).into(new ArrayList<FunctionalAdminCollections>());
+            final Collection<VitamSequence> result =
+                FunctionalAdminCollections.VITAM_SEQUENCE.<VitamSequence>getCollection().find(query)
+                    .sort(descending("Counter")).limit(1).into(new ArrayList<>());
             if (result.isEmpty()) {
                 throw new ReferentialException(
                     "Document not found collection : " + FunctionalAdminCollections.VITAM_SEQUENCE.getName() +
                         " sequence: " + sequenceType.getName());
             }
-            return (VitamSequence) ((Object) result.iterator().next());
+            return result.iterator().next();
         } catch (final Exception e) {
             if (e instanceof ReferentialException) {
                 throw e;

@@ -53,7 +53,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public abstract class VitamDocument<E> extends Document {
     private static final long serialVersionUID = 4051636259488359930L;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamDocument.class);
-    private static String REGEX = "^(\\+|-){1}\\s{1,}.*";
+    private static final String REGEX = "^(\\+|-){1}\\s{1,}.*";
     /**
      * ID of each line: different for each sub type
      */

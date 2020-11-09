@@ -562,7 +562,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
     @Override
     public List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
-        MongoCollection<Document> accessionRegisterDetailCollection =
+        MongoCollection<AccessionRegisterDetail> accessionRegisterDetailCollection =
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection();
         AggregateIterable<Document> aggregate =
             accessionRegisterDetailCollection.aggregate(Arrays.asList(

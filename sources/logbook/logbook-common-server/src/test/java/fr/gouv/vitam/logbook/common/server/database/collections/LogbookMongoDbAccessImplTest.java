@@ -119,11 +119,11 @@ public class LogbookMongoDbAccessImplTest {
         logbookMongoDbAccess.updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT, logbookLifeCycleParametersBulk);
 
         // Then
-        FindIterable<LogbookLifeCycle> id =
-            LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq("_id", guidLFC.toString()));
-        LogbookLifeCycle lifeCycle = Iterables.getOnlyElement(id);
+        FindIterable<LogbookLifeCycleUnit> id =
+            LogbookCollections.LIFECYCLE_UNIT.<LogbookLifeCycleUnit>getCollection().find(eq("_id", guidLFC.toString()));
+        LogbookLifeCycleUnit lifeCycle = Iterables.getOnlyElement(id);
 
-        assertThat((List) lifeCycle.get("events")).hasSize(2);
+        assertThat((List<?>) lifeCycle.get("events")).hasSize(2);
     }
 
     /**

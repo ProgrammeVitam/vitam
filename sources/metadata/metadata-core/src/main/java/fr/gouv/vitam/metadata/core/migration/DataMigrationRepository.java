@@ -127,7 +127,7 @@ public class DataMigrationRepository {
 
         PeekingIterator<Unit> unitPeekingIterator = new PeekingIterator<>(unitMongoCursor);
 
-        return new CloseableIterator<List<Unit>>() {
+        return new CloseableIterator<>() {
 
             int lastLevel;
 
@@ -190,7 +190,7 @@ public class DataMigrationRepository {
         StopWatch stopWatch = StopWatch.createStarted();
 
         AggregateIterable<Unit> units =
-            MetadataCollections.UNIT.getCollection().aggregate(
+            MetadataCollections.UNIT.<Unit>getCollection().aggregate(
                 Arrays.asList(
                     // Skip already migrated data
                     match(
@@ -224,7 +224,7 @@ public class DataMigrationRepository {
 
         List<Unit> unitsToUpdate = new ArrayList<>();
 
-        MetadataCollections.UNIT.getCollection()
+        MetadataCollections.UNIT.<Unit>getCollection()
             .find(in(Unit.ID, unitIds))
             .batchSize(unitIds.size())
             .forEach((Consumer<? super Unit>) unitsToUpdate::add);
@@ -237,7 +237,7 @@ public class DataMigrationRepository {
      */
     public Map<String, Unit> getUnitGraphByIds(Collection<String> unitIds) {
 
-        FindIterable<Unit> iterable = MetadataCollections.UNIT.getCollection()
+        FindIterable<Unit> iterable = MetadataCollections.UNIT.<Unit>getCollection()
             .find(in(Unit.ID, unitIds))
             .batchSize(unitIds.size())
             .projection(UNIT_VITAM_GRAPH_PROJECTION);
@@ -276,7 +276,7 @@ public class DataMigrationRepository {
 
         MongoCursor<ObjectGroup> ogMongoCursor = selectObjectGroups();
 
-        return new CloseableIterator<List<String>>() {
+        return new CloseableIterator<>() {
 
             @Override
             public void close() {
@@ -324,7 +324,7 @@ public class DataMigrationRepository {
         StopWatch stopWatch = StopWatch.createStarted();
 
         FindIterable<ObjectGroup> objectGroups =
-            MetadataCollections.OBJECTGROUP.getCollection().find(
+            MetadataCollections.OBJECTGROUP.<ObjectGroup>getCollection().find(
                 exists(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, false))
                 // Batch
                 .batchSize(bulkSize);

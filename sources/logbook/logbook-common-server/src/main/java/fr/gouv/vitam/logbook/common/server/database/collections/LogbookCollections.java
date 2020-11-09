@@ -33,6 +33,8 @@ import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,9 +66,9 @@ public enum LogbookCollections {
     LIFECYCLE_OBJECTGROUP_IN_PROCESS(LogbookLifeCycleObjectGroupInProcess.class);
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
-    private VitamCollection vitamCollection;
+    private final VitamCollection<? extends VitamDocument<?>> vitamCollection;
 
-    LogbookCollections(final Class<?> clasz) {
+    LogbookCollections(final Class<? extends VitamDocument<?>> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
         vitamCollection = VitamCollectionHelper.getCollection(clasz, true, false, "", vitamDescriptionResolver);
@@ -111,21 +113,23 @@ public enum LogbookCollections {
     /**
      * @return the associated MongoCollection
      */
-    public MongoCollection getCollection() {
-        return vitamCollection.getCollection();
+    @SuppressWarnings("unchecked")
+    public <T extends Document> MongoCollection<T> getCollection() {
+        return (MongoCollection<T>) vitamCollection.getCollection();
     }
 
     /**
      * @return the associated VitamCollection
      */
-    public VitamCollection getVitamCollection() {
-        return vitamCollection;
+    @SuppressWarnings("unchecked")
+    public <T extends VitamDocument<?>> VitamCollection<T> getVitamCollection() {
+        return (VitamCollection<T>) vitamCollection;
     }
 
     /**
      * @return the associated class
      */
-    public Class<?> getClasz() {
+    protected Class<? extends VitamDocument<?>> getClasz() {
         return vitamCollection.getClasz();
     }
 
