@@ -310,10 +310,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return ErrorCategory.fromErrorCode(e.getCode());
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, VitamDBException {
+            throws LogbookDatabaseException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
         // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to
@@ -464,37 +463,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return (LogbookOperation) getLogbook(LogbookCollections.OPERATION, eventIdentifierProcess);
     }
 
-    /**
-     * Internal select
-     *
-     * @param collection domain of request
-     * @param select
-     * @return the Closeable MongoCursor on the find request based on the given collection
-     * @throws LogbookException
-     */
-    @SuppressWarnings("rawtypes")
-    private MongoCursor select(final LogbookCollections collection, final JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, VitamDBException {
-        if (sliced) {
-            return select(collection, select, DEFAULT_SLICE);
-        } else {
-            return select(collection, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
-        }
-    }
-
-    /**
-     * Select with slice possibility
-     *
-     * @param collection
-     * @param select
-     * @param slice may be null
-     * @return the closeable MongoCursor
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     */
     @SuppressWarnings("rawtypes")
     private VitamMongoCursor select(final LogbookCollections collection, final JsonNode select,
-        final ObjectNode slice)
+                                    final ObjectNode slice)
         throws LogbookDatabaseException, VitamDBException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
@@ -504,6 +475,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             } else {
                 parser.addProjection(slice, DEFAULT_ALLKEYS);
             }
+
             if (LogbookCollections.OPERATION.equals(collection)) {
                 return findDocumentsElasticsearch(collection, parser);
             } else {
@@ -514,19 +486,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    /**
-     * @param collection
-     * @param parser
-     * @return the Closeable MongoCursor on the find request based on the given collection
-     * @throws InvalidParseOperationException
-     */
     @SuppressWarnings("rawtypes")
     private VitamMongoCursor selectExecute(final LogbookCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
-        Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson condition = and(QueryToMongodb.getCommand(selectToMongoDb.getSingleSelect().getQuery()),
-            eq(VitamDocument.TENANT_ID, tenantId));
+            eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
         final Bson projection = selectToMongoDb.getFinalProjection();
         final Bson orderBy = selectToMongoDb.getFinalOrderBy();
         final int offset = selectToMongoDb.getFinalOffset();
@@ -1412,32 +1377,21 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, objectGroupId);
     }
 
-
-    /**
-     * Search in elastic search then get object detail in MongoDb.
-     *
-     * @param collection the collection
-     * @param parser the parser containing the query
-     * @return the cursor on the result datas
-     * @throws InvalidParseOperationException if the MongoDb query can't be translated to ES a valid query
-     * @throws InvalidCreateOperationException if a MongoDb query can't be created from ES results
-     * @throws LogbookException if an exception occured while executing the ES query
-     */
     private VitamMongoCursor findDocumentsElasticsearch(LogbookCollections collection,
         SelectParserSingle parser)
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookException, VitamDBException {
-        Integer tenantId = HeaderIdHelper.getTenantId();
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         DynamicParserTokens parserTokens =
             new DynamicParserTokens(collection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         List<SortBuilder> sorts =
             requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore(), parserTokens);
-        SearchResponse elasticSearchResponse =
-            collection.getEsClient()
-                .search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens),
-                    null,
-                    sorts, requestToEs.getFinalOffset(),
-                    requestToEs.getFinalLimit());
+
+        SearchResponse elasticSearchResponse = collection.getEsClient()
+                .search(collection, ParameterHelper.getTenantParameter(),
+                        requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens),
+                        null,
+                        sorts, requestToEs.getFinalOffset(),
+                        requestToEs.getFinalLimit());
 
         final SearchHits hits = elasticSearchResponse.getHits();
         if (hits.getTotalHits().value == 0) {
@@ -1458,14 +1412,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 idsSorted, null), hits.getTotalHits().value, elasticSearchResponse.getScrollId());
     }
 
-
-    /**
-     * Insert a new document in ES.
-     *
-     * @param collection the collection
-     * @param vitamDocument the document to save in ES
-     * @throws LogbookExecutionException if the ES insert was in error
-     */
     private void insertIntoElasticsearch(LogbookCollections collection, VitamDocument vitamDocument)
         throws LogbookExecutionException {
         Integer tenantId = HeaderIdHelper.getTenantId();
@@ -1477,16 +1423,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         collection.getEsClient().indexEntry(collection, tenantId, id, vitamDocument);
     }
 
-    /**
-     * Update a document in ES
-     *
-     * @param collection the collection
-     * @param existingDocument the document to update
-     * @throws LogbookExecutionException if the ES update was in error
-     * @throws LogbookNotFoundException if the document was not found in mongodb
-     */
     private void updateIntoElasticsearch(LogbookCollections collection, VitamDocument<?> existingDocument)
-        throws LogbookExecutionException, LogbookNotFoundException {
+        throws LogbookExecutionException {
         Integer tenantId = HeaderIdHelper.getTenantId();
         LOGGER.debug("updateIntoElasticsearch");
         String id = (String) existingDocument.remove(VitamDocument.ID);
@@ -1495,7 +1433,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         collection.getEsClient().updateFullDocument(collection, tenantId, id, existingDocument);
     }
-
 
     private List<Bson> checkCopyToMaster(LogbookCollections collection, LogbookParameters item) {
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
@@ -1618,12 +1555,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    /**
-     * create a Vitam Document for logbook lifecycle, add tenantId and version field
-     *
-     * @param items
-     * @return
-     */
     private VitamDocument initializeVitamDocument(List<? extends LogbookParameters> items) {
         int i = 0;
         final VitamDocument document = getDocument(items.get(i));

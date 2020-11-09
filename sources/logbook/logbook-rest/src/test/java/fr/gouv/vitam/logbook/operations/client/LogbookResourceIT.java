@@ -104,10 +104,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.IMPORT_ONTOLOGY;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.INGEST_CLEANUP;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
 import static io.restassured.RestAssured.given;
@@ -145,7 +149,9 @@ public class LogbookResourceIT {
     private static LogbookMain application;
     private static final int NB_TEST = 100;
     private static final Integer tenantId = 0;
-    private static final List<Integer> tenantList = newArrayList(tenantId);
+    private static final Integer adminTenant = 0;
+    private static final Integer secondTenant = 1;
+    private static final List<Integer> tenantList = newArrayList(tenantId, secondTenant);
     private static final ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
         .createTestIndexManager(tenantList, Collections.emptyMap());
 
@@ -188,6 +194,7 @@ public class LogbookResourceIT {
             logbookConf.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
             logbookConf.setElasticsearchNodes(esNodes);
             VitamConfiguration.setTenants(tenantList);
+            VitamConfiguration.setAdminTenant(adminTenant);
             final List<LogbookEvent> alertEvents = new ArrayList<>();
             LogbookEvent alertEvent = new LogbookEvent();
             alertEvent.setEvType(ALERT_EVENT_TYPE);
@@ -267,8 +274,8 @@ public class LogbookResourceIT {
     @Test
     public final void testOperationSearchTraceability() throws LogbookClientException, VitamApplicationServerException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        final GUID eip1 = GUIDFactory.newEventGUID(0);
-        final GUID eip2 = GUIDFactory.newEventGUID(0);
+        final GUID eip1 = GUIDFactory.newEventGUID(tenantId);
+        final GUID eip2 = GUIDFactory.newEventGUID(tenantId);
         String evDetData =
             "{\"LogType\":\"OPERATION\",\"StartDate\":\"2017-02-16T23:01:03.49\",\"EndDate\":\"2017-02-20T09:46:25.816\"," +
                 "\"Hash\":\"6o0DS5ukbVsPHtynv2dW48tT/D65xUMs3orIkwsYU/Ron3RjEo3nzdiO4LliyNRNT3Eg/vhbitXsT+L2MWi4BA==\"," +
@@ -373,6 +380,43 @@ public class LogbookResourceIT {
             } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
                 fail("Should not have raized an exception");
             }
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public final void testSelectOperationMultiTenant() throws Exception {
+        try (final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+            final GUID eip1 = GUIDFactory.newOperationLogbookGUID(adminTenant);
+            LogbookOperationParameters importOntologyStart = LogbookParameterHelper.newLogbookOperationParameters(
+                    eip1, IMPORT_ONTOLOGY.getEventType(), eip1, IMPORT_ONTOLOGY.getLogbookTypeProcess(),
+                    StatusCode.STARTED, "Début du processus d'import de l'ontologie", eip1);
+            client.checkStatus();
+            client.create(importOntologyStart);
+
+            final GUID eip2 = GUIDFactory.newOperationLogbookGUID(adminTenant);
+            LogbookOperationParameters ingestTenantAdmin = LogbookParameterHelper.newLogbookOperationParameters(
+                    eip2, INGEST_CLEANUP.getEventType(), eip2, INGEST_CLEANUP.getLogbookTypeProcess(),
+                    StatusCode.STARTED, "Début de l'ingest", eip2);
+            client.create(ingestTenantAdmin);
+
+            VitamThreadUtils.getVitamSession().setTenantId(secondTenant);
+            final GUID eip3 = GUIDFactory.newOperationLogbookGUID(secondTenant);
+            LogbookOperationParameters ingestStart = LogbookParameterHelper.newLogbookOperationParameters(
+                    eip3, INGEST_CLEANUP.getEventType(), eip3, INGEST_CLEANUP.getLogbookTypeProcess(),
+                    StatusCode.STARTED, "Début de l'ingest", eip3);
+            client.create(ingestStart);
+
+            final Select select = new Select();
+            JsonNode json = client.selectOperation(select.getFinalSelect());
+            RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
+            List<LinkedHashMap<String, String>> list = response.getResults();
+            Map<String, LinkedHashMap<String, String>> logbooks = list.stream()
+                    .collect(Collectors.toMap(l -> l.get("evId"), l -> l));
+
+            assertEquals(2, response.getHits().getTotal());
+            assertThat(logbooks).containsKeys(eip1.getId(), eip3.getId());
         }
     }
 

@@ -467,9 +467,11 @@ public class HeaderIdHelper {
 
     /**
      * Note: contains bug fix for Bad Junit
+     * @deprecated please use `ParameterHelper.getTenantParameter()` instead
      *
      * @return the tenant Id
      */
+    @Deprecated
     public static int getTenantId() {
         try {
             return VitamThreadUtils.getVitamSession().getTenantId();

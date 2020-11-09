@@ -639,7 +639,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importContexts(getFromStringAsTypeReference(select.toString(),
-                new TypeReference<List<ContextModel>>() {
+                new TypeReference<>() {
                 }));
 
             return Response.status(status).entity(SUCCESSFULLY_IMPORTED).build();

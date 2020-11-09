@@ -27,6 +27,8 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
@@ -36,8 +38,8 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
@@ -45,18 +47,28 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.util.Collection;
 import java.util.List;
+
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.IMPORT_ONTOLOGY;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFERENTIAL_FORMAT_IMPORT;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFRENTIAL_FORMAT_DELETE;
 
 /**
  * ElasticSearch model with MongoDB as main database with management of index and index entries
  */
 public class LogbookElasticsearchAccess extends ElasticsearchAccess {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccess.class);
     public static final String MAPPING_LOGBOOK_OPERATION_FILE = "/logbook-es-mapping.json";
+
+    private static final String[] MULTI_TENANT_EV_TYPES = {
+            IMPORT_ONTOLOGY.getEventType(),
+            REFERENTIAL_FORMAT_IMPORT.getEventType(),
+            REFRENTIAL_FORMAT_DELETE.getEventType()
+    };
 
     private final ElasticsearchLogbookIndexManager indexManager;
 
@@ -162,14 +174,31 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
 
-            QueryBuilder finalQuery = new BoolQueryBuilder().must(query)
-                .must(QueryBuilders.termQuery(LogbookDocument.TENANT_ID, tenantId));
+            BoolQueryBuilder finalQuery = new BoolQueryBuilder().must(query);
+            TermQueryBuilder currentTenantQuery = QueryBuilders.termQuery(LogbookDocument.TENANT_ID, tenantId);
 
-            return super
-                .search(indexAlias, finalQuery, filter, VitamDocument.ES_FILTER_OUT,
-                    sorts,
-                    offset,
-                    size, null, null, null);
+            if (ParameterHelper.getTenantParameter().equals(VitamConfiguration.getAdminTenant())) {
+                finalQuery.must(currentTenantQuery);
+                return super
+                        .search(indexAlias, finalQuery, filter, VitamDocument.ES_FILTER_OUT,
+                                sorts,
+                                offset,
+                                size, null, null, null);
+            } else {
+                ElasticsearchIndexAlias adminTenantIndex = this.indexManager.getElasticsearchIndexAliasResolver(collection)
+                        .resolveIndexName(VitamConfiguration.getAdminTenant());
+                finalQuery.must(new BoolQueryBuilder()
+                        .should(currentTenantQuery)
+                        .should(new BoolQueryBuilder()
+                                .must(QueryBuilders.termsQuery(LogbookEvent.EV_TYPE, MULTI_TENANT_EV_TYPES))
+                                .must(QueryBuilders.termQuery(LogbookDocument.TENANT_ID, VitamConfiguration.getAdminTenant()))
+                        )
+                );
+                return super
+                        .searchCrossIndices(ImmutableSet.of(indexAlias, adminTenantIndex),
+                                finalQuery, filter, VitamDocument.ES_FILTER_OUT,
+                                sorts, offset, size, null, null, null);
+            }
         } catch (DatabaseException | BadRequestException e) {
             throw new LogbookExecutionException(e);
         }

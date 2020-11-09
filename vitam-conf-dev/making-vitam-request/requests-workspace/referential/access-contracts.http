@@ -1,0 +1,65 @@
+# Configuration
+@tenant = 1
+
+### import des contrats d'access
+POST {{url-access}}/admin-external/v1/accesscontracts/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+	{
+    "Name":"DefaultWritePermissions",
+    "Identifier": "DefaultWritePermissions",
+    "Description":"Contrat Acces - Modiffications authorisés sans précisions supplémentaires",
+    "Status" : "ACTIVE",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016",
+    "ActivationDate":"10/12/2016",
+    "DeactivationDate":"10/12/2116",
+    "EveryOriginatingAgency": true,
+    "WritingPermission": true
+  }
+]
+
+### update context to add new access contract
+PUT {{url-access}}/admin-external/v1/contexts/CT-000001
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+  "$action": [
+    {
+      "$set": {
+        "Permissions": [
+          {
+            "tenant": 0,
+            "AccessContracts": [
+              "contract_with_field_EveryDataObjectVersion",
+              "ContratTNR"
+            ],
+            "IngestContracts": [
+              "ArchivalAgreement1",
+              "ArchivalAgreement0",
+              "ArchivalAgreement0Test",
+              "IC-000001"
+            ]
+          },
+          {
+            "tenant": 1,
+            "AccessContracts": [
+              "DefaultWritePermissions"
+            ],
+            "IngestContracts": [
+              "ArchivalAgreementWithProfil"
+            ]
+          },
+          {
+            "tenant": 2
+          }
+        ]
+      }
+    }
+  ]
+}

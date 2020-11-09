@@ -128,6 +128,7 @@ public class LogbookMongoDbAccessTest {
             new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
                 esNodes);
         VitamConfiguration.setTenants(tenantList);
+        VitamConfiguration.setAdminTenant(TENANT_ID);
 
         mongoDbAccess =
             LogbookMongoDbAccessFactory

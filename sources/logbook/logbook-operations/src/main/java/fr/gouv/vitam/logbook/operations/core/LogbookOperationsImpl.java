@@ -174,6 +174,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             filterFinalResponse(doc);
             operations.add(doc);
         }
+
         long offset = 0;
         long limit = 0;
         if (select.get("$filter") != null) {
@@ -185,12 +186,12 @@ public class LogbookOperationsImpl implements LogbookOperations {
             }
         }
 
-        DatabaseCursor hitss = (cursor.getScrollId() != null) ?
+        DatabaseCursor hits = (cursor.getScrollId() != null) ?
                 new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
                 :
                 new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
         return new RequestResponseOK<LogbookOperation>(select)
-                .addAllResults(operations).setHits(hitss);
+                .addAllResults(operations).setHits(hits);
     }
 
     private void filterFinalResponse(VitamDocument<?> document) {
