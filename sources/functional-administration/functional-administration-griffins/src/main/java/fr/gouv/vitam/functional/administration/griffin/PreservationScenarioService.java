@@ -49,7 +49,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
@@ -425,7 +425,7 @@ public class PreservationScenarioService {
 
         for (PreservationScenarioModel preservationScenarioModel : listToImport) {
             if (newIdentifiers.contains(preservationScenarioModel.getIdentifier())) {
-                preservationScenarioModel.setTenant(HeaderIdHelper.getTenantId());
+                preservationScenarioModel.setTenant(ParameterHelper.getTenantParameter());
 
                 formatDateForMongo(preservationScenarioModel);
 

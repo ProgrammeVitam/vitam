@@ -87,7 +87,7 @@ import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -557,7 +557,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     private void insertLogbookToElasticsearch(VitamDocument vitamDocument)
         throws LogbookExecutionException {
-        Integer tenantId = HeaderIdHelper.getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);

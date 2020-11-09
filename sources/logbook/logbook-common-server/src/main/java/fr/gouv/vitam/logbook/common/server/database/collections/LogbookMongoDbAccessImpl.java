@@ -74,7 +74,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -1414,7 +1413,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     private void insertIntoElasticsearch(LogbookCollections collection, VitamDocument vitamDocument)
         throws LogbookExecutionException {
-        Integer tenantId = HeaderIdHelper.getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         LOGGER.debug("insert to elasticsearch");
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
@@ -1425,7 +1424,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     private void updateIntoElasticsearch(LogbookCollections collection, VitamDocument<?> existingDocument)
         throws LogbookExecutionException {
-        Integer tenantId = HeaderIdHelper.getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         LOGGER.debug("updateIntoElasticsearch");
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);

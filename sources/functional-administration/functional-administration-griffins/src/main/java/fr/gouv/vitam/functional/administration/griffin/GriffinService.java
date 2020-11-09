@@ -52,7 +52,7 @@ import fr.gouv.vitam.common.model.administration.preservation.DefaultGriffin;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
@@ -422,7 +422,7 @@ public class GriffinService {
         ArrayNode griffinToInsert = JsonHandler.createArrayNode();
 
         for (GriffinModel griffinModel : listToInsert) {
-            griffinModel.setTenant(HeaderIdHelper.getTenantId());
+            griffinModel.setTenant(ParameterHelper.getTenantParameter());
 
             formatDateForMongo(griffinModel);
             griffinToInsert.add(toJson(griffinModel));
