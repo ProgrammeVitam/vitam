@@ -86,7 +86,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class OntologyServiceImplTest {
-    private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<List<OntologyModel>>() {};
+    private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<>() {
+    };
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -127,7 +128,7 @@ public class OntologyServiceImplTest {
         VitamConfiguration.setAdminTenant(ADMIN_TENANT);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
 
         LogbookOperationsClientFactory.changeMode(null);
 
@@ -929,9 +930,9 @@ public class OntologyServiceImplTest {
 
     private List<Ontology> getExternalOntologies()
         throws InvalidParseOperationException {
-        final List models = new ArrayList();
+        final List<Ontology> models = new ArrayList<>();
 
-        FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find(Filters.eq(OntologyModel.TAG_ORIGIN, "EXTERNAL"));
+        FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection().find(Filters.eq(OntologyModel.TAG_ORIGIN, "EXTERNAL"));
         for (Document document : documents) {
             models.add(JsonHandler.getFromString(BsonHelper.stringify(document), Ontology.class));
         }

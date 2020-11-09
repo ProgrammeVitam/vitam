@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.collections;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,7 +43,7 @@ public class VitamCollectionHelper {
     /**
      * Logbook collections
      */
-    private static final Set<String> LOGBOOK_COLLECTIONS = new HashSet<>(Arrays.asList("Operation"));
+    private static final Set<String> LOGBOOK_COLLECTIONS = new HashSet<>(Collections.singletonList("Operation"));
     
     /**
      * getCollection with collection class
@@ -52,8 +53,8 @@ public class VitamCollectionHelper {
      * @param usingScore
      * @return VitamCollection
      */
-    public static VitamCollection getCollection(final Class<?> clasz, boolean multitenant, boolean usingScore, String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
-        return new VitamCollection(clasz, multitenant, usingScore, prefix, vitamDescriptionResolver);
+    public static <T> VitamCollection<T> getCollection(final Class<T> clasz, boolean multitenant, boolean usingScore, String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
+        return new VitamCollection<>(clasz, multitenant, usingScore, prefix, vitamDescriptionResolver);
     }
     
     /**

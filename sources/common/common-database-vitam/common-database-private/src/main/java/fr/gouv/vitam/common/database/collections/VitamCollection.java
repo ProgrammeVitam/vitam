@@ -48,11 +48,11 @@ import static com.mongodb.client.model.Indexes.hashed;
 /**
  * Vitam Collection for mongodb
  */
-public class VitamCollection {
-    private final Class<?> clasz;
+public class VitamCollection<T> {
+    private final Class<T> clasz;
     private final VitamDescriptionResolver vitamDescriptionResolver;
     private String name;
-    private MongoCollection<?> collection;
+    private MongoCollection<T> collection;
     private ElasticsearchAccess esClient;
     private final boolean isMultiTenant;
     private final boolean useScore;
@@ -61,14 +61,7 @@ public class VitamCollection {
      * Used by different parser places (isArray, score)
      */
     private static final ThreadLocal<Boolean> CONTAINS_FINALLY_MATCH =
-        new ThreadLocal<Boolean>() {
-
-            @Override
-            protected Boolean initialValue() {
-                return false;
-            }
-
-        };
+        ThreadLocal.withInitial(() -> false);
 
     /**
      * @return true if the real query contains match
@@ -84,7 +77,7 @@ public class VitamCollection {
         CONTAINS_FINALLY_MATCH.set(match);
     }
 
-    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore, String prefix,
+    protected VitamCollection(final Class<T> clasz, final boolean isMultiTenant, final boolean useScore, String prefix,
         VitamDescriptionResolver vitamDescriptionResolver) {
         this.clasz = clasz;
         this.vitamDescriptionResolver = vitamDescriptionResolver;
@@ -140,21 +133,14 @@ public class VitamCollection {
     /**
      * @return the associated MongoCollection
      */
-    public MongoCollection<?> getCollection() {
+    public MongoCollection<T> getCollection() {
         return collection;
-    }
-
-    /**
-     * @return the associated MongoCollection
-     */
-    public <T> MongoCollection<T> getTypedCollection() {
-        return (MongoCollection<T>) collection;
     }
 
     /**
      * @return the associated class
      */
-    public Class<?> getClasz() {
+    public Class<T> getClasz() {
         return clasz;
     }
 

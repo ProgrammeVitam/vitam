@@ -93,10 +93,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class GriffinServiceTest {
-    private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef = new TypeReference<List<PreservationScenarioModel>>() {};
-    private static final TypeReference<List<GriffinModel>> griffinTypeRef = new TypeReference<List<GriffinModel>>() {};
-    private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef = new TypeReference<List<FileFormatModel>>() {};
-    private static final TypeReference<List<GriffinModel>> valueTypeRef = new TypeReference<List<GriffinModel>>() {};
+    private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef = new TypeReference<>() {
+    };
+    private static final TypeReference<List<GriffinModel>> griffinTypeRef = new TypeReference<>() {
+    };
+    private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef = new TypeReference<>() {
+    };
+    private static final TypeReference<List<GriffinModel>> valueTypeRef = new TypeReference<>() {
+    };
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -389,7 +393,7 @@ public class GriffinServiceTest {
 
     private void givenPreservationScenarioCollectionReturn(List<PreservationScenarioModel> preservationScenarioModels) {
         MongoCollection mongoCollection = mock(MongoCollection.class);
-        given(preservationScenarioCollection.getTypedCollection()).willReturn(mongoCollection);
+        given(preservationScenarioCollection.getCollection()).willReturn(mongoCollection);
         FindIterable findIterable = mock(FindIterable.class);
         given(mongoCollection.find()).willReturn(findIterable);
         MongoIterable mongoIterable = mock(MongoIterable.class);

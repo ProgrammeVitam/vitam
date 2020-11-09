@@ -33,8 +33,8 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +44,8 @@ public class FunctionAdministrationOntologyLoader implements OntologyLoader {
     public List<OntologyModel> loadOntologies() {
         try {
             ArrayList<OntologyModel> ontologyModels = new ArrayList<>();
-            FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find();
-            for (Document document : documents) {
+            FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection().find();
+            for (Ontology document : documents) {
                 ontologyModels.add(JsonHandler.getFromString(BsonHelper.stringify(document), OntologyModel.class));
             }
 

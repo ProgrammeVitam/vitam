@@ -89,7 +89,6 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.bson.Document;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
@@ -745,7 +744,7 @@ public class OntologyServiceImpl implements OntologyService {
 
         // Cannot use DSL. We need to find archive unit profiles from ALL tenants
         FindIterable<ArchiveUnitProfile> find =
-            FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().find();
+            FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.<ArchiveUnitProfile>getCollection().find();
 
         return IterableUtils.toList(find);
     }
@@ -763,8 +762,8 @@ public class OntologyServiceImpl implements OntologyService {
         throws InvalidParseOperationException {
         final RequestResponseOK<OntologyModel> response = new RequestResponseOK<>(queryDsl);
 
-        FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find();
-        for (Document document : documents) {
+        FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection().find();
+        for (Ontology document : documents) {
             response.addResult(JsonHandler.getFromString(BsonHelper.stringify(document), OntologyModel.class));
         }
 

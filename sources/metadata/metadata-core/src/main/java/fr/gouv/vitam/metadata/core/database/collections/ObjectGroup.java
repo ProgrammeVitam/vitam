@@ -148,7 +148,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         return MetadataCollections.OBJECTGROUP;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<ObjectGroup> getCollection() {
         return MetadataCollections.OBJECTGROUP.getCollection();

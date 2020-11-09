@@ -58,7 +58,7 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
     @Override
     public VitamMongoRepository getVitamMongoRepository(VitamCollection collection) {
-        return new VitamMongoRepository(collection.getTypedCollection());
+        return new VitamMongoRepository(collection.getCollection());
     }
 
     @Override

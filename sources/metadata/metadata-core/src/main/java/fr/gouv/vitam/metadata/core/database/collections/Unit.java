@@ -181,7 +181,6 @@ public class Unit extends MetadataDocument<Unit> {
         super(content);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<Unit> getCollection() {
         return MetadataCollections.UNIT.getCollection();

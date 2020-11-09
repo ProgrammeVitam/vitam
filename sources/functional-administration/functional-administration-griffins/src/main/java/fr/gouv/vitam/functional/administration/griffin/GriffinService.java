@@ -115,13 +115,13 @@ public class GriffinService {
     private static final String GRIFFIN_REPORT = "GRIFFIN_REPORT";
     private static final String UND_TENANT = "_tenant";
 
-    private final VitamCollection preservationScenarioCollection;
+    private final VitamCollection<PreservationScenario> preservationScenarioCollection;
     private final MongoDbAccessReferential mongoDbAccess;
     private final FunctionalBackupService functionalBackupService;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @VisibleForTesting
-    GriffinService(MongoDbAccessReferential mongoDbAccess, FunctionalBackupService functionalBackupService, LogbookOperationsClientFactory logbookOperationsClientFactory, VitamCollection preservationScenarioCollection) {
+    GriffinService(MongoDbAccessReferential mongoDbAccess, FunctionalBackupService functionalBackupService, LogbookOperationsClientFactory logbookOperationsClientFactory, VitamCollection<PreservationScenario> preservationScenarioCollection) {
         this.mongoDbAccess = mongoDbAccess;
         this.functionalBackupService = functionalBackupService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -331,7 +331,7 @@ public class GriffinService {
         if (griffinIds.isEmpty()) {
             return Collections.emptySet();
         }
-        Spliterator<PreservationScenarioModel> preservationModels = preservationScenarioCollection.<PreservationScenario>getTypedCollection()
+        Spliterator<PreservationScenarioModel> preservationModels = preservationScenarioCollection.getCollection()
             .find()
             .map(PreservationScenario::toModel)
             .spliterator();
