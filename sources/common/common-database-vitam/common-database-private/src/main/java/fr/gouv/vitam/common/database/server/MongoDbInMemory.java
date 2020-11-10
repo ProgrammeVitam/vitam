@@ -113,6 +113,7 @@ public class MongoDbInMemory {
     /**
      * Update the originalDocument with the given request. If the Document is a MetadataDocument (Unit/ObjectGroup) it
      * should use a MultipleQuery Parser
+     *
      * @param request The given update request
      * @param isMultiple true if the UpdateParserMultiple must be used (Unit/ObjectGroup)
      * @param varNameAdapter VarNameAdapter to use
@@ -136,6 +137,7 @@ public class MongoDbInMemory {
 
     /**
      * Update the originalDocument with the given parser (containing the request)
+     *
      * @param requestParser The given parser containing the update request
      * @return the updated document
      * @throws InvalidParseOperationException
@@ -193,13 +195,16 @@ public class MongoDbInMemory {
 
     /**
      * Update the originalDocument with the given ruleActions
+     *
      * @param ruleActions The given ruleActions containing the updates
      * @return the updated document
      * @throws InvalidParseOperationException
      */
-    public JsonNode getUpdateJsonForRule(RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration) throws InvalidParseOperationException {
-        if(ruleActions != null) {
-            final ObjectNode initialMgt = (ObjectNode) getOrCreateEmptyNodeByName(updatedDocument, MANAGEMENT_KEY, false);
+    public JsonNode getUpdateJsonForRule(RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration)
+        throws InvalidParseOperationException {
+        if (ruleActions != null) {
+            final ObjectNode initialMgt =
+                (ObjectNode) getOrCreateEmptyNodeByName(updatedDocument, MANAGEMENT_KEY, false);
 
             applyAddRuleAction(ruleActions.getAdd(), initialMgt, bindRuleToDuration);
             applyUpdateRuleAction(ruleActions.getUpdate(), initialMgt, bindRuleToDuration);
@@ -213,35 +218,38 @@ public class MongoDbInMemory {
         return updatedDocument;
     }
 
-    private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
-        if(ruleActions == null || ruleActions.isEmpty())
+    private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
+        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
+        if (ruleActions == null || ruleActions.isEmpty())
             return;
 
-        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Entry<String, RuleCategoryAction> entry) -> {
-            String category = entry.getKey();
-            RuleCategoryAction ruleCategoryAction = entry.getValue();
+        ruleActions.stream().flatMap(item -> item.entrySet().stream())
+            .forEach((Entry<String, RuleCategoryAction> entry) -> {
+                String category = entry.getKey();
+                RuleCategoryAction ruleCategoryAction = entry.getValue();
 
-            ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
+                ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
 
-            initialRuleCategory = handleFinalAction(initialRuleCategory, ruleCategoryAction, category);
-            initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
-            initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
+                initialRuleCategory = handleFinalAction(initialRuleCategory, ruleCategoryAction, category);
+                initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
+                initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
-            // add rules
-            if (!ruleCategoryAction.getRules().isEmpty()) {
-                ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
-                ruleCategoryAction.getRules().forEach(ruleAction -> {
-                    if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
-                        JsonNode newRule = getJsonNodeFromRuleAction(ruleAction, bindRuleToDuration);
-                        initialRules.add(newRule);
-                    }
-                });
-                initialRuleCategory.set(RULES_KEY, initialRules);
-            }
+                // add rules
+                if (!ruleCategoryAction.getRules().isEmpty()) {
+                    ArrayNode initialRules =
+                        (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                    ruleCategoryAction.getRules().forEach(ruleAction -> {
+                        if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
+                            JsonNode newRule = getJsonNodeFromRuleAction(ruleAction, bindRuleToDuration);
+                            initialRules.add(newRule);
+                        }
+                    });
+                    initialRuleCategory.set(RULES_KEY, initialRules);
+                }
 
-            // set category
-            initialMgt.set(category, initialRuleCategory);
-        });
+                // set category
+                initialMgt.set(category, initialRuleCategory);
+            });
     }
 
     private boolean hasRuleDefined(final String ruleId, final ArrayNode rules) {
@@ -256,11 +264,11 @@ public class MongoDbInMemory {
 
     private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
         final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
-        if(ruleActions == null || ruleActions.isEmpty())
+        if (ruleActions == null || ruleActions.isEmpty())
             return;
 
         ruleActions.stream()
-            .flatMap(item-> item.entrySet().stream())
+            .flatMap(item -> item.entrySet().stream())
             .forEach((Entry<String, RuleCategoryAction> entry) -> {
                 String category = entry.getKey();
                 RuleCategoryAction ruleCategoryAction = entry.getValue();
@@ -272,8 +280,10 @@ public class MongoDbInMemory {
                 initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
                 if (!ruleCategoryAction.getRules().isEmpty()) {
-                    Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
-                    ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                    Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream()
+                        .collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
+                    ArrayNode initialRules =
+                        (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                     for (JsonNode initialRule : initialRules) {
                         ObjectNode node = (ObjectNode) initialRule;
                         String actualRule = node.get(RULE_KEY).asText();
@@ -285,12 +295,13 @@ public class MongoDbInMemory {
                 }
 
                 initialMgt.set(category, initialRuleCategory);
-        });
+            });
     }
 
-    private void applyDeleteRuleAction(List<Map<String, RuleCategoryActionDeletion>> ruleActions, ObjectNode initialMgt) {
+    private void applyDeleteRuleAction(List<Map<String, RuleCategoryActionDeletion>> ruleActions,
+        ObjectNode initialMgt) {
         ruleActions.stream()
-            .flatMap(categoryItems-> categoryItems.entrySet().stream())
+            .flatMap(categoryItems -> categoryItems.entrySet().stream())
             .forEach(categoryItem -> deletionRule(initialMgt, categoryItem.getKey(), categoryItem.getValue()));
     }
 
@@ -310,7 +321,8 @@ public class MongoDbInMemory {
 
         ObjectNode initialCategory = (ObjectNode) categoryAsJsonNode;
         if (Objects.nonNull(category.getRules()) && category.getRules().isPresent()) {
-            List<String> rulesToDelete = category.getRules().get().stream().map(RuleAction::getRule).collect(Collectors.toList());
+            List<String> rulesToDelete =
+                category.getRules().get().stream().map(RuleAction::getRule).collect(Collectors.toList());
             ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialCategory, RULES_KEY, true);
             ArrayNode filteredRules = JsonHandler.createArrayNode();
             initialRules.forEach(node -> {
@@ -337,7 +349,8 @@ public class MongoDbInMemory {
         }
 
         JsonNode inheritanceAsJsonNode = initialCategory.path(INHERITANCE);
-        if (inheritanceAsJsonNode.isMissingNode() || inheritanceAsJsonNode.isNull() || !inheritanceAsJsonNode.isObject()) {
+        if (inheritanceAsJsonNode.isMissingNode() || inheritanceAsJsonNode.isNull() ||
+            !inheritanceAsJsonNode.isObject()) {
             return;
         }
 
@@ -358,7 +371,9 @@ public class MongoDbInMemory {
     }
 
     private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
-        return parent.hasNonNull(fieldName) ? parent.get(fieldName) : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
+        return parent.hasNonNull(fieldName) ?
+            parent.get(fieldName) :
+            (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
     }
 
     private Boolean shouldDeleteAUP(RuleActions ruleActions) {
@@ -368,18 +383,20 @@ public class MongoDbInMemory {
 
     private void updateArchiveUnitProfile(RuleActions ruleActions) {
 
-        if (shouldDeleteAUP(ruleActions) ) {
+        if (shouldDeleteAUP(ruleActions)) {
             ((ObjectNode) updatedDocument).remove(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
             return;
         }
 
         ManagementMetadataAction newMetadata = ruleActions.getAddOrUpdateMetadata();
         if (newMetadata != null && StringUtils.isNotBlank(newMetadata.getArchiveUnitProfile())) {
-            ((ObjectNode) updatedDocument).put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, newMetadata.getArchiveUnitProfile());
+            ((ObjectNode) updatedDocument)
+                .put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, newMetadata.getArchiveUnitProfile());
         }
     }
 
-    private ObjectNode handleFinalAction(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {
+    private ObjectNode handleFinalAction(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction,
+        String category) {
         if (SedaConstants.TAG_RULE_APPRAISAL.equals(category) || SedaConstants.TAG_RULE_STORAGE.equals(category)) {
             String finalAction = ruleCategoryAction.getFinalAction();
             if (finalAction != null) {
@@ -390,7 +407,8 @@ public class MongoDbInMemory {
         return initialRuleCategory;
     }
 
-    private ObjectNode handleClassificationProperties(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {
+    private ObjectNode handleClassificationProperties(ObjectNode initialRuleCategory,
+        RuleCategoryAction ruleCategoryAction, String category) {
         if (!SedaConstants.TAG_RULE_CLASSIFICATION.equals(category)) {
             return initialRuleCategory;
         }
@@ -407,7 +425,8 @@ public class MongoDbInMemory {
 
         String classificationReassessingDate = ruleCategoryAction.getClassificationReassessingDate();
         if (classificationReassessingDate != null) {
-            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE, classificationReassessingDate);
+            initialRuleCategory
+                .put(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE, classificationReassessingDate);
         }
 
         String classificationAudience = ruleCategoryAction.getClassificationAudience();
@@ -417,13 +436,15 @@ public class MongoDbInMemory {
 
         Boolean needReassessingAuthorization = ruleCategoryAction.getNeedReassessingAuthorization();
         if (needReassessingAuthorization != null) {
-            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION, needReassessingAuthorization);
+            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION,
+                needReassessingAuthorization);
         }
 
         return initialRuleCategory;
     }
 
-    private ObjectNode handleInheritanceProperties(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction) {
+    private ObjectNode handleInheritanceProperties(ObjectNode initialRuleCategory,
+        RuleCategoryAction ruleCategoryAction) {
         boolean updatedInheritance = false;
         ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
 
@@ -465,16 +486,18 @@ public class MongoDbInMemory {
             ObjectNode newRule = JsonHandler.createObjectNode();
             newRule.put(RULE_KEY, ruleAction.getRule());
             if (ruleAction.getStartDate() != null) {
-                newRule.put(START_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
+                newRule.put(START_DATE_KEY,
+                    LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
                 computeEndDate(newRule, bindRuleToDuration);
             }
             return newRule;
-        } catch(ParseException e) {
+        } catch (ParseException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private void updateJsonNodeUsingRuleAction(ObjectNode unitRule, RuleAction ruleAction, Map<String, DurationData> bindRuleToDuration) {
+    private void updateJsonNodeUsingRuleAction(ObjectNode unitRule, RuleAction ruleAction,
+        Map<String, DurationData> bindRuleToDuration) {
         try {
             if (ruleAction.getRule() != null) {
                 unitRule.put(RULE_KEY, ruleAction.getRule());
@@ -487,7 +510,8 @@ public class MongoDbInMemory {
             }
 
             if (ruleAction.getStartDate() != null) {
-                unitRule.put(START_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
+                unitRule.put(START_DATE_KEY,
+                    LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
             }
 
             computeEndDate(unitRule, bindRuleToDuration);
@@ -500,12 +524,15 @@ public class MongoDbInMemory {
         String ruleId = unitRule.get(RULE_KEY) != null ? unitRule.get(RULE_KEY).asText() : null;
         DurationData durationData = bindRuleToDuration.get(ruleId);
 
-        if (durationData == null || unitRule.path(START_DATE_KEY).isNull() || unitRule.path(START_DATE_KEY).isMissingNode()) {
+        if (durationData == null || unitRule.path(START_DATE_KEY).isNull() ||
+            unitRule.path(START_DATE_KEY).isMissingNode()) {
             return;
         }
 
         String startDateString = unitRule.get(START_DATE_KEY).textValue();
-        if (startDateString == null) { return; }
+        if (startDateString == null) {
+            return;
+        }
         LocalDate startDate = LocalDateUtil.getLocalDateFromSimpleFormattedDate(startDateString);
 
         Integer duration = durationData.getDurationValue();
@@ -549,7 +576,7 @@ public class MongoDbInMemory {
             final JsonNode element = iterator.next();
             String fieldName = element.asText();
             JsonNode node = JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
-            if(node != null) {
+            if (node != null) {
                 String[] fieldNamePath = fieldName.split("[.]");
                 String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
                 ((ObjectNode) node).remove(lastNodeName);
@@ -682,7 +709,7 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
-        if(!(element.getValue() instanceof ArrayNode)) {
+        if (!(element.getValue() instanceof ArrayNode)) {
             throw new InvalidParseOperationException("[" + "PUSH" + "]Action argument (" + element.getValue() +
                 ") expected value array for field " + fieldName);
         }
@@ -699,7 +726,7 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
-        if(!(element.getValue() instanceof ArrayNode)) {
+        if (!(element.getValue() instanceof ArrayNode)) {
             throw new InvalidParseOperationException("[" + "PULL" + "]Action argument (" + element.getValue() +
                 ") expected value array for field " + fieldName);
         }
@@ -723,7 +750,7 @@ public class MongoDbInMemory {
         for (int i = indexesToRemove.size() - 1; i >= 0; i--) {
             node.remove(indexesToRemove.get(i));
         }
-        if(!indexesToRemove.isEmpty()) {
+        if (!indexesToRemove.isEmpty()) {
             updatedFields.add(fieldName);
         }
     }
@@ -732,7 +759,7 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
-        if(!(element.getValue() instanceof ArrayNode)) {
+        if (!(element.getValue() instanceof ArrayNode)) {
             throw new InvalidParseOperationException("[" + "ADD" + "]Action argument (" + element.getValue() +
                 ") expected value array for field " + fieldName);
         }
@@ -772,7 +799,7 @@ public class MongoDbInMemory {
 
         int numberOfPop = Math.abs(actionValue.asInt());
 
-        if(numberOfPop == 0) {
+        if (numberOfPop == 0) {
             return;
         }
 
