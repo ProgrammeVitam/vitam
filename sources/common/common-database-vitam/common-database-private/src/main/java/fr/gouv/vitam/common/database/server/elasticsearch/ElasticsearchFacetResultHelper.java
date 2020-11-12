@@ -26,21 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.FacetResult;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.Filters;
 import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.range.Range;
+import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ElasticsearchFacetResultHelper for mapping ES object to Vitam FacetResult
@@ -111,7 +111,7 @@ public class ElasticsearchFacetResultHelper {
      * @return list of FacetBucket
      */
     private static List<FacetBucket> extractBucketNestedAggregation(Aggregation aggregation) {
-        Aggregation agg = ((InternalNested) aggregation).getAggregations().asList().get(0);
+        Aggregation agg = ((ParsedNested) aggregation).getAggregations().asList().get(0);
         return transformFromEsAggregation(agg).getBuckets();
     }
 
