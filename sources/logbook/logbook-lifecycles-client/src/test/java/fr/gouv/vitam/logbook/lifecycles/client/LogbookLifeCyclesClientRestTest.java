@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -40,6 +41,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -57,6 +59,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import org.apache.commons.io.input.NullInputStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -74,6 +77,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,6 +86,7 @@ import java.util.Set;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_EVENT_STATUS;
 import static fr.gouv.vitam.common.model.LifeCycleStatusCode.LIFE_CYCLE_COMMITTED;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
@@ -334,12 +340,12 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
             return mock.get();
         }
 
-        @GET
+        @POST
         @Path("/raw/unitlifecycles/bylastpersisteddate")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getRawUnitLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
-            return mock.get();
+            return mock.post();
         }
 
         @GET
@@ -442,12 +448,12 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
             return mock.get();
         }
 
-        @GET
+        @POST
         @Path("/raw/objectgrouplifecycles/bylastpersisteddate")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getRawObjectGroupLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
-            return mock.get();
+            return mock.post();
         }
 
         @GET
@@ -1180,18 +1186,90 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void getRawUnitLifecyclesByLastPersistedDate_OK()
-        throws LogbookClientException, InvalidParseOperationException {
-        when(mock.get())
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
-        client.getRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+        throws Exception {
+        when(mock.post())
+            .thenReturn(Response.ok(new NullInputStream(100))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "100")
+                .build());
+        InputStream inputStream =
+            client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+        assertThat(ByteStreams.toByteArray(inputStream)).hasSize(100);
+    }
+
+    @Test
+    public void getRawUnitLifecyclesByLastPersistedDateBadSize()
+        throws Exception {
+        when(mock.post())
+            .thenReturn(Response.ok(new NullInputStream(100))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "50")
+                .build());
+        InputStream inputStream =
+            client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+
+        assertThatThrownBy(() -> ByteStreams.toByteArray(inputStream))
+            .isInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void getRawUnitLifecyclesByLastPersistedDateMissingSize() {
+        when(mock.post())
+            .thenReturn(Response.ok(new NullInputStream(100))
+                .build());
+        assertThatThrownBy(
+            () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
+            .isInstanceOf(LogbookClientException.class);
+    }
+
+    @Test
+    public void getRawUnitLifecyclesByLastPersistedDate_InternalServerError() {
+        when(mock.post())
+            .thenReturn(Response.serverError().build());
+        assertThatThrownBy( () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
+        .isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test
     public void getRawObjectGroupLifecyclesByLastPersistedDate_OK()
-        throws LogbookClientException, InvalidParseOperationException {
-        when(mock.get())
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
-        client.getRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+        throws Exception {
+        when(mock.post())
+            .thenReturn(Response.ok(new NullInputStream(100))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "100")
+                .build());
+        InputStream inputStream =
+            client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+        assertThat(ByteStreams.toByteArray(inputStream)).hasSize(100);
+    }
+
+    @Test
+    public void getRawObjectGroupLifecyclesByLastPersistedDateBadSize()
+        throws Exception {
+        when(mock.post())
+            .thenReturn(Response.ok(new NullInputStream(100))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "50")
+                .build());
+        InputStream inputStream =
+            client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+
+        assertThatThrownBy(() -> ByteStreams.toByteArray(inputStream))
+            .isInstanceOf(IOException.class);
+    }
+
+    @Test
+    public void getRawObjectGroupLifecyclesByLastPersistedDateMissingSize() {
+        when(mock.post())
+            .thenReturn(Response.ok(new NullInputStream(100))
+                .build());
+        assertThatThrownBy(
+            () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
+            .isInstanceOf(LogbookClientException.class);
+    }
+
+    @Test
+    public void getRawObjectGroupLifecyclesByLastPersistedDate_InternalServerError() {
+        when(mock.post())
+            .thenReturn(Response.serverError().build());
+        assertThatThrownBy( () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
+            .isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test

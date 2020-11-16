@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -56,6 +57,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -117,14 +119,12 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
 
     private static final String HANDLER_ID = "PREPARE_UNIT_LFC_TRACEABILITY";
 
-    private static final String LFC_UNITS_BIG_1_JSON =
-        "PrepareUnitLfcTraceabilityActionPlugin/lfc_units_big_part1.json";
-    private static final String LFC_UNITS_BIG_2_JSON =
-        "PrepareUnitLfcTraceabilityActionPlugin/lfc_units_big_part2.json";
+    private static final String LFC_UNITS_BIG_JSON =
+        "PrepareUnitLfcTraceabilityActionPlugin/lfc_units_big.jsonl";
     private static final String MD_UNITS_BIG_1_JSON = "PrepareUnitLfcTraceabilityActionPlugin/md_units_big_part1.json";
     private static final String MD_UNITS_BIG_2_JSON = "PrepareUnitLfcTraceabilityActionPlugin/md_units_big_part2.json";
 
-    private static final String LFC_UNITS_JSON = "PrepareUnitLfcTraceabilityActionPlugin/lfc_units.json";
+    private static final String LFC_UNITS_JSON = "PrepareUnitLfcTraceabilityActionPlugin/lfc_units.jsonl";
     private static final String UNIT_METADATA_JSON = "PrepareUnitLfcTraceabilityActionPlugin/md_units.json";
 
     private static final String LAST_TRACEABILITY_JSON =
@@ -231,13 +231,11 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         assertEquals(PrepareUnitLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final List<JsonNode> unitsLFC = IteratorUtils.toList(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).elements());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
-            .thenReturn(unitsLFC);
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).when(logbookLifeCyclesClient)
+            .exportRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
         doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
             when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
@@ -305,13 +303,11 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         assertEquals(PrepareUnitLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final List<JsonNode> unitsLFC = IteratorUtils.toList(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).elements());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
-            .thenReturn(unitsLFC);
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).when(logbookLifeCyclesClient)
+            .exportRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
         doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
             when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
@@ -383,8 +379,8 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         handlerIO.addInIOParameters(in);
 
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
-            .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
+        doThrow(new InvalidParseOperationException("InvalidParseOperationException")).when(logbookLifeCyclesClient)
+            .exportRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt());
 
         WorkerParameters params = createExecParams(300, 100000);
         PrepareUnitLfcTraceabilityActionPlugin handler = new PrepareUnitLfcTraceabilityActionPlugin(
@@ -404,13 +400,11 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
 
-        final List<JsonNode> unitsLFC = IteratorUtils.toList(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).elements());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
-            .thenReturn(unitsLFC);
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).when(logbookLifeCyclesClient)
+            .exportRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
         doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
             when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
@@ -448,8 +442,8 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
-            .thenThrow(new LogbookClientException("LogbookClientException"));
+        doThrow(new LogbookClientException("LogbookClientException")).when(logbookLifeCyclesClient)
+            .exportRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookOperationsClient);
@@ -477,13 +471,11 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         assertEquals(PrepareUnitLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final List<JsonNode> unitsLFC = IteratorUtils.toList(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).elements());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
-            .thenReturn(unitsLFC);
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).when(logbookLifeCyclesClient)
+            .exportRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
         doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
             when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
@@ -511,30 +503,27 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
         assertEquals(PrepareUnitLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final List<JsonNode> unitsLFC1 = IteratorUtils.toList(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(LFC_UNITS_BIG_1_JSON)).elements());
-        final List<JsonNode> unitsLFC2 = IteratorUtils.toList(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(LFC_UNITS_BIG_2_JSON)).elements());
-
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
 
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(
-            eq(LocalDateUtil.parseMongoFormattedDate("2018-05-16T12:32:30.051")), any(), eq(10)))
-            .thenReturn(unitsLFC1);
-        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(
-            eq(LocalDateUtil.parseMongoFormattedDate("2018-05-20T00:00:00.010")), any(), eq(10)))
-            .thenReturn(unitsLFC2);
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_UNITS_BIG_JSON)).when(logbookLifeCyclesClient)
+            .exportRawUnitLifecyclesByLastPersistedDate(
+                eq(LocalDateUtil.parseMongoFormattedDate("2018-05-16T12:32:30.051")), any(), anyInt());
         reset(logbookOperationsClient);
         doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
             when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
-        Set<String> unitIds1 = unitsLFC1.stream().map(entry -> entry.get("_id").asText()).collect(Collectors.toSet());
-        // Skip duplicate first entry
+        List<JsonNode> unitIds =
+            new JsonLineGenericIterator<>(PropertiesUtils.getResourceAsStream(LFC_UNITS_BIG_JSON),
+                new TypeReference<JsonNode>() {
+                }).stream().collect(Collectors.toList());
+
+        Set<String> unitIds1 =
+            unitIds.stream().map(entry -> entry.get("_id").asText()).limit(10).collect(Collectors.toSet());
         Set<String> unitIds2 =
-            unitsLFC2.stream().skip(1).map(entry -> entry.get("_id").asText()).collect(Collectors.toSet());
+            unitIds.stream().map(entry -> entry.get("_id").asText()).skip(10).collect(Collectors.toSet());
 
         when(metadataClient.getUnitsByIdsRaw(unitIds1))
             .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MD_UNITS_BIG_1_JSON),

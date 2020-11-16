@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -45,7 +44,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -53,8 +51,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -112,14 +111,12 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
             itemStatus);
     }
 
-    @Override
-    protected List<JsonNode> getRawLifecyclesByLastPersistedDate(LocalDateTime startDate,
-        LocalDateTime endDate, int limit, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory)
-        throws LogbookClientException, InvalidParseOperationException {
-
+    protected InputStream exportRawLifecyclesByLastPersistedDate(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        LocalDateTime startDate, LocalDateTime endDate, int maxEntries)
+        throws LogbookClientException, InvalidParseOperationException, IOException {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-
-            return logbookLifeCyclesClient.getRawObjectGroupLifecyclesByLastPersistedDate(startDate, endDate, limit);
+            return logbookLifeCyclesClient.exportRawObjectGroupLifecyclesByLastPersistedDate(
+                startDate, endDate, maxEntries);
         }
     }
 

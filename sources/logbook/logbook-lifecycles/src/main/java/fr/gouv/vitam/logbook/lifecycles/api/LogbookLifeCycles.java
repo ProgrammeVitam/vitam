@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.lifecycles.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -302,8 +303,7 @@ public interface LogbookLifeCycles {
      * @param endDate the selection end date
      * @param limit the max limit
      */
-    List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate, int limit)
-        throws InvalidParseOperationException;
+    CloseableIterator<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate, int limit);
 
     /**
      * Gets a list of raw object group life cycles by request
@@ -312,8 +312,8 @@ public interface LogbookLifeCycles {
      * @param endDate the selection end date
      * @param limit the max limit
      */
-    List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate, int limit)
-        throws InvalidParseOperationException;
+    CloseableIterator<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate,
+        int limit);
 
     /**
      * Checks existence of new unit life cycles

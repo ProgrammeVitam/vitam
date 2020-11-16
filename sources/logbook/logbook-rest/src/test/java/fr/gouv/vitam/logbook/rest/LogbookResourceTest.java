@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -72,6 +73,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticse
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -87,6 +89,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -133,10 +136,6 @@ public class LogbookResourceTest {
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String OBJECT_GROUP_LFC_TRACEABILITY_URI = "/lifecycles/units/traceability";
     private static final String UNIT_LFC_TRACEABILITY_URI = "/lifecycles/objectgroups/traceability";
-    private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL =
-        "/raw/unitlifecycles/bylastpersisteddate";
-    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL =
-        "/raw/objectgrouplifecycles/bylastpersisteddate";
     private static final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
     private static int serverPort;
@@ -310,40 +309,6 @@ public class LogbookResourceTest {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .post(OBJECT_GROUP_LFC_TRACEABILITY_URI)
-            .then()
-            .statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public final void testGetRawUnitLifecyclesByLastPersistedDate() throws InvalidParseOperationException {
-
-        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
-            "2018-02-20T11:14:54.872",
-            "2018-02-20T11:14:54.872",
-            1000
-        );
-        given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.toJsonNode(request))
-            .get(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
-            .then()
-            .statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public final void testGetRawObjectGroupLifecyclesByLastPersistedDate() throws InvalidParseOperationException {
-
-        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
-            "2018-02-20T11:14:54.872",
-            "2018-02-20T11:14:54.872",
-            1000
-        );
-        given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.toJsonNode(request))
-            .get(OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
             .then()
             .statusCode(Status.OK.getStatusCode());
     }

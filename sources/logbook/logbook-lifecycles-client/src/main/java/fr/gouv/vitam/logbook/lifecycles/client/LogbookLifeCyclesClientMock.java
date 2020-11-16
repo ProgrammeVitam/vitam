@@ -56,6 +56,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -192,14 +193,14 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate, int limit) {
+    public InputStream exportRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate,
+        LocalDateTime endDate, int maxEntries) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
-    public List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate,
-        LocalDateTime endDate,
-        int limit) {
+    public InputStream exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
+        int maxEntries) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
