@@ -1,0 +1,11 @@
+{
+  "add": [
+    {
+      "HoldRule": {
+        "PreventRulesId": [ "HOL-00003" ]
+      }
+    }
+  ],
+  "update": [],
+  "delete": []
+}

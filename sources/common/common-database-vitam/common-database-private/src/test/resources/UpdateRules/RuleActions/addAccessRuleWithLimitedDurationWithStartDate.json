@@ -1,0 +1,16 @@
+{
+  "add": [
+    {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00002",
+            "StartDate": "2000-01-01"
+          }
+        ]
+      }
+    }
+  ],
+  "update": [],
+  "delete": []
+}

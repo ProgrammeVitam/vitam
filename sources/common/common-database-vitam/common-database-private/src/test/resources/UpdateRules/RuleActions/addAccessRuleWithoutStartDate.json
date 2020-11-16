@@ -1,0 +1,15 @@
+{
+  "add": [
+    {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00002"
+          }
+        ]
+      }
+    }
+  ],
+  "update": [],
+  "delete": []
+}

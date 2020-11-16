@@ -1,0 +1,53 @@
+{
+  "_mgt": {
+    "AccessRule": {
+      "Rules": [
+        {
+          "Rule": "ACC-00001"
+        }
+      ],
+      "Inheritance": {
+        "PreventInheritance": false,
+        "PreventRulesId": []
+      }
+    },
+    "AppraisalRule": {
+      "FinalAction": "Keep",
+      "Inheritance": {
+        "PreventRulesId": [
+          "APP-00001"
+        ]
+      }
+    },
+    "ClassificationRule": {
+      "Rules": [
+        {
+          "Rule": "CLASS-00001"
+        }
+      ],
+      "ClassificationLevel": "Secret Défense",
+      "ClassificationOwner": "ClassificationOwner",
+      "ClassificationReassessingDate": "2000-02-03"
+    },
+    "ReuseRule": {
+      "Rules": [
+        {
+          "Rule": "REU-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2010-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Rules": [
+        {
+          "Rule": "DIS-00001"
+        }
+      ],
+      "Inheritance": {
+        "PreventInheritance": true,
+        "PreventRulesId": []
+      }
+    }
+  }
+}

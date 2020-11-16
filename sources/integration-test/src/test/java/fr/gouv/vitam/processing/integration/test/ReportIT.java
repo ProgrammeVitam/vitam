@@ -138,7 +138,8 @@ public class ReportIT extends VitamRuleRunner {
         "integration-processing/mass-update/unit_lfc_06.json";
 
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON = "integration-processing/mass-update/update_query_02.json";
-    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_RULE = "/integration-processing/mass-update/reuserules.csv";
+    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_RULE =
+        "/integration-processing/mass-update/rules_referential.csv";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE = "integration-processing/mass-update/Action_update_rules.json";
 
     private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<>() {};

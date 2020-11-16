@@ -1,0 +1,14 @@
+{
+  "_mgt": {
+    "AccessRule": {
+      "Rules": [
+        {
+          "Rule": "ACC-00001"
+        }
+      ]
+    },
+    "HoldRule": {
+      "PreventInheritance": true
+    }
+  }
+}

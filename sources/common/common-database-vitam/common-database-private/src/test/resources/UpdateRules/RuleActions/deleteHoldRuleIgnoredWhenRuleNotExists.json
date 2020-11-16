@@ -1,0 +1,15 @@
+{
+  "add": [],
+  "update": [],
+  "delete": [
+    {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00002"
+          }
+        ]
+      }
+    }
+  ]
+}

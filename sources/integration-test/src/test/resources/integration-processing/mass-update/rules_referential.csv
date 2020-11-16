@@ -1,0 +1,16 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+REU-00001,ReuseRule,Actes de décès,"Durée d’exclusivité accordé à la société XXX pour la réutilisation du produit de la numérisation des registres d’état civil du département de XXX
+L’échéance est calculée à partir de la date de signature du contrat",10,Year
+ACC-00001,AccessRule,Règle d'accès de 10 ans,"Restriction d'accès pour une durée définie de 10 ans",10,Year
+ACC-00002,AccessRule,Règle d'accès d'un an,"Restriction d'accès pour une durée définie d'1 an",1,Year
+ACC-00003,AccessRule,Règle de gel illimitée,"Restriction d'accès pour une durée définie illimitée",unlimited,Year
+APP-00001,AppraisalRule,RuleValue,Description,10,Year
+DIS-00001,DisseminationRule,Actes de décès,"Délai de diffusion en ligne des actes de décès
+L’échéance est calculée à partir de la date d’enregistrement du décès",25,YEAR
+DIS-00002,DisseminationRule,Actes de mariage,"Délai de diffusion en ligne des actes de mariage
+L’échéance est calculée à partir de la date de célébration du mariage",75,YEAR
+CLASS-00001,ClassificationRule,Classification rule 1,Description,1,YEAR
+HOL-00001,HoldRule,Règle de gel d'un an,"Gel pour une durée définie d'1 an",1,Year
+HOL-00002,HoldRule,Règle de gel sans durée,"Gel pour une indéfinie",,
+HOL-00003,HoldRule,Règle de gel décennale,"Gel pour une durée définie de 10 an",10,Year
+HOL-00004,HoldRule,Règle de gel illimitée,"Gel pour une durée définie illimitée",unlimited,Year

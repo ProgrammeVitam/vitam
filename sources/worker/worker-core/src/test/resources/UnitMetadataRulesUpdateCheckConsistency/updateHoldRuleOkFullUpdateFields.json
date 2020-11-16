@@ -1,0 +1,22 @@
+{
+  "add": [],
+  "update": [
+    {
+      "HoldRule": {
+        "Rules": [
+          {
+            "OldRule": "HOL-00001",
+            "Rule": "HOL-00002",
+            "StartDate": "2000-01-01",
+            "HoldEndDate": "2000-01-01",
+            "HoldOwner": "Owner",
+            "HoldReason": "Reason",
+            "HoldReassessingDate": "2015-01-01",
+            "PreventRearrangement": false
+          }
+        ]
+      }
+    }
+  ],
+  "delete": []
+}
