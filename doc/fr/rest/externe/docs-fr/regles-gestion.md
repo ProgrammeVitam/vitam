@@ -107,6 +107,12 @@ Comprenant donc :
     - Le service producteur de la règle qui la porte (OriginatingAgency)
     - L'ensemble des chemins par laquelle la règle est héritée (Paths). Ici, il y'a deux chemins possibles. Un chemin étant l'ensemble des identifiants des unités archivistiques. 
     - Les dates de débuts et fin d'applications
+  * Dans le cas des règles de gel (HoldRule), on retrouve également les attributs suivants :
+    - Date de fin de gel explicite (HoldEndDate)
+    - Propriétaire de la demande de gel (HoldOwner)
+    - Motif de la demande de gel (HoldReason)
+    - Date de réévaluation du gel (HoldReassessingDate)
+    - Blocage de la reclassification (PreventRearrangement)
 
 **Attention :**
   - Le calcul des règles de gestion peut être très coûteux pour le système. Il convient de limiter le périmètre de la requête au maximum pour éviter un recalcul massif inutilement
