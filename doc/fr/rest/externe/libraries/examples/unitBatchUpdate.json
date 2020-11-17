@@ -26,6 +26,23 @@
         "StorageRule": {
           "FinalAction": "Copy"
         }
+      },
+      {
+        "HoldRule": {
+          "PreventInheritance": false,
+          "PreventRulesId": [ "HOL-00003" ],
+          "Rules": [
+            {
+              "Rule": "HOL-00002",
+              "StartDate": "2000-01-01",
+              "HoldEndDate": "2005-01-01",
+              "HoldOwner": "Owner",
+              "HoldReason": "Reason",
+              "HoldReassessingDate": "2015-01-01",
+              "PreventRearrangement": true
+            }
+          ]
+        }
       }
     ],
     "update": [
@@ -39,6 +56,21 @@
             {
               "OldRule": "ACC-00003",
               "DeleteStartDate": true
+            }
+          ]
+        }
+      },
+      {
+        "HoldRule": {
+          "Rules": [
+            {
+              "OldRule": "HOL-00004",
+              "DeleteStartDate": "2000-01-01",
+              "DeleteHoldEndDate": "2005-01-01",
+              "DeleteHoldOwner": true,
+              "HoldReason": "New Reason",
+              "DeleteHoldReassessingDate": true,
+              "DeletePreventRearrangement": true
             }
           ]
         }
