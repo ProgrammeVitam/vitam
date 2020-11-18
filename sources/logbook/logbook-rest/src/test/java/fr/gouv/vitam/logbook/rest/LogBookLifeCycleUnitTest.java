@@ -812,7 +812,7 @@ public class LogBookLifeCycleUnitTest {
 
         JsonLineGenericIterator<JsonNode> jsonLineIterator =
             new JsonLineGenericIterator<>(new ByteArrayInputStream(body),
-                JsonHandler.JSON_NODE_TYPE_REFERENCE);
+                JSON_NODE_TYPE_REFERENCE);
         List<JsonNode> entries = IteratorUtils.toList(jsonLineIterator);
         assertThat(entries).hasSize(6);
         assertThat(entries).extracting(entry -> entry.get("_id").asText())
