@@ -1203,8 +1203,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         when(accessInternalClient.selectObjectbyId(any(), anyString()))
             .thenReturn(new RequestResponseOK().addResult(result));
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
-        when(accessInternalClient.selectUnitbyId(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
+        when(accessInternalClient.selectUnits(any()))
+                .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
@@ -1290,7 +1290,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         final RequestResponse<JsonNode> responseGOT =
             new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(got)
                 .setHttpCode(200);
-        when(accessInternalClient.selectUnitbyId(any(), any()))
+        when(accessInternalClient.selectUnits(any()))
             .thenReturn(responseUnit);
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenReturn(responseGOT);
@@ -1341,7 +1341,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         // applicative error 500
         reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(accessInternalClient.selectUnits(any())).thenReturn(responseUnit);
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenThrow(new AccessInternalClientServerException(""));
 
@@ -1353,7 +1353,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         // applicative error 412
         reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(accessInternalClient.selectUnits(any())).thenReturn(responseUnit);
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenThrow(new InvalidParseOperationException(""));
 
@@ -1365,7 +1365,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         // applicative error 404
         reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(accessInternalClient.selectUnits(any())).thenReturn(responseUnit);
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenThrow(new AccessInternalClientNotFoundException(""));
 
@@ -1378,7 +1378,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         // applicative error 404 => unit without object
         reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnitNoObject);
+        when(accessInternalClient.selectUnits(any())).thenReturn(responseUnitNoObject);
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
 
@@ -1390,7 +1390,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         // applicative error 404 => object empty
         reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(accessInternalClient.selectUnits(any())).thenReturn(responseUnit);
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
 
@@ -1402,7 +1402,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         // applicative error 401
         reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(accessInternalClient.selectUnits(any())).thenReturn(responseUnit);
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenThrow(new AccessUnauthorizedException(""));
 
@@ -1424,7 +1424,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
                 MediaType.APPLICATION_OCTET_STREAM, headers);
 
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
-        when(accessInternalClient.selectUnitbyId(any(), anyString()))
+        when(accessInternalClient.selectUnits(any()))
             .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
         when(accessInternalClient.getObject(anyString(), anyString(), anyInt(), anyString()))
@@ -1529,7 +1529,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         when(accessInternalClient.selectObjectbyId(any(), any()))
             .thenReturn(new RequestResponseOK<JsonNode>().addResult(result));
 
-        when(accessInternalClient.selectUnitbyId(any(), any()))
+        when(accessInternalClient.selectUnits(any()))
             .thenReturn(new RequestResponseOK<JsonNode>().addResult(objectGroup));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).when()
@@ -1573,14 +1573,14 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testErrorsGetObjects()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException {
+            throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+            InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
         JsonNode objectGroup = JsonHandler.getFromString(
             "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
 
         when(accessInternalClient.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
-        when(accessInternalClient.selectUnitbyId(any(), anyString()))
+        when(accessInternalClient.selectUnits(any()))
             .thenReturn(new RequestResponseOK().addResult(objectGroup));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
