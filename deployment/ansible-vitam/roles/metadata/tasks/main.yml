@@ -28,6 +28,7 @@
     - purge_dip.sh
     - purge_transfers_sip.sh
     - reconstruction_payload.json
+    - audit_data_consistency.sh
 
 - name: Copy the metadata reconstruction conf
   template:
@@ -126,6 +127,24 @@
 - name: Ensure vitam-metadata-purge-transfers-SIP timer is started
   systemd:
     name: "vitam-metadata-purge-transfers-SIP.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
+  when: ( inventory_hostname == groups["hosts_metadata"] | last ) and
+    ( primary_site | lower == "true" )
+
+- name: Ensure vitam-metadata-audit-mongodb-es timer is stopped
+  systemd:
+    name: "vitam-metadata-audit-mongodb-es.timer"
+    daemon_reload: "yes"
+    enabled: "no"
+    state: "stopped"
+  when: ( primary_site | lower == "false" ) or
+    ( inventory_hostname != groups["hosts_metadata"] | last )
+
+- name: Ensure vitam-metadata-audit-mongodb-es timer is started
+  systemd:
+    name: "vitam-metadata-audit-mongodb-es.timer"
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"

@@ -86,9 +86,7 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     @Override
     public List<LogbookOperation> select(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        List<LogbookOperation> operations = new ArrayList<>();
-            operations = logbookOperations.select(select, sliced);
-        return operations;
+        return logbookOperations.select(select, sliced);
     }
 
     @Override

@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -154,7 +155,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public List<LogbookOperation> select(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
         return select(select, false);
     }
 
@@ -166,7 +167,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
-            throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
+        throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
         VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced);
         List<LogbookOperation> operations = new ArrayList<>();
         while (cursor.hasNext()) {
@@ -333,7 +334,8 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly) throws VitamException {
+    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly)
+        throws VitamException {
         try {
             final Select query = new Select();
             final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
@@ -342,7 +344,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
                     eventType + ".OK", eventType + ".WARNING");
 
             BooleanQuery add = and().add(type, eventStatus);
-            if(traceabilityWithZipOnly) {
+            if (traceabilityWithZipOnly) {
                 ExistsQuery hasTraceabilityFile = exists("events.evDetData.FileName");
                 add.add(hasTraceabilityFile);
             }
@@ -362,6 +364,24 @@ public class LogbookOperationsImpl implements LogbookOperations {
             return null;
         } catch (InvalidCreateOperationException e) {
             throw new VitamException("Could not find last LFC traceability", e);
+        }
+    }
+
+    @Override
+    public LogbookOperation findLastOperationByType(String operationType)
+        throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException,
+        LogbookNotFoundException {
+        final Select select = new Select();
+        final Query type = QueryHelper.eq(LogbookEvent.EV_TYPE_PROC, operationType);
+        select.setQuery(type);
+        select.addOrderByDescFilter(LogbookEvent.EV_DATE_TIME);
+        select.setLimitFilter(0, 1);
+
+        try {
+            List<LogbookOperation> result = this.select(select.getFinalSelect(), false);
+            return result.get(0);
+        } catch (VitamDBException e) {
+            throw new LogbookDatabaseException(e);
         }
     }
 
@@ -485,7 +505,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             // Ignore scheduled background operations : TRACEABILITY, STORAGE_BACKUP...
             String[] ignoredBackgroundLogbookTypeProcesses =
                 BackgroundLogbookTypeProcessHelper.getBackgroundLogbookTypeProcesses()
-                .stream().map(Enum::name).toArray(String[]::new);
+                    .stream().map(Enum::name).toArray(String[]::new);
             select.setQuery(and()
                 .add(gte(VitamFieldsHelper.lastPersistedDate(),
                     LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate)))

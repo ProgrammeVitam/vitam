@@ -523,4 +523,14 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataClientServerException(status.toString());
         }
     }
+
+    @Override
+    public JsonNode runAuditDataConsistencyMongoEs() throws MetaDataClientServerException {
+        try (Response response = make(get().withJsonAccept().withPath("auditDataConsistency"))) {
+            check(response);
+            return response.readEntity(JsonNode.class);
+        } catch (InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataNotFoundException | VitamClientInternalException | MetaDataExecutionException | MetaDataClientServerException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
 }

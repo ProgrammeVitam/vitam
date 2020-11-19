@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -129,6 +130,11 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
         return logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
             traceabilityStartDate, traceabilityEndDate);
     }
+    @Override
+    public LogbookOperation findLastOperationByType(String operationType) throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
+        return logbookOperations.findLastOperationByType(operationType);
+    }
+
 
     /**
      * Create an alert for the configured LogbookOperationParameters eventType and outcome if the specified eventType should raise an alert

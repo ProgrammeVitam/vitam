@@ -58,3 +58,13 @@ X-Tenant-Id: {{tenant}}
 {
   "collectionName": "Profile"
 }
+
+### Lancer L'audit de cohérance de données Mongo & ES
+GET  {{url-access}}/access-external/v1/auditDataConsistency
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+}

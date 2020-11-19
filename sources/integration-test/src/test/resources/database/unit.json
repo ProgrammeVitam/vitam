@@ -1,0 +1,129 @@
+[
+  {
+    "Description": "Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum",
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_opi": "aecaaaaaaceaaaababbxoalviwghooqaaaaq",
+    "_max": 1,
+    "_unitType": "INGEST",
+    "StartDate": "2016-06-03T15:28:00",
+    "_glpd": "2020-10-20T10:27:19.008",
+    "_av": 0,
+    "_sedaVersion": "2.1",
+    "_sps": [
+      "FRAN_NP_009913"
+    ],
+    "_us_sp": {},
+    "_ops": [
+      "aecaaaaaaceaaaababbxoalviwghooqaaaaq"
+    ],
+    "DescriptionLevel": "RecordGrp",
+    "Title": "dossier2",
+    "_uds": {},
+    "EndDate": "2016-06-03T15:28:00",
+    "_tenant": 0,
+    "_graph": [],
+    "_mgt": {},
+    "_v": 0,
+    "_id": "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq",
+    "_up": [],
+    "_us": [],
+    "_sp": "FRAN_NP_009913",
+    "_min": 1
+  },
+  {
+    "Description": "Ut malesuada pretium enim, eu mattis tellus hendrerit sed. Nulla ac egestas ex. Mauris cursus posuere massa, tincidunt dignissim nisl blandit posuere. Cras pellentesque auctor rutrum. Quisque non tincidunt eros. Morbi malesuada leo sed nunc accumsan, eget placerat ligula tincidunt",
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_opi": "aecaaaaaaceaaaababbxoalviwghooqaaaaq",
+    "_max": 2,
+    "_unitType": "INGEST",
+    "_glpd": "2020-10-20T10:27:19.111",
+    "_av": 0,
+    "_sedaVersion": "2.1",
+    "_sps": [
+      "FRAN_NP_009913"
+    ],
+    "_us_sp": {
+      "FRAN_NP_009913": [
+        "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+      ]
+    },
+    "_ops": [
+      "aecaaaaaaceaaaababbxoalviwghooqaaaaq"
+    ],
+    "DescriptionLevel": "Item",
+    "Title": "BAD0431E2C5E80E5BD42D547A3ED5966.odt",
+    "_uds": {
+      "1": [
+        "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+      ]
+    },
+    "_tenant": 0,
+    "_graph": [
+      "aeaqaaaaaaeaaaababbxoalviwghzuaaaaaq/aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+    ],
+    "TransactedDate": "2016-06-03T15:28:00",
+    "_og": "aebaaaaaaaeaaaababbxoalviwghzgyaaaaq",
+    "_mgt": {},
+    "_v": 0,
+    "_id": "aeaqaaaaaaeaaaababbxoalviwghzuaaaaaq",
+    "_up": [
+      "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+    ],
+    "_us": [
+      "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+    ],
+    "_sp": "FRAN_NP_009913",
+    "_min": 1
+  },
+  {
+    "Description": "Proin bibendum odio quam, in placerat dui congue nec. Ut congue orci in sem vestibulum mollis. Morbi vel augue dapibus, pellentesque nisl in, dignissim ligula. Sed eget dui tortor. Ut sed orci odio. Praesent ullamcorper pretium ligula quis luctus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.",
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_opi": "aecaaaaaaceaaaababbxoalviwghooqaaaaq",
+    "_max": 2,
+    "_unitType": "INGEST",
+    "_glpd": "2020-10-20T10:27:19.112",
+    "_av": 0,
+    "_sedaVersion": "2.1",
+    "_sps": [
+      "FRAN_NP_009913"
+    ],
+    "_us_sp": {
+      "FRAN_NP_009913": [
+        "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+      ]
+    },
+    "_ops": [
+      "aecaaaaaaceaaaababbxoalviwghooqaaaaq"
+    ],
+    "DescriptionLevel": "Item",
+    "Title": "BAD0431E2C5E80E5BD42D547A3ED59665555.odt",
+    "_uds": {
+      "1": [
+        "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+      ]
+    },
+    "_tenant": 0,
+    "_graph": [
+      "aeaqaaaaaaeaaaababbxoalviwghzuiaaaba/aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+    ],
+    "TransactedDate": "2016-06-03T15:28:00",
+    "_og": "aebaaaaaaaeaaaababbxoalviwghziaaaaaq",
+    "_mgt": {},
+    "_v": 0,
+    "_id": "aeaqaaaaaaeaaaababbxoalviwghzuiaaaba",
+    "_up": [
+      "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+    ],
+    "_us": [
+      "aeaqaaaaaaeaaaababbxoalviwghzlaaaaaq"
+    ],
+    "_sp": "FRAN_NP_009913",
+    "_min": 1
+  }
+]

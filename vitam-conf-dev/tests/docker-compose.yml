@@ -1,9 +1,16 @@
-version: "3.3"
+version: "3.4"
 services:
   mongo:
     image: library/mongo:4.2.5
     ports:
       - "27017:27017"
+    volumes:
+            - ./initdb.d/:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: test $$(echo "rs.status().ok" | mongo --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    command: ["mongod", "--bind_ip_all","--replSet", "rs0"]
   elasticsearch:
     image: elasticsearch:7.6.2
     environment:

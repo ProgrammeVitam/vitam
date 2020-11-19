@@ -80,6 +80,8 @@ public class VitamConstants {
 
     public final static String URL_ENCODED_SEPARATOR;
 
+    public static final String JSON_EXTENSION = ".json";
+
     static {
         try {
             URL_ENCODED_SEPARATOR = URLEncoder.encode("/", CharsetUtils.UTF_8);

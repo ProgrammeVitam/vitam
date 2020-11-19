@@ -125,6 +125,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private static final String REQUEST_RESOURCES_DOES_NOT_EXISTS = "Request resources does not exits";
     private static final String WRITING_PERMISSIONS_INVALID = "Writing permission invalid";
     private static final String ERROR_ON_PRESERVATION = "Error on preservation request";
+    private static final String ERROR_ON_AUDIT = "Error when running data consistency audit";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final AccessInternalClientFactory accessInternalClientFactory;

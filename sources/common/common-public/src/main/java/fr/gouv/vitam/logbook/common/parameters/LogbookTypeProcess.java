@@ -43,6 +43,10 @@ public enum LogbookTypeProcess {
      */
     AUDIT,
     /**
+     * Audit de cohérance de données Mongo/ES
+     */
+    DATA_CONSISTENCY_AUDIT,
+    /**
      * Destruction type process
      */
     DESTRUCTION,

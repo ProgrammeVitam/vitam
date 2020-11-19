@@ -50,6 +50,7 @@ public final class BackgroundLogbookTypeProcessHelper {
             case TRACEABILITY:
             case STORAGE_BACKUP:
             case COMPUTE_INHERITED_RULES:
+            case DATA_CONSISTENCY_AUDIT:
                 return true;
             case INGEST:
             case INGEST_CLEANUP:

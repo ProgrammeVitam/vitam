@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
@@ -223,6 +224,11 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     @Override
     public LogbookCheckResult checkLogbookCoherence() {
         return new LogbookCheckResult();
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getLastOperationByType(String operationType) {
+        throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override

@@ -155,7 +155,7 @@ pipeline {
                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
                                     sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                     sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { i ->
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
                                         //minIO without SSL
                                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
                                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
@@ -210,7 +210,7 @@ pipeline {
                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
                                     sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                     sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { i ->
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
                                         //minIO without SSL
                                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
                                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
@@ -271,7 +271,7 @@ pipeline {
                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
                                     sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                     sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { i ->
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
                                         //minIO without SSL
                                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
                                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
