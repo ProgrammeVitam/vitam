@@ -40,6 +40,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -111,8 +112,13 @@ public class ElasticsearchFacetResultHelper {
      * @return list of FacetBucket
      */
     private static List<FacetBucket> extractBucketNestedAggregation(Aggregation aggregation) {
-        Aggregation agg = ((ParsedNested) aggregation).getAggregations().asList().get(0);
-        return transformFromEsAggregation(agg).getBuckets();
+        List<Aggregation> aggregations = ((ParsedNested) aggregation).getAggregations().asList();
+        if (aggregations.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            Aggregation agg = aggregations.get(0);
+            return transformFromEsAggregation(agg).getBuckets();
+        }
     }
 
     /**
