@@ -523,7 +523,7 @@ public class MetadataAuditService {
                         VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.WARNING), eip);
         final ObjectNode msgJson = JsonHandler.createObjectNode();
         msgJson.put("AuditWarnCheck", message);
-        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, msgJson.textValue());
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, msgJson.toString());
         logbookClient.update(logbookParameters);
     }
 
@@ -537,7 +537,7 @@ public class MetadataAuditService {
                         VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.KO), eip);
         final ObjectNode msgJson = JsonHandler.createObjectNode();
         msgJson.put("AuditErrorCheck", message);
-        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, msgJson.textValue());
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, msgJson.toString());
         logbookClient.update(logbookParameters);
     }
 
