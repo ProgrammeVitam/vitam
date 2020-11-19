@@ -56,6 +56,8 @@ public class WorkspaceConstants {
      */
     public static final String ERROR_FLAG = "error";
 
+    public static final String TMP_FILE_NAME_FOR_SHARDS_CONFIG = "mongoDbShardsTimestampConfiguration";
+
     private WorkspaceConstants() {
         // Do nothing
     }

@@ -59,5 +59,9 @@ public enum MetadataValidationErrorCode {
     /**
      * Unit endDate is before startDate
      */
-    INVALID_START_END_DATE
+    INVALID_START_END_DATE,
+    /*
+    DATA CONSISTENCY AUDIT
+     */
+    DATA_CONSISTENCY_AUDIT
 }

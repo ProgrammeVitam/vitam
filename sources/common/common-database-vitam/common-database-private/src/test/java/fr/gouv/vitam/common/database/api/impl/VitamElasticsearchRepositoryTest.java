@@ -61,6 +61,7 @@ public class VitamElasticsearchRepositoryTest {
     public static final String TEST_ALIAS = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
     private static VitamElasticsearchRepository repository;
 
+    private static final String FAKE_IDENTIFIER = "FakeIdentifier";
 
     private static final String mapping = "{\n" +
         "  \"properties\": {\n" +
@@ -321,7 +322,7 @@ public class VitamElasticsearchRepositoryTest {
             .startObject()
             .field(VitamDocument.ID, id)
             .field(VitamDocument.TENANT_ID, tenant)
-            .field("Identifier", "FakeIdentifier")
+            .field("Identifier", FAKE_IDENTIFIER)
             .field("Title", "Test save")
             .endObject();
 
@@ -332,7 +333,7 @@ public class VitamElasticsearchRepositoryTest {
         assertThat(response).isPresent();
         assertThat(response.get()).extracting("Title").contains("Test save");
 
-        response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        response = repository.findByIdentifierAndTenant(FAKE_IDENTIFIER, tenant);
         assertThat(response).isPresent();
         assertThat(response.get()).extracting("Title").contains("Test save");
     }
@@ -344,7 +345,7 @@ public class VitamElasticsearchRepositoryTest {
         XContentBuilder builder = jsonBuilder()
             .startObject()
             .field(VitamDocument.ID, id)
-            .field("Identifier", "FakeIdentifier")
+            .field("Identifier", FAKE_IDENTIFIER)
             .field("Title", "Test save")
             .endObject();
 
@@ -355,7 +356,7 @@ public class VitamElasticsearchRepositoryTest {
         assertThat(response).isPresent();
         assertThat(response.get()).extracting("Title").contains("Test save");
 
-        response = repository.findByIdentifier("FakeIdentifier");
+        response = repository.findByIdentifier(FAKE_IDENTIFIER);
         assertThat(response).isPresent();
         assertThat(response.get()).extracting("Title").contains("Test save");
     }
@@ -370,14 +371,43 @@ public class VitamElasticsearchRepositoryTest {
 
     @Test
     public void testFindByIdentifierFoundEmpty() throws DatabaseException {
-        Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
+        Optional<Document> response = repository.findByIdentifier(FAKE_IDENTIFIER);
         assertThat(response).isEmpty();
     }
 
     @Test
     public void testFindByIdentifierAndTenantFoundEmpty() throws DatabaseException {
         Integer tenant = 0;
-        Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        Optional<Document> response = repository.findByIdentifierAndTenant(FAKE_IDENTIFIER, tenant);
+        assertThat(response).isEmpty();
+    }
+
+    @Test
+    public void getDocumentById_OK() throws Exception {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field("Title", "Test save")
+            .endObject();
+
+        Document document = Document.parse(Strings.toString(builder));
+        repository.save(document);
+
+        assertThat(document.get(VitamDocument.ID)).isNotNull();
+        assertThat(document.get(VitamDocument.ID)).isEqualTo(id);
+
+        Optional<Document> response = repository.getDocumentById(id);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+    }
+
+    @Test
+    public void getDocumentById_throw_Exception() throws DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Optional<Document> response = repository.getDocumentById(id);
         assertThat(response).isEmpty();
     }
 }

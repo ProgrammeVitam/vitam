@@ -336,7 +336,7 @@ public class DataMigrationRepository {
     }
 
     /**
-     * Replaces all units in unordered bulk mode
+     * Replaces all GOT in unordered bulk mode
      */
     public void bulkUpgradeObjectGroups(List<String> objectGroupIds) {
 

@@ -113,6 +113,7 @@ public class BusinessApplication extends Application {
             MetadataManagementResource metadataReconstruction =
                 new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata,
                     metaDataConfiguration, indexManager);
+            final MetadataAuditResource metadataAuditResource = new MetadataAuditResource(metaDataConfiguration);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
@@ -121,6 +122,7 @@ public class BusinessApplication extends Application {
             singletons.add(metadataReconstruction);
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
+            singletons.add(metadataAuditResource);
         } catch (IOException e) {
             throw new VitamRuntimeException(e);
         }

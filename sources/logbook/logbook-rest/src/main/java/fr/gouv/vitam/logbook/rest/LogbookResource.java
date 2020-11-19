@@ -587,6 +587,42 @@ public class LogbookResource extends ApplicationStatusResource {
         return Response.status(Response.Status.OK).build();
     }
 
+    @GET
+    @Path("/lastOperationByType")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLastOperationByType(String operationType) {
+        Status status;
+        try {
+            final LogbookOperation result = logbookOperation.findLastOperationByType(operationType);
+            return Response.status(Status.OK)
+                    .entity(new RequestResponseOK<LogbookOperation>().addResult(result))
+                    .build();
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.debug(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(LOGBOOK)
+                            .setState("code_vitam")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription(exc.getMessage()))
+                    .build();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException | LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(LOGBOOK)
+                            .setState("code_vitam")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription(exc.getMessage()))
+                    .build();
+        }
+    }
+
+    /***** LIFE CYCLES UNIT - START *****/
+
     /**
      * GET multiple Unit Life Cycles
      *

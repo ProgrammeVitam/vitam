@@ -67,14 +67,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import okhttp3.OkHttpClient;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.bson.Document;
-import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
-import retrofit2.http.Headers;
-import retrofit2.http.POST;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
@@ -159,13 +153,18 @@ public class VitamTestHelper {
         assertTrue(operation.toString().contains(String.format("%s.%s", actionKey, statusCode)));
     }
 
-    public static void printLogbook(String opId) {
+    public static JsonNode findLogbook(String opId) {
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            JsonNode result = client.selectOperationById(opId);
-            System.out.println(JsonHandler.prettyPrint(result.get(TAG_RESULTS).get(0)));
+            return client.selectOperationById(opId);
         } catch (LogbookClientException | InvalidParseOperationException e) {
             fail("cannot find logbook with id = ", opId, e);
         }
+        return null;
+    }
+
+    public static void printLogbook(String opId) {
+        JsonNode result = findLogbook(opId);
+        System.out.println(JsonHandler.prettyPrint(result.get(TAG_RESULTS).get(0)));
     }
 
     /**

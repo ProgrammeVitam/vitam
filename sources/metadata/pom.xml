@@ -17,5 +17,6 @@
 		<module>metadata-core</module>
 		<module>metadata-rest</module>
 		<module>metadata-client</module>
-	</modules>
+        <module>metadata-audit</module>
+    </modules>
 </project>

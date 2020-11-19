@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbShardConf;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.List;
@@ -58,6 +59,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     @JsonProperty("elasticsearchTenantIndexation")
     private MetadataIndexationConfiguration indexationConfiguration;
+
+    @JsonProperty("isDataConsistencyAuditRunnable")
+    private Boolean isDataConsistencyAuditRunnable;
+    @JsonProperty("dataConsistencyAuditOplogMaxSize")
+    private Integer dataConsistencyAuditOplogMaxSize;
+    @JsonProperty("mongodShardsConf")
+    private MongoDbShardConf mongodShardsConf;
 
     /**
      * MetaDataConfiguration constructor
@@ -226,5 +234,29 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         MetadataIndexationConfiguration indexationConfiguration) {
         this.indexationConfiguration = indexationConfiguration;
         return this;
+    }
+
+    public Boolean getIsDataConsistencyAuditRunnable() {
+        return isDataConsistencyAuditRunnable;
+    }
+
+    public void setIsDataConsistencyAuditRunnable(Boolean dataConsistencyAuditRunnable) {
+        isDataConsistencyAuditRunnable = dataConsistencyAuditRunnable;
+    }
+
+    public Integer getDataConsistencyAuditOplogMaxSize() {
+        return dataConsistencyAuditOplogMaxSize;
+    }
+
+    public void setDataConsistencyAuditOplogMaxSize(Integer dataConsistencyAuditOplogMaxSize) {
+        this.dataConsistencyAuditOplogMaxSize = dataConsistencyAuditOplogMaxSize;
+    }
+
+    public MongoDbShardConf getMongodShardsConf() {
+        return mongodShardsConf;
+    }
+
+    public void setMongodShardsConf(MongoDbShardConf mongodShardsConf) {
+        this.mongodShardsConf = mongodShardsConf;
     }
 }

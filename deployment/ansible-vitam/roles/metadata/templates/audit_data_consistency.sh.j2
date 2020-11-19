@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+AUDIT_DATA_CONSISTENCY_URL="http://{{ ip_admin }}:{{ vitam.metadata.port_admin }}/metadata/v1/auditDataConsistency"
+
+function log() {
+    LEVEL=${1}
+    MSG=${2}
+    TIMESTAMP=$( date +"%Y-%m-%d %H:%M:%S" )
+    echo ${TIMESTAMP} [[vitam-metadata-audit-mongodb-es]] [vitam-metadata-audit-mongodb-es] ${LEVEL} audit_data_consistency.sh - vitam-metadata-audit-mongodb-es : [${HOSTNAME}:vitam-metadata-audit-mongodb-es.service:0] ${MSG}
+}
+
+function local_curl() {
+    MSG=$(curl -s -X GET -H "X-Tenant-Id: {{ vitam_tenant_admin }}" -H "Content-Type: application/json" --user "${VITAM_ADMIN_AUTH}" ${AUDIT_DATA_CONSISTENCY_URL})
+    log "INFO" "${MSG}"
+}
+
+# Main
+local_curl

@@ -217,4 +217,16 @@ public interface LogbookOperations {
     boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
         LocalDateTime traceabilityStartDate, LocalDateTime traceabilityEndDate)
         throws LogbookDatabaseException;
+
+    /**
+     * FInd last event of last operation by type
+     * @param operationType
+     * @return
+     * @throws InvalidCreateOperationException
+     * @throws LogbookNotFoundException
+     * @throws LogbookDatabaseException
+     * @throws InvalidParseOperationException
+     */
+    LogbookOperation findLastOperationByType(String operationType) throws InvalidCreateOperationException,
+            LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException;
 }

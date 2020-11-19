@@ -23,8 +23,8 @@
       "passphrase": "azerty4"
     },
     "int.env.programmevitam.fr": {
-      "cert": "vitam-certif/vitam-vitam_2.crt",
-      "key": "vitam-certif/vitam-vitam_2.key"
+      "cert": "vitam-certif/vitam-vitam_3.crt",
+      "key": "vitam-certif/vitam-vitam_3.key"
     }
   }
 }

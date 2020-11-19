@@ -36,6 +36,7 @@ import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.WriteModel;
+
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -57,6 +58,7 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
+
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 public class VitamMongoRepository implements VitamRepository {

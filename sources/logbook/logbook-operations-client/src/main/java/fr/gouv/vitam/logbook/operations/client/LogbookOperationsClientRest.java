@@ -26,13 +26,7 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
-import java.util.Queue;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
@@ -54,6 +48,10 @@ import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.Queue;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
@@ -106,7 +104,8 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public JsonNode selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperationSliced(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException {
         try (Response response = make(get().withPath(OPERATIONS_SLICED_URL).withBody(select).withJson())) {
             check(response);
             return JsonHandler.getFromString(response.readEntity(String.class));
@@ -180,7 +179,9 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     @Override
     public RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException {
-        try (Response response = make(post().withPath("/operations/traceability").withHeader(X_TENANT_ID, getTenantParameter()).withJsonAccept())) {
+        try (Response response = make(
+            post().withPath("/operations/traceability").withHeader(X_TENANT_ID, getTenantParameter())
+                .withJsonAccept())) {
             check(response);
             return RequestResponse.parseRequestResponseOk(response);
         } catch (LogbookClientNotFoundException | VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
@@ -194,12 +195,15 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public RequestResponseOK traceabilityLfcObjectGroup() throws LogbookClientServerException, InvalidParseOperationException {
+    public RequestResponseOK traceabilityLfcObjectGroup()
+        throws LogbookClientServerException, InvalidParseOperationException {
         return traceabilityLFC("/lifecycles/objectgroups/traceability");
     }
 
-    private RequestResponseOK traceabilityLFC(String traceabilityUri) throws LogbookClientServerException, InvalidParseOperationException {
-        try (Response response = make(post().withPath(traceabilityUri).withHeader(X_TENANT_ID, getTenantParameter()).withJsonAccept())) {
+    private RequestResponseOK traceabilityLFC(String traceabilityUri)
+        throws LogbookClientServerException, InvalidParseOperationException {
+        try (Response response = make(
+            post().withPath(traceabilityUri).withHeader(X_TENANT_ID, getTenantParameter()).withJsonAccept())) {
             check(response);
             return RequestResponse.parseRequestResponseOk(response);
         } catch (LogbookClientNotFoundException | VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
@@ -208,11 +212,14 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public LifecycleTraceabilityStatus checkLifecycleTraceabilityWorkflowStatus(String operationId) throws LogbookClientServerException, InvalidParseOperationException {
-        try (Response response = make(get().withPath("/lifecycles/traceability/check/" + operationId).withHeader(X_TENANT_ID, getTenantParameter()).withJsonAccept())) {
+    public LifecycleTraceabilityStatus checkLifecycleTraceabilityWorkflowStatus(String operationId)
+        throws LogbookClientServerException, InvalidParseOperationException {
+        try (Response response = make(get().withPath("/lifecycles/traceability/check/" + operationId)
+            .withHeader(X_TENANT_ID, getTenantParameter()).withJsonAccept())) {
             check(response);
             JsonNode jsonNode = response.readEntity(JsonNode.class);
-            RequestResponseOK<LifecycleTraceabilityStatus> requestResponse = RequestResponseOK.getFromJsonNode(jsonNode, LifecycleTraceabilityStatus.class);
+            RequestResponseOK<LifecycleTraceabilityStatus> requestResponse =
+                RequestResponseOK.getFromJsonNode(jsonNode, LifecycleTraceabilityStatus.class);
             return requestResponse.getFirstResult();
         } catch (VitamClientInternalException | LogbookClientNotFoundException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -222,7 +229,8 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     @Override
     public ReindexationResult reindex(IndexParameters indexParam)
         throws InvalidParseOperationException, LogbookClientServerException {
-        try (Response response = make(post().withPath("/reindex").withBody(indexParam, "The options are mandatory").withJson())) {
+        try (Response response = make(
+            post().withPath("/reindex").withBody(indexParam, "The options are mandatory").withJson())) {
             check(response);
             return response.readEntity(ReindexationResult.class);
         } catch (LogbookClientNotFoundException | VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
@@ -233,7 +241,8 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     @Override
     public SwitchIndexResult switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, LogbookClientServerException {
-        try (Response response = make(post().withPath("/alias").withBody(switchIndexParam, "The options are mandatory").withJson())) {
+        try (Response response = make(
+            post().withPath("/alias").withBody(switchIndexParam, "The options are mandatory").withJson())) {
             check(response);
             return response.readEntity(SwitchIndexResult.class);
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException | VitamClientInternalException e) {
@@ -243,7 +252,8 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     @Override
     public void traceabilityAudit(int tenant, AuditLogbookOptions options) throws LogbookClientServerException {
-        try (Response response = make(post().withPath("/auditTraceability").withHeader(X_TENANT_ID, tenant).withBody(options).withJson())) {
+        try (Response response = make(
+            post().withPath("/auditTraceability").withHeader(X_TENANT_ID, tenant).withBody(options).withJson())) {
             check(response);
         } catch (LogbookClientNotFoundException | VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -255,7 +265,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         try (Response response = make(post().withPath("/checklogbook").withJson())) {
             check(response);
             JsonNode jsonNode = response.readEntity(JsonNode.class);
-            return JsonHandler.getFromJsonNode(jsonNode , LogbookCheckResult.class);
+            return JsonHandler.getFromJsonNode(jsonNode, LogbookCheckResult.class);
         } catch (VitamClientInternalException | InvalidParseOperationException | LogbookClientNotFoundException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
@@ -267,7 +277,9 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         helper.clear();
     }
 
-    private void check(Response response) throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
+    private void check(Response response)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
             return;
@@ -277,11 +289,23 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             case CONFLICT:
                 throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
             case BAD_REQUEST:
-                throw new LogbookClientBadRequestException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                throw new LogbookClientBadRequestException(
+                    ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
             case NOT_FOUND:
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             default:
                 throw new LogbookClientServerException(status.toString());
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getLastOperationByType(String operationType)
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+        try (Response response = make(get().withPath("/lastOperationByType").withBody(operationType).withJson())) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
     }
 }

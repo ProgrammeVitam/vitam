@@ -52,13 +52,13 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
@@ -122,10 +122,10 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     private MetadataResource(MetaDataImpl metaData,
-        MetadataRuleService metadataRuleService,
-        ProcessingManagementClientFactory processingManagementClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+                             MetadataRuleService metadataRuleService,
+                             ProcessingManagementClientFactory processingManagementClientFactory,
+                             LogbookOperationsClientFactory logbookOperationsClientFactory,
+                             WorkspaceClientFactory workspaceClientFactory) {
         this.metaData = metaData;
         this.metadataRuleService = metadataRuleService;
         this.processingManagementClientFactory = processingManagementClientFactory;
@@ -1107,5 +1107,4 @@ public class MetadataResource extends ApplicationStatusResource {
                 .setHttpCode(Status.OK.getStatusCode()))
             .build();
     }
-
 }

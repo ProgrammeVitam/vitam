@@ -355,4 +355,10 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException MetaDataClientServerException
      */
     void deleteObjectGroupBulk(Collection<String> listIds) throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
+     * Audit data consistency between MongoDB and ES
+     * @return
+     */
+    JsonNode runAuditDataConsistencyMongoEs() throws MetaDataClientServerException;
 }

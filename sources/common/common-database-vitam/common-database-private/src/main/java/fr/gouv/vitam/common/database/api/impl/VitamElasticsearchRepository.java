@@ -65,6 +65,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.index.reindex.ScrollableHitSource;
@@ -94,6 +95,7 @@ public class VitamElasticsearchRepository {
      * Identifier
      */
     public static final String IDENTIFIER = "Identifier";
+    public static final String ID = "_id";
     private static final String ALL_PARAMS_REQUIRED = "All params are required";
     private static final String BULK_REQ_FAIL_WITH_ERROR = "Bulk Request failure with error: ";
     private static final String EV_DET_DATA = "evDetData";
@@ -460,6 +462,40 @@ public class VitamElasticsearchRepository {
         } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * 
+     * @param id
+     * @return
+     * @throws DatabaseException
+     */
+    public Optional<Document> getDocumentById(String id) throws DatabaseException {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(QueryBuilders.termQuery(ID, id));
+        sourceBuilder.from(0);
+        sourceBuilder.size(1);
+
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.source(sourceBuilder);
+
+        SearchResponse searchResponse;
+        try {
+            searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new DatabaseException(e);
+        }
+        for (SearchHit hit : searchResponse.getHits().getHits()) {
+            try {
+                return Optional.of(JsonHandler.getFromString(hit.getSourceAsString(), Document.class));
+            } catch (InvalidParseOperationException e) {
+                throw new DatabaseException(e);
+            }
+        }
+
+        return Optional.empty();
     }
 
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)

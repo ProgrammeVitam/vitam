@@ -1048,5 +1048,4 @@ public final class JsonHandler {
             throw new InvalidParseOperationException(e);
         }
     }
-
 }

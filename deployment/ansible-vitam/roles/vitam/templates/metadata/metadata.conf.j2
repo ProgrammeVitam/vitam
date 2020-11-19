@@ -115,3 +115,19 @@ elasticsearchTenantIndexation:
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
   password: {{ admin_basic_auth_password }}
+
+isDataConsistencyAuditRunnable: {{ vitam.metadata.isDataConsistencyAuditRunnable }}
+dataConsistencyAuditOplogMaxSize: {{ vitam.metadata.dataConsistencyAuditOplogMaxSize }}
+mongodShardsConf:
+ dbUserName: {{ mongodb['mongo-data'].admin.user }}
+ dbPassword: {{ mongodb['mongo-data'].admin.password }}
+ dbSslAuthentication: {{ mongodb.mongo_authentication }}
+ mongoDbShards:
+{% for shard in groups['hosts_mongod_data'] %}
+   - shardName: shard{{ hostvars[shard]['mongo_shard_id']}}
+     mongoDbNodes:
+{% for server in groups['hosts_mongod_data'] %}
+      - dbHost: {{ hostvars[server]['ip_service'] }}
+        dbPort: {{ mongodb.mongos_port }}
+{% endfor %}
+{% endfor %}

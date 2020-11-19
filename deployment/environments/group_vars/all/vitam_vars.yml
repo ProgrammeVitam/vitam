@@ -107,6 +107,9 @@ vitam_timers:
           frequency: "*-*-* 02:20:00"
         - name: vitam-metadata-purge-transfers-SIP
           frequency: "*-*-* 02:20:00"
+        # To uncomment when data consistency audit timer is needed
+        #- name: vitam-metadata-audit-mongodb-es
+        #  frequency: "*-*-* 02:00:00"
     offer:
       # Compaction offer logs
       - name: vitam-offer-log-compaction
@@ -527,6 +530,9 @@ vitam:
         access_retention_days: 15 # Number of days for file retention
         access_total_size_cap: "14GB" # total acceptable size
         elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
+        #### Audit data consistency MongoDB-ES ####
+        isDataConsistencyAuditRunnable: false
+        dataConsistencyAuditOplogMaxSize: 100
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
