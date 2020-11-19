@@ -68,7 +68,6 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -308,7 +307,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 QueryHelper.and().add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, registerDetail
                     .getOriginatingAgency()), QueryHelper.eq(AccessionRegisterDetail.OPI, registerDetail.getOpi())));
 
-            update.addActions(actions.toArray(new Action[actions.size()]));
+            update.addActions(actions.toArray(Action[]::new));
 
             mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_DETAIL);
 
@@ -355,8 +354,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     private VitamDocument<AccessionRegisterDetail> findAccessionRegisterDetail(String originatingAgency, String opi) {
         Bson filterQuery = and(eq(AccessionRegisterDetail.ORIGINATING_AGENCY, originatingAgency),
             eq(AccessionRegisterDetail.OPI, opi));
-        return (VitamDocument<AccessionRegisterDetail>) FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL
-            .getCollection().find(filterQuery).iterator().next();
+        return FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.<VitamDocument<AccessionRegisterDetail>>getCollection()
+            .find(filterQuery).iterator().next();
     }
 
     private void updateAccessionRegisterSummary(AccessionRegisterDetailModel registerDetail)

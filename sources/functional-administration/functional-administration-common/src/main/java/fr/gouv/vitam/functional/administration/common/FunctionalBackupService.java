@@ -150,14 +150,6 @@ public class FunctionalBackupService {
                 LOGGER.error("Could not persist backup error in logbook operation", logbookErrorException);
             }
             throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
-        } catch (Exception e) {
-            // FIXME : Actually format backup is throwing NullPointerException
-            try {
-                backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
-            } catch (VitamException | RuntimeException logbookErrorException) {
-                LOGGER.error("Could not persist backup error in logbook operation", logbookErrorException);
-            }
-            throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
         }
     }
 
@@ -254,18 +246,7 @@ public class FunctionalBackupService {
             backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
         }
     }
-
-    /**
-     * @param dataCategory
-     * @param tenant
-     * @param fileName
-     * @return
-     */
-    public String getName(DataCategory dataCategory, int tenant, String fileName) {
-        return String.format("%d_%s_%s", tenant, dataCategory.getCollectionName(), fileName);
-    }
-
-
+    
     private File saveFunctionalCollectionToTempFile(FunctionalAdminCollections collectionToSave, int tenant,
         VitamSequence backupSequence) throws ReferentialException, IOException {
 
@@ -294,10 +275,10 @@ public class FunctionalBackupService {
             jsonGenerator.writeFieldName(FIELD_COLLECTION);
             jsonGenerator.writeStartArray();
 
-            MongoCursor mongoCursor = getCurrentCollection(collectionToSave, tenant);
+            MongoCursor<Document> mongoCursor = getCurrentCollection(collectionToSave, tenant);
 
             while (mongoCursor.hasNext()) {
-                Document document = (Document) mongoCursor.next();
+                Document document = mongoCursor.next();
                 jsonGenerator.writeRawValue(BsonHelper.stringify(document));
             }
 
@@ -326,7 +307,7 @@ public class FunctionalBackupService {
      * @param tenant
      * @return MongoCursor
      */
-    public MongoCursor getCurrentCollection(FunctionalAdminCollections collections, int tenant) {
+    public MongoCursor<Document> getCurrentCollection(FunctionalAdminCollections collections, int tenant) {
         return collections.getCollection()
                 .find(getMangoFilter(collections, tenant))
                 .sort(Sorts.ascending(VitamDocument.ID))
@@ -340,10 +321,10 @@ public class FunctionalBackupService {
      * @return ArrayNode
      * @throws InvalidParseOperationException
      */
-    public ArrayNode getCollectionInJson(MongoCursor mongoCursor) throws InvalidParseOperationException {
+    public ArrayNode getCollectionInJson(MongoCursor<Document> mongoCursor) throws InvalidParseOperationException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         while (mongoCursor.hasNext()) {
-            Document document = (Document) mongoCursor.next();
+            Document document = mongoCursor.next();
             arrayNode.add(JsonHandler.toJsonNode(document));
         }
         return arrayNode;

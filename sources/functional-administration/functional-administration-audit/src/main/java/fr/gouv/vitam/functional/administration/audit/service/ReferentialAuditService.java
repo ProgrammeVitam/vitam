@@ -38,13 +38,13 @@ import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -57,6 +57,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.collections4.iterators.ArrayIterator;
+import org.bson.Document;
 import org.elasticsearch.common.util.set.Sets;
 
 import javax.ws.rs.core.Response;
@@ -100,17 +101,17 @@ public class ReferentialAuditService {
         this.functionalBackupService = functionalBackupService;
     }
 
-    public StatusCode runAudit(String collectionName, int tenant)
+    public void runAudit(String collectionName, int tenant)
         throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageNotFoundClientException, AuditVitamException {
+        StorageNotFoundClientException, BadRequestException, AuditVitamException {
         FunctionalAdminCollections collection = FunctionalAdminCollections.getFromValue(collectionName);
 
         if (Objects.isNull(collection)) {
-            throw new AuditVitamException("collection not found");
+            throw new BadRequestException("collection not found");
         }
 
         if (!collection.isMultitenant() && tenant != VitamConfiguration.getAdminTenant()) {
-            throw new AuditVitamException("admin tenant required");
+            throw new BadRequestException("admin tenant required");
         }
 
         Optional<ObjectEntry> objectEntryToAudit =
@@ -123,20 +124,20 @@ public class ReferentialAuditService {
             ObjectEntry next = objectEntryToAudit.get();
             List<String> offersIds = getOffers(VitamConfiguration.getDefaultStrategy());
             Map<String, String> hashMap = isHashesEquals(offersIds, next);
-            return verifyCoherence(offersIds, documentsInDB, next, hashMap, collectionName, tenant);
+            verifyCoherence(offersIds, documentsInDB, next, hashMap, collectionName, tenant);
         } else if (!documentsInDB.isEmpty()) {
-            alertService.createAlert(VitamLogLevel.ERROR, String
+            String message = String
                 .format("[KO] collection=%s, tenant=%s file not present in default offer (referent offer)",
-                    collectionName, tenant));
-            return StatusCode.KO;
+                    collectionName, tenant);
+            alertService.createAlert(VitamLogLevel.ERROR, message);
+            throw new AuditVitamException(message);
         }
-        return StatusCode.OK;
     }
 
-    private StatusCode verifyCoherence(List<String> offerIds, ArrayNode documentsInDB, ObjectEntry next,
+    private void verifyCoherence(List<String> offerIds, ArrayNode documentsInDB, ObjectEntry next,
         Map<String, String> mapOfHashes,
         String collectionName, int tenant)
-        throws StorageNotFoundException, StorageServerClientException {
+        throws StorageNotFoundException, StorageServerClientException, AuditVitamException {
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             boolean hasUniqueHash = (new HashSet<>(mapOfHashes.values())).size() == 1;
@@ -154,16 +155,18 @@ public class ReferentialAuditService {
                     List<String> list = diff(documentsInDB, documentsInJson);
 
                     if (!list.isEmpty()) {
-                        alertService.createAlert(VitamLogLevel.ERROR, String
-                            .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
-                                collectionName, tenant));
-                        return StatusCode.KO;
+                        String message = String
+                            .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database", collectionName,
+                                tenant);
+                        alertService.createAlert(VitamLogLevel.ERROR, message);
+                        throw new AuditVitamException(message);
                     }
                 }catch (InvalidParseOperationException e) {
-                    alertService.createAlert(VitamLogLevel.ERROR, String
-                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
-                            collectionName, tenant));
-                    return StatusCode.KO;
+                    String message = String
+                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database", collectionName,
+                            tenant);
+                    alertService.createAlert(VitamLogLevel.ERROR, message);
+                    throw new AuditVitamException(message);
                 }
             } else {
                 Map<String, Response> offersData = new HashMap<>();
@@ -203,30 +206,30 @@ public class ReferentialAuditService {
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
                 if (offersWhichCoherentWithDB.isEmpty()) {
-                    alertService.createAlert(VitamLogLevel.ERROR, String
-                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
-                            collectionName, tenant));
-                    return StatusCode.KO;
+                    String message = String
+                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database", collectionName,
+                            tenant);
+                    alertService.createAlert(VitamLogLevel.ERROR, message);
+                    throw new AuditVitamException(message);
                 } else {
-                    alertService.createAlert(VitamLogLevel.ERROR, String
+                    String message = String
                         .format("[KO] collectionName=%s, tenant=%s some offers are incoherent with database\n\r" +
                                 "coherent offers = %s\n\r" +
                                 "incoherent offers = %s\n\r",
                             collectionName, tenant,
                             offersWhichCoherentWithDB,
                             Sets.difference(new HashSet<>(offerIds), offersWhichCoherentWithDB)
-                        ));
-                    return StatusCode.KO;
+                        );
+                    alertService.createAlert(VitamLogLevel.ERROR, message);
+                    throw new AuditVitamException(message);
                 }
-
             }
-            return StatusCode.OK;
         }
     }
 
     private ArrayNode findDocuments(int tenant, FunctionalAdminCollections collection)
         throws InvalidParseOperationException {
-        MongoCursor currentCollection = this.functionalBackupService.getCurrentCollection(collection, tenant);
+        MongoCursor<Document> currentCollection = this.functionalBackupService.getCurrentCollection(collection, tenant);
         return this.functionalBackupService.getCollectionInJson(currentCollection);
     }
 
@@ -275,7 +278,7 @@ public class ReferentialAuditService {
                 storageClient.getInformation(strategyId, DataCategory.BACKUP, next.getObjectId(),
                     offerIds, true);
 
-            Map<String, String> hashMap = offerIds.stream()
+            return offerIds.stream()
                 .map(e -> new SimpleEntry<>(e, information.get(e)))
                 .filter(e -> Objects.nonNull(e.getValue()))
                 .filter(e -> !e.getValue().isMissingNode())
@@ -283,8 +286,6 @@ public class ReferentialAuditService {
                 .filter(e -> e.getValue().has(DIGEST))
                 .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue())
                 ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            return hashMap;
         }
     }
 

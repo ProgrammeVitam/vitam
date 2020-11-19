@@ -129,7 +129,7 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      *
      * @param info
      */
-    RequestResponse removeForcePause(ProcessPause info) throws ProcessingException;
+    RequestResponse<ProcessPause> removeForcePause(ProcessPause info) throws ProcessingException;
 
 
 
