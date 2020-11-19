@@ -197,7 +197,7 @@ pipeline {
                 }
             }
             environment {
-                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
+                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
                 LANG="fr_FR.UTF-8" // to bypass dateformat problem
             }
             steps {
@@ -255,7 +255,7 @@ pipeline {
                 branch "PR*" // do not try to update on github status
             }
             environment {
-                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
+                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
                 LANG="fr_FR.UTF-8" // to bypass dateformat problem
             }
             steps {
