@@ -27,6 +27,17 @@
 #*******************************************************************************
 
 export VITAMDEV_GIT_REPO="$( cd "$( readlink -f $(dirname ${BASH_SOURCE[0]}) )/.." ; pwd )"
+VITAM_CURRENT_BRUNCH="$( git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/' )"
+
+CONTAINER_NAME="dev"
+IMAGE_NAME="base"
+
+
+if [[ $VITAM_CURRENT_BRUNCH == master_* ]]
+then
+	CONTAINER_NAME=${VITAM_CURRENT_BRUNCH}
+	IMAGE_NAME=${VITAM_CURRENT_BRUNCH}
+fi
 
 if [ ${EUID} -eq 0 ]
 then
@@ -51,12 +62,12 @@ fi
 echo "Using vitam target : ${VITAM_TARGET}"
 
 VITAMDEV_USER=${LOGNAME}
-VITAMDEV_IMAGE=vitam/dev-${VITAM_TARGET}-base
-VITAMDEV_CONTAINER=vitam-${VITAM_TARGET}-dev
+VITAMDEV_IMAGE=vitam/dev-${VITAM_TARGET}-${IMAGE_NAME}
+VITAMDEV_CONTAINER=vitam-${VITAM_TARGET}-${CONTAINER_NAME}
 
 echo "#### VITAM development environment ####"
 
-if [ -z "$(docker ps -a | grep vitam-${VITAM_TARGET}-dev)" ]; then
+if [ -z "$(docker ps -a | grep -w vitam-${VITAM_TARGET}-${CONTAINER_NAME})" ]; then
 	echo "Docker container not found locally ; launching it..."
 
 	if [ -z "${VITAMDEV_GIT_REPO}" ] ; then
