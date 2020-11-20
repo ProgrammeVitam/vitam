@@ -97,7 +97,6 @@ public class WorkerResourceTest {
         newWorkerConf = File.createTempFile("test", WORKER_CONF, workerFile.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
 
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 
         RestAssured.port = serverPort;
         RestAssured.basePath = WORKER_RESOURCE_URI;
@@ -116,7 +115,7 @@ public class WorkerResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -131,25 +130,6 @@ public class WorkerResourceTest {
     @Test
     public final void testGetStatus() {
         get(WORKER_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
-    }
-
-    @Test
-    public final void testStepsList() {
-        get(WORKER_STEP_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testStepStatus() {
-        get(WORKER_STEP_URI + "/idAsync").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testModifyStep() {
-        given().contentType(ContentType.JSON).body("").when()
-            .put(WORKER_STEP_URI + "/idAsync").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
 
     @Test
@@ -168,9 +148,7 @@ public class WorkerResourceTest {
     }
 
     @Test
-    public final void testSubmitStepOK()
-        throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
-        ProcessingException, ContentAddressableStorageServerException {
+    public final void testSubmitStepOK() throws IOException, IllegalArgumentException, ProcessingException {
 
         final ItemStatus itemStatus = new ItemStatus("ID");
         itemStatus.setMessage("message");
@@ -190,9 +168,7 @@ public class WorkerResourceTest {
     }
 
     @Test
-    public final void testSubmitStepWrongHandler()
-        throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
-        ProcessingException, ContentAddressableStorageServerException {
+    public final void testSubmitStepWrongHandler() throws IOException, IllegalArgumentException, ProcessingException {
         Mockito.reset(worker);
         when(worker.run(any(), any())).thenThrow(new HandlerNotFoundException(""));
 
@@ -206,8 +182,7 @@ public class WorkerResourceTest {
 
     @Test
     public final void testSubmitStepProcessingException()
-        throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
-        ProcessingException, ContentAddressableStorageServerException {
+        throws IOException, IllegalArgumentException, ProcessingException {
         Mockito.reset(worker);
         when(worker.run(any(), any())).thenThrow(new ProcessingException(""));
 

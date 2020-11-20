@@ -26,21 +26,7 @@
  */
 package fr.gouv.vitam.worker.server.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,9 +42,18 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerFactory;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 @Path("/worker/v1")
 @Tag(name="Worker")
@@ -92,20 +87,6 @@ public class WorkerResource extends ApplicationStatusResource {
         LOGGER.info("init Worker Resource server");
         workerMocked = worker;
         workerFactory = WorkerFactory.getInstance(pluginLoader);
-    }
-
-    /**
-     * Get a list of running steps
-     *
-     * @return Response containing the list of steps
-     */
-    @Path("tasks")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response getStepsList() {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -148,35 +129,6 @@ public class WorkerResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
         }
-    }
-
-    /**
-     * Get the status of a step
-     *
-     * @param idAsync the id of the Async
-     * @return Response containing the status of a specific step
-     */
-    @Path("tasks/{id_async}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getStepStatus(@PathParam("id_async") String idAsync) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * Modifying a step (pausing, resuming, prioritizing)
-     *
-     * @param idAsync the id of the Async
-     * @return Response containing the status of the step
-     */
-    @Path("tasks/{id_async}")
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response modifyStep(@PathParam("id_async") String idAsync) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     private VitamError getErrorEntity(Status status) {
