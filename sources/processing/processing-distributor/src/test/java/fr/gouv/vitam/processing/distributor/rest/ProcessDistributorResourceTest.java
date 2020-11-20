@@ -28,12 +28,10 @@ package fr.gouv.vitam.processing.distributor.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
@@ -49,7 +47,6 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.Set;
 
-import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 
 /**
@@ -57,16 +54,11 @@ import static io.restassured.RestAssured.given;
  */
 public class ProcessDistributorResourceTest extends ResteasyTestApplication {
 
-    private final String JSON_INVALID_FILE = "json";
-
     private static final String REST_URI = "/processing/v1";
     private static final String WORKER_FAMILY_URI = "/worker_family";
     private static final String WORKERS_URI = "/workers";
     private static final String ID_FAMILY_URI = "/idFamily";
     private static final String ID_WORKER_URI = "/idWorker";
-    private static final Integer TENANT_ID = 0;
-
-    private final String FAMILY_ID_E = "/error";
 
     private static final String JSON_REGISTER =
         "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10," +
@@ -92,7 +84,6 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
         vitamServerTestRunner.start();
-        // WorkerManager.initialize();
 
         RestAssured.port = vitamServerTestRunner.getBusinessPort();
         RestAssured.basePath = REST_URI;
@@ -104,74 +95,8 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public final void testGetWorkerFamilies() {
-        get(WORKER_FAMILY_URI).then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testPutWorkerFamilies() {
-        given().contentType(ContentType.JSON).body("")
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .put(WORKER_FAMILY_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testGetWorkerFamilyStatus() {
-        get(WORKER_FAMILY_URI + ID_FAMILY_URI)
-            .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testCreateWorkerFamily() {
-        given().contentType(ContentType.JSON).body("")
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .post(WORKER_FAMILY_URI + ID_FAMILY_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testUpdateWorkerFamily() {
-        given().contentType(ContentType.JSON).body("")
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .put(WORKER_FAMILY_URI + ID_FAMILY_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testDeleteWorkerFamily() {
-        given().contentType(ContentType.JSON).body("")
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .delete(WORKER_FAMILY_URI + ID_FAMILY_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testGetFamilyWorkersList() {
-        get(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI).then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public final void testDeleteFamilyWorkers() {
-        given().contentType(ContentType.JSON).body("")
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).when()
-            .delete(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
-    public final void testGetWorkerStatus() {
-        get(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
     public final void testRegisterWorkerBadRequest() throws Exception {
+        String JSON_INVALID_FILE = "json";
         final File file = PropertiesUtils.findFile(JSON_INVALID_FILE);
         final JsonNode json = JsonHandler.getFromFile(file);
         given().contentType(ContentType.JSON).body(json).when()
@@ -186,16 +111,6 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
             .statusCode(Status.OK.getStatusCode());
     }
 
-
-    @Test
-    public final void testUpdateWorker() {
-        given().contentType(ContentType.JSON).body("")
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .put(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
     @Test
     public final void testUnregisterWorkerOK() {
         given().contentType(ContentType.JSON).body("").when()
@@ -205,6 +120,7 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
 
     @Test
     public final void testUnregisterWorkerNotFound() {
+        String FAMILY_ID_E = "/error";
         given().contentType(ContentType.JSON).body("").when()
             .delete(WORKER_FAMILY_URI + FAMILY_ID_E + WORKERS_URI + ID_WORKER_URI).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());

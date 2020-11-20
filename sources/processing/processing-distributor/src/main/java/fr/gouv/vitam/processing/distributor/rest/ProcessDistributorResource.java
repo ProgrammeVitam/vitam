@@ -26,9 +26,7 @@
  */
 package fr.gouv.vitam.processing.distributor.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -42,9 +40,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -59,8 +55,6 @@ import java.io.IOException;
 @Tag(name="Processing")
 public class ProcessDistributorResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
-    private static final String PROCESSING_MODULE = "PROCESSING";
-    private static final String CODE_VITAM = "code_vitam";
 
     private final IWorkerManager workerManager;
 
@@ -73,155 +67,6 @@ public class ProcessDistributorResource {
         this.workerManager = workerManager;
 
         LOGGER.info("init Process Distributor Resource server");
-    }
-
-    /**
-     * Get the list of worker families
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkerFamilies(@Context HttpHeaders headers) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * Interact with worker families
-     *
-     * @param headers http header
-     * @param query the query
-     * @return Response NOT_IMPLEMENTED
-     */
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response putWorkerFamilies(@Context HttpHeaders headers, JsonNode query) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * Get the list of worker families
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkerFamilyStatus(@Context HttpHeaders headers, @PathParam("id_family") String idFamily) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * Add a new worker family
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @param query the query describing the worker family to be created
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}")
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createWorkerFamily(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        JsonNode query) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * Update a specific worker family
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @param query the query describing the worker family to be updated
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}")
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateWorkerFamily(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        JsonNode query) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * Delete a specific worker family
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @param query the query describing the worker family to be deleted
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteWorkerFamily(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        JsonNode query) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-
-    /**
-     * Get the list of workers for a specific family
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}/workers")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getFamilyWorkersList(@Context HttpHeaders headers, @PathParam("id_family") String idFamily) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * Delete workers for a specific family
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @param query the query describing the workers to be deleted
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}/workers")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteFamilyWorkers(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        JsonNode query) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-
-    /**
-     * Get status of a specific worker
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @param idWorker the id of the worker
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}/workers/{id_worker}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkerStatus(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        @PathParam("id_worker") String idWorker) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     /**
@@ -259,25 +104,6 @@ public class ProcessDistributorResource {
     }
 
     /**
-     * Update a specific worker
-     *
-     * @param headers http header
-     * @param idFamily the id of the family
-     * @param idWorker the id of the worker
-     * @param query the query describing the worker to be updated
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/{id_family}/workers/{id_worker}")
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        @PathParam("id_worker") String idWorker, JsonNode query) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
      * Unregister a specific worker family
      *
      * @param headers http header
@@ -303,10 +129,4 @@ public class ProcessDistributorResource {
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " deleted \"}").build();
     }
-
-    private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(PROCESSING_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
-    }
-
 }
