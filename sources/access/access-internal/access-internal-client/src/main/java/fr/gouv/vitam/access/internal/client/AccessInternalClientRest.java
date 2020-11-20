@@ -101,7 +101,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
 
     private static final Runnable CHECK_REQUEST_ID = () -> VitamThreadUtils.getVitamSession().checkValidRequestId();
-    private static final String AUDIT_DATA_CONSISTENCY = "/auditDataConsistency";
 
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);

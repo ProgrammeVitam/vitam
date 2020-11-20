@@ -107,9 +107,8 @@ vitam_timers:
           frequency: "*-*-* 02:20:00"
         - name: vitam-metadata-purge-transfers-SIP
           frequency: "*-*-* 02:20:00"
-        # To uncomment when data consistency audit timer is needed
-        #- name: vitam-metadata-audit-mongodb-es
-        #  frequency: "*-*-* 02:00:00"
+        - name: vitam-metadata-audit-mongodb-es
+          frequency: "2020-01-01 00:00:00"
     offer:
       # Compaction offer logs
       - name: vitam-offer-log-compaction
