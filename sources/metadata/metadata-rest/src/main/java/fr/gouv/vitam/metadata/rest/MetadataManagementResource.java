@@ -63,11 +63,13 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
@@ -87,6 +89,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.common.CompressInformation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
@@ -100,6 +103,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -144,6 +148,9 @@ public class MetadataManagementResource {
     private static final String MIGRATION_PURGE_EXPIRED_FROM_OFFERS = "/migrationDeleteDipFromOffers";
     private static final String DIP_CONTAINER ="DIP";
     private static final String TRANSFERS_CONTAINER ="TRANSFER";
+    public static final String ALL_PARAMS_ARE_REQUIRED = "All params are required";
+    public static final String OPERATION_CONTEXT_FILENAME = "operation_context.json";
+
 
     /**
      * Error/Exceptions messages.
@@ -544,6 +551,7 @@ public class MetadataManagementResource {
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            LOGGER.debug("Accessing computedInheritedRulesCalculation");
             String message =
                 VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " +
                     operationGuid;
@@ -562,22 +570,50 @@ public class MetadataManagementResource {
 
             workspaceClient.putObject(operationGuid.getId(), "query.json", writeToInpustream(dslQuery));
 
-            // No need to backup operation context
+            compressInWorkspace(workspaceClientFactory, operationGuid.getId(),
+                    Contexts.COMPUTE_INHERITED_RULES.getLogbookTypeProcess(),
+                    OPERATION_CONTEXT_FILENAME);
+
             processingClient
                 .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
 
             RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+            LOGGER.debug("End computedInheritedRulesCalculation");
             return response.toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException | ContentAddressableStorageServerException |
-            InvalidParseOperationException | InternalServerException | VitamClientException e) {
+        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException |
+                ContentAddressableStorageServerException | InvalidParseOperationException | InternalServerException |
+                VitamClientException | MetaDataException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
                     String.format("An error occurred during %s workflow", PRESERVATION.getEventType())))
                 .build();
+        }
+    }
+
+    private void compressInWorkspace(WorkspaceClientFactory workspaceClientFactory, String operationContainer,
+                                     LogbookTypeProcess logbookTypeProcess, String... files) throws MetaDataException {
+
+        ParametersChecker.checkParameter(ALL_PARAMS_ARE_REQUIRED, operationContainer, logbookTypeProcess, files);
+        if (files.length == 0) {
+            throw new MetaDataException("files parameter is empty");
+        }
+
+        final String outputFile;
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            // Query DSL + other files
+            outputFile = logbookTypeProcess.name() + "_" + operationContainer + ".zip";
+            // Zip all files to be stored temporary in the offer
+            final CompressInformation compressInformation = new CompressInformation();
+            Collections.addAll(compressInformation.getFiles(), files);
+            compressInformation.setOutputContainer(operationContainer);
+            compressInformation.setOutputFile(outputFile);
+            workspaceClient.compress(operationContainer, compressInformation);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage());
+            throw new MetaDataException(e);
         }
     }
 
