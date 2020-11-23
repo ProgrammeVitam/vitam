@@ -71,7 +71,6 @@ traits:
           application/json:
             description: Ingest operation accepted
             type: StandardTypes.AsyncStatus
-            example: !include examples/ingests.json
       200:
         description: Returns the final result of the Ingest operation in OK status
         body:
@@ -111,11 +110,14 @@ traits:
     responses:
       202:
         description: Returns the status of ingest operation accepted
+        headers:
+          X-Global-Execution-State:
+            example: PAUSE
+          X-Global-Execution-Status:
+            example: UNKNOWN
         body:
           application/json:
             description: Ingest operation accepted
-            type: StandardTypes.AsyncStatus
-            example: !include examples/ingests.json
       500:
         description: Returns the final result of the Ingest operation in KO status
         body:
