@@ -1,0 +1,8 @@
+{
+  "httpCode": 500,
+  "code": "vitamcode",
+  "context": "External Access",
+  "state": "Input / Output",
+  "message": "Access external bad request error",
+  "description": "Internal Server Error"
+}

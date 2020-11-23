@@ -15,6 +15,14 @@ traits:
         type: string
         enum: [ "application/json", "application/zip", "application/octet-stream" ]
 
+  AccessContractHeader:
+    headers:
+      X-Access-Contract-Id:
+        type: string
+        required: true
+        description: Unique Access Contract Identifier. Allow read/write access on specific archive unit.
+        example: Access-Contract-00001
+
   StandardOptionalHeader:
     headers: &optionalheader
       X-Application-Id:
@@ -23,16 +31,6 @@ traits:
         description: |
             Session Identifier from client Front-Office Application
         example: SESSION-ID-00001
-      X-Tenant-Id:
-        type: number
-        required: true
-        description: Unique Tenant Identifier.
-        example: 0
-      X-Access-Contract-Id:
-        type: string
-        required: true
-        description: Unique Access Contract Identifier. Allow read/write access on specific archive unit.
-        example: Access-Contract-00001
       X-Personal-Certificate:
         type: string
         required: false
@@ -41,7 +39,11 @@ traits:
             If the resource requires personal authentication, and no personal certificate has been provided OR the
             provided personal certificate is unauthorized, the server will return a 401 http status.
         example: MIIGfzCCBGegAwIBAgICAPcwDQYJK...
-
+      X-Tenant-Id:
+        type: number
+        required: true
+        description: Unique Tenant Identifier.
+        example: 0
   UploadFileOptionalHeader:
     headers: &optionalheader
       X-Filename:
@@ -60,22 +62,7 @@ traits:
             type: string
             required: true
             description: Unique Request Identifier
-            example: AbDUh67jj
-          FullApiVersion:
-            type: string
-            required: false
-            description: Complete Version of the API.
-            example: V1.25
-          X-Application-Id:
-            type: string
-            required: false
-            description: Session Identifier from client Front-Office Application
-            example: SESSION-ID-00001
-          X-Tenant-Id:
-            type: number
-            required: true
-            description: Unique Tenant Identifier
-            example: 0
+            example: aeeaaaaaachmj6ciaa5nwalv3rsu4laaaaaq
   StandardHeader201:
     responses:
       201:
@@ -186,18 +173,32 @@ traits:
         enum:
           - DELETE
 
-  StandardErrors:
+  StandardError404:
     responses:
       404:
-        description: Not Found, requested resource does not exist
+        description: Internal Server Error, the server encountered an error
         body:
           application/json:
-            type: StandardTypes.ErrorMultiple
+            type: StandardTypes.Error
             example: !include examples/error-404.json
 
+  StandardError412:
+    responses:
       412:
         description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
         body:
           application/json:
-            type: StandardTypes.ErrorMultiple
+            type: StandardTypes.Error
             example: !include examples/error-412.json
+
+  StandardError500:
+    responses:
+      500:
+        description: Internal Server Error, the server encountered an error
+        body:
+          application/json:
+            type: StandardTypes.Error
+            example: !include examples/error-500.json
+
+  StandardErrors:
+    is: [StandardError404, StandardError412, StandardError500]

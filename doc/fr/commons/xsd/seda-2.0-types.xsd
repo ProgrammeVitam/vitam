@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+        targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified"
+        version="1.0">
+    
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+    <xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
+
+    <!--
+                *****************************
+                ***   Types de base
+                *****************************
+        -->
+    <!-- Code -->
+    <xs:complexType name="CodeType">
+        <xs:simpleContent>
+            <xs:extension base="NonEmptyTokenType">
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    
+    <!-- Texte -->
+    <xs:complexType name="TextType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute ref="xml:lang" use="optional"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    
+    <!-- Identifiant -->
+    <xs:complexType name="IdentifierType">
+        <xs:simpleContent>
+            <xs:extension base="xs:token">
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    
+    <!-- Type à spécifier -->
+    <xs:attributeGroup name="OpenTypeAttributeGroup">
+        <xs:attribute ref="xml:id" use="optional"/>
+        <xs:attribute ref="xlink:href" use="optional"/>
+    </xs:attributeGroup>
+    <xs:complexType name="OpenType" abstract="true">
+        <xs:sequence>
+            <xs:any namespace="##other" processContents="lax" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="OpenTypeAttributeGroup"/>
+    </xs:complexType> 
+
+    <xs:simpleType name="NonEmptyTokenType">
+        <xs:annotation>
+            <xs:documentation>Elément ne pouvant être vide.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:token">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- ID -->
+    <xs:simpleType name="DataObjectIdType">
+        <xs:annotation>
+            <xs:documentation>Identifiant utilisé pour les objets-données.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:ID"/>
+    </xs:simpleType>
+    <xs:simpleType name="DataObjectRefIdType">
+        <xs:annotation>
+            <xs:documentation>Identifiant servant aux relations des objets-données.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:IDREF"/>
+    </xs:simpleType>
+    <xs:simpleType name="GroupIdType">
+        <xs:annotation>
+            <xs:documentation>Identifiant utilisé pour les groupes d'objets-données.</xs:documentation>
+        </xs:annotation>
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:ID"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="GroupRefIdType">
+        <xs:annotation>
+            <xs:documentation>Identifiant utilisé pour référencer les groupes d'objets-données.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:IDREF"/>
+    </xs:simpleType>
+    <xs:complexType name="DataObjectRefType">
+        <xs:annotation>
+            <xs:documentation>Référence à un objet-données ou à un groupe d'objets-données.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:choice>
+                <xs:element name="DataObjectReferenceId" type="DataObjectRefIdType">
+                    <xs:annotation>
+                        <xs:documentation>Référence à un objet-données listé dans les métadonnées de transport.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="DataObjectGroupReferenceId" type="GroupRefIdType">
+                    <xs:annotation>
+                        <xs:documentation>Référence à un groupe d'objets-données listé dans les métadonnées de transport.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID" use="optional"/>
+    </xs:complexType>
+    
+    <!-- ID of an ArchiveUnit -->
+    <xs:simpleType name="ArchiveUnitIdType">
+        <xs:annotation>
+            <xs:documentation>Identifiant utilisé pour les unités d'archives.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:ID"/>
+    </xs:simpleType>
+    <xs:simpleType name="ArchiveUnitRefIdType">
+        <xs:annotation>
+            <xs:documentation>Référence aux identifiants utilisés pour les unités d'archives.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:IDREF"/>
+    </xs:simpleType>
+    
+    <xs:simpleType name="SizeInBytesType">
+        <xs:annotation>
+            <xs:documentation>Poids des objets-données binaires en bytes.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:positiveInteger"/>
+    </xs:simpleType>
+
+    <!-- Binary encoding -->
+    <xs:simpleType name="BinaryType">
+        <xs:annotation>
+            <xs:documentation>Représentation binaire : utilisation possible de base64 ou d'hexadécimal.</xs:documentation>
+        </xs:annotation>
+        <xs:union memberTypes="xs:base64Binary xs:hexBinary"/>
+    </xs:simpleType>
+    
+    <!-- Digest -->
+    <xs:group name="DigestAlgorithmCodeListGroup">
+        <xs:sequence>
+            <xs:element name="MessageDigestAlgorithmCodeListVersion" type="CodeType">
+                <xs:annotation>
+                    <xs:documentation>Liste de l'algorithme de hachage utilisé dans le message.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="DigestAlgorithmCodeType">
+        <xs:annotation>
+            <xs:documentation>Algorithme de hachage spécifié dans DigestAlgorithmCodeList.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="NonEmptyTokenType"/>
+    </xs:simpleType>
+    <xs:complexType name="MessageDigestBinaryObjectType">
+        <xs:simpleContent>
+            <xs:extension base="BinaryType">
+                <xs:attribute name="algorithm" type="DigestAlgorithmCodeType" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    
+    <!--
+                *****************************
+                ***   Types métier
+                *****************************
+ 
+        -->
+    
+    <!-- Contenu de données binaire -->
+    <xs:complexType name="BinaryObjectType"> 
+        <xs:simpleContent>
+            <xs:extension base="xs:base64Binary">
+                <xs:attribute name="filename" type="xs:string" use="optional"/>
+                <xs:attribute name="uri" type="xs:anyURI" use="optional"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType> 
+    
+    <!-- Données liées -->
+    <xs:complexType name="RelationshipType">
+        <xs:attribute name="target" type="xs:IDREF" use="required"/>
+        <xs:attribute name="type" type="NonEmptyTokenType" use="required"/>
+    </xs:complexType>
+    
+    <!-- Organisation -->
+    <xs:complexType name="OrganizationType">
+        <xs:sequence>
+            <xs:element name="Identifier" type="IdentifierType">
+                <xs:annotation>
+                    <xs:documentation>Identifiant de l'organisation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OrganizationDescriptiveMetadata" type="OrganizationDescriptiveMetadataType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées de description de l'organisation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <!--
+                ***************************** 
+                ***   Objets à redéfinir
+                *****************************
+                La redéfinition permet de fixer le nom de la balise tout en permettant la définition du type ultérieurement
+        -->
+    
+    <!-- Métadonnées descriptives pour une organisation -->
+    <xs:complexType name="OrganizationDescriptiveMetadataType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées de description des organisations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+        
+    <!-- Signature in Main message block -->
+    <xs:complexType name="SignatureType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées dsur la signature.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- In CoreMetadataType from seda-2.0-technical.xs: Technical Metadata Content -->
+    <xs:complexType name="TextTechnicalMetadataType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type texte(XML, JSON, CSV, ...).</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DocumentTechnicalMetadataType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type document (Word, PDF, XLS, LibreOffice, ...).</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="ImageTechnicalMetadataType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type image.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="AudioTechnicalMetadataType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type audio.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="VideoTechnicalMetadataType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type video.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DescriptiveTechnicalMetadataType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées techniques et/ou descriptives définies dans un schéma par un service producteur ou versant mais n'étant pas présentes dans les métadonnées de base.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="OpenType"/>
+        </xs:complexContent>
+    </xs:complexType>
+    
+    <!--
+                ******************************************* 
+                ***   Objets à spécifier par substitution
+                *******************************************
+                La substitution permet de ne pas fixer le nom de la balise, d'en autoriser plusieurs et de laisser l'implémentation choisir en fonction de ses besoins.
+        -->
+    <!-- In ObjectGroup from seda-2-0-ontology.xs: Extra Descriptive Metadata Content -->
+    <xs:element name="ObjectGroupExtenstionAbstract" abstract="true">
+        <xs:annotation>
+            <xs:documentation>Permet d'étendre ObjectGroup avec d'autres métadonnées descriptives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+    <!-- In PhysicalTechnicalDescriptionGroup from seda-2.0-technical.xs: extra dimension techncal description for PhysicalDataObject -->
+    <xs:element name="OtherDimensionsAbstract" abstract="true">
+        <xs:annotation>
+            <xs:documentation>Permet d'étendre &lt;OtherDimensions&gt; avec d'autres métadonnées de description des objets-données physiques.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+    <!-- In CoreMetadataType from seda-2.0-technical.xs: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
+    <xs:element name="OtherCoreTechnicalMetadataAbstract" abstract="true" type="OpenType">
+        <xs:annotation>
+            <xs:documentation>Contient toutes les métadonnées techniques de base pour d'autres types.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+    <!-- In ArchiveUnitType from seda-2.0-descriptive.xs: Abstract for ArchiveUnit reference from within EAS -->
+    <xs:element name="ArchiveUnitReferenceAbstract" abstract="true">
+        <xs:annotation>
+            <xs:documentation>Contient les requêtes nécessaires pour trouver un ArchiveUnit et pointer sur lui dans un prochain ArchiveUnit.
+                Permet de référencer un noeud déjà existant dans un arbre à partir d'un transfert précédent.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+    <!-- In ManagementGroup from seda-2.0-management.xs: for Management extension -->
+    <xs:element name="OtherManagementAbstract" abstract="true">
+        <xs:annotation>
+            <xs:documentation>Utilisé par exemple pour manipuler un ArchiveUnit déjà existant dans le système d'archivage électronique.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+    <!-- In CodeListVersionsType from seda-2.0-main.xs: If needed, extra CodeList could be added -->
+    <xs:element name="OtherCodeListAbstract" abstract="true" type="CodeType">
+        <xs:annotation>
+            <xs:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+</xs:schema>
+ 
