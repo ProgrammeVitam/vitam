@@ -24,6 +24,22 @@
           "sp3"
         ]
       }
+    },
+    {
+      "ExtendedInfoType": "FINAL_ACTION_INCONSISTENCY",
+      "ExtendedInfoDetails": {
+        "OriginatingAgenciesInConflict": [
+          "sp4"
+        ]
+      }
+    },
+    {
+      "ExtendedInfoType": "BLOCKED_BY_HOLD_RULE",
+      "ExtendedInfoDetails": {
+        "HoldRuleIds": [
+          "HOL-00001"
+        ]
+      }
     }
   ]
 }

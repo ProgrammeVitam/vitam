@@ -316,7 +316,7 @@ public class DataMigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_fullDataSet() throws Exception {
 
         // Given
-        doIngest(PropertiesUtils.getResourceAsStream("elimination/TEST_ELIMINATION.zip"), StatusCode.OK);
+        doIngest(PropertiesUtils.getResourceAsStream("elimination/TEST_ELIMINATION_V2.zip"), StatusCode.OK);
 
         List<JsonNode> unitsBefore = getMetadata(MetadataCollections.UNIT);
         List<JsonNode> objectGroupsBefore = getMetadata(MetadataCollections.OBJECTGROUP);

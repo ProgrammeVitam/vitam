@@ -33,14 +33,15 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
-import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
+import fr.gouv.vitam.worker.core.utils.HoldRuleUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -62,21 +63,27 @@ public final class EliminationUtils {
         WorkerParameters param,
         LocalDate expirationDate) throws ProcessingStatusException {
 
-        InheritedRuleCategoryResponseModel inheritedRuleCategory =
+        InheritedRuleCategoryResponseModel inheritedEliminatedRuleCategory =
             EliminationUtils.parseAppraisalRuleCategory(unit);
+
+        InheritedRuleCategoryResponseModel inheritedHoldRuleCategory =
+            HoldRuleUtils.parseHoldRuleCategory(unit);
 
         String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
             unit.get(VitamFieldsHelper.originatingAgency()).asText() :
             null;
 
+        String unitId = unit.get(VitamFieldsHelper.id()).asText();
+
         return eliminationAnalysisService.analyzeElimination(
+            unitId,
             param.getRequestId(),
-            inheritedRuleCategory.getRules(),
-            inheritedRuleCategory.getProperties(),
+            inheritedEliminatedRuleCategory.getRules(),
+            inheritedEliminatedRuleCategory.getProperties(),
+            inheritedHoldRuleCategory.getRules(),
             expirationDate,
             originatingAgency);
     }
-
 
     private static InheritedRuleCategoryResponseModel parseAppraisalRuleCategory(JsonNode unit)
         throws ProcessingStatusException {
@@ -86,7 +93,6 @@ public final class EliminationUtils {
 
             UnitInheritedRulesResponseModel unitInheritedRulesResponseModel =
                 JsonHandler.getFromJsonNode(inheritedRules, UnitInheritedRulesResponseModel.class);
-
             return unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
 
         } catch (InvalidParseOperationException e) {
@@ -94,7 +100,8 @@ public final class EliminationUtils {
         }
     }
 
-    public static EliminationRequestBody loadRequestJsonFromWorkspace(HandlerIO handler) throws ProcessingStatusException {
+    public static EliminationRequestBody loadRequestJsonFromWorkspace(HandlerIO handler)
+        throws ProcessingStatusException {
         try {
             return JsonHandler.getFromInputStream(
                 handler.getInputStreamFromWorkspace(REQUEST_JSON), EliminationRequestBody.class);

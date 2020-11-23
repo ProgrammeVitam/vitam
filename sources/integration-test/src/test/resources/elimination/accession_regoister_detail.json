@@ -21,9 +21,9 @@
             "remained": 2.0
         },
         "TotalUnits": {
-            "ingested": 6.0,
+            "ingested": 8.0,
             "deleted": 3.0,
-            "remained": 3.0
+            "remained": 5.0
         },
         "TotalObjects": {
             "ingested": 4.0,
@@ -38,7 +38,7 @@
                 "Opc": "aecaaaaaacbvj6amaaqlaalgguegajyaaaba",
                 "OpType": "INGEST",
                 "Gots": 3,
-                "Units": 6,
+                "Units": 8,
                 "Objects": 4,
                 "ObjSize": 18,
                 "CreationDate": "2018-10-02T15:47:25.961"

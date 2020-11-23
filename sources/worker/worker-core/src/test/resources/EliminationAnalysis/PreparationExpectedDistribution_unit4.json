@@ -1,0 +1,19 @@
+{
+  "id": "unit4",
+  "params": {
+    "OperationId": "opId",
+    "GlobalStatus": "CONFLICT",
+    "DestroyableOriginatingAgencies": [
+      "sp1"
+    ],
+    "NonDestroyableOriginatingAgencies": [],
+    "ExtendedInfo": [
+      {
+        "ExtendedInfoType": "BLOCKED_BY_HOLD_RULE",
+        "ExtendedInfoDetails": {
+          "HoldRuleIds": [ "HOL-00001" ]
+        }
+      }
+    ]
+  }
+}

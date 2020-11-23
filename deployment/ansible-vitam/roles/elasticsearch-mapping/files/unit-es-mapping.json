@@ -1604,6 +1604,9 @@
                 },
                 "OriginatingAgenciesInConflict": {
                   "type": "keyword"
+                },
+                "HoldRuleIds" : {
+                  "type": "keyword"
                 }
               }
             }

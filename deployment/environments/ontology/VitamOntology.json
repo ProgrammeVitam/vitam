@@ -496,6 +496,17 @@
     ]
   },
   {
+    "Identifier": "HoldRuleIds",
+    "ApiField": "HoldRuleIds",
+    "Description": "Mapping : unit-es-mapping.json. Identifiants des règles de gel",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "HoldRuleIds",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
     "Identifier": "KeywordContent",
     "SedaField": "KeywordContent",
     "Description": "Mapping : unit-es-mapping.json",

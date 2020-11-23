@@ -36,8 +36,11 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInf
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoFinalActionInconsistency;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoHoldRule;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoHoldRuleDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoKeepAccessSp;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
+import fr.gouv.vitam.worker.core.utils.HoldRuleUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
@@ -62,21 +65,27 @@ import static fr.gouv.vitam.common.model.unit.RuleCategoryModel.FINAL_ACTION;
 public class EliminationAnalysisService {
 
     public EliminationAnalysisResult analyzeElimination(
-        String operationId, List<InheritedRuleResponseModel> rules, List<InheritedPropertyResponseModel> properties,
+        String unitId, String operationId, List<InheritedRuleResponseModel> appraisalRules,
+        List<InheritedPropertyResponseModel> appraisalProperties,
+        List<InheritedRuleResponseModel> holdRules,
         LocalDate expirationDate, String sp) {
 
+        Set<String> activeHoldRules = listActiveHoldRuleIds(unitId, holdRules, expirationDate);
+
         Map<String, EliminationAnalysisStatusForOriginatingAgency> statusByOriginatingAgency =
-            analyzeFinalActionByOriginatingAgency(rules, properties, expirationDate);
+            analyzeAppraisalFinalActionByOriginatingAgency(appraisalRules, appraisalProperties, expirationDate);
 
         Set<String> destroyableOriginatingAgencies =
             filterByTargetStatus(statusByOriginatingAgency, EliminationAnalysisStatusForOriginatingAgency.DESTROY);
         Set<String> nonDestroyableOriginatingAgencies =
             filterByTargetStatus(statusByOriginatingAgency, EliminationAnalysisStatusForOriginatingAgency.KEEP);
         Set<String> conflictOnOriginatingAgencies =
-            filterByTargetStatus(statusByOriginatingAgency, EliminationAnalysisStatusForOriginatingAgency.FINAL_ACTION_INCONSISTENCY);
+            filterByTargetStatus(statusByOriginatingAgency,
+                EliminationAnalysisStatusForOriginatingAgency.FINAL_ACTION_INCONSISTENCY);
 
-        EliminationGlobalStatus
-            globalStatus = getGlobalStatus(destroyableOriginatingAgencies, nonDestroyableOriginatingAgencies, conflictOnOriginatingAgencies);
+        EliminationGlobalStatus globalStatus = getGlobalStatus(
+            destroyableOriginatingAgencies, nonDestroyableOriginatingAgencies, conflictOnOriginatingAgencies,
+            activeHoldRules);
 
         List<EliminationExtendedInfo> extendedInfo = new ArrayList<>();
 
@@ -94,9 +103,15 @@ public class EliminationAnalysisService {
 
             // ACCESS_LINK_INCONSISTENCY
             List<EliminationExtendedInfoAccessLinkInconsistencyDetails> accessLinkInconsistencies =
-                analyzeAccessLinkInconsistencies(rules, properties, expirationDate);
+                analyzeAppraisalAccessLinkInconsistencies(appraisalRules, appraisalProperties, expirationDate);
             for (EliminationExtendedInfoAccessLinkInconsistencyDetails accessLinkInconsistency : accessLinkInconsistencies) {
                 extendedInfo.add(new EliminationExtendedInfoAccessLinkInconsistency(accessLinkInconsistency));
+            }
+
+            // BLOCKED_BY_HOLD_RULE
+            if (!activeHoldRules.isEmpty()) {
+                extendedInfo.add(new EliminationExtendedInfoHoldRule(
+                    new EliminationExtendedInfoHoldRuleDetails(activeHoldRules)));
             }
         }
 
@@ -104,8 +119,19 @@ public class EliminationAnalysisService {
             destroyableOriginatingAgencies, nonDestroyableOriginatingAgencies, extendedInfo);
     }
 
+    private Set<String> listActiveHoldRuleIds(String unitId, List<InheritedRuleResponseModel> holdRules,
+        LocalDate expirationDate) {
+
+        // /!\ WARNING : For hold rules : No rules --> do NOT block elimination
+        return HoldRuleUtils.listActiveHoldRules(unitId, holdRules, expirationDate)
+            .stream()
+            .map(InheritedRuleResponseModel::getRuleId)
+            .collect(Collectors.toSet());
+    }
+
     private EliminationGlobalStatus getGlobalStatus(Set<String> destroyableOriginatingAgencies,
-        Set<String> nonDestroyableOriginatingAgencies, Set<String> conflictOnOriginatingAgencies) {
+        Set<String> nonDestroyableOriginatingAgencies, Set<String> conflictOnOriginatingAgencies,
+        Set<String> activeHoldRules) {
 
         if (!conflictOnOriginatingAgencies.isEmpty()) {
             return EliminationGlobalStatus.CONFLICT;
@@ -113,11 +139,17 @@ public class EliminationAnalysisService {
 
         if (destroyableOriginatingAgencies.isEmpty()) {
             return EliminationGlobalStatus.KEEP;
-        } else if (nonDestroyableOriginatingAgencies.isEmpty()) {
-            return EliminationGlobalStatus.DESTROY;
-        } else {
+        }
+
+        if (!activeHoldRules.isEmpty()) {
             return EliminationGlobalStatus.CONFLICT;
         }
+
+        if (nonDestroyableOriginatingAgencies.isEmpty()) {
+            return EliminationGlobalStatus.DESTROY;
+        }
+
+        return EliminationGlobalStatus.CONFLICT;
     }
 
     private boolean shouldKeepAccessToOriginatingAgency(String sp, Set<String> destroyableOriginatingAgencies,
@@ -131,12 +163,13 @@ public class EliminationAnalysisService {
     /**
      * Group rules & properties by originating agency & return destroyable status
      */
-    private Map<String, EliminationAnalysisStatusForOriginatingAgency> analyzeFinalActionByOriginatingAgency(
-        Collection<InheritedRuleResponseModel> rules, Collection<InheritedPropertyResponseModel> properties,
+    private Map<String, EliminationAnalysisStatusForOriginatingAgency> analyzeAppraisalFinalActionByOriginatingAgency(
+        Collection<InheritedRuleResponseModel> appraisalRules,
+        Collection<InheritedPropertyResponseModel> appraisalProperties,
         LocalDate expirationDate) {
 
         Set<String> originatingAgencies =
-            Stream.concat(rules.stream(), properties.stream())
+            Stream.concat(appraisalRules.stream(), appraisalProperties.stream())
                 .map(BaseInheritedResponseModel::getOriginatingAgency)
                 .collect(Collectors.toSet());
 
@@ -145,18 +178,20 @@ public class EliminationAnalysisService {
         for (String originatingAgency : originatingAgencies) {
 
             List<InheritedRuleResponseModel> originatingAgencyRules =
-                filterByOriginatingAgency(rules, originatingAgency);
+                filterByOriginatingAgency(appraisalRules, originatingAgency);
             List<InheritedPropertyResponseModel> originatingAgencyProperties =
-                filterByOriginatingAgency(properties, originatingAgency);
+                filterByOriginatingAgency(appraisalProperties, originatingAgency);
 
             boolean destroyableForOriginatingAgency =
-                isDestroyable(originatingAgencyRules, originatingAgencyProperties, expirationDate);
+                isAppraisalDestroyable(originatingAgencyRules, originatingAgencyProperties, expirationDate);
 
             boolean conflictForOriginatingAgency =
-                isFinalActionConflict(originatingAgencyRules, originatingAgencyProperties, expirationDate, destroyableForOriginatingAgency);
+                isAppraisalFinalActionConflict(originatingAgencyRules, originatingAgencyProperties, expirationDate,
+                    destroyableForOriginatingAgency);
 
             EliminationAnalysisStatusForOriginatingAgency status =
-                EliminationAnalysisStatusForOriginatingAgency.getValue(destroyableForOriginatingAgency, conflictForOriginatingAgency);
+                EliminationAnalysisStatusForOriginatingAgency
+                    .getValue(destroyableForOriginatingAgency, conflictForOriginatingAgency);
             statusForOriginatingAgency.put(originatingAgency, status);
         }
         return statusForOriginatingAgency;
@@ -166,21 +201,22 @@ public class EliminationAnalysisService {
      * If the rules/properties inherited via a direct parent unit have Destroyable & NonDestroyable originating
      * agencies, then report inconsistency.
      */
-    private List<EliminationExtendedInfoAccessLinkInconsistencyDetails> analyzeAccessLinkInconsistencies(
-        List<InheritedRuleResponseModel> rules,
-        List<InheritedPropertyResponseModel> properties, LocalDate expirationDate) {
+    private List<EliminationExtendedInfoAccessLinkInconsistencyDetails> analyzeAppraisalAccessLinkInconsistencies(
+        List<InheritedRuleResponseModel> appraisalRules,
+        List<InheritedPropertyResponseModel> appraisalProperties, LocalDate expirationDate) {
 
         List<EliminationExtendedInfoAccessLinkInconsistencyDetails> accessLinkInconsistencies = new ArrayList<>();
 
         MultiValuedMap<String, InheritedRuleResponseModel> rulesByDirectParentId =
-            groupByDirectParentId(rules);
+            groupByDirectParentId(appraisalRules);
         MultiValuedMap<String, InheritedPropertyResponseModel> propertiesByDirectParentId =
-            groupByDirectParentId(properties);
+            groupByDirectParentId(appraisalProperties);
 
         for (String parentId : SetUtils.union(rulesByDirectParentId.keySet(), propertiesByDirectParentId.keySet())) {
 
-            Map<String, EliminationAnalysisStatusForOriginatingAgency> destroyableForParentId = analyzeFinalActionByOriginatingAgency(
-                rulesByDirectParentId.get(parentId), propertiesByDirectParentId.get(parentId), expirationDate);
+            Map<String, EliminationAnalysisStatusForOriginatingAgency> destroyableForParentId =
+                analyzeAppraisalFinalActionByOriginatingAgency(
+                    rulesByDirectParentId.get(parentId), propertiesByDirectParentId.get(parentId), expirationDate);
 
             Set<String> destroyableOriginatingAgencies =
                 filterByTargetStatus(destroyableForParentId, EliminationAnalysisStatusForOriginatingAgency.DESTROY);
@@ -220,7 +256,8 @@ public class EliminationAnalysisService {
         return response;
     }
 
-    private Set<String> filterByTargetStatus(Map<String, EliminationAnalysisStatusForOriginatingAgency> statusForOriginatingAgency,
+    private Set<String> filterByTargetStatus(
+        Map<String, EliminationAnalysisStatusForOriginatingAgency> statusForOriginatingAgency,
         EliminationAnalysisStatusForOriginatingAgency targetStatus) {
         return statusForOriginatingAgency.entrySet().stream()
             .filter(entry -> targetStatus.equals(entry.getValue()))
@@ -228,7 +265,8 @@ public class EliminationAnalysisService {
             .collect(Collectors.toSet());
     }
 
-    private boolean isFinalActionConflict(List<InheritedRuleResponseModel> rules, List<InheritedPropertyResponseModel> properties,
+    private boolean isAppraisalFinalActionConflict(List<InheritedRuleResponseModel> appraisalRules,
+        List<InheritedPropertyResponseModel> appraisalProperties,
         LocalDate expirationDate, Boolean isDestroyableForOriginatingAgency) {
 
         // If DESTROY: no conflict
@@ -237,7 +275,7 @@ public class EliminationAnalysisService {
         }
 
         // From there, status is a global keep
-        List<String> destroyIds = properties.stream()
+        List<String> destroyIds = appraisalProperties.stream()
             .filter(p -> FINAL_ACTION.equals(p.getPropertyName()))
             .filter(p -> VitamConstants.AppraisalRuleFinalAction.DESTROY.equals(
                 VitamConstants.AppraisalRuleFinalAction.fromValue(p.getPropertyValue().toString())
@@ -250,31 +288,32 @@ public class EliminationAnalysisService {
             return false;
         }
 
-        return areEndDatesReached(rules, expirationDate);
+        return areAppraisalRuleEndDatesReached(appraisalRules, expirationDate);
     }
 
     /**
-     * A unit with a set of rules & properties is destroyable iif :
+     * A unit with a set of appraisal rules & properties is destroyable iif :
      * - The rule set is not empty
      * - The property set is not empty
      * - All rules have expired
      * - All FinalAction properties are DESTROY
+     * /!\ A unit may be destroyable according to appraisal rules & properties BUT blocked by hold rules
      */
-    private boolean isDestroyable(List<InheritedRuleResponseModel> rules,
-        List<InheritedPropertyResponseModel> properties, LocalDate expirationDate) {
+    private boolean isAppraisalDestroyable(List<InheritedRuleResponseModel> appraisalRules,
+        List<InheritedPropertyResponseModel> appraisalProperties, LocalDate expirationDate) {
 
-        if (!isFinalActionDestroy(properties))
+        if (!isAppraisalRuleFinalActionDestroy(appraisalProperties))
             return false;
 
-        if (!areEndDatesReached(rules, expirationDate))
+        if (!areAppraisalRuleEndDatesReached(appraisalRules, expirationDate))
             return false;
 
         return true;
     }
 
-    private boolean isFinalActionDestroy(List<InheritedPropertyResponseModel> properties) {
+    private boolean isAppraisalRuleFinalActionDestroy(List<InheritedPropertyResponseModel> appraisalProperties) {
 
-        List<VitamConstants.AppraisalRuleFinalAction> finalActions = properties.stream()
+        List<VitamConstants.AppraisalRuleFinalAction> finalActions = appraisalProperties.stream()
             .filter(p -> FINAL_ACTION.equals(p.getPropertyName()))
             .map(p -> (String) p.getPropertyValue())
             .map(VitamConstants.AppraisalRuleFinalAction::fromValue)
@@ -293,16 +332,16 @@ public class EliminationAnalysisService {
         return true;
     }
 
-    private boolean areEndDatesReached(List<InheritedRuleResponseModel> rules,
+    private boolean areAppraisalRuleEndDatesReached(List<InheritedRuleResponseModel> appraisalRules,
         LocalDate expirationDate) {
 
-        List<LocalDate> endDates = rules.stream()
+        List<LocalDate> endDates = appraisalRules.stream()
             .map(InheritedRuleResponseModel::getEndDate)
             .map(this::parseDate)
             .collect(Collectors.toList());
 
         if (endDates.isEmpty()) {
-            // No rules --> Keep
+            // /!\ WARNING : For appraisal rules : No rules --> Keep
             return false;
         }
 

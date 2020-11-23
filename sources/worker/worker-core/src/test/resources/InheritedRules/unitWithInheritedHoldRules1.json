@@ -1,0 +1,15 @@
+{
+  "#id": "unit4",
+  "#object": "got2",
+  "#originating_agency": "sp1",
+  "InheritedRules": {
+    "AppraisalRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [],
+      "Properties": []
+    }
+  }
+}

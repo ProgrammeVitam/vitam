@@ -239,7 +239,7 @@ public class PreservationIT extends VitamRuleRunner {
             throw new VitamRuntimeException("Wrong execution right for griffin-extraction-au/griffin.");
         }
 
-        doIngest("elimination/TEST_ELIMINATION.zip");
+        doIngest("elimination/TEST_ELIMINATION_V2.zip");
         doIngest("preservation/OG_with_3_parents.zip");
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());

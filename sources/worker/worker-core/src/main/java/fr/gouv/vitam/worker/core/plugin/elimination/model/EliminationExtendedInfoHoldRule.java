@@ -28,27 +28,27 @@ package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Set;
-
-public class EliminationExtendedInfoFinalActionInconsistency extends EliminationExtendedInfo {
+public class EliminationExtendedInfoHoldRule extends EliminationExtendedInfo {
 
     @JsonProperty("ExtendedInfoDetails")
-    private EliminationExtendedInfoFinalActionInconsistencyDetails details;
+    private EliminationExtendedInfoHoldRuleDetails details;
 
-    public EliminationExtendedInfoFinalActionInconsistency() {
+    public EliminationExtendedInfoHoldRule() {
         // Empty constructor for deserialization
     }
 
-    public EliminationExtendedInfoFinalActionInconsistency(Set<String> finalActionInconsistencyAgencies) {
-        this.details = new EliminationExtendedInfoFinalActionInconsistencyDetails(finalActionInconsistencyAgencies);
+    public EliminationExtendedInfoHoldRule(
+        EliminationExtendedInfoHoldRuleDetails details) {
+        this.details = details;
     }
 
-    public EliminationExtendedInfoFinalActionInconsistencyDetails getDetails() {
+    public EliminationExtendedInfoHoldRuleDetails getDetails() {
         return details;
     }
 
-    public void setDetails(
-        EliminationExtendedInfoFinalActionInconsistencyDetails details) {
+    public EliminationExtendedInfoHoldRule setDetails(
+        EliminationExtendedInfoHoldRuleDetails details) {
         this.details = details;
+        return this;
     }
 }

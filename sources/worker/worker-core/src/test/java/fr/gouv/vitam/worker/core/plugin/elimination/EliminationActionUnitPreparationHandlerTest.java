@@ -74,6 +74,7 @@ import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnit
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -160,7 +161,7 @@ public class EliminationActionUnitPreparationHandlerTest {
                 "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
             .when(metaDataClient).selectUnitsWithInheritedRules(any());
 
-        when(eliminationAnalysisService.analyzeElimination(any(), any(), any(), any(), any()))
+        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any()))
             .thenReturn(
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),     // id_unit_1
                 createAnalysisResponse(EliminationGlobalStatus.KEEP),        // id_unit_2
@@ -225,7 +226,7 @@ public class EliminationActionUnitPreparationHandlerTest {
                 "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
             .when(metaDataClient).selectUnitsWithInheritedRules(any());
 
-        when(eliminationAnalysisService.analyzeElimination(any(), any(), any(), any(), any()))
+        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any()))
             .thenReturn(
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_1
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_2
