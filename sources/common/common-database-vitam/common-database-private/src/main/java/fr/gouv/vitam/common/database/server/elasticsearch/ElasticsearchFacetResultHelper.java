@@ -31,8 +31,8 @@ import fr.gouv.vitam.common.model.FacetResult;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.Filters;
 import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
@@ -112,7 +112,7 @@ public class ElasticsearchFacetResultHelper {
      * @return list of FacetBucket
      */
     private static List<FacetBucket> extractBucketNestedAggregation(Aggregation aggregation) {
-        List<Aggregation> aggregations = ((ParsedNested) aggregation).getAggregations().asList();
+        List<Aggregation> aggregations = ((InternalNested) aggregation).getAggregations().asList();
         if (aggregations.isEmpty()) {
             return Collections.emptyList();
         } else {
