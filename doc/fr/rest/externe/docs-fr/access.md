@@ -2,11 +2,11 @@
 
 Cette API est globalement reproduite dans tous les autres points d'accès lorsque l'accès à des _Units_ et _Objects_ est nécessaire. Les fonctionnalités offertes peuvent par contre varier (droit en modification, effacement, ...) selon le contexte.
 
-# API Access externe
+## API Access externe
 
 Dans le projet Vitam, Les API externes supportent le POST-X-HTTP-OVERRIDE=GET. Les API internes ne supportent que le GET.
 
-# Units
+## Units api
 
 **Units** est le point d'entrée pour toutes les descriptions d'archives. Celles-ci contiennent les métadonnées de description et les métadonnées archivistiques (métadonnées de gestion).
 
@@ -62,7 +62,7 @@ La structuration d'un Unit est la suivante :
     "#operations" : [ "operationId" ] // liste des opérations auxquelles cette AU a participées
 ```
 
-# Objects
+## Objects api
 
 **/units/{idu}/objects** est le point d'entrée pour :
 
@@ -174,7 +174,7 @@ La structuration d'un Object est la suivante :
 ```
 **Note :** A l'avenir, à l'intérieur d'une version d'usage, et pour chaque version (pour les **BinaryMaster** notamment), un contexte sera ajouté à la structure de l'Object afin de pouvoir y introduire des données de contexte (version du référentiel Pronom par exemple...).
 
-# DIPEXPORT
+## Dipexport api
 **/dipexport** est le point d'entrée permettant l'export sous forme de DIP (paquet d'information diffusé ou Dissemination Information Package en anglais) d'une sélection d'unités archivistiques.
 
 **Important** : Deux actions sont disponibles. La première permet de lancer un processus de génération d'un DIP. La deuxième permet de télécharger le fichier généré par le processus précédent, une fois terminé.

@@ -11,18 +11,13 @@ traits:
 
   AccessUnitResponse:
     description: Response model for Units collection in access
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
-    headers:
-      X-Access-Contract-Id:
-        type: string
-        required: true
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader405, StandardTraits.StandardHeader500 ]
     body:
       application/json:
         description: Contient la requête DSL multiple au format JSON.
         type: AccessTypes.AccessMultipleQuery
-        example: !include examples/accessUnitQuery.json
     responses:
       200:
         description: Renvoie la liste des résultats d'Unités d'archives correspondant à la requête DSL
@@ -34,13 +29,9 @@ traits:
 
   AccessUniqueUnitResponse:
     description: Response model for Unit item in access
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
-    headers:
-      X-Access-Contract-Id:
-        type: string
-        required: true
     body:
       application/json:
         description: Body contient la requête DSL unitaire au format JSON.
@@ -58,18 +49,13 @@ traits:
 
   AccessUnitWithInheritedRulesResponse:
     description: Response model for units with inherited rules in access
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
-    headers:
-      X-Access-Contract-Id:
-        type: string
-        required: true
     body:
       application/json:
         description: Contient la requête DSL multiple au format JSON.
         type: AccessTypes.AccessMultipleQuery
-        example: !include examples/accessUnitQuery.json
     responses:
       200:
         description: Renvoie la liste des résultats d'Unités d'archives correspondant à la requête DSL ainsi que leurs règles héritées.
@@ -81,7 +67,7 @@ traits:
 
   AccessUniqueObjectQualifierResponse:
     description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     headers:
@@ -101,9 +87,6 @@ traits:
         description: |
           La version est utilisée et obligatoire uniquement en présence de Accept: application/octet-stream.
           **ONLY VALID with Accept application/octet-stream**
-      X-Access-Contract-Id:
-        type: string
-        required: true
     responses:
       200:
         description: Renvoie l'objet binaire (Returns the list of 1 Object matching the DSL query)
@@ -124,7 +107,7 @@ traits:
 
   AccessGOTResponse:
     description: Réponse sur les groupes d'objets
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     responses:
@@ -136,13 +119,9 @@ traits:
 
   AccessUniqueObjectResponse:
     description: Response model for Object collection under Units collection in access
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
-    headers:
-      X-Access-Contract-Id:
-        type: string
-        required: true
     body:
       application/json:
         description: |
@@ -163,12 +142,8 @@ traits:
 
   AccessUpdateUnitResponse:
     description: Response model for Update Unit under Units collection in access
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader405, StandardTraits.StandardHeader412 ]
-    headers:
-      X-Access-Contract-Id:
-        type: string
-        required: true
     body:
       application/json:
         description: Body contient la requête DSL unitaire de modification au format JSON.
@@ -185,12 +160,11 @@ traits:
 
   DipCreationResponseAsync:
     description: Requête de création d'un DIP
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON.
         type: AccessTypes.AccessMultipleQuery
-        example: !include examples/accessUnitQuery.json
     responses:
       202:
         description: |
@@ -199,7 +173,6 @@ traits:
           application/json:
             description: Operation de DIP acceptée
             type: StandardTypes.AsyncStatus
-            example: !include examples/dip.json
       500:
         description: Renvoie ce statut en cas d'erreur interne
         body:
@@ -208,7 +181,7 @@ traits:
 
   DipV2Async:
     description: Requête de création d'un DIP v2
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON.
@@ -221,7 +194,6 @@ traits:
           application/json:
             description: Operation de DIP V2 acceptée
             type: StandardTypes.AsyncStatus
-            example: !include examples/dip.json
       500:
         description: Renvoie ce statut en cas d'erreur interne
         body:
@@ -230,7 +202,7 @@ traits:
 
   TransferCreationResponseAsync:
     description: Requête de création d'un transfer SIP
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête ayant un DSL **multiple** et d'autres paramètres au format JSON.
@@ -243,7 +215,6 @@ traits:
           application/json:
             description: Operation de Transfer acceptée
             type: StandardTypes.AsyncStatus
-            example: !include examples/transfer.json
       500:
         description: Renvoie ce statut en cas d'erreur interne
         body:
@@ -252,7 +223,7 @@ traits:
 
   EliminationResponseAsync:
     description: Requête d'élimination
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON ainsi que la date d'élimination.
@@ -275,7 +246,7 @@ traits:
 
   PreservationResponseAsync:
     description: Requête de préservation
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: |
@@ -301,12 +272,16 @@ traits:
           application/json:
             description: Rapport final de l'opération de préservation
 
-  UnitBatchUpdateResponse:
-      description: Requête de mise à jour de masse des métadonnées de gestion des unitiés archivistiques
-      is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
-      body:
-        application/json:
-          type: AccessTypes.UnitBatchUpdateRequest
+  UnitBatchUpdateRequest:
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader ]
+    body:
+      application/json:
+        description: Requête de mise à jour de masse des métadonnées de gestion des unitiés archivistiques
+        type: AccessTypes.UnitBatchUpdateRequest
+
+  UnitBatchUpdateResponseAsync:
+      is: [ StandardTraits.StandardHeader202, StandardTraits.StandardHeader500,
+        StandardTraits.StandardError500 ]
       responses:
         202:
           description: |
@@ -314,6 +289,7 @@ traits:
           body:
             application/json:
               description: Operation de mise à jour acceptée
+              type: StandardTypes.AsyncStatus
         500:
           description: Renvoie le statut final de l'opération en KO
           body:
@@ -322,7 +298,7 @@ traits:
 
   UnitComputedInheritedRulesDeleteResponse:
           description: Requête de suppression de masse des métadonnées de gestion calculées des unitiés archivistiques
-          is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+          is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
           body:
             application/json:
               example: !include examples/launchComputeInheritedRulesAfterIngest.json
@@ -341,7 +317,7 @@ traits:
 
   UnitComputedInheritedRulesResponse:
         description: Requête de mise à jour de masse des métadonnées de gestion calculées des unitiés archivistiques
-        is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+        is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
         body:
           application/json:
             example: !include examples/launchComputeInheritedRulesAfterIngest.json
@@ -360,7 +336,7 @@ traits:
 
   TransferReplyResponseAsync:
     description: Requête de transfert reply
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête ayant un DSL **multiple** et d'autres paramètres au format JSON.
@@ -373,7 +349,6 @@ traits:
           application/json:
             description: Operation de Transfer acceptée
             type: StandardTypes.AsyncStatus
-            example: !include examples/transfer.json
       500:
         description: Renvoie ce statut en cas d'erreur interne
         body:
