@@ -24,31 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common.exception;
 
-/**
- * Exception Throw when attempt to update a fileRules that is linked to a Unit
- */
-public class FileRulesUpdateException extends ReferentialException {
+package fr.gouv.vitam.functional.administration.rules.core;
 
-    /**
-     * @param message message to associate with the exception
-     */
-    public FileRulesUpdateException(String message, Throwable cause) {
-        super(message, cause);
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+
+import java.util.List;
+
+public class RuleImportResultSet {
+
+    private final List<FileRulesModel> rulesToInsert;
+    private final List<FileRulesModel> rulesToUpdate;
+    private final List<FileRulesModel> unusedRulesToDelete;
+    private final List<FileRulesModel> usedRulesToUpdate;
+    private final List<FileRulesModel> usedUpdateRulesForUpdateUnit;
+
+    public RuleImportResultSet(List<FileRulesModel> rulesToInsert,
+        List<FileRulesModel> rulesToUpdate,
+        List<FileRulesModel> unusedRulesToDelete, List<FileRulesModel> usedRulesToUpdate,
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit) {
+        this.rulesToInsert = rulesToInsert;
+        this.rulesToUpdate = rulesToUpdate;
+        this.usedRulesToUpdate = usedRulesToUpdate;
+        this.usedUpdateRulesForUpdateUnit = usedUpdateRulesForUpdateUnit;
+        this.unusedRulesToDelete = unusedRulesToDelete;
     }
 
-    /**
-     * @param message cause to associate with the exception
-     */
-    public FileRulesUpdateException(String message) {
-        super(message);
+    public List<FileRulesModel> getRulesToInsert() {
+        return rulesToInsert;
     }
 
-    /**
-     * @param cause cause to associate with the exception
-     */
-    public FileRulesUpdateException(Throwable cause) {
-        super(cause);
+    public List<FileRulesModel> getRulesToUpdate() {
+        return rulesToUpdate;
+    }
+
+    public List<FileRulesModel> getUnusedRulesToDelete() {
+        return unusedRulesToDelete;
+    }
+
+    public List<FileRulesModel> getUsedRulesToUpdate() {
+        return usedRulesToUpdate;
+    }
+
+    public List<FileRulesModel> getUsedUpdateRulesForUpdateUnit() {
+        return usedUpdateRulesForUpdateUnit;
     }
 }

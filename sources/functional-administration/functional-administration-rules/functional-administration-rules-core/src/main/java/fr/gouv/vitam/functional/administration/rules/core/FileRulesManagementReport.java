@@ -40,7 +40,7 @@ import java.util.List;
 public class FileRulesManagementReport {
 
 
-    @JsonProperty("FileRulesToImport")
+    @JsonProperty("insertedRules")
     private List<String> fileRulesToImport = new ArrayList<>();
     @JsonProperty("updatedRules")
     private List<String> fileRulesToUpdate = new ArrayList<>();

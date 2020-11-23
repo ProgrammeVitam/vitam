@@ -34,12 +34,8 @@ import java.util.Map;
  */
 public class VitamRuleService {
 
-    private Map<Integer, Map<String, String>> listMinimumRuleDuration;
+    private final Map<Integer, Map<String, String>> listMinimumRuleDuration;
 
-
-    VitamRuleService() {
-        this.listMinimumRuleDuration = Collections.emptyMap();
-    }
     /**
      * Constructor
      * 

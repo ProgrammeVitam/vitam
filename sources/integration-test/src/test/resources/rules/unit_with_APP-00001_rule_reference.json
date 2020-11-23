@@ -1,0 +1,29 @@
+{
+  "_id": "aeaqaaaaaahb5utaaagnyalvagpbo2qaaaaq",
+  "DescriptionLevel": "RecordGrp",
+  "Title": "Title",
+  "Description": "Description",
+  "StartDate": "2018-10-04T16:39:43",
+  "EndDate": "2018-10-04T16:39:43",
+  "_mgt": {
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "Rule": "APP-00001",
+          "StartDate": "2016-01-01",
+          "EndDate": "2017-01-01"
+        }
+      ],
+      "FinalAction": "Destroy"
+    },
+    "NeedAuthorization": false
+  },
+  "_unitType": "INGEST",
+  "_opi": "aeeaaaaaachlatd2aainualvagpbawqaaaaq",
+  "_storage": {
+    "strategyId": "default"
+  },
+  "_sp": "Service_producteur",
+  "_up": [],
+  "_tenant": 0
+}

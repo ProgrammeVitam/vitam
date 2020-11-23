@@ -43,7 +43,7 @@ public class RuleImportDiff {
     private final List<FileRulesModel> rulesToUpdate;
     private final List<FileRulesModel> rulesToDelete;
 
-    public RuleImportDiff() {
+    private RuleImportDiff() {
         this.rulesToInsert = new ArrayList<>();
         this.rulesToUpdateUnsafely = new ArrayList<>();
         this.rulesToDelete = new ArrayList<>();
@@ -90,8 +90,7 @@ public class RuleImportDiff {
         }
 
         for (FileRulesModel databaseRule : rulesInDatabase.values()) {
-            FileRulesModel ruleToDelete = rulesFromFile.get(databaseRule.getRuleId());
-            if (ruleToDelete == null) {
+            if(!rulesFromFile.containsKey(databaseRule.getRuleId())) {
                 addRuleToDelete(databaseRule);
             }
         }

@@ -90,10 +90,10 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.common.exception.AuditVitamException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
@@ -103,6 +103,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.RuleImportResultSet;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.VitamRuleService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -152,9 +153,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.net.URLDecoder;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -378,7 +378,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
-    
+
     /**
      * check the rules file
      *
@@ -391,71 +391,58 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(APPLICATION_OCTET_STREAM)
     public Response checkRulesFile(InputStream rulesStream) {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
-        return downloadErrorReport(rulesStream);
-    }
 
+        RulesManagerFileImpl rulesManagerFileImpl =
+            new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
 
-    /**
-     * async Download Report
-     *
-     * @param document the document to check
-     */
-    private Response downloadErrorReport(InputStream document) {
-        Map<Integer, List<ErrorReport>> errors = new HashMap<Integer, List<ErrorReport>>();
-        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
-        List<FileRulesModel> insertRules = new ArrayList<>();
-        Set<String> notUsedDeletedRules = new HashSet<>();
-        Set<String> notUsedUpdatedRules = new HashSet<>();
-        
         try {
-            RulesManagerFileImpl rulesManagerFileImpl =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
 
-            try {
-                rulesManagerFileImpl
-                    .checkFile(document, errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit,
-                        insertRules,
-                        notUsedDeletedRules, notUsedUpdatedRules);
-            } catch (FileRulesUpdateException exc) {
-                LOGGER.warn("used Rules ({}) want to be updated", usedUpdatedRules);
-            }
+            Map<String, FileRulesModel> rulesFromFile =
+                rulesManagerFileImpl.getRulesFromCSV(rulesStream);
+
+            RuleImportResultSet ruleImportResultSet = rulesManagerFileImpl
+                .checkFile(rulesFromFile);
+
+            StatusCode statusCode =
+                ruleImportResultSet.getUsedUpdateRulesForUpdateUnit().isEmpty() ? StatusCode.OK : StatusCode.WARNING;
+
             InputStream errorReportInputStream =
-                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.OK,
-                    null);
+                rulesManagerFileImpl.generateReportContent(Collections.emptyMap(), Collections.emptyList(),
+                    ruleImportResultSet.getUsedRulesToUpdate(),
+                    ruleImportResultSet.getUnusedRulesToDelete(), ruleImportResultSet.getRulesToUpdate(),
+                    ruleImportResultSet.getRulesToInsert(), statusCode, null);
+
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(errorReportInputStream,
                 Status.OK, headers);
         } catch (FileRulesReadException e) {
-            LOGGER.error("Error while checking file ", e);
-            return handleGenerateReport(e.getErrorsMap(), usedDeletedRules, usedUpdatedRules, rulesOntologyLoader);
+            LOGGER.error("Format / syntax error while checking file ", e);
+            return handleGenerateReport(rulesManagerFileImpl, e.getErrorsMap(), Collections.emptyList());
+        } catch (FileRulesDeleteException e) {
+            LOGGER.error("Consistency error - Cannot delete used rule ", e);
+            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), e.getUsedDeletedRules());
         } catch (Exception e) {
             LOGGER.error("Error while checking file ", e);
-            return handleGenerateReport(errors, usedDeletedRules, usedUpdatedRules, rulesOntologyLoader);
+            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), Collections.emptyList());
         }
     }
 
     /**
      * Handle Generation of the report in case of exception
      *
-     * @param errors
-     * @param usedDeletedRules
-     * @param usedDeletedRules
-     * @param usedUpdatedRules
-     * @param ontologyLoader
+     * @param rulesManagerFileImpl
+     * @param errors parsing / syntax errors
+     * @param usedDeletedRules deleted used rules
      * @return response
      */
-    private Response handleGenerateReport(Map<Integer, List<ErrorReport>> errors,
-        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, OntologyLoader ontologyLoader) {
-        InputStream errorReportInputStream;
-        RulesManagerFileImpl rulesManagerFileImpl =
-            new RulesManagerFileImpl(mongoAccess, vitamCounterService, ontologyLoader, this.vitamRuleService);
-        errorReportInputStream =
-            rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
-                null);
+    private Response handleGenerateReport(RulesManagerFileImpl rulesManagerFileImpl,
+        Map<Integer, List<ErrorReport>> errors, List<FileRulesModel> usedDeletedRules) {
+        InputStream errorReportInputStream =
+            rulesManagerFileImpl.generateReportContent(errors, usedDeletedRules, Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                StatusCode.KO, null);
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
         headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME);
@@ -479,7 +466,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
 
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
@@ -519,7 +506,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         FileRules fileRules;
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
 
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
@@ -569,7 +556,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         RequestResponseOK<FileRules> filerulesList;
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
             return Response.status(Status.OK)
@@ -817,7 +804,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response launchRuleAudit() {
         RulesManagerFileImpl rulesManagerFileImpl =
-            new RulesManagerFileImpl(mongoAccess, vitamCounterService, rulesOntologyLoader, this.vitamRuleService);
+            new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         try {
             rulesManagerFileImpl.checkRuleConformity(rulesManagerFileImpl.getRuleFromCollection(tenant),
