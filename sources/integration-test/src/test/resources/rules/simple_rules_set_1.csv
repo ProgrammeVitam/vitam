@@ -1,0 +1,7 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+APP-00001,AppraisalRule,RuleValue1,Rule description 1,1,YEAR
+APP-00002,AppraisalRule,RuleValue2,Rule description 2,0,YEAR
+APP-00003,AppraisalRule,RuleValue3,,1,YEAR
+APP-00004,AppraisalRule,RuleValue4,Rule description 4,1,YEAR
+APP-00005,AppraisalRule,RuleValue5,Rule description 5,0,YEAR
+APP-00006,AppraisalRule,RuleValue6,Rule description 6,1,YEAR

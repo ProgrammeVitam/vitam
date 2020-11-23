@@ -26,32 +26,27 @@
  */
 package fr.gouv.vitam.functional.administration.common.exception;
 
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+
+import java.util.List;
+
 /**
  * Exception thrown when user want to be delete a unit linked to a fileRules
  */
 public class FileRulesDeleteException extends ReferentialException {
 
+    private final List<FileRulesModel> usedDeletedRules;
 
     /**
      * @param message message to associate with the exception
+     * @param usedDeletedRules
      */
-    public FileRulesDeleteException(String message) {
+    public FileRulesDeleteException(String message, List<FileRulesModel> usedDeletedRules) {
         super(message);
+        this.usedDeletedRules = usedDeletedRules;
     }
 
-    /**
-     * @param message message to associate with the exception
-     * @param cause   cause to associate with the exception
-     */
-    public FileRulesDeleteException(String message, Throwable cause) {
-        super(message, cause);
+    public List<FileRulesModel> getUsedDeletedRules() {
+        return usedDeletedRules;
     }
-
-    /**
-     * @param cause cause to associate with the exception
-     */
-    public FileRulesDeleteException(Throwable cause) {
-        super(cause);
-    }
-
 }

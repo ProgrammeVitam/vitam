@@ -1,4 +1,0 @@
-RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
-A.10.3.2.3 ,AppraisalRule,Règle de gestion format SIAM,Utilisation de points pour séparer les séquences de l’identifiant,2,YEAR
-A_10_3_2_2 ,AppraisalRule,Règle de gestion SIAM bis,Points remplacés par des underscores,10,YEAR
-APP-3278,AppraisalRule,Règle de gestion VITAM,Construction de l’identifiant selon le formalisme utilisé par VITAM,10,YEAR

@@ -68,7 +68,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesDuratio
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -116,10 +115,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
@@ -170,8 +167,6 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";
     private static final String FILE_TO_TEST_KO_INVALID_ENCODING = "jeu_donnees_OK_regles_CSV_regles_latin3-1.csv";
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
-    private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
-    private static final String USED_DELETED_RULE_RESULT = "used_deleted_rule_result.json";
     private static final Integer TENANT_ID = 0;
 
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
@@ -244,7 +239,8 @@ public class RulesManagerFileImplTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         LogbookOperationsClientFactory.changeMode(null);
-        dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+        dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+            indexManager);
         Integer[] tenantsList = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         List<Integer> tenants = new ArrayList<>(Arrays.asList(tenantsList));
         vitamRuleService = getRuleDurationConfigration(tenants);
@@ -255,7 +251,8 @@ public class RulesManagerFileImplTest {
     @Before
     public void setUp() {
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+            indexManager);
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -271,7 +268,6 @@ public class RulesManagerFileImplTest {
                 metaDataClientFactory,
                 processingManagementClientFactory,
                 workspaceClientFactory,
-                Collections::emptyList,
                 vitamRuleService
             );
         FunctionalAdminCollectionsTestUtils.afterTestClass(false);
@@ -294,29 +290,22 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
-        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
-        List<FileRulesModel> insertRules = new ArrayList<>();
-        Set<String> notUsedDeletedRules = new HashSet<>();
-        Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
-            rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
-                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules,
-                notUsedDeletedRules, notUsedUpdatedRules);
-        } catch (final FileRulesException | FileRulesUpdateException | FileRulesDeleteException e) {
+            Map<String, FileRulesModel> rulesToImport =
+                rulesFileManager.getRulesFromCSV(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+            rulesFileManager.checkFile(rulesToImport);
+        } catch (final FileRulesException | FileRulesDeleteException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
 
         try {
-            rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
-                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules,
-                notUsedDeletedRules, notUsedUpdatedRules);
+            Map<String, FileRulesModel> rulesToImport =
+                rulesFileManager.getRulesFromCSV(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
+            rulesFileManager.checkFile(rulesToImport);
             fail("Check file with FILE_TO_TEST_KO should throw exception");
         } catch (final FileRulesCsvException e) {
             exception.expect(FileRulesCsvException.class);
-        } catch (FileRulesDeleteException | FileRulesUpdateException e) {
+        } catch (FileRulesDeleteException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
 
@@ -349,17 +338,8 @@ public class RulesManagerFileImplTest {
         when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
-        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
-        List<FileRulesModel> insertRules = new ArrayList<>();
-        Set<String> notUsedDeletedRules = new HashSet<>();
-        Set<String> notUsedUpdatedRules = new HashSet<>();
-
-        assertThatThrownBy(() -> rulesFileManager.checkFile(
-            new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO_EMPTY_LINE)), errors, usedDeletedRules,
-            usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
+        assertThatThrownBy(() -> rulesFileManager.getRulesFromCSV(
+            new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO_EMPTY_LINE))))
             .isInstanceOf(FileRulesCsvException.class)
             .hasMessageContaining("Invalid CSV File");
     }
@@ -376,7 +356,7 @@ public class RulesManagerFileImplTest {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)),
                 FILE_DURATION_EXCEED);
-        } catch (final FileRulesException | FileRulesUpdateException | FileRulesDeleteException e) {
+        } catch (final FileRulesException | FileRulesDeleteException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
     }
@@ -391,6 +371,8 @@ public class RulesManagerFileImplTest {
         int tenantId = 2;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
+        when(metaDataClient.selectUnits(any())).thenReturn(new RequestResponseOK<JsonNode>().toJsonNode());
+
         when(logbookOperationsClient.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
@@ -398,9 +380,9 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         when(logbookOperationsClient.selectOperation(any())).thenReturn(getEmptyJsonResponse());
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
-        
+
         assertThatCode(() -> rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
-                FILE_TO_TEST_OK)).doesNotThrowAnyException();
+            FILE_TO_TEST_OK)).doesNotThrowAnyException();
     }
 
     /**
@@ -500,7 +482,7 @@ public class RulesManagerFileImplTest {
         final Select select = new Select();
 
         when(logbookOperationsClient.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
-        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(new RequestResponseOK<JsonNode>().toJsonNode());
 
 
         try {
@@ -538,13 +520,14 @@ public class RulesManagerFileImplTest {
         int tenantId = 5;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
+            indexManager);
         dbAccess.deleteCollectionForTesting(FunctionalAdminCollections.RULES);
         final Select select = new Select();
         try {
             when(logbookOperationsClient.selectOperation(any()))
                 .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
-            when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+            when(metaDataClient.selectUnits(any())).thenReturn(new RequestResponseOK<JsonNode>().toJsonNode());
 
             List<FileRules> fileRules = new ArrayList<>();
             try {
@@ -601,7 +584,7 @@ public class RulesManagerFileImplTest {
         final Select select = new Select();
 
         when(logbookOperationsClient.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
-        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(new RequestResponseOK<JsonNode>().toJsonNode());
 
         try {
             select.setQuery(eq("#tenant", tenantId));
@@ -647,7 +630,7 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
         // mock Storage
-        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(new RequestResponseOK<JsonNode>().toJsonNode());
         when(logbookOperationsClient.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         assertThatThrownBy(
@@ -664,7 +647,7 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
         // mock Storage
-        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(new RequestResponseOK<JsonNode>().toJsonNode());
         when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
@@ -725,20 +708,14 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
-        List<FileRulesModel> insertRules = new ArrayList<>();
-        Set<String> notUsedDeletedRules = new HashSet<>();
-        Set<String> notUsedUpdatedRules = new HashSet<>();
 
         // When
         assertThatThrownBy(() -> rulesFileManager
-            .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
-                usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules,
-                notUsedUpdatedRules))
+            .getRulesFromCSV(new FileInputStream(PropertiesUtils.findFile(filename))))
             .isInstanceOf(IOException.class);
 
-        return rulesFileManager.generateErrorReport(errorsMap, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
-            null);
+        return rulesFileManager.generateReportContent(errorsMap, usedDeletedRules, usedUpdatedRules,
+            Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), StatusCode.KO, null);
     }
 
     @Test
@@ -843,8 +820,7 @@ public class RulesManagerFileImplTest {
     }
 
     private InputStream getInputStreamAndInitialiseMockWhenCheckRulesFile(String filename)
-        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        throws Exception {
 
         // mock logbook client
         when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
@@ -852,26 +828,20 @@ public class RulesManagerFileImplTest {
         assertThatCode(() -> when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, 0))).doesNotThrowAnyException();
 
-        Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
-        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
-        List<FileRulesModel> insertRules = new ArrayList<>();
-        Set<String> notUsedDeletedRules = new HashSet<>();
-        Set<String> notUsedUpdatedRules = new HashSet<>();
-
         // When
-        Throwable thrown = catchThrowable(() -> rulesFileManager
-                .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
-                        usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules,
-                        notUsedUpdatedRules));
-        assertThat(thrown).isInstanceOf(ReferentialException.class);
+        Throwable thrown = catchThrowable(() -> {
+            Map<String, FileRulesModel> rulesFromCSV =
+                rulesFileManager.getRulesFromCSV(new FileInputStream(PropertiesUtils.findFile(filename)));
+            rulesFileManager.checkFile(rulesFromCSV);
+        });
+        assertThat(thrown).isInstanceOf(FileRulesReadException.class);
 
-        return rulesFileManager.generateErrorReport(((FileRulesReadException) thrown).getErrorsMap(), usedDeletedRules,
-                usedUpdatedRules, StatusCode.KO, null);
+
+        return rulesFileManager
+            .generateReportContent(((FileRulesReadException) thrown).getErrorsMap(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                StatusCode.KO, null);
     }
-
-
 
     @Test
     @RunWithCustomExecutor
@@ -884,8 +854,8 @@ public class RulesManagerFileImplTest {
         when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
-        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
-
+        when(metaDataClient.selectUnits(any())).thenReturn(
+            new RequestResponseOK<JsonNode>().toJsonNode());
 
 
         File file = folder.newFolder();
@@ -904,7 +874,7 @@ public class RulesManagerFileImplTest {
         final String outMessg = jdoNode.get("outMessg").asText();
         assertThat(evId).isNotEmpty();
         assertThat(outMessg)
-            .contains("Succès du processus d'enregistrement de la copie du référentiel des règles de gestion");
+            .contains("Succès du processus d'import du référentiel des règles de gestion");
 
         // when
         List<FileRules> fileRulesAfterImport =
@@ -934,7 +904,7 @@ public class RulesManagerFileImplTest {
         final String outMessgAfterUpdate = jdoNode.get("outMessg").asText();
         assertThat(evIdAfterUpdate).isNotEmpty();
         assertThat(outMessgAfterUpdate)
-            .contains("Succès du processus d'enregistrement de la copie du référentiel des règles de gestion");
+            .contains("Succès du processus d'import du référentiel des règles de gestion");
 
         for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
             if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
@@ -955,9 +925,9 @@ public class RulesManagerFileImplTest {
         // given
         when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
-        when(metaDataClient.selectUnits(any()))
-            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.findFile(USED_UPDATED_RULE_RESULT)));
-
+        when(metaDataClient.selectUnits(any())).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode().put("_id", "some_unit"))
+                .toJsonNode());
 
         File file = folder.newFolder();
         final Path report = Paths.get(file.getAbsolutePath(), "report.json");
@@ -975,7 +945,7 @@ public class RulesManagerFileImplTest {
         final String outMessg = jdoNode.get("outMessg").asText();
         assertThat(evId).isNotEmpty();
         assertThat(outMessg)
-            .contains("Succès du processus d'enregistrement de la copie du référentiel des règles de gestion");
+            .contains("Succès du processus d'import du référentiel des règles de gestion");
 
 
         // when
@@ -1033,7 +1003,7 @@ public class RulesManagerFileImplTest {
         final String outMessgAfterUpdate2 = jdoAfterUpdateNode2.get("outMessg").asText();
         assertThat(evIdAfterUpdate2).isNotEmpty();
         assertThat(outMessgAfterUpdate2)
-            .contains("Succès du processus d'enregistrement de la copie du référentiel des règles de gestion");
+            .contains("Succès du processus d'import du référentiel des règles de gestion");
 
         for (FileRules fileRulesUpdated : fileRulesAfterInsert2) {
             if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
@@ -1056,7 +1026,7 @@ public class RulesManagerFileImplTest {
         // init data with first import
         when(logbookOperationsClient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
-        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(new RequestResponseOK<JsonNode>().toJsonNode());
 
         File file = folder.newFolder();
         final Path report = Paths.get(file.getAbsolutePath(), "report.json");
@@ -1073,8 +1043,9 @@ public class RulesManagerFileImplTest {
         getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate);
 
         // prepare for import ko with linked deleted rule
-        when(metaDataClient.selectUnits(any()))
-            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.findFile(USED_DELETED_RULE_RESULT)));
+        when(metaDataClient.selectUnits(any())).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode().put("_id", "some_unit"))
+                .toJsonNode());
         final ArgumentCaptor<LogbookOperationParameters> logOpParamsCaptor =
             ArgumentCaptor.forClass(LogbookOperationParameters.class);
         doNothing().when(logbookOperationsClient).update(logOpParamsCaptor.capture());
