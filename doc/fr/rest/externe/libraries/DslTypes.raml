@@ -12,6 +12,71 @@ types:
         type: object
         required: false
 
+  Facet:
+    description: Facet pour une requête DSL
+    type: object
+    properties:
+      $name:
+        type: string
+        required: true
+      $terms:
+        type: object
+        required: false
+        properties:
+          $field:
+            type: string
+            example: "#qualifiers.versions.FormatIdentification.MimeType"
+          $subobject:
+            type: string
+            example: "#qualifiers.versions"
+          $size:
+            type: number
+            example: 20
+          $order:
+            type: string
+            example: "ASC"
+      $filters:
+        type: object
+        required: false
+        properties:
+          $query_filters:
+            type: array
+            items:
+              type: object
+              properties:
+                $name:
+                  type: string
+                $query:
+                  type: object
+      $date_range:
+        type: object
+        required: false
+        properties:
+          $subobject:
+            type: string
+            example: "#qualifiers.versions"
+          $field:
+            type: string
+            example: "#qualifiers.versions.FileInfo.LastModified"
+          $format:
+            type: string
+            example: "YYYY"
+          $ranges:
+            type: array
+            minItems: 1
+            maxItems: 2
+            items:
+              type: object
+              properties:
+                $from:
+                  type: string
+                  example: "2017"
+                $to:
+                  type: string
+                  example: "2020"
+
+
+
   Filter:
     description: Filtrer pour une requête DSL
     type: object
@@ -75,9 +140,15 @@ types:
         $filter?:
           description: Contient les filtres à appliquer
           type: Filter
-        $projection?:
+        $projection:
           description: Contient la projection à appliquer
           type: Projection
+        $facet?:
+         description: Contains facet if requested
+         type: array
+         items:
+          type: Facet
+
       example: {
         "$roots": ["guid1","guid2"],
         "$query": [
@@ -226,6 +297,16 @@ types:
         required: true
         description: Contient la requête DSL liée à la réponse
         type: DslMultipleQuery
+      $facetResults?:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "facetName"
+            buckets:
+              type: array
 
     example: {
         "httpCode": 200,

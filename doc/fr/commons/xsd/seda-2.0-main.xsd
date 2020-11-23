@@ -1,0 +1,816 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+    <xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
+
+    <!--
+                *****************************
+                ***   Types de base
+                *****************************
+        -->
+    <xs:include schemaLocation="seda-2.0-types.xsd"/>
+    <!--
+                *****************************
+                ***   Base technique
+                *****************************
+        -->
+    <xs:include schemaLocation="seda-2.0-technical.xsd"/>
+    <!--
+                *****************************
+                ***   Base de gestion
+                *****************************
+        -->
+    <xs:include schemaLocation="seda-2.0-management.xsd"/>
+    <!--
+                *****************************
+                ***   Base descriptive
+                *****************************
+        -->
+    <xs:include schemaLocation="seda-2.0-descriptive.xsd"/>
+
+    <!--
+                *****************************
+                ***   Code List
+                *****************************
+ 
+        -->
+    <!-- Liste des versions des référentiels issue de MEDONA -->
+    <xs:group name="TransportCodeListsGroup">
+        <xs:annotation>
+            <xs:documentation>Liste des codes de réponses souhaitée par l'expéditeur.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="ReplyCodeListGroup"/>
+        </xs:sequence>
+    </xs:group>
+    <!-- Reply Code list -->
+    <xs:group name="ReplyCodeListGroup">
+        <xs:sequence>
+            <xs:element name="ReplyCodeListVersion" type="CodeType">
+                <xs:annotation>
+                    <xs:documentation>Liste des codes de réponses à utiliser.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="ReplyCodeType">
+        <xs:annotation>
+            <xs:documentation>Code de réponses spécifié dans la liste de réponses.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="NonEmptyTokenType"/>
+    </xs:simpleType>
+
+
+    <!-- Liste des versions des référentiels utilisés globalement -->
+    <xs:complexType name="CodeListVersionsType">
+        <xs:sequence>
+            <xs:group ref="TransportCodeListsGroup"/>
+            <xs:group ref="TechnicalCodeListsGroup"/>
+            <xs:group ref="ManagementCodeListsGroup"/>
+            <xs:element name="AuthorizationReasonCodeListVersion" type="CodeType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Version de la liste de codes d'autorisation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="RelationshipCodeListVersion" type="CodeType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Version de la liste de codes des relations.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element ref="OtherCodeListAbstract" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute ref="xml:id" use="optional"/>
+    </xs:complexType>
+
+    <!--
+                *****************************
+                ***   Types métier
+                *****************************
+ 
+        -->
+
+    <!-- Paquet d'Objets-données -->
+    <xs:complexType name="DataObjectPackageType">
+        <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="BinaryDataObject" type="BinaryDataObjectType">
+                    <xs:annotation>
+                        <xs:documentation>Bloc de métadonnées techniques des objets-données numériques. Le caractère facultatif est requis afin de permettre le transfert d'un plan de classement sans DataObject joint.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="PhysicalDataObject" type="PhysicalDataObjectType">
+                    <xs:annotation>
+                        <xs:documentation>Bloc de métadonnées techniques des objets-données physiques.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+            <xs:element name="DescriptiveMetadata" type="DescriptiveMetadataType">
+                <xs:annotation>
+                    <xs:documentation>Bloc de métadonnées descriptives des objets-données.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ManagementMetadata" type="ManagementMetadataType">
+                <xs:annotation>
+                    <xs:documentation>Bloc des métadonnées de gestion par défaut des objets-données.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute ref="xml:id" use="optional"/>
+    </xs:complexType>
+
+    <!-- Métadonnées de gestion -->
+    <xs:complexType name="ManagementMetadataType">
+        <xs:sequence>
+            <xs:element name="ArchivalProfile" type="IdentifierType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Profil d’archivage applicable aux ArchiveUnit.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ServiceLevel" type="IdentifierType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Niveau de service applicable aux unités d’archives.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:group ref="ManagementGroup" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées de gestion associées à l'ensemble des unités d'archives.</xs:documentation>
+                </xs:annotation>
+            </xs:group>
+        </xs:sequence>
+        <xs:attribute ref="xml:id" use="optional"/>
+    </xs:complexType>
+
+    <!-- Demande d'autorisation -->
+    <xs:complexType name="AuthorizationRequestContentType">
+        <xs:sequence>
+            <xs:element name="AuthorizationReason" type="xs:token">
+                <xs:annotation>
+                    <xs:documentation>Motif de l'autorisation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Comment" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Commentaire sur la transaction.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="RequestDate" type="xs:date">
+                <xs:annotation>
+                    <xs:documentation>Date de la demande d'autorisation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Identifiant de l'unité documentaire.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Requester" type="OrganizationType">
+                <xs:annotation>
+                    <xs:documentation>Demandeur de l'autorisation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="AuthorizationRequestReply"
+                type="BusinessAuthorizationRequestReplyMessageType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Réponse à la demande d’autorisation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute ref="xml:id" use="optional"/>
+    </xs:complexType>
+
+    <!--
+                ***************************** 
+                ***   Base de l'arborescence
+                *****************************
+        -->
+
+    <!-- Métadonnées descriptives pour un paquet d'Objets-données -->
+    <xs:complexType name="DescriptiveMetadataType"> 
+        <xs:sequence>
+            <xs:element name="ArchiveUnit" type="ArchiveUnitType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Correspond à la notion de composant en ISAD(G). ArchiveUnit permet à la fois de gérer la hiérarchie intellectuelle, 
+                        tout en contenant les métadonnées de description et de gestion propres à chaque niveau de description archivistique.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--
+                *****************************
+                ***   Déclaration des types de message
+                *****************************
+        -->
+
+    <!-- Message -->
+    <xs:complexType name="MessageType" abstract="true">
+        <xs:sequence>
+            <xs:element name="Comment" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Commentaire sur le message.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Date" type="xs:dateTime">
+                <xs:annotation>
+                    <xs:documentation>Date du message.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="MessageIdentifier" type="IdentifierType">
+                <xs:annotation>
+                    <xs:documentation>Identifiant du message.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Signature" type="SignatureType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Signature du message.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute ref="xml:id" use="optional"/>
+    </xs:complexType>
+
+
+    <!-- Message métier -->
+    <xs:complexType name="BusinessMessageType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="MessageType">
+                <xs:sequence>
+                    <xs:element name="ArchivalAgreement" type="IdentifierType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Accord de service.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="CodeListVersions" type="CodeListVersionsType">
+                        <xs:annotation>
+                            <xs:documentation>Listes de codes de références utilisés dans le message.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="DataObjectPackage" type="DataObjectPackageType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Objets-données échangés dans le message.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Message de demande -->
+    <xs:complexType name="BusinessRequestMessageType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="BusinessMessageType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Message de demande d'autorisation -->
+    <xs:complexType name="BusinessAuthorizationRequestMessageType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="BusinessRequestMessageType">
+                <xs:sequence>
+                    <xs:element name="AuthorizationRequestContent"
+                        type="AuthorizationRequestContentType">
+                        <xs:annotation>
+                            <xs:documentation>Demande d’autorisation.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Message de reponse à une demande -->
+    <xs:complexType name="BusinessReplyMessageType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="BusinessMessageType">
+                <xs:sequence>
+                    <xs:element name="ReplyCode" type="NonEmptyTokenType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Code de la réponse.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="MessageRequestIdentifier" type="IdentifierType">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de la demande.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Message de demande d'autorisation -->
+    <xs:complexType name="BusinessAuthorizationRequestReplyMessageType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="BusinessReplyMessageType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Message de notification -->
+    <xs:complexType name="BusinessNotificationMessageType" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="BusinessMessageType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Défintion des organisations avec Id -->
+    <xs:complexType name="OrganizationWithIdType">
+        <xs:complexContent>
+            <xs:extension base="OrganizationType">
+                <xs:attribute ref="xml:id" use="optional"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+
+    <!--
+                *****************************
+                ***   Le message d'accusé de réception
+                *****************************
+        -->
+    <xs:element name="Acknowledgement" type="AcknowledgementType">
+        <xs:annotation>
+            <xs:documentation>Accusé de réception d'un message.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="AcknowledgementType">
+        <xs:complexContent>
+            <xs:extension base="MessageType">
+                <xs:sequence>
+                    <xs:element name="MessageReceivedIdentifier" type="IdentifierType">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant du message reçu.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Sender" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Expéditeur du message.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Receiver" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Destinataire du message.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!--
+                *****************************
+                ***   Les messages de requete
+                *****************************
+        -->
+    <!-- Message de demande de communication -->
+    <xs:element name="ArchiveDeliveryRequest" type="ArchiveDeliveryRequestType">
+        <xs:annotation>
+            <xs:documentation>Demande de communication d'archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveDeliveryRequestType">
+        <xs:complexContent>
+            <xs:extension base="BusinessRequestMessageType">
+                <xs:sequence>
+                    <xs:element name="Derogation" type="xs:boolean">
+                        <xs:annotation>
+                            <xs:documentation>Indique si une procédure de dérogation est nécessaire avant de communiquer l’unité documentaire ArchiveUnit.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de l'unité documentaire.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la communication.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Requester" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Demandeur de la communication.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de demande de restitution -->
+    <xs:element name="ArchiveRestitutionRequest" type="ArchiveRestitutionRequestType">
+        <xs:annotation>
+            <xs:documentation>Demande de restitution d'archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveRestitutionRequestType">
+        <xs:complexContent>
+            <xs:extension base="BusinessRequestMessageType">
+                <xs:sequence>
+                    <xs:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de l'unité documentaire.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la restitution.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="OriginatingAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service producteur demandant la restitution.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de transfert (attention le paquet de données est facultatif)-->
+    <xs:element name="ArchiveTransfer" type="ArchiveTransferType">
+        <xs:annotation>
+            <xs:documentation>Transfert d'archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveTransferType">
+        <xs:complexContent>
+            <xs:extension base="BusinessRequestMessageType">
+                <xs:sequence>
+                    <xs:element name="RelatedTransferReference" type="IdentifierType" minOccurs="0"
+                        maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant d’un transfert associé.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="TransferRequestReplyIdentifier" type="IdentifierType"
+                        minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de la réponse à une demande de transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable du transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="TransferringAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service versant chargé de réaliser le transport.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de demande de transfert -->
+    <xs:element name="ArchiveTransferRequest" type="ArchiveTransferRequestType">
+        <xs:annotation>
+            <xs:documentation>Demande de transfert d’archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveTransferRequestType">
+        <xs:complexContent>
+            <xs:extension base="BusinessRequestMessageType">
+                <xs:sequence>
+                    <xs:element name="RelatedTransferReference" type="IdentifierType" minOccurs="0"
+                        maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Référence à un transfert d'archives lié.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="TransferDate" type="xs:dateTime" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Date retenue pour le transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable du transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="TransferringAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service versant responsable du transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!--
+                *****************************
+                ***   Les messages de demande d'autorisation
+                *****************************
+        -->
+    <!-- Message de demande d'autorisation au service de contrôle -->
+    <xs:element name="AuthorizationControlAuthorityRequest"
+        type="AuthorizationControlAuthorityRequestType">
+        <xs:annotation>
+            <xs:documentation>Demande d'autorisation au service de contrôle.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="AuthorizationControlAuthorityRequestType">
+        <xs:complexContent>
+            <xs:extension base="BusinessAuthorizationRequestMessageType">
+                <xs:sequence>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la demande d'autorisation.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ControlAuthority" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Autorité de contrôle.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de demande d'autorisation au service producteur -->
+    <xs:element name="AuthorizationOriginatingAgencyRequest"
+        type="AuthorizationOriginatingAgencyRequestType">
+        <xs:annotation>
+            <xs:documentation>Demande d'autorisation au service producteur.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="AuthorizationOriginatingAgencyRequestType">
+        <xs:complexContent>
+            <xs:extension base="BusinessAuthorizationRequestMessageType">
+                <xs:sequence>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la demande d'autorisation.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="OriginatingAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service producteur responsable de l’instruction de la demande d’autorisation.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!--
+                ***************************** 
+				                ***   Les messages de reponse à une requete
+                *****************************
+        -->
+    <!-- Message de réponse à une demande de communication -->
+    <xs:element name="ArchiveDeliveryRequestReply" type="ArchiveDeliveryRequestReplyType">
+        <xs:annotation>
+            <xs:documentation>Réponse à une demande de communication d'archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveDeliveryRequestReplyType">
+        <xs:complexContent>
+            <xs:extension base="BusinessReplyMessageType">
+                <xs:sequence>
+                    <xs:element name="AuthorizationRequestReplyIdentifier" type="IdentifierType"
+                        minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de la réponse à une demande d’autorisation.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de l'unité documentaire.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la demande de communication.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Requester" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Demandeur de la communication.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de réponse à une demande de restitution -->
+    <xs:element name="ArchiveRestitutionRequestReply" type="ArchiveRestitutionRequestReplyType">
+        <xs:annotation>
+            <xs:documentation>Réponse à une demande de restitution d'archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveRestitutionRequestReplyType">
+        <xs:complexContent>
+            <xs:extension base="BusinessReplyMessageType">
+                <xs:sequence>
+                    <xs:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de l'unité documentaire.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la demande de restitution.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="OriginatingAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service producteur responsable de la demande de restitution.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de réponse à un transfert -->
+    <xs:element name="ArchiveTransferReply" type="ArchiveTransferReplyType">
+        <xs:annotation>
+            <xs:documentation>Réponse à un transfert d'archives (acceptation, rejet, anomalie..).</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveTransferReplyType">
+        <xs:complexContent>
+            <xs:extension base="BusinessReplyMessageType">
+                <xs:sequence>
+                    <xs:element name="GrantDate" type="xs:dateTime" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Date de prise en charge effective du transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la réponse à un transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="TransferringAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service versant responsable de la réponse à un transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de réponse à une demande de transfert -->
+    <xs:element name="ArchiveTransferRequestReply" type="ArchiveTransferRequestReplyType">
+        <xs:annotation>
+            <xs:documentation>Réponse à une demande de transfert d’archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveTransferRequestReplyType">
+        <xs:complexContent>
+            <xs:extension base="BusinessReplyMessageType">
+                <xs:sequence>
+                    <xs:element name="TransferDate" type="xs:dateTime" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Date de transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la réponse à une demande de transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="TransferringAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service versant responsable de la réponse à une demande de transfert.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!--
+                *****************************
+                ***   Les messages de reponse à une demande d'autorisation
+                *****************************
+        -->
+    <!-- Message de réponse à une demande d'autorisation au service de contrôle -->
+    <xs:element name="AuthorizationControlAuthorityRequestReply"
+        type="AuthorizationControlAuthorityRequestReplyType">
+        <xs:annotation>
+            <xs:documentation>Réponse donnée à une demande d'autorisation au service de contrôle.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="AuthorizationControlAuthorityRequestReplyType">
+        <xs:complexContent>
+            <xs:extension base="BusinessAuthorizationRequestReplyMessageType">
+                <xs:sequence>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la réponse à une demande d'autorisation à un service de contrôle.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ControlAuthority" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service de contrôle responsable de la réponse à une demande d'autorisation à un service de contrôle.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <!-- Message de réponse à une demande d'autorisation au service producteur -->
+    <xs:element name="AuthorizationOriginatingAgencyRequestReply"
+        type="AuthorizationOriginatingAgencyRequestReplyType">
+        <xs:annotation>
+            <xs:documentation>Réponse donnée à une demande d'autorisation au service producteur.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="AuthorizationOriginatingAgencyRequestReplyType">
+        <xs:complexContent>
+            <xs:extension base="BusinessAuthorizationRequestReplyMessageType">
+                <xs:sequence>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d’archives à l’origine de la demande d’autorisation.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="OriginatingAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service producteur responsable de l’instruction de la demande d’autorisation.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!--
+                *****************************
+                ***   Les messages de notification
+                *****************************
+        -->
+    <!-- Message de notification d'élimination -->
+    <xs:element name="ArchiveDestructionNotification" type="ArchiveDestructionNotificationType">
+        <xs:annotation>
+            <xs:documentation>Notification d'élimination d'archives.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveDestructionNotificationType">
+        <xs:complexContent>
+            <xs:extension base="BusinessNotificationMessageType">
+                <xs:sequence>
+                    <xs:element name="AuthorizationRequestReplyIdentifier" type="IdentifierType">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de la réponse à une demande d'autorisation d'élimination.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de l'unité documentaire.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la notification d'élimination.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="OriginatingAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service producteur responsable de la notification d'élimination.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Message de notification de modification -->
+    <xs:element name="ArchiveModificationNotification" type="ArchiveModificationNotificationType">
+        <xs:annotation>
+            <xs:documentation>Notification de modification d'archives (format ou métadonnées).</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ArchiveModificationNotificationType">
+        <xs:complexContent>
+            <xs:extension base="BusinessNotificationMessageType">
+                <xs:sequence>
+                    <xs:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant de l'unité documentaire.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="ArchivalAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service d'archives responsable de la notification de modification.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="OriginatingAgency" type="OrganizationWithIdType">
+                        <xs:annotation>
+                            <xs:documentation>Service producteur responsable de la notification de modification.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+</xs:schema>

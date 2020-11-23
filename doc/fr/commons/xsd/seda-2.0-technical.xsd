@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+    <xs:include schemaLocation="seda-2.0-types.xsd"/>
+
+    <!--
+                *****************************
+                ***   Code List
+                *****************************
+ 
+        -->
+    <xs:group name="TechnicalCodeListsGroup">
+        <xs:annotation>
+            <xs:documentation>Liste de codes à utiliser dans les métadonnées techniques.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="DigestAlgorithmCodeListGroup"/>
+            <xs:group ref="MimeTypeCodeListGroup" minOccurs="0"/>
+            <xs:group ref="EncodingCodeListGroup" minOccurs="0"/>
+            <xs:group ref="FileFormatCodeListGroup"/>
+            <xs:group ref="CompressionAlgorithmCodeListGroup" minOccurs="0"/>
+            <xs:group ref="DataObjectVersionCodeListGroup" minOccurs="0"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Identification of format code -->
+    <xs:simpleType name="MimeTypeType">
+        <xs:annotation>
+            <xs:documentation>Code de type Mime.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="NonEmptyTokenType"/>
+    </xs:simpleType>
+    <xs:group name="MimeTypeCodeListGroup">
+        <xs:sequence>
+            <xs:element name="MimeTypeCodeListVersion" type="CodeType">
+                <xs:annotation>
+                    <xs:documentation>Version de la liste de code du type Mime.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="EncodingType">
+        <xs:annotation>
+            <xs:documentation>Encodage du fichier.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="NonEmptyTokenType"/>
+    </xs:simpleType>
+    <xs:group name="EncodingCodeListGroup">
+        <xs:sequence>
+            <xs:element name="EncodingCodeListVersion" type="CodeType">
+                <xs:annotation>
+                    <xs:documentation>Version de la liste de code d'encodage du fichier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="FileFormatType">
+        <xs:annotation>
+            <xs:documentation>Identification du format de fichier.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="NonEmptyTokenType"/>
+    </xs:simpleType>
+    <xs:group name="FileFormatCodeListGroup">
+        <xs:sequence>
+            <xs:element name="FileFormatCodeListVersion" type="CodeType">
+                <xs:annotation>
+                    <xs:documentation>Version de la liste de code d'identification du format.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="CompressionAlgorithmType">
+        <xs:annotation>
+            <xs:documentation>Algorithme de compression utilisée.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="NonEmptyTokenType"/>
+    </xs:simpleType>
+    <xs:group name="CompressionAlgorithmCodeListGroup">
+        <xs:sequence>
+            <xs:element name="CompressionAlgorithmCodeListVersion" type="CodeType">
+                <xs:annotation>
+                    <xs:documentation>Version de la liste de code de l'algorithme de compression.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    
+    <!-- Identification d'une version pour un même objet intellectuel  -->
+    <xs:group name="DataObjectVersionCodeListGroup">
+        <xs:sequence>
+            <xs:element name="DataObjectVersionCodeListVersion" type="CodeType">
+                <xs:annotation>
+                    <xs:documentation>Liste de codes correspondant aux diverses versions d'un objet-données au sein d’un groupe d'objets-données (ex. original papier, conservation, diffusion, vignette, txt).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="VersionIdType">
+        <xs:annotation>
+            <xs:documentation>Identifiant utilisé pour référencer les versions (conservation, diffusion, thumbnail/vignette, raw/brut, txt, ...).</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="NonEmptyTokenType"/>
+    </xs:simpleType>
+
+    <!-- Paquet d'Objets-données -->
+    <xs:group name="DataObjectVersionGroup">
+        <xs:annotation>
+            <xs:documentation>Groupe d’objets-données (numériques ou physiques), correspondant aux différentes versions d’un même objet intellectuellement unique. Chaque version peut être par exemple : original papier, version de conservation, version de diffusion, version vignette, version texte ascii…
+                Lorsqu'un objet-donnée fait partie d'un groupe, le référencement dans les ArchiveUnit ne peut se faire que via ce groupe (DataObjectGroupId).</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:choice>
+                <xs:element name="DataObjectGroupReferenceId" type="GroupRefIdType">
+                    <xs:annotation>
+                        <xs:documentation>Référence à un Identifiant du groupe d'objets-données DataObjectVersionGroup.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="DataObjectGroupId" type="GroupIdType">
+                    <xs:annotation>
+                        <xs:documentation>Identifiant du groupe d'objets-données DataObjectVersionGroup (première et unique définition).</xs:documentation>
+                    </xs:annotation>
+                </xs:element>                
+            </xs:choice>
+            <xs:element name="DataObjectVersion" type="VersionIdType">
+                <xs:annotation>
+                    <xs:documentation>Version d’un objet-données (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="MinimalDataObjectType" abstract="true">
+        <xs:sequence>
+            <xs:element name="Relationship" minOccurs="0" maxOccurs="unbounded"
+                type="RelationshipType">
+                <xs:annotation>
+                    <xs:documentation>Permet de spécifier un lien technique entre un objet-données et une signature.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:group ref="DataObjectVersionGroup" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="DataObjectIdType" use="required">
+            <xs:annotation>
+                <xs:documentation>Identifiant de l'objet-données associé.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- Objet de donnees numérique -->
+    <xs:complexType name="BinaryDataObjectType">
+        <xs:annotation>
+            <xs:documentation>Objet-données numérique.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="MinimalDataObjectType">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées techniques minimales : URI, Digest, Poids.</xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:choice>
+                        <xs:element name="Attachment" type="BinaryObjectType">
+                            <xs:annotation>
+                                <xs:documentation>Objet-données (contenu binaire ou fichier joint).</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="Uri" type="xs:anyURI">
+                            <xs:annotation>
+                                <xs:documentation>L'URI spécifie où se trouve l'objet-données numérique. Peut correspondre à un chemin relatif.</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:choice>
+                    <xs:element name="MessageDigest" type="MessageDigestBinaryObjectType">
+                        <xs:annotation>
+                            <xs:documentation>Empreinte de l'objet-données.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Size" type="SizeInBytesType">
+                        <xs:annotation>
+                            <xs:documentation>Permet de spécifier la taille de l'objet-données en octet.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Compressed" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Indique si l’objet-données est compressé et doit être décompressé.</xs:documentation>
+                        </xs:annotation>
+                        <xs:complexType>
+                            <xs:simpleContent>
+                                <xs:extension base="xs:boolean">
+                                    <xs:attribute name="algorithm" type="CompressionAlgorithmType" use="required"/>
+                                    <xs:attribute name="uncompressedSize" type="SizeInBytesType"
+                                        use="required"/>
+                                </xs:extension>
+                            </xs:simpleContent>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:group ref="BinaryTechnicalDescriptionGroup">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnées techniques pour les objets-données numériques.</xs:documentation>
+                        </xs:annotation>
+                    </xs:group>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:group name="BinaryTechnicalDescriptionGroup">
+        <xs:annotation>
+            <xs:documentation>Métadonnées techniques pour les objets-données numériques.</xs:documentation>
+            <xs:documentation>Inspiré du schéma FITS.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="FormatIdentification" type="FormatIdentificationType">
+                <xs:annotation>
+                    <xs:documentation>Identification du format de l'objet-données.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="FileInfo" type="FileInfoType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Propriétés techniques génériques du fichier (nom d’origine, logiciel de création, système d’exploitation de création).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Metadata" type="CoreMetadataType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Propriétés techniques spécifiques du fichier en fonction de sa nature technique (texte, document, image, audio, vidéo, etc.).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OtherMetadata" type="DescriptiveTechnicalMetadataType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Autres métadonnées techniques si celles définies précédemment ne suffisent pas.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- FormatIdentification elements -->
+    <xs:complexType name="FormatIdentificationType">
+        <xs:sequence>
+            <xs:element name="FormatLitteral" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Forme littérale du nom du format.</xs:documentation>
+                    <xs:documentation>Exemple : Microsoft Word Document.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="MimeType" type="MimeTypeType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Type Mime associé, potentiellement stable mais pas assez précis.</xs:documentation>
+                    <xs:documentation>Exemple : application/msword</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="FormatId" type="FileFormatType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Type spécifique du format tel que défini dans FormatIdCodeList.</xs:documentation>
+                    <xs:documentation>Exemple : (Pronom)fmt/40</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Encoding" type="EncodingType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Encodage du fichier tel que défini dans EncodingIdCodeList.</xs:documentation>
+                    <xs:documentation>Exemple : Utf-8</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- File info elements -->
+    <xs:complexType name="FileInfoType">
+        <xs:annotation>
+            <xs:documentation>Informations sur le fichier lui-même (d'un point de vue technique).</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="Filename" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Nom du fichier d'origine.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="CreatingApplicationName" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Nom de l'application utilisée pour créer le fichier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="CreatingApplicationVersion" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Version de l'application utilisée pour créer le fichier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="DateCreatedByApplication" type="xs:dateTime" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date de création du fichier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="CreatingOs" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Système d’exploitation utilisé pour créer le fichier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="CreatingOsVersion" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Version du système d'exploitation utilisé pour créer le fichier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="LastModified" type="xs:dateTime" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date de la dernière modification du fichier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Objet de donnees physique -->
+    <xs:group name="PhysicalTechnicalDescriptionGroup">
+        <xs:annotation>
+            <xs:documentation>Objet-données physique.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="PhysicalDimensions" type="DimensionsType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Dimensions d'un objet-données physique.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element ref="OtherDimensionsAbstract" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="PhysicalDataObjectType">
+        <xs:complexContent>
+            <xs:extension base="MinimalDataObjectType">
+                <xs:sequence>
+                    <xs:element name="PhysicalId" type="IdentifierType">
+                        <xs:annotation>
+                            <xs:documentation>Identifiant physique d’un objet-données physique, externe à celui-ci (ex. code-barres).</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:group ref="PhysicalTechnicalDescriptionGroup"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Metadata types: inspired from various Library of Congress schema -->
+    <xs:complexType name="CoreMetadataType">
+        <xs:annotation>
+            <xs:documentation>Métadonnées de base par type d'objet-données.</xs:documentation>
+        </xs:annotation>
+        <xs:choice>
+            <xs:element name="Text" type="TextTechnicalMetadataType">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées pour un objet-données de type textuel.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Document" type="DocumentTechnicalMetadataType">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées pour un objet-données de type document.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Image" type="ImageTechnicalMetadataType">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées pour un objet-données de type image.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Audio" type="AudioTechnicalMetadataType">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées pour un objet-données de type audio.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Video" type="VideoTechnicalMetadataType">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées pour un objet-données de type vidéo.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element ref="OtherCoreTechnicalMetadataAbstract">
+                <xs:annotation>
+                    <xs:documentation>Métadonnées pour un objet-données d’un autre type (base de données, 3D, programmes, formats propriétaires, etc.).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <!-- Physical description: inspired from AudioMD of Library of Congress and UNECE_MeasurementUnitCommonCode -->
+    <xs:complexType name="DimensionsType">
+        <xs:annotation>
+            <xs:documentation>Permet d'exprimer les mesures de dimensions basiques.</xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+            <xs:extension base="BaseDimensionsType">
+                <xs:sequence>
+                    <xs:element name="Width" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : largeur.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Height" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : hauteur.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Depth" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : profondeur.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Shape" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : forme.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Diameter" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : diamètre.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Length" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : longueur.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Thickness" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : épaisseur.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Weight" type="MeasurementWeightType" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : poids.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="NumberOfPage" type="xs:int" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Métadonnée de dimension physique : nombre de pages.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="BaseDimensionsType" abstract="true"/>
+    <xs:complexType name="MeasurementType">
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="unit" type="MeasurementUnitsType" use="required">
+                    <xs:annotation>
+                        <xs:documentation>Références : Voir UNECE_MeasurementUnitCommonCode_8.xsd</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:simpleType name="MeasurementUnitsType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="micrometre"/>
+            <xs:enumeration value="4H"/>
+            <xs:enumeration value="millimetre"/>
+            <xs:enumeration value="MMT"/>
+            <xs:enumeration value="centimetre"/>
+            <xs:enumeration value="CMT"/>
+            <xs:enumeration value="metre"/>
+            <xs:enumeration value="inch"/>
+            <xs:enumeration value="INH"/>
+            <xs:enumeration value="foot"/>
+            <xs:enumeration value="FOT"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="MeasurementWeightType">
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="unit" type="MeasurementWeightUnitsType" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:simpleType name="MeasurementWeightUnitsType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="microgram"/>
+            <xs:enumeration value="MC"/>
+            <xs:enumeration value="milligram"/>
+            <xs:enumeration value="MGM"/>
+            <xs:enumeration value="gram"/>
+            <xs:enumeration value="GRM"/>
+            <xs:enumeration value="kilogram"/>
+            <xs:enumeration value="KGM"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

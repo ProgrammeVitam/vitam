@@ -13,7 +13,7 @@ traits:
 
   AdminListingResponse:
     description: Response model for the listing of <<resourcePathName | !uppercamelcase>>
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
        StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     body:
@@ -32,7 +32,7 @@ traits:
 
   AdminItemResponse:
     description: Response model for one <<resourcePathName | !uppercamelcase>> item
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     responses:
@@ -46,7 +46,7 @@ traits:
 
   AdminUploadFormat:
     description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
     body:
@@ -58,7 +58,7 @@ traits:
 
   AdminUploadRule:
     description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
     body:
@@ -70,7 +70,7 @@ traits:
 
   AdminUpdate:
     description: Response model for update of <<resourcePathName | !uppercamelcase>>
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
     body:
@@ -84,7 +84,7 @@ traits:
 
   AdminUpload:
     description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
     body:
@@ -98,7 +98,7 @@ traits:
 
   AdminProfileUpload:
     description: Response model for upload of <<resourcePathName | !uppercamelcase>>
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     body:
@@ -110,7 +110,7 @@ traits:
 
   AdminFileItemResponse:
     description: Response model for one <<resourcePathName | !uppercamelcase>> download item
-    is: [ StandardTraits.StandardOptionalHeader,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     responses:
@@ -122,7 +122,7 @@ traits:
 
   AuditCreationResponseAsync:
     description: Requête pour la création d'un Audit
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Contient les options de l'audit au format JSON.
@@ -146,7 +146,7 @@ traits:
 
   TraceabilityCheckResponseAsync:
     description: Request for an Traceability Check
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Contient la requête DSL simple au format JSON.

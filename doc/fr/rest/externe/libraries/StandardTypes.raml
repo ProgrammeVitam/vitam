@@ -66,14 +66,6 @@ types:
       description:
         type: string
         description: Vitam detailed description of status.
-    example: {
-        "httpCode" : 401,
-        "code" : "VitamCode",
-        "context": "ingest",
-        "state": "unauthorized",
-        "message": "The application is not authorized to use this functionality",
-        "description": "The application 'Xxxx' is not authorized to use the 'administration' service, the role 'ADMIN_ROLE' is mandatory."
-      }
 
   ErrorMultiple:
     description: An error message in Vitam DSL
@@ -99,46 +91,70 @@ types:
         description: Sub error descriptions.
         type: Error[]
 
-    example: {
-        "httpCode": 404,
-        "code" : "VitamCode1",
-        "context": "ingest",
-        "state": "Item_Not_Found",
-        "message": "Item is not found",
-        "description": "Operation on item xxx cannot be done since item is not found in <<resourcePathName>>",
-        "errors": [
-          { "httpCode": 415,
-            "code" : "VitamCode2",
-            "context": "ingest",
-            "state": "Unsupported_Media_Type",
-            "message": "Unsupported media type detected",
-            "description": "File xxx has an unsupported media type yyy" },
-          { "httpCode": 412,
-            "code": "VitamCode3",
-            "context": "ingest",
-            "state": "Precondition_Failed",
-            "message": "Precondition in error",
-            "description": "Operation on file xxx cannot continue since precondition is in error" }
-        ]
-      }
+
+  AsyncResponse:
+    type: object
+    displayName: Réponse DSL
+    description: Réponse DSL externe Vitam
+    properties:
+      itemId:
+        description: Contient le code retrour http
+        type: integer
+      message:
+        description: Contient le nombre de hits
+        required: true
+        type: object
+      globalStatus:
+        description: Contient le code retrour http
+        type: integer
+      data:
+        description: Contient le code retrour http
+        type: integer
+      itemsStatus:
+        description: Contient le code retrour http
+        type: integer
+      evDetailData:
+        description: Contient le code retrour http
+        type: integer
+      globalState:
+        description: Contient le code retrour http
+        type: integer
+      subTaskStatus:
+        description: Contient le code retrour http
+        type: integer
+      lifecycleEnable:
+        description: Contient le code retrour http
+        type: integer
+
 
   AsyncStatus:
     description: Asynchronous Status
-    type: ErrorMultiple
+    type: DslTypes.AbstractDslResponse
     properties:
-      "#id":
-        description: Id of the Operation accessible through the corresponding collection specified in "context"
-        type: string
-      start_date:
-        description: Start date of the operation
-        type: datetime
+      @$results:
+        type: AsyncResponse
     example: {
-      "#id": "idIngests",
-      "httpCode" : 200,
-      "code" : "VitamCode",
-      "context": "ingest",
-      "state": "Done",
-      "message": "The ingest is done, the report can be downloaded",
-      "description": "The application 'Xxxx' requested an ingest operation and this operation is done.",
-      "start_date": "2014-01-10T03:06:17.396Z"
+       "httpCode": 200,
+       "$hits": {
+           "total": 1,
+           "offset": 0,
+           "limit": 0,
+           "size": 1
+       },
+       "$results": [
+           {
+               "itemId": "operationId",
+               "message": "",
+               "globalStatus": "STARTED",
+               "statusMeter": [0,1,0,0,0,0,0],
+               "data": {},
+               "itemsStatus": {},
+               "evDetailData": "{}",
+               "globalState": "RUNNING",
+               "subTaskStatus": {},
+               "lifecycleEnable": true
+           }
+       ],
+       "$facetResults": [],
+       "$context": {}
     }
