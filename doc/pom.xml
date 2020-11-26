@@ -22,6 +22,42 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<!-- NB! Set <version> to the latest released version of frontend-maven-plugin, like in README.md -->
+				<version>1.3</version>
+
+				<configuration>
+					<installDirectory>target</installDirectory>
+				</configuration>
+
+				<executions>
+					<execution>
+						<id>install node and npm</id>
+						<goals>
+							<goal>install-node-and-npm</goal>
+						</goals>
+						<configuration>
+							<nodeVersion>v10.16.0</nodeVersion>
+							<npmVersion>6.14.5</npmVersion>
+							<serverId>vitam</serverId>
+							<!-- This is not a mirror of node, if you update the version, please contact integration team -->
+							<downloadRoot>${nodeDownloadRoot}</downloadRoot>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>npm install</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<configuration>
+							<arguments>install -g raml2html</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>${maven.exec.version}</version>
