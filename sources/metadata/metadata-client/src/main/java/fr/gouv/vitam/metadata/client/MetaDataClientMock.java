@@ -262,9 +262,4 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     public void deleteObjectGroupBulk(Collection<String> listIds) {
         throw new IllegalStateException("Stop using mocks in production");
     }
-
-    @Override
-    public JsonNode runAuditDataConsistencyMongoEs() throws MetaDataClientServerException {
-        throw new UnsupportedOperationException("No need for mocks");
-    }
 }

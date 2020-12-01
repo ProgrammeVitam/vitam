@@ -52,9 +52,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
@@ -64,6 +62,7 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import okhttp3.OkHttpClient;
 import org.bson.BsonTimestamp;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -73,9 +72,15 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.GET;
+import retrofit2.http.Headers;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -83,6 +88,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static fr.gouv.vitam.common.model.WorkspaceConstants.TMP_FILE_NAME_FOR_SHARDS_CONFIG;
@@ -91,6 +97,8 @@ import static org.junit.Assert.fail;
 
 public class DataConsistencyAuditIT extends VitamRuleRunner {
 
+    public static final String INCOHERANT_DATA_SIZE = "IncoherantDataSize";
+    public static final String REQUEST_ID = "requestId";
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -110,11 +118,15 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
                 WorkspaceMain.class
             ));
 
+    private static MetadataAuditResource metadataAuditResource;
+
     private static DataLoader dataLoader = new DataLoader("integration-ingest-internal");
-    private MetaDataClientFactory metadataClientFactory = MetaDataClientFactory.getInstance();
 
     private static final String AUDIT_CONTAINER_NAME = "dataConsistencyAuditContainer";
     private static final String SHARD_KEY = "shard0:127.0.0.1:27017";
+
+    private static final int PORT_SERVICE_METADATA_ADMIN = 28098;
+    private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA_ADMIN;
 
     private enum PopulateMode {
         FULL, ES_ONLY, MONGO_ONLY;
@@ -124,6 +136,15 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         dataLoader.prepareData();
+        //
+        final OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .readTimeout(600, TimeUnit.SECONDS)
+                .connectTimeout(600, TimeUnit.SECONDS)
+                .build();
+        Retrofit retrofit =
+                new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
+                        .addConverterFactory(JacksonConverterFactory.create()).build();
+        metadataAuditResource = retrofit.create(DataConsistencyAuditIT.MetadataAuditResource.class);
     }
 
     @AfterClass
@@ -167,64 +188,50 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void given_coherent_data_shoud_run_audit_without_error()
-        throws InvalidParseOperationException, MetaDataClientServerException {
+    public void given_coherent_data_shoud_run_audit_without_error() throws InvalidParseOperationException, IOException {
         populateData(PopulateMode.FULL);
 
-        MetaDataClient metadataClient = metadataClientFactory.getClient();
-        JsonNode result = metadataClient.runAuditDataConsistencyMongoEs();
-        LinkedHashMap<String, JsonNode> incoherentMap = JsonHandler.getFromJsonNode(result,
+        JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
+        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
                 new TypeReference<>() {
                 });
-        assertEquals(0, incoherentMap.entrySet().size());
-
-        JsonNode logbookJsonNode = VitamTestHelper.findLogbook(VitamThreadUtils.getVitamSession().getRequestId());
-        LogbookOperation logbookOperation =
-            JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+        assertEquals(0, responseResults.get(INCOHERANT_DATA_SIZE).asInt());
+        JsonNode logbookJsonNode = VitamTestHelper.findLogbook(responseResults.get(REQUEST_ID).asText());
+        LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
         assertEquals(StatusCode.OK.name(), Iterables.getLast(logbookOperation.getEvents()).getOutcome());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void given_empty_data_on_elasticsearch_when_run_audit_then_warning() throws InvalidParseOperationException {
+    public void given_empty_data_on_elasticsearch_when_run_audit_then_warning() throws InvalidParseOperationException, IOException {
         populateData(PopulateMode.MONGO_ONLY);
 
-        try (MetaDataClient metadataClient = metadataClientFactory.getClient()) {
-            JsonNode result = metadataClient.runAuditDataConsistencyMongoEs();
-            LinkedHashMap<String, JsonNode> incoherentMap = JsonHandler.getFromJsonNode(result,
+        JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
+        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
                 new TypeReference<>() {
                 });
-            assertEquals(5,incoherentMap.entrySet().size());
-        } catch (MetaDataClientServerException e) {
-            fail("Error while running mongodb/es audit");
-        }
-        JsonNode logbookJsonNode = VitamTestHelper.findLogbook(VitamThreadUtils.getVitamSession().getRequestId());
-        LogbookOperation logbookOperation =
-            JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+        assertEquals(5,responseResults.get(INCOHERANT_DATA_SIZE).asInt());
+        JsonNode logbookJsonNode = VitamTestHelper.findLogbook(responseResults.get(REQUEST_ID).asText());
+        LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
         assertEquals(StatusCode.WARNING.name(), Iterables.getLast(logbookOperation.getEvents()).getOutcome());
     }
 
 
     @Test
     @RunWithCustomExecutor
-    public void given_empty_data_on_mongodb_when_run_audit_then_warning() throws InvalidParseOperationException {
+    public void given_empty_data_on_mongodb_when_run_audit_then_warning() throws InvalidParseOperationException, IOException {
         populateData(PopulateMode.FULL);
 
         MetadataCollections.UNIT.getCollection().deleteMany(Filters.eq(MetadataDocument.OPI, OPI));
         MetadataCollections.OBJECTGROUP.getCollection().deleteMany(Filters.eq(MetadataDocument.OPI, OPI));
 
-        try (MetaDataClient metadataClient = metadataClientFactory.getClient()) {
-            JsonNode result = metadataClient.runAuditDataConsistencyMongoEs();
-            LinkedHashMap<String, JsonNode> incoherentMap = JsonHandler.getFromJsonNode(result,
-                    new TypeReference<>() {
-                    });
-            assertEquals(5, incoherentMap.entrySet().size());
-        } catch (MetaDataClientServerException e) {
-            fail("Error while running mongodb/es audit");
-        }
-        JsonNode logbookJsonNode = VitamTestHelper.findLogbook(VitamThreadUtils.getVitamSession().getRequestId());
-        LogbookOperation logbookOperation =
-                JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+        JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
+        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
+                new TypeReference<>() {
+                });
+        assertEquals(5,responseResults.get(INCOHERANT_DATA_SIZE).asInt());
+        JsonNode logbookJsonNode = VitamTestHelper.findLogbook(responseResults.get(REQUEST_ID).asText());
+        LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
         assertEquals(StatusCode.WARNING.name(), Iterables.getLast(logbookOperation.getEvents()).getOutcome());
     }
 
@@ -261,5 +268,15 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
 
         metadataDocuments.forEach(t -> t.replace(VitamDocument.ID, GUIDFactory.newUnitGUID(TENANT_ID).getId()));
         return metadataDocuments;
+    }
+
+    public interface MetadataAuditResource {
+
+        @GET("/metadata/v1/auditDataConsistency")
+        @Headers({
+                "Accept: application/json",
+                "Content-Type: application/json"
+        })
+        Call<JsonNode> tryRunAuditDataConsistencyMongoEs();
     }
 }

@@ -119,15 +119,14 @@ adminBasicAuth:
 isDataConsistencyAuditRunnable: {{ vitam.metadata.isDataConsistencyAuditRunnable }}
 dataConsistencyAuditOplogMaxSize: {{ vitam.metadata.dataConsistencyAuditOplogMaxSize }}
 mongodShardsConf:
- dbUserName: {{ mongodb['mongo-data'].admin.user }}
- dbPassword: {{ mongodb['mongo-data'].admin.password }}
- dbSslAuthentication: {{ mongodb.mongo_authentication }}
+ dbUserName: {{ mongodb['mongo-data']['localadmin']['user'] }}
+ dbPassword: {{ mongodb['mongo-data']['localadmin']['password'] }}
  mongoDbShards:
 {% for shard in groups['hosts_mongod_data'] %}
    - shardName: shard{{ hostvars[shard]['mongo_shard_id']}}
      mongoDbNodes:
 {% for server in groups['hosts_mongod_data'] %}
       - dbHost: {{ hostvars[server]['ip_service'] }}
-        dbPort: {{ mongodb.mongos_port }}
+        dbPort: {{ mongodb.mongod_port }}
 {% endfor %}
 {% endfor %}

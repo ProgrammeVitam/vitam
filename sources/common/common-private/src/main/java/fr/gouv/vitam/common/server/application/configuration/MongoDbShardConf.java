@@ -35,17 +35,15 @@ public class MongoDbShardConf {
 
     private String dbUserName;
     private String dbPassword;
-    private boolean dbSslAuthentication;
     private List<MongoDbShard> mongoDbShards;
 
     public MongoDbShardConf() {
         //empty
     }
 
-    public MongoDbShardConf(String dbUserName, String dbPassword, boolean dbSslAuthentication, List<MongoDbShard> mongoDbShards) {
+    public MongoDbShardConf(String dbUserName, String dbPassword, List<MongoDbShard> mongoDbShards) {
         this.dbUserName = dbUserName;
         this.dbPassword = dbPassword;
-        this.dbSslAuthentication = dbSslAuthentication;
         this.mongoDbShards = mongoDbShards;
     }
 
@@ -63,14 +61,6 @@ public class MongoDbShardConf {
 
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
-    }
-
-    public boolean isDbSslAuthentication() {
-        return dbSslAuthentication;
-    }
-
-    public void setDbSslAuthentication(boolean dbSslAuthentication) {
-        this.dbSslAuthentication = dbSslAuthentication;
     }
 
     public List<MongoDbShard> getMongoDbShards() {
