@@ -114,6 +114,7 @@ public class AdminMetadataApplication extends Application {
             final MetadataManagementResource metadataReconstructionResource =
                 new MetadataManagementResource(vitamRepositoryProvider, offsetRepository,
                     metadata, metaDataConfiguration, indexManager);
+            final MetadataAuditResource metadataAuditResource = new MetadataAuditResource(metaDataConfiguration);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
@@ -121,6 +122,7 @@ public class AdminMetadataApplication extends Application {
             singletons.add(new MetadataMigrationAdminResource());
             singletons.add(new BasicAuthenticationFilter(metaDataConfiguration));
             singletons.add(new AdminRequestIdFilter());
+            singletons.add(metadataAuditResource);
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }

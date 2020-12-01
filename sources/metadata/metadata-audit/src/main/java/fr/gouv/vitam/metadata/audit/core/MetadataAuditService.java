@@ -35,6 +35,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
@@ -56,7 +57,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.configuration.DataConsistencyAuditConfig;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbShard;
@@ -155,7 +155,6 @@ public class MetadataAuditService {
         Object entityResponse;
         LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient();
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
             if (isAuditAlreadyRunning(logbookClient)) {
                 responseStatus = Status.BAD_REQUEST;
                 entityResponse = new VitamError(responseStatus.name()).setHttpCode(responseStatus.getStatusCode())
@@ -224,8 +223,10 @@ public class MetadataAuditService {
             } else {
                 rectifyDataInElasticsearch(logbookClient, metadataOplogFromMongo, metadataOpLogFromEs, incoherantData);
             }
-            entityResponse = JsonHandler.toJsonNode(incoherantData);
-            LOGGER.debug("Audit data consistency : End of audit");
+
+            Map<String,Object> responseResults =Map.of("requestId", eip.getId(),"IncoherantDataSize", incoherantData.size());
+            entityResponse = JsonHandler.toJsonNode(responseResults);
+             LOGGER.debug("Audit data consistency : End of audit");
         } catch (ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException
                 | ContentAddressableStorageServerException | InvalidGuidOperationException e) {
             LOGGER.error(e);
@@ -406,15 +407,15 @@ public class MetadataAuditService {
         boolean isShardsTimeStampConfigMapTouched = false;
         final String dbUserName = dataConsistencyAuditConfig.getMongodShardsConf().getDbUserName();
         final String dbUserPassword = dataConsistencyAuditConfig.getMongodShardsConf().getDbPassword();
-        final Boolean dbSslAuthentication = dataConsistencyAuditConfig.getMongodShardsConf().isDbSslAuthentication();
         final List<String> collectionsToScan = Arrays.stream(MetadataCollections.values()).map(collection -> collection.getCollection().
                 getNamespace().getFullName()).collect(Collectors.toList());
         Map<String, MetadataDocument<?>> metadataOplogDocuments = new HashMap<>();
         for (MongoDbShard mongoDbShard : dataConsistencyAuditConfig.getMongodShardsConf().getMongoDbShards()) {
             for (MongoDbNode dbNode : mongoDbShard.getMongoDbNodes()) {
                 // Create OplogInstance
-                OplogReader oplogReader = createOplogReaderInstance(dbUserName, dbUserPassword, dbSslAuthentication,
-                        dbNode, dataConsistencyAuditConfig.isDbAuthentication(), dataConsistencyAuditConfig.getDataConsistencyAuditOplogMaxSize());
+                OplogReader oplogReader = createOplogReaderInstance(dbUserName, dbUserPassword, dbNode,
+                        dataConsistencyAuditConfig.isDbAuthentication(),
+                        dataConsistencyAuditConfig.getDataConsistencyAuditOplogMaxSize());
                 // Read Oplog from node
                 final String shardNameForMapConfig = mongoDbShard.getShardName() + ":" + dbNode.getDbHost() + ":" + dbNode.getDbPort();
                 Map<String, Document> oplogByShard = oplogReader.readDocumentsFromOplogByShardAndCollections(collectionsToScan,
@@ -448,13 +449,13 @@ public class MetadataAuditService {
         return metadataOplogDocuments;
     }
 
-    private OplogReader createOplogReaderInstance(String dbUserName, String dbUserPassword, Boolean dbSslAuthentication, MongoDbNode dbNode,
+    private OplogReader createOplogReaderInstance(String dbUserName, String dbUserPassword, MongoDbNode dbNode,
                                                   Boolean dbAuthentication, Integer dataConsistencyAuditOplogMaxSize) {
         LOGGER.info("Connecting to MongoDB Shard Node");
         MongoClient mongoClient = new MongoClient();
         if (dbAuthentication) {
             MongoCredential credential = MongoCredential.createCredential(dbUserName, DB_NAME, dbUserPassword.toCharArray());
-            MongoClientOptions options = MongoClientOptions.builder().sslEnabled(dbSslAuthentication).build();
+            MongoClientOptions options = MongoClientOptions.builder().build();
             mongoClient = new MongoClient(Collections.singletonList(new ServerAddress(dbNode.getDbHost(), dbNode.getDbPort())),
                     credential, options);
         }
@@ -504,7 +505,7 @@ public class MetadataAuditService {
 
     private void successLogbookForAudit(LogbookOperationsClient logbookClient)
             throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        final GUID eipId = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
                 .newLogbookOperationParameters(eipId, AUDIT_DATA_CONSISTENCY_EVT, eip,
                         LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
@@ -515,7 +516,7 @@ public class MetadataAuditService {
 
     private void warningLogbookForAudit(LogbookOperationsClient logbookClient, String message)
             throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        final GUID eipId = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
                 .newLogbookOperationParameters(eipId, AUDIT_DATA_CONSISTENCY_EVT, eip,
                         LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
@@ -529,7 +530,7 @@ public class MetadataAuditService {
 
     private void errorLogbookForAudit(LogbookOperationsClient logbookClient, String message)
             throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        final GUID eipId = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper
                 .newLogbookOperationParameters(eipId, AUDIT_DATA_CONSISTENCY_EVT, eip,
                         LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,

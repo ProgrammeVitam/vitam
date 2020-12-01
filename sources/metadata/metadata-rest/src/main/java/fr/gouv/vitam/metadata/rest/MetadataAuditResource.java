@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.metadata.rest;
 
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.audit.core.MetadataAuditService;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
@@ -77,6 +78,7 @@ public class MetadataAuditResource {
     public Response runAuditDataConsistencyMongoEs() {
         LOGGER.debug("Audit data consistency : Running ...");
         try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
             return metadataAuditService.auditDataConsistencyMongoEs();
         } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e) {
             LOGGER.error(e);
