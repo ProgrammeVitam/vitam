@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -97,7 +98,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadExc
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
@@ -129,6 +129,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -151,7 +152,9 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.HashMap;
@@ -165,9 +168,17 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+import static javax.ws.rs.core.Response.Status.ACCEPTED;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
@@ -192,7 +203,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final String AUDIT_ACTIONS = "auditActions";
 
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private final OntologyLoader rulesOntologyLoader;
     private VitamCounterService vitamCounterService;
     private final WorkspaceClientFactory workspaceClientFactory;
@@ -222,11 +232,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
         logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
         metaDataClientFactory = MetaDataClientFactory.getInstance();
         storageClientFactory = StorageClientFactory.getInstance();
-        elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration, indexManager);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
         vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        ElasticsearchAccessAdminFactory.create(configuration, indexManager);
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -249,13 +259,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialFormatFileImpl formatManagement =
             new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             formatManagement.checkFile(xmlPronom);
-            return Response.status(Status.OK).build();
+            return Response.status(OK).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            return Response.status(INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+            return Response.status(BAD_REQUEST).entity(e.getMessage()).build();
         } finally {
             StreamUtils.closeSilently(xmlPronom);
         }
@@ -279,21 +286,19 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialFormatFileImpl formatManagement =
             new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             formatManagement.importFile(xmlPronom, filename);
-            return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
+            return Response.status(CREATED).entity(CREATED.getReasonPhrase()).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status)
+            return Response.status(BAD_REQUEST)
                 .entity(e.getMessage())
                 .build();
         } catch (final DatabaseConflictException e) {
             LOGGER.error(e);
-            return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
-        } catch (final Exception e) {
+            return Response.status(CONFLICT).entity(e.getMessage()).build();
+        } catch (final VitamException e) {
             LOGGER.error(e);
-            final Status status = INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(status)
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(INTERNAL_SERVER_ERROR)
                 .build();
         } finally {
             StreamUtils.closeSilently(xmlPronom);
@@ -313,15 +318,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response findFileFormatByID(@PathParam("id_format") String formatId, @Context Request request) {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
-        FileFormat fileFormat = null;
         try (ReferentialFormatFileImpl formatManagement =
             new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
-            fileFormat = formatManagement.findDocumentById(formatId);
+            FileFormat fileFormat = formatManagement.findDocumentById(formatId);
             if (fileFormat == null) {
                 LOGGER.error("NO DATA for the specified formatId '" + formatId + "'");
-                return Response.status(Status.NOT_FOUND)
-                    .entity(getErrorEntity(Status.NOT_FOUND, "Format not found")).build();
+                return Response.status(NOT_FOUND)
+                    .entity(getErrorEntity(NOT_FOUND, "Format not found")).build();
             }
 
             CacheControl cacheControl = new CacheControl();
@@ -336,16 +340,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
             if (builder == null) {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
-                return Response.status(Status.OK).entity(new RequestResponseOK()
-                    .addResult(JsonHandler.toJsonNode(fileFormat)).setHttpCode(Status.OK.getStatusCode())).tag(etag)
+                return Response.status(OK).entity(new RequestResponseOK<JsonNode>()
+                    .addResult(JsonHandler.toJsonNode(fileFormat)).setHttpCode(OK.getStatusCode())).tag(etag)
                     .cacheControl(cacheControl).build();
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();
-        } catch (final Exception e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -366,16 +370,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
             new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select).setQuery(select);
-            return Response.status(Status.OK)
+            return Response.status(OK)
                 .entity(fileFormatList).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
-        } catch (final Exception e) {
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
+        } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -416,7 +420,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(errorReportInputStream,
-                Status.OK, headers);
+                OK, headers);
         } catch (FileRulesReadException e) {
             LOGGER.error("Format / syntax error while checking file ", e);
             return handleGenerateReport(rulesManagerFileImpl, e.getErrorsMap(), Collections.emptyList());
@@ -447,7 +451,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
         headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME);
         return new VitamAsyncInputStreamResponse(errorReportInputStream,
-            Status.BAD_REQUEST, headers);
+            BAD_REQUEST, headers);
     }
 
     /**
@@ -469,22 +473,21 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
 
             rulesFileManagement.importFile(rulesStream, filename);
-            return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
+            return Response.status(CREATED).entity(CREATED.getReasonPhrase()).build();
         } catch (final FileRulesImportInProgressException e) {
             LOGGER.warn(e);
-            return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
+            return Response.status(FORBIDDEN).entity(e.getMessage()).build();
         } catch (final FileRulesException | FileRulesCsvException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage())
+            return Response.status(BAD_REQUEST).entity(e.getMessage())
                 .build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.CONFLICT).entity(e.getMessage())
+            return Response.status(CONFLICT).entity(e.getMessage())
                 .build();
-        } catch (final Exception e) {
+        } catch (final IOException | InvalidParseOperationException | StorageException | InvalidGuidOperationException e) {
             LOGGER.error(e);
-            final Status status = INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status.getReasonPhrase()).build();
+            return Response.status(INTERNAL_SERVER_ERROR).entity(INTERNAL_SERVER_ERROR.getReasonPhrase()).build();
         } finally {
             StreamUtils.closeSilently(rulesStream);
         }
@@ -512,8 +515,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             fileRules = rulesFileManagement.findDocumentById(ruleId);
             if (fileRules == null) {
                 LOGGER.error("NO DATA for the specified rule Value or More than one records exists '" + ruleId + "'");
-                return Response.status(Status.NOT_FOUND)
-                    .entity(getErrorEntity(Status.NOT_FOUND, "Rule not found")).build();
+                return Response.status(NOT_FOUND)
+                    .entity(getErrorEntity(NOT_FOUND, "Rule not found")).build();
             }
 
             CacheControl cacheControl = new CacheControl();
@@ -528,16 +531,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
             if (builder == null) {
                 // resource is modified so server new content
                 // 200 OK status code is returned with new content
-                return Response.status(Status.OK).entity(new RequestResponseOK()
-                    .addResult(JsonHandler.toJsonNode(fileRules)).setHttpCode(Status.OK.getStatusCode())).tag(etag)
+                return Response.status(OK).entity(new RequestResponseOK<JsonNode>()
+                    .addResult(JsonHandler.toJsonNode(fileRules)).setHttpCode(OK.getStatusCode())).tag(etag)
                     .cacheControl(cacheControl).build();
             }
 
             return builder.cacheControl(cacheControl).tag(etag).build();
-        } catch (final Exception e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -559,18 +562,18 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
-            return Response.status(Status.OK)
+            return Response.status(OK)
                 .entity(filerulesList)
                 .build();
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
-        } catch (final Exception e) {
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
+        } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -593,19 +596,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
-            return Response.status(Status.CREATED).build();
+            return Response.status(CREATED).build();
         } catch (final BadRequestException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -626,19 +625,19 @@ public class AdminManagementResource extends ApplicationStatusResource {
             fileFundRegisters = findFundRegisters(select);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Access contract does not allow ", e);
-            return Response.status(Status.UNAUTHORIZED)
-                .entity(getErrorEntity(Status.UNAUTHORIZED, e.getMessage())).build();
-        } catch (final Exception e) {
+            return Response.status(UNAUTHORIZED)
+                .entity(getErrorEntity(UNAUTHORIZED, e.getMessage())).build();
+        } catch (final InvalidCreateOperationException | ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
 
-        return Response.status(Status.OK)
+        return Response.status(OK)
             .entity(fileFundRegisters)
             .build();
     }
@@ -705,8 +704,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             Set<String> prodServices = contract.getOriginatingAgencies();
 
             if (!isEveryOriginatingAgency && !prodServices.contains(originatingAgency)) {
-                return Response.status(Status.UNAUTHORIZED)
-                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Unauthorized")).build();
+                return Response.status(UNAUTHORIZED)
+                    .entity(getErrorEntity(UNAUTHORIZED, "Unauthorized")).build();
             }
             if (!isEveryOriginatingAgency) {
                 parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
@@ -720,15 +719,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
-        } catch (final Exception e) {
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
+        } catch (final ReferentialException | AccessUnauthorizedException | UnsupportedEncodingException | InvalidCreateOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
 
-        return Response.status(Status.OK)
+        return Response.status(OK)
             .entity(accessionRegisterDetails)
             .build();
     }
@@ -758,15 +757,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
-        } catch (final Exception e) {
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
+        } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
 
-        return Response.status(Status.OK)
+        return Response.status(OK)
             .entity(accessionRegisterDetails)
             .build();
     }
@@ -788,14 +787,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
             referentialAuditService.runAudit(referentialAuditOptions.getCollectionName(), tenant);
         } catch (StorageNotFoundClientException | StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+        } catch (BadRequestException e) {
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getLocalizedMessage())).build();
         } catch (AuditVitamException e) {
-            final Status status = INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(CONFLICT).entity(getErrorEntity(CONFLICT, e.getLocalizedMessage())).build();
         }
-        return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
-            .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+        return Response.status(ACCEPTED).entity(new RequestResponseOK<>()).build();
     }
 
     @Path(AUDIT_RULE_URI)
@@ -811,11 +811,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 rulesManagerFileImpl.getRuleFromOffer(tenant), tenant);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
-        return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
-            .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+        return Response.status(ACCEPTED).entity(new RequestResponseOK<>()
+            .setHttpCode(ACCEPTED.getStatusCode())).build();
     }
 
     /**
@@ -885,16 +884,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
             processingClient.initVitamProcess(entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationId);
 
-            return Response.status(Status.ACCEPTED)
-                .entity(new RequestResponseOK().setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+            return Response.status(ACCEPTED)
+                .entity(new RequestResponseOK<>().setHttpCode(ACCEPTED.getStatusCode())).build();
         } catch (BadRequestException exp) {
             LOGGER.error(exp);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, exp.getMessage())).build();
+            return Response.status(PRECONDITION_FAILED).entity(getErrorEntity(PRECONDITION_FAILED, exp.getMessage())).build();
         } catch (Exception exp) {
             LOGGER.error(exp);
-            final Status status = INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, exp.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, exp.getLocalizedMessage())).build();
         }
     }
 
@@ -946,7 +943,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             if (!contract.getEveryOriginatingAgency()) {
                 parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
-                    contract.getOriginatingAgencies().stream().toArray(String[]::new)).setDepthLimit(0));
+                    contract.getOriginatingAgencies().toArray(String[]::new)).setDepthLimit(0));
             }
 
             List<AccessionRegisterSymbolic> accessionRegisterSymbolic = service.findAccessionRegisterSymbolic(queryDsl);
@@ -978,14 +975,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
-            RequestResponse requestResponse = processingClient.forcePause(info);
+            RequestResponse<ProcessPause> requestResponse = processingClient.forcePause(info);
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 
@@ -1003,14 +999,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
-            RequestResponse requestResponse = processingClient.removeForcePause(info);
+            RequestResponse<ProcessPause> requestResponse = processingClient.removeForcePause(info);
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 
@@ -1180,24 +1175,24 @@ public class AdminManagementResource extends ApplicationStatusResource {
                     logbookClient.update((LogbookOperationParameters) param);
                 }
             }
-            return Response.status(Status.CREATED).entity(new RequestResponseOK()
-                .setHttpCode(Status.CREATED.getStatusCode())).build();
+            return Response.status(CREATED).entity(new RequestResponseOK<>()
+                .setHttpCode(CREATED.getStatusCode())).build();
         } catch (LogbookClientBadRequestException | IllegalArgumentException | InvalidParseOperationException | InvalidGuidOperationException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
         } catch (LogbookClientAlreadyExistsException e) {
             LOGGER.error(e);
-            return Response.status(Status.CONFLICT)
-                .entity(getErrorEntity(Status.CONFLICT, e.getMessage())).build();
+            return Response.status(CONFLICT)
+                .entity(getErrorEntity(CONFLICT, e.getMessage())).build();
         } catch (LogbookClientServerException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+            return Response.status(NOT_FOUND)
+                .entity(getErrorEntity(NOT_FOUND, e.getMessage())).build();
         }
     }
 

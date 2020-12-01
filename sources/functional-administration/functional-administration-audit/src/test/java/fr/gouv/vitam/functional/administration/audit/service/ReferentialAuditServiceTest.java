@@ -35,10 +35,10 @@ import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.exception.AuditVitamException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -66,9 +66,6 @@ import java.util.Map;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -151,16 +148,10 @@ public class ReferentialAuditServiceTest {
                 any()))
             .thenReturn(responseMock);
 
-
-
-        StatusCode statusCode =
-            referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
-
-        assertEquals(OK,statusCode);
-
+        referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
 
-    @Test
+    @Test(expected = AuditVitamException.class)
     public void given_unexisted_file_then_execute_audit_withKO() throws Exception {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
@@ -175,13 +166,10 @@ public class ReferentialAuditServiceTest {
         when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP))
             .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
-        StatusCode statusCode =
-            referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
-
-        assertEquals(KO,statusCode);
+        referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
 
-    @Test
+    @Test(expected = AuditVitamException.class)
     public void given_different_hash_should_execute_audit_with_KO() throws Exception {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
@@ -227,13 +215,10 @@ public class ReferentialAuditServiceTest {
             .getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), eq(OFFER_TWO_ID), eq(PROFILE_FILE),
                 eq(DataCategory.BACKUP), any())).thenReturn(offerTwoResponse);
 
-        StatusCode statusCode =
-            referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
-
-        assertEquals(KO,statusCode);
+        referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
 
-    @Test
+    @Test(expected = AuditVitamException.class)
     public void given_unexisted_element_in_database_should_execute_audit_with_KO() throws Exception {
         when(functionalBackupService.getCollectionInJson(any())).thenReturn(JsonHandler.createArrayNode());
 
@@ -265,13 +250,11 @@ public class ReferentialAuditServiceTest {
         mongoDbAccess.getMongoDatabase().getCollection(FunctionalAdminCollections.PROFILE.getName()).deleteOne(
             new BsonDocument());
 
-        StatusCode statusCode =
-            referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
+        referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
 
-        assertEquals(KO,statusCode);
     }
 
-    @Test
+    @Test(expected = AuditVitamException.class)
     public void given_unexisted_element_in_secondary_offer_should_execute_audit_with_KO() throws Exception {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
@@ -306,10 +289,7 @@ public class ReferentialAuditServiceTest {
                 eq(DataCategory.BACKUP), any())).thenReturn(offerOneResponse);
 
 
-        StatusCode statusCode =
-            referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
-
-        assertEquals(KO,statusCode);
+        referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
 
     private void populateDatabase() throws Exception {
