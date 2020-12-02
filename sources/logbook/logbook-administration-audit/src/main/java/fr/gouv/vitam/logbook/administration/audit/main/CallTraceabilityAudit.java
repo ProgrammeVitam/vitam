@@ -29,11 +29,11 @@ package fr.gouv.vitam.logbook.administration.audit.main;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.temporal.ChronoUnit;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
-import fr.gouv.vitam.common.configuration.SecureConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -66,14 +66,18 @@ public class CallTraceabilityAudit {
             File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
             final TraceabilityAuditConfiguration conf = PropertiesUtils.readYaml(confFile, TraceabilityAuditConfiguration.class);
             VitamThreadFactory instance = VitamThreadFactory.getInstance();
-            int nbDay = conf.getNbDay();
-            int times = conf.getTimesEachDay();
             Thread thread = instance.newThread(() -> {
                 conf.getTenants().forEach((v) -> {
-                    Integer i = Integer.parseInt(v);
-                    auditByTenantId(i, nbDay, times, OP_TYPE);
-                    auditByTenantId(i, nbDay, times, Contexts.UNIT_LFC_TRACEABILITY.getEventType());
-                    auditByTenantId(i, nbDay, times, Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
+                    int tenant = Integer.parseInt(v);
+                    auditByTenantId(tenant, OP_TYPE,
+                        conf.getOperationTraceabilityMaxRenewalDelay(),
+                        conf.getOperationTraceabilityMaxRenewalDelayUnit());
+                    auditByTenantId(tenant, Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+                        conf.getLifecycleTraceabilityMaxRenewalDelay(),
+                        conf.getLifecycleTraceabilityMaxRenewalDelayUnit());
+                    auditByTenantId(tenant, Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+                        conf.getLifecycleTraceabilityMaxRenewalDelay(),
+                        conf.getLifecycleTraceabilityMaxRenewalDelayUnit());
                 });
             });
             thread.start();
@@ -89,18 +93,15 @@ public class CallTraceabilityAudit {
 
     /**
      * Launch audit of operation or lfc traceability for a specific tenant
-     *
-     * @param tenantId
-     * @param nbDay
      */
-    private static void auditByTenantId(int tenantId, int nbDay, int times, String logbookType) {
+    private static void auditByTenantId(int tenantId, String logbookType, int amount, ChronoUnit unit) {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
             final LogbookOperationsClientFactory logbookOperationsClientFactory =
                     LogbookOperationsClientFactory.getInstance();
 
-            AuditLogbookOptions options = new AuditLogbookOptions(nbDay, times, logbookType);
+            AuditLogbookOptions options = new AuditLogbookOptions(amount, unit, logbookType);
             try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
                 client.traceabilityAudit(tenantId, options);
             }

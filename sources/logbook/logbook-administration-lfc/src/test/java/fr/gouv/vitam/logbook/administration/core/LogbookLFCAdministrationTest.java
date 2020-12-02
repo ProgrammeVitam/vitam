@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -99,6 +100,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -134,6 +136,8 @@ public class LogbookLFCAdministrationTest {
 
     @ClassRule
     public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    @ClassRule
+    public static LogicalClockRule logicalClock = new LogicalClockRule();
 
     private static final Integer tenantId = 0;
     static final List<Integer> tenantList = Collections.singletonList(tenantId);
@@ -1142,11 +1146,42 @@ public class LogbookLFCAdministrationTest {
 
     @Test
     @RunWithCustomExecutor
-    public void traceabilityAuditTest() throws Exception {
+    public void traceabilityAuditTestWhenNoTraceabilityThenKO() throws Exception {
+
+        // Given
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-        reset(workspaceClient);
-        reset(processingManagementClient);
+        doNothing().when(workspaceClient).createContainer(anyString());
+        AlertService alertService = mock(AlertService.class);
+
+        doNothing().when(processingManagementClient).initVitamProcess(anyString(), any());
+        RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
+        req.setHttpCode(Status.ACCEPTED.getStatusCode());
+        when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
+
+        LogbookAuditAdministration logbookAuditAdministration =
+            new LogbookAuditAdministration(logbookOperations, alertService);
+
+        // When
+        int nbUnitLfcTraceabilityOperations = logbookAuditAdministration
+            .auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 12, ChronoUnit.HOURS);
+
+        int nbObjectGroupLfcTraceabilityOperations = logbookAuditAdministration
+            .auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 12, ChronoUnit.HOURS);
+
+        // Then
+        assertEquals(0, nbUnitLfcTraceabilityOperations);
+        assertEquals(0, nbObjectGroupLfcTraceabilityOperations);
+        verify(alertService, times(2)).createAlert(anyString());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void traceabilityAuditTestWhenTraceabilityThenOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
         doNothing().when(workspaceClient).createContainer(anyString());
         AlertService alertService = mock(AlertService.class);
 
@@ -1157,27 +1192,69 @@ public class LogbookLFCAdministrationTest {
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, logbookLifeCycles, processingManagementClientFactory,
-                workspaceClientFactory, TEMPORIZATION_DELAY, 1, ChronoUnit.MILLIS, MAX_ENTRIES);
-
-        for (int i = 0; i < 23; i++) {
-            logbookAdministration.generateSecureLogbookLFC(GUIDFactory.newGUID(), LfcTraceabilityType.Unit);
-            logbookAdministration.generateSecureLogbookLFC(GUIDFactory.newGUID(), LfcTraceabilityType.ObjectGroup);
-        }
+                workspaceClientFactory, TEMPORIZATION_DELAY, 12, ChronoUnit.HOURS, MAX_ENTRIES);
 
         LogbookAuditAdministration logbookAuditAdministration =
-            new LogbookAuditAdministration(logbookOperations);
-        assertEquals(23,
-            logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
-        assertEquals(23,
-            logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
+            new LogbookAuditAdministration(logbookOperations, alertService);
 
         logbookAdministration.generateSecureLogbookLFC(GUIDFactory.newGUID(), LfcTraceabilityType.Unit);
+        logbookAdministration.generateSecureLogbookLFC(GUIDFactory.newGUID(), LfcTraceabilityType.ObjectGroup);
 
-        assertEquals(24,
-            logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
+        // When / Then
+        for (int i = 0; i < 11; i++) {
+            logicalClock.logicalSleep(60, ChronoUnit.MINUTES);
+
+            int nbUnitLfcTraceabilityOperations = logbookAuditAdministration
+                .auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 12, ChronoUnit.HOURS);
+
+            int nbObjectGroupLfcTraceabilityOperations = logbookAuditAdministration
+                .auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 12, ChronoUnit.HOURS);
+
+            // Then
+            assertEquals(1, nbUnitLfcTraceabilityOperations);
+            assertEquals(1, nbObjectGroupLfcTraceabilityOperations);
+        }
+
         verify(alertService, never()).createAlert(anyString());
-        assertEquals(23,
-            logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
-        verify(alertService, never()).createAlert(anyString());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void traceabilityAuditTestWhenTraceabilityIsTooOldThenKO() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
+        doNothing().when(workspaceClient).createContainer(anyString());
+        AlertService alertService = mock(AlertService.class);
+
+        doNothing().when(processingManagementClient).initVitamProcess(anyString(), any());
+        RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
+        req.setHttpCode(Status.ACCEPTED.getStatusCode());
+        when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
+
+        LogbookLFCAdministration logbookAdministration =
+            new LogbookLFCAdministration(logbookOperations, logbookLifeCycles, processingManagementClientFactory,
+                workspaceClientFactory, TEMPORIZATION_DELAY, 12, ChronoUnit.HOURS, MAX_ENTRIES);
+
+        LogbookAuditAdministration logbookAuditAdministration =
+            new LogbookAuditAdministration(logbookOperations, alertService);
+
+        logbookAdministration.generateSecureLogbookLFC(GUIDFactory.newGUID(), LfcTraceabilityType.Unit);
+        logbookAdministration.generateSecureLogbookLFC(GUIDFactory.newGUID(), LfcTraceabilityType.ObjectGroup);
+
+        logicalClock.logicalSleep(12, ChronoUnit.HOURS);
+
+        // When
+        int nbUnitLfcTraceabilityOperations = logbookAuditAdministration
+            .auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 12, ChronoUnit.HOURS);
+
+        int nbObjectGroupLfcTraceabilityOperations = logbookAuditAdministration
+            .auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 12, ChronoUnit.HOURS);
+
+        // Then
+        assertEquals(0, nbUnitLfcTraceabilityOperations);
+        assertEquals(0, nbObjectGroupLfcTraceabilityOperations);
+        verify(alertService, times(2)).createAlert(anyString());
     }
 }

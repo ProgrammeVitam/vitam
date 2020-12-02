@@ -28,37 +28,59 @@ package fr.gouv.vitam.logbook.administration.audit.core;
 
 import fr.gouv.vitam.common.configuration.SecureConfiguration;
 
+import java.time.temporal.ChronoUnit;
+
 public class TraceabilityAuditConfiguration extends SecureConfiguration {
 
     /**
-     * @return number of days
+     * Max delay between 2 logbook operation traceability operations.
      */
-    public int getNbDay() {
-        return nbDay;
-    }
+    private Integer operationTraceabilityMaxRenewalDelay;
+    private ChronoUnit operationTraceabilityMaxRenewalDelayUnit;
 
     /**
-     * @param nbDay to set
+     * Max delay between 2 LFC traceability operations.
      */
-    public void setNbDay(int nbDay) {
-        this.nbDay = nbDay;
+    private Integer lifecycleTraceabilityMaxRenewalDelay;
+    private ChronoUnit lifecycleTraceabilityMaxRenewalDelayUnit;
+
+    public Integer getOperationTraceabilityMaxRenewalDelay() {
+        return operationTraceabilityMaxRenewalDelay;
     }
 
-    protected int nbDay;
-
-    /**
-     * @return times of traceability logbook each day
-     */
-    public int getTimesEachDay() {
-        return timesEachDay;
+    public TraceabilityAuditConfiguration setOperationTraceabilityMaxRenewalDelay(
+        Integer operationTraceabilityMaxRenewalDelay) {
+        this.operationTraceabilityMaxRenewalDelay = operationTraceabilityMaxRenewalDelay;
+        return this;
     }
 
-    /**
-     * @param timesEachDay
-     */
-    public void setTimesEachDay(int timesEachDay) {
-        this.timesEachDay = timesEachDay;
+    public ChronoUnit getOperationTraceabilityMaxRenewalDelayUnit() {
+        return operationTraceabilityMaxRenewalDelayUnit;
     }
 
-    protected int timesEachDay;
+    public TraceabilityAuditConfiguration setOperationTraceabilityMaxRenewalDelayUnit(
+        ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
+        this.operationTraceabilityMaxRenewalDelayUnit = operationTraceabilityMaxRenewalDelayUnit;
+        return this;
+    }
+
+    public Integer getLifecycleTraceabilityMaxRenewalDelay() {
+        return lifecycleTraceabilityMaxRenewalDelay;
+    }
+
+    public TraceabilityAuditConfiguration setLifecycleTraceabilityMaxRenewalDelay(
+        Integer lifecycleTraceabilityMaxRenewalDelay) {
+        this.lifecycleTraceabilityMaxRenewalDelay = lifecycleTraceabilityMaxRenewalDelay;
+        return this;
+    }
+
+    public ChronoUnit getLifecycleTraceabilityMaxRenewalDelayUnit() {
+        return lifecycleTraceabilityMaxRenewalDelayUnit;
+    }
+
+    public TraceabilityAuditConfiguration setLifecycleTraceabilityMaxRenewalDelayUnit(
+        ChronoUnit lifecycleTraceabilityMaxRenewalDelayUnit) {
+        this.lifecycleTraceabilityMaxRenewalDelayUnit = lifecycleTraceabilityMaxRenewalDelayUnit;
+        return this;
+    }
 }
