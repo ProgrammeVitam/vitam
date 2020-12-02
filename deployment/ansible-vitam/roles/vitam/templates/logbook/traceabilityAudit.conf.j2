@@ -1,14 +1,5 @@
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
-nbDay: 1
-{% for timer in vitam_timers.logbook %}
-{% if timer.name == 'vitam-traceability-operations' %}
-{% if timer.frequency.split("/")[1] is defined %}
-# computed number
-timesEachDay: {{ ((24 / timer.frequency.split("/")[1].split(":")[0]|int)|int) |default('1') }}
-{% else%}
-# No calculation, default behavior
-timesEachDay: 1
-{% endif %}
-{% endif %}
-{% endfor %}
-
+operationTraceabilityMaxRenewalDelay: {{ vitam.logbook.operationTraceabilityMaxRenewalDelay }}
+operationTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.operationTraceabilityMaxRenewalDelayUnit }}
+lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay }}
+lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit }}

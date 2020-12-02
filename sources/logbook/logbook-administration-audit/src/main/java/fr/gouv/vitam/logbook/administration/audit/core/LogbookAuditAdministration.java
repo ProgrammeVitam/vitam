@@ -26,14 +26,6 @@
  */
 package fr.gouv.vitam.logbook.administration.audit.core;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
@@ -46,11 +38,18 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.administration.audit.exception.LogbookAuditException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 
 /**
  * Business class for Logbook traceability audit
@@ -60,49 +59,35 @@ public class LogbookAuditAdministration {
     private final LogbookOperations logbookOperations;
     private final AlertService alertService;
 
-    /**
-     * Constructor
-     */
     public LogbookAuditAdministration(LogbookOperations logbookOperations) {
         this(logbookOperations, new AlertServiceImpl());
     }
 
-    /**
-     * Constructor for testing
-     */
-    @VisibleForTesting
-    LogbookAuditAdministration(LogbookOperations logbookOperations, AlertService alertService) {
+    public LogbookAuditAdministration(LogbookOperations logbookOperations, AlertService alertService) {
         this.logbookOperations = logbookOperations;
         this.alertService = alertService;
     }
 
     /**
-     * Check whether the number of the traceability logbook is as expected
+     * Check existence of at least 1 traceability logbook operation in last time period.
      *
-     * @param type
-     * @param nbDay
-     * @return
-     * @throws InvalidParseOperationException
-     * @throws LogbookDatabaseException
-     * @throws InvalidCreateOperationException
+     * @param type process type
+     * @param amount time amount
+     * @param unit time unit
+     * @return nb operations found
+     * @throws LogbookAuditException Internal check error
      */
-    public int auditTraceability(String type, int nbDay, int times) throws LogbookAuditException {
+    public int auditTraceability(String type, int amount, ChronoUnit unit) throws LogbookAuditException {
         int nbLog;
-        int nbLogExcepted = nbDay * times;
         Select selectQuery = new Select();
 
         try {
-            Date now = new Date();
-            Calendar cal = new GregorianCalendar();
-            cal.setTime(now);
-            cal.add(Calendar.DAY_OF_MONTH, -nbDay);
-            Date before = cal.getTime();
+            LocalDateTime startDateTime = LocalDateUtil.now().minus(amount, unit);
 
             selectQuery.setQuery(
-                    and().add(QueryHelper.eq(LogbookMongoDbName.eventTypeProcess.getDbname(), "TRACEABILITY"),
+                    and().add(QueryHelper.eq(LogbookMongoDbName.eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name()),
                             QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), type),
-                            QueryHelper.gte(LogbookMongoDbName.eventDateTime.getDbname(), LocalDateUtil.getString(before)),
-                            QueryHelper.lte(LogbookMongoDbName.eventDateTime.getDbname(), LocalDateUtil.getString(now))
+                            QueryHelper.gte(LogbookMongoDbName.eventDateTime.getDbname(), LocalDateUtil.getFormattedDateForMongo(startDateTime))
                     ));
             List<LogbookOperation> ops = logbookOperations.select(selectQuery.getFinalSelect());
             nbLog = ops.size();
@@ -113,12 +98,11 @@ public class LogbookAuditAdministration {
             throw new LogbookAuditException(e.getMessage());
         }
 
-        if (nbLog != nbLogExcepted) {
-            LOGGER.error("We just find" + nbLog + " traceability logbook(s) of tenant " +
-                            VitamThreadUtils.getVitamSession().getTenantId());
-            alertService.createAlert("There are missing traceability logbooks of tenant " +
-                    VitamThreadUtils.getVitamSession().getTenantId() + " for " + nbDay + " days");
-            return nbLog;
+        if (nbLog == 0) {
+            String error = String.format("No %s traceability found for tenant %d in the last %d %s",
+                type, VitamThreadUtils.getVitamSession().getTenantId(), amount, unit);
+            LOGGER.error(error);
+            alertService.createAlert(error);
         }
         return nbLog;
     }

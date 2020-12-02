@@ -26,13 +26,15 @@
  */
 package fr.gouv.vitam.logbook.common.model;
 
+import java.time.temporal.ChronoUnit;
+
 /**
  * The options for launch audit logbook
  */
 public class AuditLogbookOptions {
 
-    private int nbDay;
-    private int timesEachDay;
+    private int amount;
+    private ChronoUnit unit;
     private String type;
 
     /**
@@ -42,58 +44,36 @@ public class AuditLogbookOptions {
 
     }
 
-    /**
-     * Constructor
-     *
-     * @param nbDay
-     * @param type
-     */
-    public AuditLogbookOptions(int nbDay, int timesEachDay, String type) {
-        this.nbDay = nbDay;
+    public AuditLogbookOptions(int amount, ChronoUnit unit, String type) {
+        this.amount = amount;
+        this.unit = unit;
         this.type = type;
-        this.timesEachDay = timesEachDay;
     }
 
-    /**
-     * @return number of day
-     */
-    public int getNbDay() {
-        return nbDay;
+    public int getAmount() {
+        return amount;
     }
 
-    /**
-     * @param nbDay
-     */
-    public void setNbDay(int nbDay) {
-        this.nbDay = nbDay;
+    public AuditLogbookOptions setAmount(int amount) {
+        this.amount = amount;
+        return this;
     }
 
-    /**
-     * @return type for evType
-     */
+    public ChronoUnit getUnit() {
+        return unit;
+    }
+
+    public AuditLogbookOptions setUnit(ChronoUnit unit) {
+        this.unit = unit;
+        return this;
+    }
+
     public String getType() {
         return type;
     }
 
-    /**
-     * @param type
-     */
-    public void setType(String type) {
+    public AuditLogbookOptions setType(String type) {
         this.type = type;
+        return this;
     }
-
-    /**
-     * @return times each day
-     */
-    public int getTimesEachDay() {
-        return timesEachDay;
-    }
-
-    /**
-     * @param timesEachDay
-     */
-    public void setTimesEachDay(int timesEachDay) {
-        this.timesEachDay = timesEachDay;
-    }
-
 }

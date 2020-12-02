@@ -52,6 +52,10 @@ packages_install_retries_delay: 10
 
 
 vitam_timers:
+# /!\ IMPORTANT :
+# Please ensure timer execution is spread so that not all timers run concurrently (eg. *:05:00, *:35:00, *:50:00..),
+# Special care for heavy-load timers that run on same machines or use same resources (eg. vitam-traceability-*).
+#
 # systemd nomenclature
 #    minutely → *-*-* *:*:00
 #    hourly → *-*-* *:00:00
@@ -64,41 +68,41 @@ vitam_timers:
     logbook: # all have to run on only one machine
         # Sécurisation des journaux des opérations
         - name: vitam-traceability-operations
-          frequency: "*-*-* 0/2:00:00" # every 2 hours
+          frequency: "*-*-* *:05:00" # every hour
         # Sécurisation des journaux du cycle de vie des groupes d'objets
         - name: vitam-traceability-lfc-objectgroup
-          frequency: "*-*-* 0/4:00:00" # every 4 hours
+          frequency: "*-*-* *:15:00" # every hour
         # Sécurisation des journaux du cycle de vie des unités archivistiques
         - name: vitam-traceability-lfc-unit
-          frequency: "*-*-* 0/3:00:00" # every 3 hours
+          frequency: "*-*-* *:35:00" # every hour
         # Audit de traçabilité
         - name: vitam-traceability-audit
-          frequency: "*-*-* 00:00:00"
-        # Reconstruction
+          frequency: "*-*-* 00:55:00"
+        # Reconstruction (uniquement sur site secondaire)
         - name: vitam-logbook-reconstruction
           frequency: "*-*-* *:0/5:00"
     storage:
-        # Sauvegarde des journaux des écritures
+        # Sauvegarde des journaux d'accès
         - name: vitam-storage-accesslog-backup
-          frequency: "*-*-* 0/4:00:00" # every 4 hours
-        # Sécurisation du journal des écritures
+          frequency: "*-*-* 0/4:10:00" # every 4 hours
+        # Sauvegarde des journaux des écritures
         - name: vitam-storage-log-backup
-          frequency: "*-*-* 0/2:00:00" # every 2 hours
-        # Log traceability
+          frequency: "*-*-* 0/4:15:00" # every 4 hours
+        # Sécurisation du journal des écritures
         - name: vitam-storage-log-traceability
-          frequency: "*-*-* 0/2:10:00" # every 2 hours (10 minutes)
+          frequency: "*-*-* 0/4:40:00" # every 4 hours
     functional_administration:
         - name: vitam-create-accession-register-symbolic
-          frequency: "*-*-* 00:00:00"
+          frequency: "*-*-* 00:50:00"
         - name: vitam-functional-administration-accession-register-reconstruction
           frequency: "*-*-* *:0/5:00"
         - name: vitam-rule-management-audit
-          frequency: "*-*-* *:00:00"
+          frequency: "*-*-* *:40:00"
         - name: vitam-functional-administration-reconstruction
           frequency: "*-*-* *:0/5:00"
     metadata:
         - name: vitam-metadata-store-graph
-          frequency: "*-*-* *:0/30:00"
+          frequency: "*-*-* *:10/30:00"
         - name: vitam-metadata-reconstruction
           frequency: "*-*-* *:0/5:00"
         - name: vitam-metadata-computed-inherited-rules
@@ -106,13 +110,13 @@ vitam_timers:
         - name: vitam-metadata-purge-dip
           frequency: "*-*-* 02:20:00"
         - name: vitam-metadata-purge-transfers-SIP
-          frequency: "*-*-* 02:20:00"
+          frequency: "*-*-* 02:25:00"
         - name: vitam-metadata-audit-mongodb-es
           frequency: "2020-01-01 00:00:00"
     offer:
       # Compaction offer logs
       - name: vitam-offer-log-compaction
-        frequency: "*-*-* *:00:00" # every hour
+        frequency: "*-*-* *:40:00" # every hour
 
 ### consul ###
 # WARNING: consul_domain should be a supported domain name for your organization
