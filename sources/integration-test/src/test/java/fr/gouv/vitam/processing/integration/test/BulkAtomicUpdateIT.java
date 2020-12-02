@@ -845,6 +845,132 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
         }
     }
 
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void given_valid_queries_same_twice_then_OK_with_report_WARNING() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
+        VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
+
+        try (AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+
+            // global init
+            insertUnitAndLFC(UNIT_00_JSON, UNIT_LFC_00_JSON);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            
+            // First operation
+            final GUID operationGuid1 = GUIDFactory.newOperationLogbookGUID(TENANT_0);
+            final String containerName1 = operationGuid1.getId();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid1);
+            createLogbookOperation(operationGuid1, operationGuid1, BULK_ATOMIC_UPDATE_UNIT_DESC,
+                LogbookTypeProcess.BULK_UPDATE);
+            workspaceClient.createContainer(containerName1);
+            initAccessContract(functionalClient, operationGuid1);
+            JsonNode queries = JsonHandler
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_06_JSON));
+            assertNotNull(queries);
+            workspaceClient
+                .putObject(operationGuid1.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+
+            workspaceClient.putObject(containerName1, OperationContextMonitor.OperationContextFileName, 
+                    JsonHandler.writeToInpustream(OperationContextModel.get(queries)));
+            OperationContextMonitor
+                .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName1,
+                    Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+            
+            // Init workflow
+            processingClient.initVitamProcess(containerName1, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
+
+            RequestResponse<ItemStatus> ret1 = processingClient
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName1);
+            assertNotNull(ret1);
+            assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret1.getStatus());
+
+            waitOperation(containerName1);
+            ProcessWorkflow processWorkflow1 = processMonitoring.findOneProcessWorkflow(containerName1, TENANT_0);
+            assertNotNull(processWorkflow1);
+            assertEquals(ProcessState.COMPLETED, processWorkflow1.getState());
+            assertEquals(StatusCode.OK, processWorkflow1.getStatus());
+
+
+            // second operation
+            final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(TENANT_0);
+            final String containerName2 = operationGuid2.getId();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid2);
+            createLogbookOperation(operationGuid2, operationGuid2, BULK_ATOMIC_UPDATE_UNIT_DESC,
+                LogbookTypeProcess.BULK_UPDATE);
+            workspaceClient.createContainer(containerName2);
+            initAccessContract(functionalClient, operationGuid2);
+            workspaceClient
+                .putObject(operationGuid2.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+
+            workspaceClient.putObject(containerName2, OperationContextMonitor.OperationContextFileName, 
+                    JsonHandler.writeToInpustream(OperationContextModel.get(queries)));
+            OperationContextMonitor
+                .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName2,
+                    Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+            
+            // Init workflow
+            processingClient.initVitamProcess(containerName2, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
+
+            RequestResponse<ItemStatus> ret2 = processingClient
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName2);
+            assertNotNull(ret2);
+            assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+
+            waitOperation(containerName2);
+            ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, TENANT_0);
+            assertNotNull(processWorkflow2);
+            assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+            assertEquals(StatusCode.OK, processWorkflow2.getStatus());
+            
+
+            JsonNode logbookResult = getLogbookOperation(containerName2);
+            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            verifyEvent(events, "CHECK_QUERIES_THRESHOLD.OK");
+            verifyEvent(events, "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST.OK");
+            verifyEvent(events, "BULK_ATOMIC_UPDATE_UNITS.OK");
+            verifyEvent(events, "BULK_ATOMIC_UPDATE_FINALIZE.OK");
+            verifyEvent(events, "BULK_ATOMIC_UPDATE_UNIT_DESC.OK");
+
+            // CHECK REPORT
+            List<JsonNode> reportLines;
+            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                Response reportResponse = null;
+                try {
+                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
+                        operationGuid2.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+                    assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+
+                    reportLines = VitamTestHelper.getReport(reportResponse);
+                } finally {
+                    consumeAnyEntityAndClose(reportResponse);
+                }
+            }
+            assertThat(reportLines.size()).isEqualTo(4);
+            assertThat(reportLines.get(0).get("outDetail").asText()).isEqualTo("BULK_ATOMIC_UPDATE_UNITS.OK");
+            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(1);
+            assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
+            assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
+
+            Map<Integer, JsonNode> reportDetailsByQueryIndex = getReportDetailsByQueryIndex(reportLines);
+            assertThat(reportDetailsByQueryIndex.get(0).get("status").asText()).isEqualTo("WARNING");
+            assertThat(reportDetailsByQueryIndex.get(0).get("unitId").asText())
+                .isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq");
+            assertThat(reportDetailsByQueryIndex.get(0).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(0)));
+            assertThat(reportDetailsByQueryIndex.get(0).get("resultKey").asText())
+                .isEqualTo("UNIT_METADATA_NO_NEW_DATA");
+
+        }
+    }
+    
     @RunWithCustomExecutor
     @Test
     public void given_redo_of_fatal_bulk_update_then_OK() throws Exception {

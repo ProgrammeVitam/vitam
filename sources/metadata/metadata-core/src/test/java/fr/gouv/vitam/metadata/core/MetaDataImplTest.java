@@ -94,6 +94,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -232,11 +233,11 @@ public class MetaDataImplTest {
             .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList()))
+            any(UnitValidator.class), anyList(), anyBoolean()))
             .thenReturn(new UpdatedDocument("unitId",
                 JsonHandler.createObjectNode().put("x", "v1"),
-                JsonHandler.createObjectNode().put("x", "v2")));
-        UpdateUnit result = metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
+                JsonHandler.createObjectNode().put("x", "v2"), true));
+        UpdateUnit result = metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
         assertThat(result.getUnitId()).isEqualTo("unitId");
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(result.getDiff()).isEqualTo("-  \"x\" : \"v1\"\n+  \"x\" : \"v2\"");
@@ -275,7 +276,7 @@ public class MetaDataImplTest {
         List<OntologyModel> ontologyModels = emptyList();
         when(adminManagementClient.findOntologies(any()))
             .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
-        metaDataImpl.updateUnitById(JsonHandler.getFromString(""), "unitId");
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(""), "unitId", true);
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -296,9 +297,9 @@ public class MetaDataImplTest {
             .thenReturn(selectResult);
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList()))
+            any(UnitValidator.class), anyList(), anyBoolean()))
             .thenThrow(new MetaDataExecutionException(""));
-        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -306,7 +307,7 @@ public class MetaDataImplTest {
         final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
-            metaDataImpl.updateUnitById(JsonHandler.getFromString(createLongString(1001)), "unitId");
+            metaDataImpl.updateUnitById(JsonHandler.getFromString(createLongString(1001)), "unitId", true);
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
         }
@@ -330,9 +331,9 @@ public class MetaDataImplTest {
             .thenReturn(selectResult);
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList()))
+            any(UnitValidator.class), anyList(), anyBoolean()))
             .thenThrow(new InvalidParseOperationException(""));
-        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
     }
 
     @Test
@@ -397,11 +398,11 @@ public class MetaDataImplTest {
         final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateQuery.json"));
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList()))
+            any(UnitValidator.class), anyList(), anyBoolean()))
             .thenReturn(
-                new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit)));
+                new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit), true));
 
-        UpdateUnit result = metaDataImpl.updateUnitById(updateRequest, "unitId");
+        UpdateUnit result = metaDataImpl.updateUnitById(updateRequest, "unitId", true);
 
         assertEquals(wantedDiff.get("#diff").asText(), result.getDiff());
     }
@@ -430,15 +431,15 @@ public class MetaDataImplTest {
             new ResultDefault<MetadataDocument<?>>(FILTERARGS.UNITS).addFinal(unit2Before));
 
         when(request.execUpdateRequest(any(), any(), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList()))
+            any(UnitValidator.class), anyList(), anyBoolean()))
             .thenReturn(
-                new UpdatedDocument("unit1", JsonHandler.toJsonNode(unit1Before), JsonHandler.toJsonNode(unit1After)),
-                new UpdatedDocument("unit2", JsonHandler.toJsonNode(unit2Before), JsonHandler.toJsonNode(unit2After)));
+                new UpdatedDocument("unit1", JsonHandler.toJsonNode(unit1Before), JsonHandler.toJsonNode(unit1After), true),
+                new UpdatedDocument("unit2", JsonHandler.toJsonNode(unit2Before), JsonHandler.toJsonNode(unit2After), true));
 
         // When
         final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateUnits.json"));
         RequestResponseOK<UpdateUnit> requestResponse =
-            (RequestResponseOK<UpdateUnit>) metaDataImpl.updateUnits(updateRequest);
+            (RequestResponseOK<UpdateUnit>) metaDataImpl.updateUnits(updateRequest, true);
 
         // Then
         assertThat(requestResponse.getResults().stream())

@@ -158,6 +158,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -370,7 +371,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(updateParser, uuid.toString(), UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+                mock(UnitValidator.class), Collections.emptyList(), true);
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -588,7 +589,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(requestParser, uuid.toString(), UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+                mock(UnitValidator.class), Collections.emptyList(), true);
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -661,7 +662,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(requestParser, uuid.toString(), UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+                mock(UnitValidator.class), Collections.emptyList(), true);
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -785,7 +786,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(requestParser, uuid.toString(), UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+                mock(UnitValidator.class), Collections.emptyList(), true);
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -875,7 +876,7 @@ public class DbRequestTest {
 
         UpdatedDocument updatedDocument =
             dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList());
+                Collections.emptyList(), true);
 
         // Then
         ObjectNode expectedUnit = (ObjectNode) BsonHelper.fromDocumentToJsonNode(initialUnit);
@@ -945,7 +946,7 @@ public class DbRequestTest {
         // Then
         assertThatThrownBy(() ->
             dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList())
+                Collections.emptyList(), true)
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
@@ -1002,7 +1003,7 @@ public class DbRequestTest {
         // Then
         assertThatThrownBy(() ->
             dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList())
+                Collections.emptyList(), true)
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
@@ -1052,7 +1053,7 @@ public class DbRequestTest {
         // Then
         assertThatThrownBy(() ->
             dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList())
+                Collections.emptyList(), true)
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
@@ -1973,7 +1974,7 @@ public class DbRequestTest {
         doAnswer((args) -> args.getArgument(0)).when(dummyOntologyValidator).verifyAndReplaceFields(any());
 
         dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class), Collections.emptyList());
+            mock(UnitValidator.class), Collections.emptyList(), true);
         UNIT.getEsClient()
             .refreshIndex(UNIT, TENANT_ID_0);
 
@@ -1995,7 +1996,7 @@ public class DbRequestTest {
         LOGGER.debug("UpdateParser: {}", updateParser5.getRequest());
 
         dbRequest.execUpdateRequest(updateParser5, unitId, UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class), Collections.emptyList());
+            mock(UnitValidator.class), Collections.emptyList(), true);
         UNIT.getEsClient()
             .refreshIndex(UNIT, TENANT_ID_0);
 
@@ -2028,7 +2029,7 @@ public class DbRequestTest {
             LOGGER.debug("UpdateParser: {}", updateParser2.getRequest());
             dbRequest
                 .execUpdateRequest(updateParser2, unitId, UNIT, ontologyValidator, unitValidator,
-                    Collections.emptyList());
+                    Collections.emptyList(), true);
             fail("should throw an exception cause of the additional schema");
         } catch (MetadataValidationException e) {
             assertTrue(e.getCause().getMessage().contains("\"missing\":[\"specificField\"]"));
@@ -2041,7 +2042,7 @@ public class DbRequestTest {
         LOGGER.debug("UpdateParser: {}", updateParserSchema.getRequest());
         dbRequest
             .execUpdateRequest(updateParserSchema, unitId, UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList());
+                Collections.emptyList(), true);
         UNIT.getEsClient()
             .refreshIndex(UNIT, TENANT_ID_0);
 
@@ -2075,6 +2076,78 @@ public class DbRequestTest {
         assertEquals(UUID1,
             resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void testUpdateUnitSameUpdateTwiceForceUpdateFalse_onlyUpdateFirstTime() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        // insert title ARchive 3
+        final DbRequest dbRequest = new DbRequest();
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        String requestInsertTestEsUpdate =
+            IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
+        insert.parseData(requestInsertTestEsUpdate);
+        insertParser.parse(insert.getFinalInsert());
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
+        UNIT.getEsClient()
+            .refreshIndex(UNIT, TENANT_ID_0);
+
+        // check value should exist in the collection
+        SelectParserMultiple selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        SelectMultiQuery select1 = new SelectMultiQuery();
+        select1.addQueries(match("Title", "Archive").setDepthLimit(0)).addRoots(UUID1);
+        selectParser2.parse(select1.getFinalSelect());
+        Result resultSelectRel6 = dbRequest.execRequest(selectParser2, Collections.emptyList());
+        assertEquals(1, resultSelectRel6.nbResult);
+        String unitId = (String) resultSelectRel6.getCurrentIds().get(0);
+
+        // update title Archive 3 to Archive 2
+        final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST);
+        final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
+        updateParser.parse(updateRequest);
+        LOGGER.debug("UpdateParser: {}", updateParser.getRequest());
+
+        OntologyValidator dummyOntologyValidator = mock(OntologyValidator.class);
+        doAnswer((args) -> args.getArgument(0)).when(dummyOntologyValidator).verifyAndReplaceFields(any());
+
+        UpdatedDocument updatedDocument1 = dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
+            mock(UnitValidator.class), Collections.emptyList(), false);
+        UNIT.getEsClient()
+            .refreshIndex(UNIT, TENANT_ID_0);
+        assertNotEquals(updatedDocument1.getBeforeUpdate(), updatedDocument1.getAfterUpdate());
+
+        // select query
+        SelectParserMultiple selectParserUnit = new SelectParserMultiple(mongoDbVarNameAdapter);
+        SelectMultiQuery selectUnit = new SelectMultiQuery();
+        selectUnit.addQueries(eq("#id", UUID1));
+        selectParserUnit.parse(selectUnit.getFinalSelect());
+        
+        // select the unit and check the modification
+        Result resultSelectUnit = dbRequest.execRequest(selectParserUnit, Collections.emptyList());
+        assertEquals(1, resultSelectUnit.nbResult);
+        assertEquals(UUID1, resultSelectUnit.getCurrentIds().iterator().next().toString());
+        assertEquals(
+            ((Unit) resultSelectUnit.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
+
+        // update title Archive 3 to Archive 2
+        doAnswer((args) -> args.getArgument(0)).when(dummyOntologyValidator).verifyAndReplaceFields(any());
+
+        UpdatedDocument updatedDocument2 = dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
+            mock(UnitValidator.class), Collections.emptyList(), false);
+        UNIT.getEsClient()
+            .refreshIndex(UNIT, TENANT_ID_0);
+        assertEquals(updatedDocument2.getBeforeUpdate(), updatedDocument2.getAfterUpdate());
+        assertFalse(updatedDocument2.isUpdated());
+        
+        // select the unit and check the non modification
+        resultSelectUnit = dbRequest.execRequest(selectParserUnit, Collections.emptyList());
+        assertEquals(1, resultSelectUnit.nbResult);
+        assertEquals(UUID1, resultSelectUnit.getCurrentIds().iterator().next().toString());
+        assertEquals(
+            ((Unit) resultSelectUnit.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -2100,7 +2173,7 @@ public class DbRequestTest {
         doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
         dbRequest.execUpdateRequest(updateParser, "aeaqaaaaaagbcaacabg44ak45e54criaaaaq",
-            UNIT, ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
+            UNIT, ontologyValidator, mock(UnitValidator.class), Collections.emptyList(), true);
     }
 
     @Test
@@ -2956,7 +3029,7 @@ public class DbRequestTest {
         // When
         UpdatedDocument updatedDocument = dbRequest
             .execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList());
+                Collections.emptyList(), true);
 
         // Then
         String diff = String.join("\n", VitamDocument.getConcernedDiffLines(VitamDocument

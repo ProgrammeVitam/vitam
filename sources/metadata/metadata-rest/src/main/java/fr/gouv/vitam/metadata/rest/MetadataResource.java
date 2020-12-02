@@ -185,7 +185,7 @@ public class MetadataResource extends ApplicationStatusResource {
         Status status;
         RequestResponse<UpdateUnit> result;
         try {
-            result = metaData.updateUnits(updateQuery);
+            result = metaData.updateUnits(updateQuery, true);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -220,7 +220,7 @@ public class MetadataResource extends ApplicationStatusResource {
         final List<RequestResponse<?>> results = new ArrayList<>();
         updateQueries.forEach(updateQuery -> {
             try {
-                results.add(metaData.updateUnits(updateQuery).setHttpCode(OK.getStatusCode()));
+                results.add(metaData.updateUnits(updateQuery, false).setHttpCode(OK.getStatusCode()));
             } catch (InvalidParseOperationException e) {
                 Status status = Status.BAD_REQUEST;
                 results.add(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -523,7 +523,7 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response updateUnitById(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
         try {
-            UpdateUnit result = metaData.updateUnitById(updateRequest, unitId);
+            UpdateUnit result = metaData.updateUnitById(updateRequest, unitId, true);
 
             return Response.ok(new RequestResponseOK<UpdateUnit>().addResult(result)
                 .setHttpCode(Status.OK.getStatusCode())).build();
@@ -793,7 +793,7 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
         try {
-            metaData.updateObjectGroupId(updateRequest, objectGroupId);
+            metaData.updateObjectGroupId(updateRequest, objectGroupId, true);
 
             return Response.status(Status.CREATED)
                 .entity(new RequestResponseOK<String>().addResult(objectGroupId)

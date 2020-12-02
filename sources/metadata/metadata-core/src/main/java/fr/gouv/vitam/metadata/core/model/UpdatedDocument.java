@@ -34,15 +34,17 @@ public class UpdatedDocument {
     private String documentId;
     private JsonNode beforeUpdate;
     private JsonNode afterUpdate;
+    private boolean updated;
 
     public UpdatedDocument() {
         // Empty constructor for deserialization
     }
 
-    public UpdatedDocument(String documentId, JsonNode beforeUpdate, JsonNode afterUpdate) {
+    public UpdatedDocument(String documentId, JsonNode beforeUpdate, JsonNode afterUpdate, boolean updated) {
         this.documentId = documentId;
         this.beforeUpdate = beforeUpdate;
         this.afterUpdate = afterUpdate;
+        this.updated = updated;
     }
 
     public String getDocumentId() {
@@ -71,7 +73,11 @@ public class UpdatedDocument {
         this.afterUpdate = afterUpdate;
         return this;
     }
-
+    
+    public boolean isUpdated() {
+        return updated;
+    }
+    
     @Override
     public String toString() {
         return JsonHandler.prettyPrint(this);
