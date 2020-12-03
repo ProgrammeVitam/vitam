@@ -409,7 +409,7 @@ public class PurgeIT extends VitamRuleRunner {
             List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
             JsonNode information = storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
             boolean fileFound = information.size() > 0;
-            assertThat(fileFound).isEqualTo((boolean) shouldExist);
+            assertThat(fileFound).isEqualTo(shouldExist);
         }
     }
 

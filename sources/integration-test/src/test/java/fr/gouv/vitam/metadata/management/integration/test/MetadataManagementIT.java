@@ -58,7 +58,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -146,6 +145,7 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Sorts.orderBy;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1006,7 +1006,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(body.getGotCount()).isEqualTo(0);
 
         Document computedUnit =
-            (Document) MetadataCollections.UNIT.getCollection().find(new Document("_id", "au_without_parents"))
+            MetadataCollections.UNIT.getCollection().find(new Document("_id", "au_without_parents"))
                 .iterator().next();
         assertThat(computedUnit.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
         assertThat(computedUnit.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA4");
@@ -1019,7 +1019,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         Document computedGot =
-            (Document) MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_id", "got_without_unit"))
+            MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_id", "got_without_unit"))
                 .iterator().next();
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA2");
@@ -1042,13 +1042,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(body.getGotCount()).isEqualTo(1);
 
         computedUnit =
-            (Document) MetadataCollections.UNIT.getCollection().find(new Document("_id", "au_without_parents"))
+            MetadataCollections.UNIT.getCollection().find(new Document("_id", "au_without_parents"))
                 .iterator().next();
         assertThat(computedUnit.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
         assertThat(computedUnit.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA4");
 
         computedGot =
-            (Document) MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_id", "got_with_unit_up"))
+            MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_id", "got_with_unit_up"))
                 .iterator().next();
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(2).contains("OA4", "OA2");
@@ -1118,7 +1118,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             String operation = VitamThreadUtils.getVitamSession().getRequestId();
             JsonNode dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_arbre_plan_ko));
             accessInternalResource.startReclassificationWorkflow(dsl);
-            wait(operation);
+            waitOperation(operation);
             ProcessWorkflow processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
             Assertions.assertThat(processWorkflow).isNotNull();
@@ -1141,7 +1141,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             operation = VitamThreadUtils.getVitamSession().getRequestId();
             dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_arbre_ingest_ko));
             accessInternalResource.startReclassificationWorkflow(dsl);
-            wait(operation);
+            waitOperation(operation);
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
             Assertions.assertThat(processWorkflow).isNotNull();
@@ -1165,7 +1165,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             operation = VitamThreadUtils.getVitamSession().getRequestId();
             dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_plan_ingest_ko));
             accessInternalResource.startReclassificationWorkflow(dsl);
-            wait(operation);
+            waitOperation(operation);
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
             Assertions.assertThat(processWorkflow).isNotNull();
@@ -1188,7 +1188,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             operation = VitamThreadUtils.getVitamSession().getRequestId();
             dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_cycle_ko));
             accessInternalResource.startReclassificationWorkflow(dsl);
-            wait(operation);
+            waitOperation(operation);
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
             Assertions.assertThat(processWorkflow).isNotNull();
@@ -1213,7 +1213,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             operation = VitamThreadUtils.getVitamSession().getRequestId();
             dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_detach_ok));
             accessInternalResource.startReclassificationWorkflow(dsl, ProcessAction.NEXT);
-            wait(operation);
+            waitOperation(operation);
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
             Assertions.assertThat(processWorkflow).isNotNull();
@@ -1224,7 +1224,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             String operation_parallel = VitamThreadUtils.getVitamSession().getRequestId();
             dsl = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(dsl_attach_detach_ok_parallel));
             accessInternalResource.startReclassificationWorkflow(dsl);
-            wait(operation_parallel);
+            waitOperation(operation_parallel);
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation_parallel, TENANT_0);
             Assertions.assertThat(processWorkflow).isNotNull();
@@ -1245,7 +1245,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             ProcessingManagementClientFactory.getInstance().getClient()
                 .executeOperationProcess(operation, Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
 
-            wait(operation);
+            waitOperation(operation);
 
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operation, TENANT_0);
@@ -1387,20 +1387,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
         }
 
         return dataSet;
-    }
-
-    private void wait(String operationId) {
-        int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient().isNotRunning(operationId)) {
-            try {
-                Thread.sleep(runner.SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == runner.NB_TRY)
-                break;
-            nbTry++;
-        }
     }
 
     // See computegraph.png for more information

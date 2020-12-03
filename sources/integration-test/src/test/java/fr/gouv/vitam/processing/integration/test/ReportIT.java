@@ -42,13 +42,13 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -103,6 +103,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -148,7 +149,7 @@ public class ReportIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(ProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
@@ -249,7 +250,7 @@ public class ReportIT extends VitamRuleRunner {
 
         processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -325,7 +326,7 @@ public class ReportIT extends VitamRuleRunner {
 
         processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -400,7 +401,7 @@ public class ReportIT extends VitamRuleRunner {
 
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
-            wait(containerName);
+            waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -493,7 +494,7 @@ public class ReportIT extends VitamRuleRunner {
 
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
-            wait(containerName);
+            waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -566,19 +567,5 @@ public class ReportIT extends VitamRuleRunner {
             .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
 
         new VitamMongoRepository(LogbookCollections.LIFECYCLE_UNIT.getCollection()).save(lfcs);
-    }
-
-    private void wait(String operationId) {
-        int nbTry = 0;
-        while (!processingClient.isNotRunning(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
     }
 }

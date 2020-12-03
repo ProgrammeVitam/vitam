@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -96,7 +97,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(MultiFamilyWorkerProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 WorkspaceMain.class,
                 ProcessManagementMain.class

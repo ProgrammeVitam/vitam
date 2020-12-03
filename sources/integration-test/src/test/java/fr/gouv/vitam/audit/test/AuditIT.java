@@ -84,13 +84,10 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -336,7 +333,7 @@ public class AuditIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
             assertThat(response.isOk()).isTrue();
-            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            waitOperation(operationGuid.toString());
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
@@ -382,7 +379,7 @@ public class AuditIT extends VitamRuleRunner {
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
             assertThat(response.isOk()).isTrue();
-            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            waitOperation(operationGuid.toString());
         }
         return operationGuid.toString();
     }

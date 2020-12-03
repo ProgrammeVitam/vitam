@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -71,7 +72,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.preservation.ProcessManagementWaiter;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -96,6 +96,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -114,7 +115,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(LogbookCheckConsistencyIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
@@ -146,8 +147,6 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final String EXPECTED_RESULTS_JSON = "integration-logbook/data/expected_results.json";
 
     private static final int TENANT_0 = 0;
-    private static final long SLEEP_TIME = 20l;
-    private static final long NB_TRY = 18000;
 
 
     @BeforeClass
@@ -253,7 +252,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         // init workflow before execution
         client.initWorkflow(workflow);
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
-        ProcessManagementWaiter.waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
+        waitOperation(operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), TENANT_0);

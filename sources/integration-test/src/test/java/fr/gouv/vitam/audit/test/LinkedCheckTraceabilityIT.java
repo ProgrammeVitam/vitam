@@ -99,8 +99,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
@@ -108,7 +107,6 @@ import static fr.gouv.vitam.logbook.common.model.TraceabilityType.OBJECTGROUP_LI
 import static fr.gouv.vitam.logbook.common.model.TraceabilityType.OPERATION;
 import static fr.gouv.vitam.logbook.common.model.TraceabilityType.STORAGE;
 import static fr.gouv.vitam.logbook.common.model.TraceabilityType.UNIT_LIFECYCLE;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
@@ -394,7 +392,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     private void updateHash(String secureTenantOpId) {
         try {
             Document operation =
-                (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", secureTenantOpId)).first();
+                LogbookCollections.OPERATION.getCollection().find(eq("_id", secureTenantOpId)).first();
             LogbookOperation logbookOperation =
                 JsonHandler.getFromString(BsonHelper.stringify(operation), LogbookOperation.class);
             ObjectNode evData = (ObjectNode) JsonHandler.getFromString(logbookOperation.getEvDetData());
@@ -438,7 +436,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         try (AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient()) {
             accessInternalClient.linkedCheckTraceability(query);
-            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            waitOperation(operationGuid.toString());
             return operationGuid.toString();
         } catch (InvalidParseOperationException | AccessUnauthorizedException | LogbookClientException e) {
             fail("cannot run linked check workflow", e);
@@ -452,7 +450,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             RequestResponseOK<HashMap<String, String>> response = storageClient.storageLogTraceability();
             String opId = response.getResults().get(0).get("id");
-            waitOperation(NB_TRY, SLEEP_TIME, opId);
+            waitOperation(opId);
             return opId;
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             fail("Error while securing data", e);
@@ -467,7 +465,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
             .getClient()) {
             RequestResponseOK<String> response = logbookOperationsClient.traceabilityLfcObjectGroup();
             String opId = response.getResults().get(0);
-            waitOperation(NB_TRY, SLEEP_TIME, opId);
+            waitOperation(opId);
             return opId;
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
             fail("Error while securing GOT data", e);
@@ -482,7 +480,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
             .getClient()) {
             RequestResponseOK<String> response = logbookOperationsClient.traceabilityLfcUnit();
             String opId = response.getResults().get(0);
-            waitOperation(NB_TRY, SLEEP_TIME, opId);
+            waitOperation(opId);
             return opId;
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
             fail("Error while securing UNIT data", e);
@@ -496,7 +494,7 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             RequestResponseOK<String> response = client.traceability();
             String opId = response.getResults().get(0);
-            waitOperation(NB_TRY, SLEEP_TIME, opId);
+            waitOperation(opId);
             return opId;
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
             fail("Error while securing tenant", e);

@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -102,9 +103,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -116,7 +117,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(ReplayProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
@@ -232,7 +233,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
     }
 
     private void validateAccessRegInDetail() throws Exception {
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();) {
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             Select select = new Select();
             final BooleanQuery query = and();
             query.add(exists("OriginatingAgency"));
@@ -255,7 +256,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
     }
 
     private void validateUnitsGoTs(String containerNameReplay, String containerNameNoReplay) throws Exception {
-        try (final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();) {
+        try (final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             // First thing first - units
             SelectMultiQuery selectReplay = new SelectMultiQuery();
             selectReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameReplay));

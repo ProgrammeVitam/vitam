@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -99,7 +100,7 @@ public class WorkerIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(WorkerIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
@@ -219,7 +220,7 @@ public class WorkerIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testWorkflow() throws Exception {
-        Integer tenantId = 0;
+        int tenantId = 0;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
@@ -270,7 +271,7 @@ public class WorkerIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
-        Integer tenantId = 0;
+        int tenantId = 0;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
@@ -326,7 +327,7 @@ public class WorkerIT extends VitamRuleRunner {
     @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
 
-        Integer tenantId = 0;
+        int tenantId = 0;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
@@ -357,7 +358,7 @@ public class WorkerIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithManifestConformityKO() throws Exception {
-        Integer tenantId = 0;
+        int tenantId = 0;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);

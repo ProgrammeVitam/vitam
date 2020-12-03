@@ -165,7 +165,7 @@ public class MigrationIT extends VitamRuleRunner {
             .insertOne(Document.parse(initialDocument));
 
         Bson eq = Filters.eq("_id", "MyUniqueDocId");
-        Document doc = (Document) MetadataCollections.UNIT.getCollection().find(eq).first();
+        Document doc = MetadataCollections.UNIT.getCollection().find(eq).first();
 
         // When
         String serializedDoc = BsonHelper.stringify(doc);
@@ -243,7 +243,7 @@ public class MigrationIT extends VitamRuleRunner {
 
 
 
-    class FakeObjet extends Document {
+    private static class FakeObjet extends Document {
         FakeObjet() throws ParseException {
             append("floatVal", 2.2f);
             append("longVal", 2L);

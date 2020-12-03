@@ -182,6 +182,7 @@ import java.util.zip.ZipOutputStream;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
@@ -390,21 +391,6 @@ public class ProcessingIT extends VitamRuleRunner {
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
-    private void wait(String operationId) {
-        int nbTry = 0;
-        ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isNotRunning(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
-    }
-
     /**
      * This test needs Siegfried already running and started as:<br/>
      * sf -server localhost:8999<br/>
@@ -473,7 +459,7 @@ public class ProcessingIT extends VitamRuleRunner {
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            wait(containerName);
+            waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -617,7 +603,7 @@ public class ProcessingIT extends VitamRuleRunner {
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            wait(containerName);
+            waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -712,7 +698,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -758,7 +744,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -822,7 +808,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertThat(processWorkflow).isNotNull();
@@ -856,7 +842,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -891,7 +877,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -1011,7 +997,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
 
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
@@ -1078,7 +1064,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(jsonNodeRequestResponse.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), jsonNodeRequestResponse.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
 
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
@@ -1110,7 +1096,7 @@ public class ProcessingIT extends VitamRuleRunner {
         String operationId = processWorflow.getOperationId();
 
         Document operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.INVALID_GUID_ATTACHMENT.KO"));
 
@@ -1135,7 +1121,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         operationId = processWorflow.getOperationId();
 
-        operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        operation = LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.NOT_FOUND_ATTACHMENT.KO"));
         try {
@@ -1155,7 +1141,7 @@ public class ProcessingIT extends VitamRuleRunner {
             StatusCode.OK);
 
         Document operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", pw.getOperationId())).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", pw.getOperationId())).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_ARCHIVE_UNIT_PROFILE.OK"));
 
@@ -1184,7 +1170,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         String operationId = processWorkflow.getOperationId();
         operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
@@ -1269,7 +1255,7 @@ public class ProcessingIT extends VitamRuleRunner {
             ingest(zipPath3, DEFAULT_WORKFLOW, StatusCode.KO);
         String operationId = processWorkflow.getOperationId();
         Document operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString()
             .contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED.KO"));
@@ -1318,7 +1304,7 @@ public class ProcessingIT extends VitamRuleRunner {
             ingest(ingestPath, Contexts.HOLDING_SCHEME, StatusCode.KO);
 
         operationId = processWorkflow.getOperationId();
-        operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        operation = LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
@@ -1340,7 +1326,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(newChildUnit.first());
 
         operationId = processWorkflow.getOperationId();
-        operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        operation = LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
@@ -1351,7 +1337,7 @@ public class ProcessingIT extends VitamRuleRunner {
             ingest(zipPath2, DEFAULT_WORKFLOW, StatusCode.KO);
 
         operationId = processWorkflow.getOperationId();
-        operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        operation = LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
@@ -1398,7 +1384,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(resp);
         assertThat(resp.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), resp.getStatus());
-        wait(operationId);
+        waitOperation(operationId);
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, tenantId);
         assertThat(processWorkflow).isNotNull();
@@ -1499,7 +1485,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret2.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
-        wait(containerName2);
+        waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
@@ -1561,7 +1547,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret2.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
-        wait(containerName2);
+        waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
@@ -1611,7 +1597,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret3.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret3.getStatus());
 
-        wait(containerName3);
+        waitOperation(containerName3);
         ProcessWorkflow processWorkflow3 = processMonitoring.findOneProcessWorkflow(containerName3, tenantId);
         assertNotNull(processWorkflow3);
         assertEquals(ProcessState.COMPLETED, processWorkflow3.getState());
@@ -1666,7 +1652,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -1733,7 +1719,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret2.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
-        wait(containerName2);
+        waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
@@ -1823,7 +1809,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -1940,7 +1926,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -2017,7 +2003,7 @@ public class ProcessingIT extends VitamRuleRunner {
                 containerName);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
@@ -2030,7 +2016,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
@@ -2044,7 +2030,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // Let the processing do the job
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
@@ -2087,7 +2073,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
@@ -2119,7 +2105,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -2159,7 +2145,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -2203,7 +2189,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -2286,7 +2272,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(cirResponse);
         assertTrue(cirResponse.isOk());
         assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
-        wait(computedInheritedRulesProcess);
+        waitOperation(computedInheritedRulesProcess);
         ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(computedInheritedRulesProcess, tenantId);
         assertNotNull(cirWorkflow);
         assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
@@ -2335,7 +2321,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertTrue(ret.isOk());
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2408,7 +2394,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(cirResponse.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
 
-        wait(computedInheritedRulesProcess);
+        waitOperation(computedInheritedRulesProcess);
         ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(computedInheritedRulesProcess, tenantId);
         assertNotNull(cirWorkflow);
         assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
@@ -2446,7 +2432,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2543,7 +2529,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(ret2);
         assertTrue(ret2.isOk());
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
-        wait(ingestContainerName);
+        waitOperation(ingestContainerName);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(ingestContainerName, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
@@ -2581,7 +2567,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -2626,7 +2612,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(requestResponse);
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2678,7 +2664,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -2686,7 +2672,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
         Document operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
         System.out.println(JsonHandler.prettyPrint(operation));
 
         // 2. Add object to an existing GOT
@@ -2727,14 +2713,14 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(requestResponse);
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
         operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
         System.out.println(JsonHandler.prettyPrint(operation));
 
         MongoIterable<Document> resultGots = MetadataCollections.OBJECTGROUP.getCollection().find(eq("_id", idGot));
@@ -2783,7 +2769,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -2827,7 +2813,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(requestResponse);
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2911,7 +2897,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(requestResponse);
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -3004,14 +2990,14 @@ public class ProcessingIT extends VitamRuleRunner {
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            wait(containerName);
+            waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
             Document operation =
-                (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
+                LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
             assertThat(operation).isNotNull();
             assertTrue(operation.toString().contains("CHECK_ARCHIVE_UNIT_PROFILE.OK"));
 
@@ -3046,7 +3032,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
 
@@ -3186,7 +3172,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
 
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
@@ -3207,7 +3193,7 @@ public class ProcessingIT extends VitamRuleRunner {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
 
-        wait(containerName);
+        waitOperation(containerName);
         // Verify no pause
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -3244,7 +3230,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName0);
+        waitOperation(containerName0);
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName0, tenantId);
         assertNotNull(processWorkflow);
@@ -3270,7 +3256,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
@@ -3279,7 +3265,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(1L);
         ObjectGroup got =
-            (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
+            MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
         assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(1);
         assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
         assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc")
@@ -3307,7 +3293,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(ret2.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
-        wait(containerName2);
+        waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
@@ -3316,7 +3302,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Check fix bug_5178 bug_5117
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(1L);
-        got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
+        got = MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
         assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(2);
         assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
         assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc")
@@ -3391,7 +3377,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(cirResponse);
         assertTrue(cirResponse.isOk());
         assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
-        wait(reclassificationWorkflow);
+        waitOperation(reclassificationWorkflow);
         ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(reclassificationWorkflow, tenantId);
         assertNotNull(cirWorkflow);
         assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
@@ -3480,7 +3466,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(cirResponse);
         assertTrue(cirResponse.isOk());
         assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
-        wait(reclassificationWorkflow);
+        waitOperation(reclassificationWorkflow);
         ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(reclassificationWorkflow, tenantId);
         assertNotNull(cirWorkflow);
         assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());

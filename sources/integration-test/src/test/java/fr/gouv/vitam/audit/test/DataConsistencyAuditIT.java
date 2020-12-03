@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
@@ -129,7 +128,7 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA_ADMIN;
 
     private enum PopulateMode {
-        FULL, ES_ONLY, MONGO_ONLY;
+        FULL, ES_ONLY, MONGO_ONLY
     }
 
     @BeforeClass

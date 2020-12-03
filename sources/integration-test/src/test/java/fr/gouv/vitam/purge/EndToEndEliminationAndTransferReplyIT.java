@@ -46,9 +46,9 @@ import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -57,7 +57,6 @@ import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -75,7 +74,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -201,6 +199,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
@@ -359,23 +358,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @Before
     public void setUpBefore() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
-    }
-
-    private void wait(String operationId) {
-        int nbTry = 0;
-        ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isNotRunning(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
     }
 
     @RunWithCustomExecutor
@@ -2179,7 +2161,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 storageClient
                     .getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
             boolean fileFound = information.size() > 0;
-            assertThat(fileFound).isEqualTo((boolean) shouldExist);
+            assertThat(fileFound).isEqualTo(shouldExist);
         }
     }
 
@@ -2295,7 +2277,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {
 
-        wait(operationGuid);
+        waitOperation(operationGuid);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid, tenantId);
