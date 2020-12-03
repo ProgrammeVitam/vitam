@@ -1,0 +1,71 @@
+{
+  "threshold": 100,
+  "queries": [
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier00"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier00"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier01"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "ArchivalAgencyArchiveUnitIdentifier": 2
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier02"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier02",
+            "StartDate": "TOTO"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier03"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier03",
+            "Bidule": "this field is not known by ontology"
+          }
+        }
+      ]
+    }
+ ]
+}

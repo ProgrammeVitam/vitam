@@ -126,6 +126,11 @@ public class VitamConfigurationParameters {
     private Long distributionThreshold;
 
     /**
+     * Max queries allowed for bulk action
+     */
+    private Long queriesThreshold;
+
+    /**
      * Max entries allowed for elimination analysis
      */
     private Long eliminationAnalysisThreshold;
@@ -1159,6 +1164,24 @@ public class VitamConfigurationParameters {
      */
     public void setDistributionThreshold(Long distributionThreshold) {
         this.distributionThreshold = distributionThreshold;
+    }
+
+    /**
+     * Getter for queriesThreshold;
+     *
+     * @return queriesThreshold
+     */
+    public Long getQueriesThreshold() {
+        return queriesThreshold;
+    }
+
+    /**
+     * Setter for queriesThreshold;
+     *
+     * @param queriesThreshold
+     */
+    public void setQueriesThreshold(Long queriesThreshold) {
+        this.queriesThreshold = queriesThreshold;
     }
 
     public Long getEliminationAnalysisThreshold() {

@@ -424,6 +424,10 @@ public class VitamConfiguration {
      */
     private static long distributionThreshold = 100000L;
     /**
+     * Threshold for queries
+     */
+    private static long queriesThreshold = 100000L;
+    /**
      * Threshold for elimination analysis
      */
     private static long eliminationAnalysisThreshold = 100_000L;
@@ -957,6 +961,9 @@ public class VitamConfiguration {
         }
         if (null != parameters.getDistributionThreshold()) {
             setDistributionThreshold(parameters.getDistributionThreshold());
+        }
+        if (null != parameters.getQueriesThreshold()) {
+            setQueriesThreshold(parameters.getQueriesThreshold());
         }
         if (null != parameters.getEliminationAnalysisThreshold()) {
             setEliminationAnalysisThreshold(parameters.getEliminationAnalysisThreshold());
@@ -2097,6 +2104,24 @@ public class VitamConfiguration {
      */
     public static void setDistributionThreshold(long distributionThreshold) {
         VitamConfiguration.distributionThreshold = distributionThreshold;
+    }
+
+    /**
+     * Getter for queriesThreshold;
+     *
+     * @return queriesThreshold
+     */
+    public static long getQueriesThreshold() {
+        return queriesThreshold;
+    }
+
+    /**
+     * Setter for queriesThreshold;
+     *
+     * @param queriesThreshold
+     */
+    public static void setQueriesThreshold(long queriesThreshold) {
+        VitamConfiguration.queriesThreshold = queriesThreshold;
     }
 
     public static long getEliminationAnalysisThreshold() {

@@ -1,0 +1,38 @@
+{
+  "threshold": 100,
+  "queries": [
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "FAKE-IDENTIFIER"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier00"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier08"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier08",
+            "#id": "best id is batman"
+          }
+        }
+      ]
+    }
+  ]
+}

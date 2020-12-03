@@ -1,0 +1,89 @@
+{
+    "id": "BULK_ATOMIC_UPDATE_UNIT_DESC",
+    "name": "Bulk Atomic Update Descriptive Workflow",
+    "identifier": "BULK_ATOMIC_UPDATE_UNIT_DESC",
+    "typeProc": "BULK_UPDATE",
+    "comment": "Bulk Atomic Update of Archive Units Descriptive Metadatas Workflow",
+    "lifecycleLog": "DISABLED",
+    "steps": [
+        {
+            "workerGroupId": "DefaultWorker",
+            "stepName": "STP_CHECK_AND_COMPUTE",
+            "behavior": "BLOCKING",
+            "distribution": {
+                "kind": "REF"
+            },
+            "actions": [
+                {
+                    "action": {
+                        "actionKey": "CHECK_QUERIES_THRESHOLD",
+                        "behavior": "BLOCKING",
+                        "in": [
+                            {
+                                "name": "query.json",
+                                "uri": "WORKSPACE:query.json"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "action": {
+                        "actionKey": "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST",
+                        "behavior": "BLOCKING",
+                        "in": [
+                            {
+                                "name": "query.json",
+                                "uri": "WORKSPACE:query.json"
+                            },
+                            {
+                                "name": "accessContract.json",
+                                "uri": "WORKSPACE:accessContract.json"
+                            }
+                        ],
+                        "out": [
+                            {
+                                "name": "units_to_update",
+                                "uri": "WORKSPACE:bulkUpdateUnits/bulkUnitsToUpdate.jsonl"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "workerGroupId": "DefaultWorker",
+            "stepName": "STP_UPDATE",
+            "behavior": "NOBLOCKING",
+            "distribution": {
+                "kind": "LIST_IN_JSONL_FILE",
+                "element": "bulkUpdateUnits/bulkUnitsToUpdate.jsonl",
+                "statusOnEmptyDistribution": "WARNING"
+            },
+            "actions": [
+                {
+                    "action": {
+                        "actionKey": "BULK_ATOMIC_UPDATE_UNITS",
+                        "statusAggregationBehavior": "KO_CAUSES_WARNING",
+                        "behavior": "NOBLOCKING"
+                    }
+                }
+            ]
+        },
+        {
+            "workerGroupId": "DefaultWorker",
+            "stepName": "STP_BULK_ATOMIC_UPDATE_FINALIZE",
+            "behavior": "FINALLY",
+            "distribution": {
+                "kind": "REF"
+            },
+            "actions": [
+                {
+                    "action": {
+                        "actionKey": "BULK_ATOMIC_UPDATE_FINALIZE",
+                        "behavior": "BLOCKING"
+                    }
+                }
+            ]
+        }
+    ]
+}

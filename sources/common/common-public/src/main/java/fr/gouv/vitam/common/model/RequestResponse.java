@@ -39,6 +39,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -219,6 +221,32 @@ public abstract class RequestResponse<T> {
         final VitamError error =JsonHandler.getFromString(response.readEntity(String.class), VitamError.class);
         error.parseHeadersFromResponse(response);
         return error;
+    }
+
+
+    /**
+     * Check if the JsonNode is a RequestResponse and OK
+     * @param requestResponseAsJsonNode as request response as a JsonNode
+     * @return true if JsonNode contains httpCode as 2xx or 3xx, false if httpCode as 4xx or 5xx
+     * @throws IllegalStateException if JsonNode is not a valid instance of requestResponse
+     */
+    @JsonIgnore
+    public static boolean isRequestResponseOk(JsonNode requestResponseAsJsonNode) throws IllegalStateException {
+        if (requestResponseAsJsonNode.has("httpCode") && requestResponseAsJsonNode.get("httpCode").isInt()) {
+            int httpCode = requestResponseAsJsonNode.get("httpCode").asInt();
+            Status.Family family = Status.Family.familyOf(httpCode);
+            switch (family) {
+            case SUCCESSFUL:
+            case REDIRECTION:
+                return true;
+            case CLIENT_ERROR:
+            case SERVER_ERROR:
+                return false;
+            default:
+                break;
+            }
+        }
+        throw new IllegalStateException("Response is not a valid instance of RequestResponse");
     }
 
     /**
