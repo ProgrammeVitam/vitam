@@ -78,7 +78,10 @@ export class ArchiveUnitHelper {
     {
       rule: 'StorageRule', label: 'Durée d\'utilité courante',
       properties: this.ruleProperties.StorageRule
-    }
+    },
+    {
+      rule: 'HoldRule', label: 'Durée de gel', properties: {}
+    },
   ];
   public textAreaFields = [
     'Description',

@@ -197,7 +197,8 @@ export class SearchReferentialsComponent extends PageComponent {
             {label: 'Durée de classification', value: 'ClassificationRule'},
             {label: 'Délai de communicabilité', value: 'AccessRule'},
             {label: 'Délai de diffusion', value: 'DisseminationRule'},
-            {label: 'Durée de réutilisation', value: 'ReuseRule'}
+            {label: 'Durée de réutilisation', value: 'ReuseRule'},
+            {label: 'Durée de gel', value: 'HoldRule'}
           ];
           this.referentialData = [
             new FieldDefinition('RuleValue', 'Intitulé', 6, 8),
@@ -575,7 +576,9 @@ export class SearchReferentialsComponent extends PageComponent {
   }
 
   static appendUnitToRuleDuration(item): string {
-    if (item.RuleMeasurement) {
+    if ('UNLIMITED' === item.RuleDuration) {
+      return 'illimitée';
+    } else if (item.RuleMeasurement) {
       switch (item.RuleMeasurement.toUpperCase()) {
         case 'YEAR':
           return item.RuleDuration <= 1 ? item.RuleDuration + ' année' : item.RuleDuration + ' années';
@@ -587,7 +590,7 @@ export class SearchReferentialsComponent extends PageComponent {
           return item.RuleDuration;
       }
     } else {
-      return item.RuleDuration;
+      return 'indéterminée';
     }
   }
 

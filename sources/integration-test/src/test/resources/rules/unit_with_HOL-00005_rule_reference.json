@@ -1,0 +1,26 @@
+{
+  "_id": "aeaqaaaaaahb5utaaagnyalvagpbo2qaaaaq",
+  "DescriptionLevel": "RecordGrp",
+  "Title": "Title",
+  "Description": "Description",
+  "StartDate": "2018-10-04T16:39:43",
+  "EndDate": "2018-10-04T16:39:43",
+  "_mgt": {
+    "HoldRule": {
+      "Rules": [
+        {
+          "Rule": "HOL-00005"
+        }
+      ]
+    },
+    "NeedAuthorization": false
+  },
+  "_unitType": "INGEST",
+  "_opi": "aeeaaaaaachlatd2aainualvagpbawqaaaaq",
+  "_storage": {
+    "strategyId": "default"
+  },
+  "_sp": "Service_producteur",
+  "_up": [],
+  "_tenant": 0
+}

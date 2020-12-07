@@ -5,3 +5,8 @@ APP-00003,AppraisalRule,RuleValue3,Rule description 3 UPDATED,1,YEAR
 APP-00004,AppraisalRule,RuleValue4 UPDATED,Rule description 4,1,YEAR
 APP-00005,AppraisalRule,RuleValue5,Rule description 5,1,MONTH
 APP-00007,AppraisalRule,RuleValue7,Rule description 7 INSERTED,1,YEAR
+HOL-00001,HoldRule,RuleValue1,Rule description 1,1,YEAR
+HOL-00002,HoldRule,RuleValue2,Rule description 2,2,YEAR
+HOL-00003,HoldRule,RuleValue2,Rule description 3,,
+HOL-00004,HoldRule,RuleValue3,Rule description 4,,
+HOL-00005,HoldRule,RuleValue3,Rule description 5,5,MONTH

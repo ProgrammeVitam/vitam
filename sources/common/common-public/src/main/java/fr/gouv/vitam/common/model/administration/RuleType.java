@@ -34,14 +34,19 @@ public enum RuleType {
     StorageRule,
     DisseminationRule,
     ClassificationRule,
-    ReuseRule;
+    ReuseRule,
+    HoldRule;
 
     public static RuleType getEnumFromName(String name) {
         for (final RuleType e : values()) {
-            if (e.name().equalsIgnoreCase(name)) {
+            if (e.isNameEquals(name)) {
                 return e;
             }
         }
         return null;
+    }
+
+    public boolean isNameEquals(String name) {
+        return this.name().equalsIgnoreCase(name);
     }
 }

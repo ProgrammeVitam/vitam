@@ -71,6 +71,8 @@ public class LogbookRuleImportManager {
     private static final String COMMIT_RULES = "COMMIT_RULES";
     private static final String USED_DELETED_RULE_IDS = "usedDeletedRuleIds";
     private static final String USED_UPDATED_RULE_IDS = "usedUpdatedRuleIds";
+    private static final String USED_RULE_IDS_WITH_DURATION_MODE_UPDATE
+        = "usedRuleIdsWithDurationModeUpdate";
     private static final String NB_DELETED = "nbDeleted";
     private static final String NB_UPDATED = "nbUpdated";
     private static final String NB_INSERTED = "nbInserted";
@@ -117,28 +119,19 @@ public class LogbookRuleImportManager {
 
     public void updateCheckFileRulesLogbookOperation(StatusCode statusCode,
         Set<String> usedUpdatedRuleIds, Set<String> notUsedDeletedRuleIds,
-        Set<String> nonDeletableUsedRuleIds, GUID evIdentifierProcess) {
+        Set<String> nonDeletableUsedRuleIds, Set<String> usedRuleIdsWithDurationModeUpdate, GUID evIdentifierProcess) {
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         if (!notUsedDeletedRuleIds.isEmpty()) {
-            final ArrayNode arrayNode = JsonHandler.createArrayNode();
-            for (String fileRulesId : notUsedDeletedRuleIds) {
-                arrayNode.add(fileRulesId);
-            }
-            evDetData.set(DELETED_RULE_IDS, arrayNode);
+            evDetData.set(DELETED_RULE_IDS, serializeRuleIds(notUsedDeletedRuleIds));
         }
         if (!usedUpdatedRuleIds.isEmpty()) {
-            final ArrayNode updatedArrayNode = JsonHandler.createArrayNode();
-            for (String fileRulesIds : usedUpdatedRuleIds) {
-                updatedArrayNode.add(fileRulesIds);
-            }
-            evDetData.set(USED_UPDATED_RULE_IDS, updatedArrayNode);
+            evDetData.set(USED_UPDATED_RULE_IDS, serializeRuleIds(usedUpdatedRuleIds));
         }
         if (!nonDeletableUsedRuleIds.isEmpty()) {
-            final ArrayNode arrayNode = JsonHandler.createArrayNode();
-            for (String fileRulesId : nonDeletableUsedRuleIds) {
-                arrayNode.add(fileRulesId);
-            }
-            evDetData.set(USED_DELETED_RULE_IDS, arrayNode);
+            evDetData.set(USED_DELETED_RULE_IDS, serializeRuleIds(nonDeletableUsedRuleIds));
+        }
+        if (!usedRuleIdsWithDurationModeUpdate.isEmpty()) {
+            evDetData.set(USED_RULE_IDS_WITH_DURATION_MODE_UPDATE, serializeRuleIds(usedRuleIdsWithDurationModeUpdate));
         }
         final GUID eventId = GUIDFactory.newOperationLogbookGUID(getTenantParameter());
         final LogbookOperationParameters logbookOperationParameters =
@@ -153,6 +146,14 @@ public class LogbookRuleImportManager {
         logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, CHECK_RULES +
             "." + statusCode);
         updateLogBookEntry(logbookOperationParameters);
+    }
+
+    private ArrayNode serializeRuleIds(Set<String> ruleIds) {
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        for (String fileRulesId : ruleIds) {
+            arrayNode.add(fileRulesId);
+        }
+        return arrayNode;
     }
 
     public void updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(String subEvenType,

@@ -93,6 +93,7 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesIllegalDurationModeUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -412,7 +413,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             InputStream errorReportInputStream =
                 rulesManagerFileImpl.generateReportContent(Collections.emptyMap(), Collections.emptyList(),
-                    ruleImportResultSet.getUsedRulesToUpdate(),
+                    Collections.emptyList(), ruleImportResultSet.getUsedRulesToUpdate(),
                     ruleImportResultSet.getUnusedRulesToDelete(), ruleImportResultSet.getRulesToUpdate(),
                     ruleImportResultSet.getRulesToInsert(), statusCode, null);
 
@@ -423,13 +424,17 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 OK, headers);
         } catch (FileRulesReadException e) {
             LOGGER.error("Format / syntax error while checking file ", e);
-            return handleGenerateReport(rulesManagerFileImpl, e.getErrorsMap(), Collections.emptyList());
+            return handleGenerateReport(rulesManagerFileImpl, e.getErrorsMap(), Collections.emptyList(), Collections.emptyList());
         } catch (FileRulesDeleteException e) {
             LOGGER.error("Consistency error - Cannot delete used rule ", e);
-            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), e.getUsedDeletedRules());
+            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), e.getUsedDeletedRules(), Collections.emptyList());
+        } catch (FileRulesIllegalDurationModeUpdateException e) {
+            LOGGER.error("Consistency error - Cannot switch used rle duration mode", e);
+            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), Collections.emptyList(),
+                e.getUsedRulesWithDurationModeUpdate());
         } catch (Exception e) {
             LOGGER.error("Error while checking file ", e);
-            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), Collections.emptyList());
+            return handleGenerateReport(rulesManagerFileImpl, Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
         }
     }
 
@@ -439,13 +444,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param rulesManagerFileImpl
      * @param errors parsing / syntax errors
      * @param usedDeletedRules deleted used rules
+     * @param usedUpdatedRulesWithIllegalDurationModeSwitch
      * @return response
      */
     private Response handleGenerateReport(RulesManagerFileImpl rulesManagerFileImpl,
-        Map<Integer, List<ErrorReport>> errors, List<FileRulesModel> usedDeletedRules) {
+        Map<Integer, List<ErrorReport>> errors, List<FileRulesModel> usedDeletedRules,
+        List<FileRulesModel> usedUpdatedRulesWithIllegalDurationModeSwitch) {
         InputStream errorReportInputStream =
-            rulesManagerFileImpl.generateReportContent(errors, usedDeletedRules, Collections.emptyList(),
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+            rulesManagerFileImpl.generateReportContent(errors, usedDeletedRules,
+                usedUpdatedRulesWithIllegalDurationModeSwitch,
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
                 StatusCode.KO, null);
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);

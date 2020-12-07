@@ -48,7 +48,8 @@ export class ReferentialHelper {
       {label: 'Durée de classification', value: 'ClassificationRule'},
       {label: 'Délai de communicabilité', value: 'AccessRule'},
       {label: 'Délai de diffusion', value: 'DisseminationRule'},
-      {label: 'Durée de réutilisation', value: 'ReuseRule'}
+      {label: 'Durée de réutilisation', value: 'ReuseRule'},
+      {label: 'Durée de gel', value: 'HoldRule'}
     ]
   };
 

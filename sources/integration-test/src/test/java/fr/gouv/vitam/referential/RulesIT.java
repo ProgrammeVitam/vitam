@@ -196,10 +196,12 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
-            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00006"
+            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00006",
+            "HOL-00001", "HOL-00002", "HOL-00003", "HOL-00004", "HOL-00005"
         );
     }
 
@@ -217,8 +219,8 @@ public class RulesIT extends VitamRuleRunner {
         LogbookOperation logbookOperation = selectLogbookOperation(importRequestId);
         checkStatusCode(logbookOperation, StatusCode.OK);
         checkCheckRulesStep(logbookOperation, StatusCode.OK, Collections.emptyList(), Collections.emptyList(),
-            Collections.emptyList());
-        checkCommittedRules(logbookOperation, 0, 0, 6);
+            Collections.emptyList(), Collections.emptyList());
+        checkCommittedRules(logbookOperation, 0, 0, 11);
 
         checkRuleSet1();
 
@@ -229,10 +231,12 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
-            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00006"
+            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00006",
+            "HOL-00001", "HOL-00002", "HOL-00003", "HOL-00004", "HOL-00005"
         );
 
         checkNoUnitRuleUpdateWorkflow();
@@ -253,8 +257,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -276,8 +282,8 @@ public class RulesIT extends VitamRuleRunner {
         LogbookOperation logbookOperation = selectLogbookOperation(updateRulesRequestId);
         checkStatusCode(logbookOperation, StatusCode.OK);
         checkCheckRulesStep(logbookOperation, StatusCode.OK, Collections.singletonList("APP-00006"),
-            Collections.emptyList(), Collections.emptyList());
-        checkCommittedRules(logbookOperation, 1, 4, 1);
+            Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        checkCommittedRules(logbookOperation, 1, 7, 1);
 
         checkRuleSet2();
 
@@ -288,8 +294,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -315,8 +323,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -340,8 +350,8 @@ public class RulesIT extends VitamRuleRunner {
         LogbookOperation logbookOperation = selectLogbookOperation(updateRulesRequestId);
         checkStatusCode(logbookOperation, StatusCode.OK);
         checkCheckRulesStep(logbookOperation, StatusCode.OK, Collections.singletonList("APP-00006"),
-            Collections.emptyList(), Collections.emptyList());
-        checkCommittedRules(logbookOperation, 1, 4, 1);
+            Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        checkCommittedRules(logbookOperation, 1, 7, 1);
 
         checkRuleSet2();
 
@@ -352,8 +362,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -380,8 +392,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).hasSize(1);
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate().get(0)).contains("APP-00002");
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -405,8 +419,8 @@ public class RulesIT extends VitamRuleRunner {
         LogbookOperation logbookOperation = selectLogbookOperation(updateRulesRequestId);
         checkStatusCode(logbookOperation, StatusCode.OK);
         checkCheckRulesStep(logbookOperation, StatusCode.OK, Collections.singletonList("APP-00006"),
-            Collections.emptyList(), Collections.singletonList("APP-00002"));
-        checkCommittedRules(logbookOperation, 1, 4, 1);
+            Collections.emptyList(), Collections.singletonList("APP-00002"), Collections.emptyList());
+        checkCommittedRules(logbookOperation, 1, 7, 1);
 
         checkRuleSet2();
 
@@ -418,8 +432,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).hasSize(1);
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate().get(0)).contains("APP-00002");
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -447,8 +463,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).hasSize(1);
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate().get(0)).contains("APP-00005");
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -473,8 +491,8 @@ public class RulesIT extends VitamRuleRunner {
         LogbookOperation logbookOperation = selectLogbookOperation(updateRulesRequestId);
         checkStatusCode(logbookOperation, StatusCode.WARNING);
         checkCheckRulesStep(logbookOperation, StatusCode.WARNING, Collections.singletonList("APP-00006"),
-            Collections.emptyList(), Collections.singletonList("APP-00005"));
-        checkCommittedRules(logbookOperation, 1, 4, 1);
+            Collections.emptyList(), Collections.singletonList("APP-00005"), Collections.emptyList());
+        checkCommittedRules(logbookOperation, 1, 7, 1);
 
         checkRuleSet2();
 
@@ -486,8 +504,10 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).hasSize(1);
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate().get(0)).contains("APP-00005");
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).containsExactlyInAnyOrder(
-            "APP-00002", "APP-00003", "APP-00004", "APP-00005");
+            "APP-00002", "APP-00003", "APP-00004", "APP-00005",
+            "HOL-00002", "HOL-00003", "HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).containsExactlyInAnyOrder(
             "APP-00006");
         assertThat(fileRulesManagementReport.getFileRulesToImport()).containsExactlyInAnyOrder(
@@ -542,7 +562,7 @@ public class RulesIT extends VitamRuleRunner {
         LogbookOperation logbookOperation = selectLogbookOperation(updateRulesRequestId);
         checkStatusCode(logbookOperation, StatusCode.KO);
         checkCheckRulesStep(logbookOperation, StatusCode.KO, Collections.emptyList(),
-            Collections.singletonList("APP-00006"), Collections.emptyList());
+            Collections.singletonList("APP-00006"), Collections.emptyList(), Collections.emptyList());
 
         checkNoCommittedRules(logbookOperation);
         checkNoCsvFileBackup(logbookOperation);
@@ -556,6 +576,131 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).hasSize(1);
         assertThat(fileRulesManagementReport.getUsedFileRulesToDelete().get(0)).contains("APP-00006");
         assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getFileRulesToDelete()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getFileRulesToImport()).isNullOrEmpty();
+
+        checkNoUnitRuleUpdateWorkflow();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExitingRulesAndUsedRuleWithoutDurationToBeUpdatedWithDurationWhenCheckRulesThenKO()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        importCsvFile(RULES_SIMPLE_RULES_SET_1_CSV);
+        importUnitAndLfc("rules/unit_with_HOL-00003_rule_reference.json",
+            "rules/lfc_with_HOL-00003_rule_reference.json");
+
+        // When / Then
+        assertThatThrownBy(() -> checkCsvFile(RULES_SIMPLE_RULES_SET_2_CSV))
+            .isInstanceOf(AdminManagementClientBadRequestException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExitingRulesAndUsedRuleWithoutDurationToBeUpdatedWithDurationWhenImportRulesThenImportKO()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        importCsvFile(RULES_SIMPLE_RULES_SET_1_CSV);
+        importUnitAndLfc("rules/unit_with_HOL-00003_rule_reference.json",
+            "rules/lfc_with_HOL-00003_rule_reference.json");
+
+        // When / Then
+        String updateRulesRequestId = newOperationLogbookGUID(TENANT_0).getId();
+        VitamThreadUtils.getVitamSession().setRequestId(updateRulesRequestId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            assertThatThrownBy(() -> client
+                .importRulesFile(PropertiesUtils.getResourceAsStream(RULES_SIMPLE_RULES_SET_2_CSV), "file.csv"))
+                .isInstanceOf(FileRulesException.class);
+        }
+
+        // Then
+        LogbookOperation logbookOperation = selectLogbookOperation(updateRulesRequestId);
+        checkStatusCode(logbookOperation, StatusCode.KO);
+        checkCheckRulesStep(logbookOperation, StatusCode.KO, Collections.emptyList(),
+            Collections.emptyList(), Collections.emptyList(), Collections.singletonList("HOL-00003"));
+
+        checkNoCommittedRules(logbookOperation);
+        checkNoCsvFileBackup(logbookOperation);
+        checkNoJsonFileBackup(logbookOperation);
+
+        checkRuleSet1();
+
+        FileRulesManagementReport fileRulesManagementReport = checkReportGeneration(logbookOperation);
+
+        assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).hasSize(1);
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate().get(0)).contains("HOL-00003");
+        assertThat(fileRulesManagementReport.getFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getFileRulesToDelete()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getFileRulesToImport()).isNullOrEmpty();
+
+        checkNoUnitRuleUpdateWorkflow();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExitingRulesAndUsedRuleWithDurationToBeUpdatedWithoutDurationWhenCheckRulesThenKO()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        importCsvFile(RULES_SIMPLE_RULES_SET_1_CSV);
+        importUnitAndLfc("rules/unit_with_HOL-00005_rule_reference.json",
+            "rules/lfc_with_HOL-00005_rule_reference.json");
+
+        // When / Then
+        assertThatThrownBy(() -> checkCsvFile(RULES_SIMPLE_RULES_SET_2_CSV))
+            .isInstanceOf(AdminManagementClientBadRequestException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExitingRulesAndUsedRuleWithDurationToBeUpdatedWithoutDurationWhenImportRulesThenImportKO()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        importCsvFile(RULES_SIMPLE_RULES_SET_1_CSV);
+        importUnitAndLfc("rules/unit_with_HOL-00005_rule_reference.json",
+            "rules/lfc_with_HOL-00005_rule_reference.json");
+
+        // When / Then
+        String updateRulesRequestId = newOperationLogbookGUID(TENANT_0).getId();
+        VitamThreadUtils.getVitamSession().setRequestId(updateRulesRequestId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            assertThatThrownBy(() -> client
+                .importRulesFile(PropertiesUtils.getResourceAsStream(RULES_SIMPLE_RULES_SET_2_CSV), "file.csv"))
+                .isInstanceOf(FileRulesException.class);
+        }
+
+        // Then
+        LogbookOperation logbookOperation = selectLogbookOperation(updateRulesRequestId);
+        checkStatusCode(logbookOperation, StatusCode.KO);
+        checkCheckRulesStep(logbookOperation, StatusCode.KO, Collections.emptyList(),
+            Collections.emptyList(), Collections.emptyList(), Collections.singletonList("HOL-00005"));
+
+        checkNoCommittedRules(logbookOperation);
+        checkNoCsvFileBackup(logbookOperation);
+        checkNoJsonFileBackup(logbookOperation);
+
+        checkRuleSet1();
+
+        FileRulesManagementReport fileRulesManagementReport = checkReportGeneration(logbookOperation);
+
+        assertThat(fileRulesManagementReport.getErrors()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedFileRulesToDelete()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedFileRulesToUpdate()).isNullOrEmpty();
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate()).hasSize(1);
+        assertThat(fileRulesManagementReport.getUsedRulesWithDurationModeUpdate().get(0)).contains("HOL-00005");
         assertThat(fileRulesManagementReport.getFileRulesToUpdate()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToDelete()).isNullOrEmpty();
         assertThat(fileRulesManagementReport.getFileRulesToImport()).isNullOrEmpty();
@@ -585,9 +730,10 @@ public class RulesIT extends VitamRuleRunner {
         throws FileRulesException, InvalidParseOperationException, IOException, AdminManagementClientServerException {
         Map<String, FileRulesModel> fileRulesModelMap = loadFilesFromDb();
 
-        assertThat(fileRulesModelMap).hasSize(6);
+        assertThat(fileRulesModelMap).hasSize(11);
         assertThat(fileRulesModelMap.keySet()).containsExactlyInAnyOrder(
-            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00006"
+            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00006",
+            "HOL-00001", "HOL-00002", "HOL-00003", "HOL-00004", "HOL-00005"
         );
         assertThat(fileRulesModelMap.get("APP-00001").getRuleType()).isEqualTo("AppraisalRule");
         assertThat(fileRulesModelMap.get("APP-00001").getRuleValue()).isEqualTo("RuleValue1");
@@ -607,14 +753,31 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesModelMap.get("APP-00006")).isNotNull();
 
         assertThat(fileRulesModelMap.get("APP-00007")).isNull();
+
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleType()).isEqualTo("HoldRule");
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleDuration()).isEqualTo("1");
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleMeasurement()).isEqualTo("YEAR");
+
+        assertThat(fileRulesModelMap.get("HOL-00002").getRuleDuration()).isEqualTo("1");
+        assertThat(fileRulesModelMap.get("HOL-00002").getRuleMeasurement()).isEqualTo("YEAR");
+
+        assertThat(fileRulesModelMap.get("HOL-00003").getRuleDuration()).isEqualTo("1");
+        assertThat(fileRulesModelMap.get("HOL-00003").getRuleMeasurement()).isEqualTo("YEAR");
+
+        assertThat(fileRulesModelMap.get("HOL-00004").getRuleDuration()).isNull();
+        assertThat(fileRulesModelMap.get("HOL-00004").getRuleMeasurement()).isNull();
+
+        assertThat(fileRulesModelMap.get("HOL-00005").getRuleDuration()).isNull();
+        assertThat(fileRulesModelMap.get("HOL-00005").getRuleMeasurement()).isNull();
     }
 
     private void checkRuleSet2()
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException, IOException {
         Map<String, FileRulesModel> fileRulesModelMap = loadFilesFromDb();
-        assertThat(fileRulesModelMap).hasSize(6);
+        assertThat(fileRulesModelMap).hasSize(11);
         assertThat(fileRulesModelMap.keySet()).containsExactlyInAnyOrder(
-            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00007"
+            "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00007",
+            "HOL-00001", "HOL-00002", "HOL-00003", "HOL-00004", "HOL-00005"
         );
         // Unchanged APP-000001
         assertThat(fileRulesModelMap.get("APP-00001").getRuleType()).isEqualTo("AppraisalRule");
@@ -638,6 +801,22 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesModelMap.get("APP-00007").getRuleDescription()).isEqualTo("Rule description 7 INSERTED");
         assertThat(fileRulesModelMap.get("APP-00007").getRuleDuration()).isEqualTo("1");
         assertThat(fileRulesModelMap.get("APP-00007").getRuleMeasurement()).isEqualTo("YEAR");
+
+        // Hold Rule duration changes
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleDuration()).isEqualTo("1");
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleMeasurement()).isEqualTo("YEAR");
+
+        assertThat(fileRulesModelMap.get("HOL-00002").getRuleDuration()).isEqualTo("2");
+        assertThat(fileRulesModelMap.get("HOL-00002").getRuleMeasurement()).isEqualTo("YEAR");
+
+        assertThat(fileRulesModelMap.get("HOL-00003").getRuleDuration()).isNull();
+        assertThat(fileRulesModelMap.get("HOL-00003").getRuleMeasurement()).isNull();
+
+        assertThat(fileRulesModelMap.get("HOL-00004").getRuleDuration()).isNull();
+        assertThat(fileRulesModelMap.get("HOL-00004").getRuleMeasurement()).isNull();
+
+        assertThat(fileRulesModelMap.get("HOL-00005").getRuleDuration()).isEqualTo("5");
+        assertThat(fileRulesModelMap.get("HOL-00005").getRuleMeasurement()).isEqualTo("MONTH");
     }
 
     private String importCsvFile(String csvFileResource)
@@ -657,7 +836,10 @@ public class RulesIT extends VitamRuleRunner {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             InputStream inputStream = client.checkRulesFile(PropertiesUtils.getResourceAsStream(csvFileResource))
                 .readEntity(InputStream.class);
-            return JsonHandler.getFromInputStream(inputStream, FileRulesManagementReport.class);
+            FileRulesManagementReport report =
+                JsonHandler.getFromInputStream(inputStream, FileRulesManagementReport.class);
+            System.out.println(JsonHandler.prettyPrint(report));
+            return report;
         }
     }
 
@@ -763,8 +945,10 @@ public class RulesIT extends VitamRuleRunner {
                 .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, DataCategory.REPORT,
                     AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
 
-            return JsonHandler.getFromInputStream(inputStream,
+            FileRulesManagementReport report = JsonHandler.getFromInputStream(inputStream,
                 FileRulesManagementReport.class);
+            System.out.println(JsonHandler.prettyPrint(report));
+            return report;
         }
     }
 
@@ -785,7 +969,8 @@ public class RulesIT extends VitamRuleRunner {
     }
 
     private void checkCheckRulesStep(LogbookOperation logbookOperation, StatusCode statusCode,
-        List<String> deletedRuleIds, List<String> usedDeletedRuleIds, List<String> usedUpdatedRuleIds)
+        List<String> deletedRuleIds, List<String> usedDeletedRuleIds, List<String> usedUpdatedRuleIds,
+        List<String> usedRuleIdsWithDurationModeUpdate)
         throws InvalidParseOperationException {
         LogbookEventOperation csvBackupEvent = findEventByEventType(logbookOperation, "CHECK_RULES");
         assertThat(csvBackupEvent.getOutDetail()).isEqualTo("CHECK_RULES." + statusCode.name());
@@ -813,6 +998,15 @@ public class RulesIT extends VitamRuleRunner {
             assertThat(evDetData.get("usedUpdatedRuleIds")).isNotNull();
             assertThat(JsonHandler.getFromJsonNode(evDetData.get("usedUpdatedRuleIds"), STRING_LIST_TYPE_REFERENCE))
                 .containsExactlyElementsOf(usedUpdatedRuleIds);
+        }
+
+        if (CollectionUtils.isEmpty(usedRuleIdsWithDurationModeUpdate)) {
+            assertThat(evDetData.get("usedRuleIdsWithDurationModeUpdate")).isNull();
+        } else {
+            assertThat(evDetData.get("usedRuleIdsWithDurationModeUpdate")).isNotNull();
+            assertThat(JsonHandler
+                .getFromJsonNode(evDetData.get("usedRuleIdsWithDurationModeUpdate"), STRING_LIST_TYPE_REFERENCE))
+                .containsExactlyElementsOf(usedRuleIdsWithDurationModeUpdate);
         }
     }
 

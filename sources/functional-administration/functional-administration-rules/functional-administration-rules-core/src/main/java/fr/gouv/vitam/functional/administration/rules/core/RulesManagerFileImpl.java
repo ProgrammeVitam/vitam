@@ -41,7 +41,9 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -91,6 +93,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvExce
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesIllegalDurationModeUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -256,7 +259,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             this.logbookRuleImportManager
                 .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_INVALID_CSV, eip);
             generateReport(StatusCode.KO, errors, eip, Collections.emptyList(), Collections.emptyList(),
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
             this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
             throw e;
         } catch (FileRulesDurationException e) {
@@ -264,7 +267,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             this.logbookRuleImportManager
                 .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(MAX_DURATION_EXCEEDS, eip);
             generateReport(StatusCode.KO, errors, eip, Collections.emptyList(), Collections.emptyList(),
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
             this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
             throw e;
         } catch (IOException e) {
@@ -281,6 +284,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             return checkFile(rulesFromFile);
         } catch (FileRulesDeleteException e) {
             generateReportWhenFileRulesDeletedExceptionAppend(eip, e.getUsedDeletedRules(), filename);
+            throw e;
+        } catch (FileRulesIllegalDurationModeUpdateException e) {
+            generateReportWhenFileRulesIllegalDurationModeUpdateException(eip,
+                e.getUsedRulesWithDurationModeUpdate(), filename);
             throw e;
         }
     }
@@ -303,7 +310,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(STP_IMPORT_RULES_ENCODING_NOT_UTF_EIGHT,
                 eip);
         generateReport(StatusCode.KO, Collections.emptyMap(), eip, Collections.emptyList(), Collections.emptyList(),
-            Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+            Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO,
             "Error Encoding File : " + filename + " : " + e.getMessage());
     }
@@ -318,7 +325,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             StatusCode statusCode = ruleImportResultSet.getUsedUpdateRulesForUpdateUnit().isEmpty()
                 ? StatusCode.OK : StatusCode.WARNING;
 
-            generateReport(statusCode, Collections.emptyMap(), eip, Collections.emptyList(),
+            generateReport(statusCode, Collections.emptyMap(), eip, Collections.emptyList(), Collections.emptyList(),
                 ruleImportResultSet.getUsedRulesToUpdate(),
                 ruleImportResultSet.getUnusedRulesToDelete(),
                 ruleImportResultSet.getRulesToUpdate(),
@@ -330,6 +337,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     .collect(Collectors.toSet()),
                 ruleImportResultSet.getUnusedRulesToDelete().stream().map(FileRulesModel::getRuleId)
                     .collect(Collectors.toSet()),
+                Collections.emptySet(),
                 Collections.emptySet(),
                 eip);
 
@@ -363,16 +371,46 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         throws ReferentialException, InvalidParseOperationException {
         try {
             generateReport(StatusCode.KO, Collections.emptyMap(), eip, usedDeletedRulesForReport,
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+                Collections.emptyList(), Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
             this.logbookRuleImportManager.updateCheckFileRulesLogbookOperation(
                 StatusCode.KO,
                 Collections.emptySet(),
                 Collections.emptySet(),
                 usedDeletedRulesForReport.stream().map(FileRulesModel::getRuleId).collect(Collectors.toSet()),
+                Collections.emptySet(),
                 eip);
             LOGGER.error(DELETE_RULES_LINKED_TO_UNIT);
             this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
             throw new FileRulesException(DELETE_RULES_LINKED_TO_UNIT);
+        } catch (StorageException e) {
+            this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
+            throw new FileRulesException(e);
+        }
+    }
+
+
+
+    private void generateReportWhenFileRulesIllegalDurationModeUpdateException(GUID eip,
+        List<FileRulesModel> usedRulesWithDurationModeUpdate, String filename)
+        throws ReferentialException, InvalidParseOperationException {
+        try {
+            generateReport(StatusCode.KO, Collections.emptyMap(), eip, Collections.emptyList(),
+                usedRulesWithDurationModeUpdate, Collections.emptyList(),
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+            Set<String> usedRuleIdsWithDurationModeUpdate =
+                usedRulesWithDurationModeUpdate.stream().map(FileRulesModel::getRuleId).collect(Collectors.toSet());
+            this.logbookRuleImportManager.updateCheckFileRulesLogbookOperation(
+                StatusCode.KO,
+                Collections.emptySet(),
+                Collections.emptySet(),
+                Collections.emptySet(),
+                usedRuleIdsWithDurationModeUpdate,
+                eip);
+            LOGGER.error("Cannot update used rule duration mode (null to defined of from defined to null) " +
+                usedRuleIdsWithDurationModeUpdate);
+            this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
+            throw new FileRulesException("Cannot update used rule duration mode");
         } catch (StorageException e) {
             this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
             throw new FileRulesException(e);
@@ -495,6 +533,14 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             throw new FileRulesDeleteException("used Rules want to be deleted", usedRulesToDelete);
         }
 
+        List<FileRulesModel> usedRulesWithDurationModeUpdate =
+            getUsedRules(ruleImportDiff.getRulesWithDurationModeUpdate());
+
+        if (!usedRulesWithDurationModeUpdate.isEmpty()) {
+            throw new FileRulesIllegalDurationModeUpdateException(
+                "Cannot update rule duration mode (defined/undefined) for used rule", usedRulesWithDurationModeUpdate);
+        }
+
         List<FileRulesModel> usedUpdatedRules = getUsedRules(ruleImportDiff.getRulesToUpdate());
         List<FileRulesModel> usedUpdateRulesForUpdateUnit = getUsedRules(ruleImportDiff.getRulesToUpdateUnsafely());
 
@@ -550,6 +596,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
             rule.setUpdateDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             rule.setCreationDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            rule.setRuleDuration(StringUtils.defaultIfEmpty(rule.getRuleDuration(), null));
+            rule.setRuleMeasurement(StringUtils.defaultIfEmpty(rule.getRuleMeasurement(), null));
 
             errors.addAll(checkParametersNotEmpty(rule, lineNumber));
             errors.addAll(checkRuleDuration(rule, lineNumber));
@@ -558,17 +606,20 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_RULEID_DUPLICATION,
                     lineNumber, rule));
             }
-            RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(rule.getRuleMeasurement());
-            if (ruleMeasurement == null) {
-                errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULEMEASUREMENT,
-                    lineNumber, rule));
+            RuleMeasurementEnum ruleMeasurement = null;
+            if (rule.getRuleMeasurement() != null) {
+                ruleMeasurement = RuleMeasurementEnum.getEnumFromType(rule.getRuleMeasurement());
+                if (ruleMeasurement == null) {
+                    errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULEMEASUREMENT,
+                        lineNumber, rule));
+                }
             }
             RuleType ruletype = RuleType.getEnumFromName(rule.getRuleType());
             if (ruletype == null) {
                 errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW,
                     lineNumber, rule));
             }
-            if (ruletype != null && ruleMeasurement != null) {
+            if (ruletype != null && ruleMeasurement != null && rule.getRuleDuration() != null) {
                 errors.addAll(checkAssociationRuleDurationRuleMeasurementLimit(lineNumber, rule));
                 errors.addAll(checkRuleDurationWithConfiguration(lineNumber, rule));
             }
@@ -610,14 +661,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private void generateReport(StatusCode statusCode, Map<Integer, List<ErrorReport>> errors, GUID eipMaster,
         List<FileRulesModel> usedDeletedRules,
+        List<FileRulesModel> usedRulesWithDurationModeUpdate,
         List<FileRulesModel> usedUpdatedRules,
         List<FileRulesModel> fileRulesToDelete,
         List<FileRulesModel> fileRulesToUpdate,
         List<FileRulesModel> fileRulesToInsert)
         throws StorageException {
         final String fileName = eipMaster + ".json";
-        InputStream stream = generateReportContent(errors, usedDeletedRules, usedUpdatedRules,
-            fileRulesToDelete, fileRulesToUpdate, fileRulesToInsert,
+        InputStream stream = generateReportContent(errors, usedDeletedRules, usedRulesWithDurationModeUpdate,
+            usedUpdatedRules, fileRulesToDelete, fileRulesToUpdate, fileRulesToInsert,
             statusCode, eipMaster);
 
         try {
@@ -633,7 +685,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         // FIXME use bulk create instead like LogbookMongoDbAccessImpl.
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateFileRules = new Update();
-        List<SetAction> actions = new ArrayList<>();
+        List<Action> actions = new ArrayList<>();
         SetAction setRuleValue;
         setRuleValue = new SetAction(FileRulesModel.TAG_RULE_VALUE, fileRulesModel.getRuleValue());
         actions.add(setRuleValue);
@@ -645,15 +697,29 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         SetAction setUpdateDate =
             new SetAction(UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         actions.add(setUpdateDate);
-        SetAction setRuleMeasurement =
-            new SetAction(FileRulesModel.TAG_RULE_MEASUREMENT, fileRulesModel.getRuleMeasurement());
-        actions.add(setRuleMeasurement);
-        SetAction setRuleDuration = new SetAction(FileRulesModel.TAG_RULE_DURATION, fileRulesModel.getRuleDuration());
-        actions.add(setRuleDuration);
+
+        if (fileRulesModel.getRuleMeasurement() != null) {
+            SetAction setRuleMeasurement =
+                new SetAction(FileRulesModel.TAG_RULE_MEASUREMENT, fileRulesModel.getRuleMeasurement());
+            actions.add(setRuleMeasurement);
+        } else {
+            UnsetAction unsetRuleMeasurement = new UnsetAction(FileRulesModel.TAG_RULE_MEASUREMENT);
+            actions.add(unsetRuleMeasurement);
+        }
+
+        if (fileRulesModel.getRuleDuration() != null) {
+            SetAction setRuleDuration =
+                new SetAction(FileRulesModel.TAG_RULE_DURATION, fileRulesModel.getRuleDuration());
+            actions.add(setRuleDuration);
+        } else {
+            UnsetAction unsetRuleDuration = new UnsetAction(FileRulesModel.TAG_RULE_DURATION);
+            actions.add(unsetRuleDuration);
+        }
+
         SetAction setRuleType = new SetAction(FileRulesModel.TAG_RULE_TYPE, fileRulesModel.getRuleType());
         actions.add(setRuleType);
         updateFileRules.setQuery(eq(FileRulesModel.TAG_RULE_ID, fileRulesModel.getRuleId()));
-        updateFileRules.addActions(actions.toArray(SetAction[]::new));
+        updateFileRules.addActions(actions.toArray(Action[]::new));
         updateParser.parse(updateFileRules.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
         mongoAccess.updateData(queryDslForUpdate, RULES, sequence);
@@ -686,7 +752,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private List<ErrorReport> checkRuleDuration(FileRulesModel fileRulesModel, int line) {
         List<ErrorReport> errors = new ArrayList<>();
-        if (!UNLIMITED.equalsIgnoreCase(fileRulesModel.getRuleDuration())) {
+        if (fileRulesModel.getRuleDuration() != null &&
+            !UNLIMITED.equalsIgnoreCase(fileRulesModel.getRuleDuration())) {
             final int duration = parseWithDefault(fileRulesModel.getRuleDuration());
             if (duration < 0) {
                 errors.add(
@@ -718,12 +785,30 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         if (StringUtils.isEmpty(fileRulesModel.getRuleValue())) {
             missingParam.add(FileRulesModel.TAG_RULE_VALUE);
         }
-        if (StringUtils.isEmpty(fileRulesModel.getRuleDuration())) {
-            missingParam.add(FileRulesModel.TAG_RULE_DURATION);
+
+        boolean isHoldRule = RuleType.HoldRule.isNameEquals(fileRulesModel.getRuleType());
+        boolean hasRuleDuration = fileRulesModel.getRuleDuration() != null;
+        boolean hasRuleMeasurement = fileRulesModel.getRuleMeasurement() != null;
+
+        if (isHoldRule) {
+            // Rule duration is optional for HoldRules
+            // But if duration is present, both duration value & unit must be provided
+
+            if (hasRuleMeasurement && !hasRuleDuration) {
+                missingParam.add(FileRulesModel.TAG_RULE_DURATION);
+            }
+            if (hasRuleDuration && !hasRuleMeasurement) {
+                missingParam.add(FileRulesModel.TAG_RULE_MEASUREMENT);
+            }
+        } else {
+            if (!hasRuleDuration) {
+                missingParam.add(FileRulesModel.TAG_RULE_DURATION);
+            }
+            if (!hasRuleMeasurement) {
+                missingParam.add(FileRulesModel.TAG_RULE_MEASUREMENT);
+            }
         }
-        if (StringUtils.isEmpty(fileRulesModel.getRuleMeasurement())) {
-            missingParam.add(FileRulesModel.TAG_RULE_MEASUREMENT);
-        }
+
         if (!missingParam.isEmpty()) {
             errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_NOT_CSV_FORMAT, line,
                 String.join(", ", missingParam)));
@@ -830,6 +915,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      *
      * @param errors the list of error for generated errors
      * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
+     * @param usedRulesWithDurationModeUpdate list of fileRules referenced by a unit, with duration mode update (defined to undefined, or undefined to defined)
      * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
      * @param status status
      * @param eipMaster eipMaster
@@ -837,7 +923,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      */
     public InputStream generateReportContent(Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRules,
-        List<FileRulesModel> usedUpdatedRules, List<FileRulesModel> fileRulesModelToDelete,
+        List<FileRulesModel> usedRulesWithDurationModeUpdate,
+        List<FileRulesModel> usedUpdatedRules,
+        List<FileRulesModel> fileRulesModelToDelete,
         List<FileRulesModel> fileRulesModelToUpdate, List<FileRulesModel> fileRulesModelToInsert,
         StatusCode status, GUID eipMaster) {
         final FileRulesManagementReport reportFinal = new FileRulesManagementReport();
@@ -915,14 +1003,18 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
         reportFinal.setUsedFileRulesToDelete(usedDeletedFileRuleList);
         reportFinal.setUsedFileRulesToUpdate(usedUpdatedFileRuleList);
-        reportFinal.setFileRulesToDelete(fileRulesModelToDelete.stream().map(FileRulesModel::getRuleId).collect(
-            Collectors.toList()));
-        reportFinal.setFileRulesToUpdate(fileRulesModelToUpdate.stream().map(FileRulesModel::getRuleId).collect(
-            Collectors.toList()));
-        reportFinal.setFileRulesToImport(fileRulesModelToInsert.stream().map(FileRulesModel::getRuleId).collect(
-            Collectors.toList()));
+        reportFinal.setUsedRulesWithDurationModeUpdate(rulesToRuleIds(usedRulesWithDurationModeUpdate));
+        reportFinal.setFileRulesToDelete(rulesToRuleIds(fileRulesModelToDelete));
+        reportFinal.setFileRulesToUpdate(rulesToRuleIds(fileRulesModelToUpdate));
+        reportFinal.setFileRulesToImport(rulesToRuleIds(fileRulesModelToInsert));
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
 
+    }
+
+    private List<String> rulesToRuleIds(List<FileRulesModel> rules) {
+        return rules.stream()
+            .map(FileRulesModel::getRuleId)
+            .collect(Collectors.toList());
     }
 
     /**

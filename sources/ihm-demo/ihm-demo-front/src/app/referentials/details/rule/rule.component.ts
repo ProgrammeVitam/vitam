@@ -26,6 +26,7 @@ const RULE_TYPE_TRANSLATION = {
   "DisseminationRule" : "Délai de diffusion",
   "ReuseRule" : "Durée de réutilisation",
   "ClassificationRule" : "Durée de classification",
+  "HoldRule" : "Durée de gel"
 };
 
 const RULE_MEASUREMENT_TRANSLATION = {
