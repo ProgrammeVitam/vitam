@@ -87,7 +87,7 @@ public class VitamRuleRunner {
     public static DisableCacheContainerRule disableCacheContainerRule = new DisableCacheContainerRule();
 
     @ClassRule
-    public static MongoRule mongoRule =
+    public static final MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(
             merge(MetadataCollections.getClasses(), LogbookCollections.getClasses(),
                 FunctionalAdminCollections.getClasses())),
@@ -104,7 +104,7 @@ public class VitamRuleRunner {
             AuditReportRepository.AUDIT_OBJECT_GROUP);
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+    public static final ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     protected static ElasticsearchLogbookIndexManager logbookIndexManager;
     protected static ElasticsearchMetadataIndexManager metadataIndexManager;

@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -85,7 +86,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
@@ -95,7 +95,10 @@ public class VitamTestHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamTestHelper.class);
     private static final long SLEEP_TIME = 20L;
-    private static final String OFFER_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_OFFER_ADMIN;
+
+    private VitamTestHelper() {
+        throw new UnsupportedOperationException("Utility class");
+    }
 
 
     public static void prepareVitamSession(Integer tenantId, String contractId, String contextId) {
@@ -148,7 +151,7 @@ public class VitamTestHelper {
 
     public static void verifyLogbook(String operationId, String actionKey, String statusCode) {
         Document operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains(String.format("%s.%s", actionKey, statusCode)));
     }
@@ -248,5 +251,21 @@ public class VitamTestHelper {
         } catch (VitamClientException | InternalServerException | BadRequestException e) {
             fail("cannot find process with id = ", opId, e);
         }
+    }
+
+
+    public static void waitOperation(long nbTry, long timeToSleep, String operationId) {
+        ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        for (int nbtimes = 0; (nbtimes <= nbTry && !processingClient.isNotRunning(operationId)); nbtimes++) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(timeToSleep);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+    }
+
+    public static void waitOperation(String operationId) {
+        waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, operationId);
     }
 }

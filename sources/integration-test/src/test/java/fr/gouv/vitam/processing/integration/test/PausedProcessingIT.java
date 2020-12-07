@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.processing.integration.test;
 
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -44,10 +45,10 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -93,7 +94,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(PausedProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
@@ -144,20 +145,6 @@ public class PausedProcessingIT extends VitamRuleRunner {
         handleAfter();
     }
 
-    private void wait(String operationId) {
-        int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient().isNotRunning(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
-    }
-
     private void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
@@ -200,7 +187,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
@@ -227,7 +214,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
@@ -243,7 +230,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-        wait(containerName);
+        waitOperation(containerName);
         processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
@@ -330,7 +317,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
             // check process
-            wait(containerName);
+            waitOperation(containerName);
             ProcessWorkflow processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
@@ -349,7 +336,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             // check process status
-            wait(containerName);
+            waitOperation(containerName);
             processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
@@ -376,7 +363,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             // check process status
-            wait(containerName);
+            waitOperation(containerName);
             processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
             // if MD server restarted process should complete with status Warning, otherwise it must still in pause with status Fatal

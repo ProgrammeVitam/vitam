@@ -98,11 +98,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
@@ -242,7 +240,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(rectificationAuditOperationGUID);
 
             adminClient.rectificationAudit(evidenceAuditOperation);
-            waitOperation(NB_TRY, SLEEP_TIME, rectificationAuditOperationGUID.getId());
+            waitOperation(rectificationAuditOperationGUID.getId());
 
             // When
             ArrayNode rectificationAuditOperationEvents = (ArrayNode) accessClient
@@ -319,7 +317,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(evidenceAuditOperationGUID);
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> evidenceAuditResponse = adminClient.evidenceAudit(query);
-            waitOperation(NB_TRY, SLEEP_TIME, evidenceAuditOperationGUID.toString());
+            waitOperation(evidenceAuditOperationGUID.toString());
         }
         return evidenceAuditOperationGUID.toString();
     }
@@ -362,7 +360,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             RequestResponseOK traceabilityObjectGroupResponse = logbookOperationsClient.traceabilityLfcObjectGroup();
             String traceabilityGotOperationId =
                 traceabilityObjectGroupResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-            waitOperation(NB_TRY, SLEEP_TIME, traceabilityGotOperationId);
+            waitOperation(traceabilityGotOperationId);
             return traceabilityGotOperationId;
         }
     }
@@ -372,14 +370,14 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             .getClient()) {
             RequestResponseOK traceabilityUnitResponse = logbookOperationsClient.traceabilityLfcUnit();
             String traceabilityUnitOperationId = traceabilityUnitResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-            waitOperation(NB_TRY, SLEEP_TIME, traceabilityUnitOperationId);
+            waitOperation(traceabilityUnitOperationId);
             return traceabilityUnitOperationId;
         }
     }
 
     private String deleteObjectInStorage(String initialOperationId) throws Exception {
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            StorageClient storageClient = StorageClientFactory.getInstance().getClient();) {
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             GUID accessGuid = GUIDFactory.newRequestIdGUID(TENANT_ID);
             VitamThreadUtils.getVitamSession().setRequestId(accessGuid);

@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -78,8 +77,6 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -119,6 +116,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.COMPACTED_OFFER_LOG;
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OFFER_LOG;
@@ -135,8 +133,6 @@ public class CompactionIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CompactionIT.class);
 
     private static final Integer tenantId = 0;
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000;
 
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
@@ -278,22 +274,6 @@ public class CompactionIT extends VitamRuleRunner {
         }
     }
 
-    private void wait(String operationId) {
-        int nbTry = 0;
-        ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isNotRunning(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
-    }
-
     private InputStream readStoredReport(String filename)
         throws StorageServerClientException, StorageNotFoundException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -349,7 +329,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {
 
-        wait(operationGuid);
+        waitOperation(operationGuid);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid, tenantId);

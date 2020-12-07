@@ -86,7 +86,6 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.preservation.ProcessManagementWaiter;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -116,6 +115,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1037,7 +1037,7 @@ public class RulesIT extends VitamRuleRunner {
         Optional<String> operationId = findUnitRuleUpdateWorkflowOperationId();
         assertThat(operationId).isPresent();
 
-        ProcessManagementWaiter.waitOperation(NB_TRY, SLEEP_TIME, operationId.get());
+        waitOperation(NB_TRY, SLEEP_TIME, operationId.get());
 
         LogbookOperation logbookOperation = selectLogbookOperation(operationId.get());
         checkStatusCode(logbookOperation, StatusCode.OK);

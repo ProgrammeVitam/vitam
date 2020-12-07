@@ -143,6 +143,7 @@ import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.operations;
@@ -159,7 +160,6 @@ import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.G
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static java.util.Collections.singletonList;
@@ -198,7 +198,7 @@ public class PreservationIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(PreservationIT.class, MONGO_NAME, ES_NAME, SERVERS);
 
-    private static final String DESCRIPTION_KEY = "Description";;
+    private static final String DESCRIPTION_KEY = "Description";
     private static final String DESCRIPTION_VALUE = "This is an awesome description ! Thx Captain.";
     private static final String FOO_KEY = "Foo";
     private static final List<String> FOO_VALUE = Arrays.asList("bar1", "bar2");
@@ -416,7 +416,7 @@ public class PreservationIT extends VitamRuleRunner {
                 new PreservationRequest(finalSelect, "PSC-000001", "BinaryMaster", LAST, "BinaryMaster");
             accessClient.startPreservation(preservationRequest);
 
-            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            waitOperation(operationGuid.toString());
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient

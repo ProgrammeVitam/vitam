@@ -85,7 +85,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -267,7 +266,7 @@ public class IngestExternalIT extends VitamRuleRunner {
 
             // Get logbook and check all events
             Document operation =
-                (Document) LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId), Document.class)
+                LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId), Document.class)
                     .first();
             InputStream expected =
                 PropertiesUtils.getResourceAsStream(INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON);
@@ -383,7 +382,6 @@ public class IngestExternalIT extends VitamRuleRunner {
     public void test_ingest_with_not_allowed_file_name_ko() throws Exception {
         try (InputStream inputStream =
             PropertiesUtils.getResourceAsStream(SIP_NOT_ALLOWED_NAME)) {
-            ;
             RequestResponse response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)

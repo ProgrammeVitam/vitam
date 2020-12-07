@@ -49,7 +49,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -108,6 +107,7 @@ import java.util.Collections;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -1155,22 +1155,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent5.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
     }
 
-    private void wait(String operationId) {
-        int nbTry = 0;
-        while (!processingClient.isNotRunning(operationId)) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                break;
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
-    }
-
     private void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         createLogbookOperation(operationId, objectId, null);
@@ -1215,7 +1199,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertNotNull(ret2);
         assertThat(ret2.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
-        wait(containerName2);
+        waitOperation(containerName2);
         assertCompletedWithStatus(containerName2, StatusCode.OK);
     }
 
@@ -1239,7 +1223,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
                 return null;
             }
             String operationGuid = (String) requestResponseOK.getFirstResult();
-            wait(operationGuid);
+            waitOperation(operationGuid);
             return operationGuid;
         }
     }

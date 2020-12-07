@@ -100,8 +100,8 @@ import java.util.zip.ZipOutputStream;
 
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -353,7 +353,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
     private void verifyLogbook(String operationId) {
         Document operation =
-            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+            LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_ATTACHEMENT.KO"));
     }
@@ -377,7 +377,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status,
         ProcessState processState) {
 
-        waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+        waitOperation(operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);

@@ -128,11 +128,11 @@ import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUTCOME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
@@ -141,8 +141,6 @@ import static org.junit.Assert.assertNotNull;
 
 public class TransferAndDipIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
     private static final String TRANSFERS_OPERATION = "Transfers";
@@ -574,7 +572,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
             client.exportByUsageFilter(exportRequest);
 
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
-            Document document = (Document) LogbookCollections.OPERATION.getCollection()
+            Document document = LogbookCollections.OPERATION.getCollection()
                 .find(Filters.eq(getVitamSession().getRequestId())).first();
 
             switch (exportRequest.getExportType()) {
@@ -668,7 +666,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
     }
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {
-        waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+        waitOperation(operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);

@@ -187,9 +187,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -213,8 +213,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String TITLE_FR = "Title_.fr";
     private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static final Integer tenantId = 0;
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
@@ -622,7 +620,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             updateQueryClassification.addRoots(unitId);
             RequestResponse responseClassification = accessClient
                 .updateUnitbyId(updateQueryClassification.getFinalUpdate(), unitId);
-            assertTrue(!responseClassification.isOk());
+            assertFalse(responseClassification.isOk());
             assertEquals(responseClassification.getHttpCode(), Status.BAD_REQUEST.getStatusCode());
 
             // execute update -> PreventInheritance
@@ -642,14 +640,13 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(0,
                 responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
                     .get("Inheritance").get("PreventRulesId").size());
-            assertEquals(false,
-                responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
-                    .get("Inheritance").get("PreventInheritance").asBoolean());
+            assertFalse(responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
+                .get("Inheritance").get("PreventInheritance").asBoolean());
 
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
             LOGGER.warn("read: " + size2);
-            assertTrue(size2 == size);
+            assertEquals(size2, size);
 
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
@@ -1194,7 +1191,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             }
         }
 
-        assertTrue(!checkDataObject);
+        assertFalse(checkDataObject);
     }
 
 
@@ -1249,7 +1246,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             }
         }
 
-        assertTrue(!checkUnitSuccess);
+        assertFalse(checkUnitSuccess);
     }
 
     @RunWithCustomExecutor
@@ -1303,7 +1300,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             }
         }
 
-        assertTrue(!checkUnitSuccess);
+        assertFalse(checkUnitSuccess);
     }
 
 
@@ -1422,7 +1419,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         client.initWorkflow(ingestSip);
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-        waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+        waitOperation(operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
@@ -1746,7 +1743,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             VitamThreadUtils.getVitamSession().setContractId("aName4");
 
-            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+            waitOperation(operationGuid.toString());
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
@@ -2001,11 +1998,11 @@ public class IngestInternalIT extends VitamRuleRunner {
                     itemStatus.getGlobalState() == ProcessState.PAUSE) {
                     break;
                 }
-                Thread.sleep(SLEEP_TIME);
+                Thread.sleep(VitamServerRunner.SLEEP_TIME);
             } catch (VitamClientException | InternalServerException | BadRequestException | InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (nbTry == NB_TRY)
+            if (nbTry == VitamServerRunner.NB_TRY)
                 break;
             nbTry++;
         }
@@ -2532,13 +2529,13 @@ public class IngestInternalIT extends VitamRuleRunner {
             try {
                 retrieveLfcForUnit(unit.get("#id").asText(), accessClient);
             } catch (AccessUnauthorizedException e) {
-                assertTrue(e.getMessage().equals("Access by Contract Exception"));
+                assertEquals("Access by Contract Exception", e.getMessage());
             }
 
             try {
                 retrieveLfcForGot(objectId, accessClient);
             } catch (AccessUnauthorizedException e) {
-                assertTrue(e.getMessage().equals("Access by Contract Exception"));
+                assertEquals("Access by Contract Exception", e.getMessage());
             }
 
         } catch (final Exception e) {
@@ -2561,7 +2558,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status,
         ProcessState processState) {
 
-        waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+        waitOperation(operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
@@ -2810,7 +2807,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             JsonHandler.getFromJsonNode(result.get(0).get("CustodialHistory"), CustodialHistoryModel.class);
         assertNotNull(model);
         String expectedTitleOfCustodialItem = "Ce champ est obligatoire";
-        assertThat(model.getCustodialHistoryItem()).isEqualTo(Arrays.asList(expectedTitleOfCustodialItem));
+        assertThat(model.getCustodialHistoryItem()).isEqualTo(Collections.singletonList(expectedTitleOfCustodialItem));
 
         RelatedObjectReferenceType relatedObjectReferenceType =
             JsonHandler.getFromJsonNode(result.get(0).get("RelatedObjectReference"), RelatedObjectReferenceType.class);

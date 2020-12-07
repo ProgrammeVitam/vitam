@@ -89,7 +89,7 @@ public class IngestContractIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 WorkspaceMain.class,
                 StorageMain.class,
@@ -113,7 +113,7 @@ public class IngestContractIT extends VitamRuleRunner {
         // ES client
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        esClient = new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes, logbookIndexManager);
+        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes, logbookIndexManager);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
