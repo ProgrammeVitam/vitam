@@ -31,6 +31,7 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -40,12 +41,10 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import org.junit.AfterClass;
@@ -64,10 +63,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -128,6 +127,14 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
             return expectedResponse.get();
         }
 
+        @Path("units/bulk")
+        @GET
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectUnitBulk(String request) {
+            return expectedResponse.get();
+        }
+
         @Path("unitsWithInheritedRules")
         @GET
         @Consumes(MediaType.APPLICATION_JSON)
@@ -158,6 +165,14 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response updateUnitbyId(String updateRequest, @PathParam("id_unit") String unitId) {
             return expectedResponse.put();
+        }
+
+        @Path("units/atomicupdatebulk")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response atomicUpdateUnitBulk(String request) {
+            return expectedResponse.post();
         }
 
         @Path("objectgroups")
@@ -684,6 +699,182 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
         assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
             .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void selectUnitBulkTest_Ok() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
+        assertThatCode(() -> client.selectUnitsBulk(queries)).doesNotThrowAnyException();
+    }
+    
+    @Test
+    public void selectUnitBulkTest_VitamError() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .setContext("METADATA")
+                .setState("CODE_VITAM")
+                .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .setDescription("Horror exception just because");
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(vitamResponse).build());
+        assertThatCode(() -> client.selectUnitsBulk(queries)).doesNotThrowAnyException();
+    }
+    
+    @Test
+    public void selectUnitBulkTest_WrongResponseFormat() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("wrong format").build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
+            .isInstanceOf(IllegalStateException.class);
+    }
+    
+    @Test
+    public void selectUnitBulkTest_NullParam() throws InvalidParseOperationException {
+        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(null))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void selectUnitBulkTest_BadRequest() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void selectUnitBulkTest_PreconditionFailed() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void selectUnitBulkTest_InternalError() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
+            .isInstanceOf(MetaDataExecutionException.class);
+    }
+
+    @Test
+    public void selectUnitBulkTest_RequestTooLarge() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
+            .isInstanceOf(MetaDataDocumentSizeException.class);
+    }
+
+    @Test
+    public void selectUnitBulkTest_NotFound() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
+            .isInstanceOf(MetaDataClientServerException.class);
+    }
+
+// UpdateUnitBulk
+
+    @Test
+    public void atomicUpdateBulkTest_Ok() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<JsonNode>()).build());
+        assertThatCode(() -> client.atomicUpdateBulk(queries)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_VitamError() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .setContext("METADATA")
+                .setState("CODE_VITAM")
+                .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .setDescription("Too bad another exception");
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(vitamResponse).build());
+        assertThatCode(() -> client.atomicUpdateBulk(queries)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_WrongResponseFormat() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.post()).thenReturn(Response.status(Status.FOUND).entity("wrong format").build());
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_NullParam() throws InvalidParseOperationException {
+        when(mock.post()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
+        assertThatThrownBy(() -> client.atomicUpdateBulk(null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_BadRequest() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
+                .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_PreconditionFailed() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_InternalError() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
+                .isInstanceOf(MetaDataExecutionException.class);
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_RequestTooLarge() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.post()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
+                .isInstanceOf(MetaDataDocumentSizeException.class);
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_NotFound() throws InvalidParseOperationException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
+                .isInstanceOf(MetaDataNotFoundException.class);
+    }
+
+    @Test
+    public void atomicUpdateBulkTest_BlankQuery() {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        when(mock.post()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        assertThatThrownBy(() -> {
+            queries.add(JsonHandler.getFromString(""));
+            client.atomicUpdateBulk(queries);
+        }).isInstanceOf(InvalidParseOperationException.class);
     }
 }
 

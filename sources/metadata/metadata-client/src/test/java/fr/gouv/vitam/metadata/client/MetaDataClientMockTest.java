@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.metadata.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -43,11 +44,15 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 
 public class MetaDataClientMockTest {
     private static final String VALID_QUERY = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
+
     public MetaDataClient client;
 
     @Before
@@ -61,6 +66,15 @@ public class MetaDataClientMockTest {
         throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
         InvalidParseOperationException, VitamDBException {
         assertNotNull(client.selectUnits(JsonHandler.getFromString(VALID_QUERY)));
+    }
+
+    @Test
+    public void selectUnitsBulkTest()
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+        InvalidParseOperationException, VitamDBException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        assertNotNull(client.selectUnitsBulk(queries));
     }
 
     @Test
@@ -83,6 +97,16 @@ public class MetaDataClientMockTest {
         InvalidParseOperationException, MetaDataNotFoundException {
         assertNotNull(client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"));
     }
+
+    @Test
+    public void atomicUpdateBulk()
+            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+            InvalidParseOperationException, MetaDataNotFoundException {
+        List<JsonNode> queries = new ArrayList<JsonNode>();
+        queries.add(JsonHandler.getFromString(VALID_QUERY));
+        assertNotNull(client.atomicUpdateBulk(queries));
+    }
+
 
     @Test
     public void insertObjectGroupTest()

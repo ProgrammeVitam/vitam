@@ -1,0 +1,36 @@
+{
+  "httpCode":200,
+  "$hits":{
+    "total":1,
+    "offset":0,
+    "limit":10000,
+    "size":1
+  },
+  "$results":[
+    {
+      "#id":"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq",
+      "#status":"OK",
+      "#key":"UNIT_METADATA_UPDATE",
+      "#message":"Update unit OK.",
+      "#diff":"-  \"data\" : \"data1\"\n+  \"data\" : [ \"data10\" ]\n-  \"_v\" : 0\n-  \"_av\" : 0\n+  \"_v\" : 1\n+  \"_av\" : 1"
+    }
+  ],
+  "$facetResults":[
+
+  ],
+  "$context":{
+    "$roots":[
+      "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq"
+    ],
+    "$action":[
+      {
+        "$set":{
+          "data":"data10"
+        }
+      }
+    ],
+    "$filter":{
+
+    }
+  }
+}

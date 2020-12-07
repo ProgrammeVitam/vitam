@@ -73,7 +73,9 @@ import static fr.gouv.vitam.metadata.client.ErrorMessage.INVALID_PARSE_OPERATION
 import static fr.gouv.vitam.metadata.client.ErrorMessage.NOT_FOUND;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_OBJECT_GROUP_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL;
+import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_BULK_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SIZE_TOO_LARGE;
+import static fr.gouv.vitam.metadata.client.ErrorMessage.UPDATE_UNITS_QUERY_BULK_NULL;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -111,6 +113,19 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             get().withPath("/units").withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()).withJson())) {
             check(response);
             return response.readEntity(JsonNode.class);
+        } catch (MetaDataNotFoundException | VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode>  selectUnitsBulk(List<JsonNode> selectQueryBulk)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException {
+        try (Response response = make(
+            get().withPath("/units/bulk").withBody(selectQueryBulk, SELECT_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (MetaDataNotFoundException | VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         }
@@ -455,6 +470,19 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             .withBody(updateQuery, INSERT_UNITS_QUERY_NULL.getMessage()))) {
             check(response);
             return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
+            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+            MetaDataDocumentSizeException, MetaDataClientServerException {
+        try (Response response = make(post().withPath("/units/atomicupdatebulk")
+                .withBody(updateQueries, UPDATE_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         }
