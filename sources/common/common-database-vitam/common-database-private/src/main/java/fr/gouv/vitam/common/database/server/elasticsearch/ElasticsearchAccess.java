@@ -46,6 +46,7 @@ import org.apache.http.util.Asserts;
 import org.bson.Document;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.DocWriteRequest;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.LatchedActionListener;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.indices.alias.Alias;
@@ -129,8 +130,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
     private static final String NUMBER_OF_SHARDS = "number_of_shards";
     private static final String NUMBER_OF_REPLICAS = "number_of_replicas";
 
-    private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
-    private AtomicReference<RestHighLevelClient> esClient = new AtomicReference<>();
+    private static final String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
+    private final AtomicReference<RestHighLevelClient> esClient = new AtomicReference<>();
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;
 
@@ -328,8 +329,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
     }
 
-    public final <T extends VitamDocument> void indexEntry(ElasticsearchIndexAlias indexAlias, final String id,
-        final T vitamDocument) throws DatabaseException {
+    public final <T> void indexEntry(ElasticsearchIndexAlias indexAlias, final String id,
+        final VitamDocument<T> vitamDocument) throws DatabaseException {
 
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
@@ -352,14 +353,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
             vitamDocument.put(VitamDocument.ID, id);
         }
 
-        switch (indexResponse.getResult()) {
-            case CREATED:
-                break;
-            default:
-                throw new DatabaseException(String
-                    .format("Could not index document on ES. Id=%s, aliasName=%s, status=%s", id,
-                        indexAlias.getName(),
-                        indexResponse.status()));
+        if (indexResponse.getResult() != DocWriteResponse.Result.CREATED) {
+            throw new DatabaseException(String
+                .format("Could not index document on ES. Id=%s, aliasName=%s, status=%s", id,
+                    indexAlias.getName(),
+                    indexResponse.status()));
         }
     }
 
@@ -406,8 +404,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     /**
      * Update one element fully
      */
-    public <T extends VitamDocument> void updateEntry(ElasticsearchIndexAlias indexAlias, String id,
-        T vitamDocument)
+    public <T> void updateEntry(ElasticsearchIndexAlias indexAlias, String id, VitamDocument<T> vitamDocument)
         throws DatabaseException {
         try {
             vitamDocument.remove(VitamDocument.ID);
@@ -428,14 +425,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 throw new DatabaseException(e);
             }
 
-            switch (indexResponse.getResult()) {
-                case UPDATED:
-                    break;
-                default:
-                    throw new DatabaseException(String
-                        .format("Could not update document on ES. Id=%s, aliasName=%s, status=%s", id,
-                            indexAlias.getName(),
-                            indexResponse.status()));
+            if (indexResponse.getResult() != DocWriteResponse.Result.UPDATED) {
+                throw new DatabaseException(String
+                    .format("Could not update document on ES. Id=%s, aliasName=%s, status=%s", id,
+                        indexAlias.getName(),
+                        indexResponse.status()));
             }
 
         } finally {
@@ -444,14 +438,14 @@ public class ElasticsearchAccess implements DatabaseConnection {
     }
 
     public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
-        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
+        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
         int offset, Integer limit)
         throws DatabaseException, BadRequestException {
         return search(indexAlias, query, filter, esProjection, sorts, offset, limit, null, null, null);
     }
 
     public final SearchResponse searchCrossIndices(Set<ElasticsearchIndexAlias> indexAliases,
-                                       final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
+                                       final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
                                        int offset, Integer limit,
                                        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
             throws DatabaseException, BadRequestException {
@@ -516,29 +510,24 @@ public class ElasticsearchAccess implements DatabaseConnection {
             try {
                 response = getClient().search(searchRequest, RequestOptions.DEFAULT);
             } catch (final ElasticsearchException e) {
-                switch (e.status()) {
-                    case BAD_REQUEST:
-                        throw new BadRequestException(e);
-                    default:
-                        throw new DatabaseException(e);
+                if (e.status() == RestStatus.BAD_REQUEST) {
+                    throw new BadRequestException(e);
                 }
+                throw new DatabaseException(e);
             } catch (IOException e) {
                 throw new DatabaseException(e);
             }
         }
 
-        switch (response.status()) {
-            case OK:
-                break;
-            default:
-                throw new DatabaseException("Error " + response.status() + " from : " + searchRequest + ":" + query);
+        if (response.status() != RestStatus.OK) {
+            throw new DatabaseException("Error " + response.status() + " from : " + searchRequest + ":" + query);
         }
 
         return response;
     }
 
     public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
-        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
+        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
         int offset, Integer limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws DatabaseException, BadRequestException {

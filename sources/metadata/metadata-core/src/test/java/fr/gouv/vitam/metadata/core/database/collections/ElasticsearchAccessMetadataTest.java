@@ -168,18 +168,18 @@ public class ElasticsearchAccessMetadataTest {
         JsonNode queryNode = JsonHandler.getFromString(query);
         SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryNode);
-        List<SortBuilder> sorts = new ArrayList<>();
+        List<SortBuilder<?>> sorts = new ArrayList<>();
         List<Query> queries = parser.getRequest().getQueries();
         DynamicParserTokens parserTokens =
             new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
         Query elasticQuery = queries.get(0);
-        SortBuilder sortBuilder = new FieldSortBuilder("_max");
+        SortBuilder<?> sortBuilder = new FieldSortBuilder("_max");
         sortBuilder.order(SortOrder.DESC);
         sorts.add(sortBuilder);
         BoolQueryBuilder queryBuilder = new BoolQueryBuilder()
             .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
         // When
-        Result result = elasticsearchAccessMetadata
+        Result<?> result = elasticsearchAccessMetadata
             .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
                 10_000, null, "START", 0);
         // Then
@@ -220,16 +220,14 @@ public class ElasticsearchAccessMetadataTest {
 
         // Last call should fail as scroll is cleared event scrollTimeout = 5000
         try {
-            result = elasticsearchAccessMetadata
-                .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
-                    1, null, result.scrollId, 5000);
+            elasticsearchAccessMetadata
+                .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1, 1, null, result.scrollId, 5000);
             fail("should throw an exception (scroll id not found)");
         } catch (Exception e) {
             // Elasticsearch exception [type=search_context_missing_exception, reason=No search context found for id]
         }
 
-        elasticsearchAccessMetadata
-            .delete(UNIT, Lists.newArrayList(id, id2), TENANT_ID_0);
+        elasticsearchAccessMetadata.delete(UNIT, Lists.newArrayList(id, id2), TENANT_ID_0);
     }
 
     @Test

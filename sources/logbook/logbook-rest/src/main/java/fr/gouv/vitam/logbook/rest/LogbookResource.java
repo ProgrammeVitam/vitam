@@ -146,7 +146,6 @@ public class LogbookResource extends ApplicationStatusResource {
     public static final String CODE_VITAM = "code_vitam";
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
-    private final LogbookConfiguration logbookConfiguration;
     private final LogbookDbAccess mongoDbAccess;
     private final LogbookAdministration logbookAdministration;
     private final LogbookLFCAdministration logbookLFCAdministration;
@@ -165,6 +164,7 @@ public class LogbookResource extends ApplicationStatusResource {
      */
     public LogbookResource(LogbookConfiguration configuration, OntologyLoader ontologyLoader,
         ElasticsearchLogbookIndexManager indexManager) {
+        LogbookConfiguration logbookConfiguration;
         if (configuration.isDbAuthentication()) {
             logbookConfiguration =
                 new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
@@ -1104,17 +1104,17 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
-            LogbookLifeCycle result = logbookLifeCycle.selectLifeCycleById(unitLifeCycleId, queryDsl, false,
+            LogbookLifeCycle<?> result = logbookLifeCycle.selectLifeCycleById(unitLifeCycleId, queryDsl, false,
                 fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
+                .entity(new RequestResponseOK<LogbookLifeCycle<?>>(queryDsl)
                     .addResult(result)
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -1168,7 +1168,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -1202,11 +1202,11 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
-            final List<LogbookLifeCycle> result =
+            final List<LogbookLifeCycle<?>> result =
                 logbookLifeCycle
                     .selectLifeCycles(queryDsl, true, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
+                .entity(new RequestResponseOK<LogbookLifeCycle<?>>(queryDsl)
                     .addAllResults(result)
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
@@ -1214,7 +1214,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -1308,7 +1308,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -1362,7 +1362,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -1754,17 +1754,17 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             LifeCycleStatusCode requiredLifeCycleStatus = getSelectLifeCycleStatusCode(evtStatus);
-            LogbookLifeCycle result = logbookLifeCycle.selectLifeCycleById(objectGroupLifeCycleId, queryDsl, false,
+            LogbookLifeCycle<?> result = logbookLifeCycle.selectLifeCycleById(objectGroupLifeCycleId, queryDsl, false,
                 fromLifeCycleStatusToObjectGroupCollection(requiredLifeCycleStatus));
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
+                .entity(new RequestResponseOK<LogbookLifeCycle<?>>(queryDsl)
                     .addResult(result)
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -1811,17 +1811,17 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             LifeCycleStatusCode requiredLifeCycleStatus = getSelectLifeCycleStatusCode(evtStatus);
 
-            final List<LogbookLifeCycle> result = logbookLifeCycle.selectLifeCycles(queryDsl, false,
+            final List<LogbookLifeCycle<?>> result = logbookLifeCycle.selectLifeCycles(queryDsl, false,
                 fromLifeCycleStatusToObjectGroupCollection(requiredLifeCycleStatus));
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
+                .entity(new RequestResponseOK<LogbookLifeCycle<?>>(queryDsl)
                     .addAllResults(result)
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK(queryDsl)
+                .entity(new RequestResponseOK<>(queryDsl)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
         } catch (final LogbookException | InvalidParseOperationException exc) {
@@ -1872,7 +1872,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -1956,7 +1956,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -2010,7 +2010,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .addResult(JsonHandler.createArrayNode())
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
@@ -2048,7 +2048,7 @@ public class LogbookResource extends ApplicationStatusResource {
             tmpFile = new File(VitamConfiguration.getVitamTmpFolder(), id);
 
             try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
-                JsonLineWriter jsonLineWriter = new JsonLineWriter(fileOutputStream);
+                JsonLineWriter jsonLineWriter = new JsonLineWriter(fileOutputStream)
             ) {
 
                 // Export entries until no more items OR max limit reached
@@ -2168,25 +2168,17 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     private LogbookCollections fromLifeCycleStatusToUnitCollection(LifeCycleStatusCode lifeCycleStatusCode) {
-        switch (lifeCycleStatusCode) {
-            case LIFE_CYCLE_COMMITTED:
-                return LogbookCollections.LIFECYCLE_UNIT;
-            case LIFE_CYCLE_IN_PROCESS:
-                return LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS;
-            default:
-                return LogbookCollections.LIFECYCLE_UNIT;
+        if (lifeCycleStatusCode == LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS) {
+            return LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS;
         }
+        return LogbookCollections.LIFECYCLE_UNIT;
     }
 
     private LogbookCollections fromLifeCycleStatusToObjectGroupCollection(LifeCycleStatusCode lifeCycleStatusCode) {
-        switch (lifeCycleStatusCode) {
-            case LIFE_CYCLE_COMMITTED:
-                return LogbookCollections.LIFECYCLE_OBJECTGROUP;
-            case LIFE_CYCLE_IN_PROCESS:
-                return LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
-            default:
-                return LogbookCollections.LIFECYCLE_OBJECTGROUP;
+        if (lifeCycleStatusCode == LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS) {
+            return LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
         }
+        return LogbookCollections.LIFECYCLE_OBJECTGROUP;
     }
 
     private LifeCycleStatusCode getUpdateOrCommitLifeCycleStatusCode(String evtStatusHeader)
@@ -2304,7 +2296,7 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (VitamException | InvalidCreateOperationException e) {
             LOGGER.error("unable to check lifecycle traceability status", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new RequestResponseOK()
+                .entity(new RequestResponseOK<>()
                     .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
                 .build();
         }

@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -63,7 +62,6 @@ import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.elasticsearch.ElasticsearchParseException;
 
@@ -77,7 +75,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -101,10 +98,6 @@ public class MetadataResource extends ApplicationStatusResource {
     private final MetaDataImpl metaData;
     private final MetadataRuleService metadataRuleService;
 
-    private final ProcessingManagementClientFactory processingManagementClientFactory;
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private final WorkspaceClientFactory workspaceClientFactory;
-
     /**
      * MetaDataResource constructor
      *
@@ -114,25 +107,15 @@ public class MetadataResource extends ApplicationStatusResource {
     MetadataResource(MetaDataImpl metaData, MetadataRuleService metadataRuleService,
         MetaDataConfiguration configuration) {
         this(metaData,
-            metadataRuleService,
-            ProcessingManagementClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance()
+            metadataRuleService
         );
         LOGGER.info("init MetaData Resource server");
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
 
-    private MetadataResource(MetaDataImpl metaData,
-                             MetadataRuleService metadataRuleService,
-                             ProcessingManagementClientFactory processingManagementClientFactory,
-                             LogbookOperationsClientFactory logbookOperationsClientFactory,
-                             WorkspaceClientFactory workspaceClientFactory) {
+    private MetadataResource(MetaDataImpl metaData, MetadataRuleService metadataRuleService) {
         this.metaData = metaData;
         this.metadataRuleService = metadataRuleService;
-        this.processingManagementClientFactory = processingManagementClientFactory;
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     /**
@@ -181,7 +164,7 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
 
-        RequestResponseOK responseOK = new RequestResponseOK()
+        RequestResponseOK<?> responseOK = new RequestResponseOK<>()
             .setHttpCode(Status.CREATED.getStatusCode());
         return Response.status(Status.CREATED)
             .entity(responseOK)
@@ -214,7 +197,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-        RequestResponseOK responseOK = new RequestResponseOK(updateQuery);
+        RequestResponseOK<?> responseOK = new RequestResponseOK<>(updateQuery);
         responseOK.setHits(1, 0, 1)
             .setHttpCode(OK.getStatusCode());
 
@@ -234,7 +217,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response atomicUpdateBulk(List<JsonNode> updateQueries) {
-        final List<RequestResponse> results = new ArrayList<RequestResponse>();
+        final List<RequestResponse<?>> results = new ArrayList<>();
         updateQueries.forEach(updateQuery -> {
             try {
                 results.add(metaData.updateUnits(updateQuery).setHttpCode(OK.getStatusCode()));
@@ -248,7 +231,7 @@ public class MetadataResource extends ApplicationStatusResource {
             }
         });
 
-        RequestResponseOK<RequestResponse> updateRequestResponse = new RequestResponseOK<RequestResponse>().addAllResults(results).setHttpCode(OK.getStatusCode());
+        RequestResponseOK<RequestResponse<?>> updateRequestResponse = new RequestResponseOK<RequestResponse<?>>().addAllResults(results).setHttpCode(OK.getStatusCode());
 
         return Response.status(OK)
                 .entity(updateRequestResponse)
@@ -287,11 +270,14 @@ public class MetadataResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response selectUnitBulk(List<JsonNode> requests) {
-        List<RequestResponse> results = new ArrayList<>();
+        List<RequestResponse<?>> results = new ArrayList<>();
         for (JsonNode request : requests) {
-            results.add(selectUnitsByQuery(request));
+            RequestResponse<?> result = selectUnitsByQuery(request);
+            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+            result.setHttpCode(st);
+            results.add(result);
         }
-        RequestResponseOK<RequestResponse> vitamResponse = new RequestResponseOK<RequestResponse>()
+        RequestResponseOK<RequestResponse<?>> vitamResponse = new RequestResponseOK<RequestResponse<?>>()
                 .addAllResults(results).setHttpCode(Status.FOUND.getStatusCode());
         return Response.status(Status.FOUND).entity(vitamResponse).build();
     }
@@ -307,17 +293,17 @@ public class MetadataResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response selectUnit(JsonNode request) throws VitamDBException {
-        RequestResponse result = selectUnitsByQuery(request);
+    public Response selectUnit(JsonNode request) {
+        RequestResponse<?> result = selectUnitsByQuery(request);
         int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
         Status status = Status.fromStatusCode(st);
         return Response.status(status).entity(result).build();
     }
 
-    private RequestResponse selectUnitsByQuery(JsonNode selectRequest) {
+    private RequestResponse<?> selectUnitsByQuery(JsonNode selectRequest) {
         Status status;
         try {
-            RequestResponse<JsonNode> result = null;
+            RequestResponse<JsonNode> result;
             result = metaData.selectUnitsByQuery(selectRequest);
             return result;
 
@@ -373,7 +359,7 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response refreshUnit() {
         try {
             metaData.refreshUnit();
-            RequestResponseOK response = new RequestResponseOK();
+            RequestResponseOK<?> response = new RequestResponseOK<>();
             response.setHits(1, 0, 1);
             response.setHttpCode(OK.getStatusCode());
             return Response.status(OK).entity(response).build();
@@ -480,7 +466,7 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response refreshObjectGroup() {
         try {
             metaData.refreshObjectGroup();
-            RequestResponseOK response = new RequestResponseOK();
+            RequestResponseOK<?> response = new RequestResponseOK<>();
             response.setHits(1, 0, 1);
             response.setHttpCode(OK.getStatusCode());
             return Response.status(OK).entity(response).build();
@@ -739,7 +725,7 @@ public class MetadataResource extends ApplicationStatusResource {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         insertRequests.forEach(arrayNode::add);
 
-        RequestResponseOK responseOK = new RequestResponseOK(arrayNode);
+        RequestResponseOK<?> responseOK = new RequestResponseOK<>(arrayNode);
         responseOK.setHits(arrayNode.size(), 0, arrayNode.size())
             .setHttpCode(Status.CREATED.getStatusCode());
         return Response.status(Status.CREATED)

@@ -140,8 +140,8 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param id the id of the entry
      * @param logbookDocument the entry document
      */
-    final <T extends VitamDocument> void updateFullDocument(final LogbookCollections collection, final Integer tenantId,
-        final String id, final T logbookDocument) throws LogbookExecutionException {
+    final <T> void updateFullDocument(final LogbookCollections collection, final Integer tenantId,
+        final String id, final VitamDocument<T> logbookDocument) throws LogbookExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
@@ -167,7 +167,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      */
     public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
         final QueryBuilder query,
-        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
+        final QueryBuilder filter, final List<SortBuilder<?>> sorts, final int offset, final int limit)
         throws LogbookException {
         try {
             int size = Math.min(GlobalDatas.LIMIT_LOAD, limit);
@@ -215,7 +215,8 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         }
     }
 
-    public void indexEntry(LogbookCollections collection, Integer tenantId, String id, VitamDocument vitamDocument)
+    public <T> void indexEntry(LogbookCollections collection, Integer tenantId, String id,
+        VitamDocument<T> vitamDocument)
         throws LogbookExecutionException {
         try {
             super.indexEntry(this.indexManager

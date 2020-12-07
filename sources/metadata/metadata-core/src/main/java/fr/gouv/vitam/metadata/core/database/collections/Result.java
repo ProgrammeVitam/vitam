@@ -26,18 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import org.bson.BsonDocument;
-import org.bson.BsonInt32;
-import org.bson.BsonValue;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -46,6 +34,16 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.FacetResult;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.BsonValue;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Abstract class for Result
@@ -123,7 +121,7 @@ public abstract class Result<T> {
         currentIds.remove("");
         nbResult = currentIds.size();
         for (int i = 0; i < collection.size(); i++) {
-            scores.add(new Float(1));
+            scores.add(1f);
         }
         total = nbResult;
     }
@@ -148,11 +146,11 @@ public abstract class Result<T> {
      * @param from the Result for creating another
      * @return Result created
      */
-    public Result<T> putFrom(final Result from) {
+    public Result<T> putFrom(final Result<T> from) {
         for (int i = 0; i < from.currentIds.size(); i++) {
             if (!currentIds.contains(from.currentIds.get(i))) {
-                currentIds.add((String) from.currentIds.get(i));
-                scores.add((Float) from.scores.get(i));
+                currentIds.add(from.currentIds.get(i));
+                scores.add(from.scores.get(i));
             }
         }
         nbResult = currentIds.size();
@@ -199,7 +197,7 @@ public abstract class Result<T> {
     public Result<T> addId(String id, float score) {
         if (id != null && !currentIds.contains(id)) {
             currentIds.add(id);
-            scores.add((Float) score);
+            scores.add(score);
             nbResult = currentIds.size();
         }
         return this;
@@ -302,14 +300,13 @@ public abstract class Result<T> {
         if (size != nbResult) {
             throw new InvalidParseOperationException(INVALID_NUMBER_OF_RESULT_AND_LIST_OF_RESULTS);
         }
-        if (finalResult.get(0) instanceof MetadataDocument<?>) {
-            final List<MetadataDocument<?>> list = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                final MetadataDocument<?> metadataDocument = (MetadataDocument<?>) finalResult.get(i);
-                MongoDbMetadataResponseFilter.filterFinalResponse(metadataDocument);
+        if (finalResult.get(0) instanceof MetadataDocument) {
+            final List<T> list = new ArrayList<>(size);
+            for (T metadataDocument : finalResult) {
+                MongoDbMetadataResponseFilter.filterFinalResponse((MetadataDocument<?>) metadataDocument);
                 list.add(metadataDocument);
             }
-            return (List<T>) list;
+            return list;
         }
         return finalResult;
     }
@@ -319,7 +316,7 @@ public abstract class Result<T> {
      *
      * @param document of type MetaDataDocument adding to result
      */
-    public Result addFinal(T document) {
+    public Result<T> addFinal(T document) {
         if (finalResult == null) {
             finalResult = new ArrayList<>();
         }
@@ -345,49 +342,53 @@ public abstract class Result<T> {
      *
      * @param projection the project of document
      */
+    @SuppressWarnings("unchecked")
     public void setFinal(Bson projection) {
         final List<T> list = new ArrayList<>(currentIds.size());
         if (type == FILTERARGS.UNITS) {
             for (int i = 0; i < currentIds.size(); i++) {
                 String id = currentIds.get(i);
                 final Unit unit =
-                    (Unit) MetadataCollections.UNIT.getCollection().find(new Document(MetadataDocument.ID, id))
+                    MetadataCollections.UNIT.<Unit>getCollection().find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-
-                if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
-                    isScoreIncluded(projection)) {
-                    Float score = Float.valueOf(1);
-                    try {
-                        score = scores.get(i);
-                        if (score.isNaN()) {
-                            score = Float.valueOf(1);
+                if (unit != null) {
+                    if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
+                        isScoreIncluded(projection)) {
+                        Float score = 1f;
+                        try {
+                            score = scores.get(i);
+                            if (score.isNaN()) {
+                                score = 1f;
+                            }
+                        } catch (IndexOutOfBoundsException e) {
+                            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                         }
-                    } catch (IndexOutOfBoundsException e) {
-                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                        unit.append(VitamDocument.SCORE, score);
                     }
-                    unit.append(VitamDocument.SCORE, score);
+                    list.add((T) unit);
                 }
-                list.add((T) unit);
             }
         } else if (type == FILTERARGS.OBJECTGROUPS) {
             for (int i = 0; i < currentIds.size(); i++) {
                 String id = currentIds.get(i);
                 final ObjectGroup og =
-                    (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection()
+                    MetadataCollections.OBJECTGROUP.<ObjectGroup>getCollection()
                         .find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
-                    isScoreIncluded(projection)) {
-                    Float score = Float.valueOf(1);
-                    try {
-                        score = scores.get(i);
-                        if (score.isNaN()) {
-                            score = Float.valueOf(1);
+                if (og != null) {
+                    if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
+                        isScoreIncluded(projection)) {
+                        Float score = 1f;
+                        try {
+                            score = scores.get(i);
+                            if (score.isNaN()) {
+                                score = 1f;
+                            }
+                        } catch (IndexOutOfBoundsException e) {
+                            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                         }
-                    } catch (IndexOutOfBoundsException e) {
-                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                        og.append(VitamDocument.SCORE, score);
                     }
-                    og.append(VitamDocument.SCORE, score);
                 }
                 list.add((T) og);
             }
@@ -426,10 +427,7 @@ public abstract class Result<T> {
      * @return boolean check if exist finalResult part
      */
     public boolean hasFinalResult() {
-        if (finalResult == null) {
-            return false;
-        }
-        return true;
+        return finalResult != null;
     }
 
 }
