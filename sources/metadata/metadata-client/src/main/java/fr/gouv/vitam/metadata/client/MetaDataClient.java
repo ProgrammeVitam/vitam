@@ -83,6 +83,22 @@ public interface MetaDataClient extends BasicClient {
         InvalidParseOperationException, MetaDataClientServerException;
 
     /**
+     * Bulk Search units by a list of select query (DSL)
+     * @param List<selectQuery> : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
+     * as String <br>
+     * Null is not allowed<br>
+     * List can be empty
+     * @return RequestResponse object {$hint:{},$result:[{},{}]} containing a list of RequestResponse (RequestResponseOK or VitamError) as JsonNode linked to each selectQuery
+     * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
+     * @throws InvalidParseOperationException
+     * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
+     * @throws MetaDataClientServerException
+     */
+    RequestResponse<JsonNode> selectUnitsBulk(List<JsonNode> selectQueryBulk)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException,
+        InvalidParseOperationException, MetaDataClientServerException;
+
+    /**
      * Search units by query (DSL) and path unit id
      * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.single.Select} as JsonNode
      * <br>
@@ -295,6 +311,21 @@ public interface MetaDataClient extends BasicClient {
     RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException;
+
+    /**
+     * Bulk Update units by a list of update query (DSL)
+     * @param updateQueries : update query {@link fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery}
+     * as String
+     * Null is not allowed
+     * List can be empty
+     * @return RequestResponse object {$hint:{},$result:[{},{}]} containing a list of RequestResponse (RequestResponseOK or VitamError) as JsonNode linked to each updateQuery
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     */
+    RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
+            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+            MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * Update units rules Bulk.

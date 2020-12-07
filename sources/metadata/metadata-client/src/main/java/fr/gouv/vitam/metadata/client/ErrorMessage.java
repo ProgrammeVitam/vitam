@@ -36,6 +36,10 @@ public enum ErrorMessage {
      */
     SELECT_UNITS_QUERY_NULL("Select units query is null"),
     /**
+     *  message when select units query bulk is null
+     */
+    SELECT_UNITS_QUERY_BULK_NULL("Select units query bulk is null"),
+    /**
      * message when select objectgroup query is null
      */
     SELECT_OBJECT_GROUP_QUERY_NULL("Select object group query is null"),
@@ -43,6 +47,10 @@ public enum ErrorMessage {
      * message when update units query is null
      */
     UPDATE_UNITS_QUERY_NULL("Update units query is null"),
+    /**
+     * message when insert units query bulk is null
+     */
+    UPDATE_UNITS_QUERY_BULK_NULL("Update units query bulk is null"),
     /**
      * message when update object group query is null
      */

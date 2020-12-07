@@ -56,6 +56,9 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -86,6 +89,20 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         JsonNode res = null;
         try {
             res = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json"));
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+        }
+        return res;
+    }
+    
+    @Override
+    public RequestResponse<JsonNode> selectUnitsBulk(List<JsonNode> selectQueryBulk)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetaDataClientServerException {
+        RequestResponse<JsonNode> res = null;
+        try {
+            JsonNode result = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json"));
+            res = new RequestResponseOK<JsonNode>().addResult(result).setHttpCode(Status.FOUND.getStatusCode());
         } catch (FileNotFoundException e) {
             LOGGER.error(e);
         }
@@ -225,8 +242,24 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     @Override
     public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
+            MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
+    }
+
+    @Override
+    public RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
+            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+            MetaDataDocumentSizeException, MetaDataClientServerException {
+        RequestResponse<JsonNode> res = null;
+        try {
+            JsonNode result = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("resultUpdate.json"));
+            List<JsonNode> nodeList = new ArrayList<JsonNode>();
+            nodeList.add(result);
+            res = new RequestResponseOK<JsonNode>().addAllResults(nodeList).setHttpCode(Response.Status.OK.getStatusCode());
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+        }
+        return res;
     }
 
     @Override
