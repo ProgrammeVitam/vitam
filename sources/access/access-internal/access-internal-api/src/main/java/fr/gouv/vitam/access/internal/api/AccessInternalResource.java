@@ -28,7 +28,6 @@ package fr.gouv.vitam.access.internal.api;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
@@ -202,6 +201,15 @@ public interface AccessInternalResource {
 
 
     /**
+     * Bulk Atomic update of archive units with Json request containing multiple atomic update queries
+     *
+     * @param dslQuery DSL, null not allowed
+     * @return the response
+     */
+    Response bulkAtomicUpdateUnits(JsonNode query);
+
+    /**
+     * gets objects group with Json query
      * Revert an update of archive units
      *
      * @param revertUpdateOptions wrapper for {DSL, operationId}, null not allowed

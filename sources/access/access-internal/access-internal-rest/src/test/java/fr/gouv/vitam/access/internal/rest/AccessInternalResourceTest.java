@@ -26,15 +26,20 @@
  */
 package fr.gouv.vitam.access.internal.rest;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -67,12 +72,16 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -212,6 +221,157 @@ public class AccessInternalResourceTest {
 
     }
 
+
+    /*
+     * Bulk Atomic update
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void testBuklAtomicUpdate_launchedOK() throws Exception {
+
+        // Given
+        AccessContractModel contract = new AccessContractModel();
+        contract.setEveryOriginatingAgency(true);
+        contract.setWritingPermission(true);
+        contract.setAccessLog(ActivationStatus.ACTIVE);
+        VitamThreadUtils.getVitamSession().setContract(contract);
+
+        UpdateMultiQuery update = new UpdateMultiQuery();
+        update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
+        update.addActions(UpdateActionHelper.set("Title","My title"));
+
+        ArrayNode queries = JsonHandler.createArrayNode();
+        queries.add(update.getFinalUpdate());
+        ObjectNode requestBody = JsonHandler.createObjectNode();
+        requestBody.set("$queries",queries);
+        
+        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
+
+        // When
+        accessInternalResource.bulkAtomicUpdateUnits(requestBody);
+
+        // Then
+        checkLogbookStarted(Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC);
+        checkWorkflowCreated(Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC);
+        checkSaveFileToWorkspace("query.json");
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBuklAtomicUpdate_whenWritinPermissionFalse_then_Unauthorized() throws Exception {
+
+        // Given
+        AccessContractModel contract = new AccessContractModel();
+        contract.setEveryOriginatingAgency(true);
+        contract.setWritingPermission(false);
+        contract.setAccessLog(ActivationStatus.ACTIVE);
+        VitamThreadUtils.getVitamSession().setContract(contract);
+
+        UpdateMultiQuery update = new UpdateMultiQuery();
+        update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
+        update.addActions(UpdateActionHelper.set("Title","My title"));
+
+        ArrayNode queries = JsonHandler.createArrayNode();
+        queries.add(update.getFinalUpdate());
+        ObjectNode requestBody = JsonHandler.createObjectNode();
+        requestBody.set("$queries",queries);
+        
+        // When
+        Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBuklAtomicUpdate_whenPermissionPermissionNull_then_Unauthorized() throws Exception {
+
+        // Given
+        AccessContractModel contract = new AccessContractModel();
+        contract.setEveryOriginatingAgency(true);
+        contract.setWritingPermission(null);
+        contract.setAccessLog(ActivationStatus.ACTIVE);
+        VitamThreadUtils.getVitamSession().setContract(contract);
+
+        UpdateMultiQuery update = new UpdateMultiQuery();
+        update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
+        update.addActions(UpdateActionHelper.set("Title","My title"));
+
+        ArrayNode queries = JsonHandler.createArrayNode();
+        queries.add(update.getFinalUpdate());
+        ObjectNode requestBody = JsonHandler.createObjectNode();
+        requestBody.set("$queries",queries);
+        
+        // When
+        Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBuklAtomicUpdate_whenWorkspaceError_then_ServerError() throws Exception {
+
+        // Given
+        AccessContractModel contract = new AccessContractModel();
+        contract.setEveryOriginatingAgency(true);
+        contract.setWritingPermission(true);
+        contract.setAccessLog(ActivationStatus.ACTIVE);
+        VitamThreadUtils.getVitamSession().setContract(contract);
+
+        UpdateMultiQuery update = new UpdateMultiQuery();
+        update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
+        update.addActions(UpdateActionHelper.set("Title","My title"));
+
+        ArrayNode queries = JsonHandler.createArrayNode();
+        queries.add(update.getFinalUpdate());
+        ObjectNode requestBody = JsonHandler.createObjectNode();
+        requestBody.set("$queries",queries);
+        
+        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
+        doThrow(ContentAddressableStorageServerException.class).when(workspaceClient).putObject(any(), any(), any());
+        
+        // When
+        Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBuklAtomicUpdate_whenProcessinBadRequest_then_BadRequest() throws Exception {
+
+        // Given
+        AccessContractModel contract = new AccessContractModel();
+        contract.setEveryOriginatingAgency(true);
+        contract.setWritingPermission(true);
+        contract.setAccessLog(ActivationStatus.ACTIVE);
+        VitamThreadUtils.getVitamSession().setContract(contract);
+
+        UpdateMultiQuery update = new UpdateMultiQuery();
+        update.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
+        update.addActions(UpdateActionHelper.set("Title","My title"));
+
+        ArrayNode queries = JsonHandler.createArrayNode();
+        queries.add(update.getFinalUpdate());
+        ObjectNode requestBody = JsonHandler.createObjectNode();
+        requestBody.set("$queries",queries);
+        
+        doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
+        doThrow(BadRequestException.class).when(processingClient).initVitamProcess(any());
+        
+        // When
+        Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    }
+    
+    
     private void checkLogbookStarted(Contexts event)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         ArgumentCaptor<LogbookOperationParameters> logbookParamsCaptor = forClass(LogbookOperationParameters.class);

@@ -33,10 +33,13 @@ import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -342,6 +345,15 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response startEliminationActionWorkflow(EliminationRequestBody eliminationRequestBody) {
+            return expectedResponse.post();
+        }
+
+        @Override
+        @POST
+        @Path("/units/atomicbulk")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkAtomicUpdateUnits(JsonNode query) {
             return expectedResponse.post();
         }
     }
@@ -791,5 +803,81 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         // Then
         assertThat(requestResponse.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void startAtomicBulkUpdateWhenSuccessThenOK()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        
+        JsonNode responseNode = JsonHandler
+                .getFromInputStream(PropertiesUtils.getResourceAsStream("processing_response_ok.json"));
+        RequestResponseOK<ItemStatus> responseOK = RequestResponseOK.getFromJsonNode(responseNode, ItemStatus.class);
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
+
+        JsonNode requestBody = JsonHandler.createObjectNode();
+
+        // When
+        RequestResponse<JsonNode> requestResponse = client.bulkAtomicUpdateUnits(requestBody);
+
+        // Then
+        assertThat(requestResponse.isOk()).isTrue();
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void startAtomicBulkUpdateWhenNoBodyThenException()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        JsonNode requestBody = null;
+
+        // When + then
+        assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void startAtomicBulkUpdateWhenPreconditionFailedThenException()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+
+        JsonNode requestBody = JsonHandler.createObjectNode();
+
+        // When + then
+        assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
+            .isInstanceOf(AccessInternalClientServerException.class);
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void startAtomicBulkUpdateWhenBadRequestFailedThenVitamError()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        
+        VitamError responseError = new VitamError("BAD_REQUEST")
+                .setHttpCode(Status.BAD_REQUEST.getStatusCode())
+                .setContext("BULK IT")
+                .setState("KO")
+                .setDescription("Bad response")
+                .setMessage("something bad happened here");
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(responseError).build());
+
+        JsonNode requestBody = JsonHandler.createObjectNode();
+
+        // When + then
+        RequestResponse<JsonNode> requestResponse = client.bulkAtomicUpdateUnits(requestBody);
+        assertThat(requestResponse.isOk()).isFalse();
     }
 }

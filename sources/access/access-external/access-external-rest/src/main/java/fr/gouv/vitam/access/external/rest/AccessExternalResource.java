@@ -902,6 +902,64 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .build();
         }
     }
+    
+
+    /**
+     * Mass update of archive units with json query.
+     *
+     * @param queryJson the mass_update query (null not allowed)
+     * @return
+     */
+    @POST
+    @Path("/units/bulk")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = UNITS_UPDATE, description = "Mise à jour par lot de requêtes unitaires des unités archivistiques")
+    public Response bulkAtomicUpdateUnits(@Dsl(DslSchema.MASS_UPDATE) JsonNode queryJson) {
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
+            updateParserMultiple.parse(queryJson);
+            UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
+            RequestResponse<JsonNode> response = client.updateUnits(updateMultiQuery.getFinalUpdate());
+
+            if (!response.isOk() && response instanceof VitamError) {
+                VitamError error = (VitamError) response;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR, error.getMessage(),
+                    error);
+            }
+            return Response.status(Status.OK).entity(response).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Internal request error ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (NoWritingPermissionException e) {
+            LOGGER.error(WRITING_PERMISSIONS_INVALID, e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
+
 
     @Path("/units/computedInheritedRules")
     @POST

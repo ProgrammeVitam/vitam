@@ -1,24 +1,30 @@
 {
-  "DSL_QUERY": {
+  "DSL": {
     "format": "object",
     "elements": {
-      "$roots": {
+      "$queries": {
         "format": "array",
-        "itemtype": "guid",
-        "optional": true,
-        "hint": "Array of roots"
-      },
-      "$query": {
-        "format": "array",
-        "itemtype": "ROOT_QUERY",
-        "min": 0,
-        "hint": "List of query"
+        "itemtype": "DSL_QUERY",
+        "min": 1,
+        "hint": "List of update queries"
       },
       "$threshold": {
         "format": "ref",
         "type": "THRESHOLD",
         "optional": true,
         "hint": "Threshold"
+      }
+    }
+  },
+  "DSL_QUERY": {
+    "format": "object",
+    "elements": {
+      "$query": {
+        "format": "array",
+        "itemtype": "ROOT_QUERY",
+        "min": 1,
+        "optional": false,
+        "hint": "List of query"
       },
       "$action": {
         "format": "array",
