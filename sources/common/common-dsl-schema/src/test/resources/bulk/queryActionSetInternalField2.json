@@ -1,0 +1,33 @@
+{
+  "$threshold": 10,
+  "$queries": [
+    {
+      "$query": [
+        {
+          "$and": [
+            {
+              "$in": {
+                "operations": [
+                  "Operation-Id"
+                ]
+              }
+            }
+          ],
+          "$depth": 10
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "foo": {
+              "#sps": "Who let the dogs out ?!",
+              "bar": {
+                "_id": "Who let the dogs out ?!"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

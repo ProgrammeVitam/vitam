@@ -1,0 +1,48 @@
+{
+  "$threshold": 10,
+  "$queries": [
+    {
+      "$roots": [
+        "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+      ],
+      "$query": [
+        {
+          "$match": {
+            "Title": "assemblée"
+          },
+          "$depth": 0
+        },
+        {
+          "$match": {
+            "Title": "discours"
+          },
+          "$depth": 20
+        },
+        {
+          "$in": {
+            "Title": [
+              "discours"
+            ]
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$unset": [
+            "StartDate",
+            "EndDate"
+          ],
+          "$set": {
+            "Title": "Mon nouveau titre",
+            "Description": "Ma nouvelle description",
+            "Number": 2,
+            "Boolean": true,
+            "Object": {
+              "Test key": "Test value"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

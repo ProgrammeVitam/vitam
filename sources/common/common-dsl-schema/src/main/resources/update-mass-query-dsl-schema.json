@@ -1,5 +1,5 @@
 {
-  "DSL_QUERY": {
+  "DSL": {
     "format": "object",
     "elements": {
       "$roots": {

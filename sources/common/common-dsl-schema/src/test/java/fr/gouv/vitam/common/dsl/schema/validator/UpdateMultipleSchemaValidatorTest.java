@@ -83,7 +83,7 @@ public class UpdateMultipleSchemaValidatorTest {
     @Test
     public void testUpdateMultipleSchemaValidatorWithSingleQueryException()
         throws InvalidParseOperationException, IOException, ValidationException {
-        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        DslValidator dslValidator = new UpdateMultipleSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_single_query.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
@@ -93,7 +93,7 @@ public class UpdateMultipleSchemaValidatorTest {
     @Test
     public void testUpdateMultipleSchemaValidatorWithInvalidThresholdException()
         throws InvalidParseOperationException, IOException, ValidationException {
-        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        DslValidator dslValidator = new UpdateMultipleSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_invalid_threshold.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
@@ -103,7 +103,7 @@ public class UpdateMultipleSchemaValidatorTest {
     @Test
     public void testUpdateMultipleSchemaValidatorWithFilterException()
         throws InvalidParseOperationException, IOException, ValidationException {
-        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        DslValidator dslValidator = new UpdateMultipleSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_filter.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
@@ -113,7 +113,7 @@ public class UpdateMultipleSchemaValidatorTest {
     @Test
     public void testUpdateMultipleSchemaValidatorWithProjectionException()
         throws InvalidParseOperationException, IOException, ValidationException {
-        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        DslValidator dslValidator = new UpdateMultipleSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_projection.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))
@@ -123,7 +123,7 @@ public class UpdateMultipleSchemaValidatorTest {
     @Test
     public void testUpdateMultipleSchemaValidatorRegexPatternWithoutUpdatePatternException()
         throws InvalidParseOperationException, IOException, ValidationException {
-        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        DslValidator dslValidator = new UpdateMultipleSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile(
                 "update_multiple_regex_pattern_without_controlPattern.json"));
@@ -134,7 +134,7 @@ public class UpdateMultipleSchemaValidatorTest {
     @Test
     public void testUpdateMultipleSchemaValidatorRegexPatternWithoutControlPatternException()
         throws InvalidParseOperationException, IOException, ValidationException {
-        DslValidator dslValidator = new SelectMultipleSchemaValidator();
+        DslValidator dslValidator = new UpdateMultipleSchemaValidator();
         JsonNode updateQuery =
             JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_regex_pattern_without_updatePattern.json"));
         assertThatThrownBy(() -> dslValidator.validate(updateQuery))

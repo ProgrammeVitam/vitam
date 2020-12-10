@@ -1,0 +1,28 @@
+{
+  "$threshold": 10,
+  "$queries": [
+    {
+      "$query": [
+        {
+          "$and": [
+            {
+              "$in": {
+                "operations": [
+                  "Operation-Id"
+                ]
+              }
+            }
+          ],
+          "$depth": 10
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Sentence": "Who let the dogs out ?!"
+          }
+        }
+      ]
+    }
+  ]
+}

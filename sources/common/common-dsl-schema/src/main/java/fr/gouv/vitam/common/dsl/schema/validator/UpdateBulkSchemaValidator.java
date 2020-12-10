@@ -24,29 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.dsl.schema;
+package fr.gouv.vitam.common.dsl.schema.validator;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.DslSchema;
+import fr.gouv.vitam.common.dsl.schema.ValidationException;
+import fr.gouv.vitam.common.dsl.schema.Validator;
+import fr.gouv.vitam.common.dsl.schema.meta.Schema;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+
 
 /**
- * List of dsl schemas
+ * Dsl schema validator for bulk update request.
+ *
  */
-public enum DslSchema {
-    SELECT_MULTIPLE("select-query-multiple-dsl-schema.json"),
-    SELECT_SINGLE("select-query-single-dsl-schema.json"),
-    BATCH_PROCESSING("batch-processing-query-dsl-schema.json"),
-    GET_BY_ID("get-by-id-query-dsl-schema.json"),
-    BULK_UPDATE("update-bulk-query-dsl-schema.json"),
-    UPDATE_BY_ID("update-by-id-query-dsl-schema.json"),
-    MASS_UPDATE("update-mass-query-dsl-schema.json"),
-    RECLASSIFICATION_QUERY("reclassification-query-dsl-schema.json");
+public class UpdateBulkSchemaValidator implements DslValidator {
 
-    private String filename;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UpdateByIdSchemaValidator.class);
 
-    DslSchema(String filename) {
-        this.filename = filename;
+    private final Schema schema;
+
+    /**
+     * Constructor
+     *
+     * @throws IOException thrown when the schema file is not found or invalid
+     */
+    public UpdateBulkSchemaValidator() throws IOException {
+        LOGGER.debug("Loading schema {} from {}", DslSchema.BULK_UPDATE.name(),
+            DslSchema.BULK_UPDATE.getFilename());
+        try (final InputStream schemaSource =
+            PropertiesUtils.getResourceAsStream(DslSchema.BULK_UPDATE.getFilename())) {
+            schema = Schema.getSchema().loadTypes(schemaSource).build();
+        }
     }
 
-    public String getFilename() {
-        return filename;
+    /**
+     * Validate a dsl query
+     *
+     * @param dsl dsl query
+     * @throws IllegalArgumentException dsl empty or null
+     * @throws ValidationException      thrown if dsl query is not valid
+     */
+    @Override public void validate(JsonNode dsl) throws ValidationException {
+        Validator.validate(schema, "DSL", dsl);
     }
-
 }

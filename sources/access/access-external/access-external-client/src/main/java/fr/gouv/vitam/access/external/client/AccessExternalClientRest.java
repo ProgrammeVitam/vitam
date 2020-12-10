@@ -58,6 +58,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     public static final String BLANK_QUERY = "selectQuery cannot be null.";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
     private static final String UNITS = "/units/";
+    private static final String UNITS_ATOMIC_BULK = "/units/bulk/";
     private static final String UNITS_RULES = "/units/rules";
     private static final String LOGBOOK_OPERATIONS_URL = "/logbookoperations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/logbookunitlifecycles";
@@ -313,6 +314,20 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 LOGGER.warn(
                     "We should have throw an exception in this case but we cannot, because it will break this API.");
             }
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(VitamContext vitamContext, JsonNode updateRequest)
+        throws VitamClientException {
+        VitamRequestBuilder request = post()
+            .withPath(UNITS_ATOMIC_BULK)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(updateRequest)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }

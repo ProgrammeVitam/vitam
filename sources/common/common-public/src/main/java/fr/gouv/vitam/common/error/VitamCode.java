@@ -409,6 +409,10 @@ public enum VitamCode {
     ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "38",
         Status.BAD_REQUEST,
         "Access external client error in selectUnitsWithInheritedRules method."),
+    
+    ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "53",
+        Status.BAD_REQUEST,
+        "Access external client error in the bnulk atomic update units method."),
 
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
