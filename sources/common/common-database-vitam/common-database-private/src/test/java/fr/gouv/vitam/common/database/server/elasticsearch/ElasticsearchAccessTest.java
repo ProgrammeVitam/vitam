@@ -134,7 +134,7 @@ public class ElasticsearchAccessTest {
     public void testIndexEntry() throws Exception {
 
         String id = GUIDFactory.newGUID().getId();
-        VitamDocument document = new CollectionSample(
+        CollectionSample document = new CollectionSample(
             JsonHandler.createObjectNode()
                 .put("_id", id)
                 .put("Identifier", "value")
@@ -156,7 +156,7 @@ public class ElasticsearchAccessTest {
     @Test
     public void testIndexEntries() throws Exception {
 
-        Map<String, VitamDocument> documents = insertDataSet();
+        Map<String, VitamDocument<?>> documents = insertDataSet();
 
         SearchResponse searchResponseAfter =
             elasticsearchAccess.search(myalias, QueryBuilders.matchAllQuery(), null, null, null, 0, 100);
@@ -174,12 +174,12 @@ public class ElasticsearchAccessTest {
     @Test
     public void updateIndexEntry() throws Exception {
 
-        Map<String, VitamDocument> documents = insertDataSet();
+        Map<String, VitamDocument<?>> documents = insertDataSet();
 
         // When
         String updatedDocumentId = documents.keySet().stream()
             .skip(RandomUtils.nextInt(0, documents.size())).findFirst().orElseThrow();
-        VitamDocument newDocument = new CollectionSample(JsonHandler.createObjectNode()
+        CollectionSample newDocument = new CollectionSample(JsonHandler.createObjectNode()
             .put("_id", updatedDocumentId)
             .put("newKey", "newValue" + updatedDocumentId));
         elasticsearchAccess.updateEntry(myalias, updatedDocumentId, newDocument);
@@ -223,10 +223,10 @@ public class ElasticsearchAccessTest {
     @Test
     public void testSearchWithScrollingAndSorting() throws Exception {
 
-        Map<String, VitamDocument> documents = insertDataSet();
+        Map<String, VitamDocument<?>> documents = insertDataSet();
 
         // When
-        List<SortBuilder> sorts = singletonList(
+        List<SortBuilder<?>> sorts = singletonList(
             SortBuilders.fieldSort("_tenant").order(SortOrder.DESC)
         );
         QueryBuilder query = QueryBuilders.matchQuery("Name", "Lorem ipsum");
@@ -256,7 +256,7 @@ public class ElasticsearchAccessTest {
     @Test
     public void testDeleteEntry() throws Exception {
 
-        Map<String, VitamDocument> documents = insertDataSet();
+        Map<String, VitamDocument<?>> documents = insertDataSet();
 
         // When
         String deletedDocumentId = documents.keySet().stream()
@@ -288,8 +288,8 @@ public class ElasticsearchAccessTest {
         invalidElasticsearchAccess.close();
     }
 
-    private Map<String, VitamDocument> insertDataSet() throws IOException, DatabaseException {
-        Map<String, VitamDocument> documents = new HashMap<>();
+    private Map<String, VitamDocument<?>> insertDataSet() throws IOException, DatabaseException {
+        Map<String, VitamDocument<?>> documents = new HashMap<>();
         for (int i = 0; i < 15; i++) {
             String id = GUIDFactory.newGUID().getId();
             documents.put(id, new CollectionSample(

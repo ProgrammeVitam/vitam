@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
-import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -145,8 +144,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      */
-    protected final Result search(final MetadataCollections collection, final Integer tenantId,
-        final QueryBuilder query, final List<SortBuilder> sorts, int offset, Integer limit,
+    protected final Result<MetadataDocument<?>> search(final MetadataCollections collection, final Integer tenantId,
+        final QueryBuilder query, final List<SortBuilder<?>> sorts, int offset, Integer limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws MetaDataExecutionException, BadRequestException {
 
@@ -182,7 +181,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
 
         final boolean isUnit = collection == MetadataCollections.UNIT;
-        final Result<?> resultRequest =
+        final Result<MetadataDocument<?>> resultRequest =
             isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
 
@@ -268,7 +267,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param id
      * @param doc full document to insert
      */
-    public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
+    public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument<?> doc)
         throws MetaDataExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
@@ -280,7 +279,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     }
 
     public void insertFullDocuments(MetadataCollections collection, Integer tenantId,
-        Collection<? extends MetadataDocument> documents)
+        Collection<? extends MetadataDocument<?>> documents)
         throws MetaDataExecutionException {
 
         try {
@@ -302,7 +301,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param metadataDocument full document to update
      */
     public void updateFullDocument(MetadataCollections collection, Integer tenantId, String id,
-        MetadataDocument metadataDocument)
+        MetadataDocument<?> metadataDocument)
         throws MetaDataExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
@@ -349,7 +348,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    public void indexEntry(MetadataCollections collection, Integer tenantId, String id, VitamDocument vitamDocument)
+    public void indexEntry(MetadataCollections collection, Integer tenantId, String id, VitamDocument<?> vitamDocument)
         throws MetaDataExecutionException {
         try {
             super.indexEntry(this.indexManager

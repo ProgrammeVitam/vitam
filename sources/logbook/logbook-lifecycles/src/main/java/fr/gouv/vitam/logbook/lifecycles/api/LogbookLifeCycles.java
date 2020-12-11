@@ -41,8 +41,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -152,7 +150,7 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    List<LogbookLifeCycle> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
+    List<LogbookLifeCycle<?>> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
@@ -170,7 +168,7 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    LogbookLifeCycle selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced, LogbookCollections collection)
+    LogbookLifeCycle<?> selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced, LogbookCollections collection)
             throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException, InvalidCreateOperationException;
 
     /**

@@ -26,16 +26,15 @@
  */
 package fr.gouv.vitam.common.database.server;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+
+import java.util.Map;
 
 /**
  * FakeVitamDocument
  */
-class FakeVitamDocument extends VitamDocument<Object> {
+class FakeVitamDocument<T> extends VitamDocument<T> {
     private static final long serialVersionUID = 3625295152272714919L;
 
     /**
@@ -46,12 +45,12 @@ class FakeVitamDocument extends VitamDocument<Object> {
     }
 
     @Override
-    public void putAll(Map<? extends String, ? extends Object> arg0) {
+    public void putAll(Map<? extends String, ?> arg0) {
         // Empty
     }
 
     @Override
-    public VitamDocument<Object> newInstance(JsonNode content) {
+    public VitamDocument<T> newInstance(JsonNode content) {
         return null;
     }
 

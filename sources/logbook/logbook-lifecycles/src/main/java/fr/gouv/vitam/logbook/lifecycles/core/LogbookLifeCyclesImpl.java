@@ -143,7 +143,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public LogbookLifeCycle selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced,
+    public LogbookLifeCycle<?> selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced,
         LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException,
         InvalidCreateOperationException {
@@ -157,10 +157,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public List<LogbookLifeCycle> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        final List<LogbookLifeCycle> result = new ArrayList<>();
-        try (final MongoCursor<LogbookLifeCycle> logbook =
+    public List<LogbookLifeCycle<?>> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
+        final List<LogbookLifeCycle<?>> result = new ArrayList<>();
+        try (final MongoCursor<LogbookLifeCycle<?>> logbook =
             mongoDbAccess.getLogbookLifeCycles(select, sliced, collection)) {
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");

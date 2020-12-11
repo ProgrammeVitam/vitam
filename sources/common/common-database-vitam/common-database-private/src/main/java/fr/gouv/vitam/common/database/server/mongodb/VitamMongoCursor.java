@@ -26,30 +26,30 @@
  */
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
 import com.mongodb.client.MongoCursor;
 
-public class VitamMongoCursor<T> implements MongoCursor {
-    private MongoCursor<T> cursor;
+import javax.annotation.Nonnull;
+
+public class VitamMongoCursor<T> implements MongoCursor<T> {
+    private final MongoCursor<T> cursor;
     private long total;
     private String scrollId;
 
     public VitamMongoCursor(MongoCursor<T> cursor, long total, String scrollId) {
-        this.cursor= cursor;
+        this.cursor = cursor;
         this.total = total;
         this.scrollId = scrollId;
     }
 
     public VitamMongoCursor(MongoCursor<T> cursor) {
-        this.cursor= cursor;
+        this.cursor = cursor;
     }
 
     @Override
-    public void close() {}
+    public void close() {
+    }
 
     @Override
     public boolean hasNext() {
@@ -57,6 +57,7 @@ public class VitamMongoCursor<T> implements MongoCursor {
     }
 
     @Override
+    @Nonnull
     public T next() {
         return cursor.next();
     }
@@ -72,6 +73,7 @@ public class VitamMongoCursor<T> implements MongoCursor {
     }
 
     @Override
+    @Nonnull
     public ServerAddress getServerAddress() {
         return cursor.getServerAddress();
     }

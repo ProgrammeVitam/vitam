@@ -274,7 +274,7 @@ public class DbRequest {
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws BadRequestException
      */
-    public Result execRequest(final RequestParserMultiple requestParser, List<OntologyModel> ontologies)
+    public Result<MetadataDocument<?>> execRequest(final RequestParserMultiple requestParser, List<OntologyModel> ontologies)
         throws MetaDataExecutionException,
         InvalidParseOperationException, BadRequestException,
         VitamDBException {
@@ -340,7 +340,7 @@ public class DbRequest {
                 LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 result = new ResultError(newResult.type)
-                    .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
+                    .addError(newResult.getCurrentIds().toString())
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
                     .addError(WHERE_PREVIOUS_RESULT_WAS + result);
                 return result;
@@ -351,7 +351,7 @@ public class DbRequest {
         if (result.getCurrentIds().isEmpty()) {
             LOGGER.debug(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
             result = new ResultError(result.type)
-                .addError(result != null ? result.getCurrentIds().toString() : NO_RESULT_TRUE)
+                .addError(result.getCurrentIds().toString())
                 .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
                 .addError(WHERE_PREVIOUS_RESULT_WAS + result);
             return result;
@@ -461,7 +461,7 @@ public class DbRequest {
         throws MetaDataExecutionException, InvalidParseOperationException, BadRequestException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         final boolean isLastQuery = requestToMongodb.getNbQueries() == rank + 1;
-        List<SortBuilder> sorts = null;
+        List<SortBuilder<?>> sorts = null;
         List<AggregationBuilder> facets = null;
         int limit = -1;
         int offset = -1;
@@ -472,7 +472,7 @@ public class DbRequest {
         if (requestToMongodb instanceof SelectToMongodb && isLastQuery) {
             VitamCollection.setMatch(false);
             sorts =
-                QueryToElasticsearch.getSorts(requestParser, realQuery.isFullText() || VitamCollection.containMatch(),
+                QueryToElasticsearch.getSorts(requestParser,
                     collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
                         : MetadataCollections.OBJECTGROUP.useScore(), parserTokens);
             if (FILTERARGS.UNITS.equals(collectionType) || FILTERARGS.OBJECTGROUPS.equals(collectionType)) {
@@ -510,7 +510,7 @@ public class DbRequest {
             exactDepth = GlobalDatas.MAXDEPTH;
         }
         final int relativeDepth = QueryDepthHelper.HELPER.getRelativeDepth(realQuery);
-        Result result;
+        Result<MetadataDocument<?>> result;
         try {
             if (collectionType == FILTERARGS.UNITS) {
                 if (exactDepth > 0) {
@@ -521,14 +521,13 @@ public class DbRequest {
                 } else if (relativeDepth != 0) {
                     // Relative Depth request (ascending or descending)
                     LOGGER.debug("Unit Relative Depth request (ascending or descending)");
-                    result =
-                        relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, sorts,
-                            offset, limit, facets, scrollId, scrollTimeout, parserTokens);
+                    result = relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, sorts, offset, limit,
+                        facets, scrollId, scrollTimeout, parserTokens);
                 } else {
                     // Current sub level request
                     LOGGER.debug("Unit Current sub level request");
-                    result = sameDepthUnitQuery(realQuery, previous, tenantId, sorts, offset,
-                        limit, facets, scrollId, scrollTimeout, parserTokens);
+                    result = sameDepthUnitQuery(realQuery, previous, tenantId, sorts, offset, limit, facets, scrollId,
+                        scrollTimeout, parserTokens);
                 }
             } else {
                 // OBJECTGROUPS
@@ -560,7 +559,7 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+        int exactDepth, Integer tenantId, final List<SortBuilder<?>> sorts, final int offset, final int limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
         DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
@@ -606,7 +605,7 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
+        int relativeDepth, Integer tenantId, final List<SortBuilder<?>> sorts, final int offset,
         final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
         DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
@@ -709,7 +708,7 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+        Integer tenantId, final List<SortBuilder<?>> sorts, final int offset, final int limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
         DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
@@ -746,7 +745,7 @@ public class DbRequest {
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+        Integer tenantId, final List<SortBuilder<?>> sorts, final int offset, final int limit,
         final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets,
         DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
@@ -794,10 +793,8 @@ public class DbRequest {
         }
         if (model == FILTERARGS.UNITS) {
             final Map<String, Unit> units = new HashMap<>();
-            @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                    roots, projection, null, -1, -1);
+                MetadataCollections.UNIT.<Unit>getCollection().find(roots).projection(projection);
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                 while (cursor.hasNext()) {
                     final Unit unit = cursor.next();
@@ -1127,7 +1124,7 @@ public class DbRequest {
     }
 
     private void persistInElasticSearch(MetadataCollections collection, Integer tenantId,
-        List<? extends MetadataDocument> documents, String logKey, String logAction)
+        List<? extends MetadataDocument<?>> documents, String logKey, String logAction)
         throws MetaDataExecutionException {
         Stopwatch stopWatch = Stopwatch.createStarted();
 

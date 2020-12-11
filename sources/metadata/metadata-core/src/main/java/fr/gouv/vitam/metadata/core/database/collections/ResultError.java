@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
  * Result Error only
  *
  */
-public class ResultError extends Result {
+public class ResultError extends Result<MetadataDocument<?>> {
     /**
      * Constructor
      *
@@ -64,12 +64,12 @@ public class ResultError extends Result {
      */
     public ResultError addError(String error) {
         currentIds.add(error);
-        scores.add(new Float(0));
+        scores.add(0f);
         return this;
     }
 
     @Override
-    public ResultError putFrom(Result from) {
+    public ResultError putFrom(Result<MetadataDocument<?>> from) {
         super.putFrom(from);
         return this;
     }

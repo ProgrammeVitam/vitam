@@ -78,10 +78,8 @@ public interface LogbookDbAccess {
 
     /**
      * @return the current number of Logbook LifeCyle
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
      */
-    long getLogbookLifeCyleObjectGroupSize() throws LogbookDatabaseException, LogbookNotFoundException;
+    long getLogbookLifeCyleObjectGroupSize();
 
     /**
      * Check if one eventIdentifier for Operation exists already
@@ -378,7 +376,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException if more than one result
      * @throws LogbookNotFoundException if no result
      */
-    LogbookLifeCycle getOneLogbookLifeCycle(JsonNode select, boolean sliced, LogbookCollections collection)
+    LogbookLifeCycle<?> getOneLogbookLifeCycle(JsonNode select, boolean sliced, LogbookCollections collection)
             throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
     
     /**
@@ -393,7 +391,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycle> getLogbookLifeCycles(JsonNode select, boolean sliced,
+    MongoCursor<LogbookLifeCycle<?>> getLogbookLifeCycles(JsonNode select, boolean sliced,
         LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
 
@@ -521,17 +519,13 @@ public interface LogbookDbAccess {
 
     /**
      * @return the current number of LogbookLifeCyle created in working unit collection
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
      */
-    long getLogbookLifeCyleUnitInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException;
+    long getLogbookLifeCyleUnitInProcessSize();
 
     /**
      * @return the current number of LogbookLifeCyle created in working objectGroup collection
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
      */
-    long getLogbookLifeCyleObjectGroupInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException;
+    long getLogbookLifeCyleObjectGroupInProcessSize();
 
     /**
      * Check if one eventIdentifier for Lifecycle exists already

@@ -42,10 +42,10 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
  */
 public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
 
-    private SelectMultiQuery query;
-    private Function<SelectMultiQuery, RequestResponse<T>> repository;
-    private int scrollTimeout;
-    private int limit;
+    private final SelectMultiQuery query;
+    private final Function<SelectMultiQuery, RequestResponse<T>> repository;
+    private final int scrollTimeout;
+    private final int limit;
     private long size;
     private DatabaseCursor hits;
     private RequestResponseOK<T> requestResponse;

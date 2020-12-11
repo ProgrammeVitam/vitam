@@ -59,6 +59,7 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
@@ -96,7 +97,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -125,7 +125,6 @@ public class MetaDataImplTest {
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {},\"$facets\": []}";
     private AdminManagementClient adminManagementClient;
-    private ElasticsearchMetadataIndexManager indexManager;
 
     private static JsonNode buildQueryJsonWithOptions(String query, String data)
         throws InvalidParseOperationException {
@@ -137,10 +136,7 @@ public class MetaDataImplTest {
 
     private static String createLongString(int size) {
         final StringBuilder sb = new StringBuilder(size);
-        for (int i = 0; i < size; i++) {
-            sb.append('a');
-        }
-
+        sb.append("a".repeat(Math.max(0, size)));
         return sb.toString();
     }
 
@@ -164,7 +160,7 @@ public class MetaDataImplTest {
         responseOK.addAllResults(Collections.emptyList());
         when(adminManagementClient.findOntologies(any())).thenReturn(responseOK);
 
-        indexManager = mock(ElasticsearchMetadataIndexManager.class);
+        ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, request,
                 100, 300, 100, 300, 100, 300, indexManager);
@@ -288,7 +284,7 @@ public class MetaDataImplTest {
         when(adminManagementClient.findOntologies(any()))
             .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
 
-        final Result selectResult = new ResultDefault(FILTERARGS.UNITS);
+        final Result<MetadataDocument<?>> selectResult = new ResultDefault<>(FILTERARGS.UNITS);
         selectResult.addId("unitId", (float) 1);
         final Unit unit = new Unit();
         unit.put("_id", "unitId");
@@ -322,7 +318,7 @@ public class MetaDataImplTest {
         when(adminManagementClient.findOntologies(any()))
             .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
 
-        final Result selectResult = new ResultDefault(FILTERARGS.UNITS);
+        final Result<MetadataDocument<?>> selectResult = new ResultDefault<>(FILTERARGS.UNITS);
         selectResult.addId("unitId", (float) 1);
         final Unit unit = new Unit();
         unit.put("_id", "unitId");
@@ -341,8 +337,8 @@ public class MetaDataImplTest {
 
     @Test
     public void testSelectObjectGroupById() throws Exception {
-        final Result result = new ResultDefault(FILTERARGS.OBJECTGROUPS);
-        result.addId("ogId", (float) 1);
+        final Result<MetadataDocument<?>> result = new ResultDefault<>(FILTERARGS.OBJECTGROUPS);
+        result.addId("ogId", 1f);
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(any(), anyList())).thenReturn(result);
         RequestResponse<JsonNode> requestResponse =
@@ -385,7 +381,7 @@ public class MetaDataImplTest {
 
         final JsonNode wantedDiff = JsonHandler.getFromFile(PropertiesUtils.findFile("wantedDiff.json"));
 
-        final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
+        final Result<MetadataDocument<?>> updateResult = new ResultDefault<>(FILTERARGS.UNITS);
         updateResult.addId("unitId", (float) 1);
 
         Unit unit = new Unit();
@@ -419,7 +415,7 @@ public class MetaDataImplTest {
         when(adminManagementClient.findOntologies(any()))
             .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
 
-        final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
+        final Result<MetadataDocument<?>> updateResult = new ResultDefault<>(FILTERARGS.UNITS);
         updateResult.addId("unitId1", (float) 1);
         updateResult.addId("unitId2", (float) 1);
 
@@ -430,8 +426,8 @@ public class MetaDataImplTest {
         final Unit unit2After = createSelectUnitResult("unitId2", "value v2");
 
         when(request.execRequest(isA(SelectParserMultiple.class), eq(ontologyModels))).thenReturn(
-            new ResultDefault(FILTERARGS.UNITS).addFinal(unit1Before),
-            new ResultDefault(FILTERARGS.UNITS).addFinal(unit2Before));
+            new ResultDefault<MetadataDocument<?>>(FILTERARGS.UNITS).addFinal(unit1Before),
+            new ResultDefault<MetadataDocument<?>>(FILTERARGS.UNITS).addFinal(unit2Before));
 
         when(request.execUpdateRequest(any(), any(), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
             any(UnitValidator.class), anyList()))

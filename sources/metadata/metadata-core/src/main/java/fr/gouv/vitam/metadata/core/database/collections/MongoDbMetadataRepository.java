@@ -41,13 +41,13 @@ import com.mongodb.client.model.UpdateOneModel;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -60,7 +60,7 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION
 import static fr.gouv.vitam.common.parameter.ParameterHelper.getTenantParameter;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ATOMIC_VERSION;
 
-public class MongoDbMetadataRepository<T extends VitamDocument> {
+public class MongoDbMetadataRepository<T extends VitamDocument<T>> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbMetadataRepository.class);
 
     private final Supplier<MongoCollection<T>> mongoCollectionSupplier;
@@ -119,7 +119,7 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
         BulkWriteOptions options = new BulkWriteOptions().ordered(false);
         try {
             List<DeleteOneModel<T>> toDeleteModels = metadataDocuments.stream()
-                .map(filter -> new DeleteOneModel<T>(filter))
+                .map((Function<T, DeleteOneModel<T>>) DeleteOneModel::new)
                 .collect(Collectors.toList());
             mongoCollectionSupplier.get().bulkWrite(toDeleteModels, options);
         } catch (MongoException | IllegalArgumentException e) {

@@ -184,7 +184,7 @@ public final class JsonHandler {
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final boolean validate(final String value)
+    public static final void validate(final String value)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value", value);
@@ -195,7 +195,6 @@ public final class JsonHandler {
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
-        return true;
     }
 
     /**
@@ -673,7 +672,7 @@ public final class JsonHandler {
         }
         if (node.isValueNode()) {
             // already one node
-            return new Entry<String, JsonNode>() {
+            return new Entry<>() {
                 @Override
                 public JsonNode setValue(final JsonNode value) {
                     throw new IllegalArgumentException("Cannot set Value");
@@ -711,10 +710,10 @@ public final class JsonHandler {
     public static final Map<String, Object> getMapFromString(final String value)
         throws InvalidParseOperationException {
         if (value != null && !value.isEmpty()) {
-            Map<String, Object> info = null;
+            Map<String, Object> info;
             try {
                 info = OBJECT_MAPPER.readValue(value,
-                    new TypeReference<Map<String, Object>>() {
+                    new TypeReference<>() {
                     });
             } catch (final IOException e) {
                 throw new InvalidParseOperationException(e);
@@ -736,10 +735,10 @@ public final class JsonHandler {
     public static final Map<String, String> getMapStringFromString(final String value)
         throws InvalidParseOperationException {
         if (value != null && !value.isEmpty()) {
-            Map<String, String> info = null;
+            Map<String, String> info;
             try {
                 info = OBJECT_MAPPER.readValue(value,
-                    new TypeReference<Map<String, String>>() {
+                    new TypeReference<>() {
                     });
             } catch (final IOException e) {
                 throw new InvalidParseOperationException(e);
@@ -761,10 +760,10 @@ public final class JsonHandler {
     public static final Map<String, Object> getMapFromInputStream(final InputStream inputStream)
         throws InvalidParseOperationException {
         ParametersChecker.checkParameter("InputStream", inputStream);
-        Map<String, Object> info = null;
+        Map<String, Object> info;
         try {
             info = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream),
-                new TypeReference<Map<String, Object>>() {
+                new TypeReference<>() {
                 });
         } catch (final IOException e) {
             throw new InvalidParseOperationException(e);
@@ -979,7 +978,7 @@ public final class JsonHandler {
      * @param arrayNode {@link ArrayNode} to transform
      * @return list corresponding to the arrayNode in parameter
      */
-    public static List toArrayList(ArrayNode arrayNode) {
+    public static List<JsonNode> toArrayList(ArrayNode arrayNode) {
         return Lists.newArrayList(arrayNode.iterator());
     }
 
@@ -1005,7 +1004,7 @@ public final class JsonHandler {
             return MissingNode.getInstance();
         }
 
-        String nodeNames[] = path.split(REG_EXP_JSONPATH_SEPARATOR);
+        String[] nodeNames = path.split(REG_EXP_JSONPATH_SEPARATOR);
 
         JsonNode currentNode = rootNode;
         for (String nodeName : nodeNames) {

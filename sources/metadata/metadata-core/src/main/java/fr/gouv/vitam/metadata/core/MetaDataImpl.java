@@ -92,6 +92,7 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
@@ -355,7 +356,7 @@ public class MetaDataImpl {
             } else {
                 ontologies = this.objectGroupOntologyLoader.loadOntologies();
             }
-            Result result = dbRequest.execRequest(request, ontologies);
+            Result<MetadataDocument<?>> result = dbRequest.execRequest(request, ontologies);
             List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
 
             if (!CollectionUtils.isEmpty(facetResults)) {
@@ -451,7 +452,7 @@ public class MetaDataImpl {
             return;
         }
 
-        if (groupObjectsCount > 0 && existingAccessionRegister == null) {
+        if (groupObjectsCount > 0) {
             accessionRegisterSymbolicByOriginatingAgency
                 .put(objectGroup.originatingAgency, new AccessionRegisterSymbolic()
                     .setId(GUIDFactory.newAccessionRegisterSymbolicGUID(tenant).getId())
@@ -465,11 +466,8 @@ public class MetaDataImpl {
             return;
         }
 
-        if (groupObjectsCount <= 0 && existingAccessionRegister == null) {
-            return;
-        }
+        return;
 
-        throw new IllegalStateException("Cannot go there.");
     }
 
     private Map<String, AccessionRegisterSymbolic> fillWithArchiveUnitInformation(
@@ -543,7 +541,7 @@ public class MetaDataImpl {
         Terms originatingAgencyResult = result.get("originatingAgency");
         for (Bucket originatingAgencyBucket : originatingAgencyResult.getBuckets()) {
             String sp = originatingAgencyBucket.getKeyAsString();
-            ObjectGroupPerOriginatingAgency ogPerSp = new ObjectGroupPerOriginatingAgency(operationId, sp, 0l, 0l, 0l);
+            ObjectGroupPerOriginatingAgency ogPerSp = new ObjectGroupPerOriginatingAgency(operationId, sp, 0L, 0L, 0L);
             Terms operationResult = originatingAgencyBucket.getAggregations().get("operation");
             for (Bucket operationBucket : operationResult.getBuckets()) {
                 String opi = operationBucket.getKeyAsString();
@@ -589,9 +587,8 @@ public class MetaDataImpl {
             .subAggregation(versionOperationAgg);
         AggregationBuilder operationAgg = AggregationBuilders.terms("operation").field("_opi")
             .subAggregation(versionAgg);
-        AggregationBuilder originatingAgencyAgg = AggregationBuilders.terms("originatingAgency").field("_sp")
+        return AggregationBuilders.terms("originatingAgency").field("_sp")
             .subAggregation(operationAgg);
-        return originatingAgencyAgg;
     }
 
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
@@ -631,7 +628,7 @@ public class MetaDataImpl {
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
 
-        Result result;
+        Result<MetadataDocument<?>> result;
         ArrayNode arrayNodeResponse;
         if (selectQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
@@ -694,9 +691,9 @@ public class MetaDataImpl {
             computeRuleForUnit(arrayNodeResponse);
         }
 
-        List res = toArrayList(arrayNodeResponse);
+        List<JsonNode> res = toArrayList(arrayNodeResponse);
         List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
-        Long total = (result != null) ? result.getTotal() : res.size();
+        long total = (result != null) ? result.getTotal() : res.size();
         String scrollId = (result != null) ? result.getScrollId() : null;
         DatabaseCursor hits = (scrollId != null) ? new DatabaseCursor(total, offset, limit, res.size(), scrollId)
             : new DatabaseCursor(total, offset, limit, res.size());
@@ -875,7 +872,7 @@ public class MetaDataImpl {
             unitParentIdList.add(currentUnitId);
         }
         SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
-        RequestResponseOK unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null,
+        RequestResponseOK<JsonNode> unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null,
             singletonList(BuilderToken.FILTERARGS.UNITS));
 
         Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents.getResults());

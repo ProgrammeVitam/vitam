@@ -145,22 +145,19 @@ public class QueryToElasticsearch {
      * <br>
      *
      * @param requestParser the original parser
-     * @param hasFullText True to add scoreSort
      * @param score True will add score first
      * @param parserTokens
      * @return list of order by as sort objects
-     * @throws InvalidParseOperationException if the orderBy is not valid
      */
-    public static List<SortBuilder> getSorts(final AbstractParser<?> requestParser, boolean hasFullText, boolean score,
-        DynamicParserTokens parserTokens)
-        throws InvalidParseOperationException {
+    public static List<SortBuilder<?>> getSorts(final AbstractParser<?> requestParser, boolean score,
+        DynamicParserTokens parserTokens) {
         final JsonNode orderby = requestParser.getRequest().getFilter()
             .get(SELECTFILTER.ORDERBY.exactToken());
         int size = score && requestParser.hasFullTextQuery() ? 1 : 0;
         if (orderby != null && orderby.size() > 0) {
             size += orderby.size();
         }
-        final List<SortBuilder> sorts = new ArrayList<>(size);
+        final List<SortBuilder<?>> sorts = new ArrayList<>(size);
         if (orderby == null || orderby.size() == 0) {
             if (score && requestParser.hasFullTextQuery()) {
                 sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
@@ -207,7 +204,6 @@ public class QueryToElasticsearch {
         }
         if (scoreNotAdded && score && requestParser.hasFullTextQuery()) {
             // Last filter if not yet added
-            scoreNotAdded = false;
             sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
         }
         return sorts;
@@ -958,17 +954,17 @@ public class QueryToElasticsearch {
         final BooleanQuery nthrequest = (BooleanQuery) req;
         final List<Query> sub = nthrequest.getQueries();
         final BoolQueryBuilder boolQueryBuilder = new BoolQueryBuilder();
-        for (int i = 0; i < sub.size(); i++) {
+        for (Query value : sub) {
             switch (query) {
                 case AND:
-                    boolQueryBuilder.must(getCommand(sub.get(i), adapter, parserTokens));
+                    boolQueryBuilder.must(getCommand(value, adapter, parserTokens));
                     break;
                 case NOT:
-                    boolQueryBuilder.mustNot(getCommand(sub.get(i), adapter, parserTokens));
+                    boolQueryBuilder.mustNot(getCommand(value, adapter, parserTokens));
                     break;
                 case OR:
                 default:
-                    boolQueryBuilder.minimumShouldMatch(1).should(getCommand(sub.get(i), adapter, parserTokens));
+                    boolQueryBuilder.minimumShouldMatch(1).should(getCommand(value, adapter, parserTokens));
             }
         }
         return boolQueryBuilder;
@@ -1098,7 +1094,7 @@ public class QueryToElasticsearch {
         for (Map.Entry<String, Query> entry : filtersMap.entrySet()) {
             keyFilters.add(new KeyedFilter(entry.getKey(), getCommand(entry.getValue(), adapter, parserTokens)));
         }
-        KeyedFilter[] keyFiltersArray = keyFilters.stream().toArray(KeyedFilter[]::new);
+        KeyedFilter[] keyFiltersArray = keyFilters.toArray(KeyedFilter[]::new);
         FiltersAggregationBuilder filtersBuilder = AggregationBuilders.filters(facet.getName(), keyFiltersArray);
         builders.add(filtersBuilder);
     }

@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * DbRequest Helper common for Single and Multiple
@@ -127,9 +128,8 @@ public class DbRequestHelper {
      * @throws InvalidParseOperationException when query is not correct
      * @throws InvalidCreateOperationException
      */
-    @SuppressWarnings("unchecked")
-    public static MongoCursor<VitamDocument<?>> selectMongoDbExecuteThroughFakeMongoCursor(
-        VitamCollection collection, RequestParserSingle parser, List<String> list, List<Float> scores)
+    public static <T extends VitamDocument<?>> MongoCursor<T> selectMongoDbExecuteThroughFakeMongoCursor(
+        VitamCollection<T> collection, RequestParserSingle parser, List<String> list, List<Float> scores)
         throws InvalidParseOperationException, VitamDBException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
         final Bson projection = selectToMongoDb.getFinalProjection();
@@ -142,22 +142,24 @@ public class DbRequestHelper {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
-        FindIterable<VitamDocument<?>> find =
-            (FindIterable<VitamDocument<?>>) collection.getCollection().find(initialCondition);
+
+
+        FindIterable<T> find = collection.getCollection().find(initialCondition);
         if (projection != null) {
             find = find.projection(projection);
         }
         // Build aggregate $project condition
         final int nb = list.size();
-        final List<VitamDocument<?>> firstList = list.stream()
-                .map(id -> new FakeVitamDocument())
-                .collect(Collectors.toCollection(() -> new ArrayList<>(nb)));
+        @SuppressWarnings("unchecked")
+        List<T> firstList = IntStream.range(0, nb).mapToObj(e -> (T) new FakeVitamDocument<>())
+            .collect(Collectors.toList());
+
         ServerAddress serverAddress;
         int nbFinal = 0;
-        try (MongoCursor<VitamDocument<?>> cursor = find.iterator()) {
+        try (MongoCursor<T> cursor = find.iterator()) {
             serverAddress = cursor.getServerAddress();
             while (cursor.hasNext()) {
-                final VitamDocument<?> item = cursor.next();
+                final T item = cursor.next();
                 // do not use getId() because Logbook will not work
                 final int rank = list.indexOf(item.getString(VitamDocument.ID));
                 if (!isIdIncluded) {
@@ -167,11 +169,11 @@ public class DbRequestHelper {
                 nbFinal++;
             }
         }
-        final List<VitamDocument<?>> finalList = new ArrayList<>(nbFinal);
+        final List<T> finalList = new ArrayList<>(nbFinal);
         if (VitamConfiguration.isExportScore() && scores != null
             && collection.isUseScore() && selectToMongoDb.isScoreIncluded()) {
             for (int i = 0; i < nb; i++) {
-                VitamDocument<?> vitamDocument = firstList.get(i);
+                T vitamDocument = firstList.get(i);
                 if (!(vitamDocument instanceof FakeVitamDocument)) {
                     Float score = 1f;
                     try {
@@ -191,7 +193,7 @@ public class DbRequestHelper {
         }
 
         // manage synchronization errors between elasticSearch and MongoDB.
-        final List<VitamDocument<?>> finalListWithoutFakeDocs = new ArrayList<>(nbFinal);
+        final List<T> finalListWithoutFakeDocs = new ArrayList<>(nbFinal);
         List<String> listDesynchronizedResults = new ArrayList<>();
         for (int i = 0; i < finalList.size(); i++) {
             if (!finalList.get(i).isEmpty()) {
@@ -219,11 +221,11 @@ public class DbRequestHelper {
         }
 
         firstList.clear();
-        return new MongoCursor<VitamDocument<?>>() {
+        return new MongoCursor<>() {
             int rank = 0;
-            int max = finalListWithoutFakeDocs.size();
-            ServerAddress finalServerAddress = serverAddress;
-            List<VitamDocument<?>> list = finalListWithoutFakeDocs;
+            final int max = finalListWithoutFakeDocs.size();
+            final ServerAddress finalServerAddress = serverAddress;
+            final List<T> list = finalListWithoutFakeDocs;
 
             @Override
             public void close() {
@@ -236,21 +238,21 @@ public class DbRequestHelper {
             }
 
             @Override
-            public VitamDocument<?> next() {
+            public T next() {
                 if (rank >= max) {
                     throw new NoSuchElementException();
                 }
-                final VitamDocument<?> doc = list.get(rank);
+                final T doc = list.get(rank);
                 rank++;
                 return doc;
             }
 
             @Override
-            public VitamDocument<?> tryNext() {
+            public T tryNext() {
                 if (rank >= max) {
                     return null;
                 }
-                final VitamDocument<?> doc = list.get(rank);
+                final T doc = list.get(rank);
                 rank++;
                 return doc;
             }

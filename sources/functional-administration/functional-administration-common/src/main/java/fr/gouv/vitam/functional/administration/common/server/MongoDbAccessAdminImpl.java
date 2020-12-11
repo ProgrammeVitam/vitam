@@ -122,7 +122,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     @VisibleForTesting
     public DbRequestResult deleteCollectionForTesting(FunctionalAdminCollections collection, Delete delete)
         throws DatabaseException {
-        long count = 0;
+        long count;
         if (collection.isMultitenant()) {
             final Document filter =
                 new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
@@ -156,7 +156,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     public DbRequestResult deleteCollectionForTesting(FunctionalAdminCollections collection)
         throws DatabaseException, SchemaValidationException {
 
-        long count = 0;
+        long count;
         if (collection.isMultitenant()) {
             final Document filter =
                 new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
@@ -245,7 +245,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader,
                 indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null));
             DocumentValidator documentValidator = ReferentialDocumentValidators.getValidator(collection);
-            final DbRequestResult result = dbrequest.execute(parser.getRequest(), version, documentValidator);
+            final DbRequestResult result = dbrequest.execute(parser.getRequest(), documentValidator);
             if (result.getDiffs().size() == 0) {
                 throw new BadRequestException("Document was not updated as there is no changes");
             }
