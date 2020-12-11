@@ -270,14 +270,17 @@ public class MetadataResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response selectUnitBulk(List<JsonNode> requests) {
-        List<RequestResponse<?>> results = new ArrayList<>();
+        List<RequestResponseOK<JsonNode>> results = new ArrayList<>();
         for (JsonNode request : requests) {
-            RequestResponse<?> result = selectUnitsByQuery(request);
-            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
-            result.setHttpCode(st);
-            results.add(result);
+            RequestResponse result = selectUnitsByQuery(request);
+            if (!result.isOk()) {
+                LOGGER.error("Execution of select request was is error: request=" + JsonHandler.unprettyPrint(request));
+                return Response.status(result.getHttpCode()).entity(result).build();        
+            } else {
+                results.add((RequestResponseOK<JsonNode>)result);    
+            }
         }
-        RequestResponseOK<RequestResponse<?>> vitamResponse = new RequestResponseOK<RequestResponse<?>>()
+        RequestResponseOK<RequestResponseOK<JsonNode>> vitamResponse = new RequestResponseOK<RequestResponseOK<JsonNode>>()
                 .addAllResults(results).setHttpCode(Status.FOUND.getStatusCode());
         return Response.status(Status.FOUND).entity(vitamResponse).build();
     }

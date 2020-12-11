@@ -119,13 +119,24 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public RequestResponse<JsonNode>  selectUnitsBulk(List<JsonNode> selectQueryBulk)
+    public List<RequestResponseOK<JsonNode>> selectUnitsBulk(List<JsonNode> selectQueryBulk)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
-        try (Response response = make(
-            get().withPath("/units/bulk").withBody(selectQueryBulk, SELECT_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
+            MetaDataClientServerException {
+        try (Response response = make(get().withPath("/units/bulk")
+                .withBody(selectQueryBulk, SELECT_UNITS_QUERY_BULK_NULL.getMessage()).withJson())) {
             check(response);
-            return RequestResponse.parseFromResponse(response, JsonNode.class);
+            RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
+            if (requestResponse.isOk()) {
+                RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+
+                List<RequestResponseOK<JsonNode>> result = new ArrayList<>();
+                for (JsonNode jsonNode : requestResponseOK.getResults()) {
+                    result.add(RequestResponseOK.getFromJsonNode(jsonNode));
+                }
+                return result;
+            } else {
+                throw new MetaDataExecutionException((VitamError) requestResponse);
+            }
         } catch (MetaDataNotFoundException | VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         }
