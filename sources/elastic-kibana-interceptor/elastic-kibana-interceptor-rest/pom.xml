@@ -6,7 +6,7 @@
     <parent>
         <artifactId>elastic-kibana-interceptor</artifactId>
         <groupId>fr.gouv.vitam</groupId>
-        <version>3.0.11</version>
+        <version>3.0.12-SNAPSHOT</version>
     </parent>
 
     <artifactId>elastic-kibana-interceptor-rest</artifactId>
