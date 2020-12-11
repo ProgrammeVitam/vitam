@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -691,6 +692,46 @@ public class SelectUnitResourceTest {
     
     @Test
     @RunWithCustomExecutor
+    public void given_2units_insert_when_twoBulkSearchValidByField_thenReturn_TwoResults() throws Exception {
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(bulkInsertRequest(PropertiesUtils.getResourceAsString("unit_1.json"))).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
+        
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(bulkInsertRequest(PropertiesUtils.getResourceAsString("unit_2.json"))).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
+        
+        List<JsonNode> bulkSearch = new ArrayList<JsonNode>();
+        bulkSearch.add(JsonHandler.getFromString(PropertiesUtils.getResourceAsString("unit_query_1.json")));
+        bulkSearch.add(JsonHandler.getFromString(PropertiesUtils.getResourceAsString("unit_query_2.json")));;
+        
+        InputStream stream = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(bulkSearch).when()
+            .get("/units/bulk").then()
+            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+
+        RequestResponseOK<JsonNode> responseVitam = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        assertThat(responseVitam.isOk()).isTrue();
+        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
+        assertThat(responseVitam.getResults()).hasSize(2);
+        RequestResponseOK<JsonNode> firstResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
+        assertThat(firstResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").asText()).isEqualTo("Value1");
+        RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
+        assertThat(secondResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").asText()).isEqualTo("Value2");
+        
+    }
+    
+    @Test
+    @RunWithCustomExecutor
     public void given_1unit_insert_when_twoValidQueriesBulkSelect_thenReturn_OneResultEmpty() throws Exception {
 
         with()
@@ -768,16 +809,12 @@ public class SelectUnitResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(bulkSearch).when()
             .get("/units/bulk").then()
-            .statusCode(Status.FOUND.getStatusCode()).extract().asInputStream();
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).extract().asInputStream();
 
-        RequestResponseOK<JsonNode> responseVitam = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
-        assertThat(responseVitam.isOk()).isTrue();
-        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
-        assertThat(responseVitam.getResults()).hasSize(2);
-        VitamError firstResultVitam = VitamError.getFromJsonNode(responseVitam.getResults().get(0));
-        assertThat(firstResultVitam.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
-        assertThat(secondResultVitam.getFirstResult().get("#id").asText()).isEqualTo(GUID_0);
+        RequestResponse responseVitam = JsonHandler.getFromInputStream(stream, VitamError.class);
+        assertThat(responseVitam.isOk()).isFalse();
+        assertThat(responseVitam.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
         
     }
     

@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -55,6 +56,7 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -62,6 +64,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,13 +99,13 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
     
     @Override
-    public RequestResponse<JsonNode> selectUnitsBulk(List<JsonNode> selectQueryBulk)
+    public List<RequestResponseOK<JsonNode>> selectUnitsBulk(List<JsonNode> selectQueryBulk)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
-        RequestResponse<JsonNode> res = null;
+        List<RequestResponseOK<JsonNode>> res = null;
         try {
-            JsonNode result = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json"));
-            res = new RequestResponseOK<JsonNode>().addResult(result).setHttpCode(Status.FOUND.getStatusCode());
+            RequestResponseOK<JsonNode> result = RequestResponseOK.getFromJsonNode(JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json")));
+            res = Collections.singletonList(result);
         } catch (FileNotFoundException e) {
             LOGGER.error(e);
         }

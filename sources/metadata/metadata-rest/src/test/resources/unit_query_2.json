@@ -1,0 +1,19 @@
+{
+  "$roots" : [ ],
+  "$query" : [ {
+    "$eq" : {
+      "ArchivalAgencyArchiveUnitIdentifier" : "Value2"
+    },
+    "$depth" : 1000
+  } ],
+  "$filter" : {
+    "$limit" : 2
+  },
+  "$projection" : {
+    "$fields" : {
+      "#id" : 1,
+      "ArchivalAgencyArchiveUnitIdentifier":1
+    }
+  },
+  "$facets" : [ ]
+}

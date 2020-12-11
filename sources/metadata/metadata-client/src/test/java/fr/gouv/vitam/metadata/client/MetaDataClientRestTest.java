@@ -64,6 +64,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -705,7 +706,8 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void selectUnitBulkTest_Ok() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(new RequestResponseOK<JsonNode>()).build());
+        List<RequestResponseOK<JsonNode>> response = Collections.singletonList(new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode()));
+        when(mock.get()).thenReturn(Response.status(Status.FOUND).entity(response).build());
         assertThatCode(() -> client.selectUnitsBulk(queries)).doesNotThrowAnyException();
     }
     
@@ -718,8 +720,8 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
                 .setState("CODE_VITAM")
                 .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .setDescription("Horror exception just because");
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(vitamResponse).build());
-        assertThatCode(() -> client.selectUnitsBulk(queries)).doesNotThrowAnyException();
+        when(mock.get()).thenReturn(Response.status(Status.USE_PROXY).entity(vitamResponse).build());
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(MetaDataExecutionException.class);
     }
     
     @Test
