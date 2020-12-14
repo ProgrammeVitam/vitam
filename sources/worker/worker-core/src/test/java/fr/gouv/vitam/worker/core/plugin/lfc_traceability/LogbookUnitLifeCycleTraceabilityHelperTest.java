@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -45,7 +47,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -82,6 +84,8 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         "LogbookLifeCycleTraceabilityHelperTest/traceabilityData.jsonl";
     private static final String TRACEABILITY_STATISTICS =
         "LogbookLifeCycleTraceabilityHelperTest/unitTraceabilityStats.json";
+    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
     private HandlerIOImpl handlerIO;
@@ -203,7 +207,8 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         when(logbookOperationsClient.selectOperation(any()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
 
-        JsonLineIterator entriesIterator = new JsonLineIterator(PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA));
+        JsonLineGenericIterator<JsonNode> entriesIterator = new JsonLineGenericIterator<>(PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA),
+            JSON_NODE_TYPE_REFERENCE);
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),

@@ -33,7 +33,7 @@ import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import org.bson.Document;
@@ -92,7 +92,7 @@ public class ExtractedMetadataRepository {
 
     private ExtractedMetadata bsonToPojo(Document document) {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(document), ExtractedMetadata.class);
+            return BsonHelper.fromDocumentToObject(document, ExtractedMetadata.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }

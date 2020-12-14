@@ -56,7 +56,7 @@ public class Digest {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(Digest.class);
 
-    private static final int BUFFER_SIZE = 65536;
+    private static final int BUFFER_SIZE = 8192;
     MessageDigest messageDigest;
     DigestType type;
     volatile byte[] finalized = null;

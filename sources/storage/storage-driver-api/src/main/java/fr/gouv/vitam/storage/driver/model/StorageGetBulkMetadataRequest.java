@@ -24,58 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.storage.driver.model;
 
- import com.fasterxml.jackson.databind.JsonNode;
- import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
- import fr.gouv.vitam.common.exception.InvalidParseOperationException;
- import fr.gouv.vitam.common.exception.VitamRuntimeException;
- import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
- import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
- import org.bson.Document;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class PreservationScenario extends VitamDocument<PreservationScenario> {
+import java.util.List;
 
-    public PreservationScenario(JsonNode content) {
-        super(content);
+/**
+ * Request for object metadata
+ */
+public class StorageGetBulkMetadataRequest extends StorageRequest {
+
+    @JsonProperty("guids")
+    private final List<String> guids;
+    @JsonProperty("noCache")
+    private final boolean noCache;
+
+    /**
+     * Initialize the needed parameters for request object metadata
+     *
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guids
+     * @param noCache
+     */
+    public StorageGetBulkMetadataRequest(Integer tenantId, String type, List<String> guids, boolean noCache) {
+        super(tenantId, type);
+        this.guids = guids;
+        this.noCache = noCache;
     }
 
-    public PreservationScenario(Document content) {
-        super(content);
+    /**
+     * Gets the guid
+     *
+     * @return the guid
+     */
+    public List<String> getGuids() {
+        return guids;
     }
 
-    public PreservationScenario(String content) {
-        super(content);
+    public boolean isNoCache() {
+        return noCache;
     }
-
-    public PreservationScenario() {}
-
-    public static final String IDENTIFIER = "Identifier";
 
     @Override
-    public VitamDocument<PreservationScenario> newInstance(JsonNode content) {
-        return new PreservationScenario(content);
+    public String toString() {
+        return "GUID: " + guids + " NoCache: " + noCache + " " + super.toString();
     }
 
-    public PreservationScenario setId(String id) {
-        append(VitamDocument.ID, id);
-        return this;
-    }
-
-    public String getIdentifier() {
-        return getString(IDENTIFIER);
-    }
-
-    public PreservationScenario setIdentifier(String identifier) {
-        append(IDENTIFIER, identifier);
-        return this;
-    }
-
-    public PreservationScenarioModel toModel() {
-        try {
-            return BsonHelper.fromDocumentToObject(this, PreservationScenarioModel.class);
-        } catch (InvalidParseOperationException e) {
-            throw new VitamRuntimeException(e);
-        }
-    }
 }

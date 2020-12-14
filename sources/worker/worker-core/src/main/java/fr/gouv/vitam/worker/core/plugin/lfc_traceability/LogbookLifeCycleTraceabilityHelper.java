@@ -50,7 +50,6 @@ import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -293,14 +292,14 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
      * @param algo
      * @throws TraceabilityException
      */
-    protected void extractAppendToFinalFile(CloseableIterator<JsonLineModel> jsonLineIterator,
+    protected void extractAppendToFinalFile(CloseableIterator<JsonNode> jsonLineIterator,
         TraceabilityFile traceabilityFile,
         MerkleTreeAlgo algo)
         throws TraceabilityException {
         try {
 
             while (jsonLineIterator.hasNext()) {
-                JsonNode entry = jsonLineIterator.next().getParams();
+                JsonNode entry = jsonLineIterator.next();
 
                 byte[] bytes = CanonicalJsonFormatter.serializeToByteArray(entry);
 

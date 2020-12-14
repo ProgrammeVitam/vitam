@@ -32,8 +32,7 @@ import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.collection.CloseableIterable;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.BsonHelper;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -85,7 +84,7 @@ public class OfferLogCompactionDatabaseService {
 
     private CompactedOfferLog transformDocumentToOfferLogCompaction(Document document) {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(document), CompactedOfferLog.class);
+            return BsonHelper.fromDocumentToObject(document, CompactedOfferLog.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }

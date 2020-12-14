@@ -56,7 +56,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamErrorMessages;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -764,7 +764,7 @@ public class OntologyServiceImpl implements OntologyService {
 
         FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection().find();
         for (Ontology document : documents) {
-            response.addResult(JsonHandler.getFromString(BsonHelper.stringify(document), OntologyModel.class));
+            response.addResult(BsonHelper.fromDocumentToObject(document, OntologyModel.class));
         }
 
         return response;

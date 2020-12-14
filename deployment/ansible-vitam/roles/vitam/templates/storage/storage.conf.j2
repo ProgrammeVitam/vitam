@@ -7,9 +7,6 @@ p12LogbookPassword: {{ keystores.timestamping.secure_storage }}
 p12LogbookFile: keystore_{{ vitam_timestamp_usage }}.p12
 storageTraceabilityOverlapDelay: {{ vitam.storageengine.storageTraceabilityOverlapDelay }}
 restoreBulkSize: {{ vitam.storageengine.restoreBulkSize }}
-minBatchThreadPoolSize: {{ vitam.storageengine.minBatchThreadPoolSize }}
-maxBatchThreadPoolSize: {{ vitam.storageengine.maxBatchThreadPoolSize }}
-batchDigestComputationTimeout: {{ vitam.storageengine.batchDigestComputationTimeout }}
 offerSynchronizationBulkSize: {{ vitam.storageengine.offerSynchronizationBulkSize }}
 offerSyncThreadPoolSize: {{ vitam.storageengine.offerSyncThreadPoolSize }}
 offerSyncNumberOfRetries: {{ vitam.storageengine.offerSyncNumberOfRetries }}

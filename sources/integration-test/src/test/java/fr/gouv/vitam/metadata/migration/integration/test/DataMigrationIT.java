@@ -50,7 +50,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
@@ -452,7 +452,7 @@ public class DataMigrationIT extends VitamRuleRunner {
         rawUnitsById = IterableUtils.toList(units).stream()
             .map(doc -> {
                 try {
-                    return JsonHandler.getFromString(BsonHelper.stringify(doc));
+                    return BsonHelper.fromDocumentToJsonNode(doc);
                 } catch (InvalidParseOperationException e) {
                     throw new RuntimeException(e);
                 }

@@ -51,7 +51,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -394,14 +394,14 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
             Document operation =
                 LogbookCollections.OPERATION.getCollection().find(eq("_id", secureTenantOpId)).first();
             LogbookOperation logbookOperation =
-                JsonHandler.getFromString(BsonHelper.stringify(operation), LogbookOperation.class);
+                BsonHelper.fromDocumentToObject(operation, LogbookOperation.class);
             ObjectNode evData = (ObjectNode) JsonHandler.getFromString(logbookOperation.getEvDetData());
             evData.put("Hash", "fake");
             logbookOperation.setEvDetData(JsonHandler.unprettyPrint(evData));
             logbookOperation.getEvents().get(1).setEvDetData(JsonHandler.unprettyPrint(evData));
             logbookOperation.getEvents().get(2).setEvDetData(JsonHandler.unprettyPrint(evData));
             LogbookCollections.OPERATION.getCollection().updateMany(eq("_id", secureTenantOpId),
-                new Document("$set", VitamDocument.parse(BsonHelper.stringify(logbookOperation))));
+                new Document("$set", VitamDocument.parse(JsonHandler.unprettyPrint(logbookOperation))));
         } catch (InvalidParseOperationException e) {
             fail("Error while parsing json", e);
         }

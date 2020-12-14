@@ -37,15 +37,12 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
-import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -74,13 +71,14 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.io.output.NullOutputStream;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -112,7 +110,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private static final String MESSAGE_DIGEST = "MessageDigest";
     private static final String STRATEGY_ID_FIELD = "strategyId";
     private static final String STORAGE_FIELD = "_storage";
-    public static final TypeReference<JsonLineModel>
+    public static final TypeReference<LfcMetadataPair>
         TYPE_REFERENCE = new TypeReference<>() {
         };
 
@@ -152,13 +150,10 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         int nbEntries = 0;
 
         try (InputStream is = new FileInputStream(lfcAndMetadataFile);
-            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(is,
+            JsonLineGenericIterator<LfcMetadataPair> lfcMetadataIterator = new JsonLineGenericIterator<>(is,
                 TYPE_REFERENCE);
             OutputStream os = new FileOutputStream(traceabilityDataFile);
             JsonLineWriter jsonLineWriter = new JsonLineWriter(os)) {
-
-            CloseableIterator<LfcMetadataPair> lfcMetadataIterator = CloseableIteratorUtils
-                .map(jsonLineIterator, BuildTraceabilityActionPlugin::parse);
 
             Iterator<List<LfcMetadataPair>> bulkIterator = Iterators.partition(lfcMetadataIterator, batchSize);
 
@@ -173,7 +168,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
             throw new ProcessingException("Could not load storage information", e);
         }
 
-        handler.addOutputResult(TRACEABILITY_DATA_OUT_RANK, traceabilityDataFile, true, false);
+        handler.addOutputResult(TRACEABILITY_DATA_OUT_RANK, traceabilityDataFile, false, false);
 
         TraceabilityStatistics traceabilityStatistics = getTraceabilityStatistics(digestValidator);
         try {
@@ -181,7 +176,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 handler.getOutput(TRACEABILITY_STATISTICS_OUT_RANK).getPath());
             JsonHandler.writeAsFile(traceabilityStatistics, traceabilityStatsFile);
 
-            handler.addOutputResult(TRACEABILITY_STATISTICS_OUT_RANK, traceabilityStatsFile, true, false);
+            handler.addOutputResult(TRACEABILITY_STATISTICS_OUT_RANK, traceabilityStatsFile, false, false);
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException("Could not serialize validation statistics", e);
         }
@@ -293,8 +288,10 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
             JsonNode metadataWithLfc = getMetadataWithLifecycle(lifecycleType, lfcMetadataPair);
 
+            // Write to DigestOutputStream
             Digest digest = new Digest(digestType);
-            digest.update(CanonicalJsonFormatter.serialize(metadataWithLfc));
+            OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
+            CanonicalJsonFormatter.serialize(metadataWithLfc, new BufferedOutputStream(digestOutputStream, 256));
             String dbDigest = digest.digestHex();
 
             String id = lfcMetadataPair.getLfc().get(LogbookDocument.ID).textValue();
@@ -436,14 +433,6 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 BatchObjectInformationResponse::getOfferDigests));
     }
 
-    private static LfcMetadataPair parse(JsonLineModel entry) {
-        try {
-            return JsonHandler.getFromJsonNode(entry.getParams(), LfcMetadataPair.class);
-        } catch (InvalidParseOperationException e) {
-            throw new VitamRuntimeException("Could not parse json line entry", e);
-        }
-    }
-
     private void storeTraceabilityData(String id, JsonNode lifecycle, JsonNode metadata,
         DigestValidationDetails metadataDigestValidationDetails,
         Map<String, DigestValidationDetails> objectDigests,
@@ -546,12 +535,9 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 throw new IllegalStateException("Unknown lifecycleType " + lifecycleType);
             }
 
+            jsonLineWriter.addEntry(lfcTraceSecFileDataLine);
 
-            JsonNode jsonDataToWrite = JsonHandler.toJsonNode(lfcTraceSecFileDataLine);
-
-            jsonLineWriter.addEntry(new JsonLineModel(id, null, jsonDataToWrite));
-
-        } catch (IOException | InvalidParseOperationException e) {
+        } catch (IOException e) {
             throw new ProcessingException("Could not serialize json object or could not write to file", e);
         }
     }
@@ -572,7 +558,8 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
      */
     public static String generateDigest(JsonNode jsonNode, DigestType digestType) throws IOException {
         final Digest digest = new Digest(digestType);
-        digest.update(CanonicalJsonFormatter.serialize(jsonNode));
+        OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
+        CanonicalJsonFormatter.serialize(jsonNode, new BufferedOutputStream(digestOutputStream, 256));
         return digest.digest64();
     }
 

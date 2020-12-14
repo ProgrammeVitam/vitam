@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -60,6 +59,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferDiffRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffStatus;
@@ -109,6 +109,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
@@ -1050,6 +1051,40 @@ public class StorageTwoOffersIT {
         Document seqDoc = mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find().first();
         long offerSeq = seqDoc == null ? 0L : ((Number) seqDoc.get(OfferSequence.COUNTER_FIELD)).longValue();
         assertThat(offerSeq).isEqualTo(size);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getBatchObjectInformationTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        storeObjectInOffers("file1", OBJECT, "data1".getBytes(), OFFER_ID, SECOND_OFFER_ID);
+        storeObjectInOffers("file2", OBJECT, "data2".getBytes(), OFFER_ID);
+
+        // When
+        RequestResponse<BatchObjectInformationResponse> batchObjectInformationResponse = storageClient
+            .getBatchObjectInformation(STRATEGY_ID, OBJECT, Arrays.asList(OFFER_ID, SECOND_OFFER_ID),
+                Arrays.asList("file1", "file2", "file3"));
+
+        // When
+        assertThat(batchObjectInformationResponse.isOk()).isTrue();
+        Map<String, BatchObjectInformationResponse> objectInformationByObjectId =
+            ((RequestResponseOK<BatchObjectInformationResponse>) batchObjectInformationResponse).getResults().stream()
+                .collect(Collectors.toMap(BatchObjectInformationResponse::getObjectId, i -> i));
+
+        assertThat(objectInformationByObjectId).containsOnlyKeys("file1", "file2", "file3");
+        assertThat(objectInformationByObjectId.get("file1").getOfferDigests()).containsOnlyKeys(OFFER_ID, SECOND_OFFER_ID);
+        assertThat(objectInformationByObjectId.get("file1").getOfferDigests().get(OFFER_ID)).isEqualTo("9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01");
+        assertThat(objectInformationByObjectId.get("file1").getOfferDigests().get(SECOND_OFFER_ID)).isEqualTo("9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01");
+
+        assertThat(objectInformationByObjectId.get("file2").getOfferDigests()).containsOnlyKeys(OFFER_ID, SECOND_OFFER_ID);
+        assertThat(objectInformationByObjectId.get("file2").getOfferDigests().get(OFFER_ID)).isEqualTo("5067cebe816ea7a7c8a0e015613c732c67c09d9ddc3b88eb0a8e1b481dd54a72b42d0f7f8f6a77f309ecbc3cc2401cd41ed7deefec18dd9de77d67883b95b6bb");
+        assertThat(objectInformationByObjectId.get("file2").getOfferDigests().get(SECOND_OFFER_ID)).isNull();
+
+        assertThat(objectInformationByObjectId.get("file3").getOfferDigests()).containsOnlyKeys(OFFER_ID, SECOND_OFFER_ID);
+        assertThat(objectInformationByObjectId.get("file3").getOfferDigests().get(OFFER_ID)).isNull();
+        assertThat(objectInformationByObjectId.get("file3").getOfferDigests().get(SECOND_OFFER_ID)).isNull();
     }
 
     @Test

@@ -75,7 +75,7 @@ public class ProbativeCreateReport extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeCreateReport.class);
 
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CREATE_REPORT";
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
     };
     private static final ReportVersion2 REPORT_VERSION_2 = new ReportVersion2();
 

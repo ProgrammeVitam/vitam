@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -42,7 +43,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
 
     private static final String ZIP_NAME = "LogbookUnitLifecycles";
 
-    private final CloseableIterator<JsonLineModel> traceabilityDataIterator;
+    private final CloseableIterator<JsonNode> traceabilityDataIterator;
 
     /**
      * @param handlerIO Workflow Input/Output of the traceability event
@@ -70,7 +70,7 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
     public LogbookUnitLifeCycleTraceabilityHelper(HandlerIO handlerIO,
         LogbookOperationsClient logbookOperationsClient, ItemStatus itemStatus, String operationID,
         WorkspaceClientFactory workspaceClientFactory,
-        CloseableIterator<JsonLineModel> traceabilityDataIterator, String traceabilityEventFileName,
+        CloseableIterator<JsonNode> traceabilityDataIterator, String traceabilityEventFileName,
         String traceabilityZipFileName) {
         super(handlerIO, logbookOperationsClient, itemStatus, operationID, traceabilityEventFileName,
             traceabilityZipFileName

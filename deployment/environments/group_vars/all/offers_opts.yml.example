@@ -109,6 +109,10 @@ vitam_offers:
       expiration_unit: "DAYS"
       ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
       compaction_size: 10000
+    # Batch processing thread pool size
+    maxBatchThreadPoolSize: 32
+    # Batch metadata computation timeout in seconds
+    batchMetadataComputationTimeout: 600
   offer-fs-1:
     # param can be filesystem-hash (recomended) or filesystem (not recomended)
     provider: filesystem-hash
@@ -120,6 +124,10 @@ vitam_offers:
       expiration_unit: "DAYS"
       ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
       compaction_size: 10000
+    # Batch processing thread pool size
+    maxBatchThreadPoolSize: 32
+    # Batch metadata computation timeout in seconds
+    batchMetadataComputationTimeout: 600
   offer-swift-1:
     # provider : openstack-swift for v1 or openstack-swift-v3 for v3
     provider: openstack-swift-v3
@@ -153,6 +161,10 @@ vitam_offers:
       expiration_unit: "DAYS"
       ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
       compaction_size: 10000
+    # Batch processing thread pool size
+    maxBatchThreadPoolSize: 32
+    # Batch metadata computation timeout in seconds
+    batchMetadataComputationTimeout: 600
   offer-s3-1:
     # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
     provider: 'amazon-s3-v1'
@@ -186,6 +198,10 @@ vitam_offers:
       expiration_unit: "DAYS"
       ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
       compaction_size: 10000
+    # Batch processing thread pool size
+    maxBatchThreadPoolSize: 32
+    # Batch metadata computation timeout in seconds
+    batchMetadataComputationTimeout: 600
 
   # example_swift_v1:
   #    provider: openstack-swift

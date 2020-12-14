@@ -30,6 +30,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -90,8 +92,6 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.client.Invocation;
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -440,7 +440,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 if (bufferingEnabled) {
                     final ByteArrayOutputStream buffer = new ByteArrayOutputStream(bufferSize);
                     writeTo(buffer);
-                    return new ByteArrayInputStream(buffer.toByteArray());
+                    return buffer.toInputStream();
                 } else if (entity instanceof InputStream) {
                     return (InputStream) entity;
                 } else {
@@ -502,7 +502,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         final InputStream inputStream;
         LOGGER.debug("{}", this);
         if (response.getEntity() == null) {
-            inputStream = new ByteArrayInputStream(new byte[0]);
+            inputStream = new NullInputStream(0);
         } else {
             final InputStream i = response.getEntity().getContent();
             if (i.markSupported()) {

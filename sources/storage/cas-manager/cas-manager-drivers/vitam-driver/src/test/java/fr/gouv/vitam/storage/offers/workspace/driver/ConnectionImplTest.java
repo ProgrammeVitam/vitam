@@ -51,10 +51,13 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -212,6 +215,17 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
             @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+            return mock.get();
+        }
+
+        @GET
+        @Path("/bulk/objects/{type}/metadata")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getBulkObjectMetadata(@PathParam("type") DataCategory type,
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+            @HeaderParam(GlobalDataRest.X_OFFER_NO_CACHE) boolean noCache,
+            List<String> guids) {
             return mock.get();
         }
 
@@ -985,5 +999,39 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             type = DataCategory.OBJECT.getFolder();
         }
         return new StorageBulkPutRequest(tenantId, type, guid, digest, stream, 1L);
+    }
+
+    @Test
+    public void bulkMetadataWithRequestOK() throws Exception {
+
+        final StorageGetBulkMetadataRequest request = new StorageGetBulkMetadataRequest(
+            0, DataCategory.UNIT.getFolder(), Arrays.asList("GUID1", "GUID2"), false);
+
+        StorageBulkMetadataResult storageBulkMetadataResult = new StorageBulkMetadataResult(Arrays.asList(
+            new StorageBulkMetadataResultEntry("GUID1", "d1", 1L),
+            new StorageBulkMetadataResultEntry("GUID2", "d2", 2L)
+        ));
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(storageBulkMetadataResult).build());
+
+        try (Connection connection = driver.connect(offer.getId())) {
+            final StorageBulkMetadataResult result = connection.getBulkMetadata(request);
+            assertNotNull(result);
+            assertThat(result.getObjectMetadata()).hasSize(2);
+            assertThat(result.getObjectMetadata().get(0).getObjectName()).isEqualTo("GUID1");
+            assertThat(result.getObjectMetadata().get(0).getDigest()).isEqualTo("d1");
+            assertThat(result.getObjectMetadata().get(0).getSize()).isEqualTo(1L);
+        }
+    }
+
+    @Test
+    public void bulkMetadataWithInternalServerErrorThanStorageDriverException() throws Exception {
+        final StorageGetBulkMetadataRequest request = new StorageGetBulkMetadataRequest(
+            0, DataCategory.UNIT.getFolder(), Arrays.asList("GUID1", "GUID2"), false);
+
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        try (Connection connection = driver.connect(offer.getId())) {
+            assertThatThrownBy(() -> connection.getBulkMetadata(request))
+                .isInstanceOf(StorageDriverException.class);
+        }
     }
 }

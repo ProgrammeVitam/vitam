@@ -34,7 +34,9 @@ import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -47,9 +49,11 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -417,6 +421,31 @@ public class ConnectionImpl extends AbstractConnection {
         try (Response response = make(requestBuilder)) {
             checkStorageException(response);
             return response.readEntity(StorageMetadataResult.class);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
+            throw new StorageDriverException(getDriverName(),
+                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), true, e);
+        }
+    }
+
+    @Override
+    public StorageBulkMetadataResult getBulkMetadata(StorageGetBulkMetadataRequest request)
+        throws StorageDriverException, InvalidParseOperationException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuids());
+
+        VitamRequestBuilder requestBuilder = get()
+            .withPath("/bulk/objects/" + DataCategory.getByFolder(request.getType()) + "/metadata")
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withHeader(GlobalDataRest.X_OFFER_NO_CACHE, request.isNoCache())
+            .withBody(JsonHandler.writeToInpustream(request.getGuids()))
+            .withJson();
+
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
+            return response.readEntity(StorageBulkMetadataResult.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(),

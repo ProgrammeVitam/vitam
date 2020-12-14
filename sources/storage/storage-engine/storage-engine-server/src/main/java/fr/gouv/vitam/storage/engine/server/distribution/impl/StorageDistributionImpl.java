@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -58,7 +59,6 @@ import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
@@ -66,6 +66,9 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
+import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -132,8 +135,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -213,8 +214,6 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private StorageLog storageLogService;
 
-    private final ExecutorService batchExecutorService;
-    private final int batchDigestComputationTimeout;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final BulkStorageDistribution bulkStorageDistribution;
 
@@ -231,10 +230,6 @@ public class StorageDistributionImpl implements StorageDistribution {
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         this.storageLogService = storageLogService;
         digestType = VitamConfiguration.getDefaultDigestType();
-        batchExecutorService =
-            new ThreadPoolExecutor(configuration.getMinBatchThreadPoolSize(), configuration.getMaxBatchThreadPoolSize(),
-                1L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), VitamThreadFactory.getInstance());
-        batchDigestComputationTimeout = configuration.getBatchDigestComputationTimeout();
         this.transfertTimeoutHelper = new TransfertTimeoutHelper(configuration.getTimeoutMsPerKB());
         this.bulkStorageDistribution = new BulkStorageDistribution(3, this.workspaceClientFactory,
             this.storageLogService, this.transfertTimeoutHelper);
@@ -243,15 +238,12 @@ public class StorageDistributionImpl implements StorageDistribution {
     @VisibleForTesting
     StorageDistributionImpl(WorkspaceClientFactory workspaceClientFactory, DigestType digestType,
         StorageLog storageLogService,
-        ExecutorService batchExecutorService, int batchDigestComputationTimeout,
         BulkStorageDistribution bulkStorageDistribution) {
         urlWorkspace = null;
         this.transfertTimeoutHelper = new TransfertTimeoutHelper(100L);
         this.workspaceClientFactory = workspaceClientFactory;
         this.digestType = digestType;
         this.storageLogService = storageLogService;
-        this.batchExecutorService = batchExecutorService;
-        this.batchDigestComputationTimeout = batchDigestComputationTimeout;
         this.bulkStorageDistribution = bulkStorageDistribution;
     }
 
@@ -1487,66 +1479,57 @@ public class StorageDistributionImpl implements StorageDistribution {
             storageOfferByOfferId.put(offerId, OFFER_PROVIDER.getStorageOffer(offerId));
         }
 
-        List<CompletableFuture<BatchObjectInformationResponse>> completableFutures = new ArrayList<>();
-        for (String objectId : objectIds) {
-
-            CompletableFuture<BatchObjectInformationResponse> objectInformationCompletableFuture =
-                CompletableFuture.supplyAsync(() -> getObjectInformation(type, offerIds, tenantId, objectId,
-                    driverByOfferId, storageOfferByOfferId),
-                    batchExecutorService);
-            completableFutures.add(objectInformationCompletableFuture);
+        Map<String, CompletableFuture<List<StorageBulkMetadataResultEntry>>> completableFutures = new HashMap<>();
+        for (String offerId : offerIds) {
+            CompletableFuture<List<StorageBulkMetadataResultEntry>> objectInformationCompletableFuture =
+                CompletableFuture.supplyAsync(() -> getBatchObjectInformation(type, tenantId, objectIds, driverByOfferId.get(offerId),
+                    storageOfferByOfferId.get(offerId)));
+            completableFutures.put(offerId, objectInformationCompletableFuture);
         }
-
-        CompletableFuture<List<BatchObjectInformationResponse>> batchObjectInformationFuture
-            = sequence(completableFutures);
 
         try {
-            return batchObjectInformationFuture.get(batchDigestComputationTimeout, SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+
+            Map<String, Map<String, String>> offerDigestsByObjectId = new HashMap<>();
+
+            for (String offerId : completableFutures.keySet()) {
+                List<StorageBulkMetadataResultEntry> storageBulkMetadataResultEntries =
+                    completableFutures.get(offerId).get();
+
+                for (StorageBulkMetadataResultEntry storageBulkMetadataResultEntry : storageBulkMetadataResultEntries) {
+                    offerDigestsByObjectId
+                        .computeIfAbsent(storageBulkMetadataResultEntry.getObjectName(), (objectId) -> new HashMap<>())
+                        .put(offerId, storageBulkMetadataResultEntry.getDigest());
+                }
+            }
+
+            return offerDigestsByObjectId.keySet().stream()
+                .map(objectId -> new BatchObjectInformationResponse(type, objectId, offerDigestsByObjectId.get(objectId) ))
+                .collect(Collectors.toList());
+
+        } catch (InterruptedException | ExecutionException e) {
             // Abort pending tasks
-            for (CompletableFuture<BatchObjectInformationResponse> completableFuture : completableFutures) {
-                completableFuture.cancel(false);
-            }
-            throw new StorageException("Batch object information timed out", e);
+            completableFutures.values().forEach(
+                future -> future.cancel(false)
+            );
+            throw new StorageException("Batch object information failed", e);
         }
     }
 
-    private CompletableFuture<List<BatchObjectInformationResponse>> sequence(
-        List<CompletableFuture<BatchObjectInformationResponse>> completableFutures) {
-        CompletableFuture<Void> allDoneFuture = CompletableFuture.allOf(
-            completableFutures.toArray(new CompletableFuture[0]));
+    private List<StorageBulkMetadataResultEntry> getBatchObjectInformation(DataCategory type, Integer tenantId,
+        List<String> objectIds, Driver driver, StorageOffer offer) {
 
-        return allDoneFuture
-            .thenApply(v -> completableFutures.stream().map(CompletableFuture::join)
-                .collect(Collectors.toList()));
-    }
+        try (Connection connection = driver.connect(offer.getId())) {
 
-    private BatchObjectInformationResponse getObjectInformation(DataCategory type, List<String> offerIds,
-        Integer tenantId, String objectId,
-        Map<String, Driver> driverByOfferId,
-        Map<String, StorageOffer> storageOfferByOfferId) {
+            // Get object metadata (cache enabled)
+            final StorageGetBulkMetadataRequest request = new StorageGetBulkMetadataRequest(tenantId,
+                type.getFolder(), objectIds, false);
 
-        Map<String, String> offerDigests = new HashMap<>();
-        for (final String offerId : offerIds) {
-            final Driver driver = driverByOfferId.get(offerId);
-            final StorageOffer offer = storageOfferByOfferId.get(offerId);
-            String digest;
-            try (Connection connection = driver.connect(offer.getId())) {
-
-                // Get object metadata (cache enabled)
-                final StorageGetMetadataRequest request = new StorageGetMetadataRequest(tenantId,
-                    type.getFolder(), objectId, false);
-
-                StorageMetadataResult metaData = connection.getMetadatas(request);
-                digest = metaData.getDigest();
-            } catch (StorageDriverException exc) {
-                LOGGER.warn(String.format("Could not retrieve object digest for object '%s' of type %s in offer %s",
-                    objectId, type, offerId), exc);
-                digest = null;
-            }
-            offerDigests.put(offerId, digest);
+            StorageBulkMetadataResult metaData = connection.getBulkMetadata(request);
+            return metaData.getObjectMetadata();
+        } catch (StorageDriverException | InvalidParseOperationException e) {
+            throw new VitamRuntimeException(
+                "Could not retrieve batch object information for offer " + offer.getId(), e);
         }
-        return new BatchObjectInformationResponse(type, objectId, offerDigests);
     }
 
     private AccessLogParameters createParamsForAccessLog(AccessLogInfoModel logInfo, String objectId) {

@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -42,8 +42,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -61,10 +59,10 @@ public class SanityCheckerJsonFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) throws IOException {
         final InputStream bodyInputStream = requestContext.getEntityStream();
         final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        StreamUtils.copy(bodyInputStream, bout);
+        bodyInputStream.transferTo(bout);
         try {
-            SanityChecker.checkJsonAll(JsonHandler.getFromBytes(bout.toByteArray()));
-            requestContext.setEntityStream(new ByteArrayInputStream(bout.toByteArray()));
+            SanityChecker.checkJsonAll(JsonHandler.getFromInputStream(bout.toInputStream()));
+            requestContext.setEntityStream(bout.toInputStream());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             requestContext.abortWith(

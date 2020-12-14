@@ -39,11 +39,11 @@
             "out": [
               {
                 "name": "traceabilityInformation.file",
-                "uri": "WORKSPACE:traceabilityInformation.json"
+                "uri": "MEMORY:traceabilityInformation.json"
               },
               {
                 "name": "LfcWithMetadata.file",
-                "uri": "WORKSPACE:lfcWithMetadata.jsonl"
+                "uri": "MEMORY:lfcWithMetadata.jsonl"
               }
             ]
           }
@@ -55,17 +55,17 @@
             "in": [
               {
                 "name": "LfcWithMetadata.file",
-                "uri": "WORKSPACE:lfcWithMetadata.jsonl"
+                "uri": "MEMORY:lfcWithMetadata.jsonl"
               }
             ],
             "out": [
               {
                 "name": "traceabilityData.file",
-                "uri": "WORKSPACE:traceabilityData.jsonl"
+                "uri": "MEMORY:traceabilityData.jsonl"
               },
               {
                 "name": "traceabilityStats.file",
-                "uri": "WORKSPACE:traceabilityStats.json"
+                "uri": "MEMORY:traceabilityStats.json"
               }
             ]
           }
@@ -81,15 +81,15 @@
               },
               {
                 "name": "traceabilityInformation.file",
-                "uri": "WORKSPACE:traceabilityInformation.json"
+                "uri": "MEMORY:traceabilityInformation.json"
               },
               {
                 "name": "traceabilityData.file",
-                "uri": "WORKSPACE:traceabilityData.jsonl"
+                "uri": "MEMORY:traceabilityData.jsonl"
               },
               {
                 "name": "traceabilityStats.file",
-                "uri": "WORKSPACE:traceabilityStats.json"
+                "uri": "MEMORY:traceabilityStats.json"
               }
             ],
             "out": [

@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -372,7 +372,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     public OfferLog getOfferLog(Document document) {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(document), OfferLog.class);
+            return BsonHelper.fromDocumentToObject(document, OfferLog.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }
@@ -387,7 +387,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     public CompactedOfferLog getOfferLogCompaction(Document document) {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(document), CompactedOfferLog.class);
+            return BsonHelper.fromDocumentToObject(document, CompactedOfferLog.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }

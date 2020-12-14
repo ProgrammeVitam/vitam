@@ -5,7 +5,7 @@ import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -92,7 +92,7 @@ public class OfferLogAndCompactedOfferLogService {
 
     private CompactedOfferLog transformDocumentToOfferLogCompaction(Document document) {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(document), CompactedOfferLog.class);
+            return BsonHelper.fromDocumentToObject(document, CompactedOfferLog.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }

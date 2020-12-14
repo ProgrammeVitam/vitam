@@ -59,7 +59,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -878,7 +878,7 @@ public class DbRequestTest {
                 Collections.emptyList());
 
         // Then
-        ObjectNode expectedUnit = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(initialUnit));
+        ObjectNode expectedUnit = (ObjectNode) BsonHelper.fromDocumentToJsonNode(initialUnit);
         expectedUnit.put("Title", "New Title");
         expectedUnit.putArray("Flag").add(false);
         expectedUnit.putArray("Number").add(12);

@@ -24,18 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.json;
+package fr.gouv.vitam.common.database.server.mongodb;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import org.bson.Document;
 
 import java.util.Map;
 
@@ -72,14 +76,48 @@ public class BsonHelper {
     /**
      * Stringify mongo document
      *
-     * @param object
+     * @param document
      * @return Unpretty print object
      */
-    public static String stringify(Object object) {
+    public static String stringify(Document document) {
         try {
-            return OBJECT_MAPPER.writeValueAsString(object);
+            return OBJECT_MAPPER.writeValueAsString(document);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Convert bson document to JsonNode
+     */
+    public static JsonNode fromDocumentToJsonNode(Document object) throws InvalidParseOperationException {
+        try {
+            return OBJECT_MAPPER.valueToTree(object);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     * Convert bson document to object
+     */
+    public static <T> T fromDocumentToObject(Document document, Class<T> clasz) throws InvalidParseOperationException {
+        try {
+            return OBJECT_MAPPER.convertValue(document, clasz);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     * Convert bson document to object
+     */
+    public static <T> T fromDocumentToObject(Document document, TypeReference<T> typeReference)
+        throws InvalidParseOperationException {
+        try {
+            return OBJECT_MAPPER.convertValue(document, typeReference);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
         }
     }
 }

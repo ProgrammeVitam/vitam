@@ -42,9 +42,12 @@ import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -71,6 +74,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Driver implementation for test only
@@ -270,7 +274,7 @@ public class FakeDriverImpl extends AbstractDriver {
 
         @Override
         public StorageBulkPutResult bulkPutObjects(StorageBulkPutRequest request) {
-            throw new IllegalStateException("Stop using mocks in production");
+            throw new IllegalStateException("Fake driver not implemented");
         }
 
         @Override
@@ -289,6 +293,15 @@ public class FakeDriverImpl extends AbstractDriver {
         @Override
         public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException {
             return new StorageMetadataResult(null);
+        }
+
+        @Override
+        public StorageBulkMetadataResult getBulkMetadata(StorageGetBulkMetadataRequest request) {
+            return new StorageBulkMetadataResult(
+                request.getGuids().stream()
+                    .map(objectId -> new StorageBulkMetadataResultEntry(objectId, "digest-" + objectId, 50L))
+                    .collect(Collectors.toList())
+            );
         }
 
         @Override

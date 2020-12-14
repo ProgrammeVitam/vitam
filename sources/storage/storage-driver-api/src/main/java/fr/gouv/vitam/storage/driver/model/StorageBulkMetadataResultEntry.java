@@ -24,54 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.distribution;
+package fr.gouv.vitam.storage.driver.model;
 
-import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
+public class StorageBulkMetadataResultEntry {
 
-/**
- *
- * @deprecated Use JsonLineGenericIterator instead.
- */
-@Deprecated
-public class JsonLineIterator implements CloseableIterator<JsonLineModel> {
+    @JsonProperty("objectName")
+    private String objectName;
+    @JsonProperty("digest")
+    private String digest;
+    @JsonProperty("size")
+    private Long size;
 
-    private final BufferedReader bufferedReader;
-    private final Iterator<String> lineIterator;
-
-    public JsonLineIterator(InputStream inputStream) {
-        bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-        lineIterator = bufferedReader.lines().iterator();
+    public StorageBulkMetadataResultEntry() {
+        // Empty constructor for deserialization
     }
 
-    @Override
-    public boolean hasNext() {
-        return lineIterator.hasNext();
+    public StorageBulkMetadataResultEntry(String objectName, String digest, Long size) {
+        this.objectName = objectName;
+        this.digest = digest;
+        this.size = size;
     }
 
-    @Override
-    public JsonLineModel next() {
-        try {
-            return JsonHandler.getFromString(lineIterator.next(), JsonLineModel.class);
-        } catch (InvalidParseOperationException e) {
-            throw new RuntimeException("Could not parse json line entry", e);
-        }
+    public String getObjectName() {
+        return objectName;
     }
 
-    @Override
-    public void close() {
-        try {
-            bufferedReader.close();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not close reader", e);
-        }
+    public StorageBulkMetadataResultEntry setObjectName(String objectName) {
+        this.objectName = objectName;
+        return this;
+    }
+
+    public String getDigest() {
+        return digest;
+    }
+
+    public StorageBulkMetadataResultEntry setDigest(String digest) {
+        this.digest = digest;
+        return this;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public StorageBulkMetadataResultEntry setSize(Long size) {
+        this.size = size;
+        return this;
     }
 }

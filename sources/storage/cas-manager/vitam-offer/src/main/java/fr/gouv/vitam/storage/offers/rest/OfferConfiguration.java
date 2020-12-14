@@ -47,6 +47,18 @@ public class OfferConfiguration extends DbConfigurationImpl {
     private OfferLogCompactionConfiguration offerLogCompactionConfiguration;
 
     /**
+     * Max thread pool size for batch processing
+     */
+    @JsonProperty("maxBatchThreadPoolSize")
+    private int maxBatchThreadPoolSize = 32;
+
+    /**
+     * Timeout (in seconds) for batch metadata retrieval
+     */
+    @JsonProperty("batchMetadataComputationTimeout")
+    private int batchMetadataComputationTimeout = 600;
+
+    /**
      * @return the provider
      */
     public String getProvider() {
@@ -55,7 +67,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     /**
      * @param provider the provider to set
-     *
      * @return this
      */
     public OfferConfiguration setProvider(String provider) {
@@ -72,7 +83,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     /**
      * @param swiftKeystoneAuthUrl the swiftKeystoneAuthUrl to set
-     *
      * @return this
      */
     public OfferConfiguration setSwiftKeystoneAuthUrl(String swiftKeystoneAuthUrl) {
@@ -89,7 +99,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     /**
      * @param swiftDomain the tenantName to set
-     *
      * @return this
      */
     public OfferConfiguration setSwiftDomain(String swiftDomain) {
@@ -106,7 +115,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     /**
      * @param swiftUser the userName to set
-     *
      * @return this
      */
     public OfferConfiguration setSwiftUser(String swiftUser) {
@@ -123,7 +131,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     /**
      * @param swiftPassword the swiftPassword to set
-     *
      * @return this
      */
     public OfferConfiguration setSwiftPassword(String swiftPassword) {
@@ -140,7 +147,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     /**
      * @param storagePath the storagePath to set
-     *
      * @return this
      */
     public OfferConfiguration setStoragePath(String storagePath) {
@@ -157,7 +163,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     /**
      * @param contextPath the contextPath to set
-     *
      * @return this
      */
     public OfferConfiguration setContextPath(String contextPath) {
@@ -189,7 +194,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * 
      * @param swiftProjectName the swiftProjectName to set or unset
      * @return OfferConfiguration
      */
@@ -205,6 +209,24 @@ public class OfferConfiguration extends DbConfigurationImpl {
     public OfferConfiguration setOfferLogCompactionConfiguration(
         OfferLogCompactionConfiguration offerLogCompactionConfiguration) {
         this.offerLogCompactionConfiguration = offerLogCompactionConfiguration;
+        return this;
+    }
+
+    public int getMaxBatchThreadPoolSize() {
+        return maxBatchThreadPoolSize;
+    }
+
+    public OfferConfiguration setMaxBatchThreadPoolSize(int maxBatchThreadPoolSize) {
+        this.maxBatchThreadPoolSize = maxBatchThreadPoolSize;
+        return this;
+    }
+
+    public int getBatchMetadataComputationTimeout() {
+        return batchMetadataComputationTimeout;
+    }
+
+    public OfferConfiguration setBatchMetadataComputationTimeout(int batchMetadataComputationTimeout) {
+        this.batchMetadataComputationTimeout = batchMetadataComputationTimeout;
         return this;
     }
 }

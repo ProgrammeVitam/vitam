@@ -32,13 +32,13 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
-import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -195,4 +195,7 @@ public interface DefaultOfferService {
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     void compactOfferLogs() throws Exception;
+
+    StorageBulkMetadataResult getBulkMetadata(String containerName, List<String> objectIds, Boolean noCache)
+        throws ContentAddressableStorageException;
 }

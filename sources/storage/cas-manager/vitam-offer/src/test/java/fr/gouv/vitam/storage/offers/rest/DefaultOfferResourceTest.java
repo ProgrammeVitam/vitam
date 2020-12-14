@@ -58,6 +58,8 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -68,7 +70,9 @@ import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.assertj.core.groups.Tuple;
 import org.bson.Document;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -88,6 +92,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -96,6 +101,7 @@ import java.util.stream.IntStream;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.elasticsearch.common.collect.Tuple.tuple;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -886,5 +892,119 @@ public class DefaultOfferResourceTest {
         }
         multiplexedStreamWriter.appendEndOfFile();
         return byteArrayOutputStream.toByteArray();
+    }
+
+    @Test
+    public void getBulkObjectMetadataWithNullTenantThenKO() {
+        checkOfferDatabaseEmptiness();
+
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, false)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(Arrays.asList("guid1", "guid2")).when()
+            .get("/bulk/objects/{type}/metadata", UNIT_CODE).then().statusCode(400);
+    }
+
+    @Test
+    public void getBulkObjectMetadataWithMissingNoCacheHeaderThenKO() {
+        checkOfferDatabaseEmptiness();
+
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(Arrays.asList("guid1", "guid2")).when()
+            .get("/bulk/objects/{type}/metadata", UNIT_CODE).then().statusCode(400);
+    }
+
+    @Test
+    public void getBulkObjectMetadataWithMissingObjectIdThenKO() {
+        checkOfferDatabaseEmptiness();
+
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, false)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(Arrays.asList("guid1", null)).when()
+            .get("/bulk/objects/{type}/metadata", UNIT_CODE).then().statusCode(400);
+    }
+
+    @Test
+    public void getBulkObjectMetadataWithExistingObjectIdThenOK() {
+        checkOfferDatabaseEmptiness();
+
+        putFile("guid1", 8766, new NullInputStream(8766));
+
+        StorageBulkMetadataResult result = given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, false)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(Collections.singletonList("guid1")).when()
+            .get("/bulk/objects/{type}/metadata", UNIT_CODE).then().statusCode(200)
+            .extract().body().as(StorageBulkMetadataResult.class);
+
+        assertThat(result.getObjectMetadata()).hasSize(1);
+        assertThat(result.getObjectMetadata().get(0).getObjectName()).isEqualTo("guid1");
+        assertThat(result.getObjectMetadata().get(0).getDigest()).isEqualTo("88e82e41dc33c69f16ffc6b5039dfc935b140235f2429ae2c15264486d8e33a2c3d28426b9b5a47723f4b5754d5029dfbf15926046c8a0fed87f433bed8f420c");
+        assertThat(result.getObjectMetadata().get(0).getSize()).isEqualTo(8766);
+    }
+
+    @Test
+    public void getBulkObjectMetadataWithUnknownObjectIdThenOK() {
+        checkOfferDatabaseEmptiness();
+
+        StorageBulkMetadataResult result = given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, false)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(Collections.singletonList("unknown_guid1")).when()
+            .get("/bulk/objects/{type}/metadata", UNIT_CODE).then().statusCode(200)
+            .extract().body().as(StorageBulkMetadataResult.class);
+
+        assertThat(result.getObjectMetadata()).hasSize(1);
+        assertThat(result.getObjectMetadata().get(0).getObjectName()).isEqualTo("unknown_guid1");
+        assertThat(result.getObjectMetadata().get(0).getDigest()).isNull();
+        assertThat(result.getObjectMetadata().get(0).getSize()).isNull();
+    }
+
+    @Test
+    public void getBulkObjectMetadataMultipleObjects() {
+        checkOfferDatabaseEmptiness();
+
+        putFile("guid1", 0, new NullInputStream(0));
+        putFile("guid2", 1024, new NullInputStream(1024));
+        putFile("guid3", 8766, new NullInputStream(8766));
+
+        StorageBulkMetadataResult result = given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, false)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(Arrays.asList("guid1", "unknown_guid", "guid2", "guid3")).when()
+            .get("/bulk/objects/{type}/metadata", UNIT_CODE).then().statusCode(200)
+            .extract().body().as(StorageBulkMetadataResult.class);
+
+        assertThat(result.getObjectMetadata()).hasSize(4);
+        assertThat(result.getObjectMetadata()).extracting(
+            StorageBulkMetadataResultEntry::getObjectName, StorageBulkMetadataResultEntry::getDigest,
+            StorageBulkMetadataResultEntry::getSize)
+            .containsExactlyInAnyOrder(
+                new Tuple("guid1", "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e", 0L),
+                new Tuple("guid2", "8efb4f73c5655351c444eb109230c556d39e2c7624e9c11abc9e3fb4b9b9254218cc5085b454a9698d085cfa92198491f07a723be4574adc70617b73eb0b6461", 1024L),
+                new Tuple("unknown_guid", null, null),
+                new Tuple("guid3", "88e82e41dc33c69f16ffc6b5039dfc935b140235f2429ae2c15264486d8e33a2c3d28426b9b5a47723f4b5754d5029dfbf15926046c8a0fed87f433bed8f420c", 8766L)
+            );
+    }
+
+    private void putFile(String id, int size, InputStream inputStream) {
+        given().header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, size)
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(inputStream).when()
+            .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, id).then().statusCode(201);
     }
 }

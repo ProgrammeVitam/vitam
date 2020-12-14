@@ -50,7 +50,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
@@ -163,14 +162,14 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
 
                     LfcMetadataPair lfcMetadataPair = new LfcMetadataPair(rawMetadata, rawLfc);
 
-                    jsonLineWriter.addEntry(new JsonLineModel(id, null, JsonHandler.toJsonNode(lfcMetadataPair)));
+                    jsonLineWriter.addEntry(lfcMetadataPair);
                 }
             }
         } catch (IOException e) {
             throw new ProcessingException("Could not export lfc and metadata for traceability", e);
         }
 
-        handlerIO.addOutputResult(LFC_AND_METADATA_OUT_RANK, lfcWithMetadataFile, true, false);
+        handlerIO.addOutputResult(LFC_AND_METADATA_OUT_RANK, lfcWithMetadataFile, false, false);
 
         boolean maxEntriesReached = nbExportedEntries >= lifecycleTraceabilityMaxEntries;
         if (maxEntriesReached) {
@@ -220,10 +219,11 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         traceabilityInformation.put("maxEntriesReached", maxEntriesReached);
 
         // export in workspace
+
         File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(TRACEABILITY_INFORMATION_OUT_RANK).getPath());
         // Create json file
         JsonHandler.writeAsFile(traceabilityInformation, tempFile);
-        handlerIO.addOutputResult(TRACEABILITY_INFORMATION_OUT_RANK, tempFile, true, false);
+        handlerIO.addOutputResult(TRACEABILITY_INFORMATION_OUT_RANK, tempFile, false, false);
     }
 
     @Override

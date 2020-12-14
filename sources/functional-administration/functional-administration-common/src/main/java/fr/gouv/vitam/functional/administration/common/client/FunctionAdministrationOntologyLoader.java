@@ -30,8 +30,7 @@ import com.mongodb.client.FindIterable;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.BsonHelper;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -46,7 +45,7 @@ public class FunctionAdministrationOntologyLoader implements OntologyLoader {
             ArrayList<OntologyModel> ontologyModels = new ArrayList<>();
             FindIterable<Ontology> documents = FunctionalAdminCollections.ONTOLOGY.<Ontology>getCollection().find();
             for (Ontology document : documents) {
-                ontologyModels.add(JsonHandler.getFromString(BsonHelper.stringify(document), OntologyModel.class));
+                ontologyModels.add(BsonHelper.fromDocumentToObject(document, OntologyModel.class));
             }
 
             return ontologyModels;

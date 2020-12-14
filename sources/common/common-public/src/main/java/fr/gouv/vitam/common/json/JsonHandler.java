@@ -61,6 +61,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -76,6 +77,9 @@ public final class JsonHandler {
     private static final String OBJECT = "object";
     private static final String REG_EXP_JSONPATH_SEPARATOR = "\\.";
     public static final String JSON_SET_FOR_ACTION_DSL_REGEX = "[.]";
+
+    public final static TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     /**
      * Default JsonFactory
@@ -234,6 +238,16 @@ public final class JsonHandler {
         }
     }
 
+    public static JsonNode getFromReader(final Reader reader)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("reader", reader);
+            return OBJECT_MAPPER.readTree(reader);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
     /**
      * getFromInputStream, get JsonNode from stream
      *
@@ -245,7 +259,7 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream", stream);
-            return OBJECT_MAPPER.readTree(ByteStreams.toByteArray(stream));
+            return OBJECT_MAPPER.readTree(stream);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -325,7 +339,11 @@ public final class JsonHandler {
         throws InvalidParseOperationException, InvalidFormatException {
         try {
             ParametersChecker.checkParameter("value or class", inputStream, clasz);
-            return OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), clasz);
+            if(JSON_NODE_TYPE_REFERENCE.getType() == clasz.getType()) {
+                // Fast deserialization for JsonNode types
+                return (T) OBJECT_MAPPER.readTree(inputStream);
+            }
+            return OBJECT_MAPPER.readValue(inputStream, clasz);
         } catch (final InvalidFormatException e) {
             throw new InvalidFormatException(null, e.toString(), inputStream, clasz.getClass());
         } catch (final IOException | IllegalArgumentException e) {
@@ -343,6 +361,12 @@ public final class JsonHandler {
         throws InvalidParseOperationException, InvalidFormatException {
         try {
             ParametersChecker.checkParameter("value or class", value, clasz);
+
+            if(JSON_NODE_TYPE_REFERENCE.getType() == clasz.getType()) {
+                // Fast deserialization for JsonNode types
+                return (T) OBJECT_MAPPER.readTree(value);
+            }
+
             return OBJECT_MAPPER.readValue(value, clasz);
         } catch (final InvalidFormatException e) {
             throw new InvalidFormatException(null, e.toString(), value, clasz.getClass());
@@ -427,6 +451,10 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File or class", file, valueTypeRef);
+            if(JSON_NODE_TYPE_REFERENCE.getType() == valueTypeRef.getType()) {
+                // Fast deserialization for JsonNode types
+                return (T) OBJECT_MAPPER.readTree(file);
+            }
             return OBJECT_MAPPER.readValue(file, valueTypeRef);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
@@ -757,7 +785,7 @@ public final class JsonHandler {
      * @return the corresponding HashMap
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final Map<String, Object> getMapFromInputStream(final InputStream inputStream)
+    public static Map<String, Object> getMapFromInputStream(final InputStream inputStream)
         throws InvalidParseOperationException {
         ParametersChecker.checkParameter("InputStream", inputStream);
         Map<String, Object> info;
@@ -791,7 +819,7 @@ public final class JsonHandler {
      * @return the corresponding HashMap
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> Map<String, T> getMapFromInputStream(final InputStream inputStream, Class<T> parameterClazz)
+    public static <T> Map<String, T> getMapFromInputStream(final InputStream inputStream, Class<T> parameterClazz)
         throws InvalidParseOperationException {
         ParametersChecker.checkParameter("InputStream", inputStream);
         Map<String, T> info;
@@ -823,7 +851,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromInputStream(InputStream inputStream, Class<T> clasz)
+    public static <T> T getFromInputStream(InputStream inputStream, Class<T> clasz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream or class", inputStream, clasz);
@@ -852,7 +880,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromInputStream(InputStream inputStream, Class<T> clasz, Class<?>... parameterClazz)
+    public static <T> T getFromInputStream(InputStream inputStream, Class<T> clasz, Class<?>... parameterClazz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream, class or parameterClazz", inputStream, clasz,

@@ -127,7 +127,9 @@ public class OfferCommonApplication {
                 offerSequenceDatabaseService,
                 this.storageConfiguration,
                 configuration.getOfferLogCompactionConfiguration(),
-                offerLogAndCompactedOfferLogService
+                offerLogAndCompactedOfferLogService,
+                configuration.getMaxBatchThreadPoolSize(),
+                configuration.getBatchMetadataComputationTimeout()
             );
         } catch (Exception e) {
             LOGGER.error(e);

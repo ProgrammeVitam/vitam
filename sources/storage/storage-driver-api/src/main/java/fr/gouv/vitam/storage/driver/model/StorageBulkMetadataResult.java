@@ -24,58 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.storage.driver.model;
 
- import com.fasterxml.jackson.databind.JsonNode;
- import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
- import fr.gouv.vitam.common.exception.InvalidParseOperationException;
- import fr.gouv.vitam.common.exception.VitamRuntimeException;
- import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
- import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
- import org.bson.Document;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.MetadatasObject;
 
-public class PreservationScenario extends VitamDocument<PreservationScenario> {
+import java.util.List;
 
-    public PreservationScenario(JsonNode content) {
-        super(content);
+public class StorageBulkMetadataResult {
+
+    @JsonProperty("objectMetadata")
+    private List<StorageBulkMetadataResultEntry> objectMetadata;
+
+    public StorageBulkMetadataResult() {
+        // Empty constructor for deserialization
     }
 
-    public PreservationScenario(Document content) {
-        super(content);
+    public List<StorageBulkMetadataResultEntry> getObjectMetadata() {
+        return objectMetadata;
     }
 
-    public PreservationScenario(String content) {
-        super(content);
-    }
-
-    public PreservationScenario() {}
-
-    public static final String IDENTIFIER = "Identifier";
-
-    @Override
-    public VitamDocument<PreservationScenario> newInstance(JsonNode content) {
-        return new PreservationScenario(content);
-    }
-
-    public PreservationScenario setId(String id) {
-        append(VitamDocument.ID, id);
+    public StorageBulkMetadataResult setObjectMetadata(
+        List<StorageBulkMetadataResultEntry> objectMetadata) {
+        this.objectMetadata = objectMetadata;
         return this;
     }
 
-    public String getIdentifier() {
-        return getString(IDENTIFIER);
-    }
-
-    public PreservationScenario setIdentifier(String identifier) {
-        append(IDENTIFIER, identifier);
-        return this;
-    }
-
-    public PreservationScenarioModel toModel() {
-        try {
-            return BsonHelper.fromDocumentToObject(this, PreservationScenarioModel.class);
-        } catch (InvalidParseOperationException e) {
-            throw new VitamRuntimeException(e);
-        }
+    public StorageBulkMetadataResult(
+        List<StorageBulkMetadataResultEntry> objectMetadata) {
+        this.objectMetadata = objectMetadata;
     }
 }
