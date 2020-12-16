@@ -37,6 +37,7 @@ public enum ReportType {
     PURGE_UNIT,
     PURGE_OBJECTGROUP,
     UPDATE_UNIT,
+    BULK_UPDATE_UNIT,
     PRESERVATION,
     PROBATIVE_VALUE,
     AUDIT,

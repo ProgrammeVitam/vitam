@@ -30,6 +30,7 @@ import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.BulkUpdateUnitMetadataReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -95,13 +97,14 @@ public class BusinessApplication extends ConfigurationApplication {
             WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
             UpdateUnitReportRepository updateUnitReportRepository = new UpdateUnitReportRepository(mongoDbAccess);
+            BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository = new BulkUpdateUnitMetadataReportRepository(mongoDbAccess);
             EvidenceAuditReportRepository evidenceAuditReportRepository = new EvidenceAuditReportRepository(mongoDbAccess);
             TraceabilityReportRepository traceabilityReportRepository = new TraceabilityReportRepository(mongoDbAccess);
             ExtractedMetadataRepository extractedMetadataRepository = new ExtractedMetadataRepository(mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME));
             BatchReportServiceImpl batchReportServiceImpl =
                 new BatchReportServiceImpl(workspaceClientFactory, eliminationActionUnitRepository, purgeUnitRepository,
-                    purgeObjectGroupRepository, transferReplyUnitRepository,
-                    updateUnitReportRepository, preservationReportRepository, auditReportRepository,
+                    purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitReportRepository,
+                    bulkUpdateUnitMetadataReportRepository, preservationReportRepository, auditReportRepository,
                     unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository,
                     traceabilityReportRepository, extractedMetadataRepository);
 
