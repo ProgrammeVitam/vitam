@@ -474,6 +474,24 @@
     "cardinality": "one"
   },
   {
+    "path": "_computedInheritedRules.HoldRule",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.HoldRule.EndDates",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.HoldRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_computedInheritedRules.ReuseRule",
     "type": "object",
     "indexed": true,
@@ -2740,6 +2758,84 @@
     "type": "object",
     "indexed": true,
     "cardinality": "many"
+  },
+  {
+    "path": "_mgt.HoldRule",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Inheritance",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Inheritance.PreventInheritance",
+    "type": "bool",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Inheritance.PreventRulesId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.StartDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.EndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.HoldEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.HoldOwner",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.HoldReason",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.HoldReassessingDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.HoldRule.Rules.PreventRearrangement",
+    "type": "bool",
+    "indexed": true,
+    "cardinality": "one"
   },
   {
     "path": "_mgt.NeedAuthorization",

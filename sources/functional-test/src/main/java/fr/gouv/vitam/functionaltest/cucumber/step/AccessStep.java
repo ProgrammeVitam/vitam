@@ -706,6 +706,23 @@ public class AccessStep {
         world.getAccessService().checkResultsForParticularData(property, transformedDataTable);
     }
 
+    @Then("^les métadonnées de gestion correspondent au fichier json (.+)$")
+    public void json_metadata_are_for_particular_result(String filename) throws Throwable {
+
+        assertThat(world.getResults()).withFailMessage("Expecting single result").hasSize(1);
+        JsonNode foundNode = world.getResults().get(0).get(VitamFieldsHelper.management());
+        assertThat(foundNode).withFailMessage("No such field found " + filename).isNotNull();
+
+        Path file = Paths.get(world.getBaseDirectory(), filename);
+        JsonNode expectedJson;
+        try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
+            expectedJson = JsonHandler.getFromInputStream(inputStream);
+        }
+
+        // Check json
+        assertManagementJsonEquals(foundNode, expectedJson);
+    }
+
     @Then("^les règles hérités de l'unité (.*) correspondent au fichier json (.*)$")
     public void check_unit_inherited_rules_json(String unitTitle, String filename) throws Throwable {
 
@@ -723,6 +740,10 @@ public class AccessStep {
         }
 
         // Check json
+        assertManagementJsonEquals(actualJson, expectedJson);
+    }
+
+    private void assertManagementJsonEquals(JsonNode actualJson, JsonNode expectedJson) {
         List<String> orderedKeys = Arrays.asList("PropertyName", "Rule", "UnitId");
         JsonSorter.sortJsonEntriesByKeys(actualJson, orderedKeys);
         JsonSorter.sortJsonEntriesByKeys(expectedJson, orderedKeys);

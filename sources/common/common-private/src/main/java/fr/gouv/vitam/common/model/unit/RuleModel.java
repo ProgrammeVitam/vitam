@@ -48,6 +48,36 @@ public class RuleModel {
     @JsonProperty("EndDate")
     private String endDate;
 
+    /**
+     * hold end date
+     */
+    @JsonProperty("HoldEndDate")
+    private String holdEndDate;
+
+    /**
+     * hold owner
+     */
+    @JsonProperty("HoldOwner")
+    private String holdOwner;
+
+    /**
+     * hold reason
+     */
+    @JsonProperty("HoldReason")
+    private String holdReason;
+
+    /**
+     * hold reassessing date
+     */
+    @JsonProperty("HoldReassessingDate")
+    private String holdReassessingDate;
+
+    /**
+     * hold end date
+     */
+    @JsonProperty("PreventRearrangement")
+    private Boolean preventRearrangement;
+
     public RuleModel() {
     }
 
@@ -78,5 +108,50 @@ public class RuleModel {
 
     public void setEndDate(String endDate) {
         this.endDate = endDate;
+    }
+
+    public String getHoldEndDate() {
+        return holdEndDate;
+    }
+
+    public RuleModel setHoldEndDate(String holdEndDate) {
+        this.holdEndDate = holdEndDate;
+        return this;
+    }
+
+    public String getHoldOwner() {
+        return holdOwner;
+    }
+
+    public RuleModel setHoldOwner(String holdOwner) {
+        this.holdOwner = holdOwner;
+        return this;
+    }
+
+    public String getHoldReason() {
+        return holdReason;
+    }
+
+    public RuleModel setHoldReason(String holdReason) {
+        this.holdReason = holdReason;
+        return this;
+    }
+
+    public String getHoldReassessingDate() {
+        return holdReassessingDate;
+    }
+
+    public RuleModel setHoldReassessingDate(String holdReassessingDate) {
+        this.holdReassessingDate = holdReassessingDate;
+        return this;
+    }
+
+    public Boolean getPreventRearrangement() {
+        return preventRearrangement;
+    }
+
+    public RuleModel setPreventRearrangement(Boolean preventRearrangement) {
+        this.preventRearrangement = preventRearrangement;
+        return this;
     }
 }

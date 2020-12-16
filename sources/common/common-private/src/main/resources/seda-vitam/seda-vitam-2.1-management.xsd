@@ -155,6 +155,14 @@
                     </xsd:documentation>
                  </xsd:annotation>
             </xsd:element>
+
+            <!-- Extension VITAM pour la gestion des règles de gel des ArchiveUnits -->
+            <xsd:element name="HoldRule" type="HoldRuleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion de la durée de gel des ArchiveUnits.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
             <!-- Redefined by VITAM -->
                 <!--xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
                     <xsd:annotation>
@@ -483,6 +491,80 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <!-- Extension VITAM pour la gestion des règles de gel des ArchiveUnits -->
+    <xsd:complexType name="HoldRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Gestion de la durée de gel des ArchiveUnits.</xsd:documentation>
+            <xsd:documentation>Chaque règle possède un Identifiant de règle de gel de référence, ainsi qu'un ensemble
+                d'attributs optionnels.</xsd:documentation>
+            <xsd:documentation>La date de fin de gel est calculée à partir d'une date de début de restriction
+                (StardDate) et de la durée de validité de la règle de réference. Elle peut également être explicitement
+                spécifiée (HoldEndDate) si la règle de référence ne spécifie pas de durée déterminée.</xsd:documentation>
+            <xsd:documentation>Si la règle ne possède pas de durée de fin (calculée ou explicite), alors la règle est
+                réputée à durée indéterminée (restriction toujours effective)</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:group ref="HoldRuleDefGroup" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:choice minOccurs="0">
+                <xsd:group ref="PreventInheritanceGroup"/>
+                <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>L'identifiant de la règle spécifiée pourra être retirée de l'héritage dans ce noeud.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:group name="HoldRuleDefGroup">
+        <xsd:sequence>
+            <xsd:element name="Rule" type="RuleIdType">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à la règle de gel.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="StartDate" type="xsd:date" nillable="true" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Date de début de gel.</xsd:documentation>
+                    <xsd:documentation>Si la date de début de gel est renseignée, et que la règle de référence
+                        spécifie une durée de validité non nulle, alors la date de fin de gel est automatiquement
+                        calculée par Vitam.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HoldEndDate" type="xsd:date" nillable="true" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Date de fin de gel explicite.</xsd:documentation>
+                    <xsd:documentation>Dans le cas où la règle de référence ne spécifie pas de durée de validité, la
+                        règle peut alors spécifier une date de fin de gel explicite (HoldEndDate).</xsd:documentation>
+                    <xsd:documentation>Dans le cas où la règle de référence spécifie une durée de validité, la date
+                        de fin de gel est calculée par Vitam et ne peut être explicitement spécifiée (HoldEndDate prohibé).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HoldOwner" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Propriétaire de la demande de gel.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HoldReassessingDate" type="xsd:date" nillable="true" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Date de réévaluation du gel</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HoldReason" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Motif de gel.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PreventRearrangement" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Blocage de la reclassification de l'ArchiveUnit lorsque la restriction de gel est effective</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
     <xsd:complexType name="ArchiveUnitIdentifierKeyType">
         <xsd:sequence>
             <xsd:annotation>

@@ -57,6 +57,9 @@ public class ManagementModel {
     @JsonProperty("ClassificationRule")
     private RuleCategoryModel classification;
 
+    @JsonProperty("HoldRule")
+    private RuleCategoryModel hold;
+
     @JsonProperty("NeedAuthorization")
     private Boolean needAuthorization;
 
@@ -147,6 +150,15 @@ public class ManagementModel {
         this.classification = classification;
     }
 
+    public RuleCategoryModel getHold() {
+        return hold;
+    }
+
+    public ManagementModel setHold(RuleCategoryModel hold) {
+        this.hold = hold;
+        return this;
+    }
+
     /**
      * @return needAuthorization
      */
@@ -202,6 +214,9 @@ public class ManagementModel {
             case SedaConstants.TAG_RULE_REUSE:
                 setReuse(ruleCategoryModel);
                 break;
+            case SedaConstants.TAG_RULE_HOLD:
+                setHold(ruleCategoryModel);
+                break;
             default:
                 throw new IllegalArgumentException("Type cannot be " + type);
         }
@@ -228,6 +243,8 @@ public class ManagementModel {
                 return getDissemination();
             case SedaConstants.TAG_RULE_REUSE:
                 return getReuse();
+            case SedaConstants.TAG_RULE_HOLD:
+                return getHold();
             default:
                 throw new IllegalArgumentException("Type cannot be " + type);
         }

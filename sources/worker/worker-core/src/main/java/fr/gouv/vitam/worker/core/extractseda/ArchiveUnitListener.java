@@ -373,6 +373,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             fillListRulesToMap(sedaAchiveUnitId,
                 archiveUnitRoot.getArchiveUnit().getManagement().getDissemination());
             fillListRulesToMap(sedaAchiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getReuse());
+            fillListRulesToMap(sedaAchiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getHold());
 
             // If unit does not already exists then create lifecycle
             if (!existingUnitGuids.contains(elementGUID)) {

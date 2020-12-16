@@ -1202,6 +1202,52 @@
             }
           }
         },
+        "HoldRule": {
+          "properties": {
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "StartDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "HoldEndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "HoldOwner": {
+                  "type": "text"
+                },
+                "HoldReason": {
+                  "type": "text"
+                },
+                "HoldReassessingDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "PreventRearrangement": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "Inheritance": {
+              "properties": {
+                "PreventInheritance": {
+                  "type": "boolean"
+                },
+                "PreventRulesId": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
         "NeedAuthorization": {
           "type": "boolean"
         }
@@ -1636,6 +1682,17 @@
           }
         },
         "ClassificationRule": {
+          "properties": {
+            "EndDates": {
+              "type": "object"
+            },
+            "MaxEndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            }
+          }
+        },
+        "HoldRule": {
           "properties": {
             "EndDates": {
               "type": "object"

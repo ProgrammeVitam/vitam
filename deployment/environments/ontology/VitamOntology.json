@@ -452,6 +452,50 @@
     ]
   },
   {
+    "Identifier": "HoldEndDate",
+    "SedaField": "HoldEndDate",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de fin de gel",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "HoldOwner",
+    "SedaField": "HoldOwner",
+    "Description": "Mapping : unit-es-mapping.json. Propriétaire de la demande de gel.",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Propriétaire de la demande de gel",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "HoldReassessingDate",
+    "SedaField": "HoldReassessingDate",
+    "Description": "Mapping : unit-es-mapping.json. Date de réévaluation du gel.",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de réévaluation",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "HoldReason",
+    "SedaField": "HoldReason",
+    "Description": "Mapping : unit-es-mapping.json. Motif de gel.",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Motif de gel",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
     "Identifier": "KeywordContent",
     "SedaField": "KeywordContent",
     "Description": "Mapping : unit-es-mapping.json",
@@ -912,6 +956,17 @@
     "Type": "BOOLEAN",
     "Origin": "INTERNAL",
     "ShortName": "Ignorer l'héritage",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "PreventRearrangement",
+    "SedaField": "PreventRearrangement",
+    "Description": "Mapping : unit-es-mapping.json. Blocage de la reclassification de l'ArchiveUnit lorsque la restriction de gel est effective.",
+    "Type": "BOOLEAN",
+    "Origin": "INTERNAL",
+    "ShortName": "Blocage de la reclassification.",
     "Collections": [
       "Unit"
     ]
