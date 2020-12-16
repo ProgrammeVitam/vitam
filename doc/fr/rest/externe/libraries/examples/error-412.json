@@ -1,8 +1,8 @@
 {
   "httpCode": 412,
   "code": "vitamcode",
-  "context": "ingest",
-  "state": "Precondition_Failed",
-  "message": "Precondition in error",
-  "description": "Operation on file xxx cannot continue since precondition is in error"
+  "context": "CHECK_SANITY",
+  "state": "PRECONDITION_FAILED",
+  "message": "Precondition Failed",
+  "description": "error description here ..."
 }

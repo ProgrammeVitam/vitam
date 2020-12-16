@@ -40,16 +40,6 @@ documentation:
         - Accept: **application/json** signifie les métadonnées au format Json
         - Accept: **application/octet-stream** signifie le retour du contenu binaire de l'Object
 
-  - title: Champs d'application sur les Objects
-    content: |
-      Les principes sont les suivants :
-        - Object signifie ObjectGroup en masquant la complexité ObjectGroup/Object
-        - Pas de POST (sauf *X-Http-Method-Override: GET*) car ceci relève de l'entrée
-        - Pas de DELETE car ceci relève de l'élimination
-        - GET correspond à la recherche ou l'accès selon la présence d'un body ou non
-        - Une requête depuis un object signifie recherche relative depuis celui-ci (roots = this)
-        - Accept: **application/json** signifie les métadonnées au format Json
-        - Accept: **application/octet-stream** signifie le retour du contenu binaire de l'Object
 
 /units:
   displayName: ArchiveUnits
@@ -104,7 +94,8 @@ documentation:
 
         Permissions requises:
           - units:rules:update
-      is: [AccessTraits.UnitBatchUpdateResponse]
+
+      is: [AccessTraits.UnitBatchUpdateRequest, AccessTraits.UnitBatchUpdateResponseAsync]
 
   /computedInheritedRules:
     displayName: Calcul des computedInheritedRules
@@ -116,11 +107,6 @@ documentation:
 
         Permissions requises:
           - computeInheritedRules:action
-      headers:
-        X-Tenant-Id:
-          required: true
-        X-Access-Contract-Id:
-          required: true
       is: [AccessTraits.UnitComputedInheritedRulesResponse]
     delete:
       description: |
@@ -128,11 +114,6 @@ documentation:
 
         Permissions requises:
           - computeInheritedRules:delete
-      headers:
-        X-Tenant-Id:
-          required: true
-        X-Access-Contract-Id:
-          required: true
       is: [AccessTraits.UnitComputedInheritedRulesDeleteResponse]
 
   /{idu}:
@@ -210,6 +191,35 @@ documentation:
         - unitsWithInheritedRules:read
     is: [AccessTraits.AccessUnitWithInheritedRulesResponse]
 
+/objects:
+  displayName: Groupe d'objet
+  description: API qui définit l'ensemble des requêtes sur les groupes d'objets.
+  get:
+    description: |
+      Requête qui retourne des résultats contenant des Groupes d'objets.
+      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam et peut utiliser l'opérateur $subobject (Voir documentation DSL) en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+
+      Permissions requises:
+        - objects:read
+    is: [AccessTraits.AccessGOTResponse]
+    body:
+      application/json:
+        description: Requête permettant de rechercher un ou plusieurs groupes d'objets
+        example: !include libraries/examples/object-group-search.json
+  post:
+    description: |
+      Requête qui retourne des résultats contenant des Groupes d'objets en utilisant le verbe POST et le header X-Http-Method-Override: GET.
+      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam et peut utiliser l'opérateur $subobject (Voir documentation DSL) en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+    is: [AccessTraits.AccessGOTResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: true
+    body:
+      application/json:
+        description: Requête permettant de rechercher un ou plusieurs groupes d'objets
+        example: !include libraries/examples/object-group-search.json
+
+
 /dipexport:
   displayName: DIP Export
   description: |
@@ -254,7 +264,7 @@ documentation:
           description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
           body:
             application/json:
-            
+
 /v2/dipexport:
   displayName: DIP Export V2
   description: |
@@ -338,34 +348,6 @@ documentation:
           description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
           body:
             application/json:
-
-/objects:
-  displayName: Groupe d'objet
-  description: API qui définit l'ensemble des requêtes sur les groupes d'objets.
-  get:
-    description: |
-      Requête qui retourne des résultats contenant des Groupes d'objets.
-      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam et peut utiliser l'opérateur $subobject (Voir documentation DSL) en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
-
-      Permissions requises:
-        - objects:read
-    is: [AccessTraits.AccessGOTResponse]
-    body:
-      application/json:
-        description: Requête permettant de rechercher un ou plusieurs groupes d'objets
-        example: !include libraries/examples/object-group-search.json
-  post:
-    description: |
-      Requête qui retourne des résultats contenant des Groupes d'objets en utilisant le verbe POST et le header X-Http-Method-Override: GET.
-      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam et peut utiliser l'opérateur $subobject (Voir documentation DSL) en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
-    is: [AccessTraits.AccessGOTResponse, StandardTraits.OverrideGet]
-    headers:
-      X-Http-Method-Override:
-        required: true
-    body:
-      application/json:
-        description: Requête permettant de rechercher un ou plusieurs groupes d'objets
-        example: !include libraries/examples/object-group-search.json
 
 /elimination:
   displayName: Elimination
@@ -519,20 +501,6 @@ documentation:
         body:
           application/json:
 
-/:
-  displayName: Endpoints
-  description: |
-   API qui liste les endpoints de la ressource /access-external/{version}.
-  options:
-    description: |
-      Requête qui retourne la liste des endpoints
-    is: [ StandardTraits.StandardHeader200,
-      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
-
-/status:
-  get:
-    is: [ StandardTraits.StandardHeader204,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
 
 /reclassification:
   displayName: Mise à jour d'arborescence
@@ -562,3 +530,21 @@ documentation:
     responses:
       202:
         description: Succès
+
+/:
+  displayName: Endpoints
+  description: |
+   API qui liste les endpoints de la ressource /access-external/{version}.
+  options:
+    description: |
+      Requête qui retourne la liste des endpoints
+    is: [ StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
+
+/status:
+  displayName: Status
+  get:
+    description: Vérification de l'état de l'api
+    is: [ StandardTraits.StandardHeader204,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
+

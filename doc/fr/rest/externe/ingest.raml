@@ -31,7 +31,8 @@ documentation:
 /ingests:
   displayName: Ingests
   description: |
-    API de versement (Ingest). Ce point d'entrée permet de créer une transaction de versement. Une transaction d'entrée est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée. Sa terminaison est liée à la production du rapport et sa récupération par le service de transfert ayant effectué l'entrée.
+    API de versement (Ingest). Ce point d'entrée permet de créer une transaction de versement. Une transaction d'entrée est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée.
+    Sa terminaison est liée à la production du rapport et sa récupération par le service de transfert ayant effectué l'entrée.
 
     Créé une transaction d'entrée :
     - une requête unique, avec un 'body' contenant toutes les informations dans un ZIP ou un TAR ou un TAR.GZ ou TAR.BZ2:
@@ -56,12 +57,14 @@ documentation:
       X-Context-Id:
         required: false
         description: |
-            Il indique le workflow à exécuter DEFAULT_WORKFLOW pour lancer le workflow INGEST (avec toutes les étapes) ou BLANK_TEST pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT) ou encore FILING_SCHEME pour les plans de classements et enfin HOLDING_SCHEME pour les arbres de positionnement
+            Il indique le workflow à exécuter DEFAULT_WORKFLOW pour lancer le workflow INGEST (avec toutes les étapes) ou BLANK_TEST pour lancer le workflow INGEST-TEST
+            (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT) ou encore FILING_SCHEME pour les plans de classements et enfin HOLDING_SCHEME pour les arbres de positionnement
         enum: [ "DEFAULT_WORKFLOW", "BLANK_TEST", "FILING_SCHEME", "HOLDING_SCHEME" ]
       X-Manifest-Digest-Value:
         required: false
         description: |
-            Il indique, si présent, la valeur de l'empreinte attendue du manifest du versement en cours (ex. 3112e4f4f66c70f0565b95ea270c7488f074ace3ab28f74feaa975751b424619ff429490416f1c4b630361ab16f0bb5f16d92f5a867e6f94c886464e95f82ca5). Doit être spécifié en même temps que l'entête X-Manifest-Digest-Algo
+            Il indique, si présent, la valeur de l'empreinte attendue du manifest du versement en cours (ex. 3112e4f4f66c70f0565b95ea270c7488f074ace3ab28f74feaa975751b424619ff429490416f1c4b630361ab16f0bb5f16d92f5a867e6f94c886464e95f82ca5).
+            Doit être spécifié en même temps que l'entête X-Manifest-Digest-Algo
       X-Manifest-Digest-Algo:
         required: false
         description: |
