@@ -1,0 +1,29 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#tenant": 0
+      }
+    }
+  ],
+  "$filter": {
+    "$limit": 5
+  },
+  "$projection": {
+    "$fields": {
+      "#nbobjects": 1
+    }
+  },
+  "$facets": [
+    {
+      "$name": "ObjectTypeFacet",
+      "$terms": {
+        "$field": "#qualifiers.versions.FormatIdentification.MimeType",
+        "$subobject": "#qualifiers.versions",
+        "$size": 20,
+        "$order": "ASC"
+      }
+    }
+  ]
+}
