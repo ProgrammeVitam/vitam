@@ -1,0 +1,142 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 10000,
+    "offset": 0,
+    "limit": 5,
+    "size": 5
+  },
+  "$results": [
+    {
+      "#nbobjects": 2
+    },
+    {
+      "#nbobjects": 1
+    },
+    {
+      "#nbobjects": 1
+    },
+    {
+      "#nbobjects": 1
+    },
+    {
+      "#nbobjects": 1
+    }
+  ],
+  "$facetResults": [
+    {
+      "name": "ObjectTypeFacet",
+      "buckets": [
+        {
+          "value": "text/plain",
+          "count": 50108
+        },
+        {
+          "value": "application/pdf",
+          "count": 167
+        },
+        {
+          "value": "image/jpeg",
+          "count": 59
+        },
+        {
+          "value": "application/vnd.oasis.opendocument.text",
+          "count": 38
+        },
+        {
+          "value": "image/png",
+          "count": 5
+        },
+        {
+          "value": "application/vnd.oasis.opendocument.spreadsheet",
+          "count": 4
+        },
+        {
+          "value": "",
+          "count": 3
+        },
+        {
+          "value": "application/mp4; video/mp4",
+          "count": 3
+        },
+        {
+          "value": "application/vnd.oasis.opendocument.presentation",
+          "count": 2
+        },
+        {
+          "value": "application/javascript",
+          "count": 1
+        },
+        {
+          "value": "application/json",
+          "count": 1
+        },
+        {
+          "value": "application/x-bzip2",
+          "count": 1
+        },
+        {
+          "value": "application/x-tar",
+          "count": 1
+        },
+        {
+          "value": "application/xml; text/xml",
+          "count": 1
+        },
+        {
+          "value": "application/zip",
+          "count": 1
+        },
+        {
+          "value": "audio/flac",
+          "count": 1
+        },
+        {
+          "value": "image/svg+xml",
+          "count": 1
+        },
+        {
+          "value": "text/css",
+          "count": 1
+        },
+        {
+          "value": "text/html",
+          "count": 1
+        },
+        {
+          "value": "text/x-vCalendar",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#tenant": 0
+        }
+      }
+    ],
+    "$filter": {
+      "$limit": 5
+    },
+    "$projection": {
+      "$fields": {
+        "#nbobjects": 1
+      }
+    },
+    "$facets": [
+      {
+        "$name": "ObjectTypeFacet",
+        "$terms": {
+          "$field": "#qualifiers.versions.FormatIdentification.MimeType",
+          "$subobject": "#qualifiers.versions",
+          "$size": 20,
+          "$order": "ASC"
+        }
+      }
+    ]
+  }
+}

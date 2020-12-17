@@ -18,6 +18,7 @@ traits:
       application/json:
         description: Contient la requête DSL multiple au format JSON.
         type: AccessTypes.AccessMultipleQuery
+        example: !include examples/accessUnitRequestWithFacet.json
     responses:
       200:
         description: Renvoie la liste des résultats d'Unités d'archives correspondant à la requête DSL
@@ -25,7 +26,9 @@ traits:
           application/json:
             description: Réponse DSL multiple pour Access contenant les métadonnées des Unités d'archives
             type: AccessTypes.AccessMultipleResponse
-            example: !include examples/accessUnitResponse.json
+            examples:
+              -default-response: !include examples/accessUnitResponse.json
+              -facet-response: !include examples/accessUnitResponseWithFacet.json
 
   AccessUniqueUnitResponse:
     description: Response model for Unit item in access
@@ -110,12 +113,19 @@ traits:
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Contient la requête DSL multiple au format JSON.
+        type: AccessTypes.AccessMultipleQuery
+        example: !include examples/accessGotRequest.json
     responses:
       200:
         description: Renvoie la liste de résultats correspondant à la requête DSL
         body:
           application/json:
             description: Résultats json correspondant à la requête DSL
+            type: AccessTypes.AccessMultipleResponse
+            example: !include examples/accessGotResponse.json
 
   AccessUniqueObjectResponse:
     description: Response model for Object collection under Units collection in access
