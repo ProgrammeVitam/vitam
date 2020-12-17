@@ -335,3 +335,12 @@
     password_manager_keystore: "{{ keystores.server.ihm_demo }}"
     password_truststore: "{{ truststores.client_external }}"
     password_grantedstore: "{{ grantedstores.client_external }}"
+
+- hosts: vitam
+  any_errors_fatal: true
+  roles:
+    - vitam
+  vars_prompt:
+    name: "inhibate"
+    prompt: "Do you want inhibate the service so not started at reboot. Answer with 'true'"
+    default: "false"
