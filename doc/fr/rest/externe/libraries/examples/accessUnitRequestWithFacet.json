@@ -1,0 +1,28 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#tenant": "0"
+      }
+    }
+  ],
+  "$filter": {
+    "$limit": 5
+  },
+  "$projection": {
+    "$fields": {
+      "Title": 1
+    }
+  },
+  "$facets": [
+    {
+      "$name": "ObjectTypeFacet",
+      "$terms": {
+        "$field": "DescriptionLevel",
+        "$size": 20,
+        "$order": "ASC"
+      }
+    }
+  ]
+}
