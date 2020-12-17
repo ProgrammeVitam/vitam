@@ -51,17 +51,7 @@ import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
-import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
-import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
-import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
-import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
-import fr.gouv.vitam.batch.report.rest.repository.TraceabilityReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
-import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
-import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.*;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
@@ -146,6 +136,8 @@ public class BatchReportServiceImplTest {
     public MockitoRule rule = MockitoJUnit.rule();
     @Mock
     public UpdateUnitReportRepository updateUnitReportRepository;
+    @Mock
+    public BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository;
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     @Mock
@@ -189,8 +181,8 @@ public class BatchReportServiceImplTest {
     @Before
     public void setUp() throws Exception {
         batchReportServiceImpl = new BatchReportServiceImpl(workspaceClientFactory, eliminationActionUnitRepository, purgeUnitRepository,
-            purgeObjectGroupRepository, transferReplyUnitRepository,
-            updateUnitReportRepository, preservationReportRepository, auditReportRepository,
+            purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitReportRepository,
+            bulkUpdateUnitMetadataReportRepository, preservationReportRepository, auditReportRepository,
             unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository,
             traceabilityReportRepository, extractedMetadataRepository);
     }

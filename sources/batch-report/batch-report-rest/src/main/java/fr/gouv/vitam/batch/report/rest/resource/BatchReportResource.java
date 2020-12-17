@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
@@ -68,6 +69,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -98,13 +100,16 @@ public class BatchReportResource extends ApplicationStatusResource {
     };
     private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType =
         new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {
-        };
+    };
+    private static final TypeReference<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportBulkUpdateMetadataType =
+        new TypeReference<ReportBody<BulkUpdateUnitMetadataReportEntry>>() {
+    };
     private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType =
-        new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {
-        };
+    new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {
+    };
     private final static TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>> unitComputedInheritedRuleInvalidationType =
-        new TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>() {
-        };
+    new TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>() {
+    };
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -152,6 +157,10 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case UPDATE_UNIT:
                     ReportBody<UpdateUnitMetadataReportEntry> unitReportBody = JsonHandler.getFromJsonNode(body, reportMassUpdateType);
                     batchReportServiceImpl.appendUnitReport(unitReportBody.getEntries());
+                    break;
+                case BULK_UPDATE_UNIT:
+                    ReportBody<BulkUpdateUnitMetadataReportEntry> bulkUnitMetadataReportBody = JsonHandler.getFromJsonNode(body, reportBulkUpdateMetadataType);
+                    batchReportServiceImpl.appendBulkUpdateUnitMetadataReport(bulkUnitMetadataReportBody.getEntries());
                     break;
                 case EVIDENCE_AUDIT:
                     ReportBody<EvidenceAuditReportEntry> evidenceAuditReportBody = JsonHandler.getFromJsonNode(body, reportEvidenceAuditType);
@@ -289,6 +298,9 @@ public class BatchReportResource extends ApplicationStatusResource {
                     break;
                 case UPDATE_UNIT:
                     batchReportServiceImpl.deleteUpdateUnitByIdAndTenant(processId, tenantId);
+                    break;
+                case BULK_UPDATE_UNIT:
+                    batchReportServiceImpl.deleteBulkUpdateUnitMetadataByIdAndTenant(processId, tenantId);
                     break;
                 case EVIDENCE_AUDIT:
                     batchReportServiceImpl.deleteEvidenceAuditByIdAndTenant(processId, tenantId);

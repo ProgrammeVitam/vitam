@@ -49,3 +49,6 @@ db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata
 
 // Create indexes ExtractedMetadata
 db.ExtractedMetadata.createIndex( { "processId" : 1, "tenant" : 1, "id" : 1 } )
+
+// Create indexes BulkUpdateUnitMetadataReport
+db.BulkUpdateUnitMetadataReport.createIndex( { "processId" : 1, "tenant" : 1 } )

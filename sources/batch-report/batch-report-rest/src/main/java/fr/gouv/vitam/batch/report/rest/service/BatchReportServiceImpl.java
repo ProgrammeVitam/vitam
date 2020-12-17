@@ -46,6 +46,7 @@ import fr.gouv.vitam.batch.report.model.TraceabilityObjectModel;
 import fr.gouv.vitam.batch.report.model.TransferReplyUnitModel;
 import fr.gouv.vitam.batch.report.model.UnitComputedInheritedRulesInvalidationModel;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
@@ -56,6 +57,7 @@ import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.BulkUpdateUnitMetadataReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
@@ -81,7 +83,6 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
@@ -91,15 +92,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
@@ -123,6 +121,7 @@ public class BatchReportServiceImpl {
     private final TransferReplyUnitRepository transferReplyUnitRepository;
     private final PreservationReportRepository preservationReportRepository;
     private final UpdateUnitReportRepository updateUnitReportRepository;
+    private final BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository;
     private final AuditReportRepository auditReportRepository;
     private final UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository;
     private final EvidenceAuditReportRepository evidenceAuditReportRepository;
@@ -136,6 +135,7 @@ public class BatchReportServiceImpl {
         PurgeObjectGroupRepository purgeObjectGroupRepository,
         TransferReplyUnitRepository transferReplyUnitRepository,
         UpdateUnitReportRepository updateUnitReportRepository,
+        BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository,
         PreservationReportRepository preservationReportRepository,
         AuditReportRepository auditReportRepository,
         UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository,
@@ -147,6 +147,7 @@ public class BatchReportServiceImpl {
         this.purgeObjectGroupRepository = purgeObjectGroupRepository;
         this.transferReplyUnitRepository = transferReplyUnitRepository;
         this.updateUnitReportRepository = updateUnitReportRepository;
+        this.bulkUpdateUnitMetadataReportRepository = bulkUpdateUnitMetadataReportRepository;
         this.workspaceClientFactory = workspaceClientFactory;
         this.preservationReportRepository = preservationReportRepository;
         this.auditReportRepository = auditReportRepository;
@@ -214,6 +215,10 @@ public class BatchReportServiceImpl {
 
     public void appendUnitReport(List<UpdateUnitMetadataReportEntry> unitEntries) {
         updateUnitReportRepository.bulkAppendReport(unitEntries);
+    }
+
+    public void appendBulkUpdateUnitMetadataReport(List<BulkUpdateUnitMetadataReportEntry> unitEntries) {
+        bulkUpdateUnitMetadataReportRepository.bulkAppendReport(unitEntries);
     }
 
     public void appendUnitComputedInheritedRulesInvalidationReport(String processId,
@@ -478,6 +483,11 @@ public class BatchReportServiceImpl {
                         updateUnitReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
                     writeDocumentsInFile(reportWriter, updates);
                     break;
+                case BULK_UPDATE_UNIT:
+                    MongoCursor<Document> bulkUpdates =
+                        bulkUpdateUnitMetadataReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
+                    writeDocumentsInFile(reportWriter, bulkUpdates);
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                         String.format("Unsupported report type : '%s'.", reportSummary.getReportType()));
@@ -631,6 +641,10 @@ public class BatchReportServiceImpl {
 
     public void deleteUpdateUnitByIdAndTenant(String processId, int tenantId) {
         updateUnitReportRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+    public void deleteBulkUpdateUnitMetadataByIdAndTenant(String processId, int tenantId) {
+        bulkUpdateUnitMetadataReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
     public void deleteEvidenceAuditByIdAndTenant(String processId, int tenantId) {
