@@ -1,0 +1,81 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 10000,
+    "offset": 0,
+    "limit": 5,
+    "size": 5
+  },
+  "$results": [
+    {
+      "Title": "Biographie_du_ministre_du_commerce"
+    },
+    {
+      "Title": "Assemblée Parlementaire"
+    },
+    {
+      "Title": "BAD0431E2C5E80E5BD42D547A3ED59665555.odt"
+    },
+    {
+      "Title": "Pouvoir_executif"
+    },
+    {
+      "Title": "sous fonds 1 nouveau jeu de test"
+    }
+  ],
+  "$facetResults": [
+    {
+      "name": "ObjectTypeFacet",
+      "buckets": [
+        {
+          "value": "Item",
+          "count": 50860
+        },
+        {
+          "value": "RecordGrp",
+          "count": 1398
+        },
+        {
+          "value": "File",
+          "count": 3
+        },
+        {
+          "value": "Fonds",
+          "count": 2
+        },
+        {
+          "value": "Subfonds",
+          "count": 2
+        }
+      ]
+    }
+  ],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#tenant": "0"
+        }
+      }
+    ],
+    "$filter": {
+      "$limit": 5
+    },
+    "$projection": {
+      "$fields": {
+        "Title": 1
+      }
+    },
+    "$facets": [
+      {
+        "$name": "ObjectTypeFacet",
+        "$terms": {
+          "$field": "DescriptionLevel",
+          "$size": 20,
+          "$order": "ASC"
+        }
+      }
+    ]
+  }
+}
