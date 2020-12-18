@@ -10,15 +10,16 @@ types:
   Context:
     description: Type of the task.
     type: string
-    enum:
-      - ingest
-      - access
-      - query
-      - freeze
-      - destruction
-      - audit
-      - platform
-      - internal
+    #enum:
+    #  - ingest
+    #  - access
+    #  - query
+    #  - freeze
+    #  - destruction
+    #  - audit
+    #  - platform
+    #  - internal
+    #  - External Access"""
 
   Filter:
     description: Filter for a Request
@@ -99,62 +100,65 @@ types:
     properties:
       itemId:
         description: Contient le code retrour http
-        type: integer
+        type: string
       message:
         description: Contient le nombre de hits
         required: true
-        type: object
+        type: string
       globalStatus:
         description: Contient le code retrour http
-        type: integer
+        type: string
+      statusMeter:
+        description: lala
+        type: number[]
       data:
         description: Contient le code retrour http
-        type: integer
+        type: object
       itemsStatus:
         description: Contient le code retrour http
-        type: integer
+        type: object
       evDetailData:
         description: Contient le code retrour http
-        type: integer
+        type: string
       globalState:
         description: Contient le code retrour http
-        type: integer
+        type: string
       subTaskStatus:
         description: Contient le code retrour http
-        type: integer
+        type: object
       lifecycleEnable:
         description: Contient le code retrour http
-        type: integer
+        type: boolean
 
 
   AsyncStatus:
     description: Asynchronous Status
     type: DslTypes.AbstractDslResponse
     properties:
-      @$results:
-        type: AsyncResponse
+      $results:
+        type: AsyncResponse[]
     example: {
-       "httpCode": 200,
-       "$hits": {
-           "total": 1,
-           "offset": 0,
-           "limit": 0,
-           "size": 1
+       httpCode: 200,
+       $hits: {
+           total: 1,
+           offset: 0,
+           limit: 0,
+           size: 1
        },
-       "$results": [
+       $results: [
            {
-               "itemId": "operationId",
-               "message": "",
-               "globalStatus": "STARTED",
-               "statusMeter": [0,1,0,0,0,0,0],
-               "data": {},
-               "itemsStatus": {},
-               "evDetailData": "{}",
-               "globalState": "RUNNING",
-               "subTaskStatus": {},
-               "lifecycleEnable": true
+               itemId: "operationId",
+               message: "",
+               globalStatus: "STARTED",
+               statusMeter: [0,1,0,0,0,0,0],
+               data: {},
+               itemsStatus: {},
+               evDetailData: "{}",
+               globalState: "RUNNING",
+               subTaskStatus: {},
+               lifecycleEnable: true
            }
        ],
-       "$facetResults": [],
-       "$context": {}
+       $facetResults: [],
+       $context: {}
     }

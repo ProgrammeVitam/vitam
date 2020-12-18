@@ -1,10 +1,25 @@
 {
-  "#id": "idAudit",
-  "httpCode" : 202,
-  "code" : "vitamcode",
-  "context": "audit",
-  "state": "Running",
-  "message": "The audit is in progress",
-  "description": "The application 'Xxxx' requested a audit operation and this operation is in progress.",
-  "start_date": "2014-01-10T03:06:17.396Z"
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
+  },
+  "$results": [
+    {
+      "itemId": "auditId",
+      "message": "",
+      "globalStatus": "STARTED",
+      "statusMeter": [0,1,0,0,0,0,0],
+      "data": {},
+      "itemsStatus": {},
+      "evDetailData": "{}",
+      "globalState": "RUNNING",
+      "subTaskStatus": {},
+      "lifecycleEnable": true
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
 }

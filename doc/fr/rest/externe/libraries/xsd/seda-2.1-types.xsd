@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema
-        targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0"
-        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd"
         xmlns:xlink="http://www.w3.org/1999/xlink"
-        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
         elementFormDefault="qualified"
         attributeFormDefault="unqualified"
         version="1.0">
+    <xs:include schemaLocation="seda-2.1-ontology.xsd"/>
     
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/xml.xsd"/>
     <xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
@@ -20,6 +21,15 @@
     <xs:complexType name="CodeType">
         <xs:simpleContent>
             <xs:extension base="NonEmptyTokenType">
+                <xs:attribute name="listID" type="xs:token" use="optional"/>
+                <xs:attribute name="listAgencyID" type="xs:token" use="optional"/>
+                <xs:attribute name="listAgencyName" type="xs:string" use="optional"/>
+                <xs:attribute name="listName" type="xs:string" use="optional"/>
+                <xs:attribute name="listVersionID" type="xs:token" use="optional"/>
+                <xs:attribute name="name" type="xs:string" use="optional"/>
+                <xs:attribute name="languageID" type="xs:language" use="optional"/>
+                <xs:attribute name="listURI" type="xs:anyURI" use="optional"/>
+                <xs:attribute name="listSchemeURI" type="xs:anyURI" use="optional"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
@@ -37,6 +47,13 @@
     <xs:complexType name="IdentifierType">
         <xs:simpleContent>
             <xs:extension base="xs:token">
+                <xs:attribute name="schemeID" type="xs:token" use="optional"/>
+                <xs:attribute name="schemeName" type="xs:string" use="optional"/>
+                <xs:attribute name="schemeAgencyID" type="xs:token" use="optional"/>
+                <xs:attribute name="schemeAgencyName" type="xs:string" use="optional"/>
+                <xs:attribute name="schemeVersionID" type="xs:token" use="optional"/>
+                <xs:attribute name="schemeDataURI" type="xs:anyURI" use="optional"/>
+                <xs:attribute name="schemeURI" type="xs:anyURI" use="optional"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
@@ -48,7 +65,7 @@
     </xs:attributeGroup>
     <xs:complexType name="OpenType" abstract="true">
         <xs:sequence>
-            <xs:any namespace="##other" processContents="lax" minOccurs="0"/>
+            <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attributeGroup ref="OpenTypeAttributeGroup"/>
     </xs:complexType> 
@@ -143,7 +160,7 @@
     <!-- Digest -->
     <xs:group name="DigestAlgorithmCodeListGroup">
         <xs:sequence>
-            <xs:element name="MessageDigestAlgorithmCodeListVersion" type="CodeType">
+            <xs:element name="MessageDigestAlgorithmCodeListVersion" type="CodeType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>Liste de l'algorithme de hachage utilisé dans le message.</xs:documentation>
                 </xs:annotation>
@@ -221,7 +238,7 @@
     </xs:complexType>
         
     <!-- Signature in Main message block -->
-    <xs:complexType name="SignatureType">
+    <xs:complexType name="SignatureMessageType">
         <xs:annotation>
             <xs:documentation>Contient toutes les métadonnées dsur la signature.</xs:documentation>
         </xs:annotation>
@@ -230,7 +247,7 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <!-- In CoreMetadataType from seda-2.0-technical.xs: Technical Metadata Content -->
+    <!-- In CoreMetadataType from seda-2.1-technical.xs: Technical Metadata Content -->
     <xs:complexType name="TextTechnicalMetadataType">
         <xs:annotation>
             <xs:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type texte(XML, JSON, CSV, ...).</xs:documentation>
@@ -293,21 +310,21 @@
         </xs:annotation>
     </xs:element>
     
-    <!-- In PhysicalTechnicalDescriptionGroup from seda-2.0-technical.xs: extra dimension techncal description for PhysicalDataObject -->
+    <!-- In PhysicalTechnicalDescriptionGroup from seda-2.1-technical.xs: extra dimension techncal description for PhysicalDataObject -->
     <xs:element name="OtherDimensionsAbstract" abstract="true">
         <xs:annotation>
             <xs:documentation>Permet d'étendre &lt;OtherDimensions&gt; avec d'autres métadonnées de description des objets-données physiques.</xs:documentation>
         </xs:annotation>
     </xs:element>
     
-    <!-- In CoreMetadataType from seda-2.0-technical.xs: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
+    <!-- In CoreMetadataType from seda-2.1-technical.xs: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
     <xs:element name="OtherCoreTechnicalMetadataAbstract" abstract="true" type="OpenType">
         <xs:annotation>
             <xs:documentation>Contient toutes les métadonnées techniques de base pour d'autres types.</xs:documentation>
         </xs:annotation>
     </xs:element>
     
-    <!-- In ArchiveUnitType from seda-2.0-descriptive.xs: Abstract for ArchiveUnit reference from within EAS -->
+    <!-- In ArchiveUnitType from seda-2.1-descriptive.xs: Abstract for ArchiveUnit reference from within EAS -->
     <xs:element name="ArchiveUnitReferenceAbstract" abstract="true">
         <xs:annotation>
             <xs:documentation>Contient les requêtes nécessaires pour trouver un ArchiveUnit et pointer sur lui dans un prochain ArchiveUnit.
@@ -315,17 +332,31 @@
         </xs:annotation>
     </xs:element>
     
-    <!-- In ManagementGroup from seda-2.0-management.xs: for Management extension -->
+    <!-- In ManagementGroup from seda-2.1-management.xs: for Management extension -->
     <xs:element name="OtherManagementAbstract" abstract="true">
         <xs:annotation>
             <xs:documentation>Utilisé par exemple pour manipuler un ArchiveUnit déjà existant dans le système d'archivage électronique.</xs:documentation>
         </xs:annotation>
     </xs:element>
     
-    <!-- In CodeListVersionsType from seda-2.0-main.xs: If needed, extra CodeList could be added -->
+    <!-- In CodeListVersionsType from seda-2.1-main.xs: If needed, extra CodeList could be added -->
     <xs:element name="OtherCodeListAbstract" abstract="true" type="CodeType">
         <xs:annotation>
             <xs:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+    <!-- In AgentGroup from seda-2.1-ontology.xs: If needed, extra agent could be added -->
+    <xs:element name="AgentAbstract" abstract="true" type="AgentType">
+        <xs:annotation>
+            <xs:documentation>Permet d'ajouter de nouveau types d'agents dans l'ontologie.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    
+    <!-- In EventGroup from seda-2.1-ontology.xs: If needed, extra event could be added -->
+    <xs:element name="EventAbstract" abstract="true">
+        <xs:annotation>
+            <xs:documentation>Permet d'ajouter de nouveau types d'événements dans l'ontologie.</xs:documentation>
         </xs:annotation>
     </xs:element>
     

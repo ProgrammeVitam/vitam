@@ -1,44 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ArchiveTransferReply xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns:pr="info:lc/xmlns/premis-v2"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 ../xsd/seda-2.0-main.xsd" xml:id="ID002">
-    <Date>2016-06-23T09:45:51.0</Date>
-    <MessageIdentifier>Entrée_avec_groupe_d_objet</MessageIdentifier>
-    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
-    <CodeListVersions xml:id="ID005">
-        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
-        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
-        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
-        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
-        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
-        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
-        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
-        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
-        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
-        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
-        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
-        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
-        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
-        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
-        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+<ArchiveTransferReply xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+                      xmlns:ns2="http://www.w3.org/1999/xlink"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-vitam-2.1-main.xsd">
+    <Date>2020-11-26T23:11:34.838Z</Date>
+    <MessageIdentifier>aeeaaaaaachk7bs6abo3walwa3jx6vyaaaaq</MessageIdentifier>
+    <CodeListVersions>
+        <ReplyCodeListVersion></ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion></MessageDigestAlgorithmCodeListVersion>
+        <FileFormatCodeListVersion></FileFormatCodeListVersion>
     </CodeListVersions>
-
-    <DataObjectPackage xml:id="ID007">
-        <ManagementMetadata xml:id="ID030">
-            <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
-            <ServiceLevel>ServiceLevel0</ServiceLevel>
-        </ManagementMetadata>
+    <DataObjectPackage>
+        <DescriptiveMetadata/>
+        <ManagementMetadata/>
     </DataObjectPackage>
-
     <ReplyCode>KO</ReplyCode>
-    <MessageRequestIdentifier>GUID_SIP</MessageRequestIdentifier>
-    <GrantDate>2016-06-26T20:45:20</GrantDate>
-    <ArchivalAgency xml:id="ID031">
-        <Identifier>ArchivalAgency1</Identifier>
-    </ArchivalAgency>
-    <TransferringAgency xml:id="ID032">
-        <Identifier>TransferringAgency1</Identifier>
-    </TransferringAgency>
+    <Operation>
+        <Event>
+            <EventTypeCode>STP_INGEST_CONTROL_SIP</EventTypeCode>
+            <EventType>Processus de contrôle du SIP</EventType>
+            <EventDateTime>2020-11-26T23:11:34.307</EventDateTime>
+            <Outcome>KO</Outcome>
+            <OutcomeDetail>STP_INGEST_CONTROL_SIP.KO</OutcomeDetail>
+            <OutcomeDetailMessage>Échec du processus du contrôle du bordereau du SIP</OutcomeDetailMessage>
+        </Event>
+        <Event>
+            <EventTypeCode>CHECK_HEADER</EventTypeCode>
+            <EventType>Vérification générale du bordereau de transfert</EventType>
+            <EventDateTime>2020-11-26T23:11:34.307</EventDateTime>
+            <Outcome>KO</Outcome>
+            <OutcomeDetail>CHECK_HEADER.UNKNOWN.KO</OutcomeDetail>
+            <OutcomeDetailMessage>Échec de la vérification générale du bordereau de transfert : donnée référentielle inconnue Detail=  KO:1</OutcomeDetailMessage>
+            <EventDetailData>{"evDetTechData":"error originating agency validation[ \"FRAN_NP_000002\" ]","EvDetailReq":"Jeu de test OK comprenant un objet binaire et un objet physique","ArchivalAgreement":"IC-000001"}</EventDetailData>
+        </Event>
+        <Event>
+            <EventTypeCode>CHECK_HEADER.CHECK_AGENT</EventTypeCode>
+            <EventType>Vérification de la présence et du contrôle des services agents</EventType>
+            <EventDateTime>2020-11-26T23:11:34.307</EventDateTime>
+            <Outcome>KO</Outcome>
+            <OutcomeDetail>CHECK_HEADER.CHECK_AGENT.UNKNOWN.KO</OutcomeDetail>
+            <OutcomeDetailMessage>Échec de la vérification de la présence et du contrôle des services agents : services agents inconnus du référentiel des services agents Detail=  KO:1</OutcomeDetailMessage>
+        </Event>
+    </Operation>
+    <MessageRequestIdentifier></MessageRequestIdentifier>
+    <GrantDate>2020-11-26T23:11:34.840Z</GrantDate>
 </ArchiveTransferReply>

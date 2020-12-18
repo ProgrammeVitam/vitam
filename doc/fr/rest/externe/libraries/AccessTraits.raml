@@ -168,6 +168,30 @@ traits:
             type: AccessTypes.AccessUpdateByIdResponse
             example: !include examples/access1UnitUpdateResponse.json
 
+  AccessUpdateBatchUnitResponse:
+    description: Response model for Update Unit under Units collection in access
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader405, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Requête permettant de mettre à jour les métadonnées descriptives d'unités d'archives
+        type: AccessTypes.UnitBatchUpdateRequest
+        examples:
+          UnitsBatchUpdate: !include examples/unitsBatchUpdate.json
+          BatchUpdateObject: !include examples/updateObjects.json
+          BatchRemove: !include examples/batchRemove.json
+    responses:
+      202:
+        description: Renvoie le statut de l'opération de mise à jour
+        body:
+          application/json:
+            description: Operation de mise à jour acceptée
+      500:
+        description: Renvoie le statut final de l'opération en KO
+        body:
+          application/json:
+            description: informations sur l'echec du lancement de l'opération
+
   DipCreationResponseAsync:
     description: Requête de création d'un DIP
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
