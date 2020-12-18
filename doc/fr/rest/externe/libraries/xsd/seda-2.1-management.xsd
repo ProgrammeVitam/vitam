@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema
-    targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd"
     xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified"
     version="1.0">
-    <xs:include schemaLocation="seda-2.0-types.xsd"/>
+    <xs:include schemaLocation="seda-2.1-types.xsd"/>
     
     <!--
                 *****************************
@@ -138,55 +138,27 @@
                     <xs:documentation>Gestion de la classification.</xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="LogBook" type="LogBookType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Gestion des traces.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="NeedAuthorization" type="xs:boolean" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <!-- <xs:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
                 <xs:annotation>
                     <xs:documentation>Autres métadonnées de gestion.</xs:documentation>
-                </xs:annotation>
-            </xs:element> -->
-            <xs:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0" maxOccurs="1">
-                <xs:annotation>
-                    <xs:documentation>Gestion des opérations sur un ArchiveUnit.</xs:documentation>
                 </xs:annotation>
             </xs:element>
         </xs:sequence>
     </xs:group>
-    
-    <!-- Example of codification of one Rule Code oustide SEDA in an external referential -->
-    <xs:complexType name="DurationRuleType">
-        <xs:annotation>
-            <xs:documentation>Permet d'exprimer pour une règle de gestion quelles informations doivent en découler.</xs:documentation>
-        </xs:annotation>
+    <xs:complexType name="LogBookType">
         <xs:sequence>
-            <xs:element name="RuleId" type="RuleIdType">
-                <xs:annotation>
-                    <xs:documentation>Identifiant de la règle</xs:documentation>
-                </xs:annotation>
-            </xs:element>
-            <xs:element name="Value" type="MeasurementDurationType"/>
-            <xs:element name="Description" type="xs:string"/>
+            <xs:element name="Event" type="EventType" maxOccurs="unbounded"/>
         </xs:sequence>
-    </xs:complexType>
-    <xs:simpleType name="MeasurementDurationUnitsType">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="day"/>
-            <xs:enumeration value="DAY"/>
-            <xs:enumeration value="month"/>
-            <xs:enumeration value="MON"/>
-            <xs:enumeration value="year"/>
-            <xs:enumeration value="ANN"/>
-        </xs:restriction>
-    </xs:simpleType>
-    <xs:complexType name="MeasurementDurationType">
-        <xs:simpleContent>
-            <xs:extension base="xs:nonNegativeInteger">
-                <xs:attribute name="unit" type="MeasurementDurationUnitsType" use="required"/>
-            </xs:extension>
-        </xs:simpleContent>
     </xs:complexType>
         
     <!-- Global inheritance control -->
@@ -321,6 +293,11 @@
                     </xs:annotation>
                 </xs:element>
             </xs:sequence>
+            <xs:element name="ClassificationAudience" type="NonEmptyTokenType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Permet de gérer les questions de "diffusion restreinte", de "spécial France" et de "Confidentiel Industrie".</xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:choice minOccurs="0">
                 <xs:group ref="PreventInheritanceGroup"/>
                 <xs:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
@@ -447,42 +424,5 @@
                 </xs:annotation>
             </xs:element>
         </xs:sequence>
-    </xs:complexType>    
-	    
-    <xs:complexType name="UpdateOperationType">
-       <xs:sequence>
-	        <xs:annotation>
-	            <xs:documentation>Exemple d'extension de OtherManagementAbstract pour la gestion des opérations sur un ArchiveUnit.</xs:documentation>
-	        </xs:annotation>
-	           <xs:element name="SystemId"  type="NonEmptyTokenType" minOccurs="1" maxOccurs="1">
-				<xs:annotation>
-					<xs:documentation>Identifiant attribué à l'ArchiveUnit. Il est attribué par le SAE et correspond à un identifiant interne.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="ToDelete" type="ToDeleteType" minOccurs="0" maxOccurs="1" />				
-			<xs:element name="FullUpdate" type="xs:boolean" nillable="false" minOccurs="0" maxOccurs="1" default="false">
-				<xs:annotation>
-					<xs:documentation>Permet de distinguer une mise à jour complète d'une mise à jour partielle</xs:documentation>
-					<xs:documentation>Pour une mise à jour partielle (FullUpdate = false) seules les balises indiquées dans la partie Content + Management seront mises à jour.</xs:documentation>
-					<xs:documentation>Pour une mise à jour complète (FullUpdate = true) la mise à jour appliquée est la suivante : annule et remplace.</xs:documentation>
-					<xs:documentation>Point d'attention : dans le cas d'une Règle de gestion dans Management, le retrait d'une date de début (et donc de la date de fin) se fait en positionnant une valeur vide à StartDate.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="ToDeleteType">
-		<xs:sequence minOccurs="1" maxOccurs="unbounded">
-			<xs:annotation>
-				<xs:documentation>Permet la suppression de liens entre un ArchiveUnit père et une liste définie de ses fils.</xs:documentation>
-			</xs:annotation>
-			<xs:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
-				<xs:annotation>
-					<xs:documentation>Permet de faire une référence à d'autres ArchiveUnit dans la même transaction.</xs:documentation>
-					<xs:documentation>La balise permet de supprimer le lien entre l'ArchiveUnit fils référencé et l'ArchiveUnit courant (père).</xs:documentation>
-					<xs:documentation>Le type de cette balise est le même que celui utilisé pour référencer un fils dans ArchiveUnit/ArchiveUnitRefId.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-		</xs:sequence>
-	</xs:complexType>
-	
+    </xs:complexType>
 </xs:schema>

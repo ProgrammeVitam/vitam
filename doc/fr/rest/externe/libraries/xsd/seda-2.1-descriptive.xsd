@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+<xs:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
     elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
-    <xs:include schemaLocation="seda-2.0-types.xsd"/>
-    <xs:include schemaLocation="seda-2.0-management.xsd"/>
-    <xs:include schemaLocation="seda-2.0-ontology.xsd"/>
+    <xs:include schemaLocation="seda-2.1-types.xsd"/>
+    <xs:include schemaLocation="seda-2.1-management.xsd"/>
+    <xs:include schemaLocation="seda-2.1-ontology.xsd"/>
     
     <!-- Hierarchy and recursivity -->
     <xs:complexType name="ArchiveUnitType">
@@ -23,25 +24,21 @@
                         <xs:documentation>Référence à une partie d'un profil d’archivage applicable à un ArchiveUnit en particulier. Permet par exemple de faire référence à une typologie documentaire dans un profil d'archivage.</xs:documentation>
                     </xs:annotation>
                 </xs:element>
-                <xs:element name="Management" minOccurs="0">
+                <xs:element name="Management" type="ManagementType" minOccurs="0">
                     <xs:annotation>
                         <xs:documentation>Métadonnées de gestion applicables à l’ArchiveUnit concernée et à ses héritiers.</xs:documentation>
                     </xs:annotation>
-                    <xs:complexType>
-                        <xs:group ref="ManagementGroup"/>
-                    </xs:complexType>
                 </xs:element>
-                <xs:element name="Content" type="DescriptiveMetadataContentType" minOccurs="1" maxOccurs="unbounded" >
+                <xs:element name="Content" type="DescriptiveMetadataContentType" minOccurs="1">
                     <xs:annotation>
                         <xs:documentation>Métadonnées de description associées à un ArchiveUnit.</xs:documentation>
                     </xs:annotation>
                 </xs:element>
                 <!-- Hierarchy -->
-                <xs:choice>
                     <xs:choice minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="ArchiveUnit" type="ArchiveUnitType">
                             <xs:annotation>
-                                <xs:documentation>Gestion de la récursivité. Un &lt;ArchiveUnit&gt; peut être contenu dans un ature &lt;ArchiveUnit&gt;.</xs:documentation>
+                                <xs:documentation>Gestion de la récursivité. Une ArchiveUnit peut être contenu dans une ature ArchiveUnit.</xs:documentation>
                             </xs:annotation>
                         </xs:element>
                         <xs:element ref="ArchiveUnitReferenceAbstract">
@@ -55,7 +52,6 @@
                             </xs:annotation>
                         </xs:element>
                     </xs:choice>
-                </xs:choice>
             </xs:sequence>
         </xs:choice>
         <xs:attribute name="id" type="ArchiveUnitIdType" use="required">
@@ -64,8 +60,11 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
+    <xs:complexType name="ManagementType">
+        <xs:group ref="ManagementGroup"/>
+    </xs:complexType>
 
-    <!-- In ArchiveUnitType from seda-2.0-descriptive.xs: Descriptive Metadata Content -->
+    <!-- In ArchiveUnitType from seda-2.1-descriptive.xs: Descriptive Metadata Content -->
     <xs:complexType name="DescriptiveMetadataContentType">
         <xs:annotation>
             <xs:documentation>Permet de définir les métadonnées de description. Peut être étendu.</xs:documentation>
@@ -73,22 +72,6 @@
         <xs:sequence>
             <xs:group ref="ObjectGroup"/>
         </xs:sequence>
-        <xs:attribute name="restrictionRuleIdRef" type="xs:IDREF" use="optional">
-            <xs:annotation>
-                <xs:documentation>Permet d'indiquer les restrictions à appliquer sur le noeud. Si rien n'est spécifié, aucune restriction ne s'applique.</xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="restrictionValue" type="NonEmptyTokenType" use="optional">
-            <xs:annotation>
-                <xs:documentation>Valeur de la restriction.</xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attribute name="restrictionEndDate" type="xs:date" use="optional">
-            <xs:annotation>
-                <xs:documentation>Date de la fin de la restriction.</xs:documentation>
-            </xs:annotation>
-        </xs:attribute>
-        <xs:attributeGroup ref="OpenTypeAttributeGroup"/>
     </xs:complexType>
     
 </xs:schema>

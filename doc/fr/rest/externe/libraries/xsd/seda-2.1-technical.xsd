@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
-    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
-    <xs:include schemaLocation="seda-2.0-types.xsd"/>
-
+<xs:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd"
+           xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
+    attributeFormDefault="unqualified" version="1.0">
+    <xs:include schemaLocation="seda-2.1-types.xsd"/>
+    <xs:include schemaLocation="seda-2.1-ontology.xsd"/>
     <!--
                 *****************************
                 ***   Code List
@@ -12,7 +14,8 @@
         -->
     <xs:group name="TechnicalCodeListsGroup">
         <xs:annotation>
-            <xs:documentation>Liste de codes à utiliser dans les métadonnées techniques.</xs:documentation>
+            <xs:documentation>Liste de codes à utiliser dans les métadonnées
+                techniques.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
             <xs:group ref="DigestAlgorithmCodeListGroup"/>
@@ -50,7 +53,8 @@
         <xs:sequence>
             <xs:element name="EncodingCodeListVersion" type="CodeType">
                 <xs:annotation>
-                    <xs:documentation>Version de la liste de code d'encodage du fichier.</xs:documentation>
+                    <xs:documentation>Version de la liste de code d'encodage du
+                        fichier.</xs:documentation>
                 </xs:annotation>
             </xs:element>
         </xs:sequence>
@@ -63,7 +67,7 @@
     </xs:simpleType>
     <xs:group name="FileFormatCodeListGroup">
         <xs:sequence>
-            <xs:element name="FileFormatCodeListVersion" type="CodeType">
+            <xs:element name="FileFormatCodeListVersion" type="CodeType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>Version de la liste de code d'identification du format.</xs:documentation>
                 </xs:annotation>
@@ -85,7 +89,7 @@
             </xs:element>
         </xs:sequence>
     </xs:group>
-    
+
     <!-- Identification d'une version pour un même objet intellectuel  -->
     <xs:group name="DataObjectVersionCodeListGroup">
         <xs:sequence>
@@ -106,8 +110,12 @@
     <!-- Paquet d'Objets-données -->
     <xs:group name="DataObjectVersionGroup">
         <xs:annotation>
-            <xs:documentation>Groupe d’objets-données (numériques ou physiques), correspondant aux différentes versions d’un même objet intellectuellement unique. Chaque version peut être par exemple : original papier, version de conservation, version de diffusion, version vignette, version texte ascii…
-                Lorsqu'un objet-donnée fait partie d'un groupe, le référencement dans les ArchiveUnit ne peut se faire que via ce groupe (DataObjectGroupId).</xs:documentation>
+            <xs:documentation>Groupe d’objets-données (numériques ou physiques), correspondant aux
+                différentes versions d’un même objet intellectuellement unique. Chaque version peut
+                être par exemple : original papier, version de conservation, version de diffusion,
+                version vignette, version texte ascii… Lorsqu'un objet-donnée fait partie d'un
+                groupe, le référencement dans les ArchiveUnit ne peut se faire que via ce groupe
+                (DataObjectGroupId).</xs:documentation>
         </xs:annotation>
         <xs:sequence>
             <xs:choice>
@@ -120,17 +128,22 @@
                     <xs:annotation>
                         <xs:documentation>Identifiant du groupe d'objets-données DataObjectVersionGroup (première et unique définition).</xs:documentation>
                     </xs:annotation>
-                </xs:element>                
+                </xs:element>
             </xs:choice>
-            <xs:element name="DataObjectVersion" type="VersionIdType">
-                <xs:annotation>
-                    <xs:documentation>Version d’un objet-données (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xs:documentation>
-                </xs:annotation>
-            </xs:element>
         </xs:sequence>
     </xs:group>
     <xs:complexType name="MinimalDataObjectType" abstract="true">
         <xs:sequence>
+            <xs:element name="DataObjectSystemId" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Identifiant attribué aux objets de données. Il est attribué par le SAE et correspond à un identifiant interne.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="DataObjectGroupSystemId" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Identifiant attribué aux groupes d'objets de données. Il est attribué par le SAE et correspond à un identifiant interne.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="Relationship" minOccurs="0" maxOccurs="unbounded"
                 type="RelationshipType">
                 <xs:annotation>
@@ -138,6 +151,11 @@
                 </xs:annotation>
             </xs:element>
             <xs:group ref="DataObjectVersionGroup" minOccurs="0"/>
+            <xs:element name="DataObjectVersion" type="VersionIdType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Version d’un objet-données (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="id" type="DataObjectIdType" use="required">
             <xs:annotation>
@@ -145,6 +163,28 @@
             </xs:annotation>
         </xs:attribute>
     </xs:complexType>
+    
+    <xs:group name="MinimalBinaryDataObjectGroup">
+        <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="1">
+                <xs:element name="Attachment" type="BinaryObjectType">
+                    <xs:annotation>
+                        <xs:documentation>Objet-données (contenu binaire ou fichier joint).</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="Uri" type="xs:anyURI">
+                    <xs:annotation>
+                        <xs:documentation>L'URI spécifie où se trouve l'objet-données numérique. Peut correspondre à un chemin relatif.</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+            <xs:element name="MessageDigest" type="MessageDigestBinaryObjectType"> 
+                <xs:annotation>
+                    <xs:documentation>Empreinte de l'objet-données.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
 
     <!-- Objet de donnees numérique -->
     <xs:complexType name="BinaryDataObjectType">
@@ -157,41 +197,16 @@
                     <xs:documentation>Métadonnées techniques minimales : URI, Digest, Poids.</xs:documentation>
                 </xs:annotation>
                 <xs:sequence>
-                    <xs:choice>
-                        <xs:element name="Attachment" type="BinaryObjectType">
-                            <xs:annotation>
-                                <xs:documentation>Objet-données (contenu binaire ou fichier joint).</xs:documentation>
-                            </xs:annotation>
-                        </xs:element>
-                        <xs:element name="Uri" type="xs:anyURI">
-                            <xs:annotation>
-                                <xs:documentation>L'URI spécifie où se trouve l'objet-données numérique. Peut correspondre à un chemin relatif.</xs:documentation>
-                            </xs:annotation>
-                        </xs:element>
-                    </xs:choice>
-                    <xs:element name="MessageDigest" type="MessageDigestBinaryObjectType">
-                        <xs:annotation>
-                            <xs:documentation>Empreinte de l'objet-données.</xs:documentation>
-                        </xs:annotation>
-                    </xs:element>
-                    <xs:element name="Size" type="SizeInBytesType">
+                    <xs:group ref="MinimalBinaryDataObjectGroup" minOccurs="0"/>
+                    <xs:element name="Size" type="SizeInBytesType" minOccurs="0" maxOccurs="1">
                         <xs:annotation>
                             <xs:documentation>Permet de spécifier la taille de l'objet-données en octet.</xs:documentation>
                         </xs:annotation>
                     </xs:element>
-                    <xs:element name="Compressed" minOccurs="0">
+                    <xs:element name="Compressed" type="CompressedType" minOccurs="0" maxOccurs="1">
                         <xs:annotation>
                             <xs:documentation>Indique si l’objet-données est compressé et doit être décompressé.</xs:documentation>
                         </xs:annotation>
-                        <xs:complexType>
-                            <xs:simpleContent>
-                                <xs:extension base="xs:boolean">
-                                    <xs:attribute name="algorithm" type="CompressionAlgorithmType" use="required"/>
-                                    <xs:attribute name="uncompressedSize" type="SizeInBytesType"
-                                        use="required"/>
-                                </xs:extension>
-                            </xs:simpleContent>
-                        </xs:complexType>
                     </xs:element>
                     <xs:group ref="BinaryTechnicalDescriptionGroup">
                         <xs:annotation>
@@ -202,6 +217,14 @@
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
+    <xs:complexType name="CompressedType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="algorithm" type="CompressionAlgorithmType" use="required"/>
+                <xs:attribute name="uncompressedSize" type="SizeInBytesType" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
 
     <xs:group name="BinaryTechnicalDescriptionGroup">
         <xs:annotation>
@@ -209,7 +232,7 @@
             <xs:documentation>Inspiré du schéma FITS.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="FormatIdentification" type="FormatIdentificationType">
+            <xs:element name="FormatIdentification" type="FormatIdentificationType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>Identification du format de l'objet-données.</xs:documentation>
                 </xs:annotation>
@@ -320,11 +343,13 @@
             <xs:element ref="OtherDimensionsAbstract" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:group>
+    
+    <!-- Objet de donnees physique pour les messages Request -->
     <xs:complexType name="PhysicalDataObjectType">
         <xs:complexContent>
             <xs:extension base="MinimalDataObjectType">
                 <xs:sequence>
-                    <xs:element name="PhysicalId" type="IdentifierType">
+                    <xs:element name="PhysicalId" type="IdentifierType" minOccurs="0">
                         <xs:annotation>
                             <xs:documentation>Identifiant physique d’un objet-données physique, externe à celui-ci (ex. code-barres).</xs:documentation>
                         </xs:annotation>
@@ -417,7 +442,8 @@
                             <xs:documentation>Métadonnée de dimension physique : épaisseur.</xs:documentation>
                         </xs:annotation>
                     </xs:element>
-                    <xs:element name="Weight" type="MeasurementWeightType" minOccurs="0" maxOccurs="1">
+                    <xs:element name="Weight" type="MeasurementWeightType" minOccurs="0"
+                        maxOccurs="1">
                         <xs:annotation>
                             <xs:documentation>Métadonnée de dimension physique : poids.</xs:documentation>
                         </xs:annotation>

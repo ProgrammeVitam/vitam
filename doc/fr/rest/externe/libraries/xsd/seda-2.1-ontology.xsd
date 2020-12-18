@@ -1,0 +1,1008 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd"
+           targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+    xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
+    attributeFormDefault="unqualified" version="1.0">
+    <xs:include schemaLocation="seda-2.1-types.xsd"/>
+    
+    <xs:group name="ObjectGroup">
+        <xs:annotation>
+            <xs:documentation>Contient les éléments nécessaires à
+                la description de l'ArchiveUnit et est sensé être la racine du bloc des métadonnées de
+                description.</xs:documentation>
+            <xs:documentation>Chaque sous-type ou sous-groupe peut aussi être utilisé pour
+                construire de nouveaux types ou groupes.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="BaseObjectGroup"/>
+            <xs:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:group>
+    
+    <xs:group name="BaseObjectGroup">
+        <xs:sequence>
+            <xs:group ref="LevelGroup"/>
+            <xs:group ref="TitleGroup"/>
+            <xs:group ref="IdentifierGroup"/>
+            <xs:group ref="DescriptionGroup"/>
+            <xs:group ref="CustodialHistoryGroup"/>
+            <xs:group ref="TypeGroup"/>
+            <xs:group ref="DocumentTypeGroup"/>
+            <xs:group ref="LanguageGroup"/>
+            <xs:group ref="StatusGroup"/>
+            <xs:group ref="VersionGroup"/>
+            <xs:group ref="KeywordsGroup"/>
+            <xs:group ref="CoverageGroup"/>
+            <xs:group ref="OriginatingAgencyGroup"/>
+            <xs:group ref="SubmissionAgencyGroup"/>
+            <xs:group ref="AgentGroup"/>
+            <xs:group ref="AuthorizedAgentGroup"/>
+            <xs:group ref="WritingGroup"/>
+            <xs:group ref="AudienceGroup"/>
+            <xs:group ref="SourceGroup"/>
+            <xs:group ref="RelationGroup"/>
+            <xs:group ref="DateGroup"/>
+            <xs:group ref="EventGroup"/>
+            <xs:group ref="SignatureGroup"/>
+            <xs:group ref="GpsGroup"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Level description -->
+    <xs:group name="LevelGroup">
+        <xs:sequence>
+            <xs:element name="DescriptionLevel" type="LevelType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Niveau de description au sens de la norme ISAD (G). Indique si l’ArchiveUnit correspond à un fonds, 
+                        à un sous-fonds, à une classe, à une série organique, à une sous-série organique, à un dossier, à un sous-dossier ou à une pièce.</xs:documentation>
+                    <xs:documentation>Référence : seda.DescriptionLevel</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="LevelType">
+        <xs:annotation>
+            <xs:documentation>Valeurs de DescriptionLevel.</xs:documentation>
+            <xs:documentation>Références : descriptionlevel_code SEDA 1.0</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:token">
+            <xs:enumeration value="Fonds"/>
+            <xs:enumeration value="Subfonds"/>
+            <xs:enumeration value="Class"/>
+            <xs:enumeration value="Collection"/>
+            <xs:enumeration value="Series"/>
+            <xs:enumeration value="Subseries"/>
+            <xs:enumeration value="RecordGrp"/>
+            <xs:enumeration value="SubGrp"/>
+            <xs:enumeration value="File"/>
+            <xs:enumeration value="Item"/>
+            <xs:enumeration value="OtherLevel"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- Title description -->
+    <xs:group name="TitleGroup">
+        <xs:sequence>
+            <xs:element name="Title" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Intitulé de l'ArchiveUnit.</xs:documentation>
+                    <xs:documentation>Références : DC.Title ead.unittitle</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    
+    <!-- Identification description -->
+    <xs:group name="IdentifierGroup">
+        <xs:sequence>
+            <xs:element name="FilePlanPosition" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Position de l’ArchiveUnit dans le plan de classement du service producteur.</xs:documentation>
+                    <xs:documentation>Références : seda.FilePlanPosition</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="SystemId" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Identifiant attribué aux objets. Il est attribué par le SAE et correspond à un identifiant interne.</xs:documentation>
+                    <xs:documentation>Références : ARMS</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OriginatingSystemId" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Identifiant système attribué à l’ArchiveUnit par l’application du service producteur.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ArchivalAgencyArchiveUnitIdentifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Identifiant métier attribué à l'ArchiveUnit par le service d'archives. Peut être comparé à une cote.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OriginatingAgencyArchiveUnitIdentifier" type="NonEmptyTokenType"
+                minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Identifiant métier attribué à l’ArchiveUnit par le service producteur.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="TransferringAgencyArchiveUnitIdentifier" type="NonEmptyTokenType"
+                minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Identifiant attribué à l'ArchiveUnit par le service versant.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- General description -->
+    <xs:group name="DescriptionGroup">
+        <xs:sequence>
+            <xs:element name="Description" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Description détaillée de l’ArchiveUnit. Correspond à la présentation du contenu au sens de la norme ISAD(G).</xs:documentation>
+                    <xs:documentation>Références : DC:Documentation</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- CustodialHistory type -->
+    <xs:group name="CustodialHistoryGroup">
+        <xs:sequence>
+            <xs:element name="CustodialHistory" type="CustodialHistoryType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Énumère les changements successifs de propriété, de responsabilité et de conservation des ArchiveUnit avant 
+                        leur entrée dans le lieu de conservation. On peut notamment y indiquer comment s'est effectué le passage de l'application 
+                        d'origine au fichier archivable. Correspond à l'historique de la conservation en ISAD(G).</xs:documentation>
+                    <xs:documentation>Références : seda.CustodialHistory</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="CustodialHistoryType">
+        <xs:sequence>
+            <xs:element name="CustodialHistoryItem" type="CustodialHistoryItemType" minOccurs="1" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Description d'une période ou d'un événement précis dans l'historique.</xs:documentation>
+                    <xs:documentation>Références : seda.CustodialHistoryItem</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="CustodialHistoryFile" type="DataObjectRefType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Référence à un fichier de journalisation externe.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CustodialHistoryItemType">
+        <xs:complexContent>
+            <xs:extension base="TextType">
+                <xs:attribute name="when" type="DateType" use="optional"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- OAIS type description -->
+    <xs:group name="TypeGroup">
+        <xs:sequence>
+            <xs:element name="Type" type="TextType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Type d’information au sens de l’OAIS (information de représentation, information de pérennisation, etc.).</xs:documentation>
+                    <xs:documentation>Références : seda.DocumentType</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Document type description -->
+    <xs:group name="DocumentTypeGroup">
+        <xs:sequence>
+            <xs:element name="DocumentType" type="TextType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Type de document au sens diplomatique du terme (ex. compte-rendu de réunion, note, correspondance, etc.). Ne pas confondre avec Type.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Language description -->
+    <xs:group name="LanguageGroup">
+        <xs:sequence>
+            <xs:element name="Language" type="xs:language" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Langue du contenu des objets-données.</xs:documentation>
+                    <xs:documentation>Références : seda.Language</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="DescriptionLanguage" type="xs:language" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Langue utilisée pour les informations de représentation et de pérennisation.</xs:documentation>
+                    <xs:documentation>Références : seda.DescriptionLanguage</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Status description -->
+    <xs:group name="StatusGroup">
+        <xs:sequence>
+            <xs:element name="Status" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Etat de l'objet-données (par rapport avec son cycle de vie). Permet par exemple d'indiquer si la signature du fichier a été vérifiée avant le transfert aux archives.</xs:documentation>
+                    <xs:documentation>Références : seda.Status</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Version description -->
+    <xs:group name="VersionGroup">
+        <xs:sequence>
+            <xs:element name="Version" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Permet d'indiquer quelle est la version du document.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Keywords description -->
+    <xs:group name="KeywordsGroup">
+        <xs:sequence>
+            <xs:element name="Tag" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Mots-clés ou liste de mots-clés génériques. En ce qui concerne l'indexation, on pourra utiliser Tag ou Keyword en fonction de ce que l'on souhaite décrire.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Keyword" type="KeywordsType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Mots-clef avec contexte inspiré du SEDA 1.0. En ce qui concerne l'indexation, on pourra utiliser Tag ou Keyword en fonction de ce que l'on souhaite décrire.</xs:documentation>
+                    <xs:documentation>Références : seda.Keyword</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <!-- Repris du SEDA 1.0 -->
+    <xs:complexType name="KeywordsType">
+        <xs:annotation>
+            <xs:documentation>Mots-clés.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="KeywordContent" type="TextType">
+                <xs:annotation>
+                    <xs:documentation>Valeur du mot-clé. A utiliser avec Keyword.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="KeywordReference" type="IdentifierType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Identifiant du mot clé dans un référentiel donné. Par exemple, pour un lieu, il pourrait s'agir de son code officiel géographique selon l'INSEE.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="KeywordType" type="KeyType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>Type de mot clé.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="KeyType">
+        <xs:simpleContent>
+            <xs:extension base="CodeKeywordType">
+                <xs:attribute name="listVersionID" type="xs:token" use="optional"
+                    default="edition 2009">
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!-- =============================================================== -->
+    <!-- ===== Code List KeywordType: KeywordType Code           ======= -->
+    <!-- =============================================================== -->
+    <xs:simpleType name="CodeKeywordType">
+        <xs:annotation>
+            <xs:documentation xml:lang="fr">Table des types de mots-clés.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:token">
+            <xs:enumeration value="corpname">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Collectivité.</xs:documentation>
+                    <xs:documentation>Références : ead.corpname</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="famname">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Nom de famille.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="geogname">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Nom géographique.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="name">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Nom.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="occupation">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Fonction.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="persname">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Nom de personne.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="subject">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Mot-matière.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="genreform">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Type de document.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="function">
+                <xs:annotation>
+                    <xs:documentation xml:lang="fr">Activité.</xs:documentation>
+                    <xs:documentation xml:lang="fr">Références : ead.function</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Coverage description -->
+    <xs:group name="CoverageGroup">
+        <xs:sequence>
+            <xs:element name="Coverage" type="CoverageType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Couverture spatiale, temporelle ou juridictionnelle de l’ArchiveUnit</xs:documentation>
+                    <xs:documentation>Références : DC.Coverage</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="CoverageType">
+        <xs:sequence>
+            <xs:element name="Spatial" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Couverture spatiale ou couverture géographique.</xs:documentation>
+                    <xs:documentation>Références: AGKRMS.spatialCoverage</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Temporal" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Couverture temporelle.</xs:documentation>
+                    <xs:documentation>Références: AGKRMS.temporalCoverage</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Juridictional" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Juridiction administrative ou ressort administratif.</xs:documentation>
+                    <xs:documentation>Références: AGKRMS.juridictionalCoverage</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <!-- OriginatingAgency description -->
+    <xs:group name="OriginatingAgencyGroup">
+        <xs:sequence>
+            <xs:element name="OriginatingAgency" type="OrganizationType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Service producteur. "Personne physique ou morale, publique ou privée, qui a produit, reçu et conservé des archives  dans l'exercice de son activité", Dictionnaire de terminologie archivistique, direction des archives de France, 2002.</xs:documentation>
+                    <xs:documentation>Références : seda.OriginatingAgency</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- SubmissionAgency description -->
+    <xs:group name="SubmissionAgencyGroup">
+        <xs:sequence>
+            <xs:element name="SubmissionAgency" type="OrganizationType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Service versant responsable du transfert des données.</xs:documentation>
+                    <xs:documentation>Références : seda.SubmissionAgency</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    
+    <!-- Proxy description -->
+    <xs:group name="AuthorizedAgentGroup">
+        <xs:sequence>
+            <xs:element name="AuthorizedAgent" type="AgentType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Titulaire des droits de propriété intellectuelle.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Writing description -->
+    <xs:group name="WritingGroup">
+        <xs:sequence>
+            <xs:annotation>
+                <xs:documentation>Rédacteur de l'objet d'archive.</xs:documentation>
+            </xs:annotation>
+            <xs:element name="Writer" type="AgentType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Rédacteur Rédacteur de l’ArchiveUnit.</xs:documentation>
+                    <xs:documentation>Références : interpares.Writer</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Audience description -->
+    <xs:group name="AudienceGroup">
+        <xs:sequence>
+            <xs:annotation>
+                <xs:documentation>Audience du document.</xs:documentation>
+            </xs:annotation>
+            <xs:group ref="AddresseeGroup"/>
+            <xs:group ref="RecipientGroup"/>
+            <xs:group ref="TransmitterGroup"/>
+            <xs:group ref="SenderGroup"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Source description -->
+    <xs:group name="SourceGroup">
+        <xs:sequence>
+            <xs:element name="Source" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>En cas de substitution numérique, permet de faire référence au papier.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Relation description -->
+    <xs:group name="RelationGroup">
+        <xs:annotation>
+            <xs:documentation>Les valeurs sont des identifiants au choix : - d'un autre objet données (DataObjectRefIdType ou GroupIdType s'ils sont dans le même transfert, ou identifiant dans le SAE sinon) - d'un autre ArchiveUnit (ArchiveUnitRefIdType s'il est dans le même transfert, ou identifiant dans le SAE sinon).</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="RelatedObjectReference" type="RelatedObjectReferenceType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Référence à un objet faisant ou ne faisant pas partie du présent paquet d'information.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="RelatedObjectReferenceType">
+        <xs:sequence>
+            <xs:element name="IsVersionOf" type="DataObjectOrArchiveUnitReferenceType"
+                minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Est une version de. Edition, adaptation, traduction. Cette relation permet d'indiquer les modifications dans le contenu.</xs:documentation>
+                    <xs:documentation>Références : DC.Relation.isVersionOf</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Replaces" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Remplace. Cette relation permet d'indiquer les objets remplacés par le niveau courant de description.</xs:documentation>
+                    <xs:documentation>DC.Relation.replaces</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Requires" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Requiert. Cette relation permet d'indiquer les objets nécessaire à la compréhension du niveau courant de description.</xs:documentation>
+                    <xs:documentation>Références : DC.Relation.requires</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="IsPartOf" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Est une partie de. Cette relation permet d'indique qu'un objet est une partie d'un autre.</xs:documentation>
+                    <xs:documentation>Références : DC.Relation.isPartOf</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="References" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Référence. Cette relation permet d'indiquer qu'un objet en référence un autre.</xs:documentation>
+                    <xs:documentation>DC.Relation.references</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DataObjectOrArchiveUnitReferenceType">
+        <xs:choice>
+            <xs:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
+                <xs:annotation>
+                    <xs:documentation>Référence à un ArchiveUnit interne.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="DataObjectReference" type="DataObjectRefType">
+                <xs:annotation>
+                    <xs:documentation>Référence à un objet-données ou à un groupe d'objets-données interne(s).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="RepositoryArchiveUnitPID" type="NonEmptyTokenType">
+                <xs:annotation>
+                    <xs:documentation>Référence à un ArchiveUnit déjà conservé dans un système d'archivage.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="RepositoryObjectPID" type="NonEmptyTokenType">
+                <xs:annotation>
+                    <xs:documentation>Référence à un un objet-données ou à un groupe d'objets-données déjà conservé(s) dans un système d'archivage.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ExternalReference" type="NonEmptyTokenType">
+                <xs:annotation>
+                    <xs:documentation>Référence externe.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+    <!-- Date description -->
+    <xs:group name="DateGroup">
+        <xs:sequence>
+            <xs:element name="CreatedDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date de création.</xs:documentation>
+                    <xs:documentation>Références : ARKMS.DateCreated</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="TransactedDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date de la transaction.</xs:documentation>
+                    <xs:documentation>Références : ARKMS.DateTransacted</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="AcquiredDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date de numérisation.</xs:documentation>
+                    <xs:documentation>Références : ARKMS.DateAcquired</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="SentDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date d'envoi.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ReceivedDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date de réception.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="RegisteredDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date d'enregistrement.</xs:documentation>
+                    <xs:documentation>Références : ARMS.DateDeclared</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="StartDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date d'ouverture / date de début.</xs:documentation>
+                    <xs:documentation>Références : AGKRMS.StartDate</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EndDate" type="DateType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Date de fermeture / Date de fin.</xs:documentation>
+                    <xs:documentation>Références : AGKRMS.EndDate</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:simpleType name="DateType">
+        <xs:union memberTypes="xs:date xs:dateTime xs:gYear xs:gYearMonth xs:gMonth xs:gMonthDay xs:gDay"/>
+    </xs:simpleType>
+    <!-- Event description -->
+    <xs:group name="EventGroup">
+        <xs:sequence>
+            <xs:element name="Event" type="EventType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Informations décrivant un événement survenu au cours d’une procédure (ex. publication d’un marché, notification d’un marché, recueil d’un avis administratif, etc.).</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="EventType">
+        <xs:sequence>
+            <xs:element name="EventIdentifier" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Identifiant de l'événement.</xs:documentation>
+                    <xs:documentation>Références : premis.eventIdentifier</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EventTypeCode" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Code du type d'événement.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EventType" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Type d'événement.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EventDateTime" type="DateType">
+                <xs:annotation>
+                    <xs:documentation>Date et heure de l'événement.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EventDetail" type="TextType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Détail sur l'événement.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Outcome" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Résultat du traitement.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OutcomeDetail" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Détail sur le résultat du traitement.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="OutcomeDetailMessage" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Message détaillé sur le résultat du traitement.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="EventDetailData" type="NonEmptyTokenType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Message technique détaillant l'erreur.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+    <!-- Signature description -->
+    <xs:group name="SignatureGroup">
+        <xs:sequence>
+            <xs:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Contient toutes les informations relatives à la signature.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="SignatureType">
+        <xs:sequence>
+            <xs:element name="Signer" type="SignerType" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Signataire(s) de la transaction ou de l'objet.</xs:documentation>
+                    <xs:documentation>Références : premis.signer</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Validator" type="ValidatorType">
+                <xs:annotation>
+                    <xs:documentation>Validateur de la signature.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Masterdata" type="CodeType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Référentiel des personnes et des organisations au moment de la vérification de la signature et de sa validation.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ReferencedObject" type="ReferencedObjectType">
+                <xs:annotation>
+                    <xs:documentation>Référence à l'objet signé.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="SignerType">
+        <xs:group ref="SignerGroup"/>
+    </xs:complexType>
+    <xs:complexType name="ValidatorType">
+        <xs:group ref="ValidatorGroup"/>
+    </xs:complexType>
+    <xs:complexType name="ReferencedObjectType">
+        <xs:annotation>
+            <xs:documentation>Contient la référence à l'objet signé (et son empreinte jusqu'à la fin de la phase de versement dans le SAE).</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="SignedObjectId" type="DataObjectRefIdType">
+                <xs:annotation>
+                    <xs:documentation>Identifiant de l'objet-données signé.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="SignedObjectDigest" type="MessageDigestBinaryObjectType">
+                <xs:annotation>
+                    <xs:documentation>Empreinte obligatoire jusqu'au processus de versement pour assurer la portabilité de la valeur probante. Le SAE peut ne pas la conserver si l'on considère que l'identifiant de l'objet correspondant suffit. Ce procédé permet de résister au temps lorsque les informations binaires du paquet seront converties au gré des opérations de préservation de la lisibilité des formats. Au cours de ces opérations, l'identifiant ne changera pas, contrairement au format dufichier et donc à son empreinte.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:group name="SignerGroup">
+        <xs:sequence>
+            <xs:group ref="PersonOrEntityGroup"/>
+            <xs:element name="SigningTime" type="xs:dateTime">
+                <xs:annotation>
+                    <xs:documentation>Date de signature.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:group ref="BusinessGroup"/>
+        </xs:sequence>
+    </xs:group>
+    <xs:group name="ValidatorGroup">
+        <xs:sequence>
+            <xs:group ref="PersonOrEntityGroup"/>
+            <xs:element name="ValidationTime" type="xs:dateTime">
+                <xs:annotation>
+                    <xs:documentation>Date de la validation de la signature.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:group ref="BusinessGroup"/>
+        </xs:sequence>
+    </xs:group>
+
+    <!-- Addressee description -->
+    <xs:group name="AddresseeGroup">
+        <xs:sequence>
+            <xs:element name="Addressee" minOccurs="0" maxOccurs="unbounded" type="AgentType">
+                <xs:annotation>
+                    <xs:documentation>Destinataire pour action. Utilisé pour indiquer le nom du destinatire par exemple dans un courrier électronique.</xs:documentation>
+                    <xs:documentation>Références : ARMS.Addressee, Interpares.Addressee</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <!-- Recipient description -->
+    <xs:group name="RecipientGroup">
+        <xs:sequence>
+            <xs:element name="Recipient" minOccurs="0" maxOccurs="unbounded" type="AgentType">
+                <xs:annotation>
+                    <xs:documentation>Destinataire pour information. Utilisé pour indiquer le nom du destinatire en copie, pour information, par exemple dans un courrier électronique.</xs:documentation>
+                    <xs:documentation>Références : Interpares.Recipient</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <!-- Transmitter description -->
+    <xs:group name="TransmitterGroup">
+        <xs:sequence>
+            <xs:element name="Transmitter" type="AgentType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Emetteur du message.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <!-- Sender description -->
+    <xs:group name="SenderGroup">
+        <xs:sequence>
+            <xs:element name="Sender" type="AgentType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Expéditeur du message.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+   
+    <!-- Pour ajouter des extensions d'agents -->
+    <xs:group name="AgentGroup">
+        <xs:sequence>
+            <!-- Ajout d'un abstract à AgentType -->
+            <xs:element ref="AgentAbstract" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:group>
+    <!-- Agent description -->
+    <xs:complexType name="AgentType">
+        <xs:annotation>
+            <xs:documentation>Informations décrivant une personne physique ou morale.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:group ref="PersonOrEntityGroup"/>
+            <xs:group ref="BusinessGroup"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <!-- Person or Entity description -->
+    <xs:group name="PersonOrEntityGroup">
+        <xs:sequence>
+            <xs:choice>
+                <xs:sequence>
+                    <xs:element name="FirstName" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Prénom d'une personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="BirthName" type="xs:string" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Nom de naissance d'une personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="FullName" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Nom complet d'une personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="GivenName" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>Nom d'usage d'une personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Gender" type="NonEmptyTokenType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Sexe de la personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="BirthDate" type="xs:date" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Date de naissance de la personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="BirthPlace" type="BirthOrDeathPlaceType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Lieu de naissance de la personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="DeathDate" type="xs:date" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Date de décès d'une personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="DeathPlace" type="BirthOrDeathPlaceType" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Lieu de décès d'une personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="Nationality" minOccurs="0" maxOccurs="unbounded" type="NonEmptyTokenType">
+                        <xs:annotation>
+                            <xs:documentation>Nationalité d'une personne.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+                <xs:sequence>
+                    <xs:element name="Corpname" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Nom d'une entité.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:choice>
+            <xs:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Identifiant de la personne (par exemple, le numéro matricule) ou de l'entité.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="BirthOrDeathPlaceType">
+        <xs:group ref="LocationGroup"/>
+    </xs:complexType>
+    <!-- Business description -->
+    <xs:group name="BusinessGroup">
+        <xs:annotation>
+            <xs:documentation>Références : AGKRMS.Business</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="Function" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Fonction.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Activity" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Activité.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Position" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Intitulé du poste de travail occupé par la personne.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Role" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Droits avec lesquels un utilisateur a réalisé une opération, notamment dans une application.</xs:documentation>
+                    <xs:documentation>Références : moreq.role</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Mandate" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Définit la propriété intellectuelle et artistique.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <!-- Location description -->
+    <xs:group name="LocationGroup">
+        <xs:annotation>
+            <xs:documentation>Localisation.</xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="Geogname" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Nom géographique.</xs:documentation>
+                    <xs:documentation>Références : ead.geogname</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Address" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Adresse.</xs:documentation>
+                    <xs:documentation>Références : ead.address</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="PostalCode" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Code postal.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="City" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Ville.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Region" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Région.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Country" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Pays.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:all>
+    </xs:group>
+    <!-- GPS Description: shared with Descriptive and Technical -->
+    <xs:group name="GpsGroup">
+        <xs:sequence>
+            <xs:element name="Gps" type="GpsType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Coordonnées gps complétées ou vérifiées par un utilisateur. Fait référence à des coordonnées traitées par un utilisateur et non à des coordonnées captées.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:group>
+    <xs:complexType name="GpsType">
+        <xs:sequence>
+            <xs:element name="GpsVersionID" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Identifiant de la version du GPS.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="GpsAltitude" type="xs:integer" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Indique l'altitude basée sur la référence dans GPSAltitudeRef. L'altitude est exprimée en mètres.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="GpsAltitudeRef" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Indique l'altitude utilisée comme altitude de référence.</xs:documentation>
+                    <xs:documentation>Si l'altitude est au dessus du niveau de la mer, la valeur 0 est normalement donnée.</xs:documentation>
+                    <xs:documentation>Si l'altitude est au-dessous du niveau de la mer, la veleur 1 est normalement donnée.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="GpsLatitude" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>La latitude peut être exprimée de deux manières différentes : 1)degrés, décimaux ou 2)degrés, minutes et secondes.</xs:documentation>
+                    <xs:documentation>1)Si la latitude est exprimée en degrés, décimaux, le format type est dd, dd. Par ex: "45.3130339".</xs:documentation>
+                    <xs:documentation>2)Si la latitude est exprimée en degrés, minutes et secondes, le format type est dd, mm, ss. Par ex: "45 18 46.922".</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="GpsLatitudeRef" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Indique si la latitude est nord ou sud. La valeur 'N' indique la latitude nord, et 'S' indique la latitude sud.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="GpsLongitude" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>La longitude peut être exprimée de deux manières différentes : 1)degrés, décimaux ou 2)degrés, minutes et secondes.</xs:documentation>
+                    <xs:documentation>1)Si la longitude est exprimée en degrés, décimaux, le format type est dd, dd. Par ex: "5.392285833333334".</xs:documentation>
+                    <xs:documentation>2)Si la longitude est exprimée en degrés, minutes et secondes, le format type est dd, mm, ss. Par ex: "5 23 32.229".</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="GpsLongitudeRef" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Indique si la longitude est est ou ouest. La valeur 'E' indique la longitude est, et 'W' indique la longitude Ouest.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="GpsDateStamp" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>Heure et Date de la position GPS.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

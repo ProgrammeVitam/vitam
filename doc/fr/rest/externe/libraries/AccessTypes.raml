@@ -106,6 +106,10 @@ types:
         }
 
   UnitBatchUpdateRequest:
+    displayName: Requête de lancement du traitement de masse pour mise à jour des métadonnées des AU
+    description: Requête de lancement du traitement de masse pour mise à jour des métadonnées des AU
+    type: object
+  UnitBatchRuleUpdateRequest:
     displayName: Requête de lancement du traitement de masse pour mise à jour des métadonnées de gestion des AU
     description: Requête de lancement du traitement de masse pour mise à jour des métadonnées de gestion des AU
     type: object
@@ -192,6 +196,10 @@ types:
           required: true
         exportWithLogBookLFC:
           description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets
+          type: boolean
+          required: false
+        transferWithLogBookLFC:
+          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le transfert
           type: boolean
           required: false
         dslRequest:

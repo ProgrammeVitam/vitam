@@ -1,45 +1,200 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ArchiveTransferReply xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns:pr="info:lc/xmlns/premis-v2"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 ../xsd/seda-2.0-main.xsd" xml:id="ID002">
-    <Date>2016-06-23T09:45:51.0</Date>
-    <MessageIdentifier>Entrée_avec_groupe_d_objet</MessageIdentifier>
-    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
-    <CodeListVersions xml:id="ID005">
+<ArchiveTransferReply xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+                      xmlns:ns2="http://www.w3.org/1999/xlink"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-vitam-2.1-main.xsd">
+    <Date>2020-08-06T17:41:33.527+02:00</Date>
+    <MessageIdentifier>aeeaaaaaace2txtzabdlkaltyrxo4siaaaaq</MessageIdentifier>
+    <ArchivalAgreement>IC-000001</ArchivalAgreement>
+    <CodeListVersions>
         <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
         <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
-        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
-        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
         <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
-        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
-        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
-        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
-        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
-        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
-        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
-        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
-        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
-        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
-        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
     </CodeListVersions>
-
-    <DataObjectPackage xml:id="ID007">
-        <ManagementMetadata xml:id="ID030">
-            <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
-            <ServiceLevel>ServiceLevel0</ServiceLevel>
-            <OriginatingAgency>OriginatingAgency1</OriginatingAgency>
-        </ManagementMetadata>
+    <DataObjectPackage>
+        <DataObjectGroup id="ID29">
+            <BinaryDataObject id="ID30">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsypiaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsypqaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID38">
+            <BinaryDataObject id="ID39">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsyrqaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsyryaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID17">
+            <BinaryDataObject id="ID18">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsymqaaaba</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsynaaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID50">
+            <BinaryDataObject id="ID51">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsytyaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsyuiaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID32">
+            <BinaryDataObject id="ID33">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsypyaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsyqiaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID11">
+            <BinaryDataObject id="ID12">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsyliaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsymaaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID44">
+            <BinaryDataObject id="ID45">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsysqaaaba</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsytaaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID41">
+            <BinaryDataObject id="ID42">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsysaaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsysqaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID20">
+            <BinaryDataObject id="ID21">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsynaaaaba</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsynqaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID14">
+            <BinaryDataObject id="ID15">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsymaaaaba</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsymqaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID47">
+            <BinaryDataObject id="ID48">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsytiaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsytqaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID26">
+            <BinaryDataObject id="ID27">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsyoiaaaba</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsyoyaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID23">
+            <BinaryDataObject id="ID24">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsynyaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsyoiaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID35">
+            <BinaryDataObject id="ID36">
+                <DataObjectSystemId>aeaaaaaaaae2txtzaadjwaltyrxsyqqaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaae2txtzaadjwaltyrxsyriaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID19">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyxiaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID16">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyxaaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID49">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsy3iaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID28">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyxyaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID40">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsy2qaaabq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID43">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsy2yaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID10">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsy4aaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID22">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyxiaaabq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID52">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsy3qaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID31">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyyaaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID25">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyxqaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID37">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsy2qaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID34">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyyiaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID13">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsyuqaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID46">
+                <Content>
+                    <SystemId>aeaqaaaaaae2txtzaadjwaltyrxsy3aaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata/>
     </DataObjectPackage>
-
     <ReplyCode>OK</ReplyCode>
-    <MessageRequestIdentifier>GUID_SIP</MessageRequestIdentifier>
-    <GrantDate>2016-06-26T20:45:20</GrantDate>
-    <ArchivalAgency xml:id="ID031">
-        <Identifier>ArchivalAgency1</Identifier>
+    <MessageRequestIdentifier>OK_texte_14BinaryMaster_fmts</MessageRequestIdentifier>
+    <GrantDate>2020-08-06T17:41:33.528+02:00</GrantDate>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
     </ArchivalAgency>
-    <TransferringAgency xml:id="ID032">
-        <Identifier>TransferringAgency1</Identifier>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
     </TransferringAgency>
 </ArchiveTransferReply>

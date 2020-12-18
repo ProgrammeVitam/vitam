@@ -56,34 +56,17 @@ documentation:
     is: [AccessTraits.AccessUnitResponse]
   post:
     description: |
-      Requête qui retourne des résultats contenant des Unités d'archives. La requête utilise POST avec X-Http-Method-Override: GET
-      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
-      Sans le Header, le point d'API est utilisé pour mettre à jour en masse les métadonnées descriptives des unités archivistiques. Possibilité de remplacer une chaîne de caractères par une autre vià l'opération $setregex.
+      Requête qui déclanche la mise à jour de masse des métadonnées descriptives des unités archivistiques.
+      **Sans le Header**, le point d'API est utilisé pour mettre à jour en masse les métadonnées descriptives des unités archivistiques. Possibilité de remplacer une chaîne de caractères par une autre vià l'opération $setregex.
 
+      **Avec le Header**, La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+      La requête utilise POST avec X-Http-Method-Override: GET
       Permissions requises:
         - units:update
-    is: [AccessTraits.AccessUnitResponse, StandardTraits.OverrideGet]
+    is: [AccessTraits.AccessUpdateBatchUnitResponse, StandardTraits.OverrideGet]
     headers:
       X-Http-Method-Override:
-        required: true
-    body:
-      application/json:
-        description: Requête permettant de mettre à jour les métadonnées descriptives d'unités d'archives.
-        examples:
-          UnitsBatchUpdate: !include libraries/examples/unitsBatchUpdate.json
-          BatchUpdateObject: !include libraries/examples/updateObjects.json
-          BatchRemove: !include libraries/examples/batchRemove.json
-    responses:
-      202:
-        description: Renvoie le statut de l'opération de mise à jour
-        body:
-          application/json:
-            description: Operation de mise à jour acceptée
-      500:
-        description: Renvoie le statut final de l'opération en KO
-        body:
-          application/json:
-            description: informations sur l'echec du lancement de l'opération
+        required: false
 
 
   /rules:
@@ -525,7 +508,7 @@ documentation:
 
           Permissions requises:
             - reclassification:update
-        type: array
+        type: object[]
         example: !include libraries/examples/reclassification.json
     responses:
       202:
