@@ -312,17 +312,3 @@
     state: started
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )
-
-- name: Ensure {{ package_name }} inhibited so not started at reboot
-  systemd:
-    name: "{{ package_name }}"
-    enabled: no
-    masked: no
-  when: inhibate == 'true'
-
-- name: Ensure {{ package_name }} not inhibited so started at reboot
-  systemd:
-    name: "{{ package_name }}"
-    enabled: yes
-    masked: no
-  when: inhibate == 'false'
