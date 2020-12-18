@@ -80,7 +80,7 @@ public class IdentityServiceTest {
 
         assertThat(identityModel.getSubjectDN()).isEqualTo(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
-        assertThat(identityModel.getSerialNumber()).isEqualTo(BigInteger.ZERO);
+        assertThat(identityModel.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.ZERO));
         assertThat(identityModel.getIssuerDN()).isEqualTo(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
         assertThat(identityModel.getCertificate()).isEqualTo(certificate);
@@ -101,7 +101,7 @@ public class IdentityServiceTest {
         // Then
         then(identityRepository).should().findIdentity(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO);
+            String.valueOf(BigInteger.ZERO));
     }
 
     @Test
@@ -116,7 +116,7 @@ public class IdentityServiceTest {
         IdentityModel identityModel = new IdentityModel();
         given(identityRepository.findIdentity(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO)).willReturn(of(identityModel));
+            String.valueOf(BigInteger.ZERO))).willReturn(of(identityModel));
 
         // When
         identityInsertModel.setContextId(contextId);
