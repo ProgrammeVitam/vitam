@@ -5,8 +5,8 @@
 disable_internet_repositories_install: false
 
 # TODO MAYBE : permettre la surcharge avec une syntax du genre vitamopts.folder_root | default(vitam_default.folder_root) dans les templates ?
-droid_filename: "DROID_SignatureFile_V95.xml"
-droid_container_filename: "container-signature-20180920.xml"
+droid_filename: "DROID_SignatureFile_V97.xml"
+droid_container_filename: "container-signature-20201001.xml"
 
 vitam_defaults:
     folder:
