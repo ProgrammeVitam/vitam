@@ -334,4 +334,4 @@
     password_keystore: "{{ keystores.server.ihm_demo }}"
     password_manager_keystore: "{{ keystores.server.ihm_demo }}"
     password_truststore: "{{ truststores.client_external }}"
-    password_grantedstore: "{{ grantedstores.client_external }}""
+    password_grantedstore: "{{ grantedstores.client_external }}"
