@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -52,7 +53,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -409,28 +409,17 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         }
     }
 
-    private String storageLogBackup() {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+    private void storageLogBackup() {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            RequestResponseOK<String> responseOK = storageClient.storageLogBackup();
-            return responseOK.getResults().get(0);
+            storageClient.storageLogBackup(Collections.singletonList(TENANT_ID));
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             fail("Cannot run storage backup");
+        } finally {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         }
-        return null;
-    }
-
-    private String storageAccessLogBackup() {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            RequestResponseOK<String> responseOK = storageClient.storageAccessLogBackup();
-            return responseOK.getResults().get(0);
-        } catch (StorageServerClientException | InvalidParseOperationException e) {
-            fail("Cannot run storage backup");
-        }
-        return null;
     }
 
     private String runLinkedCheckTraceability(JsonNode query) {

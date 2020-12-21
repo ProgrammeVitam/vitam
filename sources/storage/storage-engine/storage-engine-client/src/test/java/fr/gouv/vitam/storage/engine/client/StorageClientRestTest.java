@@ -37,9 +37,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -59,6 +59,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -240,8 +241,9 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
         @POST
         @Path(STORAGE_BACKUP_PATH)
+        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response backup() {
+        public Response backup(List<Integer> tenants) {
             return expectedResponse.post();
         }
         // operations/traceability"
@@ -584,8 +586,12 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void successBackupStorageLog() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
-        client.storageLogBackup();
+            Response.status(Status.OK).entity(
+                new RequestResponseOK<StorageLogBackupResult>()
+                    .addResult(new StorageLogBackupResult().setTenantId(0).setOperationId(GUIDFactory.newGUID().getId()))
+                    .addResult(new StorageLogBackupResult().setTenantId(1).setOperationId(GUIDFactory.newGUID().getId()))
+                ).build());
+        client.storageLogBackup(Arrays.asList(0, 1));
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

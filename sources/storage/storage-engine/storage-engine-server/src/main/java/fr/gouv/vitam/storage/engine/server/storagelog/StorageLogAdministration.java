@@ -33,15 +33,27 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -52,6 +64,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -73,13 +86,16 @@ public class StorageLogAdministration {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAdministration.class);
 
-    private static final String STORAGE_WRITE_BACKUP = "STORAGE_BACKUP";
-    private static final String STORAGE_ACCESS_BACKUP = "STORAGE_ACCESS_BACKUP";
+    public static final String STORAGE_WRITE_BACKUP = "STORAGE_BACKUP";
+    public static final String STORAGE_ACCESS_BACKUP = "STORAGE_ACCESS_BACKUP";
 
-    final StorageLog storageLogService;
+    private final AlertService alertService = new AlertServiceImpl();
+    private final StorageLog storageLogService;
+    private final int storageLogBackupThreadPoolSize;
 
-    public StorageLogAdministration(StorageLog storageLogService) {
+    public StorageLogAdministration(StorageLog storageLogService, int storageLogBackupThreadPoolSize) {
         this.storageLogService = storageLogService;
+        this.storageLogBackupThreadPoolSize = storageLogBackupThreadPoolSize;
     }
 
     /**
@@ -87,21 +103,77 @@ public class StorageLogAdministration {
      * * Link the appender to a new file in order to continue to log access/write during the operation <br/>
      * * Copy previous log files from Storage to Offers </br>
      * * Delete old files from Storage
-     * @param strategyId strategyId 
-     * @param backupWriteLog backupWriteLog
      *
-     * @throws IOException                         if an IOException is thrown while generating the secure storage
-     * @throws StorageLogException                 if a LogZipFile cannot be generated
-     * @throws LogbookClientBadRequestException    if a bad request is encountered
-     * @throws LogbookClientAlreadyExistsException if the logbook already exists
-     * @throws LogbookClientServerException        if there's a problem connecting to the logbook functionnality
+     * @param strategyId strategyId
+     * @param backupWriteLog backupWriteLog
+     * @param tenants tenant list to backup
+     * @return backup result list
+     * @throws StorageLogException if storage log backup failed
      */
-    public synchronized void backupStorageLog(String strategyId, Boolean backupWriteLog, GUID eip)
+    public synchronized List<StorageLogBackupResult> backupStorageLog(String strategyId, Boolean backupWriteLog,
+        List<Integer> tenants)
+        throws StorageLogException {
+
+        String operationType = backupWriteLog ? "StorageWriteLog" : "StorageAccessLog";
+
+        int threadPoolSize = Math.min(this.storageLogBackupThreadPoolSize, tenants.size());
+        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
+
+        try {
+            List<CompletableFuture<StorageLogBackupResult>> completableFutures = new ArrayList<>();
+
+            for (Integer tenantId : tenants) {
+                CompletableFuture<StorageLogBackupResult> traceabilityCompletableFuture =
+                    CompletableFuture.supplyAsync(() -> {
+                        Thread.currentThread().setName(operationType + "-" + tenantId);
+                        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                        try {
+                            String operationId = backupStorageLog(strategyId, backupWriteLog, tenantId);
+                            return new StorageLogBackupResult()
+                                .setTenantId(tenantId)
+                                .setOperationId(operationId);
+                        } catch (Exception e) {
+                            alertService.createAlert(VitamLogLevel.ERROR,
+                                "An error occurred during " + operationType + " for tenant " + tenantId);
+                            throw new RuntimeException(
+                                "An error occurred during " + operationType + " for tenant " + tenantId);
+                        }
+                    }, executorService);
+                completableFutures.add(traceabilityCompletableFuture);
+            }
+
+            boolean allTenantsSucceeded = true;
+            List<StorageLogBackupResult> results = new ArrayList<>();
+            for (CompletableFuture<StorageLogBackupResult> completableFuture : completableFutures) {
+                try {
+                    results.add(completableFuture.get());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new StorageLogException(operationType + " interrupted", e);
+                } catch (ExecutionException e) {
+                    LOGGER.error(operationType + " failed", e);
+                    allTenantsSucceeded = false;
+                }
+            }
+
+            if (!allTenantsSucceeded) {
+                throw new StorageLogException("One or more " + operationType + " operations failed");
+            }
+
+            return results;
+
+        } finally {
+            executorService.shutdown();
+        }
+    }
+
+    private String backupStorageLog(String strategyId, Boolean backupWriteLog, int tenantId)
         throws IOException, StorageLogException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-        // TODO: use a distributed lock to launch this function only on one server (cf consul)
+
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-        Integer tenantId = ParameterHelper.getTenantParameter();
+        GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(eip);
         try {
 
             String evType;
@@ -117,10 +189,12 @@ public class StorageLogAdministration {
             List<LogInformation> info = storageLogService.rotateLogFile(tenantId, backupWriteLog);
 
             for (LogInformation logInformation : info) {
-                storeLogFile(helper, strategyId, tenantId, eip, logInformation, storageLogService, evType, backupWriteLog);
+                storeLogFile(helper, strategyId, tenantId, eip, logInformation, storageLogService, evType,
+                    backupWriteLog);
             }
 
             createLogbookOperationEvent(helper, eip, evType, StatusCode.OK);
+            return eip.getId();
 
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new StorageLogException(e);
@@ -208,7 +282,8 @@ public class StorageLogAdministration {
         StatusCode statusCode) throws LogbookClientNotFoundException {
 
         final LogbookOperationParameters logbookOperationParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(GUIDFactory.newEventGUID(parentEventId), eventType, parentEventId, LogbookTypeProcess.STORAGE_BACKUP,
+            .newLogbookOperationParameters(GUIDFactory.newEventGUID(parentEventId), eventType, parentEventId,
+                LogbookTypeProcess.STORAGE_BACKUP,
                 statusCode,
                 VitamLogbookMessages.getCodeOp(eventType, statusCode), parentEventId);
         logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType +

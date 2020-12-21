@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -46,6 +47,7 @@ import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -507,15 +509,18 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK storageAccessLogBackup()
+    public RequestResponseOK<StorageLogBackupResult> storageAccessLogBackup(List<Integer> tenants)
         throws StorageServerClientException, InvalidParseOperationException {
         VitamRequestBuilder request = post()
             .withPath(STORAGE_ACCESSLOG_BACKUP_URI)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter())
-            .withJsonAccept();
+            .withBody(JsonHandler.toJsonNode(tenants))
+            .withJson();
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseRequestResponseOk(response);
+            RequestResponse<StorageLogBackupResult> result =
+                RequestResponse.parseFromResponse(response, StorageLogBackupResult.class);
+            return (RequestResponseOK<StorageLogBackupResult>) result;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
@@ -523,15 +528,18 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK storageLogBackup()
+    public RequestResponseOK<StorageLogBackupResult> storageLogBackup(List<Integer> tenants)
         throws StorageServerClientException, InvalidParseOperationException {
         VitamRequestBuilder request = post()
             .withPath(STORAGE_LOG_BACKUP_URI)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter())
-            .withJsonAccept();
+            .withBody(JsonHandler.toJsonNode(tenants))
+            .withJson();
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseRequestResponseOk(response);
+            RequestResponse<StorageLogBackupResult> result =
+                RequestResponse.parseFromResponse(response, StorageLogBackupResult.class);
+            return (RequestResponseOK<StorageLogBackupResult>) result;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
