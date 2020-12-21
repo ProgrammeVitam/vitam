@@ -501,11 +501,12 @@ public class ContextServiceImpl implements ContextService {
             // create diff for evDetData
             if (updates != null && updates.size() > 0) {
                 // concat changes
-                String modifs = updates.stream().map(i -> i.toString()).collect(Collectors.joining("\n"));
+                String modifs = String.join("\n", updates);
 
                 // create diff as json string
                 final ObjectNode diffObject = JsonHandler.createObjectNode();
                 diffObject.put("diff", modifs);
+                diffObject.put("version", VitamConfiguration.getDiffVersion());
                 diff = SanityChecker.sanitizeJson(diffObject);
             }
 

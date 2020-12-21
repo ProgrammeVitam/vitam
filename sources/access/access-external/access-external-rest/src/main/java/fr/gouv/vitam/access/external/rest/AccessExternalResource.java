@@ -73,6 +73,7 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.utils.SecurityProfilePermissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -743,6 +744,58 @@ public class AccessExternalResource extends ApplicationStatusResource {
             if (!response.isOk() && response instanceof VitamError) {
                 VitamError error = (VitamError) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR, error.getMessage(),
+                    error);
+            }
+            return Response.status(Status.OK).entity(response).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Internal request error ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (NoWritingPermissionException e) {
+            LOGGER.error(WRITING_PERMISSIONS_INVALID, e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
+
+    /**
+     * Revert an update of archive units with json query.
+     *
+     * @param queryJson the revert_update query (null not allowed)
+     */
+    @POST
+    @Path("/revert/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = REVERT_UPDATE, description = "Restauration des metadonnées essentielles")
+    public Response revertUpdateUnits(JsonNode queryJson) {
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            RequestResponse<JsonNode> response = client.revertUnits(queryJson);
+
+            if (!response.isOk() && response instanceof VitamError) {
+                VitamError error = (VitamError) response;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_REVERT_UPDATE_ERROR, error.getMessage(),
                     error);
             }
             return Response.status(Status.OK).entity(response).build();

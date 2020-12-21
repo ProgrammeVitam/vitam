@@ -374,5 +374,14 @@
   },
   "INGEST_CLEANUP_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupFinalizationPlugin"
+  },
+  "REVERT_CHECK": {
+    "className": "fr.gouv.vitam.worker.core.plugin.revertupdate.RevertUpdateUnitCheckPlugin"
+  },
+  "REVERT_UPDATE_UNITS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.revertupdate.RevertUpdateUnitPlugin"
+  },
+  "REVERT_UPDATE_FINALIZE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.revertupdate.RevertUpdateUnitFinalizePlugin"
   }
 }

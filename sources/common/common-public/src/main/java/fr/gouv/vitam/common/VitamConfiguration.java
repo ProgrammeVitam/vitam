@@ -455,6 +455,8 @@ public class VitamConfiguration {
      */
     private static String DEFAULT_LANG = Locale.FRENCH.toString();
 
+    private static final short DIFF_VERSION = 1;
+
     private String config;
 
     private String log;
@@ -2507,5 +2509,9 @@ public class VitamConfiguration {
 
     public static void setElasticSearchScrollLimit(Integer elasticSearchScrollLimit) {
         VitamConfiguration.elasticSearchScrollLimit = elasticSearchScrollLimit;
+    }
+
+    public static short getDiffVersion() {
+        return DIFF_VERSION;
     }
 }

@@ -955,7 +955,7 @@ public class VitamServerRunner extends ExternalResource {
             }
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  ProcessManagementMain");
+        LOGGER.warn("=== VitamServerRunner stop ProcessManagementMain");
         processManagementMain.stop();
         processManagementMain = null;
         ProcessingManagementClientFactory

@@ -79,6 +79,9 @@ public class MongoRule extends ExternalResource {
         this.dbName = dbName;
     }
 
+    public static String getDatabaseName() {
+        return VITAM_DB;
+    }
     @Override
     protected void after() {
         if (!clientClosed) {

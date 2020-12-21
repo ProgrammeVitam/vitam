@@ -63,6 +63,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -527,6 +528,35 @@ public final class JsonHandler {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
             ObjectReader objectReader = OBJECT_MAPPER.readerFor(clazz);
             return objectReader.readValue(jsonNode);
+        } catch (IOException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    public static final <T> List<T> getFromJsonNodeList(List<JsonNode> jsonNodes, Class<T> clazz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("JsonNode or class", jsonNodes, clazz);
+            List<T> result = new ArrayList<>();
+            for (JsonNode jsonNode : jsonNodes) {
+                result.add(OBJECT_MAPPER.treeToValue(jsonNode, clazz));
+            }
+            return result;
+        } catch (final JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    public static <T> List<T> getFromJsonNodeList(List<JsonNode> jsonNodes, TypeReference<T> clazz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("JsonNode or class", jsonNodes, clazz);
+            ObjectReader objectReader = OBJECT_MAPPER.readerFor(clazz);
+            List<T> result = new ArrayList<>();
+            for (JsonNode jsonNode : jsonNodes) {
+                result.add(objectReader.readValue(jsonNode));
+            }
+            return result;
         } catch (IOException e) {
             throw new InvalidParseOperationException(e);
         }

@@ -555,6 +555,26 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
+    @Override
+    public RequestResponse<JsonNode> revertUnits(JsonNode queryJson)
+        throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
+        NoWritingPermissionException {
+        Response response = null;
+        try  {
+            response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/revert/units").withBody(queryJson, BLANK_DSL).withJson());
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException e) {
+            return RequestResponse.parseVitamError(response);
+        } catch (VitamClientInternalException | AccessInternalClientNotFoundException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
+            throw new AccessInternalClientServerException(e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
     private void check(Response response) throws AccessInternalClientServerException, AccessUnauthorizedException, AccessInternalClientNotFoundException, NoWritingPermissionException, BadRequestException, ForbiddenClientException, ExpectationFailedClientException, PreconditionFailedClientException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {

@@ -154,6 +154,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
+    public RequestResponse<JsonNode> revertUpdateUnits(VitamContext vitamContext, JsonNode revertUpdateQuery)
+        throws VitamClientException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
     public RequestResponse<JsonNode> selectObjects(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
         return ClientMockResultHelper.getGotSimpleResult(selectQuery);

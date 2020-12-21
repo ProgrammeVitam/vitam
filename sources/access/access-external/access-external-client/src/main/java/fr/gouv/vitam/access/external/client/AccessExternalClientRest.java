@@ -318,6 +318,20 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
+    public RequestResponse<JsonNode> revertUpdateUnits(VitamContext vitamContext, JsonNode revertUpdateQuery)
+        throws VitamClientException {
+        VitamRequestBuilder request = post()
+            .withPath("/revert/units")
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(revertUpdateQuery)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
     public RequestResponse<JsonNode> selectObjects(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
         VitamRequestBuilder request = get()

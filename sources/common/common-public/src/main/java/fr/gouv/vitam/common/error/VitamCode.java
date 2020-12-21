@@ -512,7 +512,11 @@ public enum VitamCode {
     LOGBOOK_EXTERNAL_BAD_REQUEST(ServiceName.LOGBOOK, DomainName.BUSINESS, "O1", Status.BAD_REQUEST,
         "Logbook operation is not correct"),
     LOGBOOK_EXTERNAL_CONFLICT(ServiceName.LOGBOOK, DomainName.ILLEGAL, "O2", Status.CONFLICT,
-        "Logbook operation already exists");
+        "Logbook operation already exists"),
+
+    ACCESS_EXTERNAL_REVERT_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "47",
+        Status.BAD_REQUEST,
+        "Access external client error in the revert update units method.");
 
     private final ServiceName service;
     private final DomainName domain;

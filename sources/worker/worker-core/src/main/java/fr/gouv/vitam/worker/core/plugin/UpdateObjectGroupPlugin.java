@@ -31,6 +31,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -79,6 +80,7 @@ public class UpdateObjectGroupPlugin extends ActionHandler {
 
             ObjectNode diffObject = JsonHandler.createObjectNode();
             diffObject.put("diff", String.join("\n", diffList));
+            diffObject.put("version", VitamConfiguration.getDiffVersion());
 
             try {
                 itemStatus.setEvDetailData(JsonHandler.writeAsString(diffObject));

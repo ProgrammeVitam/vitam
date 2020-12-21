@@ -388,3 +388,15 @@ traits:
         body:
           application/json:
             description: Internal server error
+
+  RevertUnitResponse:
+    description: Requête de transfert reply
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de la restauration des métadoonées
+        body:
+          application/json:
+            description: Operation de Transfer acceptée
+            type: StandardTypes.AsyncStatus

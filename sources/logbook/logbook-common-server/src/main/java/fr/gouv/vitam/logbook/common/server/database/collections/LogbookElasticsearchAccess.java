@@ -204,7 +204,6 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         }
     }
 
-    @VisibleForTesting
     public void deleteIndexByAliasForTesting(LogbookCollections collection, int tenantId)
         throws LogbookExecutionException {
         try {
@@ -235,7 +234,6 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         }
     }
 
-    @VisibleForTesting
     public void purgeIndexForTesting(LogbookCollections collection, Integer tenantId) throws LogbookExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =

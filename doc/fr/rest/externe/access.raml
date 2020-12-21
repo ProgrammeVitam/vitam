@@ -202,6 +202,34 @@ documentation:
         description: Requête permettant de rechercher un ou plusieurs groupes d'objets
         example: !include libraries/examples/object-group-search.json
 
+/revert/units:
+  displayName: Restauration des métadonnées
+  description: API qui restaure les métadonnées essentielles
+  post:
+    description: |
+      Requête qui permet la restauration des métadonnées essentielles des unités archivistiques.
+
+      Permissions requises:
+        - units:update:revert
+    is: [AccessTraits.RevertUnitResponse]
+    body:
+      type: object
+      properties:
+        force:
+          description: true si on force la restauration, false sinon
+          type: boolean
+          example: false
+        dslRequest:
+          description: requete DSL pour filtrer les units à restaurer
+          type: DslTypes.DslMultipleQuery
+        operationId:
+          description: identifiant de l'opération à restaurer
+          type: string
+        $fields:
+          description: les champs à restaurer
+          type: string[]
+      description: Requête permettant de rechercher un ou plusieurs groupes d'objets
+      example: !include libraries/examples/revertRequest.json
 
 /dipexport:
   displayName: DIP Export
