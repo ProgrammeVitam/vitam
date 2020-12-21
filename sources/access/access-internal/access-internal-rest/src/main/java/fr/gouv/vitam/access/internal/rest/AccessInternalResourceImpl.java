@@ -87,6 +87,7 @@ import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -100,8 +101,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -146,6 +147,7 @@ import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelpe
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.common.model.WorkspaceConstants.OPTIONS_FILE;
 import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
@@ -1276,6 +1278,77 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }
+    }
+
+    @Override
+    @POST
+    @Path("/revert/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response revertUpdateUnits(RevertUpdateOptions revertUpdateOptions) {
+        LOGGER.debug("Start reverting update archive units with Dsl query {}", revertUpdateOptions);
+        Status status;
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+            // Check the writing rights
+            if (getVitamSession().getContract().getWritingPermission() == null ||
+                !getVitamSession().getContract().getWritingPermission()) {
+                status = Status.UNAUTHORIZED;
+                return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
+            }
+
+            String operationId = getVitamSession().getRequestId();
+
+            // Init logbook operation
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDReader.getGUID(operationId),
+                Contexts.REVERT_ESSENTIAL_METDATA.getEventType(),
+                GUIDReader.getGUID(operationId),
+                LogbookTypeProcess.MASS_UPDATE,
+                STARTED,
+                VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METDATA.getEventType(), STARTED), GUIDReader.getGUID(operationId));
+
+
+            // Add access contract rights
+            addRightsStatementIdentifier(initParameters);
+            logbookOperationsClient.create(initParameters);
+
+            workspaceClient.createContainer(operationId);
+
+            // store original query in workspace
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(revertUpdateOptions)));
+
+            workspaceClient.putObject(operationId, OPTIONS_FILE, writeToInpustream(revertUpdateOptions));
+
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId,
+                    Contexts.REVERT_ESSENTIAL_METDATA.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+
+            processingClient.initVitamProcess(operationId, Contexts.REVERT_ESSENTIAL_METDATA.name());
+
+            RequestResponse<ItemStatus> requestResponse =
+                processingClient
+                    .executeOperationProcess(operationId, Contexts.REVERT_ESSENTIAL_METDATA.name(), RESUME.getValue());
+            return requestResponse.toResponse();
+        } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
+            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+            LogbookClientServerException | VitamClientException | InternalServerException |
+            OperationContextException e) {
+            LOGGER.error("An error occured while reverting update archive units", e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        } catch (InvalidParseOperationException | BadRequestException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+
         }
     }
 

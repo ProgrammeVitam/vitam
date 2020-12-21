@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.translators.mongodb;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.assertj.core.api.Assertions;
@@ -91,23 +92,38 @@ public class VitamDocumentCodecTest {
         obNode1.put("Name", "MyName \" é ");
         obNode1.put("_v", 0);
         obNode1.put("_a", "test\"");
+        obNode1.set("Title_", JsonHandler.createObjectNode().put("FR", "$Title_FR"));
+        obNode1
+            .set("elems", JsonHandler.createArrayNode().addAll(List.of(TextNode.valueOf("1"), TextNode.valueOf("A"))));
 
         ObjectNode obNode2 = JsonHandler.createObjectNode();
         obNode2.put("Name", "MyModifiedName \" é ");
         obNode2.put("_v", 1);
         obNode2.put("_a", "test1\"");
+        obNode2.set("Title_", JsonHandler.createObjectNode().put("FR", "@Title_FR/New"));
+        obNode2
+            .set("elems", JsonHandler.createArrayNode().addAll(List.of(TextNode.valueOf("Z"), TextNode.valueOf("A"))));
+
 
         List<String> list =
             VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(obNode1), JsonHandler.prettyPrint(obNode2));
 
         List<String> result = VitamDocument.getConcernedDiffLines(list);
 
-        Assertions.assertThat(result.get(0)).isEqualTo("-  \"Name\" : \"MyName \\\" \\u00E9 \"");
-        Assertions.assertThat(result.get(1)).isEqualTo("-  \"_v\" : 0");
-        Assertions.assertThat(result.get(2)).isEqualTo("-  \"_a\" : \"test\\\"\"");
-        Assertions.assertThat(result.get(3)).isEqualTo("+  \"Name\" : \"MyModifiedName \\\" \\u00E9 \"");
-        Assertions.assertThat(result.get(4)).isEqualTo("+  \"_v\" : 1");
-        Assertions.assertThat(result.get(5)).isEqualTo("+  \"_a\" : \"test1\\\"\"");
 
+        List<String> expected = List.of(
+            "-  \"Name\" : \"MyName \\\" \\u00E9 \"",
+            "-  \"_v\" : 0",
+            "-  \"_a\" : \"test\\\"\"",
+            "-  \"Title_.FR\" : \"$Title_FR\"",
+            "-  \"elems\" : [ \"1\", \"A\" ]",
+            "+  \"Name\" : \"MyModifiedName \\\" \\u00E9 \"",
+            "+  \"_v\" : 1",
+            "+  \"_a\" : \"test1\\\"\"",
+            "+  \"Title_.FR\" : \"@Title_FR/New\"",
+            "+  \"elems\" : [ \"Z\", \"A\" ]"
+        );
+
+        Assertions.assertThat(result).containsExactly(expected.toArray(String[]::new));
     }
 }

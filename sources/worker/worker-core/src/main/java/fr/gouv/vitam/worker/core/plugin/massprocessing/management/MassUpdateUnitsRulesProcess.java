@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.management;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -376,6 +377,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
         ObjectNode diffObject = JsonHandler.createObjectNode();
         diffObject.put("diff", diff);
+        diffObject.put("version", VitamConfiguration.getDiffVersion());
         return JsonHandler.writeAsString(diffObject);
     }
     

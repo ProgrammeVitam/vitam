@@ -233,6 +233,9 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode updateRulesQuery)
         throws VitamClientException;
 
+    RequestResponse<JsonNode> revertUpdateUnits(VitamContext vitamContext, JsonNode revertUpdateQuery)
+        throws VitamClientException;
+
     /**
      * selectObjects /objects
      *

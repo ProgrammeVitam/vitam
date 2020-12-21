@@ -1,0 +1,73 @@
+{
+  "id": "REVERT_ESSENTIAL_METDATA",
+  "name": "Revert Essential Metdata Workflow",
+  "identifier": "REVERT_ESSENTIAL_METDATA",
+  "typeProc": "MASS_UPDATE",
+  "comment": "Revert an update operation of Archive Units Workflow",
+  "lifecycleLog": "DISABLED",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_CHECK_REVERT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "REVERT_CHECK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "revertOptions",
+                "uri": "WORKSPACE:options.json"
+              }
+            ],
+            "out": [
+              {
+                "name":"query",
+                "uri": "WORKSPACE:query.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_REVERT_UPDATE",
+      "behavior": "NOBLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "revertUpdateUnits.jsonl",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "REVERT_UPDATE_UNITS",
+            "statusAggregationBehavior": "KO_CAUSES_WARNING",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_REVERT_UPDATE_FINALIZE",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "REVERT_UPDATE_FINALIZE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

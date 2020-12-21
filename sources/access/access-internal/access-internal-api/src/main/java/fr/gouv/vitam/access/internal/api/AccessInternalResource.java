@@ -32,11 +32,17 @@ import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
@@ -194,12 +200,21 @@ public interface AccessInternalResource {
      */
     Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest);
 
+
     /**
-     * gets objects group with Json query
+     * Revert an update of archive units
      *
-     * @param dslQuery null not allowed
-     * @return a objects group result list
+     * @param revertUpdateOptions wrapper for {DSL, operationId}, null not allowed
+     * @return the response
      */
+    Response revertUpdateUnits(RevertUpdateOptions revertUpdateOptions);
+    
+        /**
+         * gets objects group with Json query
+         *
+         * @param dslQuery null not allowed
+         * @return a objects group result list
+         */
     Response getObjects(JsonNode dslQuery)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
 

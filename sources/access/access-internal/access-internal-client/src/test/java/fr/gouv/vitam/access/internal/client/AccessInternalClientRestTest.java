@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
@@ -281,6 +282,11 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
          */
         @Override
         public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
+            return null;
+        }
+
+        @Override
+        public Response revertUpdateUnits(RevertUpdateOptions revertUpdateOptions) {
             return null;
         }
 

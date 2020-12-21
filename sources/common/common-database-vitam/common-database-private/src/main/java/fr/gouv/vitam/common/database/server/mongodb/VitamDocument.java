@@ -26,24 +26,27 @@
  */
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import static difflib.DiffUtils.generateUnifiedDiff;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.github.wnameless.json.flattener.FlattenMode;
+import com.github.wnameless.json.flattener.JsonFlattener;
 import difflib.DiffUtils;
 import difflib.Patch;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static difflib.DiffUtils.generateUnifiedDiff;
 
 /**
  * Vitam Document MongoDb abstract
@@ -53,7 +56,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public abstract class VitamDocument<E> extends Document {
     private static final long serialVersionUID = 4051636259488359930L;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamDocument.class);
-    private static final String REGEX = "^(\\+|-){1}\\s{1,}.*";
+    private static final String REGEX = "^[+\\-]\\s+.*";
     /**
      * ID of each line: different for each sub type
      */
@@ -161,7 +164,6 @@ public abstract class VitamDocument<E> extends Document {
      */
 
     /**
-     *
      * @return the ID
      */
     public String getId() {
@@ -169,7 +171,6 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the TenantId
      */
     public final Integer getTenantId() {
@@ -177,7 +178,6 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the version
      */
     public final Integer getVersion() {
@@ -185,7 +185,6 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the bypass toString
      */
     public String toStringDirect() {
@@ -206,12 +205,21 @@ public abstract class VitamDocument<E> extends Document {
      * @return unified diff (each list entry is a diff line)
      */
     public static List<String> getUnifiedDiff(String original, String revised) {
-        final List<String> beforeList = Arrays.asList(original.split(",\\n|\\n"));
-        final List<String> revisedList = Arrays.asList(revised.split(",\\n|\\n"));
+        final List<String> beforeList = Arrays.asList(flattenJson(original).split(",\\n|\\n"));
+        final List<String> revisedList = Arrays.asList(flattenJson(revised).split(",\\n|\\n"));
 
         final Patch<String> patch = DiffUtils.diff(beforeList, revisedList);
 
         return generateUnifiedDiff(original, revised, beforeList, patch, 1);
+    }
+
+    private static String flattenJson(String original) {
+        try {
+            return JsonHandler.prettyPrint(JsonHandler.getFromString(
+                new JsonFlattener(original).withFlattenMode(FlattenMode.KEEP_PRIMITIVE_ARRAYS).flatten()));
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     /**
@@ -234,8 +242,22 @@ public abstract class VitamDocument<E> extends Document {
                     result.add(line);
                 }
             }
-
         }
         return result;
+    }
+
+    public static List<String> getOriginalDiffLines(String diff) {
+        List<String> diffArray = List.of(diff.split("\n"));
+        List<String> originalArray = diffArray.stream().filter(e -> !e.startsWith("+")).map(e -> e.replace("- ", ""))
+            .collect(Collectors.toList());
+        List<String> revisedArray = diffArray.stream().filter(e -> !e.startsWith("-")).map(e -> e.replace("+ ", ""))
+            .collect(Collectors.toList());
+        String original = "--- " + originalArray.toString();
+        String revised = "+++ " + revisedArray.toString();
+        List<String> diffResult = new ArrayList<>();
+        diffResult.add(original);
+        diffResult.add(revised);
+        diffResult.addAll(diffArray);
+        return diffResult;
     }
 }

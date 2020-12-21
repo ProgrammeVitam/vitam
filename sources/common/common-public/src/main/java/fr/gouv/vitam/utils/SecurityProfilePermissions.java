@@ -41,6 +41,7 @@ public enum SecurityProfilePermissions {
     LOGBOOKOPERATIONS_ID_READ("logbookoperations:id:read"),
     LOGBOOKUNITLIFECYCLES_ID_READ("logbookunitlifecycles:id:read"),
     UNITS_UPDATE("units:update"),
+    REVERT_UPDATE("units:update:revert"),
     UNITS_RULES_UPDATE("units:rules:update"),
     UNITS_READ("units:read"),
     UNITS_ID_READ_JSON("units:id:read:json"),

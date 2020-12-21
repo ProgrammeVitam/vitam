@@ -382,4 +382,8 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     RequestResponse<JsonNode> startTransferReplyWorkflow(InputStream transferReply)
         throws AccessInternalClientServerException;
+
+    RequestResponse<JsonNode> revertUnits(JsonNode queryJson)
+        throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
+        NoWritingPermissionException;
 }

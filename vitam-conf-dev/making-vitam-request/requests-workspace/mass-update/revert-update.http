@@ -1,0 +1,22 @@
+
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@operation-id = aeeaaaaaachemhquabfyqaln3wpwptqaaaaq
+
+### Restauration des MD essentiel
+POST {{url-access}}/access-external/v1/revert/units
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "force": false,
+  "dslRequest": {
+    "$roots": [],
+    "$query": []
+  },
+  "operationId": "{{operation-id}}",
+  "$fields": []
+}

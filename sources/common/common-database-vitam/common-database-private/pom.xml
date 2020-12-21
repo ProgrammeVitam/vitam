@@ -47,7 +47,11 @@
 			<artifactId>diffutils</artifactId>
 		</dependency>
 		<dependency>
-            <groupId>io.rest-assured</groupId>
+			<groupId>com.github.wnameless.json</groupId>
+			<artifactId>json-flattener</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.rest-assured</groupId>
 			<artifactId>json-path</artifactId>
 		</dependency>
 		<dependency>

@@ -1,0 +1,1485 @@
+[
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaaq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "\"Ladies Way\" - Remains of Hurtebis's Monument"
+    },
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/191-2"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP7"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP7"
+    ],
+    "Description": "Bouconville-Vauclair. - Ruines du monument d'Hurtebise et de la ferme du même lieu (vue 5).",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18.  Prêt Nerrière, 2013"
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Chemin des Dames",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "Writer": [
+      {
+        "FirstName": "John",
+        "BirthName": "Doe",
+        "GivenName": "Martin",
+        "Gender": "Male",
+        "BirthDate": "2000-01-01",
+        "BirthPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "DeathDate": "2000-01-01",
+        "DeathPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "Nationality": [
+          "Canadian"
+        ],
+        "Identifier": [
+          "ABC"
+        ]
+      }
+    ],
+    "Recipient": [
+      {
+        "FirstName": "John",
+        "BirthName": "Doe",
+        "GivenName": "Martin",
+        "Gender": "Male",
+        "BirthDate": "2000-01-01",
+        "BirthPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "DeathDate": "2000-01-01",
+        "DeathPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "Nationality": [
+          "Canadian"
+        ],
+        "Identifier": [
+          "ABC"
+        ]
+      }
+    ],
+    "Source": "Prêt Nerrière, 2013, CP7",
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2013-05-25T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.4656",
+      "GpsLongitude": "3.75556"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte5iaaabq",
+    "_mgt": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "1914-01-01",
+            "EndDate": "1914-01-01"
+          }
+        ]
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.769",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfsaaaaaq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "Great War Ruins. - Chemin des Dames. - Fort at Malmaison. - LL."
+    },
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/187-2"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP10"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP10"
+    ],
+    "Description": "Chavignon. - Le Fort de La Malmaison.",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des nombreux prêts\n                            qui ont été proposés aux Archives de la Vendée lors de la Grande Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres écrits).\n                        ",
+        "A noter : les cartes représentant des périodes de manoeuvres ou des armes\n                            proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18. Prêt, 2013"
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Chemin des Dames",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "Coverage": {
+      "Spatial": [
+        "Sur la mer"
+      ]
+    },
+    "Source": "Prêt, 2013, CP10",
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2013-05-25T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.4894",
+      "GpsLongitude": "3.52083"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte6yaaabq",
+    "_mgt": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "1914-01-01",
+            "EndDate": "1914-01-01"
+          }
+        ]
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfcyaaaba",
+    "DescriptionLevel": "Item",
+    "Title": "Unit Title FR",
+    "Description": "Pseudo Archive Unit du fichier :/home/pipav/partage_vm/VITAM/tools/Nouveau dossier/diversificationSIPv5.py",
+    "TransactedDate": "2017-04-05T17:50:20",
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gtfcyaaaaq",
+    "_mgt": {},
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "\"Ladies Way\" - Cerny's Sugar Works"
+    },
+    "SystemId": [
+      "myID"
+    ],
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/191-2"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP8"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP8"
+    ],
+    "Description": "Cerny-en-Laonnois. - Ruines de la sucrerie (vue 1) et un champ de bataille dévasté avec cimetière improvisé (vue 3).",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18.  Prêt Nerrière, 2013"
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Chemin des Dames",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "Source": "Prêt Nerrière, 2013, CP8",
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2013-05-25T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.4428",
+      "GpsLongitude": "3.66917"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte6iaaaaq",
+    "_mgt": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "1914-01-01",
+            "EndDate": "1914-01-01"
+          }
+        ]
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfsaaaabq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "The Fort at Malmaison."
+    },
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/204-6"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP11"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP11"
+    ],
+    "Description": "Chavignon. - Ruines du fort (vues 1-2) et de la ferme de La Malmaison (vue 3). Calvaire (vue 4).",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération, est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18.  Prêt Hervé, 2014"
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Chemin des Dames",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "Coverage": {
+      "Temporal": [
+        "Au Moyen-Age"
+      ]
+    },
+    "Source": "Prêt Hervé, 2014, CP11",
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2014-06-12T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.4894",
+      "GpsLongitude": "3.52083"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte7aaaabq",
+    "_mgt": {
+      "AccessRule": {
+        "Inheritance": {
+          "PreventInheritance": true,
+          "PreventRulesId": []
+        }
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfqqaaaaq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "\"Ladies Way\" - Berry-au-Bac"
+    },
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/191-1"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP5"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP5"
+    ],
+    "Description": "Berry-au-Bac. - Ruines du village (vue 1), observatoire et emplacement des batteries (vue 3).",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18. Prêt Nerrière, 2013."
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "Source": "Prêt Nerrière, 2013, CP5",
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2013-05-25T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.4036",
+      "GpsLongitude": "3.90361"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte4qaaaaq",
+    "_mgt": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "1914-01-01",
+            "EndDate": "1914-01-01"
+          }
+        ]
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfraaaaaq",
+    "DescriptionLevel": "Item",
+    "Title": "Unit Title FR",
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/224-4"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP6"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP6"
+    ],
+    "Description": "Berry-au-Bac. - Les ruines de l'église.",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18.  Prêt Braux, 2014"
+      ]
+    },
+    "DocumentType": "DocumentType",
+    "Language": [
+      "french"
+    ],
+    "DescriptionLanguage": "French",
+    "Status": "Status",
+    "Version": "Version",
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordReference": "Index géographique des Archives départementales de la Vendée",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordReference": "Thésaurus pour la description et l'indexation des archives locales",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordReference": "Thésaurus pour la description et l'indexation des archives locales",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordReference": "Thésaurus pour la description et l'indexation des archives locales",
+        "KeywordType": "genreform"
+      }
+    ],
+    "OriginatingAgency": {
+      "Identifier": "RATP"
+    },
+    "SubmissionAgency": {
+      "Identifier": "RATP"
+    },
+    "Source": "Prêt Braux, 2014, CP6",
+    "CreatedDate": "2017-06-01T09:31:00",
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "SentDate": "2017-06-01T09:31:00",
+    "ReceivedDate": "2017-06-01T09:31:00",
+    "RegisteredDate": "2014-10-29T11:11:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.4036",
+      "GpsLongitude": "3.90361"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte4yaaabq",
+    "_mgt": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "1914-01-01",
+            "EndDate": "1914-01-01"
+          }
+        ]
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "The Ruins of the Great War. - Belleau. - A trench near the station. - LL."
+    },
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/204-4"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP3"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP3"
+    ],
+    "Description": "Belleau. - Une tranchée près de la gare.",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18. Prêt Hervé, 2014."
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "Source": "Prêt Hervé, 2014, CP3",
+    "RelatedObjectReference": {
+      "IsVersionOf": [],
+      "Replaces": [],
+      "Requires": [
+        {
+          "RepositoryArchiveUnitPID": "aeaqaaaaaahikhnoab5ywalwd2gtfqaaaaaq"
+        }
+      ],
+      "IsPartOf": [],
+      "References": []
+    },
+    "TransactedDate": "2017-06-01T09:32:00",
+    "AcquiredDate": "2016-01-05T09:32:00",
+    "RegisteredDate": "2014-06-12T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.08412",
+      "GpsLongitude": "3.29208"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte3yaaaaq",
+    "_mgt": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002",
+            "StartDate": "2000-01-01",
+            "EndDate": "2005-01-01"
+          }
+        ],
+        "FinalAction": "Keep"
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfdyaaaaq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "Chemin des dames - The Castle of La Motte"
+    },
+    "FilePlanPosition": [
+      "AB-001"
+    ],
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/204-3"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP1"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP1"
+    ],
+    "Description": "Allemant. - Au chemin des Dames : le château et la ferme de la Motte totalement détruits.",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18. Prêt Hervé,\n                            2014"
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "AuthorizedAgent": [
+      {
+        "FirstName": "John",
+        "BirthName": "Doe",
+        "GivenName": "Martin",
+        "Gender": "Male",
+        "BirthDate": "2000-01-01",
+        "BirthPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "DeathDate": "2000-01-01",
+        "DeathPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "Nationality": [
+          "Canadian"
+        ],
+        "Identifier": [
+          "ABC"
+        ]
+      }
+    ],
+    "Source": "Prêt Hervé, 2014, CP1",
+    "RelatedObjectReference": {
+      "IsVersionOf": [],
+      "Replaces": [
+        {
+          "ArchiveUnitRefId": "aeaqaaaaaahikhnoab5ywalwd2gtflaaaaaq"
+        }
+      ],
+      "Requires": [],
+      "IsPartOf": [],
+      "References": []
+    },
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2014-06-12T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Signature": [
+      {
+        "Signer": [
+          {
+            "FirstName": "John",
+            "BirthName": "Doe",
+            "SigningTime": "2017-08-24T14:56:31"
+          }
+        ],
+        "Validator": {
+          "FirstName": "Jane",
+          "BirthName": "Doe",
+          "ValidationTime": "2017-08-24T14:56:31"
+        },
+        "ReferencedObject": {
+          "SignedObjectId": "aeaaaaaaaahikhnoab5ywalwd2gte4iaaabq",
+          "SignedObjectDigest": {
+            "MessageDigest": "fec135f80c1996d1f281183aa260609d3dde1a831b593ba3f62c78a794b298fe22e4f305c419ffc54185477098da99b58e9627b9a78429d11fc4a12c6aed125b",
+            "Algorithm": "SHA-512"
+          }
+        }
+      }
+    ],
+    "Gps": {
+      "GpsVersionID": "52.7",
+      "GpsAltitude": 255,
+      "GpsAltitudeRef": "GpsAltitudeRef",
+      "GpsLatitude": "49.4769199",
+      "GpsLatitudeRef": "GpsLatitudeRef",
+      "GpsLongitude": "3.4417368",
+      "GpsLongitudeRef": "GpsLongitudeRef",
+      "GpsDateStamp": "22:44 24/10/11"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte3aaaaaq",
+    "_mgt": {
+      "AccessRule": {
+        "Inheritance": {
+          "PreventRulesId": [
+            "ACC-00001"
+          ]
+        }
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.77",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtflaaaaaq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "Great War Ruins. - Anizy-le-Château. - The Parade. - LL."
+    },
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/187-1"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP2"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP2"
+    ],
+    "Description": "Anizy-le-Château. - Ruines sur la place d'Arme (vue 1), de l'église (vue 3), de la maison natale de Carrier-Belleuse (vue 5) et du Pont du Canal (vue 7).",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18. Prêt, 2013."
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Chemin des Dames",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "AuthorizedAgent": [
+      {
+        "Corpname": "Archives départementales de la Vendée",
+        "Identifier": [
+          "FRAD085"
+        ]
+      }
+    ],
+    "Recipient": [
+      {
+        "FirstName": "John",
+        "BirthName": "Doe",
+        "GivenName": "Martin",
+        "Gender": "Male",
+        "BirthDate": "2000-01-01",
+        "BirthPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "DeathDate": "2000-01-01",
+        "DeathPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "Nationality": [
+          "Canadian"
+        ],
+        "Identifier": [
+          "ABC"
+        ]
+      }
+    ],
+    "Source": "Prêt 2013, CP2",
+    "RelatedObjectReference": {
+      "IsVersionOf": [
+        {
+          "ArchiveUnitRefId": "aeaqaaaaaahikhnoab5ywalwd2gtfdyaaaaq"
+        }
+      ]
+    },
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2013-05-25T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Gps": {
+      "GpsLatitude": "49.4769199",
+      "GpsLongitude": "3.4417368"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte3iaaaba",
+    "_mgt": {
+      "StorageRule": {
+        "Rules": [
+          {
+            "Rule": "STO-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          }
+        ],
+        "FinalAction": "Copy"
+      },
+      "DisseminationRule": {
+        "Rules": [
+          {
+            "Rule": "DIS-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2025-01-01"
+          }
+        ]
+      },
+      "ReuseRule": {
+        "Rules": [
+          {
+            "Rule": "REU-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2010-01-01"
+          }
+        ]
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_us_sp": {},
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2020-12-01T13:45:42.771",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfrqaaaba",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "Unit Title FR",
+      "en": "Panoramic View"
+    },
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 1/204-5"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP9"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP9"
+    ],
+    "Description": "Château-Thierry. - Vue générale de la ville après destruction (vue 1), ruines au début des rues Carnot (vue 2) et du Général-Degoutte (vue 3), un pont endommagé avec réparation de fortune (vue 4), le cimetière (vue 5), un trou d'obus dans le bois de la \"Côte 204\" (vue 6).",
+    "CustodialHistory": {
+      "CustodialHistoryItem": [
+        "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+        "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+        "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+        "Dans le cas présent : Collecte 14-18.  Prêt Hervé, 2014"
+      ]
+    },
+    "Language": [
+      "french"
+    ],
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Keyword": [
+      {
+        "KeywordContent": "Aisne (département)",
+        "KeywordType": "geogname"
+      },
+      {
+        "KeywordContent": "Guerre 1914-1918",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Dommages de guerre",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Cimetière",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Soldat",
+        "KeywordType": "subject"
+      },
+      {
+        "KeywordContent": "Carte postale",
+        "KeywordType": "genreform"
+      }
+    ],
+    "Coverage": {
+      "Juridictional": [
+        "Sur la mer"
+      ]
+    },
+    "Source": "Prêt Hervé, 2014, CP9",
+    "TransactedDate": "2017-06-01T09:31:00",
+    "AcquiredDate": "2016-01-05T09:31:00",
+    "RegisteredDate": "2014-06-12T09:31:00",
+    "StartDate": "1914-01-01T09:31:00",
+    "EndDate": "1918-12-31T19:06:44",
+    "Event": [
+      {
+        "evId": "ID-1542",
+        "evType": "myEvent",
+        "evDateTime": "1918-12-31T19:06:44",
+        "evTypeDetail": "myEventDetail"
+      }
+    ],
+    "Gps": {
+      "GpsLatitude": "49.0453",
+      "GpsLongitude": "3.40167"
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte6qaaaaq",
+    "_mgt": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "1914-01-01",
+            "EndDate": "1914-01-01"
+          }
+        ]
+      }
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [
+      "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
+    ],
+    "_us": [
+      "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
+    ],
+    "_graph": [
+      "aeaqaaaaaahikhnoab5ywalwd2gtfrqaaaba/aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
+    ],
+    "_us_sp": {
+      "Vitam": [
+        "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
+      ]
+    },
+    "_uds": {
+      "1": [
+        "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
+      ]
+    },
+    "_min": 1,
+    "_max": 2,
+    "_glpd": "2020-12-01T13:45:43.213",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahikhnoab5ywalwd2gtfqaaaaaq",
+    "DescriptionLevel": "Item",
+    "Title": "Unit Title FR",
+    "OriginatingSystemId": [
+      "ID01"
+    ],
+    "ArchivalAgencyArchiveUnitIdentifier": [
+      "1 Num 416/70"
+    ],
+    "OriginatingAgencyArchiveUnitIdentifier": [
+      "CP4"
+    ],
+    "TransferringAgencyArchiveUnitIdentifier": [
+      "CP4"
+    ],
+    "Description": "Berry-au-Bac. - Champ de bataille avec trous d'obus, la cote 108.",
+    "Writer": [
+      {
+        "FirstName": "John",
+        "BirthName": "Doe",
+        "GivenName": "Martin",
+        "Gender": "Male",
+        "BirthDate": "2000-01-01",
+        "BirthPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "DeathDate": "2000-01-01",
+        "DeathPlace": {
+          "Geogname": "Geogname",
+          "Address": "123 my Street",
+          "PostalCode": "CD255",
+          "City": "Toronto",
+          "Region": "Ontario",
+          "Country": "Canada"
+        },
+        "Nationality": [
+          "Canadian"
+        ],
+        "Identifier": [
+          "ABC"
+        ],
+        "Function": [
+          "Function"
+        ],
+        "Activity": [
+          "Activity"
+        ],
+        "Position": [
+          "Position"
+        ],
+        "Role": [
+          "Role"
+        ]
+      }
+    ],
+    "RelatedObjectReference": {
+      "IsPartOf": [
+        {
+          "DataObjectReference": {
+            "DataObjectReferenceId": "aeaaaaaaaahikhnoab5ywalwd2gte2yaaaaq"
+          }
+        }
+      ]
+    },
+    "_og": "aebaaaaaaahikhnoab5ywalwd2gte4aaaabq",
+    "_mgt": {
+      "AppraisalRule": {
+        "Inheritance": {
+          "PreventRulesId": [
+            "APP-00002"
+          ]
+        },
+        "FinalAction": "Keep"
+      },
+      "ClassificationRule": {
+        "Rules": [
+          {
+            "Rule": "CLASS-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2010-01-01"
+          }
+        ],
+        "ClassificationLevel": "Secret Défense",
+        "ClassificationOwner": "RATP",
+        "ClassificationReassessingDate": "2000-01-01",
+        "NeedReassessingAuthorization": true
+      },
+      "NeedAuthorization": true
+    },
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "3.0.10-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+    "_ops": [
+      "aeeaaaaaachikhnoaa6vyalwd2gs4naaaaaq",
+      "aeeaaaaaachikhnoaant6alwd2ltg6iaaaaq",
+      "aeeaaaaaachikhnoaant6alwd3so2iiaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_up": [
+      "aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"
+    ],
+    "_us": [
+      "aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"
+    ],
+    "_graph": [
+      "aeaqaaaaaahikhnoab5ywalwd2gtfqaaaaaq/aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"
+    ],
+    "_us_sp": {
+      "Vitam": [
+        "aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"
+      ]
+    },
+    "_uds": {
+      "1": [
+        "aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"
+      ]
+    },
+    "_min": 1,
+    "_max": 2,
+    "_glpd": "2020-12-01T13:45:43.213",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 0
+  }
+]

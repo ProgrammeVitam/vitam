@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -232,6 +233,11 @@ public class AccessResourceMock implements AccessInternalResource {
     @Override
     public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         return null;
+    }
+
+    @Override
+    public Response revertUpdateUnits(RevertUpdateOptions revertUpdateOptions) {
+        return Response.status(200).build();
     }
 
     /**

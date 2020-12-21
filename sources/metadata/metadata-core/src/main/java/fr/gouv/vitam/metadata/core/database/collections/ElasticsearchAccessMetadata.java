@@ -282,13 +282,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         Collection<? extends MetadataDocument<?>> documents)
         throws MetaDataExecutionException {
 
-        try {
-            ElasticsearchIndexAlias indexAlias =
-                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
-            super.indexEntries(indexAlias, documents);
-        } catch (DatabaseException e) {
-            throw new MetaDataExecutionException(e);
-        }
+            try {
+                ElasticsearchIndexAlias indexAlias =
+                    this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
+                super.indexEntries(indexAlias, documents);
+            } catch (DatabaseException e) {
+                throw new MetaDataExecutionException(e);
+            }
     }
 
 

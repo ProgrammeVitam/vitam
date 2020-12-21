@@ -1186,6 +1186,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (diffNode.get(ID) != null && unitId.equals(diffNode.get(ID).textValue())) {
                 ObjectNode diffObject = JsonHandler.createObjectNode();
                 diffObject.set("diff", diffNode.get(DIFF));
+                diffObject.put("version", VitamConfiguration.getDiffVersion());
                 return JsonHandler.writeAsString(diffObject);
             }
         }
