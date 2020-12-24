@@ -24,48 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.core.validation;
 
-public enum MetadataValidationErrorCode {
+package fr.gouv.vitam.common.database.server;
 
-    /**
-     * Internal / built-in validation failed
-     */
-    SCHEMA_VALIDATION_FAILURE,
-    /**
-     * Archive unit profile schema is empty
-     */
-    EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA,
-    /**
-     * No such archive unit profile schema
-     */
-    UNKNOWN_ARCHIVE_UNIT_PROFILE,
-    /**
-     * Archive unit profile validation KO
-     */
-    ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATION_FAILURE,
-    /**
-     * Archive unit profile inactive
-     */
-    ARCHIVE_UNIT_PROFILE_SCHEMA_INACTIVE,
-    /**
-     * Archive unit profile validation KO
-     */
-    ONTOLOGY_VALIDATION_FAILURE,
-    /**
-     * Unit start/end date format is invalid
-     */
-    INVALID_UNIT_DATE_FORMAT,
-    /**
-     * Unit endDate is before startDate
-     */
-    INVALID_START_END_DATE,
-    /**
-     * HoldRule HoldEndDate is before StartDate (unit rule update only)
-     */
-    RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE,
-    /**
-     * HoldEndDate is only allowed when HoldRule has undefined (null) duration (unit rule update only)
-     */
-    RULE_UPDATE_UNEXPECTED_HOLD_END_DATE,
+public enum RuleUpdateErrorCode {
+
+    HOLD_END_DATE_BEFORE_START_DATE,
+    HOLD_END_DATE_ONLY_ALLOWED_FOR_HOLD_RULE_WITH_UNDEFINED_DURATION,
+
 }

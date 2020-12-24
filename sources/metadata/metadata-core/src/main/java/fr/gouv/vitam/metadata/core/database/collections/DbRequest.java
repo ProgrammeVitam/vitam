@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.MongoDbInMemory;
+import fr.gouv.vitam.common.database.server.RuleUpdateException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.RequestToAbstract;
 import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
@@ -93,6 +94,7 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
+import fr.gouv.vitam.metadata.core.validation.MetadataValidationErrorCode;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
@@ -217,8 +219,12 @@ public class DbRequest {
             mongoInMemory.getUpdateJson(updateRequest);
 
             // Update rules
-            final ObjectNode updatedJsonDocument =
-                (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
+            final ObjectNode updatedJsonDocument;
+            try {
+                updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
+            } catch (RuleUpdateException e) {
+                throw new MetadataValidationException(toMetadataValidationErrorCode(e), e.getMessage(), e);
+            }
 
             fieldHistoryManager.trigger(jsonDocument, updatedJsonDocument);
 
@@ -263,6 +269,17 @@ public class DbRequest {
         }
 
         throw new MetaDataExecutionException("Can not modify document " + documentId);
+    }
+
+    private MetadataValidationErrorCode toMetadataValidationErrorCode(RuleUpdateException e) {
+        switch (e.getRuleUpdateErrorCode()) {
+            case HOLD_END_DATE_BEFORE_START_DATE:
+                return MetadataValidationErrorCode.RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE;
+            case HOLD_END_DATE_ONLY_ALLOWED_FOR_HOLD_RULE_WITH_UNDEFINED_DURATION:
+                return MetadataValidationErrorCode.RULE_UPDATE_UNEXPECTED_HOLD_END_DATE;
+            default:
+                throw new IllegalStateException("Unexpected value: " + e.getRuleUpdateErrorCode());
+        }
     }
 
     /**

@@ -50,15 +50,17 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.QueryPattern;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryActionDeletion;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 import org.apache.commons.lang.StringUtils;
 
-import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,14 +83,13 @@ public class MongoDbInMemory {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbInMemory.class);
 
     private static final String RULES_KEY = "Rules";
-    private static final String RULE_KEY = "Rule";
-    private static final String START_DATE_KEY = "StartDate";
-    private static final String END_DATE_KEY = "EndDate";
     private static final String MANAGEMENT_KEY = "_mgt";
     private static final String FINAL_ACTION_KEY = "FinalAction";
     private static final String INHERITANCE = "Inheritance";
     private static final String PREVENT_INHERITANCE = "PreventInheritance";
     private static final String PREVENT_RULES_ID = "PreventRulesId";
+    private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
     private static final SerializerProvider EMPTY_SERIALIZER_FOR_OBJECT_NODE = null;
 
@@ -201,7 +202,7 @@ public class MongoDbInMemory {
      * @throws InvalidParseOperationException
      */
     public JsonNode getUpdateJsonForRule(RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration)
-        throws InvalidParseOperationException {
+        throws InvalidParseOperationException, RuleUpdateException {
         if (ruleActions != null) {
             final ObjectNode initialMgt =
                 (ObjectNode) getOrCreateEmptyNodeByName(updatedDocument, MANAGEMENT_KEY, false);
@@ -219,12 +220,12 @@ public class MongoDbInMemory {
     }
 
     private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
-        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
+        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
         if (ruleActions == null || ruleActions.isEmpty())
             return;
 
-        ruleActions.stream().flatMap(item -> item.entrySet().stream())
-            .forEach((Entry<String, RuleCategoryAction> entry) -> {
+        for (Map<String, RuleCategoryAction> item : ruleActions) {
+            for (Entry<String, RuleCategoryAction> entry : item.entrySet()) {
                 String category = entry.getKey();
                 RuleCategoryAction ruleCategoryAction = entry.getValue();
 
@@ -238,24 +239,24 @@ public class MongoDbInMemory {
                 if (!ruleCategoryAction.getRules().isEmpty()) {
                     ArrayNode initialRules =
                         (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
-                    ruleCategoryAction.getRules().forEach(ruleAction -> {
+                    for (RuleAction ruleAction : ruleCategoryAction.getRules()) {
                         if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
-                            JsonNode newRule = getJsonNodeFromRuleAction(ruleAction, bindRuleToDuration);
+                            JsonNode newRule = getJsonNodeFromRuleAction(category, ruleAction, bindRuleToDuration);
                             initialRules.add(newRule);
                         }
-                    });
+                    }
                     initialRuleCategory.set(RULES_KEY, initialRules);
                 }
 
                 // set category
                 initialMgt.set(category, initialRuleCategory);
-            });
+            }
+        }
     }
 
     private boolean hasRuleDefined(final String ruleId, final ArrayNode rules) {
-        Iterator<JsonNode> nodes = rules.iterator();
-        while (nodes.hasNext()) {
-            if (ruleId.equals(nodes.next().get("Rule").textValue())) {
+        for (JsonNode rule : rules) {
+            if (ruleId.equals(rule.get("Rule").textValue())) {
                 return true;
             }
         }
@@ -263,13 +264,12 @@ public class MongoDbInMemory {
     }
 
     private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
-        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) {
+        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
         if (ruleActions == null || ruleActions.isEmpty())
             return;
 
-        ruleActions.stream()
-            .flatMap(item -> item.entrySet().stream())
-            .forEach((Entry<String, RuleCategoryAction> entry) -> {
+        for (Map<String, RuleCategoryAction> item : ruleActions) {
+            for (Entry<String, RuleCategoryAction> entry : item.entrySet()) {
                 String category = entry.getKey();
                 RuleCategoryAction ruleCategoryAction = entry.getValue();
 
@@ -286,16 +286,18 @@ public class MongoDbInMemory {
                         (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                     for (JsonNode initialRule : initialRules) {
                         ObjectNode node = (ObjectNode) initialRule;
-                        String actualRule = node.get(RULE_KEY).asText();
+                        String actualRule = node.get(RuleModel.RULE).asText();
                         if (rulesToUpdate.containsKey(actualRule)) {
-                            updateJsonNodeUsingRuleAction(node, rulesToUpdate.get(actualRule), bindRuleToDuration);
+                            updateJsonNodeUsingRuleAction(category, node, rulesToUpdate.get(actualRule),
+                                bindRuleToDuration);
                         }
                     }
                     initialRuleCategory.set(RULES_KEY, initialRules);
                 }
 
                 initialMgt.set(category, initialRuleCategory);
-            });
+            }
+        }
     }
 
     private void applyDeleteRuleAction(List<Map<String, RuleCategoryActionDeletion>> ruleActions,
@@ -326,7 +328,7 @@ public class MongoDbInMemory {
             ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialCategory, RULES_KEY, true);
             ArrayNode filteredRules = JsonHandler.createArrayNode();
             initialRules.forEach(node -> {
-                if (!rulesToDelete.contains(node.get(RULE_KEY).asText())) {
+                if (!rulesToDelete.contains(node.get(RuleModel.RULE).asText())) {
                     filteredRules.add(node);
                 }
             });
@@ -481,55 +483,133 @@ public class MongoDbInMemory {
         }
     }
 
-    private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction, Map<String, DurationData> bindRuleToDuration) {
-        try {
-            ObjectNode newRule = JsonHandler.createObjectNode();
-            newRule.put(RULE_KEY, ruleAction.getRule());
-            if (ruleAction.getStartDate() != null) {
-                newRule.put(START_DATE_KEY,
-                    LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
-                computeEndDate(newRule, bindRuleToDuration);
-            }
-            return newRule;
-        } catch (ParseException e) {
-            throw new IllegalStateException(e);
+    private JsonNode getJsonNodeFromRuleAction(String category, RuleAction ruleAction,
+        Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
+
+        ObjectNode newRule = JsonHandler.createObjectNode();
+        String ruleId = ruleAction.getRule();
+        newRule.put(RuleModel.RULE, ruleId);
+
+        applyAttributeUpdates(newRule, ruleAction);
+
+        computeEndDate(newRule, category, bindRuleToDuration);
+
+        return newRule;
+    }
+
+    private void updateJsonNodeUsingRuleAction(String category, ObjectNode unitRule, RuleAction ruleAction,
+        Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
+        if (ruleAction.getRule() != null) {
+            unitRule.put(RuleModel.RULE, ruleAction.getRule());
+        }
+
+        applyAttributeUpdates(unitRule, ruleAction);
+
+        computeEndDate(unitRule, category, bindRuleToDuration);
+    }
+
+    private void applyAttributeUpdates(ObjectNode unitRule, RuleAction ruleAction) {
+        if (ruleAction.getStartDate() != null) {
+            unitRule.put(RuleModel.START_DATE, ruleAction.getStartDate());
+        }
+        if (Boolean.TRUE.equals(ruleAction.getDeleteStartDate())) {
+            unitRule.remove(RuleModel.START_DATE);
+        }
+
+        if (ruleAction.getHoldEndDate() != null) {
+            unitRule.put(RuleModel.HOLD_END_DATE, ruleAction.getHoldEndDate());
+        }
+        if (Boolean.TRUE.equals(ruleAction.getDeleteHoldEndDate())) {
+            unitRule.remove(RuleModel.HOLD_END_DATE);
+        }
+
+        if (ruleAction.getHoldOwner() != null) {
+            unitRule.put(RuleModel.HOLD_OWNER, ruleAction.getHoldOwner());
+        }
+        if (Boolean.TRUE.equals(ruleAction.getDeleteHoldOwner())) {
+            unitRule.remove(RuleModel.HOLD_OWNER);
+        }
+
+        if (ruleAction.getHoldReason() != null) {
+            unitRule.put(RuleModel.HOLD_REASON, ruleAction.getHoldReason());
+        }
+        if (Boolean.TRUE.equals(ruleAction.getDeleteHoldReason())) {
+            unitRule.remove(RuleModel.HOLD_REASON);
+        }
+
+        if (ruleAction.getHoldReassessingDate() != null) {
+            unitRule.put(RuleModel.HOLD_REASSESSING_DATE, ruleAction.getHoldReassessingDate());
+        }
+        if (Boolean.TRUE.equals(ruleAction.getDeleteHoldReassessingDate())) {
+            unitRule.remove(RuleModel.HOLD_REASSESSING_DATE);
+        }
+
+        if (ruleAction.getPreventRearrangement() != null) {
+            unitRule.put(RuleModel.PREVENT_REARRANGEMENT, ruleAction.getPreventRearrangement());
+        }
+        if (Boolean.TRUE.equals(ruleAction.getDeletePreventRearrangement())) {
+            unitRule.remove(RuleModel.PREVENT_REARRANGEMENT);
         }
     }
 
-    private void updateJsonNodeUsingRuleAction(ObjectNode unitRule, RuleAction ruleAction,
-        Map<String, DurationData> bindRuleToDuration) {
-        try {
-            if (ruleAction.getRule() != null) {
-                unitRule.put(RULE_KEY, ruleAction.getRule());
-            }
+    private void ensureStartDateIsBeforeHoldEndDate(ObjectNode unitRule) throws RuleUpdateException {
+        if (unitRule.has(RuleModel.START_DATE) && unitRule.has(RuleModel.HOLD_END_DATE)) {
 
-            if (ruleAction.isDeleteStartDate() != null && ruleAction.isDeleteStartDate()) {
-                unitRule.remove(START_DATE_KEY);
-                unitRule.remove(END_DATE_KEY);
-                return;
-            }
+            String startDate = unitRule.get(RuleModel.START_DATE).asText();
+            String holdEndDate = unitRule.get(RuleModel.HOLD_END_DATE).asText();
 
-            if (ruleAction.getStartDate() != null) {
-                unitRule.put(START_DATE_KEY,
-                    LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
-            }
+            LocalDate localStartDate = LocalDate.parse(startDate, DATE_TIME_FORMATTER);
+            LocalDate localHoldEndDate = LocalDate.parse(holdEndDate, DATE_TIME_FORMATTER);
 
-            computeEndDate(unitRule, bindRuleToDuration);
-        } catch (ParseException e) {
-            throw new IllegalStateException(e);
+            if (localHoldEndDate.isBefore(localStartDate)) {
+                throw new RuleUpdateException(RuleUpdateErrorCode.HOLD_END_DATE_BEFORE_START_DATE,
+                    "HoldEndDate (" + holdEndDate + ") cannot be before StartDate (" + startDate + ")");
+            }
         }
     }
 
-    private void computeEndDate(ObjectNode unitRule, Map<String, DurationData> bindRuleToDuration) {
-        String ruleId = unitRule.get(RULE_KEY) != null ? unitRule.get(RULE_KEY).asText() : null;
-        DurationData durationData = bindRuleToDuration.get(ruleId);
+    private void ensureNoHoldEndDateSet(ObjectNode unitRule) throws RuleUpdateException {
+        if (unitRule.has(RuleModel.HOLD_END_DATE)) {
+            throw new RuleUpdateException(
+                RuleUpdateErrorCode.HOLD_END_DATE_ONLY_ALLOWED_FOR_HOLD_RULE_WITH_UNDEFINED_DURATION,
+                String.format("HoldEndDate (%s) cannot be defined for rule %s",
+                    unitRule.get(RuleModel.HOLD_END_DATE).asText(), unitRule.get(RuleModel.RULE).asText()));
+        }
+    }
 
-        if (durationData == null || unitRule.path(START_DATE_KEY).isNull() ||
-            unitRule.path(START_DATE_KEY).isMissingNode()) {
+    private void computeEndDate(ObjectNode unitRule, String ruleCategory,
+        Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
+
+        String ruleId = unitRule.get(RuleModel.RULE).asText();
+        boolean isHoldRuleWithUndefinedDuration =
+            RuleType.HoldRule.isNameEquals(ruleCategory) &&
+                bindRuleToDuration.containsKey(ruleId) &&
+                bindRuleToDuration.get(ruleId).getDurationUnit() == null;
+
+        if (isHoldRuleWithUndefinedDuration) {
+
+            if (unitRule.has(RuleModel.HOLD_END_DATE)) {
+                String holdEndDate = unitRule.get(RuleModel.HOLD_END_DATE).asText();
+                unitRule.put(RuleModel.END_DATE, holdEndDate);
+            } else {
+                unitRule.remove(RuleModel.END_DATE);
+            }
+
+            ensureStartDateIsBeforeHoldEndDate(unitRule);
             return;
         }
 
-        String startDateString = unitRule.get(START_DATE_KEY).textValue();
+        ensureNoHoldEndDateSet(unitRule);
+        unitRule.remove(RuleModel.END_DATE);
+
+        DurationData durationData = bindRuleToDuration.get(ruleId);
+
+        if (durationData == null || unitRule.path(RuleModel.START_DATE).isNull() ||
+            unitRule.path(RuleModel.START_DATE).isMissingNode()) {
+            return;
+        }
+
+        String startDateString = unitRule.get(RuleModel.START_DATE).textValue();
         if (startDateString == null) {
             return;
         }
@@ -539,7 +619,7 @@ public class MongoDbInMemory {
         TemporalUnit temporalUnit = durationData.getDurationUnit();
 
         LocalDate endDate = startDate.plus(duration, temporalUnit);
-        unitRule.put(END_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(endDate));
+        unitRule.put(RuleModel.END_DATE, LocalDateUtil.getFormattedSimpleDate(endDate));
     }
 
     /**

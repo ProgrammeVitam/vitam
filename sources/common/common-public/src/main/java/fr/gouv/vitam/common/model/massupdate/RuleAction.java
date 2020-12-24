@@ -39,11 +39,44 @@ public class RuleAction {
     @JsonProperty("StartDate")
     private String startDate;
 
+    /**
+     * @deprecated unused / forbidden field. Do not delete (breaks public API)
+     */
     @JsonProperty("EndDate")
     private String endDate;
 
     @JsonProperty("DeleteStartDate")
     private Boolean deleteStartDate;
+
+    @JsonProperty("HoldEndDate")
+    private String holdEndDate;
+
+    @JsonProperty("DeleteHoldEndDate")
+    private Boolean deleteHoldEndDate;
+
+    @JsonProperty("HoldOwner")
+    private String holdOwner;
+
+    @JsonProperty("DeleteHoldOwner")
+    private Boolean deleteHoldOwner;
+
+    @JsonProperty("HoldReason")
+    private String holdReason;
+
+    @JsonProperty("DeleteHoldReason")
+    private Boolean deleteHoldReason;
+
+    @JsonProperty("HoldReassessingDate")
+    private String holdReassessingDate;
+
+    @JsonProperty("DeleteHoldReassessingDate")
+    private Boolean deleteHoldReassessingDate;
+
+    @JsonProperty("PreventRearrangement")
+    private Boolean preventRearrangement;
+
+    @JsonProperty("DeletePreventRearrangement")
+    private Boolean deletePreventRearrangement;
 
     public String getOldRule() {
         return oldRule;
@@ -72,10 +105,16 @@ public class RuleAction {
         return this;
     }
 
+    /**
+     * @deprecated unused / forbidden field. Do not delete (breaks public API)
+     */
     public String getEndDate() {
         return endDate;
     }
 
+    /**
+     * @deprecated unused / forbidden field. Do not delete (breaks public API)
+     */
     public RuleAction setEndDate(String endDate) {
         this.endDate = endDate;
         return this;
@@ -87,6 +126,100 @@ public class RuleAction {
 
     public RuleAction setDeleteStartDate(Boolean deleteStartDate) {
         this.deleteStartDate = deleteStartDate;
+        return this;
+    }
+
+    public Boolean getDeleteStartDate() {
+        return deleteStartDate;
+    }
+
+    public String getHoldEndDate() {
+        return holdEndDate;
+    }
+
+    public RuleAction setHoldEndDate(String holdEndDate) {
+        this.holdEndDate = holdEndDate;
+        return this;
+    }
+
+    public Boolean getDeleteHoldEndDate() {
+        return deleteHoldEndDate;
+    }
+
+    public RuleAction setDeleteHoldEndDate(Boolean deleteHoldEndDate) {
+        this.deleteHoldEndDate = deleteHoldEndDate;
+        return this;
+    }
+
+    public String getHoldOwner() {
+        return holdOwner;
+    }
+
+    public RuleAction setHoldOwner(String holdOwner) {
+        this.holdOwner = holdOwner;
+        return this;
+    }
+
+    public Boolean getDeleteHoldOwner() {
+        return deleteHoldOwner;
+    }
+
+    public RuleAction setDeleteHoldOwner(Boolean deleteHoldOwner) {
+        this.deleteHoldOwner = deleteHoldOwner;
+        return this;
+    }
+
+    public String getHoldReason() {
+        return holdReason;
+    }
+
+    public RuleAction setHoldReason(String holdReason) {
+        this.holdReason = holdReason;
+        return this;
+    }
+
+    public Boolean getDeleteHoldReason() {
+        return deleteHoldReason;
+    }
+
+    public RuleAction setDeleteHoldReason(Boolean deleteHoldReason) {
+        this.deleteHoldReason = deleteHoldReason;
+        return this;
+    }
+
+    public String getHoldReassessingDate() {
+        return holdReassessingDate;
+    }
+
+    public RuleAction setHoldReassessingDate(String holdReassessingDate) {
+        this.holdReassessingDate = holdReassessingDate;
+        return this;
+    }
+
+    public Boolean getDeleteHoldReassessingDate() {
+        return deleteHoldReassessingDate;
+    }
+
+    public RuleAction setDeleteHoldReassessingDate(Boolean deleteHoldReassessingDate) {
+        this.deleteHoldReassessingDate = deleteHoldReassessingDate;
+        return this;
+    }
+
+    public Boolean getPreventRearrangement() {
+        return preventRearrangement;
+    }
+
+    public RuleAction setPreventRearrangement(Boolean preventRearrangement) {
+        this.preventRearrangement = preventRearrangement;
+        return this;
+    }
+
+    public Boolean getDeletePreventRearrangement() {
+        return deletePreventRearrangement;
+    }
+
+    public RuleAction setDeletePreventRearrangement(Boolean deletePreventRearrangement) {
+        this.deletePreventRearrangement = deletePreventRearrangement;
         return this;
     }
 }
