@@ -242,8 +242,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static final String ORIGINATING_AGENCY = "RATP";
     private static final String JSONL = ".jsonl";
     private static final String XML = ".xml";
-    private static final String link_to_manifest_and_existing_unit =
-        "ingestCleanup/link_to_manifest_and_existing_unit";
     private static final String link_to_manifest_and_existing_object_group =
         "ingestCleanup/link_to_manifest_and_existing_object_group";
     private static final String add_object_to_existing_object_group =
@@ -272,19 +270,21 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static String CONFIG_SIEGFRIED_PATH = "";
     private static final String TEST_ELIMINATION_SIP =
         "elimination/TEST_ELIMINATION.zip";
+    private static final String TEST_ELIMINATION_V2_SIP =
+        "elimination/TEST_ELIMINATION_V2.zip";
     private static final String ELIMINATION_ACCESSION_REGISTER_DETAIL =
         "elimination/accession_regoister_detail.json";
     private static final String ELIMINATION_ACCESSION_REGISTER_SUMMARY =
         "elimination/accession_regoister_summary.json";
-    private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
-    private TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE =
-        new TypeReference<JsonNode>() {
+    private final WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
+    private final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE =
+        new TypeReference<>() {
         };
-    private TypeReference<UnitReportEntry> UNIT_REPORT_TYPE_REFERENCE =
-        new TypeReference<UnitReportEntry>() {
+    private final TypeReference<UnitReportEntry> UNIT_REPORT_TYPE_REFERENCE =
+        new TypeReference<>() {
         };
-    private TypeReference<ObjectGroupReportEntry> OG_REPORT_TYPE_REFERENCE =
-        new TypeReference<ObjectGroupReportEntry>() {
+    private final TypeReference<ObjectGroupReportEntry> OG_REPORT_TYPE_REFERENCE =
+        new TypeReference<>() {
         };
     private static IngestCleanupAdminService ingestCleanupAdminService;
 
@@ -563,8 +563,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testTransferReply() throws Exception {
-        final String ingestOperationGuid = doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
-            StatusCode.OK);
+        final String ingestOperationGuid = doIngest(
+            PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
 
         // Check ingested units
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -574,7 +574,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         Set<String> ingestedUnitIds = getIds(ingestedUnits);
         Set<String> ingestedObjectGroupIds = getIds(ingestedObjectGroups);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedObjectGroups.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedObjectGroups);
@@ -643,8 +643,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testTransferReplyComplex() throws Exception {
-        final String ingestOperationGuid = doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
-            StatusCode.OK);
+        final String ingestOperationGuid = doIngest(
+            PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
 
         // Check ingested units
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -654,7 +654,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         Set<String> ingestedUnitIds = getIds(ingestedUnits);
         Set<String> ingestedObjectGroupIds = getIds(ingestedObjectGroups);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedObjectGroups.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedObjectGroups);
@@ -1502,7 +1502,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         java.nio.file.Path path = PropertiesUtils.getResourcePath(targetFilename);
         Charset charset = StandardCharsets.UTF_8;
 
-        String content = new String(Files.readAllBytes(path), charset);
+        String content = Files.readString(path, charset);
         content = content.replaceAll(textToReplace, replacementText);
         Files.write(path, content.getBytes(charset));
     }
@@ -1512,7 +1512,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         try (
             FileOutputStream fos = new FileOutputStream(zipFilePath);
             ZipOutputStream zos = new ZipOutputStream(fos)) {
-            Files.walkFileTree(path, new SimpleFileVisitor<java.nio.file.Path>() {
+            Files.walkFileTree(path, new SimpleFileVisitor<>() {
                 public FileVisitResult visitFile(java.nio.file.Path file, BasicFileAttributes attrs)
                     throws IOException {
                     zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
@@ -2039,7 +2039,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
                 JsonNode unit = getById(ingestedUnits, unitReport.id);
 
-                assertThat(unitReport.params.opi).isEqualTo(ingestOperationGuid.toString());
+                assertThat(unitReport.params.opi).isEqualTo(ingestOperationGuid);
                 assertThat(unitReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
                 assertThat(unitReport.params.objectGroupId).isEqualTo(getObjectGroupId(unit));
                 assertThat(unitReport.params.type).isEqualTo("Unit");
@@ -2058,7 +2058,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             String deletedGotId = getObjectGroupId(ingestedUnitsByTitle.get(MARX_DORMOY));
             ObjectGroupReportEntry deletedGotReport = objectGroupReports.stream()
                 .filter(got -> got.id.equals(deletedGotId))
-                .findFirst().get();
+                .findFirst().orElseThrow();
             assertThat(deletedGotReport.params.status).isEqualTo(PurgeObjectGroupStatus.DELETED.name());
             assertThat(deletedGotReport.params.opi).isEqualTo(ingestOperationGuid);
             assertThat(deletedGotReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
@@ -2068,7 +2068,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
             ObjectGroupReportEntry detachedGotReport = objectGroupReports.stream()
                 .filter(got -> got.id.equals(detachedGotId))
-                .findFirst().get();
+                .findFirst().orElseThrow();
             assertThat(detachedGotReport.params.status)
                 .isEqualTo(PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name());
             assertThat(detachedGotReport.params.opi).isEqualTo(ingestOperationGuid);
@@ -2130,7 +2130,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private JsonNode getById(RequestResponseOK<JsonNode> metadata, String id) {
         return metadata.getResults().stream()
             .filter(got -> id.equals(got.get(VitamFieldsHelper.id()).asText()))
-            .findFirst().get();
+            .findFirst().orElseThrow();
     }
 
     private void checkUnitExistence(String unitId, boolean shouldExist)

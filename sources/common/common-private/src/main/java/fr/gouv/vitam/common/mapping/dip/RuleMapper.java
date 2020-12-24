@@ -30,6 +30,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionAppraisalCodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionStorageCodeType;
+import fr.gouv.culture.archivesdefrance.seda.v2.HoldRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -52,6 +54,12 @@ import static javax.xml.datatype.DatatypeFactory.newInstance;
  */
 public class RuleMapper {
 
+    private final ObjectFactory objectFactory;
+
+    public RuleMapper() {
+        this.objectFactory = new ObjectFactory();
+    }
+
     /**
      * This generic method is used to map data base model of rule to jaxb
      *
@@ -72,11 +80,7 @@ public class RuleMapper {
 
         InheritanceModel inheritance = ruleCategory.getInheritance();
         if (inheritance != null) {
-            commonRule.getRefNonRuleId().addAll(inheritance.getPreventRulesId().stream().map(ruleId -> {
-                RuleIdType ruleIdType = new RuleIdType();
-                ruleIdType.setValue(ruleId);
-                return ruleIdType;
-            }).collect(Collectors.toList()));
+            commonRule.getRefNonRuleId().addAll(mapPreventRuleIds(ruleCategory.getInheritance()));
             if (commonRule.getRefNonRuleId().isEmpty()) {
                 commonRule.setPreventInheritance(inheritance.isPreventInheritance());
             }
@@ -132,6 +136,77 @@ public class RuleMapper {
         }
 
         return commonRule;
+    }
+
+    public HoldRuleType fillHoldRule(RuleCategoryModel ruleCategory)
+        throws DatatypeConfigurationException {
+
+        if (ruleCategory == null) {
+            return null;
+        }
+
+        HoldRuleType holdRuleType = objectFactory.createHoldRuleType();
+
+        InheritanceModel inheritance = ruleCategory.getInheritance();
+        if (inheritance != null) {
+            holdRuleType.getRefNonRuleId().addAll(mapPreventRuleIds(inheritance));
+            if (holdRuleType.getRefNonRuleId().isEmpty()) {
+                holdRuleType.setPreventInheritance(inheritance.isPreventInheritance());
+            }
+        }
+
+        for (RuleModel rule : ruleCategory.getRules()) {
+
+            // RuleId
+            RuleIdType ruleIdType = objectFactory.createRuleIdType();
+            ruleIdType.setValue(rule.getRule());
+            holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeRule(ruleIdType));
+
+            // StartDate
+            if (rule.getStartDate() != null) {
+                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeStartDate(
+                    newInstance().newXMLGregorianCalendar(rule.getStartDate())));
+            }
+
+            // HoldEndDate
+            if (rule.getHoldEndDate() != null) {
+                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeHoldEndDate(
+                    newInstance().newXMLGregorianCalendar(rule.getHoldEndDate())));
+            }
+
+            // HoldOwner
+            if (rule.getHoldOwner() != null) {
+                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeHoldOwner(rule.getHoldOwner()));
+            }
+
+            // HoldReassessingDate
+            if (rule.getHoldReassessingDate() != null) {
+                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeHoldReassessingDate(
+                    newInstance().newXMLGregorianCalendar(rule.getHoldReassessingDate())));
+            }
+
+            // HoldReason
+            if (rule.getHoldReason() != null) {
+                holdRuleType.getHoldRuleDefGroup()
+                    .add(objectFactory.createHoldRuleTypeHoldReason(rule.getHoldReason()));
+            }
+
+            // PreventRearrangement
+            if (rule.getPreventRearrangement() != null) {
+                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypePreventRearrangement(
+                    rule.getPreventRearrangement()));
+            }
+        }
+
+        return holdRuleType;
+    }
+
+    private List<RuleIdType> mapPreventRuleIds(InheritanceModel inheritance) {
+        return inheritance.getPreventRulesId().stream().map(ruleId -> {
+            RuleIdType ruleIdType = new RuleIdType();
+            ruleIdType.setValue(ruleId);
+            return ruleIdType;
+        }).collect(Collectors.toList());
     }
 
 }

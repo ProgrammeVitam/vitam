@@ -57,6 +57,7 @@ public class ManagementMapper {
                 ruleMapper.fillCommonRule(managementModel.getDissemination(), DisseminationRuleType::new));
         managementType.setReuseRule(ruleMapper.fillCommonRule(managementModel.getReuse(), ReuseRuleType::new));
         managementType.setStorageRule(ruleMapper.fillCommonRule(managementModel.getStorage(), StorageRuleType::new));
+        managementType.setHoldRule(ruleMapper.fillHoldRule(managementModel.getHold()));
 
         return managementType;
     }

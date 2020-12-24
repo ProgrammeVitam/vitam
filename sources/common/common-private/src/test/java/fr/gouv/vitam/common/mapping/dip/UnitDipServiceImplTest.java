@@ -38,7 +38,7 @@ import java.util.Map;
 
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.xmlunit.builder.Input.fromString;
 import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 
@@ -66,6 +66,15 @@ public class UnitDipServiceImplTest {
             .withNamespaceContext(prefix2Uri));
         assertThat(fromString(entity), hasXPath("//vitam:Management/vitam:DisseminationRule/vitam:Rule",
             equalTo("DIS-00001"))
+            .withNamespaceContext(prefix2Uri));
+        assertThat(fromString(entity), hasXPath("//vitam:Management/vitam:HoldRule/vitam:Rule",
+            equalTo("HOL-00002"))
+            .withNamespaceContext(prefix2Uri));
+        assertThat(fromString(entity), hasXPath("//vitam:Management/vitam:HoldRule/vitam:HoldReason",
+            equalTo("Reason"))
+            .withNamespaceContext(prefix2Uri));
+        assertThat(fromString(entity), hasXPath("//vitam:Management/vitam:HoldRule/vitam:HoldEndDate",
+            equalTo("2025-01-01"))
             .withNamespaceContext(prefix2Uri));
     }
 

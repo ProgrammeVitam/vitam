@@ -37,6 +37,23 @@
           "EndDate": "2025-01-01"
         }
       ]
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "Rule": "HOL-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2025-01-01",
+          "HoldEndDate": "2025-01-01",
+          "HoldOwner": "Owner",
+          "HoldReassessingDate": "2020-01-01",
+          "HoldReason": "Reason",
+          "PreventRearrangement": false
+        }
+      ],
+      "Inheritance": {
+        "PreventInheritance": true
+      }
     }
   },
   "#operations": [

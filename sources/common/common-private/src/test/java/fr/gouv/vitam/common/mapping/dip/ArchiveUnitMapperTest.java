@@ -46,6 +46,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.util.Collections;
@@ -94,6 +95,10 @@ public class ArchiveUnitMapperTest {
         //StorageRule
         rule = generateRule(SedaConstants.TAG_RULE_STORAGE);
         archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_STORAGE);
+
+        // HoldRule
+        rule = generateRule(SedaConstants.TAG_RULE_HOLD);
+        archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_HOLD);
 
         // OriginatingAgency
         OrganizationType organizationType = getOrganizationTye();
@@ -203,6 +208,44 @@ public class ArchiveUnitMapperTest {
         assertThat(date.getDay()).isEqualTo(1);
         assertThat(management.getStorageRule().getFinalAction().value()).isEqualTo("Copy");
 
+        // HoldRule
+        assertThat(management.getHoldRule()).isNotNull();
+        assertThat(management.getHoldRule().isPreventInheritance()).isNull();
+        assertThat(management.getHoldRule().getRefNonRuleId()).hasSize(2);
+        assertThat(management.getHoldRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
+        assertThat(management.getHoldRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
+        List<JAXBElement<?>> holdRuleDefGroup = management.getHoldRule().getHoldRuleDefGroup();
+
+        assertThat(holdRuleDefGroup.get(0).getName().getLocalPart()).isEqualTo(SedaConstants.TAG_RULE_RULE);
+        assertThat(holdRuleDefGroup.get(0).getValue()).isInstanceOf(RuleIdType.class);
+        assertThat(((RuleIdType) holdRuleDefGroup.get(0).getValue()).getValue()).isEqualTo("R3");
+
+        assertThat(holdRuleDefGroup.get(1).getName().getLocalPart()).isEqualTo(SedaConstants.TAG_RULE_START_DATE);
+        assertThat(holdRuleDefGroup.get(1).getValue()).isInstanceOf(XMLGregorianCalendar.class);
+        assertThat(holdRuleDefGroup.get(1).getValue().toString()).isEqualTo("2000-01-01");
+
+        assertThat(holdRuleDefGroup.get(2).getName().getLocalPart()).isEqualTo(SedaConstants.TAG_RULE_HOLD_END_DATE);
+        assertThat(holdRuleDefGroup.get(2).getValue()).isInstanceOf(XMLGregorianCalendar.class);
+        assertThat(holdRuleDefGroup.get(2).getValue().toString()).isEqualTo("2000-02-02");
+
+        assertThat(holdRuleDefGroup.get(3).getName().getLocalPart()).isEqualTo(SedaConstants.TAG_RULE_HOLD_OWNER);
+        assertThat(holdRuleDefGroup.get(3).getValue()).isEqualTo("Owner");
+
+        assertThat(holdRuleDefGroup.get(4).getName().getLocalPart())
+            .isEqualTo(SedaConstants.TAG_RULE_HOLD_REASSESSING_DATE);
+        assertThat(holdRuleDefGroup.get(4).getValue()).isInstanceOf(XMLGregorianCalendar.class);
+        assertThat(holdRuleDefGroup.get(4).getValue().toString()).isEqualTo("2009-02-02");
+
+        assertThat(holdRuleDefGroup.get(5).getName().getLocalPart()).isEqualTo(SedaConstants.TAG_RULE_HOLD_REASON);
+        assertThat(holdRuleDefGroup.get(5).getValue()).isEqualTo("Reason");
+
+        assertThat(holdRuleDefGroup.get(6).getName().getLocalPart())
+            .isEqualTo(SedaConstants.TAG_RULE_PREVENT_REARRANGEMENT);
+        assertThat(holdRuleDefGroup.get(6).getValue()).isInstanceOf(Boolean.class);
+        assertThat(holdRuleDefGroup.get(6).getValue()).isEqualTo(true);
+
+        assertThat(holdRuleDefGroup).hasSize(7);
+
         // OrganizationType
         Assert
             .assertEquals(archiveUnitType.getContent().getOriginatingAgency().getIdentifier().getValue(), "Identifier");
@@ -272,6 +315,13 @@ public class ArchiveUnitMapperTest {
             case SedaConstants.TAG_RULE_DISSEMINATION:
             case SedaConstants.TAG_RULE_REUSE:
             case SedaConstants.TAG_RULE_CLASSIFICATION:
+                break;
+            case SedaConstants.TAG_RULE_HOLD:
+                rule.setHoldEndDate("2000-02-02");
+                rule.setHoldOwner("Owner");
+                rule.setHoldReason("Reason");
+                rule.setHoldReassessingDate("2009-02-02");
+                rule.setPreventRearrangement(true);
                 break;
             default:
                 throw new IllegalArgumentException("Type cannot be " + type);
