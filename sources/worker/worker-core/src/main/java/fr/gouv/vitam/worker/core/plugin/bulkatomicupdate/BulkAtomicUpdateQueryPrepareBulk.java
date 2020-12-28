@@ -33,10 +33,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BulkAtomicUpdateQueryPrepareBulk {
-    
+
     private final List<BulkAtomicUpdateQueryPrepareItem> items;
-    
-    
+
+
     public BulkAtomicUpdateQueryPrepareBulk() {
         this.items = new ArrayList<BulkAtomicUpdateQueryPrepareItem>();
     }
@@ -44,13 +44,14 @@ public class BulkAtomicUpdateQueryPrepareBulk {
     public List<BulkAtomicUpdateQueryPrepareItem> getItems() {
         return items;
     }
-    
+
     public List<BulkUpdateUnitMetadataReportEntry> getReportEntries() {
-        return items.stream().filter(item -> item.getResult() != null).map(item -> item.getResult()).collect(Collectors.toList());
+        return items.stream().filter(item -> item.getResult() != null).map(item -> item.getResult())
+            .collect(Collectors.toList());
     }
-    
+
     public List<BulkAtomicUpdateQueryPrepareItem> getValidItems() {
         return items.stream().filter(item -> item.isValid()).collect(Collectors.toList());
     }
-    
+
 }

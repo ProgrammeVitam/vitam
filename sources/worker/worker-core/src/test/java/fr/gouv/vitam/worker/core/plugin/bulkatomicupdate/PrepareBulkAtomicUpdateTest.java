@@ -82,7 +82,7 @@ public class PrepareBulkAtomicUpdateTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-            VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -98,7 +98,7 @@ public class PrepareBulkAtomicUpdateTest {
     @Before
     public void setUp() throws Exception {
         prepareBulkAtomicUpdate = new PrepareBulkAtomicUpdate(metaDataClientFactory, batchReportClientFactory,
-                new InternalActionKeysRetriever(), 5);
+            new InternalActionKeysRetriever(), 5);
     }
 
     @Test
@@ -113,26 +113,28 @@ public class PrepareBulkAtomicUpdateTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_OK.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_OK.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
         JsonNode accessContract = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
         given(handlerIO.getJsonFromWorkspace("accessContract.json")).willReturn(accessContract);
 
         List<RequestResponseOK<JsonNode>> response = JsonHandler.getFromInputStreamAsTypeReference(
-                getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_OK.json"), new TypeReference<List<RequestResponseOK<JsonNode>>>() { });
+            getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_OK.json"),
+            new TypeReference<List<RequestResponseOK<JsonNode>>>() {
+            });
         List<RequestResponseOK<JsonNode>> first = response.subList(0, 8);
         List<RequestResponseOK<JsonNode>> second = response.subList(8, 16);
         given(metaDataClient.selectUnitsBulk(any())).willReturn(first).willReturn(second);
 
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
         ItemStatus itemStatus = prepareBulkAtomicUpdate.execute(WorkerParametersFactory.newWorkerParameters(),
-                handlerIO);
+            handlerIO);
 
         // then
         assertThat(itemStatus).isNotNull();
@@ -142,11 +144,11 @@ public class PrepareBulkAtomicUpdateTest {
         assertThat(lines).isNotNull();
         assertThat(lines.size()).isEqualTo(16);
         assertThat(lines.get(0)).containsOnlyOnce("\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwyaaaaq\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value1\"");
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value1\"");
         assertThat(lines.get(1)).containsOnlyOnce("{\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaaba\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value2\"");
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value2\"");
         assertThat(lines.get(9)).containsOnlyOnce("\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaabz\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value10\"");
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value10\"");
     }
 
     @Test
@@ -161,28 +163,30 @@ public class PrepareBulkAtomicUpdateTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_empty.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_empty.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
         JsonNode accessContract = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
         given(handlerIO.getJsonFromWorkspace("accessContract.json")).willReturn(accessContract);
 
         List<RequestResponseOK<JsonNode>> response = JsonHandler.getFromInputStreamAsTypeReference(
-                getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_empty.json"), new TypeReference<List<RequestResponseOK<JsonNode>>>() { });
+            getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_empty.json"),
+            new TypeReference<List<RequestResponseOK<JsonNode>>>() {
+            });
         List<RequestResponseOK<JsonNode>> first = response.subList(0, 8);
         List<RequestResponseOK<JsonNode>> second = response.subList(8, 16);
         given(metaDataClient.selectUnitsBulk(any())).willReturn(first).willReturn(second);
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
         ItemStatus itemStatus = prepareBulkAtomicUpdate.execute(WorkerParametersFactory.newWorkerParameters(),
-                handlerIO);
+            handlerIO);
 
         // then
         assertThat(itemStatus).isNotNull();
@@ -192,19 +196,21 @@ public class PrepareBulkAtomicUpdateTest {
         assertThat(lines).isNotNull();
         assertThat(lines.size()).isEqualTo(15);
         assertThat(lines.get(0)).containsOnlyOnce("\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwyaaaaq\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value1\"");
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value1\"");
         assertThat(lines.get(1)).containsOnlyOnce("{\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaabr\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value3\"");
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value3\"");
         assertThat(lines.get(8)).containsOnlyOnce("\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaabz\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value10\"");
-        
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value10\"");
+
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
         assertThat(reportBodyArgument.getEntries().size()).isEqualTo(1);
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.name());
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey())
+            .isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.name());
     }
 
     @Test
@@ -219,29 +225,31 @@ public class PrepareBulkAtomicUpdateTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_too_many.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_too_many.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
         JsonNode accessContract = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
         given(handlerIO.getJsonFromWorkspace("accessContract.json")).willReturn(accessContract);
 
 
         List<RequestResponseOK<JsonNode>> response = JsonHandler.getFromInputStreamAsTypeReference(
-                getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_too_many.json"), new TypeReference<List<RequestResponseOK<JsonNode>>>() { });
+            getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_too_many.json"),
+            new TypeReference<List<RequestResponseOK<JsonNode>>>() {
+            });
         List<RequestResponseOK<JsonNode>> first = response.subList(0, 8);
         List<RequestResponseOK<JsonNode>> second = response.subList(8, 16);
         given(metaDataClient.selectUnitsBulk(any())).willReturn(first).willReturn(second);
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
         ItemStatus itemStatus = prepareBulkAtomicUpdate.execute(WorkerParametersFactory.newWorkerParameters(),
-                handlerIO);
+            handlerIO);
 
         // then
         assertThat(itemStatus).isNotNull();
@@ -256,16 +264,18 @@ public class PrepareBulkAtomicUpdateTest {
             .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value2\"");
         assertThat(lines.get(14)).containsOnlyOnce("\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaahz\"")
             .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value16\"");
-        
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
         assertThat(reportBodyArgument.getEntries().size()).isEqualTo(1);
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo(BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.name());
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey())
+            .isEqualTo(BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.name());
     }
-    
+
 
     @Test
     @RunWithCustomExecutor
@@ -279,29 +289,32 @@ public class PrepareBulkAtomicUpdateTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_invalid_query.json"));
+            .getFromInputStream(
+                getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_invalid_query.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
         JsonNode accessContract = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
         given(handlerIO.getJsonFromWorkspace("accessContract.json")).willReturn(accessContract);
 
         List<RequestResponseOK<JsonNode>> response = JsonHandler.getFromInputStreamAsTypeReference(
-                getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_invalid_query.json"), new TypeReference<List<RequestResponseOK<JsonNode>>>() { });
+            getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_invalid_query.json"),
+            new TypeReference<List<RequestResponseOK<JsonNode>>>() {
+            });
         List<RequestResponseOK<JsonNode>> first = response.subList(0, 8);
         List<RequestResponseOK<JsonNode>> second = response.subList(8, 15);
-        
+
         given(metaDataClient.selectUnitsBulk(any())).willReturn(first).willReturn(second);
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
         ItemStatus itemStatus = prepareBulkAtomicUpdate.execute(WorkerParametersFactory.newWorkerParameters(),
-                handlerIO);
+            handlerIO);
 
         // then
         assertThat(itemStatus).isNotNull();
@@ -315,17 +328,19 @@ public class PrepareBulkAtomicUpdateTest {
         assertThat(lines.get(1)).containsOnlyOnce("{\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaaba\"")
             .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value2\"");
         assertThat(lines.get(8)).containsOnlyOnce("\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaabz\"")
-        .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value10\"");
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value10\"");
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
         assertThat(reportBodyArgument.getEntries().size()).isEqualTo(1);
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.name());
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey())
+            .isEqualTo(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.name());
         assertThat(reportBodyArgument.getEntries().get(0).getMessage()).contains("_opi");
     }
-    
+
 
 
     @Test
@@ -340,14 +355,16 @@ public class PrepareBulkAtomicUpdateTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_OK.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_OK.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
         JsonNode accessContract = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
         given(handlerIO.getJsonFromWorkspace("accessContract.json")).willReturn(accessContract);
 
         List<RequestResponseOK<JsonNode>> response = JsonHandler.getFromInputStreamAsTypeReference(
-                getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_OK.json"), new TypeReference<List<RequestResponseOK<JsonNode>>>() { });
+            getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_OK.json"),
+            new TypeReference<List<RequestResponseOK<JsonNode>>>() {
+            });
         List<RequestResponseOK<JsonNode>> first = response.subList(0, 8);
         given(metaDataClient.selectUnitsBulk(any())).willReturn(first).willThrow(InvalidParseOperationException.class);
 
@@ -355,12 +372,12 @@ public class PrepareBulkAtomicUpdateTest {
 
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
         ItemStatus itemStatus = prepareBulkAtomicUpdate.execute(WorkerParametersFactory.newWorkerParameters(),
-                handlerIO);
+            handlerIO);
 
         // then
         assertThat(itemStatus).isNotNull();
@@ -370,9 +387,9 @@ public class PrepareBulkAtomicUpdateTest {
         assertThat(lines).isNotNull();
         assertThat(lines.size()).isEqualTo(8);
         assertThat(lines.get(0)).containsOnlyOnce("\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwyaaaaq\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value1\"");
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value1\"");
         assertThat(lines.get(1)).containsOnlyOnce("{\"id\":\"aeaqaaaaaaheuluhab5yialwh7e2nwaaaaba\"")
-                .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value2\"");
+            .containsOnlyOnce("\"ArchivalAgencyArchiveUnitIdentifier\":\"Value2\"");
     }
 
     @Test
@@ -387,22 +404,22 @@ public class PrepareBulkAtomicUpdateTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_OK.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_OK.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
         JsonNode accessContract = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
         given(handlerIO.getJsonFromWorkspace("accessContract.json")).willReturn(accessContract);
 
         given(metaDataClient.selectUnitsBulk(any())).willThrow(MetaDataExecutionException.class);
 
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
         ItemStatus itemStatus = prepareBulkAtomicUpdate.execute(WorkerParametersFactory.newWorkerParameters(),
-                handlerIO);
+            handlerIO);
 
         // then
         assertThat(itemStatus).isNotNull();
@@ -423,28 +440,30 @@ public class PrepareBulkAtomicUpdateTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_empty.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/query_WARNING_empty.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
         JsonNode accessContract = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
+            .getFromInputStream(getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/accessContract.json"));
         given(handlerIO.getJsonFromWorkspace("accessContract.json")).willReturn(accessContract);
 
         List<RequestResponseOK<JsonNode>> response = JsonHandler.getFromInputStreamAsTypeReference(
-                getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_empty.json"), new TypeReference<List<RequestResponseOK<JsonNode>>>() { });
+            getClass().getResourceAsStream("/PrepareBulkAtomicUpdate/metadataBulkResult_WARNING_empty.json"),
+            new TypeReference<List<RequestResponseOK<JsonNode>>>() {
+            });
         List<RequestResponseOK<JsonNode>> first = response.subList(0, 8);
         List<RequestResponseOK<JsonNode>> second = response.subList(8, 16);
         given(metaDataClient.selectUnitsBulk(any())).willReturn(first).willReturn(second);
 
         willThrow(VitamClientInternalException.class).given(batchReportClient).appendReportEntries(any());
-        
+
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
         ItemStatus itemStatus = prepareBulkAtomicUpdate.execute(WorkerParametersFactory.newWorkerParameters(),
-                handlerIO);
+            handlerIO);
 
         // then
         assertThat(itemStatus).isNotNull();

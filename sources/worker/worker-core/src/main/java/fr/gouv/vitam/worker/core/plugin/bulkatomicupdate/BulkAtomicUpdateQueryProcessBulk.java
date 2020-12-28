@@ -49,17 +49,20 @@ public class BulkAtomicUpdateQueryProcessBulk {
     public List<BulkAtomicUpdateQueryProcessItem> getItems() {
         return items;
     }
-    
+
     public List<BulkUpdateUnitMetadataReportEntry> getReportEntries() {
-        return items.stream().filter(item -> item.getReportEntry() != null).map(item -> item.getReportEntry()).collect(Collectors.toList());
+        return items.stream().filter(item -> item.getReportEntry() != null).map(item -> item.getReportEntry())
+            .collect(Collectors.toList());
     }
 
     public List<JsonNode> getItemsFinalQuery() {
-        return items.stream().filter(item -> item.getFinalQuery() != null).map(item -> item.getFinalQuery()).collect(Collectors.toList());
+        return items.stream().filter(item -> item.getFinalQuery() != null).map(item -> item.getFinalQuery())
+            .collect(Collectors.toList());
     }
 
     public List<ItemStatus> getItemsStatus() {
-        return items.stream().filter(item -> item.getStatus() != null).map(item -> item.getStatus()).collect(Collectors.toList());
+        return items.stream().filter(item -> item.getStatus() != null).map(item -> item.getStatus())
+            .collect(Collectors.toList());
     }
-    
+
 }

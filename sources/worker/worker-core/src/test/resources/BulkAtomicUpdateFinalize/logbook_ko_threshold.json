@@ -1,105 +1,112 @@
 {
-  "httpCode" : 200,
-  "$hits" : {
-    "total" : 1,
-    "offset" : 0,
-    "limit" : 0,
-    "size" : 1
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
   },
-  "$results" : [ {
-    "evId" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-    "evParentId" : null,
-    "evType" : "BULK_ATOMIC_UPDATE_UNIT_DESC",
-    "evDateTime" : "2020-12-16T13:47:22.422",
-    "evDetData" : null,
-    "evIdProc" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-    "evTypeProc" : "BULK_UPDATE",
-    "outcome" : "STARTED",
-    "outDetail" : "BULK_ATOMIC_UPDATE_UNIT_DESC.STARTED",
-    "outMessg" : "!BULK_ATOMIC_UPDATE_UNIT_DESC.STARTED! : aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-    "agId" : "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
-    "agIdApp" : "fakeContextId",
-    "agIdPers" : null,
-    "evIdAppSession" : null,
-    "evIdReq" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-    "agIdExt" : null,
-    "rightsStatementIdentifier" : null,
-    "obId" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-    "obIdReq" : null,
-    "obIdIn" : null,
-    "events" : [ {
-      "evId" : "aedqaaaaaceaaaabaakpoalwnphczoyaaaaq",
-      "evParentId" : null,
-      "evType" : "STP_CHECK_AND_COMPUTE.STARTED",
-      "evDateTime" : "2020-12-16T13:47:22.683",
-      "evDetData" : null,
-      "evIdProc" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-      "evTypeProc" : "BULK_UPDATE",
-      "outcome" : "OK",
-      "outDetail" : "STP_CHECK_AND_COMPUTE.STARTED.OK",
-      "outMessg" : "!STP_CHECK_AND_COMPUTE.STARTED.OK!",
-      "agId" : "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
-      "agIdPers" : null,
-      "evIdReq" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-      "obId" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
-    }, {
-      "evId" : "aedqaaaaaceaaaabaakpoalwnphczoqaaaaq",
-      "evParentId" : null,
-      "evType" : "STP_CHECK_AND_COMPUTE",
-      "evDateTime" : "2020-12-16T13:47:22.920",
-      "evDetData" : null,
-      "evIdProc" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-      "evTypeProc" : "BULK_UPDATE",
-      "outcome" : "KO",
-      "outDetail" : "STP_CHECK_AND_COMPUTE.KO",
-      "outMessg" : "!STP_CHECK_AND_COMPUTE.KO!",
-      "agId" : "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
-      "agIdPers" : null,
-      "evIdReq" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-      "obId" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
-    }, {
-      "evId" : "aedqaaaaaceaaaabaakpoalwnphc3kiaaaaq",
-      "evParentId" : "aedqaaaaaceaaaabaakpoalwnphczoqaaaaq",
-      "evType" : "CHECK_QUERIES_THRESHOLD",
-      "evDateTime" : "2020-12-16T13:47:22.921",
-      "evDetData" : "{\"error\":\"Too many queries found. Threshold=1, found=11\"}",
-      "evIdProc" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-      "evTypeProc" : "BULK_UPDATE",
-      "outcome" : "KO",
-      "outDetail" : "CHECK_QUERIES_THRESHOLD.KO",
-      "outMessg" : "!CHECK_QUERIES_THRESHOLD.KO! Detail=  KO:1",
-      "agId" : "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
-      "agIdPers" : null,
-      "evIdReq" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
-    }, {
-      "evId" : "aedqaaaaaceaaaabaakpoalwnphc4saaaaba",
-      "evParentId" : null,
-      "evType" : "STP_BULK_ATOMIC_UPDATE_FINALIZE.STARTED",
-      "evDateTime" : "2020-12-16T13:47:23.080",
-      "evDetData" : null,
-      "evIdProc" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-      "evTypeProc" : "BULK_UPDATE",
-      "outcome" : "OK",
-      "outDetail" : "STP_BULK_ATOMIC_UPDATE_FINALIZE.STARTED.OK",
-      "outMessg" : "!STP_BULK_ATOMIC_UPDATE_FINALIZE.STARTED.OK!",
-      "agId" : "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
-      "agIdPers" : null,
-      "evIdReq" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-      "obId" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
-    } ],
-    "#id" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
-    "#tenant" : 0,
-    "#version" : 4,
-    "#lastPersistedDate" : "2020-12-16T13:47:23.282"
-  } ],
-  "$facetResults" : [ ],
-  "$context" : {
-    "$query" : {
-      "$eq" : {
-        "evIdProc" : "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
+  "$results": [
+    {
+      "evId": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+      "evParentId": null,
+      "evType": "BULK_ATOMIC_UPDATE_UNIT_DESC",
+      "evDateTime": "2020-12-16T13:47:22.422",
+      "evDetData": null,
+      "evIdProc": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+      "evTypeProc": "BULK_UPDATE",
+      "outcome": "STARTED",
+      "outDetail": "BULK_ATOMIC_UPDATE_UNIT_DESC.STARTED",
+      "outMessg": "!BULK_ATOMIC_UPDATE_UNIT_DESC.STARTED! : aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+      "agId": "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
+      "agIdApp": "fakeContextId",
+      "agIdPers": null,
+      "evIdAppSession": null,
+      "evIdReq": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+      "agIdExt": null,
+      "rightsStatementIdentifier": null,
+      "obId": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+      "obIdReq": null,
+      "obIdIn": null,
+      "events": [
+        {
+          "evId": "aedqaaaaaceaaaabaakpoalwnphczoyaaaaq",
+          "evParentId": null,
+          "evType": "STP_CHECK_AND_COMPUTE.STARTED",
+          "evDateTime": "2020-12-16T13:47:22.683",
+          "evDetData": null,
+          "evIdProc": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+          "evTypeProc": "BULK_UPDATE",
+          "outcome": "OK",
+          "outDetail": "STP_CHECK_AND_COMPUTE.STARTED.OK",
+          "outMessg": "!STP_CHECK_AND_COMPUTE.STARTED.OK!",
+          "agId": "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
+          "agIdPers": null,
+          "evIdReq": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+          "obId": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
+        },
+        {
+          "evId": "aedqaaaaaceaaaabaakpoalwnphczoqaaaaq",
+          "evParentId": null,
+          "evType": "STP_CHECK_AND_COMPUTE",
+          "evDateTime": "2020-12-16T13:47:22.920",
+          "evDetData": null,
+          "evIdProc": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+          "evTypeProc": "BULK_UPDATE",
+          "outcome": "KO",
+          "outDetail": "STP_CHECK_AND_COMPUTE.KO",
+          "outMessg": "!STP_CHECK_AND_COMPUTE.KO!",
+          "agId": "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
+          "agIdPers": null,
+          "evIdReq": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+          "obId": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
+        },
+        {
+          "evId": "aedqaaaaaceaaaabaakpoalwnphc3kiaaaaq",
+          "evParentId": "aedqaaaaaceaaaabaakpoalwnphczoqaaaaq",
+          "evType": "CHECK_QUERIES_THRESHOLD",
+          "evDateTime": "2020-12-16T13:47:22.921",
+          "evDetData": "{\"error\":\"Too many queries found. Threshold=1, found=11\"}",
+          "evIdProc": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+          "evTypeProc": "BULK_UPDATE",
+          "outcome": "KO",
+          "outDetail": "CHECK_QUERIES_THRESHOLD.KO",
+          "outMessg": "!CHECK_QUERIES_THRESHOLD.KO! Detail=  KO:1",
+          "agId": "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
+          "agIdPers": null,
+          "evIdReq": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
+        },
+        {
+          "evId": "aedqaaaaaceaaaabaakpoalwnphc4saaaaba",
+          "evParentId": null,
+          "evType": "STP_BULK_ATOMIC_UPDATE_FINALIZE.STARTED",
+          "evDateTime": "2020-12-16T13:47:23.080",
+          "evDetData": null,
+          "evIdProc": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+          "evTypeProc": "BULK_UPDATE",
+          "outcome": "OK",
+          "outDetail": "STP_BULK_ATOMIC_UPDATE_FINALIZE.STARTED.OK",
+          "outMessg": "!STP_BULK_ATOMIC_UPDATE_FINALIZE.STARTED.OK!",
+          "agId": "{\"Name\":\"name1\",\"Role\":\"role1\",\"ServerId\":1,\"SiteId\":1,\"GlobalPlatformId\":134217729}",
+          "agIdPers": null,
+          "evIdReq": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+          "obId": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
+        }
+      ],
+      "#id": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq",
+      "#tenant": 0,
+      "#version": 4,
+      "#lastPersistedDate": "2020-12-16T13:47:23.282"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": {
+      "$eq": {
+        "evIdProc": "aecaaaaaaceaaaabaakpoalwnphcxnqaaaaq"
       }
     },
-    "$filter" : { },
-    "$projection" : { }
+    "$filter": {},
+    "$projection": {}
   }
 }

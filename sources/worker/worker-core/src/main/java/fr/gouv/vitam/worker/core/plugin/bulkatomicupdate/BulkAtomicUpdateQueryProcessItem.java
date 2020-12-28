@@ -46,23 +46,23 @@ public class BulkAtomicUpdateQueryProcessItem {
         this.unitId = unitId;
         this.originalQuery = originalQuery;
     }
-    
+
     public JsonNode getOriginalQuery() {
         return this.originalQuery;
     }
-    
+
     public String getUnitId() {
         return this.unitId;
     }
-    
+
     public void setUnitId(String unitId) {
         this.unitId = unitId;
     }
-    
+
     public BulkUpdateUnitMetadataReportEntry getReportEntry() {
         return reportEntry;
     }
-    
+
     public void setReportEntry(BulkUpdateUnitMetadataReportEntry reportEntry) {
         this.reportEntry = reportEntry;
     }

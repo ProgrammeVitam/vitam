@@ -101,13 +101,13 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
             // Unit id is optional 
             if (StringUtils.isNotBlank(model.getUnitId())) {
                 return new UpdateOneModel<>(
-                        and(eq(PROCESS_ID, model.getProcessId()),
-                            eq(TENANT_ID, model.getTenantId()),
-                            eq(UNIT_ID, model.getUnitId())),
-                        new Document("$set", Document.parse(JsonHandler.writeAsString(model)))
-                            .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
-                        new UpdateOptions().upsert(true)
-                    );
+                    and(eq(PROCESS_ID, model.getProcessId()),
+                        eq(TENANT_ID, model.getTenantId()),
+                        eq(UNIT_ID, model.getUnitId())),
+                    new Document("$set", Document.parse(JsonHandler.writeAsString(model)))
+                        .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
+                    new UpdateOptions().upsert(true)
+                );
             } else {
                 return new UpdateOneModel<>(
                     and(eq(PROCESS_ID, model.getProcessId()),
@@ -133,7 +133,8 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-        return collection.aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), PROJECTION))
+        return collection
+            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), PROJECTION))
             .allowDiskUse(true)
             .iterator();
     }

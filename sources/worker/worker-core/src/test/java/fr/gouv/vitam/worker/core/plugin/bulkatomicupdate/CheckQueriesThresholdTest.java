@@ -94,12 +94,12 @@ public class CheckQueriesThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithoutThresholdKO.json"));
+            getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithoutThresholdKO.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         // When
         ItemStatus itemStatus =
-                checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+            checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
 
         // Then
         assertThat(itemStatus).isNotNull();
@@ -114,15 +114,15 @@ public class CheckQueriesThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithThreshold.json"));
+            getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithThreshold.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         VitamConfiguration.setQueriesThreshold(6L);
         checkDistributionThreshold = new CheckQueriesThreshold();
-        
+
         // When
         ItemStatus itemStatus =
-                checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+            checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
 
         // Then
         assertThat(itemStatus).isNotNull();
@@ -137,12 +137,12 @@ public class CheckQueriesThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithThreshold.json"));
+            getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithThreshold.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         // When
         ItemStatus itemStatus =
-                checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+            checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
 
         // Then
         assertThat(itemStatus).isNotNull();
@@ -157,12 +157,12 @@ public class CheckQueriesThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithThresholdKO.json"));
+            getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithThresholdKO.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         // When
         ItemStatus itemStatus =
-                checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+            checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
 
         // Then
         assertThat(itemStatus).isNotNull();
@@ -177,12 +177,12 @@ public class CheckQueriesThresholdTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithNullThreshold.json"));
+            getClass().getResourceAsStream("/CheckQueriesThreshold/queryWithNullThreshold.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
-        
+
         // When
         ItemStatus itemStatus =
-                checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+            checkDistributionThreshold.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
 
         // Then
         assertThat(itemStatus).isNotNull();

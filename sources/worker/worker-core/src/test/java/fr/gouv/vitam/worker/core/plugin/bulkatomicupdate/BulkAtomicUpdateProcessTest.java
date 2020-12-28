@@ -81,7 +81,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
-
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
@@ -189,7 +188,7 @@ public class BulkAtomicUpdateProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         JsonNode originalQuery =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
@@ -213,10 +212,11 @@ public class BulkAtomicUpdateProcessTest {
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(adminManagementClient.findOntologies(any()))
+            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
 
@@ -225,8 +225,9 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(itemStatuses.size()).isEqualTo(2);
         assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.OK);
-        
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -245,7 +246,7 @@ public class BulkAtomicUpdateProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         JsonNode originalQuery =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
@@ -269,10 +270,11 @@ public class BulkAtomicUpdateProcessTest {
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(adminManagementClient.findOntologies(any()))
+            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
 
@@ -281,8 +283,9 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(itemStatuses.size()).isEqualTo(2);
         assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.KO);
-        
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -301,7 +304,7 @@ public class BulkAtomicUpdateProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         JsonNode originalQuery =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
@@ -325,15 +328,17 @@ public class BulkAtomicUpdateProcessTest {
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(adminManagementClient.findOntologies(any()))
+            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
 
-        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO)).isInstanceOf(VitamRuntimeException.class);
-        
+        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO))
+            .isInstanceOf(VitamRuntimeException.class);
+
     }
 
     @Test
@@ -342,7 +347,7 @@ public class BulkAtomicUpdateProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         JsonNode originalQuery =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
@@ -364,14 +369,16 @@ public class BulkAtomicUpdateProcessTest {
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(adminManagementClient.findOntologies(any()))
+            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
-        
-        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO)).isInstanceOf(ProcessingException.class);
+
+        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO))
+            .isInstanceOf(ProcessingException.class);
     }
 
     @Test
@@ -380,7 +387,7 @@ public class BulkAtomicUpdateProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         JsonNode originalQuery =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
@@ -402,14 +409,16 @@ public class BulkAtomicUpdateProcessTest {
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(adminManagementClient.findOntologies(any()))
+            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
-        
-        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO)).isInstanceOf(ProcessingException.class);
+
+        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO))
+            .isInstanceOf(ProcessingException.class);
     }
 
     @Test
@@ -418,7 +427,7 @@ public class BulkAtomicUpdateProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         JsonNode originalQuery =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
@@ -430,7 +439,7 @@ public class BulkAtomicUpdateProcessTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         JsonNode query =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
@@ -439,7 +448,8 @@ public class BulkAtomicUpdateProcessTest {
         RequestResponseOK<JsonNode> globalResponse = createMetadataResponseOK(UNIT1_GUID, UNIT2_GUID);
 
         given(handlerIO.getWorkerId()).willReturn(workerId);
-        doThrow(new ProcessingException("exception")).when(handlerIO).transferInputStreamToWorkspace(anyString(), any(), any(), anyBoolean());
+        doThrow(new ProcessingException("exception")).when(handlerIO)
+            .transferInputStreamToWorkspace(anyString(), any(), any(), anyBoolean());
         given(metadataClient.atomicUpdateBulk(any())).willReturn(globalResponse);
         given(metadataClient.getUnitByIdRaw(any())).willReturn(unitResponse);
         given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
@@ -452,9 +462,11 @@ public class BulkAtomicUpdateProcessTest {
         // Then
         assertThat(itemStatuses).isNotNull();
         assertThat(itemStatuses).hasSize(2);
-        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.FATAL, StatusCode.FATAL);
-        
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus)
+            .containsOnly(StatusCode.FATAL, StatusCode.FATAL);
+
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -476,7 +488,7 @@ public class BulkAtomicUpdateProcessTest {
 
         // New ArrayList, otherwise the originQuery parameter is skipped by Lists.newArrayList()
         JsonNode originalQuery =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
         WorkerParameters params = newWorkerParameters()
             .setWorkerGUID(GUIDFactory.newGUID().getId())
             .setContainerName(processId)
@@ -509,7 +521,8 @@ public class BulkAtomicUpdateProcessTest {
 
         given(handlerIO.getWorkerId()).willReturn(processId);
         given(handlerIO.getContainerName()).willReturn(processId);
-        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(getStoredInfoResult());
+        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
+            .willReturn(getStoredInfoResult());
 
         LogbookLifecycle lfc = new LogbookLifecycle();
         LogbookEvent event = new LogbookEvent();
@@ -518,9 +531,9 @@ public class BulkAtomicUpdateProcessTest {
         given(lfcClient.getRawUnitLifeCycleById(UNIT1_GUID)).willReturn(JsonHandler.toJsonNode(lfc));
 
         given(metadataClient.getUnitByIdRaw(UNIT1_GUID)).willReturn(unitResponse);
-        
+
         willDoNothing().given(batchReportClient).appendReportEntries(any());
-        
+
         // When
         List<ItemStatus> itemStatuses = bulkAtomicUpdateProcess.executeList(params, handlerIO);
 
@@ -528,8 +541,9 @@ public class BulkAtomicUpdateProcessTest {
         verify(lfcClient, never()).update(any(), any());
         assertThat(itemStatuses.size()).isEqualTo(1);
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.OK);
-        
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -551,11 +565,14 @@ public class BulkAtomicUpdateProcessTest {
             .setStrategy(VitamConfiguration.getDefaultStrategy());
     }
 
-    private RequestResponseOK<JsonNode> createMetadataResponseOK(String... unitIds) throws InvalidParseOperationException {
+    private RequestResponseOK<JsonNode> createMetadataResponseOK(String... unitIds)
+        throws InvalidParseOperationException {
         RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
-        for(String unitId : unitIds) {
+        for (String unitId : unitIds) {
             RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-            responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit(unitId, StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4")));
+            responseOK.addResult(JsonHandler.toJsonNode(
+                new UpdateUnit(unitId, StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok",
+                    "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4")));
             responseOK.setHttpCode(OK.getStatusCode());
 
             globalResponse.addResult(JsonHandler.toJsonNode(responseOK));
@@ -564,11 +581,14 @@ public class BulkAtomicUpdateProcessTest {
         return globalResponse;
     }
 
-    private RequestResponseOK<JsonNode> createMetadataResponseOKWithWarning(String... unitIds) throws InvalidParseOperationException {
+    private RequestResponseOK<JsonNode> createMetadataResponseOKWithWarning(String... unitIds)
+        throws InvalidParseOperationException {
         RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
-        for(String unitId : unitIds) {
+        for (String unitId : unitIds) {
             RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-            responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit(unitId, StatusCode.WARNING, UpdateUnitKey.UNIT_METADATA_UPDATE, "update warning", "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4")));
+            responseOK.addResult(JsonHandler.toJsonNode(
+                new UpdateUnit(unitId, StatusCode.WARNING, UpdateUnitKey.UNIT_METADATA_UPDATE, "update warning",
+                    "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4")));
             responseOK.setHttpCode(OK.getStatusCode());
 
             globalResponse.addResult(JsonHandler.toJsonNode(responseOK));
@@ -577,15 +597,16 @@ public class BulkAtomicUpdateProcessTest {
         return globalResponse;
     }
 
-    private RequestResponseOK<JsonNode> createMetadataResponseOKWithErrors(String... unitIds) throws InvalidParseOperationException {
+    private RequestResponseOK<JsonNode> createMetadataResponseOKWithErrors(String... unitIds)
+        throws InvalidParseOperationException {
         RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
-        for(String unitId : unitIds) {
+        for (String unitId : unitIds) {
             VitamError vitamError = new VitamError("BAD_REQUEST")
-                    .setHttpCode(400)
-                    .setContext("ACCESS")
-                    .setDescription("Bag idea description")
-                    .setMessage("Bad idea " + unitId)
-                    .setState("code_vitam");
+                .setHttpCode(400)
+                .setContext("ACCESS")
+                .setDescription("Bag idea description")
+                .setMessage("Bad idea " + unitId)
+                .setState("code_vitam");
             globalResponse.addResult(JsonHandler.toJsonNode(vitamError));
         }
         globalResponse.setHttpCode(OK.getStatusCode());

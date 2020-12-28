@@ -87,7 +87,6 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  * - compute data from batch-report<br>
  * - store the report file<br>
  * - clean the batch-report data<br>
- *
  */
 public class BulkAtomicUpdateFinalize extends ActionHandler {
 
@@ -112,8 +111,8 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
 
     @VisibleForTesting
     private BulkAtomicUpdateFinalize(BatchReportClientFactory batchReportClientFactory,
-                                     LogbookOperationsClientFactory logbookOperationsClientFactory,
-                                     StorageClientFactory storageClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        StorageClientFactory storageClientFactory) {
         this.batchReportClientFactory = batchReportClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.storageClientFactory = storageClientFactory;
@@ -132,12 +131,14 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
 
             if (reportResult == null) {
                 return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, WARNING,
-                    EventDetails.of("BulkAtomicUpdate report generation WARNING. Vitam results are absent, seems to be not logbook events..."));
+                    EventDetails
+                        .of("BulkAtomicUpdate report generation WARNING. Vitam results are absent, seems to be not logbook events..."));
             }
 
             if (reportResult.getNbKo() != 0 || reportResult.getNbWarning() != 0) {
                 return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, WARNING,
-                    EventDetails.of("BulkAtomicUpdate report generation WARNING. Some update operations have a KO or WARNING status."));
+                    EventDetails
+                        .of("BulkAtomicUpdate report generation WARNING. Some update operations have a KO or WARNING status."));
             }
 
             if (reportResult.getTotal() == 0 || reportResult.getNbOk() == 0) {
@@ -145,12 +146,14 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
                     EventDetails.of("BulkAtomicUpdate report generation KO. No update done."));
             }
 
-            return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, OK, EventDetails.of("BulkAtomicUpdate report generation OK."));
+            return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, OK,
+                EventDetails.of("BulkAtomicUpdate report generation OK."));
 
         } catch (LogbookClientException | VitamClientInternalException | StorageNotFoundClientException |
             StorageServerClientException | StorageAlreadyExistsClientException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, FATAL, EventDetails.of("Client error when generating report."));
+            return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, FATAL,
+                EventDetails.of("Client error when generating report."));
         }
     }
 
@@ -181,7 +184,8 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
         if (reportSummary.getVitamResults() != null && reportSummary.getVitamResults().getNbKo() > 0 &&
             WARNING.name().equals(param.getWorkflowStatusKo())) {
             operationSummary.setOutcome(operationSummary.getOutcome().replace(KO.name(), param.getWorkflowStatusKo()));
-            operationSummary.setOutDetail(operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo()));
+            operationSummary
+                .setOutDetail(operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo()));
         }
         JsonNode context = JsonHandler.createObjectNode();
         return new Report(operationSummary, reportSummary, context);
@@ -240,35 +244,35 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
 
     private ReportSummary getReport(LogbookOperation logbook) {
         Optional<LogbookEventOperation> logbookEventPrepare = logbook.getEvents().stream()
-                .filter(e -> e.getEvType().startsWith(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME))
-                .reduce((a, b) -> b);
+            .filter(e -> e.getEvType().startsWith(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME))
+            .reduce((a, b) -> b);
         Optional<LogbookEventOperation> logbookEventUpdate = logbook.getEvents().stream()
-                .filter(e -> e.getEvType().startsWith(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME))
-                .reduce((a, b) -> b);
+            .filter(e -> e.getEvType().startsWith(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME))
+            .reduce((a, b) -> b);
 
-            String startDate = logbook.getEvDateTime();
-            String endDate = LocalDateUtil.getString(LocalDateUtil.now());
+        String startDate = logbook.getEvDateTime();
+        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
 
-            if (logbookEventPrepare.isEmpty()) {
-                return new ReportSummary(startDate, endDate, BULK_UPDATE_UNIT, null, null);
-            }
-            
-            Map<StatusCode, Integer> codesNumberPrepare = getStatusStatistic(logbookEventPrepare.get());
-            int nbOk = 0;
-            int nbKo = codesNumberPrepare.get(KO) == null ? 0 : codesNumberPrepare.get(KO);
-            int nbWarning = codesNumberPrepare.get(WARNING) == null ? 0 : codesNumberPrepare.get(WARNING);
-            
-            if (logbookEventUpdate.isEmpty()) {
-                ReportResults results = new ReportResults(nbOk, nbKo, nbWarning);
-                return new ReportSummary(startDate, endDate, BULK_UPDATE_UNIT, results, null);
-            }
+        if (logbookEventPrepare.isEmpty()) {
+            return new ReportSummary(startDate, endDate, BULK_UPDATE_UNIT, null, null);
+        }
 
-            Map<StatusCode, Integer> codesNumber = getStatusStatistic(logbookEventUpdate.get());
-            nbOk = codesNumber.get(OK) == null ? nbOk : nbOk + codesNumber.get(OK);
-            nbKo = codesNumber.get(KO) == null ? nbKo : nbKo + codesNumber.get(KO);
-            nbWarning = codesNumber.get(WARNING) == null ? nbWarning  : nbWarning + codesNumber.get(WARNING);
+        Map<StatusCode, Integer> codesNumberPrepare = getStatusStatistic(logbookEventPrepare.get());
+        int nbOk = 0;
+        int nbKo = codesNumberPrepare.get(KO) == null ? 0 : codesNumberPrepare.get(KO);
+        int nbWarning = codesNumberPrepare.get(WARNING) == null ? 0 : codesNumberPrepare.get(WARNING);
 
+        if (logbookEventUpdate.isEmpty()) {
             ReportResults results = new ReportResults(nbOk, nbKo, nbWarning);
+            return new ReportSummary(startDate, endDate, BULK_UPDATE_UNIT, results, null);
+        }
+
+        Map<StatusCode, Integer> codesNumber = getStatusStatistic(logbookEventUpdate.get());
+        nbOk = codesNumber.get(OK) == null ? nbOk : nbOk + codesNumber.get(OK);
+        nbKo = codesNumber.get(KO) == null ? nbKo : nbKo + codesNumber.get(KO);
+        nbWarning = codesNumber.get(WARNING) == null ? nbWarning : nbWarning + codesNumber.get(WARNING);
+
+        ReportResults results = new ReportResults(nbOk, nbKo, nbWarning);
         return new ReportSummary(startDate, endDate, BULK_UPDATE_UNIT, results, null);
     }
 

@@ -30,45 +30,45 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
 
 public class BulkAtomicUpdateQueryPrepareItem {
-    
+
     private final JsonNode originalQuery;
     private JsonNode modifiedQuery;
     private String unitId;
     private BulkUpdateUnitMetadataReportEntry result;
-    
-    
+
+
     public BulkAtomicUpdateQueryPrepareItem(JsonNode originalQuery) {
         this.originalQuery = originalQuery;
     }
-    
+
     public boolean isValid() {
         return this.result == null;
     }
-    
+
     public JsonNode getOriginalQuery() {
         return this.originalQuery;
     }
-    
+
     public JsonNode getModifiedQuery() {
         return this.modifiedQuery;
     }
-    
+
     public void setModifiedQuery(JsonNode modifiedQuery) {
         this.modifiedQuery = modifiedQuery;
     }
-    
+
     public String getUnitId() {
         return this.unitId;
     }
-    
+
     public void setUnitId(String unitId) {
         this.unitId = unitId;
     }
-    
+
     public BulkUpdateUnitMetadataReportEntry getResult() {
         return result;
     }
-    
+
     public void setResult(BulkUpdateUnitMetadataReportEntry result) {
         this.result = result;
     }

@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
-
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,9 +45,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,27 +74,30 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
         bulkReportCollection = mongoRule.getMongoCollection(COLLECTION_NAME);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
 
-        String unPrettyQuery = "{\"$query\":[{\"$match\":{\"Title\":\"sous fonds\"}}],\"$action\":[{\"$set\":{\"Title\":\"update old title sous fonds émouvantี\"}}]}";
+        String unPrettyQuery =
+            "{\"$query\":[{\"$match\":{\"Title\":\"sous fonds\"}}],\"$action\":[{\"$set\":{\"Title\":\"update old title sous fonds émouvantี\"}}]}";
         bulkUpdateUnitMetadataEntryKO = new BulkUpdateUnitMetadataReportEntry(
-                TENANT_ID,
-                processId,
-                "unit1",
-                unPrettyQuery, null,"More than one Unit was found for the $query", StatusCode.KO,
-                String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.KO), "More than one Unit was found for the $query");
+            TENANT_ID,
+            processId,
+            "unit1",
+            unPrettyQuery, null, "More than one Unit was found for the $query", StatusCode.KO,
+            String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.KO),
+            "More than one Unit was found for the $query");
 
         bulkUpdateUnitMetadataEntryWARNING = new BulkUpdateUnitMetadataReportEntry(
-                TENANT_ID,
-                processId,
-                "unit2",
-                unPrettyQuery, null, "No Unit was found for the $query", StatusCode.WARNING,
-                String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.WARNING), "No Unit was found for the $query");
+            TENANT_ID,
+            processId,
+            "unit2",
+            unPrettyQuery, null, "No Unit was found for the $query", StatusCode.WARNING,
+            String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.WARNING),
+            "No Unit was found for the $query");
 
         bulkUpdateUnitMetadataEntryOK = new BulkUpdateUnitMetadataReportEntry(
-                TENANT_ID,
-                processId,
-                "unit3",
-                unPrettyQuery, GUIDFactory.newGUID().getId(),"Update done", StatusCode.OK,
-                String.format("%s.%s", "BULK_ATOMIC_UPDATE_UNITS", StatusCode.OK), "All went good");
+            TENANT_ID,
+            processId,
+            "unit3",
+            unPrettyQuery, GUIDFactory.newGUID().getId(), "Update done", StatusCode.OK,
+            String.format("%s.%s", "BULK_ATOMIC_UPDATE_UNITS", StatusCode.OK), "All went good");
     }
 
     @Test
@@ -105,15 +107,18 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
 
         // When
         Document report = bulkReportCollection
-                .find(and(eq(BulkUpdateUnitMetadataReportEntry.PROCESS_ID, processId), eq(BulkUpdateUnitMetadataReportEntry.TENANT_ID, 0)))
-                .first();
+            .find(and(eq(BulkUpdateUnitMetadataReportEntry.PROCESS_ID, processId),
+                eq(BulkUpdateUnitMetadataReportEntry.TENANT_ID, 0)))
+            .first();
 
         // Then
         assertThat(report.get(BulkUpdateUnitMetadataReportEntry.PROCESS_ID)).isEqualTo(processId);
         assertThat(report.get(BulkUpdateUnitMetadataReportEntry.TENANT_ID)).isEqualTo(0);
         assertThat(report.get(BulkUpdateUnitMetadataReportEntry.UNIT_ID)).isNull();
-        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.DETAIL_TYPE).toString()).isEqualTo(BULK_UPDATE_UNIT.name());
-        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.STATUS).toString()).isEqualTo(bulkUpdateUnitMetadataEntryKO.getStatus().name());
+        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.DETAIL_TYPE).toString())
+            .isEqualTo(BULK_UPDATE_UNIT.name());
+        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.STATUS).toString())
+            .isEqualTo(bulkUpdateUnitMetadataEntryKO.getStatus().name());
     }
 
     @Test
@@ -135,7 +140,8 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
     @Test
     public void should_find_collection_by_processid_tenant_status() {
         // Given
-        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING, bulkUpdateUnitMetadataEntryOK);
+        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
+            bulkUpdateUnitMetadataEntryOK);
         // When
         MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
 
@@ -151,12 +157,13 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
     @Test
     public void should_delete_report_by_id_and_tenant() {
         // Given
-        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING, bulkUpdateUnitMetadataEntryOK);
+        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
+            bulkUpdateUnitMetadataEntryOK);
         // When
         repository.deleteReportByIdAndTenant(processId, TENANT_ID);
         // Then
         FindIterable<Document> iterable = bulkReportCollection
-                .find(and(eq("processId", processId), eq("tenantId", TENANT_ID)));
+            .find(and(eq("processId", processId), eq("tenantId", TENANT_ID)));
         MongoCursor<Document> iterator = iterable.iterator();
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {

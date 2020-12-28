@@ -1,16 +1,16 @@
 {
-  "originQuery":{
-    "$query":[
+  "originQuery": {
+    "$query": [
       {
-        "$match":{
-          "Title":"monSIP"
+        "$match": {
+          "Title": "monSIP"
         }
       }
     ],
-    "$action":[
+    "$action": [
       {
-        "$set":{
-          "Title":"nouveauSIP"
+        "$set": {
+          "Title": "nouveauSIP"
         }
       }
     ]

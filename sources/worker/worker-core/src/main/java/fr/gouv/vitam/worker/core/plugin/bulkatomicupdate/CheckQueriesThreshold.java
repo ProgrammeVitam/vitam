@@ -43,7 +43,6 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 /**
  * Check is the threshold value (provides in query.json or default platform) is
  * less of equal than number of queries in query.json file ($queries)
- * 
  */
 public class CheckQueriesThreshold extends ActionHandler {
 
@@ -64,17 +63,19 @@ public class CheckQueriesThreshold extends ActionHandler {
 
         final long total = queries.size();
         final long threshold = hasThresholdParameter ? queryNode.get(THRESHOLD_PARAMETER_NAME).asLong() :
-                DEFAULT_THRESHOLD;
-        
-        if(total > threshold) {
+            DEFAULT_THRESHOLD;
+
+        if (total > threshold) {
             ObjectNode eventDetails = JsonHandler.createObjectNode();
-            eventDetails.put("error", String.format("Too many queries found. Threshold=%d, found=%d", threshold, total));
+            eventDetails
+                .put("error", String.format("Too many queries found. Threshold=%d, found=%d", threshold, total));
             return buildItemStatus(CHECK_QUERIES_THRESHOLD_PLUGIN_NAME, StatusCode.KO, eventDetails);
         }
-        
+
         if (total > DEFAULT_THRESHOLD) {
             ObjectNode eventDetails = JsonHandler.createObjectNode();
-            eventDetails.put("warning", String.format("Queries count exceeds default threshold. Default threshold=%d, found=%d", 
+            eventDetails
+                .put("warning", String.format("Queries count exceeds default threshold. Default threshold=%d, found=%d",
                     DEFAULT_THRESHOLD, total));
 
             return buildItemStatus(CHECK_QUERIES_THRESHOLD_PLUGIN_NAME, StatusCode.WARNING, eventDetails);
