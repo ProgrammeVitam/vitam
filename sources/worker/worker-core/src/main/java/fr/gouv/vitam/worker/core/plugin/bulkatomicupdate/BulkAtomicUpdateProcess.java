@@ -120,6 +120,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
     private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
     public static final String BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME = "BULK_ATOMIC_UPDATE_UNITS";
     private static final String ORIGINAL_QUERY_ROOT_KEY = "originQuery";
+    private static final String QUERY_INDEX_KEY = "queryIndex";
 
     /**
      * METADATA_UPDATE_BATCH_SIZE
@@ -198,8 +199,9 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             // Associate each unitId with its query
             for (int unitIndex = 0; unitIndex < bulkUnits.size(); unitIndex++) {
                 JsonNode query = queries.get(batchOffset + unitIndex).get(ORIGINAL_QUERY_ROOT_KEY);
-                BulkAtomicUpdateQueryProcessItem item =
-                    new BulkAtomicUpdateQueryProcessItem(bulkUnits.get(unitIndex), query);
+                int queryIndex = queries.get(batchOffset + unitIndex).get(QUERY_INDEX_KEY).asInt();
+                BulkAtomicUpdateQueryProcessItem item = new BulkAtomicUpdateQueryProcessItem(bulkUnits.get(unitIndex),
+                    query, queryIndex);
                 // We replace the query node from the request by a roots node
                 generateUpdateQuery(item);
                 processBulk.getItems().add(item);
@@ -331,7 +333,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         BulkUpdateUnitMetadataReportEntry entry = new BulkUpdateUnitMetadataReportEntry(
             vitamSession.getTenantId(),
             workerParameters.getContainerName(),
-            GUIDFactory.newGUID().getId(),
+            Integer.toString(item.getQueryIndex()),
             JsonHandler.unprettyPrint(item.getOriginalQuery()),
             item.getUnitId(),
             key,
@@ -383,7 +385,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, status, EventDetails.of(message));
         }
 
-        //TODO 7269 : Check when item did not change after update (not the UNIT_METADATA_NO_CHANGES which is idempotence)
+        // TODO 7269 : Check when item did not change after update (not the UNIT_METADATA_NO_CHANGES which is idempotence)
 
         if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
             try {

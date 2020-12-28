@@ -116,6 +116,7 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -178,17 +179,17 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(ProcessingIT.class,
-            mongoRule.getMongoDatabase().getName(), elasticsearchRule.getClusterName(),
-            Sets.newHashSet(MetadataMain.class, 
-                    WorkerMain.class, 
-                    AdminManagementMain.class, 
-                    LogbookMain.class,
-                    WorkspaceMain.class, 
-                    ProcessManagementMain.class, 
-                    StorageMain.class, 
-                    DefaultOfferMain.class,
-                    BatchReportMain.class
-             ));
+        mongoRule.getMongoDatabase().getName(), elasticsearchRule.getClusterName(),
+        Sets.newHashSet(MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            BatchReportMain.class
+        ));
 
     private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<>() {
     };
@@ -220,27 +221,27 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
-        runAfterMongo(Sets.newHashSet(MetadataCollections.UNIT.getName(), 
-                MetadataCollections.OBJECTGROUP.getName(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 
-                LogbookCollections.OPERATION.getName(),
-                LogbookCollections.LIFECYCLE_UNIT.getName(), 
-                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-                LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
+        runAfterMongo(Sets.newHashSet(MetadataCollections.UNIT.getName(),
+            MetadataCollections.OBJECTGROUP.getName(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            LogbookCollections.OPERATION.getName(),
+            LogbookCollections.LIFECYCLE_UNIT.getName(),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+            LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
         ));
 
         runAfterEs(ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
-                ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 1),
-                ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0),
-                ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
-                ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
-                ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
-                ElasticsearchIndexAlias
-                        .ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
-                ElasticsearchIndexAlias
-                        .ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName()));
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), 1),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
+            ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
+            ElasticsearchIndexAlias
+                .ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+            ElasticsearchIndexAlias
+                .ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName()));
     }
 
     @RunWithCustomExecutor
@@ -256,7 +257,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC,
-                    LogbookTypeProcess.BULK_UPDATE);
+                LogbookTypeProcess.BULK_UPDATE);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
 
@@ -276,18 +277,19 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             // Init workspace
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             initAccessContract(functionalClient, operationGuid);
-            // init request 
+            // init request
             JsonNode queries = JsonHandler
-                    .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_01_JSON));
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_01_JSON));
             assertNotNull(queries);
-            workspaceClient.putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
 
             // Init workflow
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret = processingClient
-                    .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -298,8 +300,8 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             Optional<Document> updatedUnit = VitamRepositoryFactory.get()
-                    .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
-                    .getByID("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq", TENANT_0);
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                .getByID("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq", TENANT_0);
             assertTrue(updatedUnit.isPresent());
             String expected = "update old title sous fonds \"émouvant สวัสดี";
             assertThat(updatedUnit.get().get(TITLE)).isEqualTo(expected);
@@ -315,15 +317,15 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
 
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             JsonNode unitLfc = logbookLifeCyclesClient.selectUnitLifeCycleById(
-                    updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
-            
+                updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
+
             JsonNode lfcEvents = unitLfc.get("$results").get(0).get("events");
             final JsonNode lastEvent = lfcEvents.get(lfcEvents.size() - 1);
             JsonNode evDetData = lastEvent.get("evDetData");
             JsonNode jsoned = JsonHandler.getFromString(evDetData.textValue());
             expected = "update old title sous fonds \\\"\\u00E9mouvant \\u0E2A\\u0E27\\u0E31\\u0E2A\\u0E14\\u0E35";
             assertThat(jsoned.get("diff").textValue()).contains(expected);
-            
+
             // CHECK REPORT
             List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -343,18 +345,28 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(11);
             assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
-            assertThat(reportLines.get(3).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(3).get("unitId").asText()).isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq");
-            assertThat(reportLines.get(3).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(0)));
-            assertThat(reportLines.get(4).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(4).get("unitId").asText()).isEqualTo("aeaqaaaaaagbcaacaang6ak4ts6palibbbbq");
-            assertThat(reportLines.get(4).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(1)));
-            assertThat(reportLines.get(13).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(13).get("unitId").asText()).isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlwy2iiaaaaq");
-            assertThat(reportLines.get(13).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(10)));
+
+            Map<Integer, JsonNode> reportDetailsByQueryIndex = getReportDetailsByQueryIndex(reportLines);
+            assertThat(reportDetailsByQueryIndex.get(0).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(0).get("unitId").asText())
+                .isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq");
+            assertThat(reportDetailsByQueryIndex.get(0).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(0)));
+
+            assertThat(reportDetailsByQueryIndex.get(1).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(1).get("unitId").asText())
+                .isEqualTo("aeaqaaaaaagbcaacaang6ak4ts6palibbbbq");
+            assertThat(reportDetailsByQueryIndex.get(1).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(1)));
+
+            assertThat(reportDetailsByQueryIndex.get(10).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(10).get("unitId").asText())
+                .isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlwy2iiaaaaq");
+            assertThat(reportDetailsByQueryIndex.get(10).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(10)));
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void given_invalid_queries_and_invalid_results_then_WARNING() throws Exception {
@@ -368,7 +380,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC,
-                    LogbookTypeProcess.BULK_UPDATE);
+                LogbookTypeProcess.BULK_UPDATE);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
 
@@ -388,31 +400,32 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             // Init workspace
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             initAccessContract(functionalClient, operationGuid);
-            // init request 
+            // init request
             JsonNode queries = JsonHandler
-                    .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_02_JSON));
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_02_JSON));
             assertNotNull(queries);
-            workspaceClient.putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
 
             // Init workflow
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret = processingClient
-                    .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
-            
+
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
             Optional<Document> updatedUnit = VitamRepositoryFactory.get()
-                    .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
-                    .getByID("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq", TENANT_0);
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                .getByID("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq", TENANT_0);
             assertTrue(updatedUnit.isPresent());
             String expected = "update old title sous fonds Identifier00";
             assertThat(updatedUnit.get().get(TITLE)).isEqualTo(expected);
@@ -425,18 +438,18 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             verifyEvent(events, "BULK_ATOMIC_UPDATE_UNITS.OK");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_FINALIZE.WARNING");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_UNIT_DESC.WARNING");
-            
+
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             JsonNode unitLfc = logbookLifeCyclesClient.selectUnitLifeCycleById(
-                    updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
-            
+                updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
+
             JsonNode lfcEvents = unitLfc.get("$results").get(0).get("events");
             final JsonNode lastEvent = lfcEvents.get(lfcEvents.size() - 1);
             JsonNode evDetData = lastEvent.get("evDetData");
             JsonNode jsoned = JsonHandler.getFromString(evDetData.textValue());
             expected = "update old title sous fonds Identifier00";
             assertThat(jsoned.get("diff").textValue()).contains(expected);
-            
+
             // CHECK REPORT
             List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -456,33 +469,48 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(8);
             assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(3);
+
+            Map<Integer, JsonNode> reportDetailsByQueryIndex = getReportDetailsByQueryIndex(reportLines);
             // first prepare error : warning
-            assertThat(reportLines.get(3).get("status").asText()).isEqualTo("WARNING");
-            assertThat(reportLines.get(3).has("unitId")).isFalse();
-            assertThat(reportLines.get(3).get("resultKey").asText()).isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.name());
-            assertThat(reportLines.get(3).get("message").asText()).isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage());
-            assertThat(reportLines.get(3).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(1)));
+            assertThat(reportDetailsByQueryIndex.get(1).get("status").asText()).isEqualTo("WARNING");
+            assertThat(reportDetailsByQueryIndex.get(1).has("unitId")).isFalse();
+            assertThat(reportDetailsByQueryIndex.get(1).get("resultKey").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.name());
+            assertThat(reportDetailsByQueryIndex.get(1).get("message").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage());
+            assertThat(reportDetailsByQueryIndex.get(1).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(1)));
             // second prepare error : KO
-            assertThat(reportLines.get(4).get("status").asText()).isEqualTo("WARNING");
-            assertThat(reportLines.get(4).get("resultKey").asText()).isEqualTo(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.name());
-            assertThat(reportLines.get(4).get("message").asText()).startsWith(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage());
-            assertThat(reportLines.get(4).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(8)));
+            assertThat(reportDetailsByQueryIndex.get(8).get("status").asText()).isEqualTo("WARNING");
+            assertThat(reportDetailsByQueryIndex.get(8).get("resultKey").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.name());
+            assertThat(reportDetailsByQueryIndex.get(8).get("message").asText())
+                .startsWith(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage());
+            assertThat(reportDetailsByQueryIndex.get(8).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(8)));
             // third prepare error : KO
-            assertThat(reportLines.get(5).get("status").asText()).isEqualTo("WARNING");
-            assertThat(reportLines.get(5).get("resultKey").asText()).isEqualTo(BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.name());
-            assertThat(reportLines.get(5).get("message").asText()).isEqualTo(BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.getMessage());
-            assertThat(reportLines.get(5).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(9)));
+            assertThat(reportDetailsByQueryIndex.get(9).get("status").asText()).isEqualTo("WARNING");
+            assertThat(reportDetailsByQueryIndex.get(9).get("resultKey").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.name());
+            assertThat(reportDetailsByQueryIndex.get(9).get("message").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.getMessage());
+            assertThat(reportDetailsByQueryIndex.get(9).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(9)));
             // first update ok
-            assertThat(reportLines.get(6).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(6).get("unitId").asText()).isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq");
-            assertThat(reportLines.get(6).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(0)));
+            assertThat(reportDetailsByQueryIndex.get(0).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(0).get("unitId").asText())
+                .isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlxeemqaaacq");
+            assertThat(reportDetailsByQueryIndex.get(0).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(0)));
             // last update ok
-            assertThat(reportLines.get(13).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(13).get("unitId").asText()).isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlwy2iiaaaaq");
-            assertThat(reportLines.get(13).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(10)));
+            assertThat(reportDetailsByQueryIndex.get(10).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(10).get("unitId").asText())
+                .isEqualTo("aeaqaaaaaahpqzjiaaoxmalwdlwy2iiaaaaq");
+            assertThat(reportDetailsByQueryIndex.get(10).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(10)));
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void given_invalid_updates_then_WARNING() throws Exception {
@@ -496,7 +524,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC,
-                    LogbookTypeProcess.BULK_UPDATE);
+                LogbookTypeProcess.BULK_UPDATE);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
 
@@ -509,25 +537,26 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             // Init workspace
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             initAccessContract(functionalClient, operationGuid);
-            // init request 
+            // init request
             JsonNode queries = JsonHandler
-                    .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_03_JSON));
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_03_JSON));
             assertNotNull(queries);
-            workspaceClient.putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
 
             // Init workflow
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret = processingClient
-                    .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
-            
+
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
@@ -538,24 +567,25 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             verifyEvent(events, "BULK_ATOMIC_UPDATE_UNITS.KO");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_FINALIZE.WARNING");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_UNIT_DESC.WARNING");
-            
+
             Optional<Document> updatedUnit = VitamRepositoryFactory.get()
-                    .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
-                    .getByID("aeaqaaaaaagbcaacaang6ak4ts6palibbbbq", TENANT_0);
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                .getByID("aeaqaaaaaagbcaacaang6ak4ts6palibbbbq", TENANT_0);
             assertTrue(updatedUnit.isPresent());
-            assertThat(updatedUnit.get().getList("ArchivalAgencyArchiveUnitIdentifier", String.class).get(0)).isEqualTo("2");
+            assertThat(updatedUnit.get().getList("ArchivalAgencyArchiveUnitIdentifier", String.class).get(0))
+                .isEqualTo("2");
             assertThat((List<String>) updatedUnit.get().get(Unit.OPS)).contains(operationGuid.getId());
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
-            
+
             JsonNode unitLfc = logbookLifeCyclesClient.selectUnitLifeCycleById(
-                    updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
+                updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
             JsonNode lfcEvents = unitLfc.get("$results").get(0).get("events");
             final JsonNode lastEvent = lfcEvents.get(lfcEvents.size() - 1);
             JsonNode evDetData = lastEvent.get("evDetData");
             JsonNode jsoned = JsonHandler.getFromString(evDetData.textValue());
             String expected = "\"ArchivalAgencyArchiveUnitIdentifier\" : [ \"2\" ]";
             assertThat(jsoned.get("diff").textValue()).contains(expected);
-            
+
             // CHECK REPORT
             List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -570,28 +600,34 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
                     consumeAnyEntityAndClose(reportResponse);
                 }
             }
-            
+
             assertThat(reportLines.size()).isEqualTo(7);
             assertThat(reportLines.get(0).get("outDetail").asText()).isEqualTo("BULK_ATOMIC_UPDATE_UNITS.WARNING");
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(3);
             assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(1);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
 
-            assertThat(reportLines.get(3).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(3).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(0)));
-            assertThat(reportLines.get(4).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(4).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(1)));
-            
-            assertThat(reportLines.get(5).get("status").asText()).isEqualTo("KO");
-            assertThat(reportLines.get(5).get("resultKey").asText()).isEqualTo("CHECK_UNIT_SCHEMA");
-            assertThat(reportLines.get(5).get("message").asText()).contains("Archive unit contains fields declared in ontology with a wrong format");
-            assertThat(reportLines.get(5).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(2)));
+            Map<Integer, JsonNode> reportDetailsByQueryIndex = getReportDetailsByQueryIndex(reportLines);
+            assertThat(reportDetailsByQueryIndex.get(0).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(0).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(0)));
+            assertThat(reportDetailsByQueryIndex.get(1).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(1).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(1)));
 
-            assertThat(reportLines.get(6).get("status").asText()).isEqualTo("OK");
-            assertThat(reportLines.get(6).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(3)));
+            assertThat(reportDetailsByQueryIndex.get(2).get("status").asText()).isEqualTo("KO");
+            assertThat(reportDetailsByQueryIndex.get(2).get("resultKey").asText()).isEqualTo("CHECK_UNIT_SCHEMA");
+            assertThat(reportDetailsByQueryIndex.get(2).get("message").asText())
+                .contains("Archive unit contains fields declared in ontology with a wrong format");
+            assertThat(reportDetailsByQueryIndex.get(2).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(2)));
+
+            assertThat(reportDetailsByQueryIndex.get(3).get("status").asText()).isEqualTo("OK");
+            assertThat(reportDetailsByQueryIndex.get(3).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(3)));
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void given_all_invalid_queries_then_empty_WARNING() throws Exception {
@@ -605,7 +641,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC,
-                    LogbookTypeProcess.BULK_UPDATE);
+                LogbookTypeProcess.BULK_UPDATE);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
 
@@ -618,25 +654,26 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             // Init workspace
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             initAccessContract(functionalClient, operationGuid);
-            // init request 
+            // init request
             JsonNode queries = JsonHandler
-                    .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_04_JSON));
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_04_JSON));
             assertNotNull(queries);
-            workspaceClient.putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
 
             // Init workflow
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret = processingClient
-                    .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
-            
+
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
@@ -647,7 +684,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             verifyEvent(events, "OBJECTS_LIST_EMPTY.WARNING");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_FINALIZE.WARNING");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_UNIT_DESC.WARNING");
-            
+
             // CHECK REPORT
             List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -662,28 +699,35 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
                     consumeAnyEntityAndClose(reportResponse);
                 }
             }
-            
+
             assertThat(reportLines.size()).isEqualTo(5);
             assertThat(reportLines.get(0).get("outDetail").asText()).isEqualTo("OBJECTS_LIST_EMPTY.WARNING");
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(2);
 
-            assertThat(reportLines.get(3).get("status").asText()).isEqualTo("WARNING");
-            assertThat(reportLines.get(3).has("unitId")).isFalse();
-            assertThat(reportLines.get(3).get("resultKey").asText()).isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.name());
-            assertThat(reportLines.get(3).get("message").asText()).isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage());
-            assertThat(reportLines.get(3).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(0)));
+            Map<Integer, JsonNode> reportDetailsByQueryIndex = getReportDetailsByQueryIndex(reportLines);
+            assertThat(reportDetailsByQueryIndex.get(0).get("status").asText()).isEqualTo("WARNING");
+            assertThat(reportDetailsByQueryIndex.get(0).has("unitId")).isFalse();
+            assertThat(reportDetailsByQueryIndex.get(0).get("resultKey").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.name());
+            assertThat(reportDetailsByQueryIndex.get(0).get("message").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage());
+            assertThat(reportDetailsByQueryIndex.get(0).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(0)));
 
-            assertThat(reportLines.get(4).get("status").asText()).isEqualTo("WARNING");
-            assertThat(reportLines.get(3).has("unitId")).isFalse();
-            assertThat(reportLines.get(4).get("resultKey").asText()).isEqualTo(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.name());
-            assertThat(reportLines.get(4).get("message").asText()).startsWith(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage());
-            assertThat(reportLines.get(4).get("query").asText()).isEqualTo(JsonHandler.unprettyPrint(((ArrayNode)queries.get("queries")).get(1)));
+            assertThat(reportDetailsByQueryIndex.get(1).get("status").asText()).isEqualTo("WARNING");
+            assertThat(reportDetailsByQueryIndex.get(1).has("unitId")).isFalse();
+            assertThat(reportDetailsByQueryIndex.get(1).get("resultKey").asText())
+                .isEqualTo(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.name());
+            assertThat(reportDetailsByQueryIndex.get(1).get("message").asText())
+                .startsWith(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage());
+            assertThat(reportDetailsByQueryIndex.get(1).get("query").asText())
+                .isEqualTo(JsonHandler.unprettyPrint(queries.get("queries").get(1)));
         }
-        
+
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void given_dsl_invalid_then_KO() throws Exception {
@@ -697,7 +741,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC,
-                    LogbookTypeProcess.BULK_UPDATE);
+                LogbookTypeProcess.BULK_UPDATE);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
 
@@ -711,25 +755,26 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // init access contrat
             initAccessContract(functionalClient, operationGuid);
-            // init request 
+            // init request
             JsonNode queries = JsonHandler
-                    .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_05_JSON));
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_05_JSON));
             assertNotNull(queries);
-            workspaceClient.putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
 
             // Init workflow
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> ret = processingClient
-                    .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
-            
+
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
@@ -739,7 +784,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             verifyEvent(events, "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST.KO");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_FINALIZE.WARNING");
             verifyEvent(events, "BULK_ATOMIC_UPDATE_UNIT_DESC.KO");
-            
+
             // CHECK REPORT
             List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -754,9 +799,10 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
                     consumeAnyEntityAndClose(reportResponse);
                 }
             }
-            
+
             assertThat(reportLines.size()).isEqualTo(3);
-            assertThat(reportLines.get(0).get("outDetail").asText()).isEqualTo("PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST.KO");
+            assertThat(reportLines.get(0).get("outDetail").asText())
+                .isEqualTo("PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST.KO");
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(1);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
@@ -770,52 +816,54 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
-        
+
         try (AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
-            
+
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_0);
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC, LogbookTypeProcess.BULK_UPDATE);
-    
+            createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC,
+                LogbookTypeProcess.BULK_UPDATE);
+
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
-    
+
             // insert units and LFC
             insertUnitAndLFC(UNIT_00_JSON, UNIT_LFC_00_JSON);
-    
+
             // Init workspace
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // init access contrat
             initAccessContract(functionalClient, operationGuid);
-            // no request in workspace 
+            // no request in workspace
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
-    
+
             // first launch fatal
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-    
+
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
             assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
-    
-            // init request 
+
+            // init request
             JsonNode queries = JsonHandler
-                    .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_06_JSON));
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_06_JSON));
             assertNotNull(queries);
-            workspaceClient.putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
-            
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+
             // relaunch
             ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-    
+
             waitOperation(containerName);
             processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
@@ -823,7 +871,7 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
         }
     }
-    
+
 
     @RunWithCustomExecutor
     @Test
@@ -832,42 +880,44 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
-        
+
         try (AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
-            
+
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_0);
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC, LogbookTypeProcess.BULK_UPDATE);
-    
+            createLogbookOperation(operationGuid, operationGuid, BULK_ATOMIC_UPDATE_UNIT_DESC,
+                LogbookTypeProcess.BULK_UPDATE);
+
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
-    
+
             // insert units and LFC
             insertUnitAndLFC(UNIT_00_JSON, UNIT_LFC_00_JSON);
-    
+
             // Init workspace
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // init access contrat
             initAccessContract(functionalClient, operationGuid);
-            
-            // init request 
+
+            // init request
             ObjectNode queries = (ObjectNode) JsonHandler
-                    .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_01_JSON));
-            queries.put("threshold",1);
+                .getFromFile(PropertiesUtils.findFile(UPDATE_QUERY_01_JSON));
+            queries.put("threshold", 1);
             assertNotNull(queries);
-            workspaceClient.putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
-       
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERIES_FILE_INPUT, JsonHandler.writeToInpustream(queries));
+
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name());
-    
+
             // first launch fatal
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-    
+
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
             assertNotNull(processWorkflow);
@@ -883,32 +933,33 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
     }
 
     private void initAccessContract(AdminManagementClient functionalClient, final GUID operationGuid)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException,
-            ContentAddressableStorageServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException,
+        ContentAddressableStorageServerException {
         RequestResponse<AccessContractModel> accessContractResponse = functionalClient
-                .findAccessContractsByID(CONTRACT_ID);
+            .findAccessContractsByID(CONTRACT_ID);
         if (!accessContractResponse.isOk()
-                || ((RequestResponseOK<AccessContractModel>) accessContractResponse).isEmpty()) {
+            || ((RequestResponseOK<AccessContractModel>) accessContractResponse).isEmpty()) {
             fail("count not find access contract");
         }
         AccessContractModel accessContractModel = ((RequestResponseOK<AccessContractModel>) accessContractResponse)
-                .getFirstResult();
-        workspaceClient.putObject(operationGuid.getId(), ACCESS_CONTRACT_FILE_INPUT, JsonHandler.writeToInpustream(accessContractModel));
+            .getFirstResult();
+        workspaceClient.putObject(operationGuid.getId(), ACCESS_CONTRACT_FILE_INPUT,
+            JsonHandler.writeToInpustream(accessContractModel));
     }
 
     private JsonNode getLogbookOperation(final String containerName)
-            throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
+        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         Select selectQuery = new Select();
         selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
         JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
         return logbookResult;
     }
-    
+
 
     private void verifyEvent(JsonNode events, String s) {
         List<JsonNode> massUpdateFinalized = events.findValues(OUT_DETAIL).stream().filter(e -> e.asText().equals(s))
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         assertThat(massUpdateFinalized.size()).isGreaterThan(0);
     }
 
@@ -917,26 +968,26 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
      *
      * @param unitFile
      * @param lfcFile
-     * @throws                       fr.gouv.vitam.common.exception.InvalidParseOperationException
+     * @throws fr.gouv.vitam.common.exception.InvalidParseOperationException
      * @throws FileNotFoundException
      * @throws DatabaseException
      */
     private void insertUnitAndLFC(final String unitFile, final String lfcFile)
-            throws fr.gouv.vitam.common.exception.InvalidParseOperationException, FileNotFoundException,
-            DatabaseException {
+        throws fr.gouv.vitam.common.exception.InvalidParseOperationException, FileNotFoundException,
+        DatabaseException {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<Document> units = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(unitFile),
-                TYPE_LIST_UNIT);
+            TYPE_LIST_UNIT);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
+            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
 
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
         List<JsonNode> unitsLfc = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(lfcFile),
-                new TypeReference<>() {
-                });
+            new TypeReference<>() {
+            });
         List<Document> lfcs = unitsLfc.stream().map(item -> Document.parse(JsonHandler.unprettyPrint(item)))
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
 
         new VitamMongoRepository(LogbookCollections.LIFECYCLE_UNIT.getCollection()).save(lfcs);
     }
@@ -953,16 +1004,23 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
      * @throws LogbookClientServerException
      */
     private void createLogbookOperation(GUID operationId, GUID objectId, String type, LogbookTypeProcess typeProc)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationId, type, objectId, typeProc, StatusCode.STARTED,
-                operationId != null ? operationId.toString() : "outcomeDetailMessage", operationId);
+            operationId, type, objectId, typeProc, StatusCode.STARTED,
+            operationId != null ? operationId.toString() : "outcomeDetailMessage", operationId);
         initParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getLabelOp(type + ".STARTED") + " : " + operationId);
+            VitamLogbookMessages.getLabelOp(type + ".STARTED") + " : " + operationId);
         logbookClient.create(initParameters);
     }
 
+    private Map<Integer, JsonNode> getReportDetailsByQueryIndex(List<JsonNode> reportLines) {
+        return reportLines.subList(3, reportLines.size()).stream()
+            .collect(Collectors.toMap(
+                i -> Integer.parseInt(i.get("id").asText()),
+                i -> i
+            ));
+    }
 }
 

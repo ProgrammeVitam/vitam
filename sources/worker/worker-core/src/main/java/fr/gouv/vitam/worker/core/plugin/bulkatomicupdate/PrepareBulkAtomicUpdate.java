@@ -27,66 +27,60 @@
 package fr.gouv.vitam.worker.core.plugin.bulkatomicupdate;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.ReportBody;
-import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.common.InternalActionKeysRetriever;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
-import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import org.apache.commons.collections4.CollectionUtils;
+import fr.gouv.vitam.worker.core.utils.CountingIterator;
+import fr.gouv.vitam.worker.core.utils.CountingIterator.EntryWithIndex;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Prepare execute execute each query in query.json by :<br>
- * - checking query validity (see MassUpdateCheck and add tests for _mgt) => if
- * KO detail in batch-report and not in distrib<br>
- * - adding limit 2 filter and projection "_id" <br>
- * - adding accessContract limits <br>
- * - executing the select query (in bulk of 8? metadata) <br>
- * - checking number of results : 1 result => OK/add to distribution, 0 or more
- * than 1 results => WARNING/add detail batch-report and not in distrib<br>
- * - saving the distrib file<br>
- *
- * TODO 7269 : add parallel execution <br>
+ * Prepare execute execute each query in query.json.
+ * Queries are executed in bulks, each bulk is run concurrently is a thread pool.
+ * Queries are updated with access contract restrictions.
+ * Query projection is set to "_id" field only.
+ * Queries with internal fields are blocked ==> Report WARNING in batch report
+ * Queries result size is limited to 2.
+ * - If a single entry is found ==> Happy path, we append unitId to distribution file
+ * - No entries found           ==> Report WARNING in batch report (no unit found)
+ * - 2 entries found            ==> Report WARNING in batch report (multiple units found)
+ * Report entries are buffered and sent as bulks to BatchReport (to reduce IOs to BatchReport)
+ * Distribution file entries are buffered and written to disk in bulks  (to reduce IO contention)
  */
 public class PrepareBulkAtomicUpdate extends ActionHandler {
 
@@ -101,285 +95,192 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
     // OUTPUTS
     private static final int DISTRIBUTION_FILE_RANK = 0;
 
-    /**
-     * METADATA_SELECT_BATCH_SIZE
-     */
-    private static final int METADATA_SELECT_BATCH_SIZE = 8;
-
     private final MetaDataClientFactory metaDataClientFactory;
     private final BatchReportClientFactory batchReportClientFactory;
     private final InternalActionKeysRetriever internalActionKeysRetriever;
-
-
-    /**
-     * TODO 7269 : Batch size
-     */
     private final int batchSize;
+    private final int threadPoolSize;
+    private final int threadPoolQueueSize;
 
     /**
      * Constructor.
      */
     public PrepareBulkAtomicUpdate() {
         this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(),
-            new InternalActionKeysRetriever(), GlobalDatasDb.LIMIT_LOAD);
+            new InternalActionKeysRetriever(), VitamConfiguration.getBulkAtomicUpdateBatchSize(),
+            VitamConfiguration.getBulkAtomicUpdateThreadPoolSize(),
+            VitamConfiguration.getBulkAtomicUpdateThreadPoolQueueSize());
     }
 
     /**
      * Constructor.
      *
-     * @param metaDataClientFactory
+     * @param metaDataClientFactory metadata client factory
+     * @param batchReportClientFactory batch report client factory
      * @param internalActionKeysRetriever
-     * @param batchSize parallel batch size
+     * @param batchSize batch size for processing
+     * @param threadPoolSize max threads that can be run in concurrently is thread pool
+     * @param threadPoolQueueSize number of jobs that can be queued before blocking (limits workload memory usage)
      */
     @VisibleForTesting
     PrepareBulkAtomicUpdate(MetaDataClientFactory metaDataClientFactory,
-        BatchReportClientFactory batchReportClientFactory, InternalActionKeysRetriever internalActionKeysRetriever,
-        int batchSize) {
+        BatchReportClientFactory batchReportClientFactory,
+        InternalActionKeysRetriever internalActionKeysRetriever, int batchSize, int threadPoolSize,
+        int threadPoolQueueSize) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
         this.internalActionKeysRetriever = internalActionKeysRetriever;
         this.batchSize = batchSize;
+        this.threadPoolSize = threadPoolSize;
+        this.threadPoolQueueSize = threadPoolQueueSize;
     }
 
-    /**
-     * Execute an action
-     *
-     * @param param {@link WorkerParameters}
-     * @param handler the handlerIo
-     * @return CompositeItemStatus:response contains a list of functional message
-     * and status code
-     * @throws ProcessingException if an error is encountered when executing the
-     * action
-     */
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
 
-        final ItemStatus itemStatus = new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME);
-        final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-
-        try (MetaDataClient metatadaClient = metaDataClientFactory.getClient();
-            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+        try {
 
             // Retrieve inputs
-            JsonNode accessContractNode = handler.getJsonFromWorkspace(ACCESS_CONTRACT_NAME_IN);
-            AccessContractModel accessContractModel = JsonHandler.getFromJsonNode(accessContractNode,
-                AccessContractModel.class);
-            JsonNode queryInNode = handler.getJsonFromWorkspace(QUERY_NAME_IN);
-            ArrayNode queriesNodes = ((ArrayNode) queryInNode.get("queries"));
+            AccessContractModel accessContractModel = loadAccessContract(handler);
+            Iterator<JsonNode> queryIterator = loadQueries(handler);
 
+            // Process queries and generate distribution file / report
+            final String distributionFileName = handler.getOutput(DISTRIBUTION_FILE_RANK).getPath();
+            final File distributionFile = handler.getNewLocalFile(distributionFileName);
 
-            // Create distrib file
-            final String distribFileName = handler.getOutput(DISTRIBUTION_FILE_RANK).getPath();
-            final File distribFile = handler.getNewLocalFile(distribFileName);
+            ItemStatus itemStatus;
+            try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distributionFile));
+                MetaDataClient metadataClient = metaDataClientFactory.getClient();
+                BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
-            try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distribFile))) {
-                // START BULK
-                Iterator<List<JsonNode>> queriesBulkIterator =
-                    Iterators.partition(queriesNodes.iterator(), METADATA_SELECT_BATCH_SIZE);
-                while (queriesBulkIterator.hasNext()) {
-                    List<JsonNode> bulkQueriesToProcess = queriesBulkIterator.next();
-                    executeBulk(param, itemStatus, tenantId, metatadaClient, batchReportClient, accessContractModel,
-                        bulkQueriesToProcess, distribFile);
-                }
-                // END Bulk
-
-            } catch (IOException | VitamRuntimeException | IllegalStateException e) {
-                throw new ProcessingException("Could not generate and save file", e);
+                itemStatus = processQueries(param.getProcessId(), metadataClient, batchReportClient,
+                    accessContractModel, queryIterator, jsonLineWriter);
             }
+
             // move file to workspace
-            handler.transferFileToWorkspace(distribFileName, distribFile, true, false);
+            handler.transferFileToWorkspace(distributionFileName, distributionFile, true, false);
 
-            // set status OK
-            itemStatus.increment(StatusCode.OK);
+            return new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME)
+                .setItemsStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, itemStatus);
 
-        } catch (BadRequestException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (InvalidParseOperationException | ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
+        } catch (IOException | VitamRuntimeException | IllegalStateException | ProcessingException e) {
+            LOGGER.error("Bulk atomic update preparation failed", e);
+            return buildFatalItemStatus(StatusCode.FATAL);
+        } catch (ProcessingStatusException e) {
+            LOGGER.error("Bulk atomic update preparation failed", e);
+            return buildFatalItemStatus(e.getStatusCode());
         }
+    }
+
+    private ItemStatus buildFatalItemStatus(StatusCode statusCode) {
+        final ItemStatus itemStatus = new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME);
+        itemStatus.increment(statusCode);
         return new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME)
             .setItemsStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, itemStatus);
     }
 
-    /**
-     * Execute prepare plugin on a bulk of queries
-     *
-     * @param param plugin params
-     * @param itemStatus plugin status
-     * @param tenantId tenantId
-     * @param metatadaClient metadata client
-     * @param batchReportClient batch report client
-     * @param accessContractModel access contract
-     * @param queriesNodes list of queries in bulk
-     * @param distribFile distribution file
-     * @throws BadRequestException error in query
-     * @throws ProcessingException clients errors
-     */
-    private void executeBulk(WorkerParameters param, final ItemStatus itemStatus, final int tenantId,
-        MetaDataClient metatadaClient, BatchReportClient batchReportClient, AccessContractModel accessContractModel,
-        List<JsonNode> queriesNodes,
-        final File distribFile)
-        throws BadRequestException, ProcessingException {
-
+    private AccessContractModel loadAccessContract(HandlerIO handler)
+        throws ProcessingStatusException {
         try {
-
-            BulkAtomicUpdateQueryPrepareBulk bulkItems = new BulkAtomicUpdateQueryPrepareBulk();
-            queriesNodes.forEach(queryDetailNode -> {
-                bulkItems.getItems().add(new BulkAtomicUpdateQueryPrepareItem(queryDetailNode));
-            });
-
-            // Verification of queries
-            bulkItems.getItems().forEach(item -> validateQuery(item, param.getContainerName(), tenantId));
-            // Generate modifies queries
-            for (BulkAtomicUpdateQueryPrepareItem item : bulkItems.getItems()) {
-                if (item.isValid()) {
-                    computeModifiedQuery(item, accessContractModel);
-                }
-            }
-
-            List<BulkAtomicUpdateQueryPrepareItem> validItems =
-                bulkItems.getItems().stream().filter(item -> item.isValid()).collect(Collectors.toList());
-            List<JsonNode> executableQueries =
-                validItems.stream().map(item -> item.getModifiedQuery()).collect(Collectors.toList());
-            List<RequestResponseOK<JsonNode>> queriesResponses = metatadaClient.selectUnitsBulk(executableQueries);
-
-
-            for (int queryIndex = 0; queryIndex < executableQueries.size(); queryIndex++) {
-                RequestResponseOK<JsonNode> queryResponse = queriesResponses.get(queryIndex);
-                BulkAtomicUpdateQueryPrepareItem item = validItems.get(queryIndex);
-
-                int numberResults = queryResponse.getResults().size();
-                if (numberResults == 0) {
-                    BulkUpdateUnitMetadataReportEntry entry = new BulkUpdateUnitMetadataReportEntry(
-                        tenantId,
-                        param.getContainerName(),
-                        GUIDFactory.newGUID().getId(),
-                        JsonHandler.unprettyPrint(item.getOriginalQuery()),
-                        null,
-                        BulkUpdateUnitReportKey.UNIT_NOT_FOUND.name(), StatusCode.WARNING,
-                        String.format("%s.%s", PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, StatusCode.WARNING),
-                        BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage());
-                    item.setResult(entry);
-                } else if (numberResults >= 2) {
-                    BulkUpdateUnitMetadataReportEntry entry = new BulkUpdateUnitMetadataReportEntry(
-                        tenantId,
-                        param.getContainerName(),
-                        GUIDFactory.newGUID().getId(),
-                        JsonHandler.unprettyPrint(item.getOriginalQuery()),
-                        null,
-                        BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.name(), StatusCode.WARNING,
-                        String.format("%s.%s", PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, StatusCode.WARNING),
-                        BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.getMessage());
-                    item.setResult(entry);
-                } else {
-                    item.setUnitId(queryResponse.getResults().get(0).get("#id").textValue());
-                }
-            }
-
-            // Add valid in ditrib
-            if (CollectionUtils.isNotEmpty(bulkItems.getValidItems())) {
-                writeToDistributionFile(bulkItems.getValidItems(), distribFile);
-                itemStatus.increment(StatusCode.OK, bulkItems.getValidItems().size());
-            }
-
-            // send report error in report
-            if (CollectionUtils.isNotEmpty(bulkItems.getReportEntries())) {
-                ReportBody<BulkUpdateUnitMetadataReportEntry> reportBody = new ReportBody<>();
-                reportBody.setProcessId(param.getProcessId());
-                reportBody.setReportType(ReportType.BULK_UPDATE_UNIT);
-                reportBody.setEntries(bulkItems.getReportEntries());
-                batchReportClient.appendReportEntries(reportBody);
-                itemStatus.increment(StatusCode.WARNING, bulkItems.getReportEntries().size());
-            }
-        } catch (InvalidParseOperationException | IllegalArgumentException | MetaDataDocumentSizeException | InvalidCreateOperationException e) {
-            throw new BadRequestException("Client error while executing select requests ", e);
-        } catch (MetaDataExecutionException | MetaDataClientServerException | VitamClientInternalException e) {
-            throw new ProcessingException("Server error while executing select requests ", e);
+            JsonNode accessContractNode = handler.getJsonFromWorkspace(ACCESS_CONTRACT_NAME_IN);
+            return JsonHandler.getFromJsonNode(accessContractNode, AccessContractModel.class);
+        } catch (InvalidParseOperationException | ProcessingException ex) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load access contract", ex);
         }
     }
 
-    /**
-     * Append to the distribution file
-     *
-     * @param items bulk of queries
-     * @param distribFile distribution file as à jsonLine
-     * @throws ProcessingException
-     */
-    private void writeToDistributionFile(final List<BulkAtomicUpdateQueryPrepareItem> items, File distribFile)
-        throws ProcessingException {
-
-        boolean isEmpty = !(distribFile.exists() && distribFile.length() != 0);
-        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distribFile, true), isEmpty)) {
-            items.forEach(item -> {
-                try {
-                    jsonLineWriter.addEntry(getJsonLineForItem(item));
-                } catch (IOException e) {
-                    throw new VitamRuntimeException(e);
-                }
-            });
-
-        } catch (IOException | VitamRuntimeException | IllegalStateException e) {
-            throw new ProcessingException("Could not generate and save file", e);
+    private Iterator<JsonNode> loadQueries(HandlerIO handler) throws ProcessingStatusException {
+        try {
+            JsonNode queryNodes = handler.getJsonFromWorkspace(QUERY_NAME_IN);
+            return queryNodes.get("queries").iterator();
+        } catch (ProcessingException ex) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load queries", ex);
         }
     }
 
-    private JsonLineModel getJsonLineForItem(BulkAtomicUpdateQueryPrepareItem item) {
-        ObjectNode params = JsonHandler.createObjectNode();
-        params.set("originQuery", item.getOriginalQuery());
-        return new JsonLineModel(item.getUnitId(), null, params);
-    }
+    private ItemStatus processQueries(String processId,
+        MetaDataClient metadataClient,
+        BatchReportClient batchReportClient, AccessContractModel accessContractModel, Iterator<JsonNode> queryIterator,
+        JsonLineWriter jsonLineWriter) throws ProcessingStatusException {
 
-    /**
-     * Verify "_xx" fields not present in update
-     *
-     * @param item item containing query
-     * @param containerName containerName
-     * @param tenantId tenantId
-     */
-    private void validateQuery(BulkAtomicUpdateQueryPrepareItem item, String containerName, int tenantId) {
-        List<String> internalKeyFields =
-            internalActionKeysRetriever.getInternalActionKeyFields(item.getOriginalQuery());
-        if (!internalKeyFields.isEmpty()) {
-            String message = String.format(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage() + " : '%s'",
-                String.join(", ", internalKeyFields));
-            BulkUpdateUnitMetadataReportEntry entry = new BulkUpdateUnitMetadataReportEntry(
-                tenantId,
-                containerName,
-                GUIDFactory.newGUID().getId(),
-                JsonHandler.unprettyPrint(item.getOriginalQuery()),
-                null,
-                BulkUpdateUnitReportKey.INVALID_DSL_QUERY.name(),
-                StatusCode.WARNING,
-                String.format("%s.%s", PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, StatusCode.WARNING),
-                message);
-            item.setResult(entry);
+        final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+        // Associate every query entry with its index position
+        Iterator<EntryWithIndex<JsonNode>> queryWithIndexIterator
+            = new CountingIterator<>(queryIterator);
+
+        // Group entries for bulk processing
+        Iterator<List<EntryWithIndex<JsonNode>>> queriesBulkIterator =
+            Iterators.partition(queryWithIndexIterator, batchSize);
+
+        try (BulkSelectQueryParallelProcessor bulkSelectQueryParallelProcessor = new BulkSelectQueryParallelProcessor(
+            PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, processId, tenantId,
+            metadataClient, batchReportClient, internalActionKeysRetriever, accessContractModel, jsonLineWriter)) {
+
+            // Process in thread pool. Any exception aborts execution
+            AtomicBoolean fatalErrorOccurred = new AtomicBoolean(false);
+            AtomicBoolean koErrorOccurred = new AtomicBoolean(false);
+            ThreadPoolExecutor executor =
+                ExecutorUtils.createScalableBatchExecutorService(threadPoolSize, threadPoolQueueSize);
+
+            while (queriesBulkIterator.hasNext() && !fatalErrorOccurred.get()) {
+
+                final List<EntryWithIndex<JsonNode>> bulkQueriesToProcess = queriesBulkIterator.next();
+                executor.submit(() -> {
+
+                    VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
+                    if (fatalErrorOccurred.get() || koErrorOccurred.get()) {
+                        throw new CancellationException("Job cancelled");
+                    }
+
+                    try {
+                        bulkSelectQueryParallelProcessor.processBulkQueries(bulkQueriesToProcess);
+                    } catch (InvalidParseOperationException | IllegalArgumentException | MetaDataDocumentSizeException | InvalidCreateOperationException e) {
+                        koErrorOccurred.set(true);
+                        LOGGER.error("An error occurred during bulk select query execution", e);
+                    } catch (MetaDataExecutionException | MetaDataClientServerException | VitamClientInternalException | IOException | RuntimeException e) {
+                        fatalErrorOccurred.set(true);
+                        LOGGER.error("An unexpected error occurred during bulk select query execution", e);
+                    }
+                }, executor);
+            }
+
+            awaitExecutorTermination(executor);
+
+            if (koErrorOccurred.get()) {
+                throw new ProcessingStatusException(StatusCode.KO,
+                    "One or more KO errors occurred during bulk select query execution");
+            }
+
+            if (fatalErrorOccurred.get()) {
+                throw new ProcessingStatusException(StatusCode.FATAL,
+                    "One or more FATAL errors occurred during bulk select query execution");
+            }
+
+            final ItemStatus itemStatus = new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME);
+            if (bulkSelectQueryParallelProcessor.getNbOKs() > 0) {
+                itemStatus.increment(StatusCode.OK, bulkSelectQueryParallelProcessor.getNbOKs());
+            }
+            if (bulkSelectQueryParallelProcessor.getNbWarnings() > 0) {
+                itemStatus.increment(StatusCode.WARNING, bulkSelectQueryParallelProcessor.getNbWarnings());
+            }
+            return itemStatus;
+
+        } catch (VitamClientInternalException | IOException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL,
+                "An error occurred during bulk select query execution", e);
         }
     }
 
-    /**
-     * Create select DSL query from query in item and apply contract
-     *
-     * @param item query item
-     * @param accessContract accessContract
-     * @throws InvalidParseOperationException query parsing error
-     * @throws InvalidCreateOperationException error in application of contract
-     */
-    private void computeModifiedQuery(BulkAtomicUpdateQueryPrepareItem item, AccessContractModel accessContract)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        JsonNode securedQueryNode = AccessContractRestrictionHelper
-            .applyAccessContractRestrictionForUnitForSelect(item.getOriginalQuery(), accessContract);
-        SelectParserMultiple parser = new SelectParserMultiple();
-        parser.parse(securedQueryNode);
-        SelectMultiQuery multiQuery = parser.getRequest();
-        multiQuery.getRoots().clear();
-        // We set a limit at 2 results per request
-        multiQuery.setLimitFilter(0, 2);
-        // set projection to get only the id
-        multiQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
-        item.setModifiedQuery(multiQuery.getFinalSelect());
-
+    private void awaitExecutorTermination(ThreadPoolExecutor executor) throws ProcessingStatusException {
+        try {
+            executor.shutdown();
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ProcessingStatusException(StatusCode.FATAL,
+                "Awaiting bulk atomic update jobs interrupted", e);
+        }
     }
-
 }

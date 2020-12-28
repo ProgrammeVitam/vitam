@@ -24,53 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.bulkatomicupdate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
+package fr.gouv.vitam.worker.core.utils;
 
-public class BulkAtomicUpdateQueryPrepareItem {
+import java.util.Iterator;
 
-    private final JsonNode originalQuery;
-    private JsonNode modifiedQuery;
-    private String unitId;
-    private BulkUpdateUnitMetadataReportEntry result;
+public class CountingIterator<T> implements Iterator<CountingIterator.EntryWithIndex<T>> {
 
+    private final Iterator<T> innerIterator;
+    private int entryIndex = 0;
 
-    public BulkAtomicUpdateQueryPrepareItem(JsonNode originalQuery) {
-        this.originalQuery = originalQuery;
+    public CountingIterator(Iterator<T> innerIterator) {
+        this.innerIterator = innerIterator;
     }
 
-    public boolean isValid() {
-        return this.result == null;
+    @Override
+    public boolean hasNext() {
+        return this.innerIterator.hasNext();
     }
 
-    public JsonNode getOriginalQuery() {
-        return this.originalQuery;
+    @Override
+    public EntryWithIndex<T> next() {
+        return new EntryWithIndex<>(this.innerIterator.next(), entryIndex++);
     }
 
-    public JsonNode getModifiedQuery() {
-        return this.modifiedQuery;
-    }
+    public static class EntryWithIndex<T> {
+        private final T value;
+        private final int index;
 
-    public void setModifiedQuery(JsonNode modifiedQuery) {
-        this.modifiedQuery = modifiedQuery;
-    }
+        public EntryWithIndex(T value, int index) {
+            this.value = value;
+            this.index = index;
+        }
 
-    public String getUnitId() {
-        return this.unitId;
-    }
+        public T getValue() {
+            return value;
+        }
 
-    public void setUnitId(String unitId) {
-        this.unitId = unitId;
+        public int getIndex() {
+            return index;
+        }
     }
-
-    public BulkUpdateUnitMetadataReportEntry getResult() {
-        return result;
-    }
-
-    public void setResult(BulkUpdateUnitMetadataReportEntry result) {
-        this.result = result;
-    }
-
 }

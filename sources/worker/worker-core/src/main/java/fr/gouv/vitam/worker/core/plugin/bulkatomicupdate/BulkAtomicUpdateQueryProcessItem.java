@@ -37,14 +37,16 @@ import fr.gouv.vitam.common.model.ItemStatus;
 public class BulkAtomicUpdateQueryProcessItem {
 
     private final JsonNode originalQuery;
-    private String unitId;
+    private final String unitId;
+    private final int queryIndex;
     private BulkUpdateUnitMetadataReportEntry reportEntry;
     private JsonNode finalQuery;
     private ItemStatus status;
 
-    public BulkAtomicUpdateQueryProcessItem(String unitId, JsonNode originalQuery) {
+    public BulkAtomicUpdateQueryProcessItem(String unitId, JsonNode originalQuery, int queryIndex) {
         this.unitId = unitId;
         this.originalQuery = originalQuery;
+        this.queryIndex = queryIndex;
     }
 
     public JsonNode getOriginalQuery() {
@@ -53,10 +55,6 @@ public class BulkAtomicUpdateQueryProcessItem {
 
     public String getUnitId() {
         return this.unitId;
-    }
-
-    public void setUnitId(String unitId) {
-        this.unitId = unitId;
     }
 
     public BulkUpdateUnitMetadataReportEntry getReportEntry() {
@@ -83,4 +81,7 @@ public class BulkAtomicUpdateQueryProcessItem {
         this.status = status;
     }
 
+    public int getQueryIndex() {
+        return queryIndex;
+    }
 }

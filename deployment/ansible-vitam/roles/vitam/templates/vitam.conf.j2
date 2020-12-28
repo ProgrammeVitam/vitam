@@ -26,6 +26,10 @@ forceChunkModeInputStream : {{ vitam_defaults.vitam_force_chunk_mode }}
 reclassificationMaxBulkThreshold: 1000
 reclassificationMaxUnitsThreshold: 10000
 reclassificationMaxGuildListSizeInLogbookOperation: 1000
+queriesThreshold: {{ vitam.worker.queriesThreshold }}
+bulkAtomicUpdateBatchSize: {{ vitam.worker.bulkAtomicUpdateBatchSize }}
+bulkAtomicUpdateThreadPoolSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolSize }}
+bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolQueueSize }}
 {% endif %}
 
 keywordMaxLength: 32766

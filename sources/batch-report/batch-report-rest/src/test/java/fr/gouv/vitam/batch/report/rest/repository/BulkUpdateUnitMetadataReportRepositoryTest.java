@@ -79,7 +79,7 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
         bulkUpdateUnitMetadataEntryKO = new BulkUpdateUnitMetadataReportEntry(
             TENANT_ID,
             processId,
-            "unit1",
+            "0",
             unPrettyQuery, null, "More than one Unit was found for the $query", StatusCode.KO,
             String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.KO),
             "More than one Unit was found for the $query");
@@ -87,7 +87,7 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
         bulkUpdateUnitMetadataEntryWARNING = new BulkUpdateUnitMetadataReportEntry(
             TENANT_ID,
             processId,
-            "unit2",
+            "1",
             unPrettyQuery, null, "No Unit was found for the $query", StatusCode.WARNING,
             String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.WARNING),
             "No Unit was found for the $query");
@@ -95,7 +95,7 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
         bulkUpdateUnitMetadataEntryOK = new BulkUpdateUnitMetadataReportEntry(
             TENANT_ID,
             processId,
-            "unit3",
+            "2",
             unPrettyQuery, GUIDFactory.newGUID().getId(), "Update done", StatusCode.OK,
             String.format("%s.%s", "BULK_ATOMIC_UPDATE_UNITS", StatusCode.OK), "All went good");
     }
@@ -135,6 +135,26 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
             documents.add(reportModel);
         }
         assertThat(documents.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void should_not_insert_duplicates_on_multiple_inserts() {
+        // Given
+        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
+            bulkUpdateUnitMetadataEntryOK);
+
+        // When
+        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
+                    bulkUpdateUnitMetadataEntryOK);
+
+        // Then
+        MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
+        List<Document> documents = new ArrayList<>();
+        while (iterator.hasNext()) {
+            Document reportModel = iterator.next();
+            documents.add(reportModel);
+        }
+        assertThat(documents.size()).isEqualTo(3);
     }
 
     @Test

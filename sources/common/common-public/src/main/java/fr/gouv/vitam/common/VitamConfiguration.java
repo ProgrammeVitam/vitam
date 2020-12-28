@@ -428,6 +428,18 @@ public class VitamConfiguration {
      */
     private static long queriesThreshold = 100000L;
     /**
+     * Batch size for bulk atomic update
+     */
+    private static int bulkAtomicUpdateBatchSize = 100;
+    /**
+     * Max threads that can be run in concurrently is thread pool for bulk atomic update
+     */
+    private static int bulkAtomicUpdateThreadPoolSize = 8;
+    /**
+     * Number of jobs that can be queued before blocking for bulk atomic update (limits workload memory usage)
+     */
+    private static int bulkAtomicUpdateThreadPoolQueueSize = 16;
+    /**
      * Threshold for elimination analysis
      */
     private static long eliminationAnalysisThreshold = 100_000L;
@@ -961,6 +973,15 @@ public class VitamConfiguration {
         }
         if (null != parameters.getDistributionThreshold()) {
             setDistributionThreshold(parameters.getDistributionThreshold());
+        }
+        if (null != parameters.getBulkAtomicUpdateBatchSize()) {
+            setBulkAtomicUpdateBatchSize(parameters.getBulkAtomicUpdateBatchSize());
+        }
+        if (null != parameters.getBulkAtomicUpdateThreadPoolSize()) {
+            setBulkAtomicUpdateThreadPoolSize(parameters.getBulkAtomicUpdateThreadPoolSize());
+        }
+        if (null != parameters.getBulkAtomicUpdateThreadPoolQueueSize()) {
+            setBulkAtomicUpdateThreadPoolQueueSize(parameters.getBulkAtomicUpdateThreadPoolQueueSize());
         }
         if (null != parameters.getQueriesThreshold()) {
             setQueriesThreshold(parameters.getQueriesThreshold());
@@ -2122,6 +2143,30 @@ public class VitamConfiguration {
      */
     public static void setQueriesThreshold(long queriesThreshold) {
         VitamConfiguration.queriesThreshold = queriesThreshold;
+    }
+
+    public static int getBulkAtomicUpdateBatchSize() {
+        return bulkAtomicUpdateBatchSize;
+    }
+
+    public static void setBulkAtomicUpdateBatchSize(int bulkAtomicUpdateBatchSize) {
+        VitamConfiguration.bulkAtomicUpdateBatchSize = bulkAtomicUpdateBatchSize;
+    }
+
+    public static int getBulkAtomicUpdateThreadPoolSize() {
+        return bulkAtomicUpdateThreadPoolSize;
+    }
+
+    public static void setBulkAtomicUpdateThreadPoolSize(int bulkAtomicUpdateThreadPoolSize) {
+        VitamConfiguration.bulkAtomicUpdateThreadPoolSize = bulkAtomicUpdateThreadPoolSize;
+    }
+
+    public static int getBulkAtomicUpdateThreadPoolQueueSize() {
+        return bulkAtomicUpdateThreadPoolQueueSize;
+    }
+
+    public static void setBulkAtomicUpdateThreadPoolQueueSize(int bulkAtomicUpdateThreadPoolQueueSize) {
+        VitamConfiguration.bulkAtomicUpdateThreadPoolQueueSize = bulkAtomicUpdateThreadPoolQueueSize;
     }
 
     public static long getEliminationAnalysisThreshold() {

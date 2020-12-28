@@ -108,7 +108,8 @@ public class BulkAtomicUpdateProcessTest {
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaop";
     private static final String UNIT1_GUID = "aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq";
     private static final String UNIT2_GUID = "aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq";
-    private static final String ORIGINAL_QUERY_FILE = "BulkAtomicUpdateProcess/originalQuery.json";
+    private static final String ORIGINAL_QUERY_FILE1 = "BulkAtomicUpdateProcess/originalQuery1.json";
+    private static final String ORIGINAL_QUERY_FILE2 = "BulkAtomicUpdateProcess/originalQuery2.json";
     private static final String UNIT = "BulkAtomicUpdateProcess/unitMd.json";
     private static final String METADATA_UNIT_RESPONSE_JSON = "BulkAtomicUpdateProcess/unit.json";
     private static final String LFC_UNIT_RESPONSE_JSON = "BulkAtomicUpdateProcess/lfc.json";
@@ -187,14 +188,16 @@ public class BulkAtomicUpdateProcessTest {
     public void givingUnitListWhenMassUpdateThenReturnOK() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+        JsonNode originalQuery1 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery2 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery, originalQuery))
+                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
                 .setProcessId(operationId)
                 .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
@@ -235,9 +238,11 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
+        assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
         assertThat(reportBodyArgument.getEntries().get(1).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(reportBodyArgument.getEntries().get(1).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(1).getUnitId()).isEqualTo(UNIT2_GUID);
+        assertThat(reportBodyArgument.getEntries().get(1).getDetailId()).isEqualTo("1");
     }
 
     @Test
@@ -245,14 +250,16 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_ok_contains_error_produce_a_ko_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+        JsonNode originalQuery1 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery2 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery, originalQuery))
+                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
                 .setProcessId(operationId)
                 .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
@@ -303,14 +310,16 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_contain_a_warning_produce_an_exception() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+        JsonNode originalQuery1 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery2 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery, originalQuery))
+                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
                 .setProcessId(operationId)
                 .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
@@ -346,14 +355,16 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_error_produce_a_fatal_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+        JsonNode originalQuery1 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery2 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery, originalQuery))
+                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
                 .setProcessId(operationId)
                 .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
@@ -386,14 +397,16 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_exception_produce_a_fatal_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+        JsonNode originalQuery1 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery2 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery, originalQuery))
+                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
                 .setProcessId(operationId)
                 .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
@@ -426,14 +439,16 @@ public class BulkAtomicUpdateProcessTest {
     public void should_a_storage_error_produce_a_fatal_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+        JsonNode originalQuery1 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery2 =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
         final WorkerParameters params =
             newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery, originalQuery))
+                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
                 .setProcessId(operationId)
                 .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -474,9 +489,11 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
+        assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
         assertThat(reportBodyArgument.getEntries().get(1).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(reportBodyArgument.getEntries().get(1).getResultKey()).isEqualTo("UNIT_METADATA_UPDATE");
         assertThat(reportBodyArgument.getEntries().get(1).getUnitId()).isEqualTo(UNIT2_GUID);
+        assertThat(reportBodyArgument.getEntries().get(1).getDetailId()).isEqualTo("1");
     }
 
     @Test
@@ -488,7 +505,7 @@ public class BulkAtomicUpdateProcessTest {
 
         // New ArrayList, otherwise the originQuery parameter is skipped by Lists.newArrayList()
         JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
         WorkerParameters params = newWorkerParameters()
             .setWorkerGUID(GUIDFactory.newGUID().getId())
             .setContainerName(processId)
@@ -551,6 +568,7 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_NO_CHANGES");
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
+        assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
     }
 
     private StoredInfoResult getStoredInfoResult() {

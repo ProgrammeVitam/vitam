@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.common.thread;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,5 +48,36 @@ public final class ExecutorUtils {
             VitamThreadFactory.getInstance());
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         return threadPoolExecutor;
+    }
+
+    public static ThreadPoolExecutor createScalableBatchExecutorService(int maxBatchThreadPoolSize,
+        int maxQueueSizeBeforeBlocking) {
+        // ThreadPool executor with limited queue size
+        // Once queue size is reached, producer is blocked to limit active workset
+        // https://stackoverflow.com/a/52059445/106971
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(maxBatchThreadPoolSize, maxBatchThreadPoolSize,
+            1L, TimeUnit.MINUTES,
+            new ThreadPoolQueue<>(maxQueueSizeBeforeBlocking),
+            VitamThreadFactory.getInstance());
+        threadPoolExecutor.allowCoreThreadTimeOut(true);
+        return threadPoolExecutor;
+    }
+
+    private static class ThreadPoolQueue<T> extends ArrayBlockingQueue<T> {
+
+        public ThreadPoolQueue(int capacity) {
+            super(capacity);
+        }
+
+        @Override
+        public boolean offer(T e) {
+            try {
+                put(e);
+            } catch (InterruptedException e1) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+            return true;
+        }
     }
 }
