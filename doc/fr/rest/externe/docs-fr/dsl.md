@@ -300,6 +300,21 @@ Les requêtes DSL de modification contiennent une section **$action**.
 }
 ```
 
+**!! Attention, à partir de la Release 16 de Vitam, la mise à jour unitaire pour les unités archivistiques (PUT /units/{id}) est dépréciée. Il conviendra de d'utiliser en lieu et place l'API de mise à jour en masse !!**
+
+**Exemple :** Pour modifier la description d'une unité archivistique :
+
+```json
+{
+"$roots": [],
+"$query": [ { "$eq": { "#id": "guid" } }
+],
+"$action": [
+    { "$set" : { "Description" : "Description" } }
+]
+}
+```
+
 ### Requêtes de reclassification
 
 La requête DSL de mise à jour des parents d'unités archivistiques (**RECLASSIFICATION**) permet d'attacher et/ou détacher des unités archivistiques.
@@ -735,9 +750,9 @@ La valeur **1** indique que le champ est activé (renvoyé au client). Toute aut
 **Remarque :**
 - Pour la collection *unit*, il est possible de demander la construction de l'ensemble des règles héritées en utilisant une projection *spéciale* **$rules**. Si cette projection est utilisée, l'ensemble des champs de l'unité archivistique est remonté.
   Cette projection ne devrait être utilisée que dans le point d'API */units/{id}* (GET BY ID).
-  
+
   Il est également à noter que la projection *$rules* est **dépréciée** et devrait être supprimée dans une prochaine release. Elle est remplacée par une nouvelle API GET /unitsWithInheritedRules**.
-  
+
 ```json
 {
   "$projection": { "$fields": { "$rules": 1 } }

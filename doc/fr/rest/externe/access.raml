@@ -4,6 +4,10 @@ title: API-Vitam - Access
 version: v1
 baseUri: https://api.vitam.gouv.fr/access-external/{version}
 protocols: [ HTTPS ]
+annotationTypes:
+  deprecated:
+    type: string
+
 
 uses:
   StandardTypes: libraries/StandardTypes.raml
@@ -32,7 +36,7 @@ documentation:
     content: |
       Les principes sont les suivants :
         - Pas de POST (sauf *X-Http-Method-Override: GET*) car ceci relève de l'entrée
-        - Le PUT est utilisé pour réaliser un update partiel
+        - Le PUT est utilisé pour réaliser un update partiel (déprécié), à partie de la release 16, le POST (massUpdate) doit être utilisé pour effectuer une mise à jour d'unités archivistiques.
         - Pas de DELETE car ceci relève de l'élimination
         - GET correspond à la recherche ou l'accès selon la présence d'un body ou non
         - Un seul Object par Unit max
@@ -117,8 +121,10 @@ documentation:
         - units:id:read:json
       is: [AccessTraits.AccessUniqueUnitResponse]
     put:
+      (deprecated): This method is deprecated and will be removed. You should use POST on /units instead (using massUpdate).
       description: |
-        Requête qui modifie une Unité d'archive.
+        **[DEPRECATED] - Be careful, this endpoint is no longer acceptable for updating units. Use POST /units instead.** <br/> <br/>
+        Requête qui modifie une Unité d'archive. <br/>
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
 
         Permissions requises:
@@ -558,4 +564,3 @@ documentation:
     description: Vérification de l'état de l'api
     is: [ StandardTraits.StandardHeader204,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
-

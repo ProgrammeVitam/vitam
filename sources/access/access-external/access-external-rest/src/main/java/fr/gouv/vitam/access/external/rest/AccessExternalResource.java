@@ -533,12 +533,17 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * update archive units by Id with Json query
+     * Update archive units by Id with Json query
+     *
+     * @deprecated This Method is no longer maintained and is no longer acceptable for updating units.
+     * <p> Use {@link AccessExternalResource#massUpdateUnits(JsonNode)} or
+     * {@link AccessExternalResource#massUpdateUnitsRules(MassUpdateUnitRuleRequest)} instead.
      *
      * @param queryJson the update query (null not allowed)
      * @param idUnit    units identifier
      * @return a archive unit result list
      */
+    @Deprecated
     @PUT
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
