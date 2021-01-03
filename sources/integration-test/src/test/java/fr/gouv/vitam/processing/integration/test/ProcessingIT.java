@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
@@ -134,6 +135,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -143,6 +145,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.junit.After;
@@ -226,8 +229,6 @@ public class ProcessingIT extends VitamRuleRunner {
             ));
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000;
     private static final String SIP_FILE_WRONG_DATE = "integration-processing/SIP_INGEST_WRONG_DATE.zip";
     private static final String SIP_KO_AU_REF_OBJ =
         "integration-processing/KO_SIP_1986_unit_declare_IDobjet_au_lieu_IDGOT.zip";
@@ -3465,24 +3466,7 @@ public class ProcessingIT extends VitamRuleRunner {
             getUnitId(getUnitIdByTitle(selectUnitsAfterComputedInheritedRules, "UnitB"))));
         JsonNode reclassificationQuery = JsonHandler.createArrayNode().add(reclassificationRequest.getFinalUpdate());
 
-        final String reclassificationWorkflow = createOperationContainer();
-        VitamThreadUtils.getVitamSession().setRequestId(reclassificationWorkflow);
-
-        workspaceClient.createContainer(reclassificationWorkflow);
-        workspaceClient
-            .putObject(reclassificationWorkflow, "request.json", writeToInpustream(reclassificationQuery));
-        processingClient
-            .initVitamProcess(new ProcessingEntry(reclassificationWorkflow, Contexts.RECLASSIFICATION.name()));
-        RequestResponse<ItemStatus> cirResponse = processingClient
-            .executeOperationProcess(reclassificationWorkflow, Contexts.RECLASSIFICATION.name(), RESUME.getValue());
-        assertNotNull(cirResponse);
-        assertTrue(cirResponse.isOk());
-        assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
-        waitOperation(reclassificationWorkflow);
-        ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(reclassificationWorkflow, tenantId);
-        assertNotNull(cirWorkflow);
-        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
-        assertEquals(StatusCode.OK, cirWorkflow.getStatus());
+        runReclassificationWorkflow(writeToInpustream(reclassificationQuery), StatusCode.OK);
 
         // Then
         JsonNode selectUnitsAfterReclassification =
@@ -3554,24 +3538,7 @@ public class ProcessingIT extends VitamRuleRunner {
             getUnitId(getUnitIdByTitle(selectUnitsAfterComputedInheritedRules, "UnitB"))));
         JsonNode reclassificationQuery = JsonHandler.createArrayNode().add(reclassificationRequest.getFinalUpdate());
 
-        final String reclassificationWorkflow = createOperationContainer();
-        VitamThreadUtils.getVitamSession().setRequestId(reclassificationWorkflow);
-
-        workspaceClient.createContainer(reclassificationWorkflow);
-        workspaceClient
-            .putObject(reclassificationWorkflow, "request.json", writeToInpustream(reclassificationQuery));
-        processingClient
-            .initVitamProcess(new ProcessingEntry(reclassificationWorkflow, Contexts.RECLASSIFICATION.name()));
-        RequestResponse<ItemStatus> cirResponse = processingClient
-            .executeOperationProcess(reclassificationWorkflow, Contexts.RECLASSIFICATION.name(), RESUME.getValue());
-        assertNotNull(cirResponse);
-        assertTrue(cirResponse.isOk());
-        assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
-        waitOperation(reclassificationWorkflow);
-        ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(reclassificationWorkflow, tenantId);
-        assertNotNull(cirWorkflow);
-        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
-        assertEquals(StatusCode.OK, cirWorkflow.getStatus());
+        runReclassificationWorkflow(writeToInpustream(reclassificationQuery), StatusCode.OK);
 
         // Then
         JsonNode selectUnitsAfterReclassification =
@@ -3595,6 +3562,122 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(selectUnitsAfterReclassification.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
             .allMatch(Objects::isNull);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowReclassificationWithExpiredHoldRulesOrNoPreventRearrangementThenOK() throws Exception {
+        prepareVitamSession();
+
+        // Given ingest
+        final String ingestOperation =
+            ingestSIP("integration-processing/RECLASSIFICATION_HOLD_RULES_COMPLEX.zip", DEFAULT_WORKFLOW.name(),
+                StatusCode.WARNING);
+
+        // Get unit ids
+        SelectMultiQuery select = new SelectMultiQuery();
+        CompareQuery query = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation);
+        select.setQuery(query);
+        select.addUsedProjection(VitamFieldsHelper.id(), "Title");
+
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        JsonNode units = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        List<String> rearrangeableUnits = Arrays.asList(
+            "Unit01", "Unit02", "Unit03", "Unit04", "Unit05", "Unit06", "Unit07", "Unit08", "Unit09", "Unit11",
+            "Unit12", "Unit14", "Unit15", "Unit17", "Unit18", "Unit20", "Unit21", "Unit23", "Unit24");
+
+        // When / Then : Reclassification of rearrangeable units OK
+        ArrayNode reclassificationQuery = JsonHandler.createArrayNode();
+
+        for (String unitTitle : rearrangeableUnits) {
+            UpdateMultiQuery reclassificationRequest = new UpdateMultiQuery();
+            reclassificationRequest.setQuery(QueryHelper.eq(VitamFieldsHelper.id(),
+                getUnitId(getUnitIdByTitle(units, unitTitle))));
+            reclassificationRequest.addActions(
+                UpdateActionHelper.add(VitamFieldsHelper.unitups(), getUnitId(getUnitIdByTitle(units, "RootUnit1"))),
+                UpdateActionHelper.pull(VitamFieldsHelper.unitups(), getUnitId(getUnitIdByTitle(units, "RootUnit2")))
+            );
+            reclassificationQuery.add(reclassificationRequest.getFinalUpdate());
+        }
+
+        runReclassificationWorkflow(writeToInpustream(reclassificationQuery), StatusCode.OK);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowReclassificationWithHoldRulesAndPreventRearrangementThenKO() throws Exception {
+        prepareVitamSession();
+
+        // Given ingest
+        final String ingestOperation =
+            ingestSIP("integration-processing/RECLASSIFICATION_HOLD_RULES_COMPLEX.zip", DEFAULT_WORKFLOW.name(),
+                StatusCode.WARNING);
+
+        // Get unit ids
+        SelectMultiQuery select = new SelectMultiQuery();
+        CompareQuery query = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation);
+        select.setQuery(query);
+        select.addUsedProjection(VitamFieldsHelper.id(), "Title");
+
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        JsonNode units = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        List<String> nonRearrangeableUnits = Arrays.asList(
+            "Unit10", "Unit13", "Unit16", "Unit19", "Unit22", "Unit25");
+
+        // When / Then : Rearrangement KO
+        UpdateMultiQuery reclassificationRequest = new UpdateMultiQuery();
+        reclassificationRequest.setQuery(QueryHelper.and().add(
+            QueryHelper.eq("DescriptionLevel", "Item"),
+            QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation)
+        ));
+        reclassificationRequest.addActions(
+            UpdateActionHelper.add(VitamFieldsHelper.unitups(), getUnitId(getUnitIdByTitle(units, "RootUnit1"))),
+            UpdateActionHelper.pull(VitamFieldsHelper.unitups(), getUnitId(getUnitIdByTitle(units, "RootUnit2")))
+        );
+        ArrayNode reclassificationQuery = JsonHandler.createArrayNode().add(reclassificationRequest.getFinalUpdate());
+
+        String reclassificationWorkflow =
+            runReclassificationWorkflow(writeToInpustream(reclassificationQuery), StatusCode.KO);
+
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        JsonNode logbookResult = logbookClient.selectOperationById(reclassificationWorkflow);
+        JsonNode events = logbookResult.get("$results").get(0).get("events");
+        JsonNode checkHoldRulesEvent = IteratorUtils.find(events.iterator(),
+            e -> e.get(OUT_DETAIL).asText().equals("RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES.KO"));
+        assertThat(checkHoldRulesEvent).isNotNull();
+
+        ReclassificationEventDetails reclassificationEventDetails = JsonHandler.getFromString(
+            checkHoldRulesEvent.get("evDetData").asText(), ReclassificationEventDetails.class);
+        assertThat(reclassificationEventDetails.getUnitsBlockedByHoldRules()).containsExactlyInAnyOrderElementsOf(
+            nonRearrangeableUnits.stream()
+                .map(title -> getUnitId(getUnitIdByTitle(units, title)))
+                .collect(Collectors.toList()));
+    }
+
+    private String runReclassificationWorkflow(InputStream inputStream, StatusCode exectedStatusCode)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        ContentAddressableStorageServerException, InternalServerException, BadRequestException, VitamClientException {
+        final String reclassificationWorkflow = createOperationContainer();
+        VitamThreadUtils.getVitamSession().setRequestId(reclassificationWorkflow);
+
+        workspaceClient.createContainer(reclassificationWorkflow);
+        workspaceClient
+            .putObject(reclassificationWorkflow, "request.json", inputStream);
+        processingClient
+            .initVitamProcess(new ProcessingEntry(reclassificationWorkflow, Contexts.RECLASSIFICATION.name()));
+        RequestResponse<ItemStatus> cirResponse = processingClient
+            .executeOperationProcess(reclassificationWorkflow, Contexts.RECLASSIFICATION.name(), RESUME.getValue());
+        assertNotNull(cirResponse);
+        assertTrue(cirResponse.isOk());
+        assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
+        waitOperation(reclassificationWorkflow);
+        ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(reclassificationWorkflow, tenantId);
+        assertNotNull(cirWorkflow);
+        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
+        assertEquals(exectedStatusCode, cirWorkflow.getStatus());
+        return reclassificationWorkflow;
     }
 
     @RunWithCustomExecutor

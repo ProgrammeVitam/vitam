@@ -51,6 +51,18 @@
         },
         {
           "action": {
+            "actionKey": "RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "reclassification_orders.json",
+                "uri": "MEMORY:MapsMemory/reclassification_orders.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION",
             "behavior": "BLOCKING",
             "in": [

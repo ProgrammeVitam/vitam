@@ -135,6 +135,9 @@
     "className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
     "propertiesFile": "object_group_update.properties"
   },
+  "RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES": {
+    "className": "fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckHoldRulesHandler"
+  },
   "UNIT_DETACHMENT": {
     "className": "fr.gouv.vitam.worker.core.plugin.reclassification.UnitDetachmentPlugin",
     "propertiesFile": "reclassification_unit_detachment.properties"

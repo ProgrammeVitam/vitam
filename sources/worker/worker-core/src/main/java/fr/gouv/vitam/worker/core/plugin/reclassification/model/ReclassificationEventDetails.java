@@ -54,6 +54,9 @@ public class ReclassificationEventDetails {
     @JsonProperty("removedParents")
     private Set<String> removedParents;
 
+    @JsonProperty("unitsBlockedByHoldRules")
+    private Set<String> unitsBlockedByHoldRules;
+
     public ReclassificationEventDetails() {
         // Empty constructor for deserialization
     }
@@ -120,6 +123,16 @@ public class ReclassificationEventDetails {
 
     public ReclassificationEventDetails setRemovedParents(Set<String> removedParents) {
         this.removedParents = removedParents;
+        return this;
+    }
+
+    public Set<String> getUnitsBlockedByHoldRules() {
+        return unitsBlockedByHoldRules;
+    }
+
+    public ReclassificationEventDetails setUnitsBlockedByHoldRules(
+        Set<String> unitsBlockedByHoldRules) {
+        this.unitsBlockedByHoldRules = unitsBlockedByHoldRules;
         return this;
     }
 }
