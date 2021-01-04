@@ -168,14 +168,14 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
                 return JsonHandler.getFromJsonNode(report, Report.class).getReportSummary().getVitamResults();
             }
 
-            Report reportInfo = generateReport(param, handler);
+            Report reportInfo = generateReport(param);
             batchReportClient.storeReportToWorkspace(reportInfo);
             return reportInfo.getReportSummary().getVitamResults();
         }
     }
 
-    private Report generateReport(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, InvalidParseOperationException, LogbookClientException {
+    private Report generateReport(WorkerParameters param)
+        throws InvalidParseOperationException, LogbookClientException {
 
         LogbookOperation logbook = getLogbookInformation(param);
         OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());

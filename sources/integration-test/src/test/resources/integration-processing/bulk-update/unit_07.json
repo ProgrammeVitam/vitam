@@ -18,7 +18,6 @@
     "strategyId": "default"
   },
   "_unitType" : "INGEST",
-  "_tenant" : 0,
   "_max" : 1,
   "_min" : 1,
   "_up" : [],

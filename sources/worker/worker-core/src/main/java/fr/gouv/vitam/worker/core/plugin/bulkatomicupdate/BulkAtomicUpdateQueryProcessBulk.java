@@ -51,7 +51,7 @@ public class BulkAtomicUpdateQueryProcessBulk {
     }
 
     public List<BulkUpdateUnitMetadataReportEntry> getReportEntries() {
-        return items.stream().filter(item -> item.getReportEntry() != null).map(item -> item.getReportEntry())
+        return items.stream().filter(item -> item.getReportEntry() != null).map(BulkAtomicUpdateQueryProcessItem::getReportEntry)
             .collect(Collectors.toList());
     }
 
