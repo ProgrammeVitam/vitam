@@ -80,10 +80,10 @@ public class IdentityServiceTest {
         IdentityModel identityModel = identityModelCaptor.getValue();
 
         assertThat(identityModel.getSubjectDN()).isEqualTo(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
-        assertThat(identityModel.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.ZERO));
+            "CN=userAdmin, O=VITAM, L=Paris, C=FR");
+        assertThat(identityModel.getSerialNumber()).isEqualTo("3");
         assertThat(identityModel.getIssuerDN()).isEqualTo(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
+            "O=VITAM, L=Paris, C=FR");
         assertThat(identityModel.getCertificate()).isEqualTo(certificate);
     }
 
@@ -100,9 +100,8 @@ public class IdentityServiceTest {
         identityService.findIdentity(certBinary);
 
         // Then
-        then(identityRepository).should().findIdentity(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            String.valueOf(BigInteger.ZERO));
+        then(identityRepository).should()
+            .findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", "3");
     }
 
     @Test
@@ -115,9 +114,8 @@ public class IdentityServiceTest {
 
         identityService.createIdentity(identityInsertModel);
         IdentityModel identityModel = new IdentityModel();
-        given(identityRepository.findIdentity(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            String.valueOf(BigInteger.ZERO))).willReturn(of(identityModel));
+        given(identityRepository.findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", "3"))
+            .willReturn(of(identityModel));
 
         // When
         identityInsertModel.setContextId(contextId);
