@@ -165,6 +165,14 @@ documentation:
           Accept:
             required: true
             enum: [ "application/octet-stream", "application/json" ]
+  /bulk:
+    post:
+      description: |
+        Requête qui déclanche la mise à jour unitaire des métadonnées descriptives de plusieurs unités archivistiques.
+        La requête utilise le langage de requête DSL de type **mise à jour unitaire de masse (BULK UPDATE)** de Vitam en entrée.
+        Permissions requises:
+          - units:bulk:update
+      is: [AccessTraits.AccessBulkAtomicUpdateResponse]
 
 /unitsWithInheritedRules:
   displayName: ArchiveUnits with inherited rules

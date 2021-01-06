@@ -226,6 +226,32 @@ types:
         }],
         "$threshold": 1000
       }
+    
+  DslAtomicUpdateQuery:
+      displayName: Requête DSL multiple pour le traitement de masse pour mise à jour unitaire des métadonnées
+      description: Requête DSL Vitam externe multi-requête pour le traitement de masse pour mise à jour unitaire des métadonnées
+      type: object
+      properties:
+        $query:
+          description: Contient plusieurs requêtes
+          type: object[]
+          example:
+            "$query": [
+              {
+                "$eq": { "myField1": "myValue" },
+                "$depth": 4
+              }
+            ]
+        $action:
+          description: Contient les actions de mise à jour à appliquer
+          type: object[]
+          example:
+            "$action": [
+              {
+                "$set": { "$myField1": "myValue" },
+                "$unset": [ "myField2" ]
+              }
+            ]
 
   AbstractDslResponse:
     type: object
