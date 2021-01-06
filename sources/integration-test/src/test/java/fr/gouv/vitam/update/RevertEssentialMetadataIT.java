@@ -276,7 +276,7 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void given_not_last_operation_and_force_is_true_then_should_run_with_KO() throws Exception {
+    public void given_not_last_operation_and_force_is_true_then_should_run_with_OK() throws Exception {
         populateData(CASE2_UNITS_FILE, CASE2_LOGBOOK_LIFECYCLE_UNIT_FILE);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
