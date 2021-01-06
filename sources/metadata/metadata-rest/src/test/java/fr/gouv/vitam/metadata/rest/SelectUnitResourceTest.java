@@ -724,9 +724,9 @@ public class SelectUnitResourceTest {
         assertThat(responseVitam.getHttpCode()).isEqualTo(Status.FOUND.getStatusCode());
         assertThat(responseVitam.getResults()).hasSize(2);
         RequestResponseOK<JsonNode> firstResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(0));
-        assertThat(firstResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").asText()).isEqualTo("Value1");
+        assertThat(firstResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo("Value1");
         RequestResponseOK<JsonNode> secondResultVitam = RequestResponseOK.getFromJsonNode(responseVitam.getResults().get(1));
-        assertThat(secondResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").asText()).isEqualTo("Value2");
+        assertThat(secondResultVitam.getFirstResult().get("ArchivalAgencyArchiveUnitIdentifier").get(0).asText()).isEqualTo("Value2");
         
     }
     

@@ -713,6 +713,14 @@ vitam:
         # Schema validator cache settings (max entries in cache & retention timeout in seconds)
         schemaValidatorCacheMaxEntries: 100
         schemaValidatorCacheTimeoutInSeconds: 300
+        # Batch size for bulk atomic update
+        queriesThreshold: 100000
+        # Bulk atomic update batch size
+        bulkAtomicUpdateBatchSize: 100
+        # Max threads that can be run in concurrently is thread pool for bulk atomic update
+        bulkAtomicUpdateThreadPoolSize: 8
+        # Number of jobs that can be queued in memory before blocking for bulk atomic update
+        bulkAtomicUpdateThreadPoolQueueSize: 16
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES

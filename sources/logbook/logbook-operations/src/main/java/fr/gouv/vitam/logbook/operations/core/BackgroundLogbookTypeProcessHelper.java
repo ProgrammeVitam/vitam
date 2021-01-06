@@ -71,6 +71,7 @@ public final class BackgroundLogbookTypeProcessHelper {
             case DATA_MIGRATION:
             case RECLASSIFICATION:
             case MASS_UPDATE:
+            case BULK_UPDATE:
             case ELIMINATION:
             case EXPORT_PROBATIVE_VALUE:
             case EXTERNAL_LOGBOOK:
@@ -84,3 +85,4 @@ public final class BackgroundLogbookTypeProcessHelper {
         }
     }
 }
+

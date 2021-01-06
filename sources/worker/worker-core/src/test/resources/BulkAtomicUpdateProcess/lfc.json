@@ -1,0 +1,32 @@
+{
+  "_id": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+  "evId": "aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq",
+  "evType": "LFC.LFC_CREATION",
+  "evDateTime": "2017-09-22T09:51:05.085",
+  "evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+  "evTypeProc": "INGEST",
+  "outcome": "OK",
+  "outDetail": "LFC.LFC_CREATION.OK",
+  "outMessg": "Création du journal du cycle de vie",
+  "agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+  "obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+  "evDetData": null,
+  "events": [
+    {
+      "evId": "aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq",
+      "evParentId": null,
+      "evType": "LFC.CHECK_MANIFEST",
+      "evDateTime": "2017-09-22T09:51:05.253",
+      "evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "LFC.CHECK_MANIFEST.OK",
+      "outMessg": "Succès de la vérification de la cohérence du bordereau",
+      "agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+      "obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+      "evDetData": null
+    }
+  ],
+  "_tenant": 0,
+  "_v": 0
+}

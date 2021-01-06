@@ -1,0 +1,21 @@
+{
+  "threshold": 100,
+  "queries": [
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier00"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier00"
+          }
+        }
+      ]
+    }
+  ]
+}

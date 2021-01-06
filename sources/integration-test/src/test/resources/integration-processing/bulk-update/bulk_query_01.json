@@ -1,0 +1,181 @@
+{
+  "threshold": 100,
+  "queries": [
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier00"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds \"émouvant สวัสดี"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier01"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier01"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier02"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier02"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier03"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier03"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier04"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier04"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier05"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier05"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier06"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier06"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier07"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier07"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier08"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier08"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier09"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier09"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier10"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier10"
+          }
+        }
+      ]
+    }
+  ]
+}

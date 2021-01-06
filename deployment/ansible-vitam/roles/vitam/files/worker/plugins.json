@@ -176,6 +176,18 @@
   "MASS_UPDATE_UNITS_RULES": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.management.MassUpdateUnitsRulesProcess"
   },
+  "CHECK_QUERIES_THRESHOLD": {
+    "className": "fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.CheckQueriesThreshold"
+  },
+  "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST": {
+    "className": "fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.PrepareBulkAtomicUpdate"
+  },
+  "BULK_ATOMIC_UPDATE_UNITS": {
+    "className": "fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateProcess"
+  },
+  "BULK_ATOMIC_UPDATE_FINALIZE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateFinalize"
+  },
   "ELIMINATION_ANALYSIS_UNIT_INDEXATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisUnitIndexationPlugin",
     "propertiesFile": "elimination_analysis_unit_indexation.properties"

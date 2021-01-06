@@ -120,6 +120,10 @@ public enum LogbookTypeProcess {
      */
     MASS_UPDATE,
     /**
+     * Bulk update of archive units.
+     */
+    BULK_UPDATE,
+    /**
      * Elimination process
      */
     ELIMINATION,
