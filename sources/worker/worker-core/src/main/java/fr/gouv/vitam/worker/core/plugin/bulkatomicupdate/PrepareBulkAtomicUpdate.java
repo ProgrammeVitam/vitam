@@ -192,7 +192,7 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
     private Iterator<JsonNode> loadQueries(HandlerIO handler) throws ProcessingStatusException {
         try {
             JsonNode queryNodes = handler.getJsonFromWorkspace(QUERY_NAME_IN);
-            return queryNodes.get("queries").iterator();
+            return queryNodes.get(BulkAtomicUpdateModelUtils.QUERIES).iterator();
         } catch (ProcessingException ex) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load queries", ex);
         }

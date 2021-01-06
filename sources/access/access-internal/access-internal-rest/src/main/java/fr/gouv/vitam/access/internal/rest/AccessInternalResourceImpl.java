@@ -144,6 +144,7 @@ import java.text.ParseException;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect;
+import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
@@ -855,7 +856,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(requestId);
             accessModule.checkClassificationLevel(queryDsl);
             JsonNode result = accessModule
-                .updateUnitById(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                .updateUnitById(applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                     getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
             return Response.status(Status.OK).entity(result).build();
@@ -1167,8 +1168,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
-                    AccessContractRestrictionHelper.
-                        applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                    applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                             getVitamSession().getContract())));
 
             // compress file to backup
@@ -1250,7 +1250,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
-                    AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                    applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                         getVitamSession().getContract())));
             workspaceClient
                 .putObject(operationId, "actions.json", writeToInpustream(ruleActions));
@@ -1294,23 +1294,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            // TODO : Check sanity of json ?
-            SanityChecker.checkJsonAll(query);
 
             // Check the writing rights
             if (getVitamSession().getContract().getWritingPermission() == null ||
                 !getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
-            }
-
-            // TODO : put that in prepare instead
-            for (JsonNode updateQuery : (ArrayNode) query.get("$queries")) {
-                final RequestParserMultiple parser = RequestParserHelper.getParser(updateQuery);
-                if (!(parser instanceof UpdateParserMultiple)) {
-                    parser.getRequest().reset();
-                    throw new IllegalArgumentException(REQUEST_IS_NOT_AN_UPDATE_OPERATION);
-                }
             }
             
             String operationId = getVitamSession().getRequestId();
@@ -1337,12 +1326,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
                     OperationContextModel.get(query)));
 
-
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
-                    AccessContractRestrictionHelper.
-                        applyAccessContractRestrictionForUnitForUpdate(query,
-                            getVitamSession().getContract())));
+                    query));
 
             workspaceClient
                 .putObject(operationId, ACCESS_CONTRACT_FILE, writeToInpustream(
@@ -1367,7 +1353,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("An error occured while bulk atomic updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | BadRequestException e) {
+        } catch (InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();

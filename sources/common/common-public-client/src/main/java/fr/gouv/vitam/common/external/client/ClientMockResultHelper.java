@@ -33,8 +33,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
@@ -742,6 +744,23 @@ public class ClientMockResultHelper {
         return new RequestResponseOK<JsonNode>(query).addResult(getUnitSimpleItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
+
+    /**
+     * @return a simple Operation result
+     * @throws VitamClientException 
+     */
+    public static RequestResponse<JsonNode> getOperationSimpleResult(String itemId) throws VitamClientException {
+        try {
+            ItemStatus itemStatus = new ItemStatus(itemId);
+            itemStatus.setGlobalState(ProcessState.RUNNING);
+            itemStatus.increment(StatusCode.STARTED);
+            return new RequestResponseOK<JsonNode>().addResult(JsonHandler.toJsonNode(itemStatus))
+                    .setHttpCode(Status.OK.getStatusCode());
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
 
     /**
      * @return a simple GOT result
