@@ -73,7 +73,12 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
+     *
      * updateUnitbyId UPDATE /units/{id}
+     *
+     * @deprecated This Method is no longer maintained and is no longer acceptable for updating units.
+     * <p> Use {@link AccessExternalClient#massUpdateUnits(VitamContext, JsonNode)} or
+     * {@link AccessExternalClient#massUpdateUnitsRules(VitamContext, JsonNode)} instead.
      *
      * @param vitamContext the vitam context
      * @param updateQuery the update query
@@ -81,6 +86,7 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException
      */
+    @Deprecated
     RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery, String unitId)
         throws VitamClientException;
 
