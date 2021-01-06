@@ -75,6 +75,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.LocalDateUtil.SIMPLE_DATE_FORMAT;
+
 /**
  * Tools to update a Mongo document (as json) with a dsl query.
  */
@@ -88,8 +90,7 @@ public class MongoDbInMemory {
     private static final String INHERITANCE = "Inheritance";
     private static final String PREVENT_INHERITANCE = "PreventInheritance";
     private static final String PREVENT_RULES_ID = "PreventRulesId";
-    private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(SIMPLE_DATE_FORMAT);
 
     private static final SerializerProvider EMPTY_SERIALIZER_FOR_OBJECT_NODE = null;
 

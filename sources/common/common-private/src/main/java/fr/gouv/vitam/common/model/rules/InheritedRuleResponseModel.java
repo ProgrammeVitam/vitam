@@ -45,16 +45,16 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
     private String ruleId;
 
     @JsonIgnore
-    private Map<String, Object> ruleAttributes = new HashMap<>();
+    private Map<String, Object> extendedRuleAttributes = new HashMap<>();
 
     @JsonAnyGetter
-    public Map<String, Object> getRuleAttributes() {
-        return ruleAttributes;
+    public Map<String, Object> getExtendedRuleAttributes() {
+        return extendedRuleAttributes;
     }
 
     @JsonAnySetter
     public void setAny(String key, Object value) {
-        this.ruleAttributes.put(key, value);
+        this.extendedRuleAttributes.put(key, value);
     }
 
     public InheritedRuleResponseModel() {
@@ -62,10 +62,10 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
     }
 
     public InheritedRuleResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths, String ruleId, Map<String, Object> ruleAttributes) {
+        List<List<String>> paths, String ruleId, Map<String, Object> extendedRuleAttributes) {
         super(unitId, originatingAgency, paths);
         this.ruleId = ruleId;
-        this.ruleAttributes = ruleAttributes;
+        this.extendedRuleAttributes = extendedRuleAttributes;
     }
 
     public String getRuleId() {
@@ -78,19 +78,19 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
 
     @JsonIgnore
     public String getStartDate() {
-        return (String)this.ruleAttributes.get(RuleModel.START_DATE);
+        return (String)this.extendedRuleAttributes.get(RuleModel.START_DATE);
     }
 
     public void setStartDate(String startDate) {
-        this.ruleAttributes.put(RuleModel.START_DATE, startDate);
+        this.extendedRuleAttributes.put(RuleModel.START_DATE, startDate);
     }
 
     @JsonIgnore
     public String getEndDate() {
-        return (String)this.ruleAttributes.get(RuleModel.END_DATE);
+        return (String)this.extendedRuleAttributes.get(RuleModel.END_DATE);
     }
 
     public void setEndDate(String endDate) {
-        this.ruleAttributes.put(RuleModel.START_DATE, endDate);
+        this.extendedRuleAttributes.put(RuleModel.START_DATE, endDate);
     }
 }

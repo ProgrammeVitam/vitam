@@ -71,7 +71,7 @@ public final class LocalDateUtil {
 
     private static final int THOUSAND = 1000;
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
-    private static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
 
     private static final DateTimeFormatter INDEX_DATE_TIME_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
