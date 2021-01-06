@@ -34,6 +34,13 @@
               "CLASS-00001": "2026-06-03"
             }
           },
+          "HoldRule": {
+            "MaxEndDate": "2010-01-01",
+            "EndDates": {
+              "HOL-00001": "2001-01-01",
+              "HOL-00002": "2010-01-01"
+            }
+          },
           "NeedAuthorization": [ true ],
           "indexationDate": "2019-06-28",
           "inheritedRulesAPIOutput": {
@@ -214,6 +221,41 @@
                   "Rule": "ACC-00002",
                   "StartDate": "2000-01-01",
                   "EndDate": "2024-01-01"
+                }
+              ],
+              "Properties": []
+            },
+            "HoldRule": {
+              "Rules": [
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "HOL-00001",
+                  "StartDate": "2000-01-01",
+                  "EndDate": "2001-01-01",
+                  "HoldOwner": "Owner HOL-00001 guid1",
+                  "HoldReason": "Reason HOL-00001 guid1"
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "HOL-00002",
+                  "EndDate": "2010-01-01",
+                  "HoldEndDate": "2010-01-01",
+                  "HoldOwner": "Owner HOL-00002 guid1",
+                  "HoldReason": "Reason HOL-00002 guid1",
+                  "HoldReassessingDate": "2005-01-01",
+                  "PreventRearrangement": true
                 }
               ],
               "Properties": []

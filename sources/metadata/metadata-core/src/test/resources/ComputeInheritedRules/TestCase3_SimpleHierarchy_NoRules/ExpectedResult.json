@@ -35,6 +35,10 @@
     "ClassificationRule": {
       "Rules": [],
       "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [],
+      "Properties": []
     }
   },
   "guid2": {
@@ -84,6 +88,10 @@
       "Properties": []
     },
     "ClassificationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "HoldRule": {
       "Rules": [],
       "Properties": []
     }
@@ -139,6 +147,10 @@
     "ClassificationRule": {
       "Rules": [],
       "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [],
+      "Properties": []
     }
   },
   "guid4": {
@@ -189,6 +201,10 @@
       "Properties": []
     },
     "ClassificationRule": {
+      "Rules": [],
+      "Properties": []
+    },
+    "HoldRule": {
       "Rules": [],
       "Properties": []
     }

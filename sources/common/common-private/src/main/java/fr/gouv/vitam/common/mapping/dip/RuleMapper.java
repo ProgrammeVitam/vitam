@@ -80,7 +80,7 @@ public class RuleMapper {
 
         InheritanceModel inheritance = ruleCategory.getInheritance();
         if (inheritance != null) {
-            commonRule.getRefNonRuleId().addAll(mapPreventRuleIds(ruleCategory.getInheritance()));
+            commonRule.getRefNonRuleId().addAll(mapPreventRuleIds(inheritance));
             if (commonRule.getRefNonRuleId().isEmpty()) {
                 commonRule.setPreventInheritance(inheritance.isPreventInheritance());
             }

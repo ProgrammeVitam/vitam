@@ -67,6 +67,27 @@
         "AccessRule": {
           "Rules": [],
           "Properties": []
+        },
+        "HoldRule": {
+          "Rules": [
+            {
+              "UnitId": "aeaqaaaaaaftcq6raam3galew4bftjiaaaba",
+              "OriginatingAgency": "SNCF",
+              "Paths": [
+                [
+                  "aeaqaaaaaaftcq6raam3galew4bftjiaaaba"
+                ]
+              ],
+              "Rule": "HOL-00002",
+              "StartDate": "2014-01-01",
+              "EndDate": "2020-01-01",
+              "HoldEndDate": "2020-01-01",
+              "HoldOwner": "Owner",
+              "HoldReason": "Reason",
+              "HoldReassessingDate": "2018-01-01",
+              "PreventRearrangement": false
+            }
+          ]
         }
       }
     }

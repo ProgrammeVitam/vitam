@@ -1,0 +1,44 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@unitId = aeaqaaaaaahkzsduabw3walvujjbzgaaaaea
+
+### Check units
+GET {{url-access}}/access-external/v1/units
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+    "$roots": [],
+    "$query": [ { "$eq":  { "#id": "{{unitId}}" } } ],
+    "$projection": { "$fields": { "#id": 1, "Title": 1, "#computedInheritedRules": 1, "#validComputedInheritedRules": 1, "#management": 1}}
+}
+
+
+### Compute inherited rules
+POST {{url-access}}/access-external/v1/units/computedInheritedRules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+    "$roots": [],
+    "$query": [ { "$eq":  { "#id": "{{unitId}}" } } ]
+}
+
+### Verify indexation
+GET {{url-access}}/access-external/v1/units
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+    "$roots": [],
+    "$query": [ { "$eq":  { "#id": "{{unitId}}" } } ],
+    "$projection": { "$fields": { "#id": 1, "Title": 1, "#computedInheritedRules": 1, "#validComputedInheritedRules": 1, "#management": 1}}
+}
+

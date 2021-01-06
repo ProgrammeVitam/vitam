@@ -70,6 +70,10 @@ public class VitamConstants {
      */
     public static final String TAG_RULE_CLASSIFICATION = "ClassificationRule";
     /**
+     * tag of HoldRule
+     */
+    public static final String TAG_RULE_HOLD = "HoldRule";
+    /**
      * tag of EveryOriginatingAgency
      */
     public static final String EVERY_ORIGINATING_AGENCY = "EveryOriginatingAgency";
@@ -108,6 +112,7 @@ public class VitamConstants {
             ruleTypes.add(TAG_RULE_APPRAISAL);
             ruleTypes.add(TAG_RULE_CLASSIFICATION);
             ruleTypes.add(TAG_RULE_DISSEMINATION);
+            ruleTypes.add(TAG_RULE_HOLD);
         }
         return ruleTypes;
     }

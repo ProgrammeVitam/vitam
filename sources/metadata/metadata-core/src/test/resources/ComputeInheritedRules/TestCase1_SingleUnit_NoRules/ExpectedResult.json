@@ -48,6 +48,10 @@
     "ClassificationRule": {
       "Rules": [],
       "Properties": []
+    },
+    "HoldRule": {
+      "Rules": [],
+      "Properties": []
     }
   }
 }

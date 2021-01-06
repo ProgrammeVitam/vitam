@@ -24,6 +24,10 @@
     "StorageRule": {
       "Properties": [],
       "Rules": []
+    },
+    "HoldRule": {
+      "Properties": [],
+      "Rules": []
     }
   },
   "guid1": {
@@ -74,6 +78,10 @@
       "Rules": []
     },
     "StorageRule": {
+      "Properties": [],
+      "Rules": []
+    },
+    "HoldRule": {
       "Properties": [],
       "Rules": []
     }
@@ -213,6 +221,10 @@
           "EndDate": "2001-01-01"
         }
       ]
+    },
+    "HoldRule": {
+      "Properties": [],
+      "Rules": []
     }
   },
   "guid3": {
@@ -303,6 +315,10 @@
           "EndDate": "2001-01-01"
         }
       ]
+    },
+    "HoldRule": {
+      "Properties": [],
+      "Rules": []
     }
   },
   "guid4": {
@@ -469,6 +485,10 @@
           "EndDate": "2001-01-01"
         }
       ]
+    },
+    "HoldRule": {
+      "Properties": [],
+      "Rules": []
     }
   },
   "guid5": {
@@ -631,6 +651,10 @@
           "EndDate": "2001-01-01"
         }
       ]
+    },
+    "HoldRule": {
+      "Properties": [],
+      "Rules": []
     }
   },
   "guid6": {
@@ -792,6 +816,10 @@
           "EndDate": "2001-01-01"
         }
       ]
+    },
+    "HoldRule": {
+      "Properties": [],
+      "Rules": []
     }
   },
   "guid7": {
@@ -1039,6 +1067,10 @@
           "EndDate": "2001-01-01"
         }
       ]
+    },
+    "HoldRule": {
+      "Properties": [],
+      "Rules": []
     }
   },
   "guid8": {
@@ -1169,6 +1201,10 @@
           "PropertyValue": "Transfer"
         }
       ],
+      "Rules": []
+    },
+    "HoldRule": {
+      "Properties": [],
       "Rules": []
     }
   },
@@ -1309,6 +1345,10 @@
           "PropertyValue": "Transfer"
         }
       ],
+      "Rules": []
+    },
+    "HoldRule": {
+      "Properties": [],
       "Rules": []
     }
   }

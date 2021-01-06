@@ -61,6 +61,7 @@
           "ClassificationReassessingDate": [],
           "NeedReassessingAuthorization": []
         },
+        "HoldRule": {},
         "inheritedRulesAPIOutput": {
           "GlobalProperties": [],
           "StorageRule": {
@@ -97,6 +98,10 @@
             "Properties": []
           },
           "AccessRule": {
+            "Rules": [],
+            "Properties": []
+          },
+          "HoldRule": {
             "Rules": [],
             "Properties": []
           }
@@ -140,6 +145,10 @@
           "Properties": []
         },
         "AccessRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "HoldRule": {
           "Rules": [],
           "Properties": []
         }

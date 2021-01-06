@@ -1,0 +1,32 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@unitId = aeaqaaaaaahkzsduabw3walvujjbzgaaaaea
+
+### Units
+GET {{url-access}}/access-external/v1/units/
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [ { "$eq":  { "#id": "{{unitId}}" } } ],
+  "$filter": { "$limit": 10 },
+  "$projection": { "$fields": { "#id": 1, "Title": 1, "#management": 1, "#opi": 1 } }
+}
+
+### Units with inherited rules
+GET {{url-access}}/access-external/v1/unitsWithInheritedRules/
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [ { "$eq":  { "#id": "{{unitId}}" } } ],
+  "$filter": {},
+  "$projection": { "$fields": { "#id": 1, "Title": 1 } }
+}

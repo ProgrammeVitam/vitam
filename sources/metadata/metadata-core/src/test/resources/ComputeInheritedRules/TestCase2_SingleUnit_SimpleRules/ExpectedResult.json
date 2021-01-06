@@ -143,6 +143,39 @@
           "PropertyValue": "2016-06-03"
         }
       ]
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01"
+        },
+        {
+          "UnitId": "guid1",
+          "OriginatingAgency": "sp1",
+          "Paths": [
+            [
+              "guid1"
+            ]
+          ],
+          "Rule": "HOL-00002",
+          "PreventRearrangement": true,
+          "HoldEndDate": "2010-01-01",
+          "HoldOwner": "Owner de la règle de Gel",
+          "HoldReassessingDate": "2005-01-01",
+          "EndDate": "2010-01-01",
+          "HoldReason": "Motif du gel"
+        }
+      ],
+      "Properties": []
     }
   }
 }

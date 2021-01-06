@@ -45,6 +45,7 @@ public class ComputedInheritedRules {
     public static final String DISSEMINATION_RULE = "DisseminationRule";
     public static final String ACCESS_RULE = "AccessRule";
     public static final String REUSE_RULE = "ReuseRule";
+    public static final String HOLD_RULE = "HoldRule";
     public static final String CLASSIFICATION_RULE = "ClassificationRule";
     private static final String NEED_AUTHORIZATION = "NeedAuthorization";
 
@@ -60,6 +61,8 @@ public class ComputedInheritedRules {
     private InheritedRule reuseRule;
     @JsonProperty(CLASSIFICATION_RULE)
     private ClassificationRule classificationRule;
+    @JsonProperty(HOLD_RULE)
+    private InheritedRule holdRule;
     @JsonProperty("inheritedRulesAPIOutput")
     private JsonNode inheritedRulesAPIOutput;
     @JsonProperty("indexationDate")
@@ -85,6 +88,7 @@ public class ComputedInheritedRules {
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
         this.classificationRule = (ClassificationRule) inheritedRules.get(CLASSIFICATION_RULE);
+        this.holdRule = inheritedRules.get(HOLD_RULE);
         this.indexationDate = indexationDate;
         this.needAuthorization = parseNeedAuthorizationProperty(globalInheritedProperties.get(NEED_AUTHORIZATION));
     }
@@ -150,6 +154,14 @@ public class ComputedInheritedRules {
 
     public void setClassificationRule(ClassificationRule classificationRule) {
         this.classificationRule = classificationRule;
+    }
+
+    public InheritedRule getHoldRule() {
+        return this.holdRule;
+    }
+
+    public void setHoldRule(InheritedRule holdRule) {
+        this.holdRule = holdRule;
     }
 
     public JsonNode getInheritedRulesAPIOutput() {

@@ -15,6 +15,34 @@
           "PreventRulesId": []
         },
         "FinalAction": "Destroy"
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01",
+            "HoldOwner": "Owner HOL-00001 guid1",
+            "HoldReason": "Reason HOL-00001 guid1"
+          },
+          {
+            "Rule": "HOL-00002",
+            "HoldEndDate": "2010-01-01",
+            "EndDate": "2010-01-01",
+            "HoldOwner": "Owner HOL-00002 guid1",
+            "HoldReason": "Reason HOL-00002 guid1"
+          },
+          {
+            "Rule": "HOL-00004",
+            "StartDate": "2000-01-01",
+            "HoldOwner": "Owner HOL-00004 guid1",
+            "HoldReason": "Reason HOL-00004 guid1"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        }
       }
     }
   },
@@ -35,6 +63,28 @@
           "PreventRulesId": [ "APP-00048", "APP-00049" ]
         },
         "FinalAction": "Keep"
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "StartDate": "2010-01-01",
+            "EndDate": "2011-01-01",
+            "PreventRearrangement": false,
+            "HoldReason": "Reason HOL-00001 guid2"
+          },
+          {
+            "Rule": "HOL-00003",
+            "HoldEndDate": "2020-01-01",
+            "EndDate": "2030-01-01",
+            "HoldOwner": "Owner HOL-00003 guid2",
+            "HoldReason": "Reason HOL-00003 guid2"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": [ "HOL-00001", "HOL-00002", "HOL-00009" ]
+        }
       }
     }
   }

@@ -38,6 +38,28 @@
         "ClassificationOwner": "ClassificationOwner0",
         "ClassificationReassessingDate": "2016-06-03",
         "NeedReassessingAuthorization": true
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2001-01-01"
+          },
+          {
+            "Rule": "HOL-00002",
+            "EndDate": "2010-01-01",
+            "HoldEndDate": "2010-01-01",
+            "HoldOwner": "Owner de la règle de Gel",
+            "HoldReason": "Motif du gel",
+            "HoldReassessingDate": "2005-01-01",
+            "PreventRearrangement": true
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        }
       }
     }
   },
@@ -76,6 +98,27 @@
             "Rule": "REU-00001",
             "StartDate": "2000-01-01",
             "EndDate": "2010-01-01"
+          }
+        ],
+        "Inheritance": {
+          "PreventInheritance": false,
+          "PreventRulesId": []
+        }
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001"
+          },
+          {
+            "Rule": "HOL-00003",
+            "PreventRearrangement": false
+          },
+          {
+            "Rule": "HOL-00004",
+            "StartDate": "2001-01-01",
+            "HoldOwner": "Owner de la r\u00E8gle de Gel",
+            "HoldReason": "Motif du gel"
           }
         ],
         "Inheritance": {

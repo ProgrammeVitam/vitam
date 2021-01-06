@@ -47,6 +47,7 @@ La structuration d'un Unit est la suivante :
       "DisseminationRule": {},
       "ReuseRule": {},
       "ClassificationRule": {},
+      "HoldRule": {},
       "NeedAuthorization": false // Accès nécessitant une autorisation explicite
     },
     "#unitups": [ "unitParentId", "unitParentId"], // liste des parents immédiats

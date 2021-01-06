@@ -26,56 +26,69 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class RuleModel {
 
+    public static final String RULE = "Rule";
+    public static final String START_DATE = "StartDate";
+    public static final String END_DATE = "EndDate";
+    public static final String HOLD_END_DATE = "HoldEndDate";
+    public static final String HOLD_OWNER = "HoldOwner";
+    public static final String HOLD_REASON = "HoldReason";
+    public static final String HOLD_REASSESSING_DATE = "HoldReassessingDate";
+    public static final String PREVENT_REARRANGEMENT = "PreventRearrangement";
     /**
      * rule id
      */
-    @JsonProperty("Rule")
+    @JsonProperty(RULE)
     private String rule;
 
     /**
      * start date
      */
-    @JsonProperty("StartDate")
+    @JsonProperty(START_DATE)
     private String startDate;
 
     /**
      * end date
      */
-    @JsonProperty("EndDate")
+    @JsonProperty(END_DATE)
     private String endDate;
 
     /**
      * hold end date
      */
-    @JsonProperty("HoldEndDate")
+    @JsonProperty(HOLD_END_DATE)
     private String holdEndDate;
 
     /**
      * hold owner
      */
-    @JsonProperty("HoldOwner")
+    @JsonProperty(HOLD_OWNER)
     private String holdOwner;
 
     /**
      * hold reason
      */
-    @JsonProperty("HoldReason")
+    @JsonProperty(HOLD_REASON)
     private String holdReason;
 
     /**
      * hold reassessing date
      */
-    @JsonProperty("HoldReassessingDate")
+    @JsonProperty(HOLD_REASSESSING_DATE)
     private String holdReassessingDate;
 
     /**
-     * hold end date
+     * prevent rearrangement (reclassification workflow)
      */
-    @JsonProperty("PreventRearrangement")
+    @JsonProperty(PREVENT_REARRANGEMENT)
     private Boolean preventRearrangement;
 
     public RuleModel() {
@@ -153,5 +166,19 @@ public class RuleModel {
     public RuleModel setPreventRearrangement(Boolean preventRearrangement) {
         this.preventRearrangement = preventRearrangement;
         return this;
+    }
+
+    @JsonIgnore
+    public Map<String, Object> getRuleAttributes() {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(START_DATE, this.startDate);
+        properties.put(END_DATE, this.endDate);
+        properties.put(HOLD_END_DATE, this.holdEndDate);
+        properties.put(HOLD_OWNER, this.holdOwner);
+        properties.put(HOLD_REASSESSING_DATE, this.holdReassessingDate);
+        properties.put(HOLD_REASON, this.holdReason);
+        properties.put(PREVENT_REARRANGEMENT, this.preventRearrangement);
+        properties.values().removeIf(Objects::isNull);
+        return properties;
     }
 }
