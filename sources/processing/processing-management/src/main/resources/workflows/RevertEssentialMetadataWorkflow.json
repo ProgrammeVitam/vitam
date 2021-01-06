@@ -56,7 +56,7 @@
     {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_REVERT_UPDATE_FINALIZE",
-      "behavior": "FINALLY",
+      "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
       },

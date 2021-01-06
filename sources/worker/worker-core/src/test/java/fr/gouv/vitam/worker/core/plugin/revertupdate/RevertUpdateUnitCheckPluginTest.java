@@ -262,7 +262,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         ItemStatus itemStatus = revertUpdateUnitCheckPlugin.execute(params, handlerIO);
 
-        assertEquals(OK, itemStatus.getGlobalStatus());
+        assertEquals(KO, itemStatus.getGlobalStatus());
 
 
         JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
@@ -303,7 +303,7 @@ public class RevertUpdateUnitCheckPluginTest {
         HandlerIO handlerIO = mock(HandlerIO.class);
 
         RevertUpdateOptions options =
-            new RevertUpdateOptions(true, createObjectNode(), OPERATION_ID, Collections.singletonList("Title"));
+            new RevertUpdateOptions(true, createObjectNode(), OPERATION_ID, Collections.singletonList("Title_.fr"));
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
@@ -339,6 +339,7 @@ public class RevertUpdateUnitCheckPluginTest {
             new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
             });
 
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(Collections.emptyList());
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(List.of(
+            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}"));
     }
 }
