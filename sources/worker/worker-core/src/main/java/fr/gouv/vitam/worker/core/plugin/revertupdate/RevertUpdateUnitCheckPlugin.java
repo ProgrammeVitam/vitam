@@ -84,6 +84,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -225,20 +226,32 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
                         UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
                         updateParserMultiple.getRequest().resetRoots();
 
-                        for (String keyToUpdate : Sets.intersection(oldValues.keySet(), newValues.keySet())) {
+                        Set<String> keysToUpdate = Sets.intersection(oldValues.keySet(), newValues.keySet());
+                        Set<String> keysToAdd =
+                            oldValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains)).collect(Collectors.toSet());
+                        Set<String> keysToDelete =
+                            newValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains)).collect(Collectors.toSet());
+
+                        for (String keyToAdd : keysToAdd) {
+                            updateParserMultiple.getRequest()
+                                .addActions(new SetAction(keyToAdd, oldValues.get(keyToAdd)));
+                        }
+
+                        for (String keyToUpdate : keysToUpdate) {
                             updateParserMultiple.getRequest()
                                 .addActions(new SetAction(keyToUpdate, oldValues.get(keyToUpdate)));
                         }
 
-                        Set<String> keysToDelete = Sets.difference(oldValues.keySet(), newValues.keySet());
                         if (!keysToDelete.isEmpty()) {
                             updateParserMultiple.getRequest()
                                 .addActions(new UnsetAction(keysToDelete.toArray(String[]::new)));
                         }
 
-                        resultMap.put(updateParserMultiple.getRequest(),
-                            Sets.union(resultMap.getOrDefault(updateParserMultiple.getRequest(), new HashSet<>()),
-                                Set.of(unitId)));
+                        if (!updateParserMultiple.getRequest().getActions().isEmpty()) {
+                            resultMap.put(updateParserMultiple.getRequest(),
+                                Sets.union(resultMap.getOrDefault(updateParserMultiple.getRequest(), new HashSet<>()),
+                                    Set.of(unitId)));
+                        }
                     }
                 }
 
