@@ -10,13 +10,15 @@
 - name: Add ip_service var to host_vars
   local_action:
     module: lineinfile
-    create: yes 
+    create: yes
     path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}"
+    regexp: "ip_service"
     line: "{% if ansible_eth0 is defined %}ip_service: {{ ansible_eth0.ipv4.address }}{% endif %}"
 
 - name: Add ip_admin var to host_vars
   local_action:
     module: lineinfile
-    create: yes 
+    create: yes
     path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}"
+    regexp: "ip_admin"
     line: "{% if ansible_eth1 is defined %}ip_admin: {{ ansible_eth1.ipv4.address }}{% endif %}"
