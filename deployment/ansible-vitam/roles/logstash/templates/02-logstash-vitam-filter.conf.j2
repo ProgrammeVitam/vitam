@@ -107,6 +107,9 @@ filter
             overwrite => [ "timestamp" ]
         }
         mutate { add_field => { "logger" => "consul" } }
+        if [log_level] == "ERR" {
+            mutate { replace => { "log_level" => "ERROR" } }
+        }
         date {
             match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
             target => [ "@timestamp" ]
