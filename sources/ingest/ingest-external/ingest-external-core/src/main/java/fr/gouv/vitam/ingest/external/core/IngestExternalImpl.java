@@ -57,6 +57,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.security.SafeFileChecker;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
@@ -78,12 +80,14 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
@@ -255,7 +259,12 @@ public class IngestExternalImpl implements IngestExternal {
             final long timeoutScanDelay = config.getTimeoutScanDelay();
             final String containerNamePath = guid.getId();
             final String objectNamePath = guid.getId();
-            final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
+            final String filePath = FilenameUtils.normalize(config.getPath() + "/" + containerNamePath + "/" + objectNamePath);
+            try {
+                SafeFileChecker.checkSafeFilePath(filePath);
+            } catch (IOException e) {
+                throw new IngestExternalException("File path " + filePath + " is invalid", e);
+            }
             final File file = new File(filePath);
             if (!file.canRead()) {
                 LOGGER.error(CAN_NOT_READ_FILE);
