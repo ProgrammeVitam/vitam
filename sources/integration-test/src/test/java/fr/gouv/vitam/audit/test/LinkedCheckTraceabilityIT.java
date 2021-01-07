@@ -38,6 +38,7 @@ import fr.gouv.vitam.batch.report.model.TraceabilityObjectModel;
 import fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -489,16 +491,21 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     }
 
     private String secureTenant() {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            RequestResponseOK<String> response = client.traceability();
-            String opId = response.getResults().get(0);
+            RequestResponseOK<TenantLogbookOperationTraceabilityResult> response
+                = client.traceability(Collections.singletonList(TENANT_ID));
+            assertThat(response.getResults().size()).isEqualTo(1);
+            String opId = response.getResults().get(0).getOperationId();
             waitOperation(opId);
             return opId;
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
             fail("Error while securing tenant", e);
             return null;
+        } finally {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         }
     }
 

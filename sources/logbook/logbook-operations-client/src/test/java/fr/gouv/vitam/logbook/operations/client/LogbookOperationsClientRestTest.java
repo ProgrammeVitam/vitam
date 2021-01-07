@@ -54,12 +54,13 @@ import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -81,6 +82,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -173,8 +175,10 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
 
         @POST
         @Path("/operations/traceability")
+        @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+            List<Integer> tenants) {
             return mock.post();
         }
 
@@ -602,24 +606,14 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void traceability() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setTenantId(1);
         when(mock.post())
             .thenReturn(
                 Response.status(Status.OK).entity(
-                    "{" + "    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evType\" : \"PROCESS_SIP_UNITARY\"," +
-                        "    \"evDateTime\" : \"2016-10-27T13:37:05.646\"," + "    \"evDetData\" : null," +
-                        "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
-                        "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdApp\" : null," + "    \"evIdAppSession\" : null," +
-                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdExt\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
-                        "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
-                        "    \"_tenant\" : 0" + "}")
+                    new RequestResponseOK<TenantLogbookOperationTraceabilityResult>()
+                        .setHttpCode(Status.OK.getStatusCode()))
                     .build());
-        client.traceability();
+        client.traceability(Collections.singletonList(0));
     }
 
     @Test

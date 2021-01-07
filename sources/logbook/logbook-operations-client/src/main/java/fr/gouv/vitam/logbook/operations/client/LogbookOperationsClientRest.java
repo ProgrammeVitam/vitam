@@ -45,12 +45,14 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.List;
 import java.util.Queue;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
@@ -178,12 +180,16 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException {
-        try (Response response = make(
-            post().withPath("/operations/traceability").withHeader(X_TENANT_ID, getTenantParameter())
-                .withJsonAccept())) {
+    public RequestResponseOK<TenantLogbookOperationTraceabilityResult> traceability(List<Integer> tenants)
+        throws LogbookClientServerException, InvalidParseOperationException {
+        try (Response response = make(post().withPath("/operations/traceability")
+            .withHeader(X_TENANT_ID, getTenantParameter())
+            .withBody(JsonHandler.toJsonNode(tenants))
+            .withJson())) {
             check(response);
-            return RequestResponse.parseRequestResponseOk(response);
+            RequestResponse<TenantLogbookOperationTraceabilityResult> result =
+                RequestResponse.parseFromResponse(response, TenantLogbookOperationTraceabilityResult.class);
+            return (RequestResponseOK<TenantLogbookOperationTraceabilityResult>) result;
         } catch (LogbookClientNotFoundException | VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }

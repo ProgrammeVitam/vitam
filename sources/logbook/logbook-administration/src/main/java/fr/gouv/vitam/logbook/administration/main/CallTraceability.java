@@ -26,15 +26,12 @@
  */
 package fr.gouv.vitam.logbook.administration.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.configuration.SecureConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
@@ -42,6 +39,16 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Utility to launch the Traceability through command line and external scheduler
@@ -51,6 +58,11 @@ public class CallTraceability {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallTraceability.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_SECURISATION_NAME = "securisationDaemon.conf";
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    public CallTraceability(LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+    }
 
     /**
      * @param args ignored
@@ -58,48 +70,45 @@ public class CallTraceability {
     public static void main(String[] args) {
         platformSecretConfiguration();
         try {
-            File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-            final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
-            VitamThreadFactory instance = VitamThreadFactory.getInstance();
-            Thread thread = instance.newThread(() -> {
-                conf.getTenants().forEach((v) -> {
-                    Integer i = Integer.parseInt(v);
-                    secureByTenantId(i);
-                });
-            });
-            thread.start();
-            thread.join();
-        } catch (final IOException e) {
+            CallTraceability callTraceability = new CallTraceability(LogbookOperationsClientFactory.getInstance());
+            callTraceability.run();
+        } catch (Exception e) {
             LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
-        } catch (InterruptedException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
+            throw new IllegalStateException("Logbook operation traceability failed", e);
         }
     }
 
-    private static void secureByTenantId(int tenantId) {
+    void run() throws IOException, ExecutionException, InterruptedException {
+        File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
+        final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
+
+        runInVitamThreadExecutor(() -> launchTraceabilityOperations(
+            conf.getAdminTenant(),
+            conf.getTenants().stream().map(Integer::parseInt).collect(Collectors.toList())));
+    }
+
+    private static void runInVitamThreadExecutor(Runnable runnable)
+        throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
+        completableFuture.get();
+        executorService.shutdown();
+    }
+
+    private void launchTraceabilityOperations(Integer adminTenant, List<Integer> tenants) {
         try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
 
-            final LogbookOperationsClientFactory logbookOperationsClientFactory =
-                LogbookOperationsClientFactory.getInstance();
-
-            try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-
-                client.traceability();
+            try (LogbookOperationsClient client = this.logbookOperationsClientFactory.getClient()) {
+                LOGGER.info("Start traceability");
+                client.traceability(tenants);
+                LOGGER.info("Traceability done successfully");
             }
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
-
-            throw new IllegalStateException(" Error when securing Tenant  :  " + tenantId, e);
+            throw new IllegalStateException(" Error when securing logbook operations  :  " + adminTenant, e);
         }
-        finally {
-            VitamThreadUtils.getVitamSession().setTenantId(null);
-
-        }
-
     }
-
 
     private static void platformSecretConfiguration() {
         // Load Platform secret from vitam.conf file
@@ -111,9 +120,7 @@ public class CallTraceability {
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
 
         } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
+            throw new IllegalStateException("Cannot load configuration", e);
         }
     }
-
 }

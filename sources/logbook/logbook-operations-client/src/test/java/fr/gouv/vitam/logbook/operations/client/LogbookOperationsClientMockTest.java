@@ -32,9 +32,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -148,7 +150,7 @@ public class LogbookOperationsClientMockTest {
         logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            LogbookParameterName.eventIdentifierProcess.name());        
+            LogbookParameterName.eventIdentifierProcess.name());
         logbookParamaters.putParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
         logbookParamaters
             .putParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
@@ -240,7 +242,8 @@ public class LogbookOperationsClientMockTest {
     public void traceabilityTest() throws Exception {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
-        RequestResponse response = client.traceability();
+        RequestResponse<TenantLogbookOperationTraceabilityResult> response =
+            client.traceability(Collections.singletonList(0));
         assertNotNull(response);
         assertTrue(response instanceof RequestResponseOK);
     }
@@ -282,9 +285,9 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void traceabilityAuditTest()
-            throws LogbookClientServerException, InvalidParseOperationException {
+        throws LogbookClientServerException, InvalidParseOperationException {
         final LogbookOperationsClient client =
-                LogbookOperationsClientFactory.getInstance().getClient();
+            LogbookOperationsClientFactory.getInstance().getClient();
         client.traceabilityAudit(0, new AuditLogbookOptions());
     }
 

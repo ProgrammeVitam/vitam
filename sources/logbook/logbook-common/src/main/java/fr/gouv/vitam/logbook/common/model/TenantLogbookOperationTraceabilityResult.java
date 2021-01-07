@@ -24,38 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.configuration;
 
-import java.util.List;
+package fr.gouv.vitam.logbook.common.model;
 
-/**
- * Secure configuration
- */
-public class SecureConfiguration {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    private List<String> tenants;
-    private Integer adminTenant;
+public class TenantLogbookOperationTraceabilityResult {
 
-    /**
-     * Empty ClientConfiguration constructor for YAMLFactory
-     */
-    public SecureConfiguration() {
+    @JsonProperty("tenantId")
+    private Integer tenantId;
+    @JsonProperty("operationId")
+    private String operationId;
 
+    public TenantLogbookOperationTraceabilityResult() {
+        // Empty constructor for deserialization
     }
 
-    public List<String> getTenants() {
-        return tenants;
+    public Integer getTenantId() {
+        return tenantId;
     }
 
-    public void setTenants(List<String> tenants) {
-        this.tenants = tenants;
+    public TenantLogbookOperationTraceabilityResult setTenantId(Integer tenantId) {
+        this.tenantId = tenantId;
+        return this;
     }
 
-    public Integer getAdminTenant() {
-        return adminTenant;
+    public String getOperationId() {
+        return operationId;
     }
 
-    public void setAdminTenant(Integer adminTenant) {
-        this.adminTenant = adminTenant;
+    public TenantLogbookOperationTraceabilityResult setOperationId(String operationId) {
+        this.operationId = operationId;
+        return this;
     }
 }

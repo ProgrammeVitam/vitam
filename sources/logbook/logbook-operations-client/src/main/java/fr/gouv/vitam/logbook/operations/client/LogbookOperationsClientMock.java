@@ -49,6 +49,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -113,14 +114,10 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
         return ClientMockResultHelper.getLogbookOperation();
     }
 
+
     @Override
-    public RequestResponseOK traceability() throws InvalidParseOperationException {
-        LOGGER.debug("calling traceability ");
-        final List<String> resultAsJson = new ArrayList<>();
-
-        resultAsJson.add(GUID_EXAMPLE);
-
-        return new RequestResponseOK().addAllResults(resultAsJson);
+    public RequestResponseOK<TenantLogbookOperationTraceabilityResult> traceability(List<Integer> tenants) {
+        return new RequestResponseOK<>();
     }
 
     @Override
