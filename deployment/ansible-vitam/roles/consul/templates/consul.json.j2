@@ -2,13 +2,12 @@
   "data_dir": "{{ consul_folder_data }}",
   "node_name": "{{ ansible_hostname }}",
   "log_level": "INFO",
+  "log_file": "{{ consul_folder_log }}/consul.log",
   "enable_syslog": true,
   "advertise_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
   "enable_script_checks": true,
 
-
-  {% if inventory_hostname in groups['hosts_consul_server'] %}
-
+{% if inventory_hostname in groups['hosts_consul_server'] %}
   {% if consul_remote_sites is defined %}
     {% if consul_remote_sites is sequence %}
       {% if consul_remote_sites|length > 0 %}
@@ -22,7 +21,7 @@
   "addresses" : {
       "http": "{{ ip_admin }}"
   },
-  {% endif %}
+{% endif %}
   "bind_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
 {% if (dns_servers|length > 0) and ("" not in dns_servers) %}
   "recursors": [ "{{ dns_servers|join('", "') }}" ],
@@ -31,7 +30,6 @@
   "datacenter": "{{ vitam_site_name }}",
   "retry_join": [ {% for item in groups['hosts_consul_server'] %}"{{ hostvars[item][consul.network] }}"{% if not loop.last %},{% endif %}{% endfor %} ],
   "retry_interval": "{{ consul.retry_interval }}s",
-  "enable_syslog": true,
   "disable_remote_exec": true,
   "disable_update_check": true,
   "encrypt": "{{ consul_encrypt }}",
