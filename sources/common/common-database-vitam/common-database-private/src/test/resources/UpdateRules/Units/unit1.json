@@ -1,0 +1,11 @@
+{
+  "_mgt": {
+    "AccessRule": {
+      "Rules": [
+        {
+          "Rule": "ACC-00001"
+        }
+      ]
+    }
+  }
+}

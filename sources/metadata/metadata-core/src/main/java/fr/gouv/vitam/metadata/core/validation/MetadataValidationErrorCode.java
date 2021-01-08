@@ -60,8 +60,12 @@ public enum MetadataValidationErrorCode {
      * Unit endDate is before startDate
      */
     INVALID_START_END_DATE,
-    /*
-    DATA CONSISTENCY AUDIT
+    /**
+     * HoldRule HoldEndDate is before StartDate (unit rule update only)
      */
-    DATA_CONSISTENCY_AUDIT
+    RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE,
+    /**
+     * HoldEndDate is only allowed when HoldRule has undefined (null) duration (unit rule update only)
+     */
+    RULE_UPDATE_UNEXPECTED_HOLD_END_DATE,
 }

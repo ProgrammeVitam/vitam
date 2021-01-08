@@ -1,0 +1,16 @@
+{
+  "add": [
+    {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "EndDate": "2000-01-01"
+          }
+        ]
+      }
+    }
+  ],
+  "update": [],
+  "delete": []
+}

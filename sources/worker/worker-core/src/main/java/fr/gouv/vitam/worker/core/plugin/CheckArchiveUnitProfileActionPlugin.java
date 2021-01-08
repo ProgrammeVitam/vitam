@@ -168,7 +168,10 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                     case INVALID_UNIT_DATE_FORMAT:
                     case INVALID_START_END_DATE:
                     case SCHEMA_VALIDATION_FAILURE:
-                        // Should never occur
+                        // Should never occur (Only AUP validation is done here)
+                    case RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE:
+                    case RULE_UPDATE_UNEXPECTED_HOLD_END_DATE:
+                        // Should never occur (unit rule update only)
                     default:
                         throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
                 }

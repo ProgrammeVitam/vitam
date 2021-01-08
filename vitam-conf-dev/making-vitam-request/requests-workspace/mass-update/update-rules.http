@@ -3,6 +3,262 @@
 @tenant = 0
 @unit-id = aeaqaaaaaahnh5o2aal76aln3teqq4qaaaba
 
+### Ajout de règles d'accès
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "AccessRule": {
+          "Rules": [
+            {
+              "Rule": "ACC-00001",
+              "StartDate": "2000-01-01"
+            }
+          ]
+        }
+      }
+    ],
+    "update": [],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Ajout de règles de GEL avec durée définie (1 YEAR) avec PreventInheritance
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "HoldRule": {
+          "Rules": [
+            {
+              "Rule": "HOL-00001",
+              "StartDate": "2000-01-01",
+              "HoldOwner": "Owner",
+              "HoldReason": "Reason",
+              "HoldReassessingDate": "2015-01-01",
+              "PreventRearrangement": false
+            }
+          ],
+          "PreventInheritance": true
+        }
+      }
+    ],
+    "update": [],
+    "delete": []
+  }
+}
+
+### Ajout de règles de GEL sans durée (sans RuleDuration dans le référentiel) avec HoldEndDate & PreventRulesId
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "HoldRule": {
+          "Rules": [
+            {
+              "Rule": "HOL-00002",
+              "StartDate": "2000-01-01",
+              "HoldEndDate": "2005-01-01",
+              "HoldOwner": "Owner",
+              "HoldReason": "Reason",
+              "HoldReassessingDate": "2015-01-01",
+              "PreventRearrangement": true
+            }
+          ],
+          "PreventRulesId": [ "HOL-00003" ]
+        }
+      }
+    ],
+    "update": [],
+    "delete": []
+  }
+}
+
+### Ajout de propriétés de classification
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "ClassificationRule": {
+          "ClassificationLevel": "Secret Défense",
+          "ClassificationOwner": "Owner"
+        }
+      }
+    ],
+    "update": [],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### MAJ de l'identifiant d'une règle d'utilité administrative
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [
+      {
+        "AppraisalRule": {
+          "Rules": [
+            {
+              "OldRule": "APP-00001",
+              "Rule": "APP-00002"
+            }
+          ]
+        }
+      }
+    ],
+    "delete": []
+  }
+}
+
+### MAJ (ajout & suppression) des attributs d'une règle de gel
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [
+      {
+        "HoldRule": {
+          "Rules": [
+            {
+              "OldRule": "HOL-00002",
+              "StartDate": "2000-01-01",
+              "DeleteHoldEndDate": true,
+              "HoldOwner": "Owner",
+              "HoldReason": "Reason",
+              "DeleteHoldReassessingDate": true,
+              "DeletePreventRearrangement": true
+            }
+          ]
+        }
+      }
+    ],
+    "delete": []
+  }
+}
+
+### Suppression d'une règle de gel
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [],
+    "delete": [
+      {
+        "HoldRule": {
+          "Rules": [
+            {
+              "Rule": "HOL-00001"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+### Suppression de toute la catégorie des règles de diffusion
+POST {{url-access}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "{{unit-id}}" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [],
+    "delete": [
+      {
+        "DisseminationRule": null
+      }
+    ]
+  }
+}
+
 ### Supression d'une catégorie afin d'avoir une l'unité archivistique sans DisseminationRule
 POST {{url-access}}/access-external/v1/units/rules
 Accept: application/json

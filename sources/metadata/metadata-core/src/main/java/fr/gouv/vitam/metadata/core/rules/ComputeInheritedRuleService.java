@@ -210,7 +210,7 @@ public class ComputeInheritedRuleService {
                 .forEach(rule -> inheritedRulesFromParents.add(new InheritedRuleResponseModel(
                     rule.getUnitId(), rule.getOriginatingAgency(),
                     prependPaths(rule.getPaths(), unitRuleModel.getId()), rule.getRuleId(),
-                    rule.getRuleAttributes()
+                    rule.getExtendedRuleAttributes()
                 )));
         }
 
@@ -256,7 +256,7 @@ public class ComputeInheritedRuleService {
 
                 inheritedRule = new InheritedRuleResponseModel(firstInheritedRule.getUnitId(),
                     firstInheritedRule.getOriginatingAgency(), mergedPaths, firstInheritedRule.getRuleId(),
-                    firstInheritedRule.getRuleAttributes());
+                    firstInheritedRule.getExtendedRuleAttributes());
             }
             result.add(inheritedRule);
         }

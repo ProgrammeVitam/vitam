@@ -1,0 +1,17 @@
+{
+  "add": [],
+  "update": [
+    {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "OldRule": "APP-00001",
+            "StartDate": "2000-01-01",
+            "DeleteStartDate": true
+          }
+        ]
+      }
+    }
+  ],
+  "delete": []
+}

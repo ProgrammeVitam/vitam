@@ -1,0 +1,15 @@
+{
+  "add": [
+    {
+      "HoldRule": {
+        "Rules": [
+          {
+            "StartDate": "2000-01-01"
+          }
+        ]
+      }
+    }
+  ],
+  "update": [],
+  "delete": []
+}

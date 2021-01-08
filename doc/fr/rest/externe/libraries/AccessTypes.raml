@@ -139,12 +139,22 @@ types:
 
           Pour les règles de gestion, voici les champs autorisés dans le tableau de règles (champ Rules) d'une catégorie
 
-          | Champ           | Contraintes                   | Commentaire                                                 |
-          |-----------------|-------------------------------|-----------------------------------------------|
-          | OldRule         | update, obligatoire           | Permet de définir l'identifiant de règle que l'on veut modifier |
-          | Rule            | add/delete, obligatoire; update, facultatif | Permet de définir l'identifiant de la règle que l'ont veut ajouter/supprimer ou de celle remplacant l'ancienne règle |
-          | StartDate       | add/update, facultatif        | Permet de définir la date de début de la règle ajoutée/modifiée |
-          | DeleteStartDate | update, facultatif            | Permet de supprimer (true) la date de début de la règle à mettre à jour |
+          | Champ                      | Catégorie spécifique | Contraintes                                 | Commentaire                                                                                                          |
+          |----------------------------|----------------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+          | OldRule                    | Toutes               | update, obligatoire                         | Permet de définir l'identifiant de règle que l'on veut modifier                                                      |
+          | Rule                       | Toutes               | add/delete, obligatoire; update, facultatif | Permet de définir l'identifiant de la règle que l'ont veut ajouter/supprimer ou de celle remplaçant l'ancienne règle |
+          | StartDate                  | Toutes               | add/update, facultatif                      | Permet de définir la date de début de la règle ajoutée/modifiée                                                      |
+          | DeleteStartDate            | Toutes               | update, facultatif                          | Permet de supprimer (true) la date de début de la règle à mettre à jour                                              |
+          | HoldEndDate                | HoldRule             | add/update, facultatif                      | Permet de définir la date de fin de gel explicite.                                                                   |
+          | DeleteHoldEndDate          | HoldRule             | update, facultatif                          | Permet de supprimer (true) la date de fin de gel explicite.                                                          |
+          | HoldOwner                  | HoldRule             | add/update, facultatif                      | Permet de définir le propriétaire de la demande de gel.                                                              |
+          | DeleteHoldOwner            | HoldRule             | update, facultatif                          | Permet de supprimer (true) le propriétaire de la demande de gel.                                                     |
+          | HoldReason                 | HoldRule             | add/update, facultatif                      | Permet de définir le motif de la demande de gel.                                                                     |
+          | DeleteHoldReason           | HoldRule             | update, facultatif                          | Permet de supprimer (true) le motif de la demande de gel.                                                            |
+          | HoldReassessingDate        | HoldRule             | add/update, facultatif                      | Permet de définir la date de réévaluation du gel.                                                                    |
+          | DeleteHoldReassessingDate  | HoldRule             | update, facultatif                          | Permet de supprimer (true) la date de réévaluation du gel.                                                           |
+          | PreventRearrangement       | HoldRule             | add/update, facultatif                      | Permet de définir si le blocage de la reclassification est activé (true) ou non (false).                             |
+          | DeletePreventRearrangement | HoldRule             | update, facultatif                          | Permet de supprimer (true) le blocage de la reclassification.                                                        |
         type: object
     example: !include examples/unitBatchUpdate.json
 

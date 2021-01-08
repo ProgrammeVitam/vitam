@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.massprocessing.management;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.SedaConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -276,22 +277,21 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         if (ruleAddition != null) {
             ruleAddition.stream()
                 .flatMap(x -> x.entrySet().stream())
-                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration, false));
+                .forEach(x -> computeRuleDurationData(x.getKey(), x.getValue(), bindRulesToDuration, false));
         }
 
         List<Map<String, RuleCategoryAction>> ruleUpdates = ruleActions.getUpdate();
         if (ruleUpdates != null) {
             ruleUpdates.stream()
                 .flatMap(x -> x.entrySet().stream())
-                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration, true));
+                .forEach(x -> computeRuleDurationData(x.getKey(), x.getValue(), bindRulesToDuration, true));
         }
 
         return bindRulesToDuration;
     }
 
-    private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry,
+    private void computeRuleDurationData(String ruleType, RuleCategoryAction category,
         Map<String, DurationData> bindRuleDuration, Boolean isUpdate) {
-        RuleCategoryAction category = entry.getValue();
 
         for (RuleAction rule : category.getRules()) {
             String ruleId = rule.getRule();
@@ -316,15 +316,21 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             }
             JsonNode ruleInReferential = ruleResponseInReferential.get("$results").get(0);
 
-            final String duration = ruleInReferential.get(FileRules.RULEDURATION).asText();
-            final String measurement = ruleInReferential.get(FileRules.RULEMEASUREMENT).asText();
+            if (ruleType.equals(SedaConstants.TAG_RULE_HOLD) && !ruleInReferential.hasNonNull(FileRules.RULEDURATION)) {
+                // Hold rule may have undefined (null) duration
+                bindRuleDuration.put(ruleId, new DurationData(null, null));
+            } else {
 
-            // save duration and measurement for usage in MongoDbInMemory if needed
-            final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-            if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) &&
-                ruleMeasurement != null) {
-                bindRuleDuration.put(ruleId,
-                    new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
+                final String duration = ruleInReferential.get(FileRules.RULEDURATION).asText();
+                final String measurement = ruleInReferential.get(FileRules.RULEMEASUREMENT).asText();
+
+                // save duration and measurement for usage in MongoDbInMemory if needed
+                final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
+                if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) &&
+                    ruleMeasurement != null) {
+                    bindRuleDuration.put(ruleId,
+                        new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
+                }
             }
         }
     }

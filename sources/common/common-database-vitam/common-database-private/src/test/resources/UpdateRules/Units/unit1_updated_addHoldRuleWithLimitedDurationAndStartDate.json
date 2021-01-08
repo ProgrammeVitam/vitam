@@ -1,0 +1,24 @@
+{
+  "_mgt": {
+    "AccessRule": {
+      "Rules": [
+        {
+          "Rule": "ACC-00001"
+        }
+      ]
+    },
+    "HoldRule": {
+      "Rules": [
+        {
+          "Rule": "HOL-00001",
+          "StartDate": "2000-01-01",
+          "EndDate": "2001-01-01",
+          "HoldOwner": "Owner",
+          "HoldReason": "Reason",
+          "HoldReassessingDate": "2015-01-01",
+          "PreventRearrangement": false
+        }
+      ]
+    }
+  }
+}

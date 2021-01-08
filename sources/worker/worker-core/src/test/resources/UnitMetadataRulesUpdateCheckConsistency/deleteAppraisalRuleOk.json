@@ -1,0 +1,15 @@
+{
+  "add": [],
+  "update": [],
+  "delete": [
+    {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00001"
+          }
+        ]
+      }
+    }
+  ]
+}

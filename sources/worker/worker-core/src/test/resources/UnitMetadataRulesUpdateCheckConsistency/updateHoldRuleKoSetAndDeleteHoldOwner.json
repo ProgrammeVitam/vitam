@@ -1,0 +1,17 @@
+{
+  "add": [],
+  "update": [
+    {
+      "HoldRule": {
+        "Rules": [
+          {
+            "Rule": "HOL-00001",
+            "HoldOwner": "Owner",
+            "DeleteHoldOwner": true
+          }
+        ]
+      }
+    }
+  ],
+  "delete": []
+}

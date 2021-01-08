@@ -771,8 +771,10 @@ public class MetaDataImpl {
     public RequestResponse<UpdateUnit> updateUnitsRules(List<String> unitIds, RuleActions ruleActions,
         Map<String, DurationData> bindRuleToDuration) {
 
+        List<OntologyModel> ontologies = this.unitOntologyLoader.loadOntologies();
+
         List<UpdateUnit> unitRules = unitIds.stream()
-            .map(unitId -> updateAndTransformUnitRules(unitId, ruleActions, bindRuleToDuration))
+            .map(unitId -> updateAndTransformUnitRules(unitId, ruleActions, bindRuleToDuration, ontologies))
             .collect(Collectors.toList());
 
         return new RequestResponseOK<UpdateUnit>()
@@ -781,11 +783,11 @@ public class MetaDataImpl {
     }
 
     private UpdateUnit updateAndTransformUnitRules(String unitId, RuleActions ruleActions,
-        Map<String, DurationData> bindRuleToDuration) {
+        Map<String, DurationData> bindRuleToDuration, List<OntologyModel> ontologies) {
         try {
             UpdatedDocument updatedDocument =
                 dbRequest.execRuleRequest(unitId, ruleActions, bindRuleToDuration, this.unitOntologyValidator,
-                    unitValidator, this.unitOntologyLoader.loadOntologies());
+                    unitValidator, ontologies);
 
             String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
                 VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),

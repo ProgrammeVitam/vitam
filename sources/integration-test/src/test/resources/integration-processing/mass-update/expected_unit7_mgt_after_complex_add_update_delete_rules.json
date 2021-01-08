@@ -1,0 +1,65 @@
+{
+  "AccessRule": {
+    "Rules": [
+      {
+        "Rule": "ACC-00001"
+      }
+    ],
+    "Inheritance": {
+      "PreventInheritance": false,
+      "PreventRulesId": []
+    }
+  },
+  "AppraisalRule": {
+    "FinalAction": "Keep"
+  },
+  "ClassificationRule": {
+    "Rules": [
+      {
+        "Rule": "CLASS-00001"
+      }
+    ],
+    "ClassificationLevel": "Secret Défense",
+    "ClassificationOwner": "ClassificationOwner2",
+    "ClassificationReassessingDate": "2000-02-03",
+    "NeedReassessingAuthorization": true
+  },
+  "DisseminationRule": {
+    "Rules": [
+      {
+        "Rule": "DIS-00002",
+        "StartDate": "2005-01-01",
+        "EndDate": "2080-01-01"
+      }
+    ],
+    "Inheritance": {
+      "PreventInheritance": true,
+      "PreventRulesId": []
+    }
+  },
+  "StorageRule": {
+    "FinalAction": "Copy"
+  },
+  "HoldRule": {
+    "Rules": [
+      {
+        "Rule": "HOL-00001"
+      },
+      {
+        "Rule": "HOL-00002",
+        "StartDate": "2010-01-01",
+        "EndDate": "2010-01-01",
+        "HoldEndDate": "2010-01-01",
+        "HoldOwner": "Owner",
+        "HoldReason": "Reason",
+        "HoldReassessingDate": "2015-01-01",
+        "PreventRearrangement": false
+      }
+    ],
+    "Inheritance": {
+      "PreventRulesId": [
+        "HOL-00003"
+      ]
+    }
+  }
+}

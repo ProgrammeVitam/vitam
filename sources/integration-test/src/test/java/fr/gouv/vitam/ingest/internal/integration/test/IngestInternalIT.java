@@ -2404,38 +2404,38 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertThat(hol00001.getPaths()).hasSize(2);
         assertThat(hol00001.getPaths().get(0)).hasSize(4);
         assertThat(hol00001.getPaths().get(1)).hasSize(4);
-        assertThat(hol00001.getRuleAttributes()).containsOnlyKeys(
+        assertThat(hol00001.getExtendedRuleAttributes()).containsOnlyKeys(
             RuleModel.START_DATE, RuleModel.END_DATE, RuleModel.HOLD_OWNER, RuleModel.PREVENT_REARRANGEMENT);
         assertThat(hol00001.getStartDate()).isEqualTo("2000-01-01");
         assertThat(hol00001.getEndDate()).isEqualTo("2001-01-01");
-        assertThat(hol00001.getRuleAttributes().get(RuleModel.HOLD_OWNER)).isEqualTo("Owner");
-        assertThat(hol00001.getRuleAttributes().get(RuleModel.PREVENT_REARRANGEMENT)).isEqualTo(false);
+        assertThat(hol00001.getExtendedRuleAttributes().get(RuleModel.HOLD_OWNER)).isEqualTo("Owner");
+        assertThat(hol00001.getExtendedRuleAttributes().get(RuleModel.PREVENT_REARRANGEMENT)).isEqualTo(false);
 
         assertThat(hol00002.getRuleId()).isEqualTo("HOL-00002");
         assertThat(hol00002.getPaths()).hasSize(1);
         assertThat(hol00002.getPaths().get(0)).hasSize(4);
-        assertThat(hol00002.getRuleAttributes()).containsOnlyKeys(
+        assertThat(hol00002.getExtendedRuleAttributes()).containsOnlyKeys(
             RuleModel.END_DATE, RuleModel.HOLD_END_DATE, RuleModel.HOLD_REASON, RuleModel.HOLD_REASSESSING_DATE);
         assertThat(hol00002.getStartDate()).isNull();
         assertThat(hol00002.getEndDate()).isEqualTo("2010-01-01");
-        assertThat(hol00002.getRuleAttributes().get(RuleModel.HOLD_END_DATE)).isEqualTo("2010-01-01");
-        assertThat(hol00002.getRuleAttributes().get(RuleModel.HOLD_REASON)).isEqualTo("Reason");
-        assertThat(hol00002.getRuleAttributes().get(RuleModel.HOLD_REASSESSING_DATE)).isEqualTo("2005-01-01");
+        assertThat(hol00002.getExtendedRuleAttributes().get(RuleModel.HOLD_END_DATE)).isEqualTo("2010-01-01");
+        assertThat(hol00002.getExtendedRuleAttributes().get(RuleModel.HOLD_REASON)).isEqualTo("Reason");
+        assertThat(hol00002.getExtendedRuleAttributes().get(RuleModel.HOLD_REASSESSING_DATE)).isEqualTo("2005-01-01");
 
         assertThat(hol00004_form_root.getRuleId()).isEqualTo("HOL-00004");
         assertThat(hol00004_form_root.getPaths()).hasSize(1);
         assertThat(hol00004_form_root.getPaths().get(0)).hasSize(4);
-        assertThat(hol00004_form_root.getRuleAttributes()).isEmpty();
+        assertThat(hol00004_form_root.getExtendedRuleAttributes()).isEmpty();
         assertThat(hol00004_form_root.getStartDate()).isNull();
         assertThat(hol00004_form_root.getEndDate()).isNull();
 
         assertThat(hol00004_form_other_parent.getRuleId()).isEqualTo("HOL-00004");
         assertThat(hol00004_form_other_parent.getPaths()).hasSize(1);
         assertThat(hol00004_form_other_parent.getPaths().get(0)).hasSize(3);
-        assertThat(hol00004_form_other_parent.getRuleAttributes()).containsOnlyKeys(RuleModel.HOLD_OWNER);
+        assertThat(hol00004_form_other_parent.getExtendedRuleAttributes()).containsOnlyKeys(RuleModel.HOLD_OWNER);
         assertThat(hol00004_form_other_parent.getStartDate()).isNull();
         assertThat(hol00004_form_other_parent.getEndDate()).isNull();
-        assertThat(hol00004_form_other_parent.getRuleAttributes().get(RuleModel.HOLD_OWNER))
+        assertThat(hol00004_form_other_parent.getExtendedRuleAttributes().get(RuleModel.HOLD_OWNER))
             .isEqualTo("Owner HOL-00004");
     }
 

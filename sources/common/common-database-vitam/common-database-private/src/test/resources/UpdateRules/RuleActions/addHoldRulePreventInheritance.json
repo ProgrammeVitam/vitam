@@ -1,0 +1,11 @@
+{
+  "add": [
+    {
+      "HoldRule": {
+        "PreventInheritance": true
+      }
+    }
+  ],
+  "update": [],
+  "delete": []
+}

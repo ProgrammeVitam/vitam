@@ -1,0 +1,16 @@
+{
+  "add": [
+    {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00001",
+            "DeleteStartDate": true
+          }
+        ]
+      }
+    }
+  ],
+  "update": [],
+  "delete": []
+}

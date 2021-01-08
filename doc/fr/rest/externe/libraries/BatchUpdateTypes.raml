@@ -48,6 +48,9 @@ types:
       StorageRule?:
         description: Modifications liées aux durées d'utilité courante
         type: CategoryMetadata
+      HoldRule?:
+        description: Modifications liées aux durées de gel
+        type: CategoryMetadata
 
   ManagementMetadata:
     displayName: Liste des champs de gestion
@@ -114,5 +117,40 @@ types:
         description: Permet de définir la date de début d'une nouvelle règle ou de modifier la date de début lors d'une modification.
         type: date-only
         example: 2018-11-14
-
-
+      DeleteStartDate?:
+        description: Permet de supprimer (true) la date de début de la règle à mettre à jour.
+        type: boolean
+      HoldEndDate?:
+        description: Permet de définir la date de fin de gel explicite. Réservé aux règles de gel.
+        type: date-only
+        example: 2018-11-14
+      DeleteHoldEndDate?:
+        description: Permet de supprimer (true) la date de fin de gel explicite. Réservé aux règles de gel.
+        type: boolean
+      HoldOwner?:
+        description: Permet de définir le propriétaire de la demande de gel. Réservé aux règles de gel.
+        type: string
+        example: Hold Owner
+      DeleteHoldOwner?:
+        description: Permet de supprimer (true) le propriétaire de la demande de gel. Réservé aux règles de gel.
+        type: boolean
+      HoldReason?:
+        description: Permet de définir le motif de la demande de gel. Réservé aux règles de gel.
+        type: string
+        example: Hold Owner
+      DeleteHoldReason?:
+        description: Permet de supprimer (true) le motif de la demande de gel. Réservé aux règles de gel.
+        type: boolean
+      HoldReassessingDate?:
+        description: Permet de définir la date de réévaluation du gel. Réservé aux règles de gel.
+        type: date-only
+        example: 2018-11-14
+      DeleteHoldReassessingDate?:
+        description: Permet de supprimer (true) la date de réévaluation du gel. Réservé aux règles de gel.
+        type: boolean
+      PreventRearrangement?:
+        description: Permet de définir si le blocage de la reclassification est activé (true) ou non (false). Réservé aux règles de gel.
+        type: boolean
+      DeletePreventRearrangement?:
+        description: Permet de supprimer (true) le blocage de la reclassification. Réservé aux règles de gel.
+        type: boolean

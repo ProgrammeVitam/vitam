@@ -167,6 +167,9 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 case UNKNOWN_ARCHIVE_UNIT_PROFILE:
                 case EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA:
                     // Should never occur (no AUP validation is done is this plugin)
+                case RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE:
+                case RULE_UPDATE_UNEXPECTED_HOLD_END_DATE:
+                    // Should never occur (unit rule update only)
                 default:
                     throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
 

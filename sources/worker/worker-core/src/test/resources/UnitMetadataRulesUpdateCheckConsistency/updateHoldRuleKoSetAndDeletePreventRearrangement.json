@@ -1,0 +1,17 @@
+{
+  "add": [],
+  "update": [
+    {
+      "HoldRule": {
+        "Rules": [
+          {
+            "OldRule": "HOL-00001",
+            "PreventRearrangement": true,
+            "DeletePreventRearrangement": true
+          }
+        ]
+      }
+    }
+  ],
+  "delete": []
+}
