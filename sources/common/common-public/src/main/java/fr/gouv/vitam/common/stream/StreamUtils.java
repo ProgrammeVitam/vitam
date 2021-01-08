@@ -209,12 +209,12 @@ public class StreamUtils {
                 read += len;
             }
         } catch (final IOException e) {
-            LOGGER.info(e);
+            LOGGER.debug(e);
         } finally {
             try {
                 inputStream.close();
             } catch (final IOException e) {
-                LOGGER.info(e);
+                LOGGER.debug(e);
             }
         }
         return read;
