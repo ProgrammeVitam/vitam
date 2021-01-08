@@ -93,6 +93,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -828,8 +829,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
         if (responseDetails != null) {
             // Clean up uploadRequestsStatus
             uploadRequestsStatus.remove(operationId);
-            File file = PropertiesUtils.fileFromTmpFolder("ATR_" + operationId + ".xml");
+            String fileName = "ATR_" + operationId + ".xml";
             try {
+                SafeFileChecker.checkSafeFilePath(fileName);
+                File file = PropertiesUtils.fileFromTmpFolder(fileName);
                 Files.delete(file.toPath());
             } catch (IOException e) {
                 LOGGER.error(e);
