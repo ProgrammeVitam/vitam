@@ -79,10 +79,10 @@ public class IdentityServiceTest {
         IdentityModel identityModel = identityModelCaptor.getValue();
 
         assertThat(identityModel.getSubjectDN()).isEqualTo(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
-        assertThat(identityModel.getSerialNumber()).isEqualTo(BigInteger.ZERO);
+            "CN=userAdmin, O=VITAM, L=Paris, C=FR");
+        assertThat(identityModel.getSerialNumber()).isEqualTo(BigInteger.valueOf(3L));
         assertThat(identityModel.getIssuerDN()).isEqualTo(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
+            "O=VITAM, L=Paris, C=FR");
         assertThat(identityModel.getCertificate()).isEqualTo(certificate);
     }
 
@@ -93,15 +93,14 @@ public class IdentityServiceTest {
         byte[] certBinary = toByteArray(stream);
         IdentityModel identityModel = new IdentityModel();
         identityModel.setCertificate(certBinary);
-        doReturn(Optional.of(identityModel)).when(identityRepository).findIdentity(any(),any());
+        doReturn(Optional.of(identityModel)).when(identityRepository).findIdentity(any(), any());
 
         // When
         identityService.findIdentity(certBinary);
 
         // Then
-        then(identityRepository).should().findIdentity(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO);
+        then(identityRepository).should()
+            .findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", BigInteger.valueOf(3L));
     }
 
     @Test
@@ -114,9 +113,8 @@ public class IdentityServiceTest {
 
         identityService.createIdentity(identityInsertModel);
         IdentityModel identityModel = new IdentityModel();
-        given(identityRepository.findIdentity(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO)).willReturn(of(identityModel));
+        given(identityRepository.findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", BigInteger.valueOf(3L)))
+            .willReturn(of(identityModel));
 
         // When
         identityInsertModel.setContextId(contextId);
