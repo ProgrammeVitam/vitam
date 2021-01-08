@@ -841,6 +841,36 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
             .withMessage(BAD_REQUEST);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void bulkAtomicUpdateWhenSuccessThenReturnRequestResponseOK()
+        throws Exception {
+        // Given
+        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
+        
+        // When
+        RequestResponse<JsonNode> requestResponse = client.bulkAtomicUpdateUnits(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.createObjectNode());
+
+        // Then
+        assertThat(requestResponse.isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void bulkAtomicUpdateWhenBadRequestThenThrowException() {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        // When Then
+        assertThatExceptionOfType(VitamClientException.class)
+            .isThrownBy(
+                () -> client
+                    .bulkAtomicUpdateUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+                            JsonHandler.createObjectNode()))
+            .withMessage(BAD_REQUEST);
+    }
+
+
 
     @Path("/access-external/v1")
     public static class MockResource {
@@ -1039,6 +1069,14 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response computeInheritedrules(String queryDsl) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/units/bulk")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkAtomicUpdateUnits(String request) {
             return expectedResponse.post();
         }
     }

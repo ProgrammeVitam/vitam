@@ -24,29 +24,14 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.dsl.schema;
+package fr.gouv.vitam.worker.core.plugin.bulkatomicupdate;
 
-/**
- * List of dsl schemas
- */
-public enum DslSchema {
-    SELECT_MULTIPLE("select-query-multiple-dsl-schema.json"),
-    SELECT_SINGLE("select-query-single-dsl-schema.json"),
-    BATCH_PROCESSING("batch-processing-query-dsl-schema.json"),
-    GET_BY_ID("get-by-id-query-dsl-schema.json"),
-    BULK_UPDATE("update-bulk-query-dsl-schema.json"),
-    UPDATE_BY_ID("update-by-id-query-dsl-schema.json"),
-    MASS_UPDATE("update-mass-query-dsl-schema.json"),
-    RECLASSIFICATION_QUERY("reclassification-query-dsl-schema.json");
+public class BulkAtomicUpdateModelUtils {
 
-    private String filename;
-
-    DslSchema(String filename) {
-        this.filename = filename;
+    public static final String QUERIES = "queries";
+    public static final String THRESHOLD = "threshold";
+    
+    private BulkAtomicUpdateModelUtils() {
+        // Empty constructor
     }
-
-    public String getFilename() {
-        return filename;
-    }
-
 }

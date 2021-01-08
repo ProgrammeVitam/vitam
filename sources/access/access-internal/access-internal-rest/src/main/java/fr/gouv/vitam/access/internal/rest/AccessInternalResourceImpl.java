@@ -144,6 +144,7 @@ import java.text.ParseException;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect;
+import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
@@ -169,6 +170,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String RESULTS = "$results";
 
     private static final String UNITS_URI = "/units";
+    private static final String UNITS_ATOMIC_BULK_URI = "/units/atomicbulk";
     private static final String UNITS_RULES_URI = "/units/rules";
 
     private static final String ACCESS_CONTRACT = "AccessContract";
@@ -177,6 +179,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String EMPTY_QUERY_IS_IMPOSSIBLE = "Empty query is impossible";
     private static final String DEBUG = "DEBUG {}";
     private static final String QUERY_FILE = "query.json";
+    private static final String ACCESS_CONTRACT_FILE = "accessContract.json";
 
     // DIP
     private DipService unitDipService;
@@ -853,7 +856,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(requestId);
             accessModule.checkClassificationLevel(queryDsl);
             JsonNode result = accessModule
-                .updateUnitById(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                .updateUnitById(applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                     getVitamSession().getContract()), idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
             return Response.status(Status.OK).entity(result).build();
@@ -1165,8 +1168,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
-                    AccessContractRestrictionHelper.
-                        applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                    applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                             getVitamSession().getContract())));
 
             // compress file to backup
@@ -1248,7 +1250,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
-                    AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
+                    applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                         getVitamSession().getContract())));
             workspaceClient
                 .putObject(operationId, "actions.json", writeToInpustream(ruleActions));
@@ -1280,7 +1282,86 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
+    
+    @Override
+    @POST
+    @Path(UNITS_ATOMIC_BULK_URI)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response bulkAtomicUpdateUnits(JsonNode query) {
+        LOGGER.debug("Start bulk atomic updating archive units with Dsl query {}", query);
+        Status status;
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
+            // Check the writing rights
+            if (getVitamSession().getContract().getWritingPermission() == null ||
+                !getVitamSession().getContract().getWritingPermission()) {
+                status = Status.UNAUTHORIZED;
+                return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
+            }
+            
+            String operationId = getVitamSession().getRequestId();
+
+            // Init logbook operation
+            final LogbookOperationParameters initParameters =
+                LogbookParameterHelper.newLogbookOperationParameters(
+                    GUIDReader.getGUID(operationId),
+                    Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.getEventType(),
+                    GUIDReader.getGUID(operationId),
+                    LogbookTypeProcess.BULK_UPDATE,
+                    STARTED,
+                    VitamLogbookMessages.getCodeOp(Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.getEventType(), STARTED),
+                    GUIDReader.getGUID(operationId));
+
+            // Add access contract rights
+            addRightsStatementIdentifier(initParameters);
+            logbookOperationsClient.create(initParameters);
+
+            workspaceClient.createContainer(operationId);
+
+            // store original query in workspace
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(query)));
+
+            workspaceClient
+                .putObject(operationId, QUERY_FILE, writeToInpustream(
+                    query));
+
+            workspaceClient
+                .putObject(operationId, ACCESS_CONTRACT_FILE, writeToInpustream(
+                        JsonHandler.toJsonNode(getVitamSession().getContract())));
+            
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId,
+                    Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+
+            processingClient.initVitamProcess(new ProcessingEntry(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name()));
+
+            RequestResponse<ItemStatus> requestResponse =
+                processingClient
+                    .executeOperationProcess(operationId, Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC.name(), RESUME.getValue());
+            return requestResponse.toResponse();
+        } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
+            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+            LogbookClientServerException | VitamClientException | InternalServerException |
+            OperationContextException e) {
+            LOGGER.error("An error occured while bulk atomic updating archive units", e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        } catch (InvalidParseOperationException | BadRequestException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+
+        }
+    }
+    
+    
     @Override
     @POST
     @Path("/revert/units")

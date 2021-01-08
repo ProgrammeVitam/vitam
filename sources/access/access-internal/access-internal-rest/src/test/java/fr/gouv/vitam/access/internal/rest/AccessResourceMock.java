@@ -223,7 +223,7 @@ public class AccessResourceMock implements AccessInternalResource {
     public Response massUpdateUnits(JsonNode dslQuery) {
         return Response.status(200).entity("{\"units\" = \"OK_MockUnits\"}").build();
     }
-
+    
     /**
      * Mass update of archive units rules
      *
@@ -238,6 +238,20 @@ public class AccessResourceMock implements AccessInternalResource {
     @Override
     public Response revertUpdateUnits(RevertUpdateOptions revertUpdateOptions) {
         return Response.status(200).build();
+    }
+
+    /**
+     * Bulk atomic update of archive units with atomic update Json queries
+     *
+     * @param dslQuery DSL, null not allowed
+     * @return the response
+     */
+    @POST
+    @Path("/units/atomicbulk")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response bulkAtomicUpdateUnits(JsonNode dslQuery) {
+        return Response.status(Response.Status.ACCEPTED).build();
     }
 
     /**

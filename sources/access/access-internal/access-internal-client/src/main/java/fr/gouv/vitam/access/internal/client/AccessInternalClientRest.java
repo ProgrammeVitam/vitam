@@ -97,6 +97,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String EXPORT_BY_USAGE_FILTER = "export/usagefilter";
     private static final String TRANSFER_EXPORT = "transferexport/";
     private static final String UNITS = "units/";
+    private static final String UNITS_ATOMIC_BULK = "units/atomicbulk/";
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
 
@@ -190,6 +191,26 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
         } catch (VitamClientInternalException | AccessInternalClientNotFoundException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(JsonNode updateQueries)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        NoWritingPermissionException, AccessUnauthorizedException {
+        Response response = null;
+        try  {
+            response = make(post().withBefore(CHECK_REQUEST_ID).withPath(UNITS_ATOMIC_BULK).withBody(updateQueries, BLANK_DSL).withJson());
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException e) {
+            return RequestResponse.parseVitamError(response);
+        } catch (VitamClientInternalException | AccessInternalClientNotFoundException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
+            throw new AccessInternalClientServerException(e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
     }
 

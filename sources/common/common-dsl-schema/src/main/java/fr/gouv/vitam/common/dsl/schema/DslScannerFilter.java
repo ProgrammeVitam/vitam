@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.dsl.schema.validator.GetByIdSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.ReclassificationQuerySchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectSingleSchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.UpdateBulkSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.UpdateByIdSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.UpdateMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -65,6 +66,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
     private DslValidator updateByIdSchemaValidator;
     private DslValidator batchProcessingQuerySchemaValidator;
     private DslValidator massUpdateSchemaValidator;
+    private DslValidator bulkUpdateSchemaValidator;
     private DslValidator updateQueryReclassificationSchemaValidator;
     private DslSchema dslSchema;
 
@@ -77,6 +79,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
         this.batchProcessingQuerySchemaValidator = new BatchProcessingQuerySchemaValidator();
         this.updateQueryReclassificationSchemaValidator = new ReclassificationQuerySchemaValidator();
         this.massUpdateSchemaValidator = new UpdateMultipleSchemaValidator();
+        this.bulkUpdateSchemaValidator = new UpdateBulkSchemaValidator();
     }
 
 
@@ -107,6 +110,9 @@ public class DslScannerFilter implements ContainerRequestFilter {
                     break;
                 case MASS_UPDATE:
                     massUpdateSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    break;
+                case BULK_UPDATE:
+                    bulkUpdateSchemaValidator.validate(JsonHandler.getFromInputStream(bout.toInputStream()));
                     break;
                 default:
                     requestContext.abortWith(

@@ -78,6 +78,7 @@ import org.junit.rules.ExpectedException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -121,6 +122,18 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$filter\": {} }";
     private static final String ELIMINATION_QUERY =
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
+    
+    
+    
+    private static final String BULK_ATOMIC_UPDATE_VALID = "{ \"$queries\" : [ { "
+            + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
+            + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
+    
+    private static final String BULK_ATOMIC_UPDATE_INVALID = "{ \"$queries\" : [ { "
+            + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
+            + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
+            + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
+    
     private static String good_id = "goodId";
     private static String bad_id = "badId";
 
@@ -139,6 +152,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     private static final String UPDATE_QUERY_VALID = "{ \"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ] }";
 
     private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
+
 
     private static final String BAD_QUERY_TEST = "{ \"$query\" ; [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
 
@@ -2009,5 +2023,91 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
+    }
+    
+    @Test
+    public void testBulkAtomicUpdate_OK() throws Exception {
+             
+        when(accessInternalClient.bulkAtomicUpdateUnits(any()))
+            .thenReturn(new RequestResponseOK().setHttpCode(202));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+    
+    @Test
+    public void testBulkAtomicUpdate_Unauthorized() throws Exception {
+        
+       when(accessInternalClient.bulkAtomicUpdateUnits(any()))
+           .thenThrow(AccessUnauthorizedException.class);
+       given()
+           .contentType(ContentType.JSON)
+           .accept(ContentType.JSON)
+           .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+           .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+           .when()
+           .post("/units/bulk")
+           .then()
+           .statusCode(Status.UNAUTHORIZED.getStatusCode());
+    }
+    
+    @Test
+    public void testBulkAtomicUpdate_InternalServerError() throws Exception {
+             
+        when(accessInternalClient.bulkAtomicUpdateUnits(any()))
+            .thenThrow(AccessInternalClientServerException.class);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void testBulkAtomicUpdate_InvalidRequest() throws Exception {
+
+        // Invalid validation query
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(BULK_ATOMIC_UPDATE_INVALID)
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // Query not jsonNode
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body("Fake body (but with positivity)")
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        
+        when(accessInternalClient.bulkAtomicUpdateUnits(any()))
+            .thenThrow(InvalidParseOperationException.class);
+       given()
+           .contentType(ContentType.JSON)
+           .accept(ContentType.JSON)
+           .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+           .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+           .when()
+           .post("/units/bulk")
+           .then()
+           .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 }

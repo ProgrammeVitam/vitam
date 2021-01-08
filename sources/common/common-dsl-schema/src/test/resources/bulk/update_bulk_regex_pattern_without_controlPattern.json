@@ -1,0 +1,49 @@
+{
+  "$threshold": 10,
+  "$queries": [
+    {
+      "$query": [
+        {
+          "$match": {
+            "Title": "assemblée"
+          },
+          "$depth": 0
+        },
+        {
+          "$match": {
+            "Title": "discours"
+          },
+          "$depth": 20
+        },
+        {
+          "$in": {
+            "Title": [
+              "discours"
+            ]
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$unset": [
+            "StartDate",
+            "EndDate"
+          ],
+          "$set": {
+            "Title": "Mon nouveau titre",
+            "Description": "Ma nouvelle description",
+            "Number": 2,
+            "Boolean": true,
+            "Object": {
+              "Test key": "Test value"
+            }
+          },
+          "$setregex": {
+            "$target": "Title",
+            "$updatePattern": "Reportage photographique juillet"
+          }
+        }
+      ]
+    }
+  ]
+}

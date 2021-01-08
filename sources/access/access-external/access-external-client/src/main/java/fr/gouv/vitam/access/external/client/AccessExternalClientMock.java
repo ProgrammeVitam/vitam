@@ -146,6 +146,14 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         throws VitamClientException {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(updateQuery);
     }
+    
+
+
+    @Override
+    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(VitamContext vitamContext, JsonNode updateQuery)
+        throws VitamClientException {
+        return ClientMockResultHelper.getOperationSimpleResult("BULK_ATOMIC_UPDATE_UNIT_DESC");
+    }
 
     @Override
     public RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode queryJson)

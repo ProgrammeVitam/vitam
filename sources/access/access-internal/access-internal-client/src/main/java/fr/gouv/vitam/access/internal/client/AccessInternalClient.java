@@ -127,6 +127,22 @@ public interface AccessInternalClient extends MockOrRestClient {
         throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
         AccessUnauthorizedException;
 
+
+    /**
+     * Bulk atomic update of archive units with dsl query.
+     *
+     * @param updateQueries the request containing a list of update queries to be executed to update archive units and the threshold
+     * @return a response containing a json node object including DSL queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested unit does not exist
+     * @throws AccessUnauthorizedException
+     * @throws AccessInternalRuleExecutionException
+     */
+    RequestResponse<JsonNode> bulkAtomicUpdateUnits(JsonNode updateQueries)
+        throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
+        AccessUnauthorizedException;
+    
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *

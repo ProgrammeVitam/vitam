@@ -35,6 +35,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
+import fr.gouv.vitam.common.exception.ForbiddenClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -56,6 +59,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 
 
 /**
@@ -91,24 +96,24 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
-
     }
 
     /**
      * Mass update of archive units rules.
      *
      * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
-     * @return a response containing a json node object including queries, context and results
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
-     * @throws AccessInternalClientNotFoundException if the requested unit does not exist
-     * @throws AccessUnauthorizedException
-     * @throws AccessInternalRuleExecutionException
+     * @return null
      */
     @Override
     public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         return null;
     }
+    
+    @Override
+    public RequestResponse<JsonNode> bulkAtomicUpdateUnits(JsonNode updateQueries) throws InvalidParseOperationException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+    
 
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)

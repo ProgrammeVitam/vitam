@@ -1,0 +1,374 @@
+{
+  "DSL": {
+    "format": "object",
+    "elements": {
+      "$queries": {
+        "format": "array",
+        "itemtype": "DSL_QUERY",
+        "min": 1,
+        "hint": "List of update queries"
+      },
+      "$threshold": {
+        "format": "ref",
+        "type": "THRESHOLD",
+        "optional": true,
+        "hint": "Threshold"
+      }
+    }
+  },
+  "DSL_QUERY": {
+    "format": "object",
+    "elements": {
+      "$query": {
+        "format": "array",
+        "itemtype": "ROOT_QUERY",
+        "min": 1,
+        "optional": false,
+        "hint": "List of query"
+      },
+      "$action": {
+        "format": "array",
+        "itemtype": "ACTION",
+        "min": 1,
+        "optional": false,
+        "hint": "Modification to apply on results"
+      }
+    }
+  },
+  "ROOT_QUERY": {
+    "format": "union",
+    "types": [
+      "QUERY",
+      {
+        "format": "object",
+        "elements": {
+          "$depth": {
+            "format": "ref",
+            "type": "integer",
+            "optional": true,
+            "hint": "Depth of query"
+          }
+        }
+      }
+    ]
+  },
+  "QUERY": {
+    "format": "keychoice",
+    "choices": {
+      "$match": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$search": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_all": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_phrase": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_phrase_prefix": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$wildcard": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$regex": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$eq": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$exists": "string",
+      "$missing": "string",
+      "$ne": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$or": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Disjonction de sous-requêtes"
+      },
+      "$and": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Conjonction de sous-requêtes"
+      },
+      "$not": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Négation de sous-requêtes"
+      },
+      "$in": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "array",
+          "itemtype": "anyvalue"
+        },
+        "min": 1,
+        "max": 1,
+        "hint": "recherche  de sous-requêtes"
+      },
+      "$nin": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "array",
+          "itemtype": "anyvalue"
+        },
+        "min": 1,
+        "max": 1,
+        "hint": "négation de recherche de sous-requêtes"
+      },
+      "$range": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "anykey",
+          "itemtype": "anyvalue",
+          "min": 2,
+          "max": 2
+        },
+        "hint": "intervalle de sous-requêtes"
+      },
+      "$gt": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$lt": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$lte": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$gte": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$subobject": {
+        "format": "ref",
+        "type": "NESTED_QUERY",
+        "optional": true,
+        "hint": "Subobject"
+      }
+    }
+  },
+  "NESTED_QUERY": {
+    "format": "keychoice",
+    "choices": {
+      "$match": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$search": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_all": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_phrase": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_phrase_prefix": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$wildcard": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$regex": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$eq": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$exists": "string",
+      "$missing": "string",
+      "$ne": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$or": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Disjonction de sous-requêtes"
+      },
+      "$and": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Conjonction de sous-requêtes"
+      },
+      "$not": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Négation de sous-requêtes"
+      },
+      "$in": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "array",
+          "itemtype": "anyvalue"
+        },
+        "min": 1,
+        "max": 1,
+        "hint": "recherche  de sous-requêtes"
+      },
+      "$nin": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "array",
+          "itemtype": "anyvalue"
+        },
+        "min": 1,
+        "max": 1,
+        "hint": "négation de recherche de sous-requêtes"
+      },
+      "$range": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "anykey",
+          "itemtype": "anyvalue",
+          "min": 2,
+          "max": 2
+        },
+        "hint": "intervalle de sous-requêtes"
+      },
+      "$gt": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$lt": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$lte": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$gte": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      }
+    }
+  },
+  "THRESHOLD": {
+    "format": "ref",
+    "type": "posinteger",
+    "optional": true,
+    "hint": "Threshold"
+  },
+  "ACTION": {
+    "format": "object",
+    "elements": {
+      "$set": {
+        "format": "anykey",
+        "itemtype": "any",
+        "min": 1,
+        "optional": true,
+        "hint": "Fields to update in the result"
+      },
+      "$unset": {
+        "format": "array",
+        "itemtype": "string",
+        "min": 1,
+        "optional": true,
+        "hint": "Fields to remove in the result"
+      },
+      "$setregex": {
+        "format": "object",
+        "elements": {
+          "$target": {
+            "format": "ref",
+            "type": "string",
+            "hint": "target field"
+          },
+          "$controlPattern": {
+            "format": "ref",
+            "type": "string",
+            "hint": "pattern of control"
+          },
+          "$updatePattern": {
+            "format": "ref",
+            "type": "string",
+            "hint": "pattern of update"
+          }
+        },
+        "optional": true
+      }
+    },
+    "min": 1
+  }
+}

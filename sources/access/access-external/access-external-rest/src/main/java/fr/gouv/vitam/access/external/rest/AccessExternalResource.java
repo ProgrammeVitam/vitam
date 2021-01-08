@@ -902,6 +902,61 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .build();
         }
     }
+    
+
+    /**
+     * Bulk atomic update of archive units with json queries.
+     *
+     * @param updateQueriesJson the bulk update queries (null not allowed)
+     * @return
+     */
+    @POST
+    @Path("/units/bulk")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = UNITS_BULK_UPDATE, description = "Mise à jour par lot de requêtes unitaires des unités archivistiques")
+    public Response bulkAtomicUpdateUnits(@Dsl(DslSchema.BULK_UPDATE) JsonNode updateQueriesJson) {
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            RequestResponse<JsonNode> response = client.bulkAtomicUpdateUnits(updateQueriesJson);
+
+            if (!response.isOk() && response instanceof VitamError) {
+                VitamError error = (VitamError) response;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR, error.getMessage(),
+                    error);
+            }
+            return Response.status(Status.OK).entity(response).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Internal request error ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (NoWritingPermissionException e) {
+            LOGGER.error(WRITING_PERMISSIONS_INVALID, e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
+
 
     @Path("/units/computedInheritedRules")
     @POST

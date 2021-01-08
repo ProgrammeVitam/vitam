@@ -243,6 +243,17 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
+     * Bulk atomic update of archive units by atomic query.
+     *
+     * @param vitamContext the vitam context
+     * @param updateQuery the bulk atomic update request
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> bulkAtomicUpdateUnits(VitamContext vitamContext, JsonNode updateRequest)
+            throws VitamClientException;
+    
+    /**
      * selectObjects /objects
      *
      * @param vitamContext the vitam context

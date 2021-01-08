@@ -1,0 +1,1 @@
+{"httpCode":202,"$hits":{"total":1,"offset":0,"limit":0,"size":1},"$results":[{"itemId":"aecaaaaaaceaaaabaa2nsalwjuaurqqaaaaq","message":"","globalStatus":"STARTED","statusMeter":[0,1,0,0,0,0,0],"data":{},"itemsStatus":{},"globalState":"RUNNING","subTaskStatus":{},"lifecycleEnable":true}],"$facetResults":[],"$context":{}}
