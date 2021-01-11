@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>functional-administration</artifactId>
-		<version>3.0.12</version>
+		<version>3.0.13-SNAPSHOT</version>
 	</parent>
 	<artifactId>functional-administration-client</artifactId>
 	<name>functional-administration-client</name>
