@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.fge.jsonpatch.diff.JsonDiff;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -117,7 +118,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Accumulators.addToSet;
 import static com.mongodb.client.model.Aggregates.group;
@@ -263,7 +266,7 @@ public class DbRequest {
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
                 indexFieldsUpdated(updatedDocument, tenantId);
-                return new UpdatedDocument(documentId, jsonDocument, JsonHandler.toJsonNode(updatedDocument));
+                return new UpdatedDocument(documentId, jsonDocument, JsonHandler.toJsonNode(updatedDocument), true);
             }
             tries++;
         }
@@ -283,6 +286,7 @@ public class DbRequest {
     }
 
     /**
+     * 
      * The request should be already analyzed.
      *
      * @param requestParser the RequestParserMultiple to execute
@@ -396,13 +400,13 @@ public class DbRequest {
 
     public UpdatedDocument execUpdateRequest(final RequestParserMultiple requestParser, String documentId,
         MetadataCollections metadataCollection, OntologyValidator ontologyValidator, UnitValidator unitValidator,
-        List<OntologyModel> ontologyModels)
+        List<OntologyModel> ontologyModels, boolean forceUpdate)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataNotFoundException,
         MetadataValidationException {
 
         final UpdatedDocument result =
             updateDocumentWithRetries(documentId, requestParser, metadataCollection,
-                ontologyValidator, unitValidator, ontologyModels);
+                ontologyValidator, unitValidator, ontologyModels, forceUpdate);
         LOGGER.debug("Results: {}", result);
         return result;
     }
@@ -917,7 +921,8 @@ public class DbRequest {
 
     private UpdatedDocument updateDocumentWithRetries(String documentId,
         RequestParserMultiple requestParser, MetadataCollections metadataCollection,
-        OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels)
+        OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels, 
+        boolean forceUpdate)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetadataValidationException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
@@ -941,7 +946,7 @@ public class DbRequest {
 
             final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
             if (noChangesAndOpsAlreadyContainingOperation(requestParser, document)) {
-                return new UpdatedDocument(documentId, jsonDocument, jsonDocument);
+                return new UpdatedDocument(documentId, jsonDocument, jsonDocument, true);
             }
 
             DynamicParserTokens parserTokens =
@@ -964,6 +969,12 @@ public class DbRequest {
             // Ontology checks & format transformation
             final ObjectNode transformedUpdatedDocument =
                 ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
+            
+            if (metadataCollection == MetadataCollections.UNIT) {
+                if (!forceUpdate && !hasModificationOfUnitDescriptiveMetadata(jsonDocument, transformedUpdatedDocument)) {
+                    return new UpdatedDocument(documentId, jsonDocument, jsonDocument, false);
+                }
+            }
 
             if (metadataCollection == MetadataCollections.UNIT) {
                 // Unit validation
@@ -991,13 +1002,40 @@ public class DbRequest {
                     indexFieldsOGUpdated(finalDocument, tenantId);
                 }
 
-                return new UpdatedDocument(documentId, jsonDocument, transformedUpdatedDocument);
+                return new UpdatedDocument(documentId, jsonDocument, transformedUpdatedDocument, true);
 
             }
             tries++;
         }
 
         throw new MetaDataExecutionException("Can not modify document " + documentId);
+    }
+
+    /**
+     * Generates a diff between two version of a Unit Json document, exclude internal
+     * modification and return true if there are other modification.<br>
+     * The excluded internal modification are : _v, _av, _glpd, _ops, _history<br>  
+     * 
+     * @param oldDocument original document
+     * @param newDocument modifies document
+     * @return true if at least one modification has been made on a descriptive
+     *         metadata, false if not
+     */
+    private boolean hasModificationOfUnitDescriptiveMetadata(final JsonNode oldDocument,
+            final JsonNode newDocument) {
+        
+        List<String> diffLines = VitamDocument.getConcernedDiffLines(
+                VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(oldDocument),
+                    JsonHandler.prettyPrint(newDocument)));
+        long metadataModifications = diffLines.stream()
+                .filter(line -> !(line.contains("\"" + MetadataDocument.VERSION + "\"")))
+                .filter(line -> !(line.contains("\"" + MetadataDocument.ATOMIC_VERSION + "\"")))
+                .filter(line -> !(line.contains("\"" + MetadataDocument.GRAPH_LAST_PERSISTED_DATE + "\"")))
+                .filter(line -> !(line.contains("\"" + MetadataDocument.OPS + "\"")))
+                .filter(line -> !(line.contains("\"_history\"")))
+            .count();
+        
+        return metadataModifications > 0;
     }
 
     private boolean noChangesAndOpsAlreadyContainingOperation(RequestParserMultiple requestParser,

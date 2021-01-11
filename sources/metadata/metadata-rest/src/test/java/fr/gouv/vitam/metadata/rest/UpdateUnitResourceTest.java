@@ -53,17 +53,18 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
-import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
-import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
-import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
+import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -76,6 +77,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -145,6 +147,10 @@ public class UpdateUnitResourceTest {
     private static final String BODY_BULK_TEST_TWO_GOOD_REQUESTS =
             "[{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
                     "{\"$roots\": [\"" + ID_UNIT_2 + "\"], \"$action\": [{\"$set\": {\"Title\": \"Title5\"}}, {\"$set\": {\"data\": \"data5\"}}], \"$filter\": {}}]";
+
+    private static final String BODY_BULK_TEST_TWO_SAME_REQUESTS =
+            "[{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
+                    "{\"$roots\": [\""+ ID_UNIT_1 + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}]";
 
     private static final String BODY_BULK_TEST_ONE_BAD_REQUEST_ON_TWO =
             "[{\"$roots\": [\""+ ID_UNIT + "\"], \"$action\": [{\"$set\": {\"data\": \"data10\"}}], \"$filter\": {}}," +
@@ -391,6 +397,62 @@ public class UpdateUnitResourceTest {
         assertThat(resultsSecondResponse.size()).isEqualTo(1);
         assertThat(resultsSecondResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(resultsSecondResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_2);
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void given_correct_units_insert_when_twoUpdateBulkByIDSame_thenReturn_OK() throws Exception {
+        with()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .body(bulkInsertRequest(DATA2)).when()
+                .post("/units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
+
+        with()
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .body(bulkInsertRequest(DATA1, ID_UNIT_2)).when()
+                .post("/units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
+
+        esClient.refreshIndex(UNIT, TENANT_ID_0);
+
+        InputStream stream = given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .contentType(ContentType.JSON)
+                .body(JsonHandler.getFromString(BODY_BULK_TEST_TWO_SAME_REQUESTS)).when()
+                .post("/units/atomicupdatebulk").then()
+                .statusCode(Status.OK.getStatusCode()).extract().asInputStream();
+
+        // We get a RequestResponseOK object, either updates fail or succeed
+        RequestResponseOK<JsonNode> responseOK = JsonHandler.getFromInputStream(stream, RequestResponseOK.class, JsonNode.class);
+        List<JsonNode> results = responseOK.getResults();
+
+        // We get one result per request
+        assertThat(results.size()).isEqualTo(2);
+
+        // We get one hit for each request which succeeded
+        RequestResponseOK<UpdateUnit> firstResponse = RequestResponseOK.getFromJsonNode(results.get(0), UpdateUnit.class);
+        assertThat(firstResponse.getHits().getSize()).isEqualTo(1);
+
+        // The response contains the id of the updated object
+        List<UpdateUnit> resultsFirstResponse = firstResponse.getResults();
+        assertThat(resultsFirstResponse.size()).isEqualTo(1);
+        assertThat(resultsFirstResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(resultsFirstResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
+
+        // Same for the second request
+        RequestResponseOK secondResponse = RequestResponseOK.getFromJsonNode(results.get(1), UpdateUnit.class);
+        assertThat(secondResponse.getHits().getSize()).isEqualTo(1);
+
+        List<UpdateUnit> resultsSecondResponse = secondResponse.getResults();
+        assertThat(resultsSecondResponse.size()).isEqualTo(1);
+        assertThat(resultsSecondResponse.get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(resultsSecondResponse.get(0).getUnitId()).isEqualTo(ID_UNIT_1);
+        assertThat(resultsSecondResponse.get(0).getKey()).isEqualTo(UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA);
     }
 
     @Test

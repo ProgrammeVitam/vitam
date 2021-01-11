@@ -570,6 +570,76 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
         assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
     }
+    
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_save_in_mongo_and_store_lfc_when_no_change() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String processId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+
+        // New ArrayList, otherwise the originQuery parameter is skipped by Lists.newArrayList()
+        JsonNode originalQuery =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(processId)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID))
+            .setObjectMetadataList(Collections.singletonList(originalQuery))
+            .setProcessId(processId)
+            .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
+
+
+        RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
+        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
+
+        JsonNode updatedUnit = JsonHandler.toJsonNode(
+            new UpdateUnit(
+                UNIT1_GUID,
+                StatusCode.OK,
+                UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA,
+                "Unit not updated.",
+                "No diff, there are no new changes."
+            )
+        );
+        responseOK.addResult(JsonHandler.toJsonNode(updatedUnit));
+        responseOK.setHttpCode(OK.getStatusCode());
+        globalResponse.addResult(JsonHandler.toJsonNode(responseOK));
+        globalResponse.setHttpCode(OK.getStatusCode());
+
+        given(metadataClient.atomicUpdateBulk(any())).willReturn(globalResponse);
+
+        given(handlerIO.getWorkerId()).willReturn(processId);
+        given(handlerIO.getContainerName()).willReturn(processId);
+
+        given(metadataClient.getUnitByIdRaw(UNIT1_GUID)).willReturn(unitResponse);
+
+        willDoNothing().given(batchReportClient).appendReportEntries(any());
+
+        // When
+        List<ItemStatus> itemStatuses = bulkAtomicUpdateProcess.executeList(params, handlerIO);
+
+        // Then
+        verify(lfcClient, never()).update(any(), any());
+        verify(lfcClient, never()).getRawUnitLifeCycleById(any());
+        verify(storageClient, never()).storeFileFromWorkspace(eq("other_strategy"), any(), any(), any());
+        assertThat(itemStatuses.size()).isEqualTo(1);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.OK);
+
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
+        verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
+        assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
+        ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
+        assertThat(reportBodyArgument.getEntries().size()).isEqualTo(1);
+        assertThat(reportBodyArgument.getEntries().get(0).getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(reportBodyArgument.getEntries().get(0).getResultKey()).isEqualTo("UNIT_METADATA_NO_NEW_DATA");
+        assertThat(reportBodyArgument.getEntries().get(0).getUnitId()).isEqualTo(UNIT1_GUID);
+        assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
+    }
 
     private StoredInfoResult getStoredInfoResult() {
         return new StoredInfoResult()

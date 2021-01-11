@@ -35,6 +35,7 @@ import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -102,6 +103,7 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkUpdateUnitReportKey.ERROR_METADATA_UPDATE;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -272,6 +274,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
 
         ObjectNode diffObject = JsonHandler.createObjectNode();
         diffObject.put("diff", diff);
+        diffObject.put("version", VitamConfiguration.getDiffVersion());
         return JsonHandler.writeAsString(diffObject);
     }
 
@@ -330,6 +333,10 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         BulkAtomicUpdateQueryProcessItem item) {
         // Each result is sent to the batch report
         VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        StatusCode reportStatus = status;
+        if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
+           reportStatus = StatusCode.WARNING; 
+        }
         BulkUpdateUnitMetadataReportEntry entry = new BulkUpdateUnitMetadataReportEntry(
             vitamSession.getTenantId(),
             workerParameters.getContainerName(),
@@ -337,8 +344,8 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             JsonHandler.unprettyPrint(item.getOriginalQuery()),
             item.getUnitId(),
             key,
-            status,
-            String.format("%s.%s", BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, status),
+            reportStatus,
+            String.format("%s.%s", BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, reportStatus),
             message
         );
         item.setReportEntry(entry);
@@ -385,8 +392,6 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, status, EventDetails.of(message));
         }
 
-        // TODO 7269 : Check when item did not change after update (not the UNIT_METADATA_NO_CHANGES which is idempotence)
-
         if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
             try {
                 if (lfcAlreadyWrittenInMongo(lfcClient, unitId, workerParameters.getContainerName())) {
@@ -403,6 +408,11 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
                 return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, FATAL,
                     EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
             }
+        }
+        
+        if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
+            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, OK,
+                    EventDetails.of("Bulk atomic update OK"));
         }
 
         try {

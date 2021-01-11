@@ -151,6 +151,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_UNKNOWN_OR_FORBIDDEN;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -701,7 +702,7 @@ public class MetaDataImpl {
             .addAllResults(res).addAllFacetResults(facetResults).setHits(hits);
     }
 
-    public void updateObjectGroupId(JsonNode updateQuery, String objectId)
+    public void updateObjectGroupId(JsonNode updateQuery, String objectId, boolean forceUpdate)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetadataValidationException {
 
@@ -714,11 +715,11 @@ public class MetaDataImpl {
 
         // Execute DSL request
         dbRequest.execUpdateRequest(updateRequest, objectId, OBJECTGROUP, this.objectGroupOntologyValidator, null,
-            this.objectGroupOntologyLoader.loadOntologies());
+            this.objectGroupOntologyLoader.loadOntologies(), forceUpdate);
 
     }
 
-    public RequestResponse<UpdateUnit> updateUnits(JsonNode updateQuery)
+    public RequestResponse<UpdateUnit> updateUnits(JsonNode updateQuery, boolean forceUpdate)
         throws InvalidParseOperationException {
         Set<String> unitIds;
         final UpdateParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -727,7 +728,7 @@ public class MetaDataImpl {
         unitIds = request.getRoots();
 
         List<UpdateUnit> updatedUnits = unitIds.stream()
-            .map(unitId -> updateAndTransformUnit(updateRequest, unitId))
+            .map(unitId -> updateAndTransformUnit(updateRequest, unitId, forceUpdate))
             .collect(Collectors.toList());
 
         return new RequestResponseOK<UpdateUnit>(updateQuery)
@@ -735,23 +736,32 @@ public class MetaDataImpl {
             .setTotal(updatedUnits.size());
     }
 
-    private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId) {
+    private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId, 
+            boolean forceUpdate) {
 
         try {
 
             UpdatedDocument updatedDocument = dbRequest
                 .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator,
-                    this.unitValidator, this.unitOntologyLoader.loadOntologies());
+                    this.unitValidator, this.unitOntologyLoader.loadOntologies(), forceUpdate);
 
             String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
                 VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
                     JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
 
             if (diffs.isEmpty()) {
-                LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
-                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES,
-                    "Unit updated with UNKNOWN changes.",
-                    "UNKNOWN diff, there are some changes but they cannot be trace.");
+                if (!updatedDocument.isUpdated()) {
+                    LOGGER.info(String.format("No new data updates for unit update %s.", unitId));
+                    return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_NEW_DATA,
+                        "Unit not updated.",
+                        "No diff, there are no new changes.");
+                    
+                } else {
+                    LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
+                    return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES,
+                        "Unit updated with UNKNOWN changes.",
+                        "UNKNOWN diff, there are some changes but they cannot be trace.");
+                }
             }
 
             return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
@@ -819,7 +829,7 @@ public class MetaDataImpl {
             StringUtils.defaultIfBlank(message, "Unknown error"), "no diff");
     }
 
-    public UpdateUnit updateUnitById(JsonNode updateQuery, String unitId)
+    public UpdateUnit updateUnitById(JsonNode updateQuery, String unitId, boolean forceUpdate)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
         MetadataValidationException {
 
@@ -829,7 +839,7 @@ public class MetaDataImpl {
 
         UpdatedDocument updatedDocument = dbRequest
             .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator,
-                this.unitValidator, this.unitOntologyLoader.loadOntologies());
+                this.unitValidator, this.unitOntologyLoader.loadOntologies(), forceUpdate);
 
         String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
             VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
