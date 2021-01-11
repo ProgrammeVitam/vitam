@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-engine</artifactId>
-		<version>3.14.3-SNAPSHOT</version>
+		<version>3.14.3</version>
 	</parent>
 	<artifactId>storage-engine-client</artifactId>
 	<name>Storage Engine Client</name>

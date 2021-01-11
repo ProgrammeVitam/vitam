@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>logbook</artifactId>
-		<version>3.14.3-SNAPSHOT</version>
+		<version>3.14.3</version>
 	</parent>
 	<artifactId>logbook-administration-lfc</artifactId>
 	<name>Logbook Administration Lifecycle</name>

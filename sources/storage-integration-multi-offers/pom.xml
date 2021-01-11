@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>3.14.3-SNAPSHOT</version>
+		<version>3.14.3</version>
 	</parent>
 	<artifactId>storage-integration-multi-offers</artifactId>
 	<name>Storage Integration Test</name>
