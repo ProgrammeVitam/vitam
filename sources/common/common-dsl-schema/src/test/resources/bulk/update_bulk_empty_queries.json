@@ -1,4 +1,4 @@
 {
-  "$threshold": 10,
-  "$queries":[]
+  "threshold": 10,
+  "queries":[]
 }

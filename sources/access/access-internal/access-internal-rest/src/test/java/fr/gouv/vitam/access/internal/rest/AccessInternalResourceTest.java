@@ -243,7 +243,7 @@ public class AccessInternalResourceTest {
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("$queries",queries);
+        requestBody.set("queries",queries);
         
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
 
@@ -275,7 +275,7 @@ public class AccessInternalResourceTest {
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("$queries",queries);
+        requestBody.set("queries",queries);
         
         // When
         Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
@@ -302,7 +302,7 @@ public class AccessInternalResourceTest {
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("$queries",queries);
+        requestBody.set("queries",queries);
         
         // When
         Response response = accessInternalResource.bulkAtomicUpdateUnits(requestBody);
@@ -329,7 +329,7 @@ public class AccessInternalResourceTest {
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("$queries",queries);
+        requestBody.set("queries",queries);
         
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
         doThrow(ContentAddressableStorageServerException.class).when(workspaceClient).putObject(any(), any(), any());
@@ -359,7 +359,7 @@ public class AccessInternalResourceTest {
         ArrayNode queries = JsonHandler.createArrayNode();
         queries.add(update.getFinalUpdate());
         ObjectNode requestBody = JsonHandler.createObjectNode();
-        requestBody.set("$queries",queries);
+        requestBody.set("queries",queries);
         
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
         doThrow(BadRequestException.class).when(processingClient).initVitamProcess(any());

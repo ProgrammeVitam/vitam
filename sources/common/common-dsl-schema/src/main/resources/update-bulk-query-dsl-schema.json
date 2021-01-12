@@ -2,13 +2,13 @@
   "DSL": {
     "format": "object",
     "elements": {
-      "$queries": {
+      "queries": {
         "format": "array",
         "itemtype": "DSL_QUERY",
         "min": 1,
         "hint": "List of update queries"
       },
-      "$threshold": {
+      "threshold": {
         "format": "ref",
         "type": "THRESHOLD",
         "optional": true,
