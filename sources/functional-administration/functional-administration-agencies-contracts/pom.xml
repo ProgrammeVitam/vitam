@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>functional-administration</artifactId>
-        <version>3.0.12-SNAPSHOT</version>
+        <version>3.0.13-SNAPSHOT</version>
     </parent>
     <artifactId>functional-administration-agencies-contracts</artifactId>
 
