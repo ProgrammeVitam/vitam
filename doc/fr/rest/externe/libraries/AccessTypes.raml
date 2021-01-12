@@ -157,6 +157,23 @@ types:
           | DeletePreventRearrangement | HoldRule             | update, facultatif                          | Permet de supprimer (true) le blocage de la reclassification.                                                        |
         type: object
     example: !include examples/unitBatchUpdate.json
+  
+  BulkAtomicUpdateRequest:
+    displayName: Requête de lancement du traitement de masse pour mise à jour unitaire des métadonnées des AU
+    description: Requête de lancement du traitement de masse pour mise à jour unitaire des métadonnées des AU
+    type: object
+    properties:
+      threshold?:
+        description: Contient le seuil du traitement en masse unitaire en nombre de queries (optionnel)
+        type: integer
+        required: false
+        minimum: 1
+        maximum: 100000000
+      queries:
+        description: Contient la liste des requêtes de mise à jour unitaire des métadonnées
+        type: array
+        items:
+          type: DslTypes.DslAtomicUpdateQuery
 
   AccessMultipleResponse:
     type: DslTypes.DslMultipeResponse

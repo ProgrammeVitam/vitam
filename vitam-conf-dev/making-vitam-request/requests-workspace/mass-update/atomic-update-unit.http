@@ -1,0 +1,52 @@
+
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@archival-agency-archive-unit-identifier-1 = ArchivalAgencyArchiveUnitIdentifier_1
+@archival-agency-archive-unit-identifier-2 = ArchivalAgencyArchiveUnitIdentifier_2
+
+### Mise à jour unitaire des unité archivistique dont les metatonnées ArchivalAgencyArchiveUnitIdentifier sont utilisées comme identifiant unique
+POST {{url-access}}/access-external/v1/units/bulk
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+    "threshold": 1000,
+    "queries": [
+        {
+            "$query": [
+                {
+                    "$eq": {
+                        "ArchivalAgencyArchiveUnitIdentifier": "{{archival-agency-archive-unit-identifier-1}}"
+                    }
+                }
+            ],
+            "$action": [
+                {
+                    "$set": {
+                        "Title": "Titre mis à jour"
+                    }
+                }
+            ]
+        },
+        {
+            "$query": [
+                {
+                    "$eq": {
+                        "ArchivalAgencyArchiveUnitIdentifier": "{{archival-agency-archive-unit-identifier-2}}"
+                    }
+                }
+            ],
+            "$action": [
+                {
+                    "$set": {
+                        "Description": "Description mise à jour"
+                    }
+                }
+            ]
+        }
+    ]
+}
+

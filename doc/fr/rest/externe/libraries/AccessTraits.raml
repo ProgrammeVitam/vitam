@@ -192,6 +192,28 @@ traits:
           application/json:
             description: informations sur l'echec du lancement de l'opération
 
+  AccessBulkAtomicUpdateResponse:
+    description: Response model for Bulk Atomic Update under Units collection in access
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader405, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Requête permettant de mettre à jour unitairement les métadonnées descriptives de plusieurs unités d'archives
+        type: AccessTypes.BulkAtomicUpdateRequest
+        examples:
+          BulkAtomicUpdate: !include examples/bulkAtomicUpdate.json
+    responses:
+      200:
+        description: Renvoie le statut de l'opération de mise à jour
+        body:
+          application/json:
+            description: Operation de mise à jour acceptée
+      500:
+        description: Renvoie le statut final de l'opération en KO
+        body:
+          application/json:
+            description: Informations sur l'échec du lancement de l'opération
+
   DipCreationResponseAsync:
     description: Requête de création d'un DIP
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]

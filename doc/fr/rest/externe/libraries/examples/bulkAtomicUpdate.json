@@ -1,0 +1,44 @@
+{
+  "threshold": 10000,
+  "queries": [
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Value1"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "AAAUI Value1 modifiée par le passage des TNR"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Value2"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$setregex": {
+            "$target": "Description",
+            "$controlPattern": "Cette unité de description doit hériter",
+            "$updatePattern": "Cette unité de description modifiée par le passage des TNR doit hériter"
+          }
+        },
+        {
+          "$set": {
+            "Description": "Cette unité de description a été modifiée par le passage des TNR"
+          }
+        }
+      ]
+    }
+  ]
+}
