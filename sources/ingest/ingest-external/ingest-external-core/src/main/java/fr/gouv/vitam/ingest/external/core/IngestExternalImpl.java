@@ -259,7 +259,7 @@ public class IngestExternalImpl implements IngestExternal {
             final long timeoutScanDelay = config.getTimeoutScanDelay();
             final String containerNamePath = guid.getId();
             final String objectNamePath = guid.getId();
-            final String filePath = FilenameUtils.normalize(config.getPath() + "/" + containerNamePath + "/" + objectNamePath);
+            final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
             try {
                 SafeFileChecker.checkSafeFilePath(filePath);
             } catch (IOException e) {
