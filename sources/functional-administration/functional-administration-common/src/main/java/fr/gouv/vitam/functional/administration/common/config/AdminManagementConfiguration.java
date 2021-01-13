@@ -49,6 +49,9 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     @JsonProperty("elasticsearchTenantIndexation")
     private FunctionalAdminIndexationConfiguration indexationConfiguration;
 
+    @JsonProperty("accessionRegisterSymbolicThreadPoolSize")
+    private Integer accessionRegisterSymbolicThreadPoolSize;
+
     // constructor
     AdminManagementConfiguration() {
         super();
@@ -187,6 +190,15 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     public AdminManagementConfiguration setIndexationConfiguration(
         FunctionalAdminIndexationConfiguration indexationConfiguration) {
         this.indexationConfiguration = indexationConfiguration;
+        return this;
+    }
+
+    public Integer getAccessionRegisterSymbolicThreadPoolSize() {
+        return accessionRegisterSymbolicThreadPoolSize;
+    }
+
+    public AdminManagementConfiguration setAccessionRegisterSymbolicThreadPoolSize(Integer accessionRegisterSymbolicThreadPoolSize) {
+        this.accessionRegisterSymbolicThreadPoolSize = accessionRegisterSymbolicThreadPoolSize;
         return this;
     }
 }

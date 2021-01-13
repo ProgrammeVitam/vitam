@@ -815,11 +815,11 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Creates and return the accession register symbolic.
      *
-     * @param tenant where are the information related to the accession register symbolic
+     * @param tenants tenants list
      * @return the accession register created
      */
-    RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(Integer tenant)
-        throws AdminManagementClientServerException;
+    RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(List<Integer> tenants)
+        throws AdminManagementClientServerException, InvalidParseOperationException;
 
     /**
      * Retrieve the accession register symbolic regarding the tenant and a date range.

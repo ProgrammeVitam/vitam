@@ -1366,13 +1366,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(Integer tenant)
-        throws AdminManagementClientServerException {
-        ParametersChecker.checkParameter("Tenant is mandatory.", tenant);
+    public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(List<Integer> tenants)
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+        ParametersChecker.checkParameter("Tenant is mandatory.", tenants);
 
         VitamRequestBuilder request = post()
             .withPath("accession-register/symbolic")
-            .withJsonAccept();
+            .withBody(JsonHandler.toJsonNode(tenants))
+            .withJson();
 
         try (Response response = make(request)) {
             check(response);

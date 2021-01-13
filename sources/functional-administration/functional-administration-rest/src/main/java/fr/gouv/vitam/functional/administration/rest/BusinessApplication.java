@@ -110,7 +110,7 @@ public class BusinessApplication extends Application {
                 new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.of(RULES.getName()))
             );
 
-            final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader, rulesOntologyLoader,
+            final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader,
                 indexManager);
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();

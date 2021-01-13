@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfigurationValidator;
@@ -54,11 +53,9 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
 
 /**
  * Admin functional Application declaring resources for the functional administration of Vitam
@@ -96,14 +93,8 @@ public class AdminFunctionalApplication extends Application {
                 new FunctionAdministrationOntologyLoader()
             );
 
-            CachedOntologyLoader rulesOntologyLoader = new CachedOntologyLoader(
-                VitamConfiguration.getOntologyCacheMaxEntries(),
-                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
-                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.of(RULES.getName()))
-            );
-
             final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader,
-                rulesOntologyLoader, indexManager);
+                indexManager);
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
