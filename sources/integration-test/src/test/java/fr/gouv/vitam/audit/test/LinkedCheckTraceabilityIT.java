@@ -77,6 +77,7 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -436,15 +437,19 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     }
 
     private String secureStorageData() {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            RequestResponseOK<HashMap<String, String>> response = storageClient.storageLogTraceability();
-            String opId = response.getResults().get(0).get("id");
+            RequestResponseOK<StorageLogTraceabilityResult> response =
+                storageClient.storageLogTraceability(Collections.singletonList(TENANT_ID));
+            String opId = response.getResults().get(0).getOperationId();
             waitOperation(opId);
             return opId;
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             fail("Error while securing data", e);
+        } finally {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         }
         return null;
     }

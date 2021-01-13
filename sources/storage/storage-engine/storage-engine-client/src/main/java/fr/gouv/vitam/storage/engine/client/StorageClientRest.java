@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
+import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -547,16 +548,19 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK storageLogTraceability()
+    public RequestResponseOK<StorageLogTraceabilityResult> storageLogTraceability(List<Integer> tenants)
         throws StorageServerClientException, InvalidParseOperationException {
 
         VitamRequestBuilder request = post()
             .withPath(STORAGE_LOG_TRACEABILITY_URI)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter())
-            .withAccept(MediaType.APPLICATION_JSON_TYPE);
+            .withBody(JsonHandler.toJsonNode(tenants))
+            .withJson();
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseRequestResponseOk(response);
+            RequestResponse<StorageLogTraceabilityResult> result =
+                RequestResponse.parseFromResponse(response, StorageLogTraceabilityResult.class);
+            return (RequestResponseOK<StorageLogTraceabilityResult>) result;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);

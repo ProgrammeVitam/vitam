@@ -29,18 +29,23 @@ package fr.gouv.vitam.storage.log.traceability;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Utility to launch the traceability through command line and external scheduler
@@ -50,23 +55,41 @@ public class StorageLogTraceability {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogTraceability.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_STORAGE_BACKUP_TRACEABILITY_CONF_NAME = "storage-log-traceability.conf";
+    private final StorageClientFactory storageClientFactory;
+
+    public StorageLogTraceability(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
+    }
 
     /**
      * @param args ignored
      */
     public static void main(String[] args) {
-        platformSecretConfiguration();
         try {
-            File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_TRACEABILITY_CONF_NAME);
-            final StorageTraceabilityConfiguration conf =
-                PropertiesUtils.readYaml(confFile, StorageTraceabilityConfiguration.class);
-
-            storageLogTraceability(conf);
-
-        } catch (final Exception e) {
+            StorageLogTraceability storageLogTraceability =
+                new StorageLogTraceability(StorageClientFactory.getInstance());
+            storageLogTraceability.run();
+        } catch (Exception e) {
             LOGGER.error(e);
-            throw new IllegalStateException("Storage log backup traceability", e);
+            throw new IllegalStateException("Storage log traceability failed", e);
         }
+    }
+
+    void run() throws IOException, ExecutionException, InterruptedException {
+        platformSecretConfiguration();
+        File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_TRACEABILITY_CONF_NAME);
+        final StorageTraceabilityConfiguration conf =
+            PropertiesUtils.readYaml(confFile, StorageTraceabilityConfiguration.class);
+
+        runInVitamThreadExecutor(() -> storageLogTraceability(conf));
+    }
+
+    private static void runInVitamThreadExecutor(Runnable runnable)
+        throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
+        completableFuture.get();
+        executorService.shutdown();
     }
 
     /**
@@ -75,45 +98,20 @@ public class StorageLogTraceability {
      * Start one thread per tenant and wait for all threads to proceed before returning.
      *
      * @param conf
-     * @throws InterruptedException
      */
-    private static void storageLogTraceability(StorageTraceabilityConfiguration conf) throws InterruptedException {
+    private void storageLogTraceability(StorageTraceabilityConfiguration conf) {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(conf.getAdminTenant());
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(conf.getAdminTenant()));
 
-        CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
-        AtomicBoolean reportError = new AtomicBoolean(false);
-
-        conf.getTenants().forEach((tenantId) -> {
-            storageLogTraceabilityForTenant(tenantId, doneSignal, reportError);
-        });
-
-        doneSignal.await();
-
-        if (reportError.get()) {
-            throw new IllegalStateException("One or more traceability process failed");
-        }
-    }
-
-    private static void storageLogTraceabilityForTenant(int tenantId, CountDownLatch doneSignal,
-        AtomicBoolean failedProcess) {
-
-        VitamThreadFactory instance = VitamThreadFactory.getInstance();
-        Thread thread = instance.newThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-                final StorageClientFactory storageClientFactory =
-                    StorageClientFactory.getInstance();
-                try (StorageClient client = storageClientFactory.getClient()) {
-                    client.storageLogTraceability();
-                }
-            } catch (Exception e) {
-                failedProcess.set(true);
-                LOGGER.error("Error during storage log traceability for tenant  :  " + tenantId, e);
-            } finally {
-                VitamThreadUtils.getVitamSession().setTenantId(null);
-                doneSignal.countDown();
+            try (StorageClient client = this.storageClientFactory.getClient()) {
+                LOGGER.info("Start storage log traceability");
+                client.storageLogTraceability(conf.getTenants());
+                LOGGER.info("Storage log traceability done successfully");
             }
-        });
-        thread.start();
+        } catch (InvalidParseOperationException | StorageServerClientException e) {
+            throw new IllegalStateException(" Error during storage log traceability", e);
+        }
     }
 
     private static void platformSecretConfiguration() {
@@ -126,9 +124,7 @@ public class StorageLogTraceability {
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
 
         } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
+            throw new IllegalStateException("Cannot load configuration", e);
         }
     }
-
 }

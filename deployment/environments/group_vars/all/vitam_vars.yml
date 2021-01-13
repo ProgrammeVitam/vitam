@@ -612,6 +612,8 @@ vitam:
         restoreBulkSize: 1000
         # Storage write/access log backup max thread pool size
         storageLogBackupThreadPoolSize: 16
+        # Storage write log traceability thread pool size
+        storageLogTraceabilityThreadPoolSize: 16
         # Offer synchronization batch size & thread pool size
         offerSynchronizationBulkSize: 1000
         # Retries attempts

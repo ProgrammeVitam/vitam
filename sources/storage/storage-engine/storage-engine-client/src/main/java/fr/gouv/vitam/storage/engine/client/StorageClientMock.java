@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
+import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -232,10 +233,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public RequestResponseOK storageLogTraceability()
-        throws StorageServerClientException, InvalidParseOperationException {
-        return new RequestResponseOK<String>()
-            .addResult(GUIDFactory.newGUID().toString());
+    public RequestResponseOK<StorageLogTraceabilityResult> storageLogTraceability(List<Integer> tenants) {
+        throw new IllegalStateException("Stop using mocks please");
     }
 
     @Override

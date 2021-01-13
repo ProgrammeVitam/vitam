@@ -649,8 +649,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             StorageClientFactory.getInstance().getClient()) {
             RequestResponseOK result;
             try {
-                VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
-                result = storageClient.storageLogTraceability();
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                result = storageClient.storageLogTraceability(Collections.singletonList(Integer.parseInt(xTenantId)));
             } catch (final InvalidParseOperationException | StorageServerClientException e) {
                 LOGGER.error("The reporting json can't be created", e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR)
