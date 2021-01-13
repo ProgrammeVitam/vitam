@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -199,8 +200,9 @@ public interface StorageClient extends BasicClient {
      * @return Storage logbook backup response
      * @throws StorageServerClientException
      * @throws InvalidParseOperationException
+     * @param tenants tenants list to backup
      */
-    RequestResponseOK storageAccessLogBackup() throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogBackupResult> storageAccessLogBackup(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Call storage log backup operation.
@@ -208,8 +210,9 @@ public interface StorageClient extends BasicClient {
      * @return Storage logbook backup response
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
+     * @param tenants tenants list to backup
      */
-    RequestResponseOK storageLogBackup() throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogBackupResult> storageLogBackup(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Call storage log traceability operation.

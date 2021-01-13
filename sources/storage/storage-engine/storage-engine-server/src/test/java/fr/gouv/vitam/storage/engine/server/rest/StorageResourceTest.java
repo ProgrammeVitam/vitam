@@ -94,6 +94,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -774,7 +776,10 @@ public class StorageResourceTest {
 
     @Test
     public void backupStorageLogbook() {
-        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), VitamConfiguration.getAdminTenant())
+            .contentType(ContentType.JSON).accept(ContentType.JSON)
+            .body(Collections.singletonList(TENANT_ID))
             .when().post("/storage/backup").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }

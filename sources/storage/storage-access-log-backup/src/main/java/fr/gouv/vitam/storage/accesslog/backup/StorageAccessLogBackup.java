@@ -29,18 +29,23 @@ package fr.gouv.vitam.storage.accesslog.backup;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Utility to launch the backup through command line and external scheduler
@@ -50,72 +55,62 @@ public class StorageAccessLogBackup {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageAccessLogBackup.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_STORAGE_BACKUP_LOG_CONF_NAME = "storage-access-log-backup.conf";
+    private final StorageClientFactory storageClientFactory;
+
+    public StorageAccessLogBackup(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
+    }
 
     /**
      * @param args ignored
      */
     public static void main(String[] args) {
-        platformSecretConfiguration();
         try {
-            File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_LOG_CONF_NAME);
-            final StorageAccessLogBackupConfiguration conf =
-                PropertiesUtils.readYaml(confFile, StorageAccessLogBackupConfiguration.class);
-
-            accessLogBackup(conf);
-
+            StorageAccessLogBackup storageAccessLogBackup =
+                new StorageAccessLogBackup(StorageClientFactory.getInstance());
+            storageAccessLogBackup.run();
         } catch (Exception e) {
             LOGGER.error(e);
             throw new IllegalStateException("Storage Accesslog backup failed", e);
         }
     }
 
+    void run() throws IOException, ExecutionException, InterruptedException {
+        platformSecretConfiguration();
+        File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_LOG_CONF_NAME);
+        final StorageAccessLogBackupConfiguration conf =
+            PropertiesUtils.readYaml(confFile, StorageAccessLogBackupConfiguration.class);
+
+        runInVitamThreadExecutor(() -> accessLogBackup(conf));
+    }
+
+    private static void runInVitamThreadExecutor(Runnable runnable)
+        throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
+        completableFuture.get();
+        executorService.shutdown();
+    }
+
     /**
      * Run storage log backup.
      *
-     * Start one thread per tenant and wait for all threads to proceed before returning.
-     *
-     * @param conf POJO of loaded config file for the service
-     * @throws InterruptedException
+     * @param conf configuration
      */
-    private static void accessLogBackup(StorageAccessLogBackupConfiguration conf) throws InterruptedException {
+    private void accessLogBackup(StorageAccessLogBackupConfiguration conf) {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(conf.getAdminTenant());
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(conf.getAdminTenant()));
 
-        CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
-        AtomicBoolean reportError = new AtomicBoolean(false);
-
-        conf.getTenants().forEach((v) -> {
-            accessLogBackupByTenantId(v, doneSignal, reportError);
-        });
-
-        doneSignal.await();
-
-        if (reportError.get()) {
-            throw new IllegalStateException("One or more accesslog backup process failed");
+            try (StorageClient client = this.storageClientFactory.getClient()) {
+                LOGGER.info("Start storage access log backup");
+                client.storageAccessLogBackup(conf.getTenants());
+                LOGGER.info("Storage access log backup done successfully");
+            }
+        } catch (InvalidParseOperationException | StorageServerClientException e) {
+            throw new IllegalStateException(" Error during storage log backup", e);
         }
     }
-
-    private static void accessLogBackupByTenantId(int tenantId, CountDownLatch doneSignal,
-        AtomicBoolean failedProcess) {
-
-        VitamThreadFactory instance = VitamThreadFactory.getInstance();
-        Thread thread = instance.newThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-                final StorageClientFactory storageClientFactory =
-                    StorageClientFactory.getInstance();
-                try (StorageClient client = storageClientFactory.getClient()) {
-                    client.storageAccessLogBackup();
-                }
-            } catch (Exception e) {
-                failedProcess.set(true);
-                LOGGER.error("Error during access log backup for tenant  :  " + tenantId, e);
-            } finally {
-                VitamThreadUtils.getVitamSession().setTenantId(null);
-                doneSignal.countDown();
-            }
-        });
-        thread.start();
-    }
-
 
     private static void platformSecretConfiguration() {
         // Load Platform secret from vitam.conf file
@@ -127,9 +122,7 @@ public class StorageAccessLogBackup {
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
 
         } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
+            throw new IllegalStateException("Cannot load configuration", e);
         }
     }
-
 }

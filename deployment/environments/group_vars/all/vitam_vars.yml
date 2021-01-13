@@ -610,6 +610,8 @@ vitam:
         secret_platform: "true"
         storageTraceabilityOverlapDelay: 300
         restoreBulkSize: 1000
+        # Storage write/access log backup max thread pool size
+        storageLogBackupThreadPoolSize: 16
         # Offer synchronization batch size & thread pool size
         offerSynchronizationBulkSize: 1000
         # Retries attempts

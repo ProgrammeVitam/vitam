@@ -34,6 +34,7 @@ import java.util.List;
 public class StorageAccessLogBackupConfiguration {
 
     protected List<Integer> tenants;
+    private int adminTenant;
 
     /**
      * Empty ClientConfiguration constructor for YAMLFactory
@@ -54,5 +55,13 @@ public class StorageAccessLogBackupConfiguration {
      */
     public void setTenants(List<Integer> tenants) {
         this.tenants = tenants;
+    }
+
+    public int getAdminTenant() {
+        return adminTenant;
+    }
+
+    public void setAdminTenant(int adminTenant) {
+        this.adminTenant = adminTenant;
     }
 }

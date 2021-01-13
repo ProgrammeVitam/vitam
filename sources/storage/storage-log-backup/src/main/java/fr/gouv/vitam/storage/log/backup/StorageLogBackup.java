@@ -29,18 +29,23 @@ package fr.gouv.vitam.storage.log.backup;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Utility to launch the backup through command line and external scheduler
@@ -50,23 +55,40 @@ public class StorageLogBackup {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogBackup.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_STORAGE_BACKUP_LOG_CONF_NAME = "storage-log-backup.conf";
+    private final StorageClientFactory storageClientFactory;
+
+    public StorageLogBackup(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
+    }
 
     /**
      * @param args ignored
      */
     public static void main(String[] args) {
-        platformSecretConfiguration();
         try {
-            File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_LOG_CONF_NAME);
-            final StorageBackupConfiguration conf =
-                PropertiesUtils.readYaml(confFile, StorageBackupConfiguration.class);
-
-            storageLogBackup(conf);
-
+            StorageLogBackup storageLogBackup = new StorageLogBackup(StorageClientFactory.getInstance());
+            storageLogBackup.run();
         } catch (Exception e) {
             LOGGER.error(e);
             throw new IllegalStateException("Storage log backup failed", e);
         }
+    }
+
+    void run() throws IOException, ExecutionException, InterruptedException {
+        platformSecretConfiguration();
+        File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_LOG_CONF_NAME);
+        final StorageBackupConfiguration conf =
+            PropertiesUtils.readYaml(confFile, StorageBackupConfiguration.class);
+
+        runInVitamThreadExecutor(() -> storageLogBackup(conf));
+    }
+
+    private static void runInVitamThreadExecutor(Runnable runnable)
+        throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
+        completableFuture.get();
+        executorService.shutdown();
     }
 
     /**
@@ -74,48 +96,22 @@ public class StorageLogBackup {
      *
      * Start one thread per tenant and wait for all threads to proceed before returning.
      *
-     * @param conf
-     * @throws InterruptedException
+     * @param conf configuration
      */
-    private static void storageLogBackup(StorageBackupConfiguration conf) throws InterruptedException {
+    private void storageLogBackup(StorageBackupConfiguration conf) {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(conf.getAdminTenant());
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(conf.getAdminTenant()));
 
-        CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
-        AtomicBoolean reportError = new AtomicBoolean(false);
-
-        conf.getTenants().forEach((v) -> {
-            storageLogBackupByTenantId(v, doneSignal, reportError);
-        });
-
-        doneSignal.await();
-
-        if (reportError.get()) {
-            throw new IllegalStateException("One or more traceability process failed");
+            try (StorageClient client = this.storageClientFactory.getClient()) {
+                LOGGER.info("Start storage log backup");
+                client.storageLogBackup(conf.getTenants());
+                LOGGER.info("Storage log backup done successfully");
+            }
+        } catch (InvalidParseOperationException | StorageServerClientException e) {
+            throw new IllegalStateException(" Error during storage log backup", e);
         }
     }
-
-    private static void storageLogBackupByTenantId(int tenantId, CountDownLatch doneSignal,
-        AtomicBoolean failedProcess) {
-
-        VitamThreadFactory instance = VitamThreadFactory.getInstance();
-        Thread thread = instance.newThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-                final StorageClientFactory storageClientFactory =
-                    StorageClientFactory.getInstance();
-                try (StorageClient client = storageClientFactory.getClient()) {
-                    client.storageLogBackup();
-                }
-            } catch (Exception e) {
-                failedProcess.set(true);
-                LOGGER.error("Error during storage log backup for tenant  :  " + tenantId, e);
-            } finally {
-                VitamThreadUtils.getVitamSession().setTenantId(null);
-                doneSignal.countDown();
-            }
-        });
-        thread.start();
-    }
-
 
     private static void platformSecretConfiguration() {
         // Load Platform secret from vitam.conf file
@@ -127,9 +123,7 @@ public class StorageLogBackup {
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
 
         } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
+            throw new IllegalStateException("Cannot load configuration", e);
         }
     }
-
 }

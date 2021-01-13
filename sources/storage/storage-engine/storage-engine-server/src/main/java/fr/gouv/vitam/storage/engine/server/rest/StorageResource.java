@@ -60,10 +60,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -90,6 +88,7 @@ import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabili
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang.BooleanUtils;
 
@@ -123,6 +122,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -158,7 +158,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             distribution = new StorageDistributionImpl(configuration, storageLogService);
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             storageLogAdministration =
-                new StorageLogAdministration(storageLogService);
+                new StorageLogAdministration(storageLogService, configuration.getStorageLogBackupThreadPoolSize());
 
             traceabilityLogbookService = new TraceabilityStorageService(distribution);
 
@@ -1312,76 +1312,62 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Backup access log
      *
-     * @param headers http header
+     * @param tenants tenant list to backup
      * @return the response with a specific HTTP status
      */
     @POST
     @Path("/storage/backup/accesslog")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response backupStorageAccessLog(@Context HttpHeaders headers) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers);
+    public Response backupStorageAccessLog(List<Integer> tenants) {
+        VitamCode vitamCode = checkMultiTenantRequest(tenants);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
 
         try {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            List<StorageLogBackupResult> backupResultList = storageLogAdministration.backupStorageLog(
+                VitamConfiguration.getDefaultStrategy(), false, tenants);
 
-            final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(guid);
-
-            storageLogAdministration.backupStorageLog(VitamConfiguration.getDefaultStrategy(), false, guid);
-            final List<String> resultAsJson = new ArrayList<>();
-            resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<String>()
-                    .addAllResults(resultAsJson))
+                .entity(new RequestResponseOK<StorageLogBackupResult>()
+                    .addAllResults(backupResultList))
                 .build();
 
-        } catch (LogbookClientServerException | IOException |
-            StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
-            LOGGER.error("unable to generate backup log", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new RequestResponseOK())
-                .build();
+        } catch (StorageLogException e) {
+            LOGGER.error("Unable to generate backup log", e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
     }
 
     /**
      * Backup storage log
      *
-     * @param headers http header
+     * @param tenants tenant list to backup
      * @return the response with a specific HTTP status
      */
     @POST
     @Path("/storage/backup")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response backupStorageLog(@Context HttpHeaders headers) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers);
+    public Response backupStorageLog(List<Integer> tenants) {
+        VitamCode vitamCode = checkMultiTenantRequest(tenants);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
 
         try {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            List<StorageLogBackupResult> backupResultList = storageLogAdministration.backupStorageLog(
+                VitamConfiguration.getDefaultStrategy(), true, tenants);
 
-            final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(guid);
-
-            storageLogAdministration.backupStorageLog(VitamConfiguration.getDefaultStrategy(), true, guid);
-            final List<String> resultAsJson = new ArrayList<>();
-            resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<String>()
-                    .addAllResults(resultAsJson))
+                .entity(new RequestResponseOK<StorageLogBackupResult>()
+                    .addAllResults(backupResultList))
                 .build();
 
-        } catch (LogbookClientServerException | IOException |
-            StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
-            LOGGER.error("unable to generate backup log", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new RequestResponseOK())
-                .build();
+        } catch (StorageLogException e) {
+            LOGGER.error("Unable to generate backup log", e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
     }
 
@@ -1420,6 +1406,35 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                 .entity(new RequestResponseOK())
                 .build();
         }
+    }
+
+    private VitamCode checkMultiTenantRequest(List<Integer> tenants) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
+            LOGGER.error("Missing tenantId");
+            return VitamCode.STORAGE_MISSING_HEADER;
+        }
+
+        if (!tenantId.equals(VitamConfiguration.getAdminTenant())) {
+            LOGGER.error("Expecting Admin tenant " + VitamConfiguration.getAdminTenant() + " found " + tenantId);
+            return VitamCode.STORAGE_INVALID_ADMIN_TENANT;
+        }
+
+        if (CollectionUtils.isEmpty(tenants)) {
+            LOGGER.error("Expecting non empty list of tenants");
+            return VitamCode.STORAGE_INVALID_TENANT_LIST;
+        }
+
+        if (tenants.contains(null)) {
+            LOGGER.error("Null tenant");
+            return VitamCode.STORAGE_INVALID_TENANT_LIST;
+        }
+
+        if (new HashSet<>(tenants).size() != tenants.size()) {
+            LOGGER.error("Duplicate tenants");
+            return VitamCode.STORAGE_INVALID_TENANT_LIST;
+        }
+        return null;
     }
 
     /**

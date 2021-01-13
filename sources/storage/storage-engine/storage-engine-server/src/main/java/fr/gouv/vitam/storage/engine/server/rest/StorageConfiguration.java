@@ -45,6 +45,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private int offerSyncNumberOfRetries = 3;
     private int offerSyncFirstAttemptWaitingTime = 15;
     private int offerSyncWaitingTime = 30;
+    private int storageLogBackupThreadPoolSize = 16;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
@@ -225,5 +226,13 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     public void setOfferSyncWaitingTime(int offerSyncWaitingTime) {
         this.offerSyncWaitingTime = offerSyncWaitingTime;
+    }
+
+    public int getStorageLogBackupThreadPoolSize() {
+        return storageLogBackupThreadPoolSize;
+    }
+
+    public void setStorageLogBackupThreadPoolSize(int storageLogBackupThreadPoolSize) {
+        this.storageLogBackupThreadPoolSize = storageLogBackupThreadPoolSize;
     }
 }
