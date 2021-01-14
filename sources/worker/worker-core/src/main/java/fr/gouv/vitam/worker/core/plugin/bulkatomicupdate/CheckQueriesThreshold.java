@@ -41,8 +41,8 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
- * Check is the threshold value (provides in query.json or default platform) is
- * less of equal than number of queries in query.json file ($queries)
+ * Check is the threshold value (provided in query.json or by default platform) is
+ * less or equal than number of queries in query.json file
  */
 public class CheckQueriesThreshold extends ActionHandler {
 

@@ -1,6 +1,6 @@
 {
-  "$threshold": 10,
-  "$queries": [
+  "threshold": 10,
+  "queries": [
     {
       "$roots": [
         "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"

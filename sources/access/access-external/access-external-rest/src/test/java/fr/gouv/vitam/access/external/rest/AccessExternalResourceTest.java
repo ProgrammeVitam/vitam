@@ -125,11 +125,11 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     
     
     
-    private static final String BULK_ATOMIC_UPDATE_VALID = "{ \"$queries\" : [ { "
+    private static final String BULK_ATOMIC_UPDATE_VALID = "{ \"queries\" : [ { "
             + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
             + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
     
-    private static final String BULK_ATOMIC_UPDATE_INVALID = "{ \"$queries\" : [ { "
+    private static final String BULK_ATOMIC_UPDATE_INVALID = "{ \"queries\" : [ { "
             + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
             + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
             + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";

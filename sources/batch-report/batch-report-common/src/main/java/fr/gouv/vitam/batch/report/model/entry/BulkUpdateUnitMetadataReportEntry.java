@@ -42,6 +42,7 @@ public class BulkUpdateUnitMetadataReportEntry extends ReportEntry {
     public static final String QUERY = "query";
     public static final String UNIT_ID = "unitId";
     public static final String MESSAGE = "message";
+    public static final String STATUS_ID = "statusId";
 
     private final String processId;
     private final Integer tenantId;
@@ -50,6 +51,7 @@ public class BulkUpdateUnitMetadataReportEntry extends ReportEntry {
     private final String query;
     private final String unitId;
     private final String message;
+    private final Integer statusId;
 
     @JsonCreator
     public BulkUpdateUnitMetadataReportEntry(
@@ -71,6 +73,7 @@ public class BulkUpdateUnitMetadataReportEntry extends ReportEntry {
         this.query = query;
         this.unitId = unitId;
         this.message = message;
+        this.statusId = status.ordinal();
     }
 
     @JsonProperty(RESULT_KEY)
@@ -97,6 +100,9 @@ public class BulkUpdateUnitMetadataReportEntry extends ReportEntry {
     public String getProcessId() {
         return processId;
     }
+
+    @JsonProperty(STATUS_ID)
+    public Integer getStatusId() { return statusId; }
 
     @JsonProperty(QUERY)
     public String getQuery() {

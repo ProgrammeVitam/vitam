@@ -31,38 +31,34 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
-import fr.gouv.vitam.batch.report.model.ReportResults;
+import com.mongodb.operation.AggregateOperation;
 import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.mongodb.client.model.Accumulators.sum;
-import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Aggregates.project;
+import static com.mongodb.client.model.Aggregates.sort;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Projections.fields;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.MESSAGE;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.PROCESS_ID;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.QUERY;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.RESULT_KEY;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.STATUS;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.TENANT_ID;
+import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.STATUS_ID;
 import static fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry.UNIT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_ID;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
@@ -122,7 +118,7 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
         return collection
-            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), PROJECTION))
+            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), sort(Sorts.descending(STATUS_ID)), PROJECTION))
             .allowDiskUse(true)
             .iterator();
     }

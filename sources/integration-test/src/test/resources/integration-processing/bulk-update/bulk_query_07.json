@@ -1,0 +1,69 @@
+{
+  "threshold": 100,
+  "queries": [
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier00"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier00"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier01"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "StartDate": "2018-04-04T08:07:2"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier02"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier02"
+          }
+        }
+      ]
+    },
+    {
+      "$query": [
+        {
+          "$eq": {
+            "ArchivalAgencyArchiveUnitIdentifier": "Identifier15"
+          }
+        }
+      ],
+      "$action": [
+        {
+          "$set": {
+            "Title": "update old title sous fonds Identifier00"
+          }
+        }
+      ]
+    }
+  ]
+}
