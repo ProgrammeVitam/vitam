@@ -91,14 +91,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.WorkspaceConstants.OPTIONS_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
@@ -116,7 +117,10 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
     private static final String FORCE_OPTIONS_JSON_FILE = "update/revert/options_force.json";
 
     private static final String TITLE = "Title";
-    private static final String TITLE_FR = "Title_.fr";
+    private static final String TITLE_ = "Title_";
+    private static final String FR = "fr";
+    private static final String TITLE_FR = TITLE_ + "." + FR;
+
     private static final String OLD_VALUE = "Toto";
 
 
@@ -201,13 +205,19 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), containerName));
         select.setProjection(createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
             createObjectNode().put(VitamFieldsHelper.id(), 1).put(VitamFieldsHelper.version(), 1).put(TITLE, 1)
-                .put(TITLE_FR, 1)));
+                .put(TITLE_FR, 1).put(VitamFieldsHelper.operations(), 1)));
 
         JsonNode unitByIdRaw = metadataClient.selectUnits(select.getFinalSelect());
 
         unitByIdRaw.get(RequestResponseOK.TAG_RESULTS).forEach(u -> {
-            assertFalse(u.get(TITLE).asText().equals(OLD_VALUE) || u.get(TITLE_FR).asText().equals(OLD_VALUE));
+            if (u.has(TITLE)) {
+                assertNotEquals(u.get(TITLE).asText(), OLD_VALUE);
+            } else {
+                assertNotEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
+            }
             assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+            assertThat(u.get(VitamFieldsHelper.operations()).iterator()).extracting(JsonNode::asText)
+                .contains(containerName);
         });
 
         List<JsonNode> reportLines = VitamTestHelper.getReports(containerName);
@@ -260,13 +270,19 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), containerName));
         select.setProjection(createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
             createObjectNode().put(VitamFieldsHelper.id(), 1).put(VitamFieldsHelper.version(), 1).put(TITLE, 1)
-                .put(TITLE_FR, 1)));
+                .put(TITLE_FR, 1).put(VitamFieldsHelper.operations(), 1)));
 
         JsonNode unitByIdRaw = metadataClient.selectUnits(select.getFinalSelect());
 
         unitByIdRaw.get(RequestResponseOK.TAG_RESULTS).forEach(u -> {
-            assertFalse(u.get(TITLE).asText().equals(OLD_VALUE) || u.get(TITLE_FR).asText().equals(OLD_VALUE));
+            if (u.has(TITLE)) {
+                assertEquals(u.get(TITLE).asText(), OLD_VALUE);
+            } else {
+                assertEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
+            }
             assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+            assertThat(u.get(VitamFieldsHelper.operations()).iterator()).extracting(JsonNode::asText)
+                .doesNotContain(containerName);
         });
 
         List<JsonNode> reportLines = VitamTestHelper.getReports(containerName);
@@ -315,13 +331,18 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), containerName));
         select.setProjection(createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
             createObjectNode().put(VitamFieldsHelper.id(), 1).put(VitamFieldsHelper.version(), 1).put(TITLE, 1)
-                .put(TITLE_FR, 1)));
+                .put(TITLE_FR, 1).put(VitamFieldsHelper.operations(), 1)));
 
         JsonNode unitByIdRaw = metadataClient.selectUnits(select.getFinalSelect());
 
         unitByIdRaw.get(RequestResponseOK.TAG_RESULTS).forEach(u -> {
-            assertFalse(u.get(TITLE).asText().equals(OLD_VALUE) || u.get(TITLE_FR).asText().equals(OLD_VALUE));
-            assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+            if (u.has(TITLE)) {
+                assertNotEquals(u.get(TITLE).asText(), OLD_VALUE);
+            } else {
+                assertNotEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
+            }            assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+            assertThat(u.get(VitamFieldsHelper.operations()).iterator()).extracting(JsonNode::asText)
+                .contains(containerName);
         });
 
         List<JsonNode> reportLines = VitamTestHelper.getReports(containerName);

@@ -36,6 +36,10 @@ import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -87,7 +91,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
@@ -140,9 +143,17 @@ public class RevertUpdateUnitPlugin  extends StoreMetadataObjectActionHandler {
             StorageClient storageClient = storageClientFactory.getClient();
             BatchReportClient batchReportClient = batchReportClientFactory.getClient()
         ) {
-            JsonNode query = JsonHandler.getFromString(param.getObjectName());
+            JsonNode queryNode = JsonHandler.getFromString(param.getObjectName());
+
+            UpdateParserMultiple parser = new UpdateParserMultiple();
+            parser.parse(queryNode);
+
+            // Add operationID to #operations
+            parser.getRequest()
+                .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), param.getContainerName()));
+
             // call update BULK service
-            RequestResponse<JsonNode> requestResponse = metadataClient.updateUnitBulk(query);
+            RequestResponse<JsonNode> requestResponse = metadataClient.updateUnitBulk(parser.getRequest().getFinalUpdate());
 
             // Prepare rapport
             List<UpdateUnitMetadataReportEntry> failingEntries = new ArrayList<>();
@@ -165,7 +176,7 @@ public class RevertUpdateUnitPlugin  extends StoreMetadataObjectActionHandler {
             }
 
             throw new ProcessingException("Error when trying to update units.");
-        } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException | VitamClientInternalException e) {
+        } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException | VitamClientInternalException | InvalidCreateOperationException e) {
             throw new ProcessingException(e);
         }
     }

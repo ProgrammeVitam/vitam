@@ -230,16 +230,15 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
                         Set<String> keysToAdd =
                             oldValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains)).collect(Collectors.toSet());
                         Set<String> keysToDelete =
-                            newValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains)).collect(Collectors.toSet());
+                            newValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains))
+                                .collect(Collectors.toSet());
 
-                        for (String keyToAdd : keysToAdd) {
+                        if (!keysToAdd.isEmpty() || !keysToUpdate.isEmpty()) {
                             updateParserMultiple.getRequest()
-                                .addActions(new SetAction(keyToAdd, oldValues.get(keyToAdd)));
-                        }
-
-                        for (String keyToUpdate : keysToUpdate) {
-                            updateParserMultiple.getRequest()
-                                .addActions(new SetAction(keyToUpdate, oldValues.get(keyToUpdate)));
+                                .addActions(new SetAction(Stream.concat(
+                                    keysToAdd.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))),
+                                    keysToUpdate.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))))
+                                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue))));
                         }
 
                         if (!keysToDelete.isEmpty()) {

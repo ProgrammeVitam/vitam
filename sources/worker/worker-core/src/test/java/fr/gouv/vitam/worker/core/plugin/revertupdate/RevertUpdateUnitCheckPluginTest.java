@@ -84,6 +84,8 @@ public class RevertUpdateUnitCheckPluginTest {
         "  \"diff\" : \"" +
         "-  \\\"Title\\\" : \\\"Old_Title\\\"\\n" +
         "+  \\\"Title\\\" : \\\"New_Title\\\"\\n" +
+        "-  \\\"Description\\\" : \\\"Old_Description\\\"\\n" +
+        "+  \\\"DescriptionLevel\\\" : \\\"Item\\\"\\n" +
         "-  \\\"_ops\\\" : [ \\\"OP_INGEST\\\" ]\\n" +
         "+  \\\"_ops\\\" : [ \\\"OP_INGEST\\\", \\\"OP_UPDATE\\\" ]\\n" +
         "-  \\\"_v\\\" : 0\\n" +
@@ -96,6 +98,7 @@ public class RevertUpdateUnitCheckPluginTest {
         "  \"diff\" : \"" +
         "-  \\\"Title_.fr\\\" : \\\"Old_Title\\\"\\n" +
         "+  \\\"Title_.fr\\\" : \\\"New_Title\\\"\\n" +
+        "-  \\\"Description_.fr\\\" : \\\"Old_Description\\\"\\n" +
         "-  \\\"_ops\\\" : [ \\\"OP_INGEST\\\" ]\\n" +
         "+  \\\"_ops\\\" : [ \\\"OP_INGEST\\\", \\\"OP_UPDATE\\\" ]\\n" +
         "-  \\\"_v\\\" : 0\\n" +
@@ -167,7 +170,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath(ANY_PATH));
         when(handlerIO.getNewLocalFile(eq(ANY_PATH))).thenReturn(tempFolder.newFile());
-        
+
         ItemStatus itemStatus = revertUpdateUnitCheckPlugin.execute(params, handlerIO);
 
         assertEquals(OK, itemStatus.getGlobalStatus());
@@ -178,7 +181,7 @@ public class RevertUpdateUnitCheckPluginTest {
             });
 
         assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(List.of(
-            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Title\":\"Old_Title\"}}]}"));
+            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Description\":\"Old_Description\",\"Title\":\"Old_Title\"}},{\"$unset\":[\"DescriptionLevel\"]}]}"));
     }
 
     @Test
@@ -224,7 +227,7 @@ public class RevertUpdateUnitCheckPluginTest {
             });
 
         assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(List.of(
-            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}"));
+            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}"));
     }
 
     @Test
