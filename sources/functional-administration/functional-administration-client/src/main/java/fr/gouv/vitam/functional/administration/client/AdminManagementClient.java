@@ -576,8 +576,8 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return The server response as vitam RequestResponse
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<JsonNode> launchRuleAudit()
-        throws AdminManagementClientServerException;
+    RequestResponse<JsonNode> launchRuleAudit(List<Integer> tenants)
+        throws AdminManagementClientServerException, InvalidParseOperationException;
 
     /**
      * Import a set of security profiles after passing the validation steps. If all the security profiles are valid,

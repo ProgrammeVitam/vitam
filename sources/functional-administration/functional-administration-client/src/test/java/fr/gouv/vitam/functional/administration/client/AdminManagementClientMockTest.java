@@ -393,12 +393,6 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
-    public void givenMockExistsWhenLaunchRuleAuditThenReturnOK() throws Exception {
-        RequestResponse<JsonNode> resp = client.launchRuleAudit();
-        assertTrue(resp.isOk());
-    }
-
-    @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenImportContexts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);

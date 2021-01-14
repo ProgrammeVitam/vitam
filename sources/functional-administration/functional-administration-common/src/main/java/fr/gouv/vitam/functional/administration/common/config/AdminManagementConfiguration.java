@@ -52,6 +52,9 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     @JsonProperty("accessionRegisterSymbolicThreadPoolSize")
     private Integer accessionRegisterSymbolicThreadPoolSize;
 
+    @JsonProperty("ruleAuditThreadPoolSize")
+    private Integer ruleAuditThreadPoolSize;
+
     // constructor
     AdminManagementConfiguration() {
         super();
@@ -200,5 +203,13 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     public AdminManagementConfiguration setAccessionRegisterSymbolicThreadPoolSize(Integer accessionRegisterSymbolicThreadPoolSize) {
         this.accessionRegisterSymbolicThreadPoolSize = accessionRegisterSymbolicThreadPoolSize;
         return this;
+    }
+
+    public Integer getRuleAuditThreadPoolSize() {
+        return ruleAuditThreadPoolSize;
+    }
+
+    public void setRuleAuditThreadPoolSize(Integer ruleAuditThreadPoolSize) {
+        this.ruleAuditThreadPoolSize = ruleAuditThreadPoolSize;
     }
 }

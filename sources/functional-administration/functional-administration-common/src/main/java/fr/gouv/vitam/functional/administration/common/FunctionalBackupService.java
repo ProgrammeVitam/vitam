@@ -307,7 +307,7 @@ public class FunctionalBackupService {
      * @param tenant
      * @return MongoCursor
      */
-    public MongoCursor<Document> getCurrentCollection(FunctionalAdminCollections collections, int tenant) {
+    private MongoCursor<Document> getCurrentCollection(FunctionalAdminCollections collections, int tenant) {
         return collections.getCollection()
                 .find(getMangoFilter(collections, tenant))
                 .sort(Sorts.ascending(VitamDocument.ID))
@@ -328,6 +328,10 @@ public class FunctionalBackupService {
             arrayNode.add(JsonHandler.toJsonNode(document));
         }
         return arrayNode;
+    }
+
+    public ArrayNode getCollectionInJson(FunctionalAdminCollections collections, int tenant) throws InvalidParseOperationException {
+        return getCollectionInJson(getCurrentCollection(collections, tenant));
     }
 
     private Bson getMangoFilter(FunctionalAdminCollections collectionToSave, int tenant) {

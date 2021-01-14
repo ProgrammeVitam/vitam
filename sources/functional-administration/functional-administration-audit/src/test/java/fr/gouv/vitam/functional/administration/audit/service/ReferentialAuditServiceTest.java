@@ -68,6 +68,7 @@ import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongo
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -78,7 +79,6 @@ public class ReferentialAuditServiceTest {
     private static final String OFFER_ONE_ID = "offer-one";
     private static final String OFFER_TWO_ID = "offer-two";
     private static final String PROFILE_FILE = "1_Profile_1.json";
-    private static final String EMPTY_PROFILE_FILE = "1_Profile_2.json";
 
     private static final String DIGEST = "digest";
     private static final String HASH =
@@ -121,7 +121,7 @@ public class ReferentialAuditServiceTest {
                 new TypeReference<>() {
                 });
 
-        when(functionalBackupService.getCollectionInJson(any())).thenReturn(objects);
+        when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
         when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP))
@@ -160,7 +160,7 @@ public class ReferentialAuditServiceTest {
                 new TypeReference<>() {
                 });
 
-        when(functionalBackupService.getCollectionInJson(any())).thenReturn(objects);
+        when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = Collections.emptyIterator();
         when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP))
@@ -178,7 +178,7 @@ public class ReferentialAuditServiceTest {
                 new TypeReference<>() {
                 });
 
-        when(functionalBackupService.getCollectionInJson(any())).thenReturn(objects);
+        when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
@@ -220,7 +220,7 @@ public class ReferentialAuditServiceTest {
 
     @Test(expected = AuditVitamException.class)
     public void given_unexisted_element_in_database_should_execute_audit_with_KO() throws Exception {
-        when(functionalBackupService.getCollectionInJson(any())).thenReturn(JsonHandler.createArrayNode());
+        when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(JsonHandler.createArrayNode());
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
         when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP))
@@ -263,7 +263,7 @@ public class ReferentialAuditServiceTest {
                 new TypeReference<>() {
                 });
 
-        when(functionalBackupService.getCollectionInJson(any())).thenReturn(objects);
+        when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
         when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP))
