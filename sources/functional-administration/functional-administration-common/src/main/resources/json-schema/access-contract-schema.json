@@ -94,7 +94,8 @@
           "StorageRule",
           "DisseminationRule",
           "ClassificationRule",
-          "ReuseRule"
+          "ReuseRule",
+          "HoldRule"
         ]
       }
     },
