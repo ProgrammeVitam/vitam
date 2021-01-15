@@ -239,16 +239,6 @@ public class LogbookOperationsClientMockTest {
     }
 
     @Test
-    public void traceabilityTest() throws Exception {
-        final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getClient();
-        RequestResponse<TenantLogbookOperationTraceabilityResult> response =
-            client.traceability(Collections.singletonList(0));
-        assertNotNull(response);
-        assertTrue(response instanceof RequestResponseOK);
-    }
-
-    @Test
     public void traceabilityTestObjectGroupLFC() throws Exception {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();

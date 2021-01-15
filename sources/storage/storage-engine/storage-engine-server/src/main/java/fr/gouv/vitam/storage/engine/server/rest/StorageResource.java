@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
+import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -178,7 +179,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             traceabilityLogbookAdministration =
                 new StorageTraceabilityAdministration(traceabilityLogbookService,
                     configuration.getZippingDirecorty(), timestampGenerator,
-                    configuration.getStorageTraceabilityOverlapDelay());
+                    configuration.getStorageTraceabilityOverlapDelay(),
+                    configuration.getStorageLogTraceabilityThreadPoolSize());
             LOGGER.info("init Storage Resource server");
 
         } catch (IOException e) {
@@ -1374,37 +1376,31 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Run storage logbook secure operation
      *
-     * @param headers http header
+     * @param tenants tenant list to secure
      * @return the response with a specific HTTP status
      */
     @POST
     @Path("/storage/traceability")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceabilityStorageLogbook(@Context HttpHeaders headers) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers);
+    public Response traceabilityStorageLogbook(List<Integer> tenants) {
+        VitamCode vitamCode = checkMultiTenantRequest(tenants);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
 
         try {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            List<StorageLogTraceabilityResult> resultList = traceabilityLogbookAdministration
+                .generateStorageLogTraceabilityOperations(VitamConfiguration.getDefaultStrategy(), tenants);
 
-            final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-
-            VitamThreadUtils.getVitamSession().setRequestId(guid);
-
-            traceabilityLogbookAdministration
-                .generateTraceabilityStorageLogbook(guid, VitamConfiguration.getDefaultStrategy());
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<GUID>()
-                    .addResult(guid))
+                .entity(new RequestResponseOK<StorageLogTraceabilityResult>()
+                    .addAllResults(resultList))
                 .build();
 
         } catch (TraceabilityException e) {
             LOGGER.error("unable to generate secure  log", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new RequestResponseOK())
-                .build();
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
     }
 

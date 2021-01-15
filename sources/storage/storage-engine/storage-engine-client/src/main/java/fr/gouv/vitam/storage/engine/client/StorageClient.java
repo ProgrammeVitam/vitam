@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
+import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -217,11 +218,12 @@ public interface StorageClient extends BasicClient {
     /**
      * Call storage log traceability operation.
      *
+     * @param tenants
      * @return storage log traceability response
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    RequestResponseOK storageLogTraceability() throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK<StorageLogTraceabilityResult> storageLogTraceability(List<Integer> tenants) throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Get object information from objects in storage

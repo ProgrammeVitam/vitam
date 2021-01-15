@@ -24,43 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.log.traceability;
 
-import java.util.List;
+package fr.gouv.vitam.storage.driver.model;
 
-/**
- * Storage backup configuration
- */
-public class StorageTraceabilityConfiguration {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    protected List<Integer> tenants;
-    private int adminTenant;
+public class StorageLogTraceabilityResult {
 
-    /**
-     * Empty ClientConfiguration constructor for YAMLFactory
-     */
-    public StorageTraceabilityConfiguration() {
+    @JsonProperty("tenantId")
+    private Integer tenantId;
+    @JsonProperty("operationId")
+    private String operationId;
+
+    public StorageLogTraceabilityResult() {
+        // Empty constructor for deserialization
     }
 
-    /**
-     * @return list of tenant
-     */
-    public List<Integer> getTenants() {
-        return tenants;
+    public Integer getTenantId() {
+        return tenantId;
     }
 
-    /**
-     * @param tenants to set
-     */
-    public void setTenants(List<Integer> tenants) {
-        this.tenants = tenants;
+    public StorageLogTraceabilityResult setTenantId(Integer tenantId) {
+        this.tenantId = tenantId;
+        return this;
     }
 
-    public int getAdminTenant() {
-        return adminTenant;
+    public String getOperationId() {
+        return operationId;
     }
 
-    public void setAdminTenant(int adminTenant) {
-        this.adminTenant = adminTenant;
+    public StorageLogTraceabilityResult setOperationId(String operationId) {
+        this.operationId = operationId;
+        return this;
     }
 }

@@ -102,7 +102,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private static final AlertService alertService = new AlertServiceImpl();
 
     private static final String STORAGE_SECURISATION_STORAGE = "STORAGE_SECURISATION_STORAGE";
-    private static final String STP_STORAGE_SECURISATION = "STP_STORAGE_SECURISATION";
+    public static final String STP_STORAGE_SECURISATION = "STP_STORAGE_SECURISATION";
     private static final String TIMESTAMP = "STORAGE_SECURISATION_TIMESTAMP";
     private static final String ZIP_NAME = "StorageTraceability";
 
