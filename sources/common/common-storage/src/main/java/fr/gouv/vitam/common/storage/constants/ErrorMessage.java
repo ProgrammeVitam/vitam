@@ -94,7 +94,17 @@ public enum ErrorMessage {
     /**
      * When zip contains file or folder with not allowed name example : (test.txt#)
      */
-    FOLDER_OR_FILE_NAME_NOT_ALLOWED("File or folder not allowed name");
+    FOLDER_OR_FILE_NAME_NOT_ALLOWED("File or folder not allowed name"),
+
+    /**
+     * Bad Request
+     */
+    BAD_REQUEST("Bad request"),
+
+    /**
+     * Not allowed to perform action
+     */
+    NOT_ACCEPTABLE_FILES("File or folder name not authorized");
 
     private final String message;
 
