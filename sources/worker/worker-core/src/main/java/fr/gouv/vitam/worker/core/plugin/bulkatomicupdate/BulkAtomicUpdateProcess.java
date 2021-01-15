@@ -101,6 +101,7 @@ import java.util.List;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
@@ -411,8 +412,8 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         }
         
         if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
-            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, OK,
-                    EventDetails.of("Bulk atomic update OK"));
+            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, WARNING,
+                    EventDetails.of("Bulk atomic update WARNING"));
         }
 
         try {

@@ -627,7 +627,7 @@ public class BulkAtomicUpdateProcessTest {
         verify(lfcClient, never()).getRawUnitLifeCycleById(any());
         verify(storageClient, never()).storeFileFromWorkspace(eq("other_strategy"), any(), any(), any());
         assertThat(itemStatuses.size()).isEqualTo(1);
-        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.OK);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.WARNING);
 
         ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
             ArgumentCaptor.forClass(ReportBody.class);

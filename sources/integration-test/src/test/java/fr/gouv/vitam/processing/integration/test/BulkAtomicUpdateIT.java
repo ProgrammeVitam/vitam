@@ -948,16 +948,16 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
             ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, TENANT_0);
             assertNotNull(processWorkflow2);
             assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-            assertEquals(StatusCode.OK, processWorkflow2.getStatus());
+            assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
             
 
             JsonNode logbookResult = getLogbookOperation(containerName2);
             JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
             verifyEvent(events, "CHECK_QUERIES_THRESHOLD.OK");
             verifyEvent(events, "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST.OK");
-            verifyEvent(events, "BULK_ATOMIC_UPDATE_UNITS.OK");
-            verifyEvent(events, "BULK_ATOMIC_UPDATE_FINALIZE.OK");
-            verifyEvent(events, "BULK_ATOMIC_UPDATE_UNIT_DESC.OK");
+            verifyEvent(events, "BULK_ATOMIC_UPDATE_UNITS.WARNING");
+            verifyEvent(events, "BULK_ATOMIC_UPDATE_FINALIZE.WARNING");
+            verifyEvent(events, "BULK_ATOMIC_UPDATE_UNIT_DESC.WARNING");
 
             // CHECK REPORT
             List<JsonNode> reportLines;
@@ -974,10 +974,10 @@ public class BulkAtomicUpdateIT extends VitamRuleRunner {
                 }
             }
             assertThat(reportLines.size()).isEqualTo(4);
-            assertThat(reportLines.get(0).get("outDetail").asText()).isEqualTo("BULK_ATOMIC_UPDATE_UNITS.OK");
-            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(1);
+            assertThat(reportLines.get(0).get("outDetail").asText()).isEqualTo("BULK_ATOMIC_UPDATE_UNITS.WARNING");
+            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
-            assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
+            assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(1);
 
             Map<Integer, JsonNode> reportDetailsByQueryIndex = getReportDetailsByQueryIndex(reportLines);
             assertThat(reportDetailsByQueryIndex.get(0).get("status").asText()).isEqualTo("WARNING");
