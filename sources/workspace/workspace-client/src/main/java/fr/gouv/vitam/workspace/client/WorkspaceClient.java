@@ -462,10 +462,10 @@ public class WorkspaceClient extends DefaultClient {
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
             case BAD_REQUEST:
-                throw new ContentAddressableStorageBadRequestException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                throw new ContentAddressableStorageBadRequestException(ErrorMessage.BAD_REQUEST.getMessage());
             case NOT_ACCEPTABLE:
                 throw new ContentAddressableStorageNotAcceptableException(
-                    ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                    ErrorMessage.NOT_ACCEPTABLE_FILES.getMessage());
             default:
                 throw new ContentAddressableStorageServerException(String
                     .format("Response in error with status '%d' and reason '%s'.", status.getStatusCode(),
