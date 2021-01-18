@@ -28,6 +28,7 @@
 package fr.gouv.vitam.worker.core.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -41,7 +42,6 @@ import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -82,7 +82,7 @@ public final class HoldRuleUtils {
 
         Set<InheritedRuleResponseModel> activeHoldRules = holdRules.stream()
             .filter(holdRule -> {
-                LocalDate endDate = parseDate(holdRule.getEndDate());
+                LocalDate endDate = LocalDateUtil.parseDate(holdRule.getEndDate());
                 return (endDate == null || expirationDate.isBefore(endDate));
             })
             .collect(Collectors.toSet());
@@ -94,14 +94,5 @@ public final class HoldRuleUtils {
         }
 
         return activeHoldRules;
-    }
-
-    private static LocalDate parseDate(String endDateStr) {
-
-        if (endDateStr == null) {
-            return null;
-        }
-
-        return LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
     }
 }

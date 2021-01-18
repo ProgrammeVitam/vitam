@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.rules.BaseInheritedResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
@@ -46,7 +47,6 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -337,7 +337,7 @@ public class EliminationAnalysisService {
 
         List<LocalDate> endDates = appraisalRules.stream()
             .map(InheritedRuleResponseModel::getEndDate)
-            .map(this::parseDate)
+            .map(LocalDateUtil::parseDate)
             .collect(Collectors.toList());
 
         if (endDates.isEmpty()) {
@@ -356,14 +356,5 @@ public class EliminationAnalysisService {
         }
 
         return true;
-    }
-
-    private LocalDate parseDate(String endDateStr) {
-
-        if (endDateStr == null) {
-            return null;
-        }
-
-        return LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
     }
 }
