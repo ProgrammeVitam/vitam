@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.common;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -48,9 +49,13 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -73,6 +78,7 @@ import org.bson.Document;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,11 +90,11 @@ import java.util.concurrent.TimeUnit;
 
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class VitamTestHelper {
@@ -166,8 +172,16 @@ public class VitamTestHelper {
     }
 
     public static void printLogbook(String opId) {
-        JsonNode result = findLogbook(opId);
-        System.out.println(JsonHandler.prettyPrint(result.get(TAG_RESULTS).get(0)));
+        try {
+            JsonNode logbook = findLogbook(opId);
+            assertNotNull(logbook);
+            RequestResponseOK<JsonNode> result = RequestResponseOK.getFromJsonNode(logbook);
+            assertThat(result.getResults()).isNotEmpty();
+            System.out.println(JsonHandler.prettyPrint(result.getResults().get(0)));
+        } catch (InvalidParseOperationException e) {
+            e.printStackTrace();
+            fail("Error", e);
+        }
     }
 
     /**
@@ -207,19 +221,22 @@ public class VitamTestHelper {
 
     public static String doIngest(int tenantId, String zip) throws VitamException {
         final InputStream zipStream;
+        try {
+            zipStream = PropertiesUtils.getResourceAsStream(zip);
+            return doIngest(tenantId, zipStream);
+        } catch (FileNotFoundException e) {
+            fail("cannot find file", zip, e);
+            return null;
+        }
+    }
+
+    public static String doIngest(int tenantId, InputStream zipStream) throws VitamException {
         final WorkFlow workflow =
             WorkFlow.of(DEFAULT_WORKFLOW.name(), DEFAULT_WORKFLOW.getEventType(),
                 DEFAULT_WORKFLOW.getLogbookTypeProcess().name());
         final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
-
-        try {
-            zipStream = PropertiesUtils.getResourceAsStream(zip);
-        } catch (FileNotFoundException e) {
-            fail("cannot find file", zip, e);
-            return null;
-        }
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
@@ -267,5 +284,22 @@ public class VitamTestHelper {
 
     public static void waitOperation(String operationId) {
         waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, operationId);
+    }
+
+
+    public static void importContract(String filename, int tenant) {
+        int oldTenant = VitamThreadUtils.getVitamSession().getTenantId();
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            File fileAccessContracts = PropertiesUtils.getResourceFile(filename);
+            List<AccessContractModel> accessContractModelList =
+                JsonHandler.getFromFileAsTypeReference(fileAccessContracts, new TypeReference<>() {
+                });
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant));
+            VitamThreadUtils.getVitamSession().setTenantId(tenant);
+            client.importAccessContracts(accessContractModelList);
+            VitamThreadUtils.getVitamSession().setTenantId(oldTenant);
+        } catch(FileNotFoundException | InvalidParseOperationException | AdminManagementClientServerException  e) {
+            fail("Error import contract", e);
+        }
     }
 }
