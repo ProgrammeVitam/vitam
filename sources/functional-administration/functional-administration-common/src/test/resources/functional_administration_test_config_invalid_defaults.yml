@@ -6,3 +6,5 @@ elasticsearchTenantIndexation:
   ontology:
     number_of_shards: 2
     number_of_replicas: 3
+
+accessionRegisterSymbolicThreadPoolSize: 4

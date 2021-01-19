@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.CharsetUtils;
@@ -99,6 +98,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadExc
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
@@ -119,7 +119,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -135,6 +134,8 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.ApplicationPath;
@@ -159,11 +160,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
@@ -176,7 +176,6 @@ import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
@@ -204,7 +203,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final String AUDIT_ACTIONS = "auditActions";
 
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final OntologyLoader rulesOntologyLoader;
+    private final AdminManagementConfiguration configuration;
     private VitamCounterService vitamCounterService;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final ProcessingManagementClientFactory processingManagementClientFactory;
@@ -214,10 +213,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final VitamRuleService vitamRuleService;
 
     public AdminManagementResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader,
-        OntologyLoader rulesOntologyLoader,
         ElasticsearchFunctionalAdminIndexManager indexManager) {
         super(new BasicVitamStatusServiceImpl());
-        this.rulesOntologyLoader = rulesOntologyLoader;
+        this.configuration = configuration;
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =
@@ -602,7 +600,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
         ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory,
+                configuration)) {
             accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
             return Response.status(CREATED).build();
         } catch (final BadRequestException e) {
@@ -654,7 +653,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, AccessUnauthorizedException, InvalidCreateOperationException,
         ReferentialException {
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory, configuration)) {
 
             RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
             SanityChecker.checkJsonAll(select);
@@ -698,7 +697,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory,
+                configuration)) {
             SanityChecker.checkJsonAll(select);
             SanityChecker.checkParameter(originatingAgency);
 
@@ -754,7 +754,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
+            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory,
+                configuration)) {
             SanityChecker.checkJsonAll(select);
 
             SelectParserSingle parser = new SelectParserSingle(DEFAULT_VARNAME_ADAPTER);
@@ -905,23 +906,19 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     @POST
     @Path("accession-register/symbolic")
+    @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response createAccessionRegisterSymbolic() {
-        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
-            vitamCounterService); MetaDataClient client = metaDataClientFactory.getClient()) {
-            ArrayNode accessionRegisterSymbolic = (ArrayNode) client.createAccessionRegisterSymbolic()
-                .get("$results");
+    public Response createAccessionRegisterSymbolic(List<Integer> tenants) {
 
-            List<AccessionRegisterSymbolic> accessionRegisterSymbolicsToInsert =
-                StreamSupport.stream(accessionRegisterSymbolic.spliterator(), false)
-                    .map(AccessionRegisterSymbolic::new)
-                    .collect(Collectors.toList());
+        Response response = checkMultiTenantRequest(tenants);
+        if (response != null) {
+            return response;
+        }
 
-            if (accessionRegisterSymbolicsToInsert.isEmpty()) {
-                return Response.status(NO_CONTENT).build();
-            }
+        try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(
+            mongoAccess, vitamCounterService, metaDataClientFactory, configuration)) {
 
-            service.insertAccessionRegisterSymbolic(accessionRegisterSymbolicsToInsert);
+            service.createAccessionRegisterSymbolic(tenants);
 
             return Response.status(OK).build();
         } catch (Exception e) {
@@ -938,7 +935,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response getAccessionRegisterSymbolic(JsonNode queryDsl) {
         try (ReferentialAccessionRegisterImpl service = new ReferentialAccessionRegisterImpl(mongoAccess,
-            vitamCounterService)) {
+            vitamCounterService, metaDataClientFactory, configuration)) {
 
             SanityChecker.checkJsonAll(queryDsl);
 
@@ -1212,5 +1209,42 @@ public class AdminManagementResource extends ApplicationStatusResource {
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState(status.name())
             .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+    private Response checkMultiTenantRequest(List<Integer> tenants) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        if (tenantId == null) {
+            LOGGER.error("Missing TenantId");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (!VitamConfiguration.getAdminTenant().equals(tenantId)) {
+            LOGGER.error("Expecting admin tenant " + VitamConfiguration.getAdminTenant() + ", found: " + tenantId);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (CollectionUtils.isEmpty(tenants)) {
+            LOGGER.error("Expecting non empty list of tenants");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (tenants.contains(null)) {
+            LOGGER.error("Null tenant");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        if (new HashSet<>(tenants).size() != tenants.size()) {
+            LOGGER.error("Duplicate tenants");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        Set<Integer> unknownTenants =
+            SetUtils.difference(new HashSet<>(tenants), new HashSet<>(VitamConfiguration.getTenants()));
+        if (!unknownTenants.isEmpty()) {
+            LOGGER.error("Unknown tenants " + unknownTenants);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        return null;
     }
 }

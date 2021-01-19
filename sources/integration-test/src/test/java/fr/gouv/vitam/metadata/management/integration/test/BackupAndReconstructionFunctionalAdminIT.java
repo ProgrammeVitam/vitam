@@ -706,7 +706,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void testBackupAndReconstructAccessionRegiterSymbolicOk() throws Exception {
+    public void testBackupAndReconstructAccessionRegisterSymbolicOk() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_1));
@@ -727,7 +727,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         // Compute Accession Register Symbolic
 
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
-            adminManagementClient.createAccessionRegisterSymbolic(TENANT_1);
+            adminManagementClient.createAccessionRegisterSymbolic(Collections.singletonList(TENANT_1));
         }
 
         ArrayNode registerSymbolicDocs = (ArrayNode) JsonHandler.toJsonNode(

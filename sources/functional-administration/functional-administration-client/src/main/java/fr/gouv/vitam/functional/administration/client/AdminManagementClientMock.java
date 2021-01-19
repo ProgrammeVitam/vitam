@@ -598,7 +598,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(Integer tenant) {
+    public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(List<Integer> tenants) {
         throw new RuntimeException("Cannot be used");
     }
 

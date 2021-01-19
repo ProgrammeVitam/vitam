@@ -30,6 +30,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.configuration.SecureConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -44,15 +46,71 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.logging.VitamLogLevel.INFO;
 
 public class AccessionRegisterSymbolicMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterSymbolicMain.class);
+    private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
+    private AdminManagementClientFactory adminManagementClientFactory;
+
+    public AccessionRegisterSymbolicMain(
+        AdminManagementClientFactory adminManagementClientFactory) {
+        this.adminManagementClientFactory = adminManagementClientFactory;
+    }
 
     public static void main(String[] args) {
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("vitam.conf")) {
+        try {
+            AccessionRegisterSymbolicMain accessionRegisterSymbolicMain =
+                new AccessionRegisterSymbolicMain(AdminManagementClientFactory.getInstance());
+            accessionRegisterSymbolicMain.run();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            throw new IllegalStateException("Cannot execute AccessionRegisterSymbolicMain", e);
+        }
+    }
+
+    void run() throws IOException, ExecutionException, InterruptedException {
+        platformSecretConfiguration();
+
+        File confFile = PropertiesUtils.findFile("securisationDaemon.conf");
+        SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
+        List<Integer> tenants = conf
+            .getTenants()
+            .stream()
+            .map(Integer::parseInt)
+            .collect(Collectors.toList());
+
+        runInVitamThreadExecutor(() -> createAccessionRegisterSymbolic(conf.getAdminTenant(), tenants));
+    }
+
+    private static void runInVitamThreadExecutor(Runnable runnable)
+        throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(runnable, executorService);
+        completableFuture.get();
+        executorService.shutdown();
+    }
+
+    private void createAccessionRegisterSymbolic(Integer adminTenant, List<Integer> tenants) {
+        VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
+
+        try (AdminManagementClient client = this.adminManagementClientFactory.getClient()) {
+            LOGGER.info("Start accession register symbolic update");
+            RequestResponse<AccessionRegisterSymbolic> response = client.createAccessionRegisterSymbolic(tenants);
+            LOGGER.info("Response receive from create accession register symbolic {}", response);
+        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+            throw new IllegalStateException(" Error during storage log backup", e);
+        }
+    }
+
+    private static void platformSecretConfiguration() {
+        // Load Platform secret from vitam.conf file
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
             final VitamConfigurationParameters vitamConfigurationParameters =
                 PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
 
@@ -60,40 +118,7 @@ public class AccessionRegisterSymbolicMain {
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
 
         } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot execute AccessionRegisterSymbolicMain", e);
-        }
-
-        try {
-            File conf = PropertiesUtils.findFile("securisationDaemon.conf");
-            List<Integer> tenants = PropertiesUtils.readYaml(conf, SecureConfiguration.class)
-                .getTenants()
-                .stream()
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
-
-            Runnable execute = () -> tenants.forEach(AccessionRegisterSymbolicMain::createAccessionRegisterSymbolic);
-
-            Thread thread = VitamThreadFactory.getInstance().newThread(execute);
-            thread.start();
-            thread.join();
-        } catch (InterruptedException | IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot execute AccessionRegisterSymbolicMain", e);
-        }
-    }
-
-    private static void createAccessionRegisterSymbolic(Integer tenant) {
-        VitamThreadUtils.getVitamSession().setTenantId(tenant);
-        AdminManagementClientFactory adminManagementClientFactory = AdminManagementClientFactory.getInstance();
-
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            RequestResponse<AccessionRegisterSymbolic> response = client.createAccessionRegisterSymbolic(tenant);
-            LOGGER.log(INFO, "Response receive from create accession register symbolic {}", response);
-        } catch (AdminManagementClientServerException e) {
-            throw new IllegalStateException(
-                String.format("Error while executing AccessionRegisterSymbolicMain on tenant %d", tenant), e);
-
+            throw new IllegalStateException("Cannot load configuration", e);
         }
     }
 }

@@ -31,6 +31,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -189,10 +190,10 @@ public class AdminManagementResourceMock extends ApplicationStatusResource {
 
     @POST
     @Path("accession-register/symbolic")
+    @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response createAccessionRegisterSymbolic() {
+    public Response createAccessionRegisterSymbolic(List<Integer> tenants) {
         return mock.post();
-
     }
 
     @GET

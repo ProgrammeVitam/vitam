@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.alert.AlertService;
@@ -55,21 +56,33 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
+import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -88,27 +101,106 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     private final ReferentialAccessionRegisterSummaryUtil referentialAccessionRegisterSummaryUtil;
 
     private final AlertService alertService = new AlertServiceImpl(LOGGER);
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final int accessionRegisterSymbolicThreadPoolSize;
 
     /**
      * Constructor
-     *
      * @param dbConfiguration the mongo access configuration
+     * @param metaDataClientFactory
+     * @param configuration
      */
     public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration,
-        VitamCounterService vitamCounterService) {
-        this(dbConfiguration, new FunctionalBackupService(vitamCounterService));
+        VitamCounterService vitamCounterService,
+        MetaDataClientFactory metaDataClientFactory, AdminManagementConfiguration configuration) {
+        this(dbConfiguration, new FunctionalBackupService(vitamCounterService), metaDataClientFactory,
+            configuration.getAccessionRegisterSymbolicThreadPoolSize());
     }
 
     /**
      * Constructor
-     *
-     * @param dbConfiguration the mongo access configuration
+     *  @param dbConfiguration the mongo access configuration
+     * @param metaDataClientFactory
+     * @param accessionRegisterSymbolicThreadPoolSize
      */
     public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration,
-        FunctionalBackupService functionalBackupService) {
+        FunctionalBackupService functionalBackupService,
+        MetaDataClientFactory metaDataClientFactory, int accessionRegisterSymbolicThreadPoolSize) {
         mongoAccess = dbConfiguration;
         this.functionalBackupService = functionalBackupService;
+        this.metaDataClientFactory = metaDataClientFactory;
+        this.accessionRegisterSymbolicThreadPoolSize = accessionRegisterSymbolicThreadPoolSize;
         this.referentialAccessionRegisterSummaryUtil = new ReferentialAccessionRegisterSummaryUtil();
+    }
+
+    public void createAccessionRegisterSymbolic(List<Integer> tenants) throws ReferentialException {
+
+        int threadPoolSize = Math.min(this.accessionRegisterSymbolicThreadPoolSize, tenants.size());
+        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
+
+        try {
+            List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+
+            for (Integer tenantId : tenants) {
+                CompletableFuture<Void> completableFuture =
+                    CompletableFuture.runAsync(
+                        () -> {
+                            Thread.currentThread().setName("AccessionRegisterSymbolic-" + tenantId);
+                            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                            try {
+                                createAccessionRegisterSymbolic();
+                            } catch (Exception e) {
+                                alertService.createAlert(VitamLogLevel.ERROR,
+                                    "An error occurred during AccessionRegisterSymbolic update for tenant " + tenantId);
+                                throw new RuntimeException(
+                                    "An error occurred during AccessionRegisterSymbolic update for tenant " + tenantId, e);
+                            }
+                        }, executorService);
+                completableFutures.add(completableFuture);
+            }
+
+            boolean allTenantsSucceeded = true;
+            for (CompletableFuture<Void> completableFuture : completableFutures) {
+                try {
+                    completableFuture.get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new ReferentialException("AccessionRegisterSymbolic update interrupted", e);
+                } catch (ExecutionException e) {
+                    LOGGER.error("AccessionRegisterSymbolic update failed", e);
+                    allTenantsSucceeded = false;
+                }
+            }
+
+            if (!allTenantsSucceeded) {
+                throw new ReferentialException("One or more AccessionRegisterSymbolic updates failed");
+            }
+
+        } finally {
+            executorService.shutdown();
+        }
+    }
+
+    private void createAccessionRegisterSymbolic()
+        throws MetaDataExecutionException, MetaDataClientServerException, ReferentialException,
+        DocumentAlreadyExistsException, InvalidParseOperationException, SchemaValidationException {
+
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
+
+            ArrayNode accessionRegisterSymbolic = (ArrayNode) metadataClient.createAccessionRegisterSymbolic()
+                .get("$results");
+
+            List<AccessionRegisterSymbolic> accessionRegisterSymbolicsToInsert =
+                StreamSupport.stream(accessionRegisterSymbolic.spliterator(), false)
+                    .map(AccessionRegisterSymbolic::new)
+                    .collect(Collectors.toList());
+
+            if (accessionRegisterSymbolicsToInsert.isEmpty()) {
+                return;
+            }
+
+            insertAccessionRegisterSymbolic(accessionRegisterSymbolicsToInsert);
+        }
     }
 
     /**
@@ -119,7 +211,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @throws SchemaValidationException
      * @throws InvalidParseOperationException
      */
-    public void insertAccessionRegisterSymbolic(List<AccessionRegisterSymbolic> accessionRegisterSymbolics)
+    private void insertAccessionRegisterSymbolic(List<AccessionRegisterSymbolic> accessionRegisterSymbolics)
         throws ReferentialException, SchemaValidationException, InvalidParseOperationException,
         DocumentAlreadyExistsException {
 
