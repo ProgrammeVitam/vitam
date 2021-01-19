@@ -30,25 +30,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
 
-public class EliminationExtendedInfoFinalActionInconsistency extends EliminationExtendedInfo {
+public class EliminationExtendedInfoHoldRuleDetails {
 
-    @JsonProperty("ExtendedInfoDetails")
-    private EliminationExtendedInfoFinalActionInconsistencyDetails details;
+    @JsonProperty("HoldRuleIds")
+    private Set<String> holdRuleIds;
 
-    public EliminationExtendedInfoFinalActionInconsistency() {
+    public EliminationExtendedInfoHoldRuleDetails() {
         // Empty constructor for deserialization
     }
 
-    public EliminationExtendedInfoFinalActionInconsistency(Set<String> finalActionInconsistencyAgencies) {
-        this.details = new EliminationExtendedInfoFinalActionInconsistencyDetails(finalActionInconsistencyAgencies);
+    public EliminationExtendedInfoHoldRuleDetails(Set<String> holdRuleIds) {
+        this.holdRuleIds = holdRuleIds;
     }
 
-    public EliminationExtendedInfoFinalActionInconsistencyDetails getDetails() {
-        return details;
+    public Set<String> getHoldRuleIds() {
+        return holdRuleIds;
     }
 
-    public void setDetails(
-        EliminationExtendedInfoFinalActionInconsistencyDetails details) {
-        this.details = details;
+    public EliminationExtendedInfoHoldRuleDetails setHoldRuleIds(Set<String> holdRuleIds) {
+        this.holdRuleIds = holdRuleIds;
+        return this;
     }
 }

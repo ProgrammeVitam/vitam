@@ -2352,6 +2352,12 @@
     "cardinality": "one"
   },
   {
+    "path": "_elimination.ExtendedInfo.ExtendedInfoDetails.HoldRuleIds",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
     "path": "_elimination.ExtendedInfo.ExtendedInfoDetails.NonDestroyableOriginatingAgencies",
     "type": "keyword",
     "indexed": true,

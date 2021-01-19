@@ -32,6 +32,10 @@
             "PropertyValue": "Destroy"
           }
         ]
+      },
+      "HoldRule": {
+        "Rules": [],
+        "Properties": []
       }
     }
   },
@@ -72,13 +76,18 @@
             "OriginatingAgency": "sp9",
             "Paths": [
               [
-                "unit2", "unit9"
+                "unit2",
+                "unit9"
               ]
             ],
             "PropertyName": "FinalAction",
             "PropertyValue": "Keep"
           }
         ]
+      },
+      "HoldRule": {
+        "Rules": [],
+        "Properties": []
       }
     }
   },
@@ -89,6 +98,63 @@
     "InheritedRules": {
       "AppraisalRule": {
         "Rules": [],
+        "Properties": []
+      },
+      "HoldRule": {
+        "Rules": [],
+        "Properties": []
+      }
+    }
+  },
+  {
+    "#id": "unit4",
+    "#object": "got2",
+    "#originating_agency": "sp1",
+    "InheritedRules": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "UnitId": "unit4",
+            "OriginatingAgency": "sp1",
+            "Paths": [
+              [
+                "unit4"
+              ]
+            ],
+            "Rule": "APP-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2015-01-01"
+          }
+        ],
+        "Properties": [
+          {
+            "UnitId": "unit4",
+            "OriginatingAgency": "sp1",
+            "Paths": [
+              [
+                "unit4"
+              ]
+            ],
+            "PropertyName": "FinalAction",
+            "PropertyValue": "Destroy"
+          }
+        ]
+      },
+      "HoldRule": {
+        "Rules": [
+          {
+            "UnitId": "unit4",
+            "OriginatingAgency": "sp1",
+            "Paths": [
+              [
+                "unit4"
+              ]
+            ],
+            "Rule": "HOL-00001",
+            "StartDate": "2050-01-01",
+            "EndDate": "2051-01-01"
+          }
+        ],
         "Properties": []
       }
     }

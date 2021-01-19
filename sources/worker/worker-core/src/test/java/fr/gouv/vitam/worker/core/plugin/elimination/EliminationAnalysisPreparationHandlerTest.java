@@ -165,9 +165,11 @@ public class EliminationAnalysisPreparationHandlerTest {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(writtenFiles.get("units.jsonl")))) {
             JsonNode actual_unit1 = JsonHandler.getFromString(reader.readLine());
             JsonNode actual_unit2 = JsonHandler.getFromString(reader.readLine());
+            JsonNode actual_unit4 = JsonHandler.getFromString(reader.readLine());
 
             assertJsonEquals("EliminationAnalysis/PreparationExpectedDistribution_unit1.json", actual_unit1);
             assertJsonEquals("EliminationAnalysis/PreparationExpectedDistribution_unit2.json", actual_unit2);
+            assertJsonEquals("EliminationAnalysis/PreparationExpectedDistribution_unit4.json", actual_unit4);
             assertThat(reader.readLine()).isNull();
 
         }

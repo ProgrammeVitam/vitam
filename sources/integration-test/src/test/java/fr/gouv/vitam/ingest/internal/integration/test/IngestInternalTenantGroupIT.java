@@ -103,7 +103,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -147,7 +146,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EndToEndEliminationAndTransferReplyIT.class);
+        VitamLoggerFactory.getInstance(IngestInternalTenantGroupIT.class);
 
     private static final Integer tenantId = 0;
     private static final long SLEEP_TIME = 20L;
@@ -168,7 +167,7 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     public static final String TENANT_GROUP = "mygrp";
     @ClassRule
     public static VitamServerRunner runner =
-        new VitamServerRunner(EndToEndEliminationAndTransferReplyIT.class, mongoRule.getMongoDatabase().getName(),
+        new VitamServerRunner(IngestInternalTenantGroupIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
@@ -184,8 +183,8 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
                 BatchReportMain.class
             ));
     private static String CONFIG_SIEGFRIED_PATH = "";
-    private static final String TEST_ELIMINATION_SIP =
-        "elimination/TEST_ELIMINATION.zip";
+    private static final String TEST_ELIMINATION_V2_SIP =
+        "elimination/TEST_ELIMINATION_V2.zip";
     private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     @Rule
@@ -431,7 +430,7 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         prepareAccessContract(0, "TenantGroupAccessTest");
         prepareAccessContract(1, "TenantGroupAccessTest");
 
-        final String ingestOperationGuidTenant0 = doIngest(0, PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+        final String ingestOperationGuidTenant0 = doIngest(0, PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
             StatusCode.OK);
 
         // Check results for tenant 0
@@ -442,7 +441,7 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedObjectGroupsTenant0 =
             selectGotsByOpi(0, ingestOperationGuidTenant0, accessInternalClient);
 
-        assertThat(ingestedUnitsTenant0.getResults()).hasSize(6);
+        assertThat(ingestedUnitsTenant0.getResults()).hasSize(8);
         assertThat(ingestedObjectGroupsTenant0.getResults()).hasSize(3);
         assertThat(getLogbookOperationByDsl(0, ingestOperationGuidTenant0)).isNotNull();
 
@@ -578,12 +577,12 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
         prepareVitamSession(tenantId);
-        SelectMultiQuery checkEliminationGotDslRequest = new SelectMultiQuery();
-        checkEliminationGotDslRequest.addQueries(
+        SelectMultiQuery checkGotDslRequest = new SelectMultiQuery();
+        checkGotDslRequest.addQueries(
             QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
 
         return (RequestResponseOK<JsonNode>) accessInternalClient
-            .selectObjects(checkEliminationGotDslRequest.getFinalSelect());
+            .selectObjects(checkGotDslRequest.getFinalSelect());
     }
 
     private RequestResponseOK<JsonNode> selectUnitsByOpi(int tenantId, String ingestOperationGuid,
@@ -591,12 +590,12 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
         prepareVitamSession(tenantId);
-        SelectMultiQuery checkEliminationDslRequest = new SelectMultiQuery();
-        checkEliminationDslRequest.addQueries(
+        SelectMultiQuery checkDslRequest = new SelectMultiQuery();
+        checkDslRequest.addQueries(
             QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
 
         return (RequestResponseOK<JsonNode>) accessInternalClient
-            .selectUnits(checkEliminationDslRequest.getFinalSelect());
+            .selectUnits(checkDslRequest.getFinalSelect());
     }
 
     private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {

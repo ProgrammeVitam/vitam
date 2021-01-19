@@ -39,6 +39,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -143,6 +145,9 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoHoldRule;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -310,8 +315,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/OK_ArchivesPhysiques_With_Attachment_Contract.zip";
     private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
-    private static String OK_RULES_COMPLEX_COMPLETE_SIP =
-        "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
     private static String OK_RULES_COMPLEX_COMPLETE_V2_SIP =
         "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE_V2.zip";
     private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
@@ -2447,15 +2450,13 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
+            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_V2_SIP);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            ingestOperationGuid != null ? ingestOperationGuid.toString() : "outcomeDetailMessage",
-            ingestOperationGuid);
+            LogbookTypeProcess.INGEST, StatusCode.STARTED, ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -2491,12 +2492,63 @@ public class IngestInternalIT extends VitamRuleRunner {
         awaitForWorkflowTerminationWithStatus(eliminationAnalysisOperationGuid, StatusCode.OK);
 
         // Check indexation querying
+        final RequestResponseOK<JsonNode> destroyableIndexedUnitsResponse =
+            queryIndexedEliminationAnalysis(ingestOperationGuid, eliminationAnalysisOperationGuid,
+                accessInternalClient, EliminationGlobalStatus.DESTROY);
+
+        List<String> indexedUnitTitles = destroyableIndexedUnitsResponse.getResults()
+            .stream()
+            .map(node -> node.get("Title").asText())
+            .collect(Collectors.toList());
+
+        assertThat(indexedUnitTitles)
+            .containsExactlyInAnyOrder("Porte de Pantin", "Eglise de Pantin");
+
+        // Check access to #elimination field
+        assertThat(destroyableIndexedUnitsResponse.getFirstResult()
+            .get(VitamFieldsHelper.elimination())
+            .get(0)
+            .get("OperationId").asText()).isEqualTo(eliminationAnalysisOperationGuid.toString());
+
+        // Ensure document version has not been updated during indexation process
+        assertThat(destroyableIndexedUnitsResponse.getFirstResult().get(VitamFieldsHelper.version()).asInt())
+            .isEqualTo(0);
+
+        // Check indexation of elimination "CONFLICT"
+        final RequestResponseOK<JsonNode> conflictIndexedUnitsResponse =
+            queryIndexedEliminationAnalysis(ingestOperationGuid, eliminationAnalysisOperationGuid,
+                accessInternalClient, EliminationGlobalStatus.CONFLICT);
+        assertThat(conflictIndexedUnitsResponse.getResults()).hasSize(1);
+        assertThat(conflictIndexedUnitsResponse.getResults().get(0).get("Title").asText()).isEqualTo("Stalingrad.txt");
+
+        EliminationAnalysisResult conflictEliminationAnalysisResult =
+            JsonHandler.getFromJsonNode(
+                conflictIndexedUnitsResponse.getResults().get(0).get(VitamFieldsHelper.elimination()),
+                EliminationAnalysisResult.class);
+
+        assertThat(conflictEliminationAnalysisResult.getDestroyableOriginatingAgencies()).
+            containsExactlyInAnyOrder("RATP");
+        assertThat(conflictEliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).isEmpty();
+        assertThat(conflictEliminationAnalysisResult.getOperationId()).isEqualTo(eliminationAnalysisOperationGuid.getId());
+        assertThat(conflictEliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
+        assertThat(conflictEliminationAnalysisResult.getExtendedInfo()).hasSize(1);
+        assertThat(conflictEliminationAnalysisResult.getExtendedInfo().get(0)).isInstanceOf(
+            EliminationExtendedInfoHoldRule.class);
+        assertThat(((EliminationExtendedInfoHoldRule) conflictEliminationAnalysisResult.getExtendedInfo().get(0))
+            .getDetails().getHoldRuleIds()).containsExactlyInAnyOrder("HOL-00004");
+    }
+
+    private RequestResponseOK<JsonNode> queryIndexedEliminationAnalysis(GUID ingestOperationGuid,
+        GUID eliminationAnalysisOperationGuid, AccessInternalClient accessInternalClient,
+        EliminationGlobalStatus status)
+        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
         SelectMultiQuery checkAnalysisDslRequest = new SelectMultiQuery();
         checkAnalysisDslRequest.addQueries(
             QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()))
                 .add(QueryHelper
                     .eq(VitamFieldsHelper.elimination() + ".OperationId", eliminationAnalysisOperationGuid.toString()))
-                .add(QueryHelper.eq(VitamFieldsHelper.elimination() + ".GlobalStatus", "DESTROY")));
+                .add(QueryHelper.eq(VitamFieldsHelper.elimination() + ".GlobalStatus", status.name())));
 
         checkAnalysisDslRequest.addUsedProjection(
             "Title", VitamFieldsHelper.elimination(), VitamFieldsHelper.version());
@@ -2505,24 +2557,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             (RequestResponseOK<JsonNode>) accessInternalClient.selectUnits(checkAnalysisDslRequest.getFinalSelect());
 
         assertThat(indexedUnitsResponse.isOk()).isTrue();
-
-        List<String> indexedUnitTitles = indexedUnitsResponse.getResults()
-            .stream()
-            .map(node -> node.get("Title").asText())
-            .collect(Collectors.toList());
-
-        assertThat(indexedUnitTitles)
-            .containsExactlyInAnyOrder("Porte de Pantin", "Eglise de Pantin", "Stalingrad.txt");
-
-        // Check access to #elimination field
-        assertThat(indexedUnitsResponse.getFirstResult()
-            .get(VitamFieldsHelper.elimination())
-            .get(0)
-            .get("OperationId").asText()).isEqualTo(eliminationAnalysisOperationGuid.toString());
-
-        // Ensure document version has not been updated during indexation process
-        assertThat(indexedUnitsResponse.getFirstResult().get(VitamFieldsHelper.version()).asInt())
-            .isEqualTo(0);
+        return indexedUnitsResponse;
     }
 
     @RunWithCustomExecutor

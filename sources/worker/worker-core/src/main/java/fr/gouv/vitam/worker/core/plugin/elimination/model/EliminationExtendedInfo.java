@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -34,7 +33,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = EliminationExtendedInfoKeepAccessSp.class, name = "KEEP_ACCESS_SP"),
     @JsonSubTypes.Type(value = EliminationExtendedInfoAccessLinkInconsistency.class, name = "ACCESS_LINK_INCONSISTENCY"),
-    @JsonSubTypes.Type(value = EliminationExtendedInfoFinalActionInconsistency.class, name = "FINAL_ACTION_INCONSISTENCY")
+    @JsonSubTypes.Type(value = EliminationExtendedInfoFinalActionInconsistency.class, name = "FINAL_ACTION_INCONSISTENCY"),
+    @JsonSubTypes.Type(value = EliminationExtendedInfoHoldRule.class, name = "BLOCKED_BY_HOLD_RULE")
 })
 public abstract class EliminationExtendedInfo {
 

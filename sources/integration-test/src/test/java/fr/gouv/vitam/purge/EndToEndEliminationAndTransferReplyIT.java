@@ -219,8 +219,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         VitamLoggerFactory.getInstance(EndToEndEliminationAndTransferReplyIT.class);
 
     private static final Integer tenantId = 0;
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
@@ -239,6 +237,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static final String SAINT_LAZARE = "Saint-Lazare";
     private static final String MARX_DORMOY = "Marx Dormoy";
     private static final String MONTPARNASSE = "Montparnasse.txt";
+    private static final String FRONT_POPULAIRE = "2_Front Populaire";
+    private static final String PORTE_DE_LA_CHAPELLE = "Porte de la Chapelle";
     private static final String ORIGINATING_AGENCY = "RATP";
     private static final String JSONL = ".jsonl";
     private static final String XML = ".xml";
@@ -268,8 +268,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 BatchReportMain.class
             ));
     private static String CONFIG_SIEGFRIED_PATH = "";
-    private static final String TEST_ELIMINATION_SIP =
-        "elimination/TEST_ELIMINATION.zip";
     private static final String TEST_ELIMINATION_V2_SIP =
         "elimination/TEST_ELIMINATION_V2.zip";
     private static final String ELIMINATION_ACCESSION_REGISTER_DETAIL =
@@ -407,7 +405,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testEliminationAction() throws Exception {
-        final String ingestOperationGuid = doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+        final String ingestOperationGuid = doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
             StatusCode.OK);
 
         // Check ingested units
@@ -415,7 +413,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -465,7 +463,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> remainingGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(remainingUnits.getResults()).hasSize(3);
+        assertThat(remainingUnits.getResults()).hasSize(5);
         assertThat(remainingGots.getResults()).hasSize(2);
 
         Set<String> remainingObjectIds = getBinaryObjectIds(remainingGots);
@@ -492,7 +490,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         Set<String> expectedRemainingUnitIds = new HashSet<>(Arrays.asList(
             getId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13)),
             getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE)),
-            getId(ingestedUnitsByTitle.get(CARREFOUR_PLEYEL))
+            getId(ingestedUnitsByTitle.get(CARREFOUR_PLEYEL)),
+            getId(ingestedUnitsByTitle.get(FRONT_POPULAIRE)),
+            getId(ingestedUnitsByTitle.get(PORTE_DE_LA_CHAPELLE))
         ));
         Set<String> expectedDeletedUnitIds = SetUtils.difference(ingestedUnitIds, expectedRemainingUnitIds);
 
@@ -540,7 +540,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         JsonNode detachedGotBeforeElimination = getById(ingestedGots, detachedGotId);
         assertThat(detachedGotBeforeElimination.get(VitamFieldsHelper.unitups())).hasSize(2);
-        assertThat(detachedGotBeforeElimination.get(VitamFieldsHelper.allunitups())).hasSize(6);
+        assertThat(detachedGotBeforeElimination.get(VitamFieldsHelper.allunitups())).hasSize(8);
 
         JsonNode detachedGotAfterElimination = getById(remainingGots, detachedGotId);
         assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.version()).asInt()).isEqualTo(
@@ -765,7 +765,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Given
         String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
                 "STP_ACCESSION_REGISTRATION");
 
         // When : Run ingest cleanup process
@@ -784,7 +784,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -818,7 +818,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestCompletedOKIngestThenKO() throws Exception {
         // Given
         String ingestOperationGuid =
-            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP), StatusCode.OK);
+            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
 
         // When : Run ingest cleanup process
 
@@ -837,7 +837,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -869,7 +869,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Given
         String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
                 "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
@@ -878,7 +878,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -949,7 +949,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Given
         String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
                 "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
@@ -958,7 +958,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -1031,7 +1031,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Given
         String initialIngestOperationGuid =
-            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP), StatusCode.OK);
+            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
 
         // Ingest another SIP that add an object to an existing object group
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1105,7 +1105,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Given
         String initialIngestOperationGuid =
-            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP), StatusCode.OK);
+            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
 
         // Initial ingest of an object group
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1177,7 +1177,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestObjectGroupUpdatedByAnotherProcessThenWarning() throws Exception {
         // Given
         String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
                 "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
@@ -1219,7 +1219,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -1287,7 +1287,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Given
         String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
                 "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
@@ -1296,7 +1296,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -1366,7 +1366,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Given
         String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
                 "STP_UPDATE_OBJECT_GROUP");
         killProcess(ingestOperationGuid);
 
@@ -1375,7 +1375,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
         final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
-        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedUnits.getResults()).hasSize(8);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
         Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
@@ -2016,12 +2016,16 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             //Check report units
             Map<String, UnitReportEntry> unitReportByTitle = Streams.stream(
                 Iterators.transform(
-                    Iterators.limit(reportIterator, 6),
+                    Iterators.limit(reportIterator, 8),
                     entry -> asTypeReference(entry, UNIT_REPORT_TYPE_REFERENCE))
             ).collect(toMap(entry -> getTitle(getById(ingestedUnits, entry.id)), entry -> entry));
 
-            assertThat(unitReportByTitle).hasSize(6);
+            assertThat(unitReportByTitle).hasSize(8);
 
+            assertThat(unitReportByTitle.get(FRONT_POPULAIRE).params.status).isEqualTo(
+                EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name());
+            assertThat(unitReportByTitle.get(PORTE_DE_LA_CHAPELLE).params.status).isEqualTo(
+                EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name());
             assertThat(unitReportByTitle.get(CARREFOUR_PLEYEL).params.status).isEqualTo(
                 EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name());
             assertThat(unitReportByTitle.get(SAINT_DENIS_BASILIQUE).params.status).isEqualTo(

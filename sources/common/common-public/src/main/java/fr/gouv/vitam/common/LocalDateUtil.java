@@ -338,6 +338,15 @@ public final class LocalDateUtil {
             .withZone(ZoneOffset.UTC);
     }
 
+    public static LocalDate parseDate(String endDateStr) {
+
+        if (endDateStr == null) {
+            return null;
+        }
+
+        return LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+
     @VisibleForTesting
     public static Clock getClock() {
         return clock;

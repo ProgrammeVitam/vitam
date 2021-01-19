@@ -57,7 +57,10 @@ public class EliminationAnalysisResultTest {
                     "parentUnitId",
                     newHashSet("sp1", "sp2"),
                     newHashSet("sp3")
-                ))
+                )),
+            new EliminationExtendedInfoFinalActionInconsistency(newHashSet("sp4")),
+            new EliminationExtendedInfoHoldRule(
+                new EliminationExtendedInfoHoldRuleDetails(newHashSet("HOL-00001")))
         ));
 
         // When
@@ -83,13 +86,15 @@ public class EliminationAnalysisResultTest {
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies())
             .containsExactlyInAnyOrder("sp1", "sp2");
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp3");
-        assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(2);
+        assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(4);
         assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
             .isInstanceOf(EliminationExtendedInfoKeepAccessSp.class);
         assertThat(eliminationAnalysisResult.getExtendedInfo().get(1))
             .isInstanceOf(EliminationExtendedInfoAccessLinkInconsistency.class);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(1))
-            .isInstanceOf(EliminationExtendedInfoAccessLinkInconsistency.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(2))
+            .isInstanceOf(EliminationExtendedInfoFinalActionInconsistency.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(3))
+            .isInstanceOf(EliminationExtendedInfoHoldRule.class);
         EliminationExtendedInfoAccessLinkInconsistency accessLinkInconsistency =
             (EliminationExtendedInfoAccessLinkInconsistency) eliminationAnalysisResult.getExtendedInfo().get(1);
         assertThat(accessLinkInconsistency.getDetails().getParentUnitId()).isEqualTo("parentUnitId");
@@ -97,5 +102,13 @@ public class EliminationAnalysisResultTest {
             .containsExactlyInAnyOrder("sp1", "sp2");
         assertThat(accessLinkInconsistency.getDetails().getNonDestroyableOriginatingAgencies())
             .containsExactlyInAnyOrder("sp3");
+        EliminationExtendedInfoFinalActionInconsistency finalActionInconsistency =
+            (EliminationExtendedInfoFinalActionInconsistency) eliminationAnalysisResult.getExtendedInfo().get(2);
+        assertThat(finalActionInconsistency.getDetails().getOriginatingAgencies())
+            .containsExactlyInAnyOrder("sp4");
+        EliminationExtendedInfoHoldRule extendedInfoHoldRule =
+            (EliminationExtendedInfoHoldRule) eliminationAnalysisResult.getExtendedInfo().get(3);
+        assertThat(extendedInfoHoldRule.getDetails().getHoldRuleIds())
+            .containsExactlyInAnyOrder("HOL-00001");
     }
 }

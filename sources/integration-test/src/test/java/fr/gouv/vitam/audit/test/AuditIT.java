@@ -143,7 +143,7 @@ public class AuditIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_execute_audit_workflow_existence_without_error() throws Exception {
 
-        String ingestOperationId1 = VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION.zip");
+        String ingestOperationId1 = VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION_V2.zip");
         String ingestOperationId2 = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
 
         // Given
@@ -231,7 +231,7 @@ public class AuditIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_execute_audit_workflow_integrity_without_error() throws Exception {
 
-        VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION.zip");
+        VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION_V2.zip");
         VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
 
         // Given
@@ -300,7 +300,7 @@ public class AuditIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_execute_audit_workflow_existence_with_error() throws Exception {
 
-        String ingestOperationId1 = VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION.zip");
+        String ingestOperationId1 = VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION_V2.zip");
         String binaryObjectId;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {

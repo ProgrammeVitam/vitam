@@ -838,7 +838,6 @@ public class RulesIT extends VitamRuleRunner {
                 .readEntity(InputStream.class);
             FileRulesManagementReport report =
                 JsonHandler.getFromInputStream(inputStream, FileRulesManagementReport.class);
-            System.out.println(JsonHandler.prettyPrint(report));
             return report;
         }
     }
@@ -947,7 +946,6 @@ public class RulesIT extends VitamRuleRunner {
 
             FileRulesManagementReport report = JsonHandler.getFromInputStream(inputStream,
                 FileRulesManagementReport.class);
-            System.out.println(JsonHandler.prettyPrint(report));
             return report;
         }
     }
