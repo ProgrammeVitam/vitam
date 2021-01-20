@@ -106,16 +106,16 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
 
         instance = new ReclassificationPreparationCheckHoldRulesHandler(
             metaDataClientFactory, unitGraphInfoLoader, 10);
+
+        ReclassificationOrders reclassificationOrders = buildReclassificationOrders();
+        doReturn(reclassificationOrders).when(handlerIO).getInput(
+            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
     }
 
     @Test
     public void testCheckPreventInheritanceWhenEmptyRuleSetThenOK() throws Exception {
 
         // Given
-        ReclassificationOrders reclassificationOrders = buildReclassificationOrders();
-        doReturn(reclassificationOrders).when(handlerIO).getInput(
-            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
-
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
             "unit1", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
             "unit2", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
@@ -140,10 +140,6 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
     public void testCheckPreventInheritanceWhenExpiredHoldRulesThenOK() throws Exception {
 
         // Given
-        ReclassificationOrders reclassificationOrders = buildReclassificationOrders();
-        doReturn(reclassificationOrders).when(handlerIO).getInput(
-            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
-
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
             "unit1", new InheritedRuleCategoryResponseModel(Arrays.asList(
                 buildHoldRule("unit1", "R1", "2010-12-31", Boolean.TRUE),
@@ -175,10 +171,6 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
     public void testCheckPreventInheritanceWhenActiveHoldRulesWithoutPreventRearrangementThenOK() throws Exception {
 
         // Given
-        ReclassificationOrders reclassificationOrders = buildReclassificationOrders();
-        doReturn(reclassificationOrders).when(handlerIO).getInput(
-            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
-
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
             "unit1", new InheritedRuleCategoryResponseModel(Arrays.asList(
                 buildHoldRule("unit1", "R1", "2099-12-31", Boolean.FALSE),
@@ -211,10 +203,6 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
     public void testCheckPreventInheritanceWhenActiveHoldRulesWithPreventRearrangementThenOK() throws Exception {
 
         // Given
-        ReclassificationOrders reclassificationOrders = buildReclassificationOrders();
-        doReturn(reclassificationOrders).when(handlerIO).getInput(
-            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
-
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
             "unit1", new InheritedRuleCategoryResponseModel(Arrays.asList(
                 buildHoldRule("unit1", "R1", "2099-12-31", Boolean.FALSE),
@@ -255,10 +243,6 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
     public void testCheckPreventInheritanceWhenUnitNotFoundThenFatal() throws Exception {
 
         // Given
-        ReclassificationOrders reclassificationOrders = buildReclassificationOrders();
-        doReturn(reclassificationOrders).when(handlerIO).getInput(
-            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
-
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
             "unit1", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
             "unit3", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList())

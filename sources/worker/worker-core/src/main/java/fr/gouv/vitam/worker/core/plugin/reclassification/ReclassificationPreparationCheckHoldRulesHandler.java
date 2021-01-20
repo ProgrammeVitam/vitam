@@ -102,6 +102,18 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
         this.maxGuidListSizeInLogbookOperation = maxGuidListSizeInLogbookOperation;
     }
 
+    private static boolean isPreventRearrangementEnabled(InheritedRuleResponseModel rule) {
+        Object preventRearrangementAttribute = rule.getExtendedRuleAttributes().get(RuleModel.PREVENT_REARRANGEMENT);
+        if (preventRearrangementAttribute == null) {
+            // Default to false
+            return false;
+        }
+        if (!(preventRearrangementAttribute instanceof Boolean)) {
+            throw new IllegalStateException("Expected PreventRearrangement to be a Boolean type");
+        }
+        return (boolean) preventRearrangementAttribute;
+    }
+
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException {
@@ -181,7 +193,7 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
 
-        if(unitIdsBlockedByHoldRules.isEmpty()) {
+        if (unitIdsBlockedByHoldRules.isEmpty()) {
             LOGGER.info("No HoldRules with PreventRearrangement found");
             return;
         }
@@ -196,7 +208,7 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
     private boolean hasActiveHoldRulesWithPreventRearrangement(String unitId,
         InheritedRuleCategoryResponseModel inheritedHoldRules) {
 
-        LocalDate today = LocalDate.now();
+        final LocalDate today = LocalDate.now();
         Set<InheritedRuleResponseModel> activeHoldRules =
             HoldRuleUtils.listActiveHoldRules(unitId, inheritedHoldRules.getRules(), today);
 
@@ -206,7 +218,7 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
         }
 
         Set<String> activeHoldRulesWithPreventRearrangement = activeHoldRules.stream()
-            .filter(rule -> Boolean.TRUE.equals(rule.getExtendedRuleAttributes().get(RuleModel.PREVENT_REARRANGEMENT)))
+            .filter(ReclassificationPreparationCheckHoldRulesHandler::isPreventRearrangementEnabled)
             .map(InheritedRuleResponseModel::getRuleId)
             .collect(Collectors.toSet());
 
@@ -218,11 +230,6 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
         LOGGER.warn("Active hold rules with PreventRearrangement found for unit " + unitId + ": " +
             activeHoldRulesWithPreventRearrangement);
         return true;
-    }
-
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
     }
 
     public static String getId() {
