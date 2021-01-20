@@ -142,6 +142,19 @@
   notify:
     - restart service
 
+- name: Deploy common timer configuration files in sysconfig subdir
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ vitam_folder_conf }}/sysconfig/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_items:
+    - "timer_java_opts"
+  when: ( vitam_struct.vitam_component == "functional-administration" ) or ( vitam_struct.vitam_component == "logbook" ) or ( vitam_struct.vitam_component == "storage" )
+  tags:
+    - update_jvmoptions_vitam
+
 - name: Deploy common configuration files
   template:
     src: "{{ item }}.j2"

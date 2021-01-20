@@ -199,6 +199,7 @@ dns_servers=["10.100.211.222", "8.8.8.8"]
 
 ### memory settings ###
 memory_opts="-Xms32m -Xmx256m"
+timer_memory_opts="-Xms32m -Xmx128m"
 
 ### logback ###
 days_to_delete_logback_logfiles=30
