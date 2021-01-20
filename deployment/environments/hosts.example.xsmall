@@ -205,6 +205,7 @@ dns_servers=["10.100.211.222", "8.8.8.8"]
 
 ### memory settings ###
 memory_opts="-Xms32m -Xmx256m"
+timer_memory_opts="-Xms32m -Xmx128m"
 
 ### tenants ###
 vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
