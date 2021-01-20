@@ -103,7 +103,7 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
 
 
     /**
-     * get units list by query
+     * Get a DIP by dip request (dsl query + other export options)
      *
      * @param dipRequest the query to get units
      * @return Response

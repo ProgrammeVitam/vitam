@@ -44,7 +44,7 @@ documentation:
   post:
     description: |
       Request that will return results composed of Formats if the request is using POST with X-Http-Method-Override: GET.
-      If there is no X-Http-Method-Override, this allow to push a new Referential from a PRONOM source file (see TNA).
+      If there is no X-Http-Method-Override, this allow to push a new Referential from a PRONOM source file (see :term:`TNA`).
     is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet,
        RegisterTraits.RegisterUpload, StandardTraits.UploadFileOptionalHeader]
     headers:
@@ -52,7 +52,7 @@ documentation:
         required: false
   put:
     description: |
-      This allow to submit a new Referential from a PRONOM source file (see TNA) to check if this could be imported.
+      This allow to submit a new Referential from a PRONOM source file (see :term:`TNA`) to check if this could be imported.
     is: [RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:

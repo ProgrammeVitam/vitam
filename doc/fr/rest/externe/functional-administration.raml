@@ -55,7 +55,7 @@ documentation:
   post:
     description: |
       Requête qui retourne des résultats contenant des Formats si la requête utilise POST avec X-Http-Method-Override: GET.
-      Si il n'y a pas de X-Http-Method-Override, la requête importe à partir d'un fichier PRONOM (see TNA) un nouveau référentiel.
+      Si il n'y a pas de X-Http-Method-Override, la requête importe un nouveau référentiel à partir d'un fichier PRONOM (see :term:`TNA`).
 
       Permissions requises:
         - formats:create
@@ -97,7 +97,7 @@ documentation:
    API qui permet de vérifier que le fichier est correct, et peut être importé.
   post:
     description: |
-      Vérifie si un fichier source PRONOM (see TNA) peut être importé comme nouveau Référentiel.
+      Vérifie si un fichier source PRONOM (see :term:`TNA`) peut être importé comme nouveau Référentiel.
 
       Permissions requises:
         - formatsfile:check
@@ -612,7 +612,7 @@ documentation:
         required: false
   post:
     description: |
-      Téléverse le référentiel des griffons ou annule et remplace les référentiels existant
+      Importer le référentiel des griffons ou annule et remplace le référentiel des griffons existant
 
       Permissions requises:
         - griffins:create
@@ -728,7 +728,7 @@ documentation:
     headers:
       X-Http-Method-Override:
         description: Requis pour effectuer un GET avec une requête json en body.
-        required: false      
+        required: false
       X-Tenant-Id:
         required: true
       X-Access-Contract-Id:
@@ -906,7 +906,7 @@ documentation:
    API qui permet de vérifier que le fichier est correct, et peut être importé.
   post:
     description: |
-      Vérifie si un fichier source Agencies (see TNA) peut être importé comme nouveau Référentiel.
+      Vérifie si un fichier source Agencies peut être importé comme nouveau Référentiel.
 
       Permissions requises:
         - agenciesfile:check
@@ -1188,7 +1188,7 @@ documentation:
       application/json:
         description: Requête DSL de sélection d'unité archivistique
         type: object
-        examples: 
+        examples:
           -audit-aus: !include libraries/examples/evidenceAuditQuery.json
           -audit-opi: !include libraries/examples/evidenceAuditQueryOp.json
           -audit-tenant: !include libraries/examples/evidenceAuditQueryTenant.json
@@ -1284,7 +1284,7 @@ documentation:
    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'ontologies selon le DSL Vitam en cas de succès.
   get:
     description: |
-      Requête qui retourne des résultats contenant des Agencies.
+      Requête qui retourne des résultats contenant des ontologies.
       La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste d'Ontologies selon le DSL Vitam en cas de succès.
 
         Permissions requises:

@@ -67,8 +67,8 @@ Glossaire
    API
       `Application Programming Interface`
 
-   AU 
-      `Archive Unit`, unité archivistique 
+   AU
+      `Archive Unit`, unité archivistique
 
    BDD
       Base De Données
@@ -79,7 +79,7 @@ Glossaire
    CA
       `Certificate Authority`, autorité de certification
 
-   CAS 
+   CAS
       Content Adressable Storage
 
    CCFN
@@ -87,19 +87,19 @@ Glossaire
 
    CN
       Common Name
-   
+
    COTS
       Component Off The shelf ; il s'agit d'un composant "sur étagère", non développé par le projet :term:`VITAM`, mais intégré à partir d'un binaire externe. Par exemple : MongoDB, ElasticSearch.
 
-   CRL 
-      `Certificate Revocation List` ; liste des identifiants des certificats qui ont été révoqués ou invalidés et qui ne sont donc plus dignes de confiance. Cette norme est spécifiée dans les RFC 5280 et RFC 6818. 
+   CRL
+      `Certificate Revocation List` ; liste des identifiants des certificats qui ont été révoqués ou invalidés et qui ne sont donc plus dignes de confiance. Cette norme est spécifiée dans les RFC 5280 et RFC 6818.
 
    CRUD
       `create, read, update, and delete`, s'applique aux opérations dans une base de données MongoDB
 
    DAT
       Dossier d'Architecture Technique
-   
+
    DC
       Data Center
 
@@ -109,7 +109,7 @@ Glossaire
    DIN
       Dossier d'INstallation
 
-   DIP 
+   DIP
       `Dissemination Information Package`
 
    DMV
@@ -157,13 +157,13 @@ Glossaire
    JVM
       `Java Virtual Machine` ; Cf. :term:`JRE`
 
-   LAN 
+   LAN
       `Local Area Network`, réseau informatique local, qui relie des ordinateurs dans une zone limitée
 
    LFC
       `LiFe Cycle`, cycle de vie
 
-   LTS 
+   LTS
       `Long-term support`, support à long terme : version spécifique d'un logiciel dont le support est assuré pour une période de temps plus longue que la normale.
 
    M2M
@@ -231,9 +231,9 @@ Glossaire
 
    SIA
       Système d'Informations Archivistique
-   
+
    SIEM
-      `Security Information and Event Management` 
+      `Security Information and Event Management`
 
    SIP
       `Submission Information Package`
@@ -247,13 +247,16 @@ Glossaire
    TLS
       `Transport Layer Security`
 
+   TNA
+      `The National Archives`, `Pronom <https://www.nationalarchives.gov.uk/PRONOM/>`_
+
    TNR
       Tests de Non-Régression
 
    TTL
       `Time To Live`, indique le temps pendant lequel une information doit être conservée, ou le temps pendant lequel une information doit être gardée en cache
 
-   UDP 
+   UDP
       `User Datagram Protocol`, protocole de datagramme utilisateur, un des principaux protocoles de télécommunication utilisés par Internet. Il fait partie de la couche transport du modèle OSI
 
    UID
@@ -262,7 +265,7 @@ Glossaire
    VITAM
       Valeurs Immatérielles Transférées aux Archives pour Mémoire
 
-   VM 
+   VM
       `Virtual Machine`
 
    WAF

@@ -7,6 +7,7 @@
 - Référentiel des Contrats de Gestion
 - Référentiel des Contextes
 - Référentiel des Profiles de Sécurité
+- Référentiel des Ontologies
 - Registre des Fonds
 - Référentiel des Services Agents
 - Référentiel des griffons
@@ -20,6 +21,9 @@ Ces opérations doivent être exécutées à partir d'un tenant dit tenant d'adm
 Il s'agit de s'assurer que pour les collections Formats, Contextes et Profils de sécurité, le tenant utilisé pour l'import soit conforme à celui configuré dans VITAM.
 En cas de différence, une erreur 401 sera retournée.
 
+# Référentiel des Ontologies
+
+Ce référentiel référence les champs utilisés dans Vitam ainsi que leur méthode d'indexation. Il est trans-tenant.
 
 # Référentiel des Formats
 
@@ -107,9 +111,9 @@ Il y a 4 paramètres dans le body :
 * **auditType** (obligatoire): avec  *originatingagency* ou *tenant* ou *dsl*
 * **objectId** (optionel): doit prendre la valeur de ce qui va être audité. Si auditType indique *tenant*, objectId doit prendre *la valeur du tenant* sur lequel on exécute la requête. Si auditType est *originatingagency*, alors objectId doit être *l'identifiant du service producteur* dont tous les objets vont être audité. Le paramètre n'est pas utilisé si auditType indique *dsl*
 * **query** (optionel): doit prendre une requête DSL au format multiple pour batch (doit contenir *$roots*, *$query* et *$threshold*)
- 
+
 Trois exemples :
- 
+
 * Audit d'existence sur le producteur dont l'identifiant est "FRAN_09905"
 
 ```JSON
@@ -119,7 +123,7 @@ Trois exemples :
   "objectId": "FRAN_09905"
 }
 ```
- 
+
 * Audit d'intégrité sur tout le tenant 9 avec cette requête lancée sur ce même tenant 9 :
 
 ```JSON
@@ -157,7 +161,7 @@ Trois exemples :
 # Audit de cohérence
 
 Il est possible de définir les requêtes pour lancer un audit de cohérence sur des unités archivistiques, objets, groupe d'objets, opération(s) ou bien sur un tenant
- 
+
 Deux exemples de requête :
 
 * Audit de cohérence d'une ou plusieurs opérations :
@@ -168,13 +172,13 @@ Deux exemples de requête :
   "$query": [
     {
       "$and": [
-        { 
-          "$in": { 
-            "#operations": [ "#id1", "#id2" ] 
-            } 
+        {
+          "$in": {
+            "#operations": [ "#id1", "#id2" ]
+            }
         },
-        { 
-          "$exists" : "Title" 
+        {
+          "$exists" : "Title"
         }
       ]
     }],
@@ -212,13 +216,13 @@ Deux exemples de requête :
 * Audit de cohérence sur un tenant (exemple : tenant 0):
 
 ```JSON
-{ 
+{
   "$query": [
-     { 
-       "$eq": 
-       { "#tenant": 0 } 
-      } 
-      ], 
-      "$projection": {} 
+     {
+       "$eq":
+       { "#tenant": 0 }
+      }
+      ],
+      "$projection": {}
 }
 ```

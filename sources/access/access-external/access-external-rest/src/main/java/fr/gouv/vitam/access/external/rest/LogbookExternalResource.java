@@ -85,10 +85,8 @@ public class LogbookExternalResource {
         LOGGER.debug("LogbookExternalResource initialized");
     }
 
-    /***** LOGBOOK OPERATION - START *****/
-
     /**
-     * GET with request in body
+     * Search for operation with a DSL request
      *
      * @param query DSL as String
      * @return Response contains the list of logbook operations
@@ -135,6 +133,8 @@ public class LogbookExternalResource {
     }
 
     /**
+     * Get a specific operation based on its id
+     *
      * @param operationId the operation id
      * @param queryDsl the query
      * @return the response with a specific HTTP status
