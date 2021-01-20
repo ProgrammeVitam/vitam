@@ -1,17 +1,22 @@
 ---
 # Installation order
 #
-#   0. confirm playbook launch
-#   1. Normalize
-#   2. Consul
-# 3. Elasticsearch Log
-# 4. Log server
-# 5. rsyslog
-# 6. Elasticsearch Data
-# 7. Mongo
-# 8. Vitam applications
+#   0. Confirm playbook launch
+#   1. Network check
+#   2. Stop Vitam timers
+#   3. Normalize
+#   4. Consul
+#   5. Elasticsearch Log
+#   6. Log server
+#   7. Syslog
+#   8. Elasticsearch Data
+#   9. Kibana Data
+#  10. Mongo
+#  11. Vitam applications
+#  12. Start Vitam timers
+#  13. IHM Demo
 
-# Confirm launching this playbook
+### CONFIRM PLAYBOOK LAUNCH ###
 - hosts: all
   any_errors_fatal: yes
   gather_facts: no
@@ -30,6 +35,10 @@
   any_errors_fatal: true
   roles:
     - checks
+
+### STOP VITAM TIMERS ###
+- name: Stop Vitam timers
+  import_playbook: internal_stop_vitam_timers.yml
 
 ### HOSTS NORMALIZATION ###
 - hosts: vitam
@@ -311,6 +320,11 @@
     password_grantedstore: "{{ grantedstores.client_external }}"
     vitam_certificate_client_type: "external"
 
+### START VITAM TIMERS ###
+- name: Start Vitam timers
+  import_playbook: internal_start_vitam_timers.yml
+
+### IHM DEMO ###
 - hosts: hosts_ihm_demo
   gather_facts: no
   any_errors_fatal: true
