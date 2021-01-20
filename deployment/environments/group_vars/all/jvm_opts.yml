@@ -52,6 +52,10 @@ vitam:
             # memory: "-Xms512m -Xmx512m"
             # gc: ""
             # java: ""
+        timer_jvm_opts:
+            # memory: "-Xms32m -Xmx128m"
+            # gc: ""
+            # java: ""
     workspace:
         jvm_opts:
             # memory: "-Xms512m -Xmx512m"
@@ -72,6 +76,10 @@ vitam:
             # memory: "-Xms512m -Xmx512m"
             # gc: ""
             # java: ""
+        timer_jvm_opts:
+            # memory: "-Xms32m -Xmx128m"
+            # gc: ""
+            # java: ""
     storageofferdefault:
         jvm_opts:
             # memory: "-Xms512m -Xmx512m"
@@ -80,6 +88,10 @@ vitam:
     functional_administration:
         jvm_opts:
             # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+        timer_jvm_opts:
+            # memory: "-Xms32m -Xmx128m"
             # gc: ""
             # java: ""
     security_internal:
