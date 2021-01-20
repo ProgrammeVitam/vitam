@@ -52,3 +52,4 @@ listMinimumRuleDuration:
     AppraisalRule: 1 year
 
 accessionRegisterSymbolicThreadPoolSize: 4
+ruleAuditThreadPoolSize: 4

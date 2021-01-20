@@ -5,3 +5,4 @@ elasticsearchTenantIndexation:
     number_of_replicas: 10
 
 accessionRegisterSymbolicThreadPoolSize: 4
+ruleAuditThreadPoolSize: 4

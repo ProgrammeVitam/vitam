@@ -1074,10 +1074,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<JsonNode> launchRuleAudit() throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> launchRuleAudit(List<Integer> tenants)
+        throws AdminManagementClientServerException, InvalidParseOperationException {
 
         VitamRequestBuilder request = post()
             .withPath(AUDIT_RULE_URI)
+            .withBody(JsonHandler.toJsonNode(tenants))
             .withJson();
 
         try (Response response = make(request)) {

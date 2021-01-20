@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.alert.AlertService;
@@ -57,7 +56,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.collections4.iterators.ArrayIterator;
-import org.bson.Document;
 import org.elasticsearch.common.util.set.Sets;
 
 import javax.ws.rs.core.Response;
@@ -229,8 +227,7 @@ public class ReferentialAuditService {
 
     private ArrayNode findDocuments(int tenant, FunctionalAdminCollections collection)
         throws InvalidParseOperationException {
-        MongoCursor<Document> currentCollection = this.functionalBackupService.getCurrentCollection(collection, tenant);
-        return this.functionalBackupService.getCollectionInJson(currentCollection);
+        return this.functionalBackupService.getCollectionInJson(collection, tenant);
     }
 
     private List<String> diff(ArrayNode source, ArrayNode target) {

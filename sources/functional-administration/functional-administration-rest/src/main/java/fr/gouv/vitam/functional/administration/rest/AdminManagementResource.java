@@ -396,7 +396,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
 
         RulesManagerFileImpl rulesManagerFileImpl =
-            new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
+            new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService,
+                configuration.getRuleAuditThreadPoolSize());
 
         try {
 
@@ -476,7 +477,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService,
+                    this.configuration.getRuleAuditThreadPoolSize());
 
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(CREATED).entity(CREATED.getReasonPhrase()).build();
@@ -515,7 +517,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         FileRules fileRules;
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService,
+                    this.configuration.getRuleAuditThreadPoolSize());
 
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
@@ -565,7 +568,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         RequestResponseOK<FileRules> filerulesList;
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService,
+                    this.configuration.getRuleAuditThreadPoolSize());
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
             return Response.status(OK)
@@ -811,19 +815,26 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response launchRuleAudit() {
-        RulesManagerFileImpl rulesManagerFileImpl =
-            new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService);
-        int tenant = VitamThreadUtils.getVitamSession().getTenantId();
-        try {
-            rulesManagerFileImpl.checkRuleConformity(rulesManagerFileImpl.getRuleFromCollection(tenant),
-                rulesManagerFileImpl.getRuleFromOffer(tenant), tenant);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+    public Response launchRuleAudit(List<Integer> tenants) {
+        Response response = checkMultiTenantRequest(tenants);
+        if (response != null) {
+            return response;
         }
-        return Response.status(ACCEPTED).entity(new RequestResponseOK<>()
-            .setHttpCode(ACCEPTED.getStatusCode())).build();
+
+        try {
+            RulesManagerFileImpl rulesManagerFileImpl =
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.vitamRuleService,
+                    this.configuration.getRuleAuditThreadPoolSize());
+
+            rulesManagerFileImpl.checkRuleConformity(tenants);
+
+            return Response.status(OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
+                .build();
+        }
     }
 
     /**

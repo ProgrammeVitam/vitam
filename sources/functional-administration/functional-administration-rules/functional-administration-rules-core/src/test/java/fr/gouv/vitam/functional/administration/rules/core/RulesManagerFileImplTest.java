@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.flipkart.zjsonpatch.JsonDiff;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -55,9 +56,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
+import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -88,6 +91,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -116,8 +120,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
 import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -128,10 +134,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -143,6 +151,7 @@ import static org.mockito.Mockito.when;
 public class RulesManagerFileImplTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
+    public static final int RULE_AUDIT_THREAD_POOL_SIZE = 4;
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
@@ -230,6 +239,9 @@ public class RulesManagerFileImplTest {
 
     public final ExpectedException exception = ExpectedException.none();
 
+    @Mock
+    private RestoreBackupService restoreBackupService;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
@@ -277,8 +289,9 @@ public class RulesManagerFileImplTest {
                 metaDataClientFactory,
                 processingManagementClientFactory,
                 workspaceClientFactory,
-                vitamRuleService
-            );
+                vitamRuleService,
+                RULE_AUDIT_THREAD_POOL_SIZE,
+                restoreBackupService);
         FunctionalAdminCollectionsTestUtils.afterTestClass(false);
         FunctionalAdminCollectionsTestUtils.resetVitamSequenceCounter();
     }
@@ -1324,6 +1337,102 @@ public class RulesManagerFileImplTest {
 
         assertTrue(
             rulesFileManager.checkRuleConformity(JsonHandler.createArrayNode(), JsonHandler.createArrayNode(), 0));
+    }
+
+    @Test
+    public void testCheckRuleConformityWithEmptyDbThenOK() throws Exception {
+
+        // Given : empty db
+        List<Integer> tenants = Arrays.asList(0, 1, 2);
+        doReturn(Optional.empty()).when(restoreBackupService)
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
+        doReturn(JsonHandler.createArrayNode())
+            .when(functionalBackupService).getCollectionInJson(eq(RULES), anyInt());
+
+        // Whe / then
+        assertThatCode(() -> rulesFileManager.checkRuleConformity(tenants))
+            .doesNotThrowAnyException();
+
+        verify(restoreBackupService, times(3))
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
+        verify(functionalBackupService, times(3)).getCollectionInJson(any(), anyInt());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckRuleConformityThenOK() throws Exception {
+
+        // Given : empty db
+        List<Integer> tenants = Arrays.asList(0, 1, 2);
+
+        doAnswer((args) -> {
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Document doc = new Document();
+            doc.put("_id", "doc" + tenantId);
+            CollectionBackupModel collectionBackupModel = new CollectionBackupModel();
+            collectionBackupModel.setDocuments(Collections.singletonList(doc));
+            return Optional.of(collectionBackupModel);
+        }).when(restoreBackupService)
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
+
+        doAnswer(
+            (args) -> {
+                Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+                assertThat(tenantId).isEqualTo(args.getArgument(1));
+                return JsonHandler.createArrayNode()
+                    .add(JsonHandler.createObjectNode().put("_id", "doc" + tenantId));
+            }
+        )
+            .when(functionalBackupService).getCollectionInJson(eq(RULES), anyInt());
+
+        // When / then
+        assertThatCode(() -> rulesFileManager.checkRuleConformity(tenants))
+            .doesNotThrowAnyException();
+
+        verify(restoreBackupService, times(3))
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
+        verify(functionalBackupService, times(3)).getCollectionInJson(any(), anyInt());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckRuleConformityWithMismatchThenOK() throws Exception {
+
+        // Given :
+        List<Integer> tenants = Arrays.asList(0, 1, 2);
+
+        doAnswer((args) -> {
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+            // Tenant 0 is empty (mismatch)
+            if (tenantId == 0) {
+                return Optional.empty();
+            }
+
+            Document doc = new Document();
+            doc.put("_id", "doc" + tenantId);
+            CollectionBackupModel collectionBackupModel = new CollectionBackupModel();
+            collectionBackupModel.setDocuments(Collections.singletonList(doc));
+            return Optional.of(collectionBackupModel);
+        }).when(restoreBackupService)
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
+
+        doAnswer(
+            (args) -> {
+                Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+                assertThat(tenantId).isEqualTo(args.getArgument(1));
+                return JsonHandler.createArrayNode()
+                    .add(JsonHandler.createObjectNode().put("_id", "doc" + tenantId));
+            }
+        )
+            .when(functionalBackupService).getCollectionInJson(eq(RULES), anyInt());
+
+        assertThatThrownBy(() -> rulesFileManager.checkRuleConformity(tenants))
+            .isInstanceOf(ReferentialException.class);
+
+        verify(restoreBackupService, times(3))
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
+        verify(functionalBackupService, times(3)).getCollectionInJson(any(), anyInt());
     }
 
 }

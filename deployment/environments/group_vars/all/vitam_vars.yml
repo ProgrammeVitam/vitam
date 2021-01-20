@@ -243,6 +243,8 @@ vitam:
         access_total_size_cap: "14GB" # total acceptable size
         # Number of AccessionRegisterSymbolic creation threads that can be run in parallel.
         accessionRegisterSymbolicThreadPoolSize: 16
+        # Number of rule audit threads that can be run in parallel.
+        ruleAuditThreadPoolSize: 16
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"

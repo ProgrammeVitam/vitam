@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
@@ -137,6 +138,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -189,9 +193,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private final FunctionalBackupService backupService;
     private final VitamRuleService vitamRuleService;
     private final LogbookRuleImportManager logbookRuleImportManager;
+    private final int ruleAuditThreadPoolSize;
+    private final RestoreBackupService restoreBackupService;
 
     public RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
-        VitamRuleService vitamRuleService) {
+        VitamRuleService vitamRuleService, int ruleAuditThreadPoolSize) {
         backupService = new FunctionalBackupService(vitamCounterService);
         this.mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
@@ -200,6 +206,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
         this.vitamRuleService = vitamRuleService;
         this.logbookRuleImportManager = new LogbookRuleImportManager(LogbookOperationsClientFactory.getInstance());
+        this.ruleAuditThreadPoolSize = ruleAuditThreadPoolSize;
+        this.restoreBackupService = new RestoreBackupServiceImpl();
     }
 
     @VisibleForTesting
@@ -209,7 +217,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         MetaDataClientFactory metaDataClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        VitamRuleService vitamRuleService) {
+        VitamRuleService vitamRuleService, int ruleAuditThreadPoolSize,
+        RestoreBackupService restoreBackupService) {
         this.mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         this.metaDataClientFactory = metaDataClientFactory;
@@ -218,6 +227,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         this.backupService = backupService;
         this.vitamRuleService = vitamRuleService;
         this.logbookRuleImportManager = new LogbookRuleImportManager(logbookOperationsClientFactory);
+        this.ruleAuditThreadPoolSize = ruleAuditThreadPoolSize;
+        this.restoreBackupService = restoreBackupService;
     }
 
     @Override
@@ -1024,9 +1035,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @return ArrayNode
      * @throws InvalidParseOperationException
      */
-    public ArrayNode getRuleFromCollection(int tenant) throws InvalidParseOperationException {
-        return backupService
-            .getCollectionInJson(backupService.getCurrentCollection(RULES, tenant));
+    private ArrayNode getRuleFromCollection(int tenant) throws InvalidParseOperationException {
+        return backupService.getCollectionInJson(RULES, tenant);
     }
 
     /**
@@ -1035,11 +1045,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param tenant
      * @return ArrayNode
      */
-    public ArrayNode getRuleFromOffer(int tenant) {
+    private ArrayNode getRuleFromOffer(int tenant) {
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
-        RestoreBackupService restoreBackupService = new RestoreBackupServiceImpl();
         Optional<CollectionBackupModel> collectionBackup =
             restoreBackupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
         ArrayNode arrayNode = JsonHandler.createArrayNode();
@@ -1064,7 +1073,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param tenant
      * @return true if rule conformity, false if not
      */
-    public boolean checkRuleConformity(ArrayNode array1, ArrayNode array2, int tenant) {
+    boolean checkRuleConformity(ArrayNode array1, ArrayNode array2, int tenant) {
 
         if (!array1.toString().equals(array2.toString())) {
             JsonNode patch = JsonDiff.asJson(array1, array2);
@@ -1074,5 +1083,55 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
 
         return true;
+    }
+
+    public void checkRuleConformity(List<Integer> tenants) throws ReferentialException {
+
+        int threadPoolSize = Math.min(this.ruleAuditThreadPoolSize, tenants.size());
+        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
+
+        try {
+            List<CompletableFuture<Boolean>> completableFutures = new ArrayList<>();
+
+            for (Integer tenantId : tenants) {
+                CompletableFuture<Boolean> completableFuture =
+                    CompletableFuture.supplyAsync(
+                        () -> {
+                            Thread.currentThread().setName("CheckRuleConformity-" + tenantId);
+                            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                            try {
+                                return checkRuleConformity(getRuleFromCollection(tenantId),
+                                    getRuleFromOffer(tenantId), tenantId);
+                            } catch (Exception e) {
+                                throw new RuntimeException(
+                                    "An error occurred during rule audit for tenant " + tenantId, e);
+                            }
+                        }, executorService);
+                completableFutures.add(completableFuture);
+            }
+
+            boolean allTenantsSucceeded = true;
+            for (CompletableFuture<Boolean> completableFuture : completableFutures) {
+                try {
+                    Boolean success = completableFuture.get();
+                    if (!success) {
+                        allTenantsSucceeded = false;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new ReferentialException("Rule audit interrupted", e);
+                } catch (ExecutionException e) {
+                    LOGGER.error("Rule audit operation failed", e);
+                    allTenantsSucceeded = false;
+                }
+            }
+
+            if (!allTenantsSucceeded) {
+                throw new ReferentialException("One or more tenants failed rule audit");
+            }
+
+        } finally {
+            executorService.shutdown();
+        }
     }
 }

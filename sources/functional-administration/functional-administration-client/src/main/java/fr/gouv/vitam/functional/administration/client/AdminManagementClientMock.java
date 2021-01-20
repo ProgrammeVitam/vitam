@@ -484,8 +484,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse<JsonNode> launchRuleAudit() throws AdminManagementClientServerException {
-        return new RequestResponseOK();
+    public RequestResponse<JsonNode> launchRuleAudit(List<Integer> tenants) {
+        throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override

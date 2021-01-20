@@ -86,6 +86,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -804,13 +805,13 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void launchRuleAuditWithCorrectJsonReturnAccepted()
-        throws ReferentialException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED)
             .build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse<JsonNode> resp = client.launchRuleAudit();
+            RequestResponse<JsonNode> resp = client.launchRuleAudit(Arrays.asList(0, 1));
             assertEquals(resp.getStatus(), Status.ACCEPTED.getStatusCode());
         }
     }
