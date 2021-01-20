@@ -1,0 +1,46 @@
+---
+
+- hosts: hosts_functional_administration
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - stop_vitam_timers
+  vars:
+    list_timers: ["vitam-create-accession-register-symbolic","vitam-rule-management-audit","vitam-functional-administration-reconstruction","vitam-functional-administration-accession-register-reconstruction"]
+    vitam_component: "{{ vitam.functional_administration.vitam_component }}"
+
+- hosts: hosts_metadata
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - stop_vitam_timers
+  vars:
+    list_timers: ["vitam-metadata-reconstruction","vitam-metadata-store-graph","vitam-metadata-computed-inherited-rules","vitam-metadata-purge-dip","vitam-metadata-purge-transfers-SIP","vitam-metadata-audit-mongodb-es"]
+    vitam_component: "{{ vitam.metadata.vitam_component }}"
+
+- hosts: hosts_storage_engine
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - stop_vitam_timers
+  vars:
+    list_timers: ["vitam-storage-accesslog-backup","vitam-storage-log-backup","vitam-storage-log-traceability"]
+    vitam_component: "{{ vitam.storageengine.vitam_component }}"
+
+- hosts: hosts_storage_offer_default
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - stop_vitam_timers
+  vars:
+    list_timers: ["vitam-offer-log-compaction"]
+    vitam_component: "{{ vitam.storageofferdefault.vitam_component }}"
+
+- hosts: hosts_logbook
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - stop_vitam_timers
+  vars:
+    list_timers: ["vitam-logbook-reconstruction","vitam-traceability-lfc-objectgroup","vitam-traceability-lfc-unit","vitam-traceability-operations","vitam-traceability-audit"]
+    vitam_component: "{{ vitam.logbook.vitam_component }}"
