@@ -2,11 +2,13 @@
 - name: Populate service facts
   service_facts:
 
-# Logbook timers
-- name: Make sure timers are stopped for {{ vitam_component }}
+# Stop & disable timers
+- name: Make sure timers are stopped & disabled for {{ vitam_component }}
   systemd:
     name: "{{ item }}.timer"
     state: "stopped"
+    enabled: "no"
+  when: item + '.service' in ansible_facts.services
   loop: "{{ list_timers }}"
 
 # Wait for the service to be stopped
