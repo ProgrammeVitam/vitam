@@ -233,6 +233,13 @@
     mode: 0644
   notify: create systemd tmpfiles
 
+- name: force user on file elasticsearch-keystore
+  file:
+    path: "{{ elasticsearch_conf_dir }}/elasticsearch.keystore"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: 0660
+
 #### Consul service declaration ####
 
 - name: Ensure consul config dir is OK
