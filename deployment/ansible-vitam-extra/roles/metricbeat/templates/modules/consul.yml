@@ -4,5 +4,5 @@
     - agent
   enabled: true
   period: 10s
-  hosts: ["{{ hostvars[inventory_hostname][consul.network] }}:8500"]
+  hosts: ["{{ ip_admin }}:8500"]
 {% endif %}
