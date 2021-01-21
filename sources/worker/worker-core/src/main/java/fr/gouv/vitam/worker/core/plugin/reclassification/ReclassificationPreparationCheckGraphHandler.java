@@ -172,7 +172,7 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
             return result;
 
         } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException
-            | VitamDBException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+            | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load unit graph information", e);
         }
     }

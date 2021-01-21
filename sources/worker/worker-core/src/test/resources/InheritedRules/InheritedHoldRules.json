@@ -1,0 +1,45 @@
+{
+  "AppraisalRule": {
+    "Rules": [],
+    "Properties": []
+  },
+  "HoldRule": {
+    "Rules": [
+      {
+        "UnitId": "unit4",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "unit4"
+          ]
+        ],
+        "Rule": "HOL-00001",
+        "StartDate": "2000-01-01",
+        "EndDate": "2001-01-01"
+      },
+      {
+        "UnitId": "unit4",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "unit4"
+          ]
+        ],
+        "Rule": "HOL-00002",
+        "EndDate": "2051-01-01",
+        "HoldEndDate": "2051-01-01"
+      },
+      {
+        "UnitId": "unit4",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "unit4"
+          ]
+        ],
+        "Rule": "HOL-00004"
+      }
+    ],
+    "Properties": []
+  }
+}

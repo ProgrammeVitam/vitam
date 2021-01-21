@@ -28,6 +28,8 @@ package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -36,19 +38,27 @@ import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
+import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.UnitGraphInfo;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,7 +135,7 @@ public class UnitGraphInfoLoader {
      * @param unitIds the units ids
      */
     public Map<String, UnitGraphInfo> selectAllUnitGraphByIds(MetaDataClient metaDataClient, Set<String> unitIds)
-        throws VitamDBException, InvalidParseOperationException, MetaDataExecutionException,
+        throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataClientServerException, InvalidCreateOperationException {
 
         // Result map
@@ -165,7 +175,7 @@ public class UnitGraphInfoLoader {
 
     private List<UnitGraphInfo> loadBulkUnitGraph(MetaDataClient metaDataClient, Collection<String> bulkIds)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataClientServerException, VitamDBException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), bulkIds.toArray(new String[0])));
@@ -182,5 +192,44 @@ public class UnitGraphInfoLoader {
 
         UnitGraphInfo[] unitGraphInfo = JsonHandler.getFromJsonNode(resultJson, UnitGraphInfo[].class);
         return Arrays.asList(unitGraphInfo);
+    }
+
+    public Map<String, InheritedRuleCategoryResponseModel> loadInheritedHoldRules(MetaDataClient metaDataClient,
+        Set<String> unitsIdToRearrange)
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataDocumentSizeException,
+        MetaDataExecutionException, MetaDataClientServerException {
+
+        // Result map
+        Map<String, InheritedRuleCategoryResponseModel> result = new HashMap<>();
+
+        // Load units by bulk (ES $in query size is limited)
+        Iterator<List<String>> idIterator =
+            Iterators.partition(unitsIdToRearrange.iterator(), MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE);
+
+        while (idIterator.hasNext()) {
+
+            List<String> bulkIds = idIterator.next();
+
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), bulkIds.toArray(new String[0])));
+            select.addUsedProjection(VitamFieldsHelper.id());
+
+            JsonNode resultJson = metaDataClient.selectUnitsWithInheritedRules(select.getFinalSelect());
+
+            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(resultJson);
+            for (JsonNode unitJson : requestResponseOK.getResults()) {
+                String unitId = unitJson.get(VitamFieldsHelper.id()).asText();
+
+                JsonNode inheritedRules = unitJson.get(MetadataRuleService.INHERITED_RULES);
+                UnitInheritedRulesResponseModel unitInheritedRulesResponseModel =
+                    JsonHandler.getFromJsonNode(inheritedRules, UnitInheritedRulesResponseModel.class);
+                InheritedRuleCategoryResponseModel inheritedHoldRules =
+                    unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_HOLD);
+
+                result.put(unitId, inheritedHoldRules);
+            }
+        }
+
+        return result;
     }
 }

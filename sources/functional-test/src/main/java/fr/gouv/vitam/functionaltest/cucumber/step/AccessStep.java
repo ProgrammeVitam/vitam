@@ -95,6 +95,8 @@ import java.util.regex.Pattern;
 import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -499,6 +501,7 @@ public class AccessStep {
     public void i_use_the_following_query(String query) throws Throwable {
         String queryTmp = query;
         queryTmp = replaceOperationIds(queryTmp);
+        queryTmp = transformUnitTitleToGuid(queryTmp);
         world.setQuery(queryTmp);
     }
 
@@ -1355,6 +1358,32 @@ public class AccessStep {
 
         if (exception.get() != null) {
             fail("Test failed with error", exception.get());
+        }
+    }
+
+    @When("^je lance l'opération de reclassification$")
+    public  void reclassification() throws Exception {
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+        String query = world.getQuery();
+        JsonNode queryString = JsonHandler.getFromString(query);
+        final RequestResponse<JsonNode> requestResponse =
+            world.getAccessClient().reclassification(vitamContext, queryString);
+
+        assertThat(requestResponse.isOk()).isTrue();
+
+        final String operationId = requestResponse.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("reclassification processing not finished. Timeout exceeded.");
         }
     }
 
