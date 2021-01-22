@@ -239,6 +239,7 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: 0660
+  ignore_errors: yes
 
 #### Consul service declaration ####
 
