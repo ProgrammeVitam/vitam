@@ -246,6 +246,7 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: 0660
+  ignore_errors: yes
 
 # KWA Note : another file should be added here :
 # /usr/lib/sysctl.d/elasticsearch.conf
