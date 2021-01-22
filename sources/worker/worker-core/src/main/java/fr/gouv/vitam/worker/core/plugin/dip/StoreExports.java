@@ -48,8 +48,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 
-import java.util.Collections;
-
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 
 /**
@@ -131,18 +129,20 @@ public class StoreExports extends ActionHandler {
 
         LOGGER.debug("Try to compress into workspace...");
         try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
-            // Ensure target folder exists
-            workspaceClient.createContainer(container);
-            workspaceClient.createFolder(container, outputDir);
-            workspaceClient.createFolder(handler.getContainerName(), CONTENT);
+            if (workspaceClient.isExistingObject(handler.getContainerName(), SEDA_FILE)) {
+                // Ensure target folder exists
+                workspaceClient.createContainer(container);
+                workspaceClient.createFolder(container, outputDir);
+                workspaceClient.createFolder(handler.getContainerName(), CONTENT);
 
-            // compress
-            CompressInformation compressInformation = new CompressInformation();
-            compressInformation.getFiles().add(SEDA_FILE);
-            compressInformation.getFiles().add(CONTENT);
-            compressInformation.setOutputFile(outputDir + "/" + outputFile);
-            compressInformation.setOutputContainer(container);
-            workspaceClient.compress(handler.getContainerName(), compressInformation);
+                // compress
+                CompressInformation compressInformation = new CompressInformation();
+                compressInformation.getFiles().add(SEDA_FILE);
+                compressInformation.getFiles().add(CONTENT);
+                compressInformation.setOutputFile(outputDir + "/" + outputFile);
+                compressInformation.setOutputContainer(container);
+                workspaceClient.compress(handler.getContainerName(), compressInformation);
+            }
         }
     }
 
