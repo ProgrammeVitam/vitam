@@ -88,6 +88,8 @@ public class StoreExportsTest {
         StorageClient storageClient = mock(StorageClient.class);
         doReturn(storageClient).when(storageClientFactory).getClient();
 
+        doReturn(true).when(workspaceClient).isExistingObject(requestId, SEDA_FILE);
+
         StoreExports storeExports = new StoreExports(storageClientFactory);
 
         // When
@@ -128,6 +130,8 @@ public class StoreExportsTest {
         StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
         StorageClient storageClient = mock(StorageClient.class);
         doReturn(storageClient).when(storageClientFactory).getClient();
+
+        doReturn(true).when(workspaceClient).isExistingObject(requestId, SEDA_FILE);
 
         StoreExports storeExports = new StoreExports(storageClientFactory);
 
