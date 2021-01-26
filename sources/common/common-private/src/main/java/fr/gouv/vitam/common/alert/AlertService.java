@@ -45,4 +45,9 @@ public interface AlertService {
      */
     void createAlert(String message);
 
+    /**
+     / Create an alert with the specified message, level au cause
+     */
+    void createAlert(VitamLogLevel level, String message, Throwable cause);
+
 }

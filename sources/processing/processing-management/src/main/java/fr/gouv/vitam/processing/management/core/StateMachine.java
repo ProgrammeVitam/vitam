@@ -504,6 +504,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.processWorkflow.setState(ProcessState.PAUSE);
         this.currentStep.setPauseOrCancelAction(ACTION_PAUSE);
 
+        alertService.createAlert(VitamLogLevel.WARN,
+            String.format("[StateMachine] Process %s (%s) failed. Operation State: %s, Status: %s",
+                processWorkflow.getOperationId(), processWorkflow.getLogbookTypeProcess(), processWorkflow.getState(),
+                processWorkflow.getStatus()
+            ), throwable);
+
         try {
             this.tryPersistProcessWorkflow();
         } catch (VitamRuntimeException e) {

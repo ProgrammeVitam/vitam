@@ -44,18 +44,25 @@ public class AlertServiceImpl implements AlertService {
         super();
     }
 
-
     public AlertServiceImpl(VitamLogger lOGGER) {
         super();
         LOGGER = lOGGER;
     }
 
-
-
     @Override
     public void createAlert(VitamLogLevel level, String message) {
         try {
             LOGGER.log(level, message);
+        } finally {
+            VitamCommonMetrics.ALERT_SERVICE_COUNTER
+                .labels(level.name()).inc();
+        }
+    }
+
+    @Override
+    public void createAlert(VitamLogLevel level, String message, Throwable cause) {
+        try {
+            LOGGER.log(level, message, cause);
         } finally {
             VitamCommonMetrics.ALERT_SERVICE_COUNTER
                 .labels(level.name()).inc();
