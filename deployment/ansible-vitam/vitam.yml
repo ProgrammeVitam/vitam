@@ -76,6 +76,13 @@
   roles:
     - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled == true )" }
 
+### CEREBRO INSTALLATION ###
+- hosts: hosts_cerebro
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - role: cerebro
+
 ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts_elasticsearch_log
   any_errors_fatal: true
@@ -118,12 +125,6 @@
     - init_es_cluster_index_template
   vars:
     composant: "{{ elasticsearch.data }}"
-
-- hosts: hosts_cerebro
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - role: cerebro
 
 - hosts: hosts_kibana_data
   gather_facts: no
