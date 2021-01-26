@@ -346,6 +346,9 @@ public final class LocalDateUtil {
 
         return LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
     }
+    public static long currentTimeMillis() {
+        return clock.millis();
+    }
 
     @VisibleForTesting
     public static Clock getClock() {
@@ -361,4 +364,5 @@ public final class LocalDateUtil {
     public static void resetClock() {
         LocalDateUtil.clock = Clock.systemUTC();
     }
+
 }

@@ -32,7 +32,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -62,7 +61,6 @@ vitam:
         reconstruction:
         consul_check_business: 30 # value in seconds
         consul_admin_check: 30 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES

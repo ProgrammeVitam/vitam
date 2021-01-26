@@ -26,17 +26,17 @@
  */
 package fr.gouv.vitam.common.security.filter;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.security.codec.URLCodec;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Authorization Filter Helper
@@ -57,7 +57,7 @@ public class AuthorizationFilterHelper {
     public static Map<String, String> getAuthorizationHeaders(String httpMethod, String url) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, httpMethod, url);
         if (!Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
-            final long currentTime = System.currentTimeMillis() / 1000;
+            final long currentTime = LocalDateUtil.currentTimeMillis() / 1000;
             return getAuthorizationHeaders(httpMethod, url, Long.toString(currentTime), VitamConfiguration.getSecret(),
                 VitamConfiguration.getSecurityDigestType());
         }

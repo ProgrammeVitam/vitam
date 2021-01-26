@@ -277,9 +277,17 @@ public class VitamConfigurationParameters {
      */
     private String defaultTimestampDigestType;
     /**
-     * Acceptable Request Time elaps
+     * Acceptable Request Time delay (in seconds).
      */
-    private Long acceptableRequestTime;
+    private Integer acceptableRequestTime;
+    /**
+     * Critical Request Time delay (in seconds).
+     */
+    private Integer criticalRequestTime;
+    /**
+     * request time alert throttling Delay
+     */
+    private Integer requestTimeAlertThrottlingDelay;
     /**
      * MongoDB client configuration
      */
@@ -760,15 +768,34 @@ public class VitamConfigurationParameters {
     /**
      * Getter for acceptableRequestTime;
      */
-    public Long getAcceptableRequestTime() {
+    public Integer getAcceptableRequestTime() {
         return acceptableRequestTime;
     }
 
     /**
      * Setter for acceptableRequestTime;
      */
-    public void setAcceptableRequestTime(Long acceptableRequestTime) {
+    public void setAcceptableRequestTime(Integer acceptableRequestTime) {
         this.acceptableRequestTime = acceptableRequestTime;
+    }
+
+    public Integer getCriticalRequestTime() {
+        return criticalRequestTime;
+    }
+
+    public VitamConfigurationParameters setCriticalRequestTime(Integer criticalRequestTime) {
+        this.criticalRequestTime = criticalRequestTime;
+        return this;
+    }
+
+    public Integer getRequestTimeAlertThrottlingDelay() {
+        return requestTimeAlertThrottlingDelay;
+    }
+
+    public VitamConfigurationParameters setRequestTimeAlertThrottlingDelay(
+        Integer requestTimeAlertThrottlingDelay) {
+        this.requestTimeAlertThrottlingDelay = requestTimeAlertThrottlingDelay;
+        return this;
     }
 
     /**

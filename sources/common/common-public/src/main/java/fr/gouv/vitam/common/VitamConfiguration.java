@@ -271,9 +271,17 @@ public class VitamConfiguration {
      */
     private static DigestType defaultTimestampDigestType = DigestType.SHA512;
     /**
-     * Acceptable Request Time elaps
+     * Acceptable Request Time delay (in seconds).
      */
-    private static Long acceptableRequestTime = 10L;
+    private static int acceptableRequestTime = 10;
+    /**
+     * Critical Request Time delay (in seconds).
+     */
+    private static int criticalRequestTime = 60;
+    /**
+     * request time alert throttling Delay
+     */
+    private static int requestTimeAlertThrottlingDelay = 60;
     /**
      * MongoDB client configuration
      */
@@ -916,6 +924,12 @@ public class VitamConfiguration {
         if (null != parameters.getAcceptableRequestTime()) {
             setAcceptableRequestTime(parameters.getAcceptableRequestTime());
         }
+        if (null != parameters.getCriticalRequestTime()) {
+            setCriticalRequestTime(parameters.getCriticalRequestTime());
+        }
+        if (null != parameters.getRequestTimeAlertThrottlingDelay()) {
+            setRequestTimeAlertThrottlingDelay(parameters.getRequestTimeAlertThrottlingDelay());
+        }
         if (null != parameters.getThreadsAllowedToBlockForConnectionMultipliers()) {
             setThreadsAllowedToBlockForConnectionMultipliers(
                 parameters.getThreadsAllowedToBlockForConnectionMultipliers());
@@ -1342,8 +1356,19 @@ public class VitamConfiguration {
     /**
      * @return the acceptableRequestTime
      */
-    public static Long getAcceptableRequestTime() {
+    public static int getAcceptableRequestTime() {
         return acceptableRequestTime;
+    }
+
+    /**
+     * @return the criticalRequestTime
+     */
+    public static int getCriticalRequestTime() {
+        return criticalRequestTime;
+    }
+
+    public static int getRequestTimeAlertThrottlingDelay() {
+        return requestTimeAlertThrottlingDelay;
     }
 
     /**
@@ -1774,8 +1799,16 @@ public class VitamConfiguration {
      *
      * @param acceptableRequestTime
      */
-    private static void setAcceptableRequestTime(Long acceptableRequestTime) {
+    private static void setAcceptableRequestTime(int acceptableRequestTime) {
         VitamConfiguration.acceptableRequestTime = acceptableRequestTime;
+    }
+
+    private static void setCriticalRequestTime(int criticalRequestTime) {
+        VitamConfiguration.criticalRequestTime = criticalRequestTime;
+    }
+
+    public static void setRequestTimeAlertThrottlingDelay(int requestTimeAlertThrottlingDelay) {
+        VitamConfiguration.requestTimeAlertThrottlingDelay = requestTimeAlertThrottlingDelay;
     }
 
     /**
