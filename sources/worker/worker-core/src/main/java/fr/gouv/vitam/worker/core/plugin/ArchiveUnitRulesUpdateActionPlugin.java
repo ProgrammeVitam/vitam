@@ -1,5 +1,5 @@
-/**
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -44,6 +43,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -53,7 +53,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.ArchiveUnitUpdateUtils;
+import fr.gouv.vitam.worker.common.utils.ArchiveUnitLifecycleUpdateUtils;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import java.util.ArrayList;
@@ -68,7 +68,8 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveUnitRulesUpdateActionPlugin.class);
 
-    public static final String UPDATE_UNIT_RULES_TASK_ID = "UPDATE_UNIT_RULES";
+    private static final String UPDATE_UNIT_RULES_TASK_ID = "UPDATE_UNIT_RULES";
+    private static final String RULE_TYPE = "RuleType";
 
     private static final String RESULTS = "$results";
     private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
@@ -76,7 +77,7 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
     private static final String FIELDS_KEY = "$fields";
     private static final String RULES_KEY = "Rules";
 
-    private final ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
+    private final ArchiveUnitLifecycleUpdateUtils archiveUnitLifecycleUpdateUtils = new ArchiveUnitLifecycleUpdateUtils();
 
     private final MetaDataClientFactory metaDataClientFactory;
 
@@ -117,45 +118,42 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
 
             UpdateMultiQuery query = new UpdateMultiQuery();
 
-            Map<String, List<JsonNode>> updatedRulesByType = new HashMap<String, List<JsonNode>>();
+            Map<String, List<JsonNode>> updatedRulesByType = new HashMap<>();
 
             final JsonNode rulesForAU = handler.getJsonFromWorkspace(
                 UpdateWorkflowConstants.UNITS_FOLDER + "/" + params.getObjectName());
-            if (rulesForAU.isArray() && rulesForAU.size() > 0) {
-                for (final JsonNode rule : rulesForAU) {
-                    if (!updatedRulesByType.containsKey(rule.get("RuleType").asText())) {
-                        List<JsonNode> listRulesByType = new ArrayList<JsonNode>();
-                        listRulesByType.add(rule);
-                        updatedRulesByType.put(rule.get("RuleType").asText(), listRulesByType);
-                    } else {
-                        List<JsonNode> listRulesByType = updatedRulesByType.get(rule.get("RuleType").asText());
-                        listRulesByType.add(rule);
-                        updatedRulesByType.put(rule.get("RuleType").asText(), listRulesByType);
-                    }
+
+            for (final JsonNode rule : rulesForAU) {
+                if (!updatedRulesByType.containsKey(rule.get(RULE_TYPE).asText())) {
+                    List<JsonNode> listRulesByType = new ArrayList<>();
+                    listRulesByType.add(rule);
+                    updatedRulesByType.put(rule.get(RULE_TYPE).asText(), listRulesByType);
+                } else {
+                    List<JsonNode> listRulesByType = updatedRulesByType.get(rule.get(RULE_TYPE).asText());
+                    listRulesByType.add(rule);
+                    updatedRulesByType.put(rule.get(RULE_TYPE).asText(), listRulesByType);
                 }
-                int nbUpdates = 0;
-                for (String key : updatedRulesByType.keySet()) {
-                    List<JsonNode> listRulesUpdatedByType = updatedRulesByType.get(key);
-                    JsonNode categoryNode = managementNode.get(key);
-                    if (categoryNode != null && categoryNode.get(RULES_KEY) != null) {
-                        if (archiveUnitUpdateUtils.updateCategoryRules((ArrayNode) categoryNode.get(RULES_KEY),
-                            listRulesUpdatedByType, query,
-                            key)) {
-                            nbUpdates++;
-                        }
-                    }
+            }
+            int nbUpdates = 0;
+            for (Map.Entry<String, List<JsonNode>> entry : updatedRulesByType.entrySet()) {
+                JsonNode categoryNode = managementNode.get(entry.getKey());
+                if (categoryNode != null && categoryNode.get(RULES_KEY) != null
+                    && ArchiveUnitUpdateUtils.updateCategoryRules(categoryNode.get(RULES_KEY),
+                    entry.getValue(), query,
+                    entry.getKey())) {
+                    nbUpdates++;
                 }
-                // if at least one action is set
-                if (nbUpdates > 0) {
-                    query
-                        .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
-                    JsonNode updateResultJson = metaDataClient.updateUnitById(query.getFinalUpdate(), archiveUnitId);
-                    String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
-                    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
-                        handler.getLifecyclesClient());
-                    archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
-                        handler.getLifecyclesClient());
-                }
+            }
+            // if at least one action is set
+            if (nbUpdates > 0) {
+                query
+                    .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
+                JsonNode updateResultJson = metaDataClient.updateUnitById(query.getFinalUpdate(), archiveUnitId);
+                String diffMessage = ArchiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
+                archiveUnitLifecycleUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
+                    handler.getLifecyclesClient());
+                archiveUnitLifecycleUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
+                    handler.getLifecyclesClient());
             }
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
