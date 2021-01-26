@@ -78,14 +78,17 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -239,9 +242,7 @@ public class BatchReportServiceImpl {
     public void exportUnitsToInvalidate(String processId, int tenantId, ReportExportRequest reportExportRequest)
         throws IOException, ContentAddressableStorageServerException {
 
-        File file =
-            Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), reportExportRequest.getFilename()))
-                .toFile();
+        File file = createTemporaryFile(processId, reportExportRequest.getFilename());
 
         try {
             try (
@@ -259,7 +260,7 @@ public class BatchReportServiceImpl {
             storeFileToWorkspace(processId, reportExportRequest.getFilename(), file);
 
         } finally {
-            deleteQuietly(file);
+            deleteQuietly(file.getParentFile());
         }
     }
 
@@ -340,7 +341,7 @@ public class BatchReportServiceImpl {
         checkIfPresent("objectType", evidenceAuditEntry.getObjectType());
 
         return new EvidenceAuditObjectModel(processId, tenantId,
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditEntry);
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditEntry);
     }
 
     private void checkIfPresent(String name, Object value) throws BatchReportException {
@@ -407,8 +408,7 @@ public class BatchReportServiceImpl {
         reportSummary.setExtendedInfo(getExtendedInfo(reportInfo));
         reportSummary.setVitamResults(getReportResults(reportInfo));
 
-        File tempReport =
-            File.createTempFile(REPORT_JSONL, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+        File tempReport = createTemporaryFile(processId, REPORT_JSONL);
 
         try (JsonLineWriter reportWriter = new JsonLineWriter(new FileOutputStream(tempReport))) {
             reportWriter.addEntry(operationSummary);
@@ -494,7 +494,11 @@ public class BatchReportServiceImpl {
             }
         }
 
-        storeFileToWorkspace(processId, REPORT_JSONL, tempReport);
+        try {
+            storeFileToWorkspace(processId, REPORT_JSONL, tempReport);
+        } finally {
+            deleteQuietly(tempReport.getParentFile());
+        }
     }
 
     private void createFileFromTwoMongoCursorWithDocument(File tempFile, MongoCursor<Document> unitCursor,
@@ -584,23 +588,21 @@ public class BatchReportServiceImpl {
         int tenantId)
         throws IOException, ContentAddressableStorageServerException {
 
-        File tempFile =
-            File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+        File tempFile = createTemporaryFile(processId, filename);
 
         try (MongoCursor<String> iterator = purgeUnitRepository
             .distinctObjectGroupOfDeletedUnits(processId, tenantId)) {
             createFileFromMongoCursorWithString(tempFile, iterator);
             storeFileToWorkspace(processId, filename, tempFile);
         } finally {
-            deleteQuietly(tempFile);
+            deleteQuietly(tempFile.getParentFile());
         }
     }
 
     public void exportPurgeAccessionRegister(String processId, String filename, int tenantId)
         throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
 
-        File tempFile =
-            File.createTempFile(filename, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+        File tempFile = createTemporaryFile(processId, filename);
 
         try (MongoCursor<Document> unitCursor = purgeUnitRepository
             .computeOwnAccessionRegisterDetails(processId, tenantId);
@@ -610,7 +612,7 @@ public class BatchReportServiceImpl {
             createFileFromTwoMongoCursorWithDocument(tempFile, unitCursor, gotCursor);
             storeFileToWorkspace(processId, filename, tempFile);
         } finally {
-            deleteQuietly(tempFile);
+            deleteQuietly(tempFile.getParentFile());
         }
     }
 
@@ -651,11 +653,11 @@ public class BatchReportServiceImpl {
         evidenceAuditReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
-    private void deleteQuietly(File tempFile) {
+    private void deleteQuietly(File directory) {
         try {
-            Files.delete(tempFile.toPath());
+            FileUtils.deleteDirectory(directory);
         } catch (IOException e) {
-            LOGGER.warn("Could not delete file " + tempFile.getAbsolutePath());
+            LOGGER.warn("Could not delete directory " + directory.getAbsolutePath());
             throw new VitamRuntimeException(e);
         }
     }
@@ -666,11 +668,10 @@ public class BatchReportServiceImpl {
 
     public void createExtractedMetadataDistributionFileForAu(String processId, int tenant)
         throws IOException, ContentAddressableStorageServerException {
-        File tmpfile =
-            File.createTempFile(processId, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
+        File tempFile = createTemporaryFile(processId, processId);
         try (MongoCursor<ExtractedMetadata> extractedMetadatas = extractedMetadataRepository
             .getExtractedMetadataByProcessId(processId, tenant)) {
-            try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tmpfile))) {
+            try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
                 while (extractedMetadatas.hasNext()) {
                     ExtractedMetadata metadata = extractedMetadatas.next();
                     for (String unitId : metadata.getUnitIds()) {
@@ -678,10 +679,10 @@ public class BatchReportServiceImpl {
                     }
                 }
             }
-            storeFileToWorkspace(processId, "distributionFileAU" + JSONL_EXTENSION, tmpfile);
+            storeFileToWorkspace(processId, "distributionFileAU" + JSONL_EXTENSION, tempFile);
             extractedMetadataRepository.deleteExtractedMetadataByProcessId(processId, tenant);
         } finally {
-            deleteQuietly(tmpfile);
+            deleteQuietly(tempFile.getParentFile());
         }
     }
 
@@ -696,5 +697,14 @@ public class BatchReportServiceImpl {
 
     public void deleteTraceabilityByIdAndTenant(String processId, int tenantId) {
         traceabilityReportRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+
+    @NotNull
+    private File createTemporaryFile(@NotNull String processId, @NotNull String filename) throws IOException {
+        SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), processId + "/" + filename);
+        Files.createDirectory(Paths.get(VitamConfiguration.getVitamTmpFolder(), processId));
+        return Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), processId + "/" + filename))
+            .toFile();
     }
 }
