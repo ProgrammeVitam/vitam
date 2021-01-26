@@ -38,6 +38,11 @@ import com.google.common.collect.Streams;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.InsertOneModel;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -47,8 +52,10 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -191,6 +198,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUT_DETAIL;
 import static fr.gouv.vitam.common.model.logbook.LogbookOperation.EVENTS;
 import static fr.gouv.vitam.ingest.external.integration.test.IngestExternalIT.INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON;
@@ -214,6 +222,8 @@ import static org.junit.Assert.assertTrue;
 public class ProcessingIT extends VitamRuleRunner {
 
     private static final String BIG_WORKFLOW = "BIG_WORKFLOW";
+    private static final String CONTRACT_RULE_ID = "contract_rule";
+
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(ProcessingIT.class, mongoRule.getMongoDatabase().getName(),
@@ -225,7 +235,8 @@ public class ProcessingIT extends VitamRuleRunner {
                 LogbookMain.class,
                 WorkspaceMain.class,
                 ProcessManagementMain.class,
-                BatchReportMain.class
+                BatchReportMain.class,
+                AccessInternalMain.class
             ));
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
@@ -329,7 +340,7 @@ public class ProcessingIT extends VitamRuleRunner {
         processMonitoring = ProcessMonitoringImpl.getInstance();
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+        storageClientFactory.setVitamClientType(VitamClientType.MOCK);
         new DataLoader("integration-processing").prepareData();
 
     }
@@ -345,7 +356,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public static void tearDownAfterClass() throws Exception {
         handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
+        storageClientFactory.setVitamClientType(VitamClientType.PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -3345,24 +3356,37 @@ public class ProcessingIT extends VitamRuleRunner {
 
         final String ingestOperation = ingestSIP(SIP_OK_HOLD_RULES, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
 
-        JsonNode units;
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation));
+        select.addUsedProjection("Title", VitamFieldsHelper.management());
+
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
 
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation));
-            select.addUsedProjection("Title", VitamFieldsHelper.management());
-
             JsonNode resp = metaDataClient.selectUnits(select.getFinalSelect());
-            units = resp.get("$results");
+            JsonNode units = resp.get(TAG_RESULTS);
+
+            JsonNode expectedJson =
+                JsonHandler.getFromInputStream(PropertiesUtils.getConfigAsStream(SIP_OK_HOLD_RULES_JSON));
+
+            JsonSorter.sortJsonEntriesByKeys(units, Arrays.asList("Title", "Rule"));
+            JsonSorter.sortJsonEntriesByKeys(expectedJson, Arrays.asList("Title", "Rule"));
+
+            JsonAssert.assertJsonEquals(units, expectedJson);
+
         }
 
-        JsonNode expectedJson = JsonHandler.getFromInputStream(
-            PropertiesUtils.getConfigAsStream(SIP_OK_HOLD_RULES_JSON));
+        try (AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient()) {
+            VitamThreadUtils.getVitamSession().setContractId(CONTRACT_RULE_ID);
+            RequestResponse<JsonNode> response = accessInternalClient.selectUnits(select.getFinalSelect());
+            assertTrue(response.isOk());
+            assertEquals(0, RequestResponseOK.getFromJsonNode(response.toJsonNode()).getResults().size());
 
-        JsonSorter.sortJsonEntriesByKeys(units, Arrays.asList("Title", "Rule"));
-        JsonSorter.sortJsonEntriesByKeys(expectedJson, Arrays.asList("Title", "Rule"));
+            computeInheritedRules(select);
 
-        JsonAssert.assertJsonEquals(units, expectedJson);
+            response = accessInternalClient.selectUnits(select.getFinalSelect());
+            assertTrue(response.isOk());
+            assertEquals(4, RequestResponseOK.getFromJsonNode(response.toJsonNode()).getResults().size());
+        }
     }
 
     @RunWithCustomExecutor

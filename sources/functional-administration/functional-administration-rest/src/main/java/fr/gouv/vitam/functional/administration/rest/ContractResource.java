@@ -88,8 +88,7 @@ public class ContractResource {
      *
      * @param mongoAccess
      */
-    public ContractResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService)
-        throws VitamException {
+    public ContractResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         LOGGER.debug("init Admin Management Resource server");
@@ -121,7 +120,7 @@ public class ContractResource {
 
         try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
             vitamCounterService)) {
-            RequestResponse requestResponse = ingestContract.createContracts(ingestContractModelList);
+            RequestResponse<IngestContractModel> requestResponse = ingestContract.createContracts(ingestContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -226,7 +225,7 @@ public class ContractResource {
     public Response updateAccessContract(@PathParam("id") String contractId, JsonNode queryDsl) {
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
-            RequestResponse requestResponse = accessContract.updateContract(contractId, queryDsl);
+            RequestResponse<AccessContractModel> requestResponse = accessContract.updateContract(contractId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
                 return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
@@ -254,7 +253,7 @@ public class ContractResource {
     public Response updateIngestContract(@PathParam("id") String contractId, JsonNode queryDsl) {
         try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
             vitamCounterService)) {
-            RequestResponse requestResponse = ingestContract.updateContract(contractId, queryDsl);
+            RequestResponse<IngestContractModel> requestResponse = ingestContract.updateContract(contractId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
                 return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
@@ -330,7 +329,7 @@ public class ContractResource {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, managementContractModelList);
         try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
                 vitamCounterService)) {
-            RequestResponse requestResponse = managementContract.createContracts(managementContractModelList);
+            RequestResponse<ManagementContractModel> requestResponse = managementContract.createContracts(managementContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -387,7 +386,7 @@ public class ContractResource {
     public Response updateManagementContract(@PathParam("id") String contractId, JsonNode queryDsl) {
         try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
                 vitamCounterService)) {
-            RequestResponse requestResponse = managementContract.updateContract(contractId, queryDsl);
+            RequestResponse<ManagementContractModel> requestResponse = managementContract.updateContract(contractId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
                 return Response.status(Status.NOT_FOUND).entity(requestResponse).build();

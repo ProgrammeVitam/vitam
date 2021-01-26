@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -159,7 +160,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(MetadataManagementIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 AdminManagementMain.class,
@@ -261,7 +262,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
     @AfterClass
-    public static void afterClass() throws Exception {
+    public static void afterClass() {
         handleAfterClass();
         runAfter();
         VitamClientFactory.resetConnections();

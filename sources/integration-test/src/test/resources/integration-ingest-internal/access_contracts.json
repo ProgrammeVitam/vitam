@@ -81,5 +81,29 @@
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"31/12/4200",
 		"WritingPermission": true
+	},
+	{
+		"Name":"contract_rule",
+		"Identifier":"contract_rule",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":[],
+		"EveryOriginatingAgency": true,
+		"DataObjectVersion" : [
+			"PhysicalMaster",
+			"BinaryMaster",
+			"Dissemination",
+			"Thumbnail",
+			"TextContent"
+		],
+		"EveryDataObjectVersion": true,
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/1800",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"31/12/4200",
+		"WritingPermission": true,
+		"RuleCategoryToFilter" : [
+			"HoldRule"
+		]
 	}
 ]
