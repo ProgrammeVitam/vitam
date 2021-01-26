@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -44,6 +43,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -53,7 +53,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.ArchiveUnitUpdateUtils;
+import fr.gouv.vitam.worker.common.utils.ArchiveUnitLifecycleUpdateUtils;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import java.util.ArrayList;
@@ -77,7 +77,7 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
     private static final String FIELDS_KEY = "$fields";
     private static final String RULES_KEY = "Rules";
 
-    private final ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
+    private final ArchiveUnitLifecycleUpdateUtils archiveUnitLifecycleUpdateUtils = new ArchiveUnitLifecycleUpdateUtils();
 
     private final MetaDataClientFactory metaDataClientFactory;
 
@@ -138,7 +138,7 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
             for (Map.Entry<String, List<JsonNode>> entry : updatedRulesByType.entrySet()) {
                 JsonNode categoryNode = managementNode.get(entry.getKey());
                 if (categoryNode != null && categoryNode.get(RULES_KEY) != null
-                    && archiveUnitUpdateUtils.updateCategoryRules((ArrayNode) categoryNode.get(RULES_KEY),
+                    && ArchiveUnitUpdateUtils.updateCategoryRules(categoryNode.get(RULES_KEY),
                     entry.getValue(), query,
                     entry.getKey())) {
                     nbUpdates++;
@@ -149,10 +149,10 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
                 query
                     .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
                 JsonNode updateResultJson = metaDataClient.updateUnitById(query.getFinalUpdate(), archiveUnitId);
-                String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
-                archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
+                String diffMessage = ArchiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
+                archiveUnitLifecycleUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
                     handler.getLifecyclesClient());
-                archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
+                archiveUnitLifecycleUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
                     handler.getLifecyclesClient());
             }
             itemStatus.increment(StatusCode.OK);

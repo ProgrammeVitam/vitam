@@ -148,6 +148,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.parameter.ParameterHelper.getTenantParameter;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
+import static fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils.UNLIMITED_RULE_DURATION;
 
 
 /**
@@ -169,7 +170,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private static final String TMP = "tmp";
     private static final String UPDATE_DATE = "UpdateDate";
-    private static final String UNLIMITED = "unlimited";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
 
     private static final int MAX_DURATION = 2147483647;
@@ -619,8 +619,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             }
             RuleMeasurementEnum ruleMeasurement = null;
             if (rule.getRuleMeasurement() != null) {
-                ruleMeasurement = RuleMeasurementEnum.getEnumFromType(rule.getRuleMeasurement());
-                if (ruleMeasurement == null) {
+                try {
+                    ruleMeasurement = RuleMeasurementEnum.getEnumFromType(rule.getRuleMeasurement());
+                }catch (IllegalStateException e) {
                     errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULEMEASUREMENT,
                         lineNumber, rule));
                 }
@@ -764,7 +765,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private List<ErrorReport> checkRuleDuration(FileRulesModel fileRulesModel, int line) {
         List<ErrorReport> errors = new ArrayList<>();
         if (fileRulesModel.getRuleDuration() != null &&
-            !UNLIMITED.equalsIgnoreCase(fileRulesModel.getRuleDuration())) {
+            !UNLIMITED_RULE_DURATION.equalsIgnoreCase(fileRulesModel.getRuleDuration())) {
             final int duration = parseWithDefault(fileRulesModel.getRuleDuration());
             if (duration < 0) {
                 errors.add(
@@ -831,7 +832,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private List<ErrorReport> checkAssociationRuleDurationRuleMeasurementLimit(int line, FileRulesModel fileRuleModel) {
         List<ErrorReport> errors = new ArrayList<>();
         try {
-            if (!fileRuleModel.getRuleDuration().equalsIgnoreCase(UNLIMITED) &&
+            if (!fileRuleModel.getRuleDuration().equalsIgnoreCase(UNLIMITED_RULE_DURATION) &&
                 (fileRuleModel.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
                     Integer.parseInt(fileRuleModel.getRuleDuration()) > YEAR_LIMIT ||
                     fileRuleModel.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.MONTH.getType()) &&
@@ -869,7 +870,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private int calculDuration(String ruleDuration, String ruleMeasurement) {
         int duration = 0;
 
-        if (ruleDuration.equalsIgnoreCase(UNLIMITED)) {
+        if (ruleDuration.equalsIgnoreCase(UNLIMITED_RULE_DURATION)) {
             return MAX_DURATION;
         }
 

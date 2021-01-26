@@ -326,8 +326,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
                 // save duration and measurement for usage in MongoDbInMemory if needed
                 final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-                if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) &&
-                    ruleMeasurement != null) {
+                if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration)) {
                     bindRuleDuration.put(ruleId,
                         new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
                 }
