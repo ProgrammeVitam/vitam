@@ -73,6 +73,37 @@
   notify:
     - restart kibana
 
+- name: Ensure Kibana log dir is OK
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/log/kibana/"
+    state: directory
+    owner: "kibana"
+    group: "kibana"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: Configure Kibana log destination
+  replace:
+    dest: /etc/kibana/kibana.yml
+    regexp: '^#{0,1}logging\.dest:.*$'
+    replace: "logging.dest: {{ vitam_defaults.folder.root_path }}/log/kibana/kibana.log"
+  notify:
+    - restart kibana
+
+- name: Enable logrotate for Kibana
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/kibana
+    owner: root
+    group: root
+    mode: 0644
+  when: kibana.logrotate == 'enabled'
+
+- name: Disable logrotate for Kibana
+  file:
+    path: /etc/logrotate.d/kibana
+    state: absent
+  when: kibana.logrotate == 'disabled'
+
 - name: flush_handlers
   meta: flush_handlers
 
