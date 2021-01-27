@@ -68,7 +68,7 @@ Du côté du composant cible de la requête, le contrôle est alors le suivant :
 * Existence des deux *headers* précédents ;
 * Vérification que *timestamp* envoyé est distant de l'heure actuelle sur le serveur requêté de moins de x secondes ( valeur modifiable selon le composant, par défaut à 10 secondes,  ``| Timestamp - temps local | < x s`` )
 
-* Validation du hash transmis via la réalisation du même calul sur le serveur cible et de la comparaison des résultats.
+* Validation du hash transmis via la réalisation du même calcul sur le serveur cible et de la comparaison des résultats.
 
 En cas d'échec d'une de ces validations, la requête est refusée.
 
@@ -98,7 +98,7 @@ Elasticsearch
 Dans le cas d'Elasticsearch, le cloisonnement est principalement physique, dans le sens où le *cluster* hébergeant les données métier est disjoint du *cluster* hébergeant les données techniques.
 
 
- .. caution:: L'accès au cluster Elasticsearch est anonyme sans authentification requise ; 
+ .. caution:: L'accès au cluster Elasticsearch est anonyme sans authentification requise ;
 
 
 Principes de sécurisation des secrets de déploiement

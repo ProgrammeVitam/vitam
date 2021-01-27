@@ -85,6 +85,7 @@ function getKeystorePassphrase {
     local RETURN_CODE=0
 
     if [ ! -f "${VAULT_KEYSTORES}" ]; then
+        pki_logger "ERROR" "Failed to find file ${VAULT_KEYSTORES}"
         return 1
     fi
 

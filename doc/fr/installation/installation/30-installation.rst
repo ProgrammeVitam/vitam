@@ -2,9 +2,9 @@ Procédure de première installation
 ##################################
 
 
-.. |repertoire_deploiement| replace:: ``deployment``
-.. |repertoire_inventory| replace:: ``environments``
-.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
+.. |repertoire_deploiement| replace:: ``deployment/``
+.. |repertoire_inventory| replace:: ``environments/``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam/``
 
 Déploiement
 ===========
@@ -14,10 +14,14 @@ Cas particulier : utilisation de ClamAv en environnement Debian
 
 Dans le cas de l'installation en environnement Debian, la base de données n'est pas intégrée avec l'installation de ClamAv, C'est la commande ``freshclam`` qui en assure la charge. Si vous n'êtes pas connecté à internet, la base de données doit être installée manuellement. Les liens suivants indiquent la procédure à suivre: `Installation ClamAv <https://www.clamav.net/documents/installing-clamav>`_ et `Section Virus Database <https://www.clamav.net/downloads>`_
 
-Fichier de mot de passe
------------------------
+Fichier de mot de passe des vaults ansible
+-------------------------------------------
 
-Par défaut, le mot de passe des `vault` sera demandé à chaque exécution d'ansible. Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environments/group_vars/all/vault-vitam.yml``, le mot de passe ne sera pas demandé (dans ce cas, changez l'option ``--ask-vault-pass`` des invocations ansible par l'option ``--vault-password-file=VAULT_PASSWORD_FILES``.
+Par défaut, le mot de passe des `vault` sera demandé à chaque exécution d'ansible avec l'utilisation de l'option ``--ask-vault-pass`` de la commande ``ansible-playbook``.
+
+Pour simplifier l'exécution des commandes ``ansible-playbook``, vous pouvez utiliser un fichier |repertoire_deploiement|``vault_pass.txt`` contenant le mot de passe des fichiers vault. Ainsi, vous pouvez utiliser l'option ``--vault-password-file=vault_pass.txt`` à la place de l'option ``--ask-vault-pass`` dans les différentes commandes de cette documentation.
+
+.. Warning:: Il est déconseillé de conserver le fichier ``vault_pass.txt`` sur la machine de déploiement ansible car ce fichier permet d'avoir accès à l'ensemble des secrets de :term:`VITAM`.
 
 
 Mise en place des repositories VITAM (optionnel)
@@ -26,7 +30,7 @@ Mise en place des repositories VITAM (optionnel)
 :term:`VITAM` fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à :term:`VITAM` :
 
 
-Editer le fichier ``environments/group_vars/all/repositories.yml`` à partir des modèles suivants (décommenter également les lignes) :
+Editer le fichier |repertoire_inventory|``group_vars/all/repositories.yml`` à partir des modèles suivants (décommenter également les lignes) :
 
 Pour une cible de déploiement CentOS :
 
@@ -47,9 +51,9 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 
 .. code-block:: console
 
-  ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass
+  ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/hosts.<environnement> --ask-vault-pass
 
-.. note:: En environnement CentOS, il est recommandé de créer des noms de *repository* commençant par  `vitam-` .
+.. note:: En environnement CentOS, il est recommandé de créer des noms de *repository* commençant par `vitam-` .
 
 Génération des *hostvars*
 --------------------------
@@ -63,7 +67,7 @@ Actuellement la solution logicielle :term:`VITAM` est capable de gérer 2 interf
 Cas 1: Machines avec une seule interface réseau
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Si les machines sur lesquelles :term:`VITAM` sera déployé ne disposent que d'une interface réseau, ou si vous ne souhaitez en utiliser qu'une seule, il convient d'utiliser le playbook ``ansible-vitam/generate_hostvars_for_1_network_interface.yml``
+Si les machines sur lesquelles :term:`VITAM` sera déployé ne disposent que d'une interface réseau, ou si vous ne souhaitez en utiliser qu'une seule, il convient d'utiliser le playbook |repertoire_playbook ansible|``generate_hostvars_for_1_network_interface.yml``
 
 Cette définition des host_vars se base sur la directive ansible ``ansible_default_ipv4.address``, qui se base sur l'adresse :term:`IP` associée à la route réseau définie par défaut.
 
@@ -84,7 +88,7 @@ Alors il est possible d'utiliser le playbook ``ansible-vitam-extra/generate_host
 Vérification de la génération des hostvars
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A l'issue, vérifier le contenu des fichiers générés sous ``environments/host_vars/`` et les adapter au besoin.
+A l'issue, vérifier le contenu des fichiers générés sous |repertoire_inventory|``host_vars/`` et les adapter au besoin.
 
 .. caution:: Cas d'une installation multi-sites. Sur site secondaire, s'assurer que, pour les machines hébergeant les offres, la directive ``ip_wan`` a bien été déclarée (l'ajouter manuellement, le cas échéant), pour que site le site `primaire` sache les contacter via une IP particulière. Par défaut, c'est l'IP de service qui sera utilisée.
 
@@ -99,10 +103,9 @@ Une fois l'étape de la génération des hosts effectuée avec succès, le dépl
 
 .. code-block:: console
 
-   ansible-playbook ansible-vitam/vitam.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+   ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.<environnement> --ask-vault-pass
 
 
 .. note:: Une confirmation est demandée pour lancer ce script. Il est possible de rajouter le paramètre ``-e confirmation=yes`` pour bypasser cette demande de confirmation (cas d'un déploiement automatisé).
 
 .. caution:: Dans le cas où l'installateur souhaite utiliser un `repository` de binaires qu'il gère par lui-même, il est fortement recommandé de rajouter ``--skip-tags "enable_vitam_repo"`` à la commande ``ansible-playbook`` ; dans ce cas, le comportement de ``yum`` n'est pas impacté par la solution de déploiement.
-

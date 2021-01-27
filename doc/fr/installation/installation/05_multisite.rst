@@ -11,7 +11,7 @@ Il faut paramétrer correctement un certain nombre de variables ansible pour cha
 vitam_site_name
 ---------------
 
-Fichier: ``deployment/environments/hosts.<my_env>``
+Fichier: ``deployment/environments/hosts.<environnement>``
 
 Cette variable sert à définir le nom du site.
 Elle doit être différente sur chaque site.
@@ -19,7 +19,7 @@ Elle doit être différente sur chaque site.
 primary_site
 ------------
 
-Fichier: ``deployment/environments/hosts.<my_env>``
+Fichier: ``deployment/environments/hosts.<environnement>``
 
 Cette variable sert à définir si le site est primaire ou non.
 Sur VITAM installé en mode multi site, un seul des sites doit avoir la valeur `primary_site` à true.

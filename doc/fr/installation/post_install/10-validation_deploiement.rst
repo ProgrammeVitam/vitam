@@ -1,28 +1,28 @@
 Validation du déploiement
 #########################
 
-.. |repertoire_deploiement| replace:: ``deployment``
-.. |repertoire_inventory| replace:: ``environments``
-.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
+.. |repertoire_deploiement| replace:: ``deployment/``
+.. |repertoire_inventory| replace:: ``environments/``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam/``
 
 La procédure de validation est commune aux différentes méthodes d'installation.
 
 Sécurisation du fichier ``vault_pass.txt``
 ==========================================
 
-Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est primordial de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
+Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier |repertoire_inventory|``group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est primordial de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
 
 .. Validation par ansible
 .. =======================
 
 .. Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
 
-.. ``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --ask-vault-pass --check``
+.. ``ansible-playbook`` |repertoire_playbook ansible|``vitam.yml -i`` |repertoire_inventory| ``hosts.<environnement> --ask-vault-pass --check``
 
 .. .. note:: A l'issue du passage du playbook, les étapes doivent toutes passer en vert.
 
 Validation manuelle
-===================  
+===================
 
 Chaque service :term:`VITAM` (en dehors de bases de données) expose des URL de statut à l'adresse suivante : ``<protocole web http ou https>://<host>:<port>/admin/v1/status``
 Cette URL doit retourner une réponse HTTP 204 sur une requête HTTP GET, si OK.

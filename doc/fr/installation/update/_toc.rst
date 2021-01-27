@@ -24,8 +24,8 @@ Exemple:
 
 .. code-block:: console
 
-	ansible-playbook -i environments/hosts.deployment ansible-vitam/vitam.yml --ask-vault-pass --tags update_vitam_configuration
-	ansible-playbook -i environments/hosts.deployment ansible-vitam-extra/extra.yml --ask-vault-pass --tags update_vitam_configuration
+      ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.<environnement> --ask-vault-pass --tags update_vitam_configuration
+      ansible-playbook ansible-vitam-extra/extra.yml -i environments/hosts.<environnement> --ask-vault-pass --tags update_vitam_configuration
 
 
 Cas d'une modification des paramètres :term:`JVM`
@@ -41,8 +41,8 @@ Exemple:
 
 .. code-block:: console
 
-	ansible-playbook -i environments/hosts.deployment ansible-vitam/vitam.yml --ask-vault-pass --tags update_jvmoptions_vitam
-	ansible-playbook -i environments/hosts.deployment ansible-vitam-extra/extra.yml --ask-vault-pass --tags update_jvmoptions_vitam
+      ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.<environnement> --ask-vault-pass --tags update_jvmoptions_vitam
+      ansible-playbook ansible-vitam-extra/extra.yml -i environments/hosts.<environnement> --ask-vault-pass --tags update_jvmoptions_vitam
 
 .. caution:: Limitation technique à ce jour ; il n'est pas possible de définir des variables :term:`JVM` différentes pour des composants colocalisés sur une même partition.
 

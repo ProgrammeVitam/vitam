@@ -1,26 +1,26 @@
 Notes et procédures spécifiques R12
 ###################################
 
-.. caution:: Rappel : la montée de version vers la *release* R12 s’effectue depuis la *release* R9 (LTS V2), la *release* R10 (V2, *deprecated*) ou la *release* R11 (V2, *deprecated*) et doit être réalisée en s’appuyant sur les dernières versions *bugfixes* publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R12 s’effectue depuis la *release* R9 (LTS V2), la *release* R10 (V2, *deprecated*) ou la *release* R11 (V2, *deprecated*) et doit être réalisée en s’appuyant sur les dernières versions *bugfixes* publiées.
 
 Étapes préalables à la montée de version
 ========================================
 
-Gestion du référentiel ontologique 
+Gestion du référentiel ontologique
 -----------------------------------
 
-.. caution:: En lien avec la *User Story* #5928 (livrée avec la *release* R11) et les changements de comportement de l'API d'import des ontologies associés, si un référentiel ontologique personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version vers la *release* R11 ou supérieure, modifier manuellement le fichier d'ontologie livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, l'ontologie sera remplacée en mode forcé (sans contrôle de cohérence). 
+.. caution:: En lien avec la *User Story* #5928 (livrée avec la *release* R11) et les changements de comportement de l'API d'import des ontologies associés, si un référentiel ontologique personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version vers la *release* R11 ou supérieure, modifier manuellement le fichier d'ontologie livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, l'ontologie sera remplacée en mode forcé (sans contrôle de cohérence).
 
-Il faut pour cela éditer le fichier situé à l'emplacement ``deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json`` afin d'y réintégrer les éléments du référentiel ontologique personnalisés.  
+Il faut pour cela éditer le fichier situé à l'emplacement ``deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json`` afin d'y réintégrer les éléments du référentiel ontologique personnalisés.
 
-.. note:: Lors de la montée de version, une sauvegarde du référentiel ontologique courant est réalisée à l'emplacement ``environments/backups/ontology_backup_<date>.json`` 
+.. note:: Lors de la montée de version, une sauvegarde du référentiel ontologique courant est réalisée à l'emplacement ``environments/backups/ontology_backup_<date>.json``
 
-Gestion du référentiel des formats 
+Gestion du référentiel des formats
 -----------------------------------
 
-.. caution:: Si un référentiel des formats personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version, modifier manuellement le fichier des formats livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, le référentiel des formats sera réinitialisé. 
+.. caution:: Si un référentiel des formats personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version, modifier manuellement le fichier des formats livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, le référentiel des formats sera réinitialisé.
 
-Il faut pour cela éditer le fichier situé à l'emplacement ``environments/DROID_SignatureFile_<version>.xml`` afin d'y réintégrer les éléments du référentiel des formats personnalisés.  
+Il faut pour cela éditer le fichier situé à l'emplacement ``environments/DROID_SignatureFile_<version>.xml`` afin d'y réintégrer les éléments du référentiel des formats personnalisés.
 
 Mise à jour de l'inventaire
 ----------------------------
@@ -47,7 +47,7 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 A l'issue de l'exécution du `playbook`, les *timers* systemd ont été arrêtés, afin de ne pas perturber la migration.
 
-Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est ni en cours, ni en statut **FATAL**. 
+Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est ni en cours, ni en statut **FATAL**.
 
 Arrêt des composants *externals*
 ---------------------------------
@@ -65,7 +65,7 @@ A l'issue de l'exécution du `playbook`, les composants *externals* ont été ar
 Montée de version MongoDB 4.0 vers 4.2
 --------------------------------------
 
-La montée de version vers la *release* R12 comprend une montée de version de la bases de données MongoDB de la version 4.0 à la version 4.2. 
+La montée de version vers la *release* R12 comprend une montée de version de la bases de données MongoDB de la version 4.0 à la version 4.2.
 
 Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
@@ -91,7 +91,7 @@ Etapes de migration
 Migration des données de certificats
 ------------------------------------
 
-La *release* R11 apporte une modification quant à la déclaration des certificats. En effet, un bug empêchait l'intégration dans la solution :term:`VITAM` de certificats possédant un serial number long. 
+La *release* R11 apporte une modification quant à la déclaration des certificats. En effet, un bug empêchait l'intégration dans la solution :term:`VITAM` de certificats possédant un serial number long.
 
 La commande suivante est à exécuter depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
@@ -113,7 +113,7 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --ask-vault-pass``
 
-Le template ``upgrade_contracts.js`` contient : 
+Le template ``upgrade_contracts.js`` contient :
 
 .. literalinclude::  ../../../../../deployment/ansible-vitam-exploitation/roles/upgrade_R10_contracts/templates/upgrade_contracts.js.j2
    :language: javascript
