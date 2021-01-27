@@ -26,37 +26,3 @@
   service:
     name: "vitam-{{ vitam_component }}"
     state: started
-
-- name: Ensure storage accesslog backup systemd timer is enabled
-  systemd:
-    name: "vitam-storage-accesslog-backup.timer"
-    daemon_reload: "yes"
-    enabled: "yes"
-    state: "started"
-  when: ( primary_site | lower == "true" )
-
-- name: Ensure storage backup systemd timer is enabled
-  systemd:
-    name: "vitam-storage-log-backup.timer"
-    daemon_reload: "yes"
-    enabled: "yes"
-    state: "started"
-  when: ( primary_site | lower == "true" )
-
-- name: Ensure storage traceability systemd timer is enabled
-  systemd:
-    name: "vitam-storage-log-traceability.timer"
-    daemon_reload: "yes"
-    enabled: "yes"
-    state: "started"
-  when: ( primary_site | lower == "true" ) and
-        ( inventory_hostname == groups['hosts_storage_engine'] | last )
-
-- name: Ensure storage traceability systemd timer is stopped
-  systemd:
-    name: "vitam-storage-log-traceability.timer"
-    daemon_reload: "yes"
-    enabled: "no"
-    state: "stopped"
-  when: ( primary_site | lower == "false" ) or
-        ( inventory_hostname != groups['hosts_storage_engine'] | last )

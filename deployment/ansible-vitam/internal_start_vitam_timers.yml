@@ -1,0 +1,69 @@
+---
+
+- hosts: hosts_functional_administration
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - start_vitam_timers
+  vars:
+    list_timers: [
+     ["vitam-create-accession-register-symbolic","hosts_functional_administration","last","last"]
+     ,["vitam-rule-management-audit","hosts_functional_administration","last",""] #,"inventory_hostname == groups['hosts_functional_administration'] | last",""]
+     ,["vitam-functional-administration-reconstruction","hosts_functional_administration","","last"] #,"","inventory_hostname == groups['hosts_functional_administration'] | last"]
+     ,["vitam-functional-administration-accession-register-reconstruction","hosts_functional_administration","","last"] #"","inventory_hostname == groups['hosts_functional_administration'] | last"]
+    ]
+
+
+- hosts: hosts_metadata
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - start_vitam_timers
+  vars:
+    list_timers: [
+      ["vitam-metadata-reconstruction","hosts_metadata","","last"]
+      ,["vitam-metadata-store-graph","hosts_metadata","last",""]
+      ,["vitam-metadata-computed-inherited-rules","hosts_metadata","last",""]
+      ,["vitam-metadata-purge-dip","hosts_metadata","last",""]
+      ,["vitam-metadata-purge-transfers-SIP","hosts_metadata","last",""]
+      ,["vitam-metadata-audit-mongodb-es","hosts_metadata","last",""]
+    ]
+
+
+- hosts: hosts_storage_engine
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - start_vitam_timers
+  vars:
+    list_timers: [
+      ["vitam-storage-accesslog-backup","hosts_storage_engine","in",""]
+      ,["vitam-storage-log-backup","hosts_storage_engine","in",""] #"inventory_hostname in groups['hosts_storage_engine']",""]
+      ,["vitam-storage-log-traceability","hosts_storage_engine","last",""] #,"inventory_hostname == groups['hosts_storage_engine'] | last",""]
+    ]
+
+
+- hosts: hosts_storage_offer_default
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - start_offer_timer
+  vars:
+    list_timers: [
+      ["vitam-offer-log-compaction", "hosts_storage_offer_default", "last"]
+    ]
+
+
+- hosts: hosts_logbook
+  any_errors_fatal: true
+  gather_facts: no
+  roles:
+    - start_vitam_timers
+  vars:
+    list_timers: [
+      ["vitam-logbook-reconstruction","hosts_logbook","","last"]
+      ,["vitam-traceability-lfc-objectgroup","hosts_logbook","last",""]
+      ,["vitam-traceability-lfc-unit","hosts_logbook","last",""]
+      ,["vitam-traceability-operations","hosts_logbook","last",""]
+      ,["vitam-traceability-audit","hosts_logbook","last",""]
+    ]
