@@ -1,7 +1,7 @@
 {
   "data_dir": "{{ consul_folder_data }}",
   "node_name": "{{ ansible_hostname }}",
-  "log_level": "INFO",
+  "log_level": "{{ consul.log_level | default('INFO') }}",
   "log_file": "{{ consul_folder_log }}/consul.log",
   "enable_syslog": true,
   "advertise_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
@@ -29,7 +29,7 @@
   "domain": "{{ consul_domain }}",
   "datacenter": "{{ vitam_site_name }}",
   "retry_join": [ {% for item in groups['hosts_consul_server'] %}"{{ hostvars[item][consul.network] }}"{% if not loop.last %},{% endif %}{% endfor %} ],
-  "retry_interval": "{{ consul.retry_interval }}s",
+  "retry_interval": "{{ consul.retry_interval | default(10) }}s",
   "disable_remote_exec": true,
   "disable_update_check": true,
   "encrypt": "{{ consul_encrypt }}",
@@ -40,8 +40,8 @@
     {
         "name": "Check Consul DNS resolution for node",
         "args": ["/usr/bin/getent", "ahostsv4", "{{ ansible_hostname }}.node.{{ consul_domain }}"],
-        "interval": "{{ consul.check_internal }}s",
-        "timeout": "{{ consul.check_timeout }}s"
+        "interval": "{{ consul.check_internal | default(10) }}s",
+        "timeout": "{{ consul.check_timeout | default(10) }}s"
       }
   ]
 }
