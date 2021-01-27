@@ -12,7 +12,7 @@ Base commune
 
 .. penser à ajouter une note sur /etc/hostname
 
-Le déploiement est orchestré depuis un poste ou serveur d'administration ; les pré-requis suivants doivent y être présents :
+Le déploiement est orchestré depuis un poste ou serveur d'administration ; les pré-requis suivants doivent y être présents :
 
 * packages nécessaires :
 
@@ -26,6 +26,10 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 .. note:: Se référer à la `documentation d'usage <http://docs.ansible.com/ansible/latest/intro_getting_started.html>`_ pour les procédures de connexion aux machines-cibles depuis le serveur ansible.
 
 .. caution:: Les adresses :term:`IP` des machines sur lesquelles la solution logicielle :term:`VITAM` sera installée ne doivent pas changer d'adresse IP au cours du temps. En cas de changement d'adresse IP, la plateforme ne pourra plus fonctionner.
+
+.. caution:: Aucune version pré-installée de la JRE OpenJDK ne doit être présente sur les machines cibles où sera installé :term:`VITAM`.
+
+.. caution:: La solution :term:`VITAM` ne tolère qu'une très courte désynchronisation de temps entre les machines (par défaut, 10 secondes). La configuration NTP doit être finement monitorée. Idéalement une synchronisation doit être planifiée chaque 5/10 minutes.
 
 .. caution:: Dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet (installation du paquet officiel ``docker``, récupération des images).
 
