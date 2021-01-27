@@ -23,3 +23,4 @@
 
   when:
    - ansible_distribution == "Debian"
+   - check_apparmor is defined
