@@ -111,16 +111,12 @@ public class ArchiveUnitUpdateUtils {
 
     @Nonnull
     public static JsonNode computeEndDate(@Nonnull ObjectNode updatingRule, JsonNode ruleModel) {
-        LocalDate endDate = null;
-
         final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         String startDateString = updatingRule.get(START_DATE).asText();
         String ruleId = updatingRule.get(RULE).asText();
 
         if (ParametersChecker.isNotEmpty(startDateString, ruleId)) {
-            // remove existing endDate
-            updatingRule.remove(END_DATE);
 
             LocalDate startDate = LocalDate.parse(startDateString, timeFormatter);
             if (startDate.getYear() >= 9000) {
@@ -132,13 +128,13 @@ public class ArchiveUnitUpdateUtils {
                 final String measurement = ruleModel.get(FileRules.RULEMEASUREMENT).asText();
                 if (!UNLIMITED_RULE_DURATION.equalsIgnoreCase(duration)) {
                     final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-                    endDate = startDate.plus(Integer.parseInt(duration), ruleMeasurement.getTemporalUnit());
+                    updatingRule.put(END_DATE, startDate.plus(Integer.parseInt(duration),
+                        ruleMeasurement.getTemporalUnit()).format(timeFormatter));
+                } else {
+                    // remove existing endDate
+                    updatingRule.remove(END_DATE);
                 }
             }
-        }
-        // End of duplicated method
-        if (endDate != null) {
-            updatingRule.put(END_DATE, endDate.format(timeFormatter));
         }
 
         return updatingRule;
