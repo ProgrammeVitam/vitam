@@ -48,7 +48,7 @@ Référentiels externes
 
 
    Norme OAIS (ISO 14721:2012 – 1 septembre 2012)
-      Systèmes de transfert desinformations et données spatiales -- Système ouvert d'archivage d'information (SOAI) - Modèle de référence
+      Systèmes de transfert des informations et données spatiales -- Système ouvert d'archivage d'information (SOAI) - Modèle de référence
 
 
    Standard d’échange de données pour l’archivage (SEDA)
@@ -67,8 +67,8 @@ Glossaire
    API
       `Application Programming Interface`
 
-   AU 
-      `Archive Unit`, unité archivistique 
+   AU
+      `Archive Unit`, unité archivistique
 
    BDD
       Base De Données
@@ -79,7 +79,7 @@ Glossaire
    CA
       `Certificate Authority`, autorité de certification
 
-   CAS 
+   CAS
       Content Adressable Storage
 
    CCFN
@@ -87,19 +87,19 @@ Glossaire
 
    CN
       Common Name
-   
+
    COTS
       Component Off The shelf ; il s'agit d'un composant "sur étagère", non développé par le projet :term:`VITAM`, mais intégré à partir d'un binaire externe. Par exemple : MongoDB, ElasticSearch.
 
-   CRL 
-      `Certificate Revocation List` ; liste des identifiants des certificats qui ont été révoqués ou invalidés et qui ne sont donc plus dignes de confiance. Cette norme est spécifiée dans les RFC 5280 et RFC 6818. 
+   CRL
+      `Certificate Revocation List` ; liste des identifiants des certificats qui ont été révoqués ou invalidés et qui ne sont donc plus dignes de confiance. Cette norme est spécifiée dans les RFC 5280 et RFC 6818.
 
    CRUD
       `create, read, update, and delete`, s'applique aux opérations dans une base de données MongoDB
 
    DAT
       Dossier d'Architecture Technique
-   
+
    DC
       Data Center
 
@@ -109,7 +109,7 @@ Glossaire
    DIN
       Dossier d'INstallation
 
-   DIP 
+   DIP
       `Dissemination Information Package`
 
    DMV
@@ -122,7 +122,7 @@ Glossaire
       `Domain Name System Security Extensions` est un protocole standardisé par l'IETF permettant de résoudre certains problèmes de sécurité liés au protocole DNS. Les spécifications sont publiées dans la RFC 4033 et les suivantes (une version antérieure de DNSSEC n'a eu aucun succès). `Définition DNSSEC <https://fr.wikipedia.org/wiki/Domain_Name_System_Security_Extensions>`_
 
    DSL
-     `Domain Specific Language`, language dédié pour le requêtage de VITAM
+     `Domain Specific Language`, langage dédié pour le requêtage de VITAM
 
    DUA
      Durée d'Utilité Administrative
@@ -134,7 +134,7 @@ Glossaire
       Description archivistique encodée
 
    ELK
-      *Elasticsearch Logstash Kibana*
+      Suite logicielle *Elasticsearch Logstash Kibana*
 
    FIP
       *Floating IP*
@@ -157,13 +157,13 @@ Glossaire
    JVM
       `Java Virtual Machine` ; Cf. :term:`JRE`
 
-   LAN 
+   LAN
       `Local Area Network`, réseau informatique local, qui relie des ordinateurs dans une zone limitée
 
    LFC
       `LiFe Cycle`, cycle de vie
 
-   LTS 
+   LTS
       `Long-term support`, support à long terme : version spécifique d'un logiciel dont le support est assuré pour une période de temps plus longue que la normale.
 
    M2M
@@ -215,7 +215,7 @@ Glossaire
       Référentiel Général d'Interopérabilité
 
    RPM
-      `Red Hat Package Manager` ; il s'agit du format de packets logiciels nativement utilisé par les distributions CentOS (entre autres)
+      `Red Hat Package Manager` ; il s'agit du format de paquets logiciels nativement utilisé par les distributions Linux RedHat/CentOS (entre autres)
 
    SAE
       Système d'Archivage Électronique
@@ -231,9 +231,9 @@ Glossaire
 
    SIA
       Système d'Informations Archivistique
-   
+
    SIEM
-      `Security Information and Event Management` 
+      `Security Information and Event Management`
 
    SIP
       `Submission Information Package`
@@ -253,7 +253,7 @@ Glossaire
    TTL
       `Time To Live`, indique le temps pendant lequel une information doit être conservée, ou le temps pendant lequel une information doit être gardée en cache
 
-   UDP 
+   UDP
       `User Datagram Protocol`, protocole de datagramme utilisateur, un des principaux protocoles de télécommunication utilisés par Internet. Il fait partie de la couche transport du modèle OSI
 
    UID
@@ -262,7 +262,7 @@ Glossaire
    VITAM
       Valeurs Immatérielles Transférées aux Archives pour Mémoire
 
-   VM 
+   VM
       `Virtual Machine`
 
    WAF

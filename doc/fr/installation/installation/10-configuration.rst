@@ -13,7 +13,7 @@ Fichiers de déploiement
 
 Les fichiers de déploiement sont disponibles dans la version :term:`VITAM` livrée, dans le sous-répertoire |repertoire_deploiement| . Concernant l'installation, ils se déclinent en 2 parties :
 
- * les *playbook* ansible de déploiement, présents dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer ; ces fichiers ne sont normalement pas à modifier pour réaliser une installation.
+ * les playbooks ansible de déploiement, présents dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer ; ces fichiers ne sont normalement pas à modifier pour réaliser une installation.
  * l'arborescence d'inventaire ; des fichiers d'exemples sont disponibles dans le sous-répertoire |repertoire_inventory|. Cette arborescence est valable pour le déploiement d'un environnement, et doit être dupliquée lors de l'installation d'environnements ultérieurs. Les fichiers contenus dans cette arborescence doivent être adaptés avant le déploiement, comme expliqué dans les paragraphes suivants.
 
 
@@ -41,7 +41,7 @@ Pour chaque type de `host`, indiquer le(s) serveur(s) défini(s), pour chaque fo
 
 .. warning:: Il n'est pas possible de colocaliser `kibana-data` et `kibana-log`.
 
-.. note:: Pour les composants considérés par l'exploitant comme étant "hors :term:`VITAM`" (typiquement, le composant ``ihm-demo``), il est possible de désactiver la création du servcie Consul associé. Pour cela, après chaque hostname impliqué, il faut rajouter la directive suivante : ``consul_disabled=true``.
+.. note:: Pour les composants considérés par l'exploitant comme étant "hors :term:`VITAM`" (typiquement, le composant ``ihm-demo``), il est possible de désactiver la création du service Consul associé. Pour cela, après chaque hostname impliqué, il faut rajouter la directive suivante : ``consul_disabled=true``.
 
 .. caution:: Concernant la valeur de ``vitam_site_name``, seuls les caractères alphanumériques et le tiret ("-") sont autorisés.
 

@@ -6,7 +6,7 @@ Déploiement complet rpm/deb
 
 Procédure de déploiement de Vitam:
 
-Tips: pours tous les cas d'appel de ansible-playbook, il est possible de remplacer l'argument "--vault-password-file vault_pass.txt" par "--ask-vault-pass" si vous ne voulez pas stocker le mot de passe de chiffrement des vault ansible dans un fichier
+Tips: pour tous les cas d'appel de ansible-playbook, il est possible de remplacer l'argument "--vault-password-file vault_pass.txt" par "--ask-vault-pass" si vous ne voulez pas stocker le mot de passe de chiffrement des vault ansible dans un fichier.
 
 
 1.  Créer un fichier d'inventaire des repositories des composants VITAM en se basant sur le fichier d'exemple:
@@ -23,7 +23,7 @@ Tips: pours tous les cas d'appel de ansible-playbook, il est possible de remplac
         a.  Configurer le vault référençant les mots de passe de chiffrement des clés privées des certificats
             ``ansible-vault edit environments/certs/vault-certs.yml --vault-password-file vault_pass.txt``
         b.  Générer les certificats
-            ``pki/scripts/generate_certs.sh``
+            ``pki/scripts/generate_certs.sh environments/<fichier d'inventaire>``
     B.  Si vous avez vos propres certificats & CA, les déposer dans la bonne arborescence (se servir des certificats par défaut fournis comme exemple pour les nommages):
         - environments
             - cert
@@ -63,6 +63,7 @@ Tips: pours tous les cas d'appel de ansible-playbook, il est possible de remplac
     b.  Lancer le boostrap pour ajouter les repositories sur les machines cibles
         ``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
+
 6. Générer les host_vars "réseau"
     ``ansible-playbook ansible-vitam/generate_hostvars_for_1_network_interface.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
    A l'issue, vérifier les fichiers sous ``environments/host_vars`` et les adapter au besoin.
@@ -88,7 +89,7 @@ Pour les composants de recette / documentation
     ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
 
 
-Redéployer uniquement les keystores / trsutstores / grantedstores
+Redéployer uniquement les keystores / truststores / grantedstores
 -----------------------------------------------------------------
 
 Pour les composants Vitam standards
@@ -107,6 +108,7 @@ Pour les composants Vitam standards
     ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
 Pour les composants de recette / documentation
     ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
+
 
 Modifier uniquement la configuration des clusters mongodb
 ---------------------------------------------------------
