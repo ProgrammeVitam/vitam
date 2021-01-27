@@ -20,7 +20,7 @@
   delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "Debian"
 
-- name: Adding {{ vitam_defaults.users.group }}  group to clamav so it can scan {{ vitam_defaults.users.group }}-based files
+- name: Adding {{ vitam_defaults.users.group }} group to clamav so it can scan {{ vitam_defaults.users.group }}-based files
   user:
     name: clamav
     groups: "{{ vitam_defaults.users.group }}"
@@ -34,13 +34,38 @@
     group: root
     mode: 0755
 
+- name: ensure clamav log directory exists
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/log/clamav"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
 - name: apply custom config file for clamAV
   template:
-    src: scan.conf.j2
+    src: clamav/scan.conf.j2
     dest: /etc/clamd.d/scan.conf
     owner: root
     group: root
     mode: 0644
+  notify:
+    - restart clamav
+
+- name: Enable logrotate for clamAV
+  template:
+    src: clamav/logrotate.j2
+    dest: /etc/logrotate.d/clamav
+    owner: root
+    group: root
+    mode: 0644
+  when: clamav.logrotate == 'enabled'
+
+- name: Disable logrotate for clamAV
+  file:
+    path: /etc/logrotate.d/clamav
+    state: absent
+  when: clamav.logrotate == 'disabled'
 
 - block:
 
@@ -81,7 +106,7 @@
   # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
   - name: apply systemD config file for clamAV under debian
     template:
-      src: clamav-daemon.socket.j2
+      src: clamav/clamav-daemon.socket.j2
       dest: /etc/systemd/system/clamav-daemon.socket
       owner: root
       group: root
@@ -118,7 +143,7 @@
     shell: freshclam
     ignore_errors: true
     notify:
-      - restart debian_clamav
+      - restart clamav
 
   - name: restart clamav-freshclam service
     systemd:
