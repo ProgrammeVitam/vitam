@@ -67,6 +67,21 @@
   tags:
     - update_mongodb_configuration
 
+- name: Enable logrotate for vitam-mongos
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/vitam-mongos
+    owner: root
+    group: root
+    mode: 0644
+  when: mongodb.logrotate == 'enabled'
+
+- name: Disable logrotate for vitam-mongos
+  file:
+    path: /etc/logrotate.d/vitam-mongos
+    state: absent
+  when: mongodb.logrotate == 'disabled'
+
 #### Consul configuration ####
 
 - name: Ensure consul config dir is OK
