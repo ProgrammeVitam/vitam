@@ -227,6 +227,9 @@ clamav:
     port: 3310
     # frequency freshclam for database update per day (from 0 to 24 - 24 meaning hourly check)
     db_update_periodicity: 1
+    # logs configuration
+    logrotate: enabled # or disabled
+    history_days: 10 # How many days to store logs if logrotate is set to 'enabled'
 
 mongo_express:
     baseuri: "mongo-express"

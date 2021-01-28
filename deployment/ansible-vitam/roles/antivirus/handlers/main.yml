@@ -2,10 +2,5 @@
 
 - name: restart clamav
   service:
-    name: "clamd@scan"
-    state: restarted
-
-- name: restart debian_clamav
-  systemd:
-    name: clamav-daemon
+    name: "{{ clamav_service_name }}"
     state: restarted

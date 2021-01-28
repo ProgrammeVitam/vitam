@@ -1,0 +1,15 @@
+{{ ansible_managed | comment }}
+
+{{ vitam_defaults.folder.root_path }}/log/clamav/clamd.scan {
+        daily
+        rotate {{ clamav.history_days | default(30) }}
+        copytruncate
+        dateext
+        dateformat -%Y-%m-%d
+        dateyesterday
+        extension .scan
+        compress
+        delaycompress
+        notifempty
+        missingok
+}

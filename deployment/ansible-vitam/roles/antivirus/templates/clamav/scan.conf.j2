@@ -1,3 +1,5 @@
+{{ ansible_managed | comment }}
+
 ##
 ## Example config file for the Clam AV daemon
 ## Please read the clamd.conf(5) manual before editing this file.
@@ -12,6 +14,7 @@
 # A full path is required.
 # Default: disabled
 #LogFile /var/log/clamd.scan
+LogFile {{ vitam_defaults.folder.root_path }}/log/clamav/clamd.scan
 
 # By default the log file is locked for writing - the lock protects against
 # running clamd multiple times (if want to run another clamd, please
@@ -28,20 +31,20 @@
 # in bytes just don't use modifiers. If LogFileMaxSize is enabled, log
 # rotation (the LogRotate option) will always be enabled.
 # Default: 1M
-#LogFileMaxSize 2M
+LogFileMaxSize 0
 
 # Log time with each message.
 # Default: no
-#LogTime yes
+LogTime yes
 
 # Also log clean files. Useful in debugging but drastically increases the
 # log size.
 # Default: no
-#LogClean yes
+LogClean yes
 
 # Use system logger (can work together with LogFile).
 # Default: no
-LogSyslog yes
+#LogSyslog yes
 
 # Specify the type of syslog messages - please refer to 'man syslog'
 # for facility names.
@@ -50,7 +53,7 @@ LogFacility LOG_{{ vitam_defaults.syslog_facility|upper }}
 
 # Enable verbose logging.
 # Default: no
-#LogVerbose yes
+LogVerbose yes
 
 # Enable log rotation. Always enabled when LogFileMaxSize is enabled.
 # Default: no
@@ -58,7 +61,7 @@ LogFacility LOG_{{ vitam_defaults.syslog_facility|upper }}
 
 # Log additional information about the infected file, such as its
 # size and hash, together with the virus name.
-#ExtendedDetectionInfo yes
+ExtendedDetectionInfo yes
 
 # This option allows you to save a process identifier of the listening
 # daemon (main thread).
@@ -441,7 +444,9 @@ DetectPUA yes
 
 # Mark encrypted archives as viruses (Encrypted.Zip, Encrypted.RAR).
 # Default: no
-ArchiveBlockEncrypted yes
+# WARNING: Using deprecated option "ArchiveBlockEncrypted" to alert on encrypted archives _and_ documents.
+#          Please update your configuration to use replacement options "AlertEncrypted", or "AlertEncryptedArchive" and/or "AlertEncryptedDoc".
+AlertEncrypted yes
 
 
 ##
