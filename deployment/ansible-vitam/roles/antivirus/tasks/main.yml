@@ -1,4 +1,6 @@
 ---
+- name: include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
 
 - name: ensure {{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }} exists
   file:
@@ -10,13 +12,11 @@
 
 - name: "Copy antivirus scripts & apply correct rights"
   copy:
-    src: "{{ item }}"
-    dest: "{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}/{{ item | basename }}"
+    src: "{{ inventory_dir }}/antivirus/scan-{{ vitam_struct.antivirus }}.sh"
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}/scan-{{ vitam_struct.antivirus }}.sh"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
-  with_fileglob:
-    - "{{ inventory_dir }}/antivirus/*sh"
 
 - include_tasks: clamav.yml
   when: vitam_struct.antivirus == 'clamav'
