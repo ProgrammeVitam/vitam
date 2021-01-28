@@ -26,19 +26,16 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.management;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.SedaConstants;
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
+import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -73,8 +70,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -91,6 +88,7 @@ import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -105,6 +103,7 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils.UNLIMITED_RULE_DURATION;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
@@ -326,8 +325,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
                 // save duration and measurement for usage in MongoDbInMemory if needed
                 final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-                if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) &&
-                    ruleMeasurement != null) {
+                if (bindRuleDuration.get(ruleId) == null && !UNLIMITED_RULE_DURATION.equalsIgnoreCase(duration)) {
                     bindRuleDuration.put(ruleId,
                         new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
                 }

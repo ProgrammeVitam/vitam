@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import javax.annotation.Nonnull;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Calendar;
@@ -70,7 +71,6 @@ public enum RuleMeasurementEnum {
 
 
     /**
-     *
      * @return the type of the measure
      */
     public String getType() {
@@ -78,7 +78,6 @@ public enum RuleMeasurementEnum {
     }
 
     /**
-     *
      * @return the Calendar Unit Type
      */
     public int getCalendarUnitType() {
@@ -88,17 +87,20 @@ public enum RuleMeasurementEnum {
     /**
      * @param type
      * @return the associated RuleMeasurementEnum according to parameter
+     * @throws IllegalStateException when type not found
      */
 
-    public static RuleMeasurementEnum getEnumFromType(String type) {
+    @Nonnull
+    public static RuleMeasurementEnum getEnumFromType(String type) throws IllegalStateException {
         for (final RuleMeasurementEnum e : values()) {
             if (e.getType().equalsIgnoreCase(type)) {
                 return e;
             }
         }
-        return null;
+        throw new IllegalStateException("Cannot find RuleMeasurement " + type);
     }
 
+    @Nonnull
     public TemporalUnit getTemporalUnit() {
         return temporalUnit;
     }
