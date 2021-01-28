@@ -4,6 +4,7 @@ consul:
     retry_interval: 10 # in seconds
     check_internal: 10 # in seconds
     check_timeout: 5 # in seconds
+    log_level: WARN # Available log_level are: TRACE, DEBUG, INFO, WARN or ERR
     network: "ip_admin" # Which network to use for consul communications ? ip_admin or ip_service ?
 
 consul_remote_sites:
