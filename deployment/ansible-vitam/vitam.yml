@@ -63,7 +63,14 @@
   roles:
     - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
 
-# ### ELASTICSEARCH LOG INSTALLATION ###
+### CEREBRO INSTALLATION ###
+- hosts: hosts_cerebro
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - role: cerebro
+
+### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts_elasticsearch_log
   any_errors_fatal: true
   roles:
@@ -108,12 +115,6 @@
     - init_es_cluster_index_template
   vars:
     composant: "{{ elasticsearch.data }}"
-
-- hosts: hosts_cerebro
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - role: cerebro
 
 # OMA: to be discussed wether place & servers are best one..
 - hosts: hosts_kibana_data
