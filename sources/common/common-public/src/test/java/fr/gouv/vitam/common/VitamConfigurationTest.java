@@ -101,7 +101,7 @@ public class VitamConfigurationTest {
         assertEquals(SECRET, VitamConfiguration.getSecret());
         assertEquals(true, VitamConfiguration.isFilterActivation());
 
-        assertEquals(new Long(10), VitamConfiguration.getAcceptableRequestTime());
+        assertEquals(10, VitamConfiguration.getAcceptableRequestTime());
         assertEquals(DigestType.SHA256, VitamConfiguration.getSecurityDigestType());
         assertEquals(DigestType.SHA512, VitamConfiguration.getDefaultDigestType());
 
@@ -153,7 +153,9 @@ public class VitamConfigurationTest {
             VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
             assertThat(VitamConfiguration.getVitamCleanPeriod()).isEqualTo(5);
 
-            assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
+            assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25);
+            assertThat(VitamConfiguration.getCriticalRequestTime()).isEqualTo(45);
+            assertThat(VitamConfiguration.getRequestTimeAlertThrottlingDelay()).isEqualTo(120);
             assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
             assertThat(VitamConfiguration.getEnvironmentName()).isEqualTo("ENV");
         }

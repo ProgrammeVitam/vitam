@@ -50,6 +50,13 @@ classificationLevelOptional: true
 packages_install_retries_number: 1
 packages_install_retries_delay: 10
 
+# Request time check settings. Do NOT update except if required by Vitam support
+# Max acceptable time desynchronization between machines (in seconds).
+acceptableRequestTime: 10
+# Critical time desynchronization between machines (in seconds).
+criticalRequestTime: 60
+# Request time alert throttling Delay (in seconds)
+requestTimeAlertThrottlingDelay: 60
 
 vitam_timers:
 # /!\ IMPORTANT :
@@ -144,6 +151,7 @@ vitam:
     ontologyCacheTimeoutInSeconds: 300
     # Elasticsearch scroll timeout in milliseconds settings
     elasticSearchScrollTimeoutInMilliseconds: 300000
+
     accessexternal:
         # Component name: do not modify
         vitam_component: access-external
@@ -174,7 +182,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -204,7 +211,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -235,7 +241,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -270,7 +275,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -300,7 +304,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -347,7 +350,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -377,7 +379,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -435,7 +436,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -492,7 +492,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -529,7 +528,6 @@ vitam:
         # Schema validator cache settings (max entries in cache & retention timeout in seconds)
         schemaValidatorCacheMaxEntries: 100
         schemaValidatorCacheTimeoutInSeconds: 300
-        acceptableRequestTime: 10 # value in seconds
         # DIP cleanup delay (in minutes)
         dipTimeToLiveInMinutes: 10080 # 7 days
         transfersSIPTimeToLiveInMinutes: 10080 # 7 days
@@ -568,7 +566,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -598,7 +595,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -649,7 +645,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 60 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -684,7 +679,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 60 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES
@@ -714,7 +708,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 60 # value in seconds
         api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
         rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
@@ -760,7 +753,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-        acceptableRequestTime: 10 # value in seconds
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES

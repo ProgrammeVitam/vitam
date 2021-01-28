@@ -65,12 +65,9 @@ Dans chaque requête, les deux headers suivants sont positionnés :
 
 Du côté du composant cible de la requête, le contrôle est alors le suivant :
 
-* Existence des deux *headers* précédents ;
-* Vérification que *timestamp* envoyé est distant de l'heure actuelle sur le serveur requêté de moins de x secondes ( valeur modifiable selon le composant, par défaut à 10 secondes,  ``| Timestamp - temps local | < x s`` )
-
-* Validation du hash transmis via la réalisation du même calcul sur le serveur cible et de la comparaison des résultats.
-
-En cas d'échec d'une de ces validations, la requête est refusée.
+* Existence des deux *headers* précédents ; Dans le cas contraire, la requête est refusée.
+* Vérification que *timestamp* envoyé est distant de l'heure actuelle sur le serveur requêté de moins de x secondes (``| Timestamp - temps local | < x s`` ). Si la différence de temps est supérieure au seuil acceptable (10s par défaut), alors des erreurs sont tracées dans les logs et des alertes sont remontées dans le dashboard Kibana "Alertes de sécurité". Au delà d'un seuil critique (60s par défaut), la requête est refusée.
+* Validation du hash transmis via la réalisation du même calcul sur le serveur cible et de la comparaison des résultats ; En cas d'échec de validation, la requête est refusée.
 
 .. note:: Les *headers* et le *body* de la requête ne sont pas inclus dans le calcul du ``X-Platform-ID`` pour des raisons de performances.
 

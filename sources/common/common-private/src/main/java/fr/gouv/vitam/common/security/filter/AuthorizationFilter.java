@@ -48,6 +48,16 @@ import java.io.IOException;
 public class AuthorizationFilter implements Filter {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuthorizationFilter.class);
 
+    private final RequestAuthorizationValidator requestAuthorizationValidator;
+
+    public AuthorizationFilter() {
+        this(new RequestAuthorizationValidator());
+    }
+
+    AuthorizationFilter(RequestAuthorizationValidator requestAuthorizationValidator) {
+        this.requestAuthorizationValidator = requestAuthorizationValidator;
+    }
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         // Empty
@@ -56,8 +66,8 @@ public class AuthorizationFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {
-        final AuthorizationWrapper authorizationWrapper = new AuthorizationWrapper((HttpServletRequest) request);
-        if (!authorizationWrapper.checkAuthorizationHeaders()) {
+
+        if (!requestAuthorizationValidator.checkAuthorizationHeaders((HttpServletRequest) request)) {
             LOGGER.error("Authorization headers check failed!");
 
             final HttpServletResponse httpServletResponse = (HttpServletResponse) response;

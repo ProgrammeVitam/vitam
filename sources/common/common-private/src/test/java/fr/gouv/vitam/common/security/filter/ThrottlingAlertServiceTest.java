@@ -24,77 +24,87 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.security.filter;
 
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import java.io.PrintWriter;
+import java.time.temporal.ChronoUnit;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class AuthorizationFilterTest {
+public class ThrottlingAlertServiceTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock
-    private HttpServletRequest httpServletRequest;
-    @Mock
-    private HttpServletResponse httpServletResponse;
-    @Mock
-    private RequestAuthorizationValidator requestAuthorizationValidator;
-    @Mock
-    private FilterChain filterChain;
-    @InjectMocks
-    private AuthorizationFilter filter;
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
-    @Test
-    public void testDoFilterWhenValidationOk() throws Exception {
+    @Mock
+    private AlertService alertService;
 
-        // Given
-        doReturn(true)
-            .when(requestAuthorizationValidator).checkAuthorizationHeaders(httpServletRequest);
-
-        // When
-        filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
-
-        // Then
-        verify(filterChain).doFilter(httpServletRequest, httpServletResponse);
-        verifyNoMoreInteractions(filterChain);
-        verifyNoMoreInteractions(httpServletResponse);
-    }
+    private ThrottlingAlertService throttlingAlertService;
 
     @Before
-    public void init() throws Exception {
-        doReturn(mock(PrintWriter.class)).when(httpServletResponse).getWriter();
+    public void init() {
+        this.throttlingAlertService = new ThrottlingAlertService(
+            alertService, "error_message", 60);
+        this.logicalClock.freezeTime();
     }
 
     @Test
-    public void testDenyRequestWhenValidationFails() throws Exception {
+    public void testFirstAlert() {
 
         // Given
-        doReturn(false)
-            .when(requestAuthorizationValidator).checkAuthorizationHeaders(httpServletRequest);
 
         // When
-        filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
+        throttlingAlertService.reportAlert();
 
         // Then
-        verify(httpServletResponse).setStatus(Status.UNAUTHORIZED.getStatusCode());
-        verifyNoMoreInteractions(filterChain);
+        verify(alertService, times(1)).createAlert("error_message");
+        verifyNoMoreInteractions(alertService);
+    }
+
+    @Test
+    public void testMultipleAlerts() {
+
+        // Given
+
+        // When
+        for (int i = 0; i < 10; i++) {
+            throttlingAlertService.reportAlert();
+            logicalClock.logicalSleep(19, ChronoUnit.SECONDS);
+        }
+
+        // Then
+        verify(alertService).createAlert("error_message");
+        verify(alertService, times(2)).createAlert("4 redundant errors. error_message");
+        verifyNoMoreInteractions(alertService);
+    }
+
+    @Test
+    public void testMultipleSparseAlerts() {
+
+        // Given
+
+        // When
+        for (int i = 0; i < 10; i++) {
+            throttlingAlertService.reportAlert();
+            logicalClock.logicalSleep(3, ChronoUnit.MINUTES);
+        }
+
+        // Then
+        verify(alertService, times(10)).createAlert("error_message");
+        verifyNoMoreInteractions(alertService);
     }
 }
