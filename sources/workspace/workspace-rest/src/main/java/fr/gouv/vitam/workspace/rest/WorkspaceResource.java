@@ -127,9 +127,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceFile(containerName);
             workspace.createContainer(containerName);
             return Response.status(Status.CREATED).build();
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -158,14 +156,12 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName);
             workspace.checkWorkspaceFile(containerName);
             workspace.deleteContainer(containerName, recursive);
-        } catch (IOException e ) {
+        } catch (IOException | IllegalArgumentException e ) {
+            LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.NOT_FOUND).build();
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -189,14 +185,12 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.purgeOldFilesInContainer(containerName, timeToLive);
             return Response.status(Status.NO_CONTENT).build();
 
-        } catch (IOException e ) {
+        } catch (IOException | IllegalArgumentException e ) {
+            LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.NOT_FOUND).build();
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -223,9 +217,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             } else {
                 return Response.status(Status.NOT_FOUND).build();
             }
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
@@ -255,9 +247,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             final ObjectNode result = JsonHandler.createObjectNode();
             result.put("objectNumber", objectNumber);
             return Response.status(Status.OK).entity(result).build();
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
@@ -285,9 +275,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceFile(containerName);
             final ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
             return Response.status(Status.OK).entity(containerInformation).build();
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
@@ -317,9 +305,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceFile(containerName, folderName);
             workspace.createFolder(containerName, folderName);
             return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -351,9 +337,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName, folderName);
             workspace.checkWorkspaceFile(containerName, folderName);
             workspace.deleteFolder(containerName, folderName);
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -389,9 +373,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             } else {
                 return Response.status(Status.NOT_FOUND).build();
             }
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
@@ -424,7 +406,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName, folderName);
             workspace.uncompressObject(containerName, folderName, archiveType, stream);
             return Response.status(Status.CREATED).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | IOException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -450,8 +432,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (IOException e) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } finally {
             StreamUtils.closeSilently(stream);
         }
@@ -481,9 +461,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceFile(containerName);
             workspace.compress(containerName, compressInformation.getFiles(), compressInformation.getOutputFile(), compressInformation.getOutputContainer());
             return Response.status(Status.CREATED).build();
-        } catch (IOException e ) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e ) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (ArchiveException e) {
@@ -512,7 +490,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceFile(containerName, folderName);
             uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
 
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
+            LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
             LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName);
@@ -520,9 +499,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageException eAddressableStorageException) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), eAddressableStorageException);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
 
         if (uriList == null || uriList.isEmpty()) {
@@ -552,9 +528,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             workspace.checkWorkspaceFile(containerName, objectName);
             workspace.putObject(containerName, objectName, stream);
             return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
-        } catch (IOException e) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -592,9 +566,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             }
             workspace.putAtomicObject(containerName, objectName, stream, size);
             return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
-        } catch (IOException e) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -626,9 +598,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName, objectName);
             workspace.checkWorkspaceFile(containerName, objectName);
             workspace.deleteObject(containerName, objectName);
-        } catch (IOException e) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -681,6 +651,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 JsonNode objectInformation = workspace.getObjectInformation(containerName, objectId);
                 fileSizes.add(objectInformation.get("size").asLong());
             } catch (IOException e) {
+                LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
             } catch (final ContentAddressableStorageNotFoundException e) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName + " / " + objectId, e);
@@ -783,10 +754,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
             workspace.checkWorkspaceFile(containerName);
-        } catch (IOException e) {
-
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -846,9 +814,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(response,
                 Status.OK, headers);
 
-        } catch (IOException e) {
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
