@@ -10,22 +10,22 @@ Dans le projet Vitam, Les API externes supportent le POST-X-HTTP-OVERRIDE=GET. L
 
 **Units** est le point d'entrée pour toutes les descriptions d'archives. Celles-ci contiennent les métadonnées de description et les métadonnées archivistiques (métadonnées de gestion).
 
-Une _Unit_ peut être de 3 types : 
-- "ingest" (unité archivistique classique), 
-- "holding" (unité archivistique d'arbre de positionnement) 
-- "filing" (unité archivistique de plan de classement). 
+Une _Unit_ peut être de 3 types :
+- "ingest" (unité archivistique classique),
+- "holding" (unité archivistique d'arbre de positionnement)
+- "filing" (unité archivistique de plan de classement).
 Les métadonnées de ces unités peuvent tout aussi bien décrire un dossier qu'un groupe d'objet lié. Les _Units_ peuvent être organisées en arborescence et peuvent posséder :
   - Plusieurs racines dans l'arborescence (_Unit_ de plus haut niveau)
   - Plusieurs parents directs (un dossier peut être rattaché à plusieurs dossiers)
-  
+
  Il s'agit d'une représentation dite de "_graphe dirigé sans cycle_" (DAG en Anglais pour "_Directed Acyclic Graph_").
 
 Pour le model SEDA, il est équivalent à l'**ArchiveUnit**, notamment pour les parties **Content** et **Management**. Pour l'Isad(G) / EAD, il est équivalent à **Description Unit**.
 
 Au plus, un seul _groupe_ d'_objets_ d'archives (**Objects**) est attaché à une _Unit_. Cela signifie que si une _Unit_ doit avoir plus d'un _groupe_ d'_objets_ d'archive attaché, vous devez spécifier des sous-Units à l'_Unit_ principale, chaque sous-Unit n'ayant qu'un _groupe_ d'_objets_ d'archives attaché. Un même _groupe_ d'_objets_ d'archives peut par contre être attaché à de multiples _Units_.
 
-Aucun effacement n'est autorisé, ni aucune mise à jour complète (seules les mises à jours partielles sont autorisées via la commande PUT).
-Les mises à jour ne sont autorisées que par _Unit_, il n'y a pas de mise à jour en masse.
+Aucun effacement n'est autorisé, ni aucune mise à jour complète (seules les mises à jours partielles sont autorisées via la commande POST via un update de masse).
+Les mises à jour des _Unit_ doivent être réalisées via des mises à jour en masse, l'API d'update unitaire étant dépréciée.
 
 ### Structuration des métadonnées
 
@@ -68,7 +68,7 @@ La structuration d'un Unit est la suivante :
 **/units/{idu}/objects** est le point d'entrée pour :
 
  * tous les groupes objets, qui contiennent les métadonnées techniques (nom des objets, format, type MIME...)
- * tous les objets binaires (des fichiers) non binaires (des références à des objets d'archives physiques ou externes au système). 
+ * tous les objets binaires (des fichiers) non binaires (des références à des objets d'archives physiques ou externes au système).
 
 Un _Groupe_ d'_Objects_ peut posséder de 1 à N objets. Chaque objet a un usage et une version dans son groupe d'objet. Ces distinctions permettent de différencier des usages comme version de conservation, version de diffusion...
 
@@ -176,6 +176,6 @@ La structuration d'un Object est la suivante :
 **Note :** A l'avenir, à l'intérieur d'une version d'usage, et pour chaque version (pour les **BinaryMaster** notamment), un contexte sera ajouté à la structure de l'Object afin de pouvoir y introduire des données de contexte (version du référentiel Pronom par exemple...).
 
 ## Dipexport api
-**/dipexport** est le point d'entrée permettant l'export sous forme de DIP (paquet d'information diffusé ou Dissemination Information Package en anglais) d'une sélection d'unités archivistiques.
+**/dipexport** (en v1 ou en v2) sont les points d'entrée permettant l'export sous forme de DIP (paquet d'information diffusé ou Dissemination Information Package en anglais) d'une sélection d'unités archivistiques.
 
 **Important** : Deux actions sont disponibles. La première permet de lancer un processus de génération d'un DIP. La deuxième permet de télécharger le fichier généré par le processus précédent, une fois terminé.

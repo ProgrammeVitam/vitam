@@ -1,0 +1,22 @@
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [ { "$eq": { "#id": "MY-AU-GUID" } } ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [],
+    "delete": [
+      {
+        "HoldRule": {
+          "Rules": [
+            {
+              "Rule": "HOL-00001"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -3003,7 +3003,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.LOGBOOK_OPERATIONS)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = LOGBOOKOPERATIONS_CREATE, description = "Créer une opération")
+    @Secured(permission = LOGBOOKOPERATIONS_CREATE, description = "Créer une opération externe")
     public Response createExternalOperation(LogbookOperationParameters operation) {
         Status status;
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {

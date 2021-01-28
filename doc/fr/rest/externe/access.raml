@@ -35,7 +35,7 @@ documentation:
   - title: Champs d'application sur les Units
     content: |
       Les principes sont les suivants :
-        - Pas de POST (sauf *X-Http-Method-Override: GET*) car ceci relève de l'entrée
+        - Le POST peut être utilisé pour des opérations de mises à jour en masse. Il peut aussi être utilisé avec le header *X-Http-Method-Override: GET* pour réaliser un GET avec un BODY.
         - Le PUT est utilisé pour réaliser un update partiel (déprécié), à partie de la release 16, le POST (massUpdate) doit être utilisé pour effectuer une mise à jour d'unités archivistiques.
         - Pas de DELETE car ceci relève de l'élimination
         - GET correspond à la recherche ou l'accès selon la présence d'un body ou non
@@ -76,7 +76,7 @@ documentation:
   /rules:
     post:
       description: |
-        Requête qui déclanche la mise à jour de masse des métadonnées de gestion d'unités d'archives.
+        Requête qui déclenche la mise à jour de masse des métadonnées de gestion d'unités d'archives.
         La requête utilise un POJO spécifique pour effectuer la mise à jour des éléments de gestion.
 
         Permissions requises:
@@ -302,32 +302,6 @@ documentation:
           La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée.
     is: [AccessTraits.DipV2Async]
 
-  /{id}/dip/:
-    uriParameters:
-        id:
-          required: true
-          description: Identifiant de l'opération d'export DIP V2.
-    displayName: Téléchargement du DIP V2
-    description: |
-      Télécharger le DIP généré par l'opération passée en paramètre
-    get:
-      headers:
-        Accept:
-          required: true
-          enum: [ "application/octet-stream" ]
-      description: |
-        Requête qui retourne les résultats composés des métadonnées et des objets binaires dans un fichier zip
-        'Accept' header est 'application/octet-stream'
-      responses:
-        202:
-          description: Returns the generated zip file
-          body:
-            application/octet-stream:
-              description: Binary object as a zip file
-        412:
-          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
-          body:
-            application/json:
 
 /transfers:
   displayName: Transfert d'archives

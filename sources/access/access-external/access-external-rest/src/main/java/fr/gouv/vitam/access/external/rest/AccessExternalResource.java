@@ -161,7 +161,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * get a DIP by dsl query
+     * get units list by query
      *
      * @param queryJson the query to get units
      * @return Response
@@ -234,7 +234,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * get units list by query
+     * get a DIP by dsl query
      *
      * @param queryJson the query to get units
      * @return Response
@@ -456,7 +456,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * get units list by query
+     *
      *
      * @param id operationId correponding to the current dip
      * @return Response

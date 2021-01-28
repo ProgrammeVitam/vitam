@@ -247,6 +247,9 @@ Glossaire
    TLS
       `Transport Layer Security`
 
+   TNA
+      `The National Archives`, `Pronom <https://www.nationalarchives.gov.uk/PRONOM/>`_
+
    TNR
       Tests de Non-Régression
 

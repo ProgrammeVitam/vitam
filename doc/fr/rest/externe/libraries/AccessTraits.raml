@@ -334,6 +334,8 @@ traits:
       application/json:
         description: Requête de mise à jour de masse des métadonnées de gestion des unitiés archivistiques
         type: AccessTypes.UnitBatchUpdateRequest
+        examples:
+          RulesUpdate: !include examples/rulesUpdate.json
 
   UnitBatchUpdateResponseAsync:
       is: [ StandardTraits.StandardHeader202, StandardTraits.StandardHeader500,
