@@ -1,4 +1,4 @@
-# mongod.conf
+# mongos.conf
 
 # for documentation of all options, see:
 #   http://docs.mongodb.org/manual/reference/configuration-options/
@@ -6,9 +6,11 @@
 
 # where to write logging data.
 systemLog:
-  destination: syslog
+  destination: file
   syslogFacility: local0
   logAppend: true
+  logRotate: reopen
+  path: {{ mongo_folder_log }}/mongos.log
 
 # network interfaces
 net:
