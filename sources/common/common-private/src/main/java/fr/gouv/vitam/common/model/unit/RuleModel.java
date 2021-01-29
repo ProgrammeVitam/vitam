@@ -30,22 +30,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RuleModel {
 
+    public static final String RULE = "Rule";
+    public static final String START_DATE = "StartDate";
+    public static final String END_DATE = "EndDate";
     /**
      * rule id
      */
-    @JsonProperty("Rule")
+    @JsonProperty(RULE)
     private String rule;
 
     /**
      * start date
      */
-    @JsonProperty("StartDate")
+    @JsonProperty(START_DATE)
     private String startDate;
 
     /**
      * end date
      */
-    @JsonProperty("EndDate")
+    @JsonProperty(END_DATE)
     private String endDate;
 
     public RuleModel() {

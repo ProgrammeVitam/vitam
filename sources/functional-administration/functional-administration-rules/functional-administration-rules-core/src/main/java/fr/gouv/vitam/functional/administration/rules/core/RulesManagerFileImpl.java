@@ -101,6 +101,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -158,6 +159,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
+import static fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils.UNLIMITED_RULE_DURATION;
 
 
 /**
@@ -181,7 +183,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private static final String TMP = "tmp";
     private static final String UPDATE_DATE = "UpdateDate";
-    private static final String UNLIMITED = "unlimited";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
     private static final String STP_IMPORT_RULES_SUCCESS =
         "Succès du processus d'enregistrement de la copie du référentiel des règles de gestion";
@@ -1320,9 +1321,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param line the given line to treat
      */
     private void checkRuleDuration(FileRulesModel fileRulesModel, List<ErrorReport> errors, int line) {
-        if (fileRulesModel.getRuleDuration().equalsIgnoreCase(UNLIMITED)) {
-            return;
-        } else {
+        if (!fileRulesModel.getRuleDuration().equalsIgnoreCase(UNLIMITED_RULE_DURATION)) {
             final int duration = parseWithDefault(fileRulesModel.getRuleDuration());
             if (duration < 0) {
                 errors.add(
@@ -1404,7 +1403,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         FileRulesModel fileRuleModel)
         throws FileRulesException {
         try {
-            if (!record.get(FileRulesModel.TAG_RULE_DURATION).equalsIgnoreCase(UNLIMITED) &&
+            if (!record.get(FileRulesModel.TAG_RULE_DURATION).equalsIgnoreCase(UNLIMITED_RULE_DURATION) &&
                 (record.get(FileRulesModel.TAG_RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
                     Integer.parseInt(record.get(FileRulesModel.TAG_RULE_DURATION)) > YEAR_LIMIT ||
                     record.get(FileRulesModel.TAG_RULE_MEASUREMENT)
@@ -1448,7 +1447,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private int calculDuration(String ruleDuration, String ruleMeasurement) {
         int duration = 0;
 
-        if (ruleDuration.equalsIgnoreCase(UNLIMITED)) {
+        if (ruleDuration.equalsIgnoreCase(UNLIMITED_RULE_DURATION)) {
             return MAX_DURATION;
         }
 

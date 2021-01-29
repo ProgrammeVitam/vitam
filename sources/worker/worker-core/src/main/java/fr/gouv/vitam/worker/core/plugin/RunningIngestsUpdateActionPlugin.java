@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
+import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -65,7 +66,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.ArchiveUnitUpdateUtils;
+import fr.gouv.vitam.worker.common.utils.ArchiveUnitLifecycleUpdateUtils;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -95,7 +96,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin;
     private final MetaDataClientFactory metaDataClientFactory;
-    private final ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
+    private final ArchiveUnitLifecycleUpdateUtils archiveUnitLifecycleUpdateUtils = new ArchiveUnitLifecycleUpdateUtils();
 
     private static final String RESULTS = "$results";
     private static final String ID = "#id";
@@ -156,7 +157,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             JsonNode rulesUpdated = JsonHandler.getFromInputStream(inputStream);
             for (final JsonNode rule : rulesUpdated) {
                 if (!updatedRulesByType.containsKey(rule.get("RuleType").asText())) {
-                    List<JsonNode> listRulesByType = new ArrayList<JsonNode>();
+                    List<JsonNode> listRulesByType = new ArrayList<>();
                     listRulesByType.add(rule);
                     updatedRulesByType.put(rule.get("RuleType").asText(), listRulesByType);
                 } else {
@@ -251,8 +252,8 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                                 JsonNode categoryNode = managementNode.get(key);
                                 if (categoryNode != null &&
                                     categoryNode.get(RULES_KEY) != null) {
-                                    if (archiveUnitUpdateUtils.updateCategoryRules(
-                                        (ArrayNode) categoryNode.get(RULES_KEY),
+                                    if (ArchiveUnitUpdateUtils.updateCategoryRules(
+                                        categoryNode.get(RULES_KEY),
                                         updatedRulesByType.get(key), query, key)) {
                                         nbUpdates++;
                                     }
@@ -265,10 +266,10 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                                             .push(VitamFieldsHelper.operations(), params.getContainerName()));
                                     JsonNode updateResultJson =
                                         metaDataClient.updateUnitById(query.getFinalUpdate(), auGuid);
-                                    archiveUnitUpdateUtils.logLifecycle(params, auGuid, StatusCode.OK,
-                                        archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, auGuid),
+                                    archiveUnitLifecycleUpdateUtils.logLifecycle(params, auGuid, StatusCode.OK,
+                                        ArchiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, auGuid),
                                         handlerIO.getLifecyclesClient());
-                                    archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), auGuid,
+                                    archiveUnitLifecycleUpdateUtils.commitLifecycle(params.getContainerName(), auGuid,
                                         handlerIO.getLifecyclesClient());
 
 
