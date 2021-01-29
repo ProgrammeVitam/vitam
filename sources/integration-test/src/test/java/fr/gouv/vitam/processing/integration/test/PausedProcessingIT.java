@@ -26,18 +26,6 @@
  */
 package fr.gouv.vitam.processing.integration.test;
 
-import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-
-import javax.ws.rs.core.Response;
-
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -87,6 +75,18 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+
+import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 public class PausedProcessingIT extends VitamRuleRunner {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PausedProcessingIT.class);
@@ -116,7 +116,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     private WorkspaceClient workspaceClient;
     // used to check processed elements per step
-    private int[] elementCountPerStep = {1, 2, 5, 1, 2, 5, 2, 5, 0, 1, 1};
+    private int[] elementCountPerStep = {1, 1, 1, 2, 5, 1, 2, 5, 2, 5, 0, 1, 1};
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -145,19 +145,6 @@ public class PausedProcessingIT extends VitamRuleRunner {
         handleAfter();
     }
 
-    private void createLogbookOperation(GUID operationId, GUID objectId)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-
-        final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationId, "Process_SIP_unitary", objectId,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationId != null ? operationId.toString() : "outcomeDetailMessage",
-            operationId);
-        logbookClient.create(initParameters);
-    }
-
     @RunWithCustomExecutor
     @Test
     public void testPausedAndPersistedWorkflow() throws Exception {
@@ -175,17 +162,19 @@ public class PausedProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         ProcessingManagementClientFactory.getInstance().getClient()
             .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
-        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
+        RequestResponse<ItemStatus> respSanityCheckSip = ProcessingManagementClientFactory.getInstance().getClient()
             .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
         // wait a little bit
-        assertNotNull(resp);
-        assertThat(resp.isOk()).isTrue();
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
+        assertNotNull(respSanityCheckSip);
+        assertThat(respSanityCheckSip.isOk()).isTrue();
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), respSanityCheckSip.getStatus());
 
         waitOperation(containerName);
         ProcessWorkflow processWorkflow =
@@ -206,29 +195,35 @@ public class PausedProcessingIT extends VitamRuleRunner {
         LOGGER.info("After RE-START");
 
         // Next on the old paused ans persisted workflow
-        RequestResponse<ItemStatus> ret =
-            ProcessingManagementClientFactory.getInstance().getClient()
-                .updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-                    containerName);
-        assertNotNull(ret);
-
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
+        RequestResponse<ItemStatus> respStpUpload =
+            ProcessingManagementClientFactory.getInstance().getClient().updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
+        assertNotNull(respStpUpload);
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), respStpUpload.getStatus());
         waitOperation(containerName);
-        processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
+        RequestResponse<ItemStatus> respIngestControl =
+                ProcessingManagementClientFactory.getInstance().getClient().updateOperationActionProcess(ProcessAction.NEXT.getValue(),containerName);
+        assertNotNull(respIngestControl);
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), respIngestControl.getStatus());
+        waitOperation(containerName);
+
+        RequestResponse<ItemStatus> respOgCheckTransform =
+                ProcessingManagementClientFactory.getInstance().getClient().updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
+        assertNotNull(respOgCheckTransform);
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), respOgCheckTransform.getStatus());
+        waitOperation(containerName);
+
+        processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
-
-        ret = ProcessingManagementClientFactory.getInstance().getClient()
+        respOgCheckTransform = ProcessingManagementClientFactory.getInstance().getClient()
             .updateOperationActionProcess(ProcessAction.RESUME.getValue(),
                 containerName);
-        assertNotNull(ret);
+        assertNotNull(respOgCheckTransform);
 
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), respOgCheckTransform.getStatus());
 
         waitOperation(containerName);
         processWorkflow =
@@ -304,6 +299,8 @@ public class PausedProcessingIT extends VitamRuleRunner {
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+            // Insert sanityCheck file & StpUpload
+            insertWaitForStepEssentialFiles(containerName);
 
             ProcessingManagementClientFactory.getInstance().getClient()
                 .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
@@ -398,6 +395,19 @@ public class PausedProcessingIT extends VitamRuleRunner {
             Assertions.assertThat(step.getElementProcessed().get()).isEqualTo(step.getElementToProcess().get());
             Assertions.assertThat(step.getElementProcessed().get()).isEqualTo(elementCountPerStep[stepIndex++]);
         }
+    }
+
+    private void createLogbookOperation(GUID operationId, GUID objectId)
+            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+
+        final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                operationId, "Process_SIP_unitary", objectId,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationId != null ? operationId.toString() : "outcomeDetailMessage",
+                operationId);
+        logbookClient.create(initParameters);
     }
 
 }

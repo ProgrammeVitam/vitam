@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -40,40 +39,26 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyService;
 import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckError;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckEvent;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -89,15 +74,17 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
-import static org.junit.Assert.assertEquals;
+import static fr.gouv.vitam.common.VitamTestHelper.doIngestWithLogbookStatus;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
+import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.UNKNOWN;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -128,10 +115,6 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
                 AccessInternalMain.class,
                 StorageMain.class
             ));
-    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
-    private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
-
     private static final String CHECK_LOGBOOK_DATA_AGENCIES = "integration-logbook/data/agencies.csv";
     private static final String ACCESS_CONTRATS_JSON = "integration-logbook/data/access_contrats.json";
     private static final String REFERENTIAL_CONTRACTS_OK_JSON =
@@ -225,40 +208,12 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     public void testLogbookCoherenceCheckSIP_KO_withIncoherentLogbook() throws Exception {
         LOGGER.debug("Starting integration tests for logbook coherence checks.");
         // Import of data
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_0);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         importFiles();
 
-
-        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_KO_ARBO_RECURSIVE);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "PROCESS_SIP_UNITARY", operationGuid,
-            LogbookTypeProcess.INGEST,
-            StatusCode.UNKNOWN,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(workflow);
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
-        waitOperation(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), TENANT_0);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+       String operationId = doIngestWithLogbookStatus(TENANT_0, SIP_KO_ARBO_RECURSIVE, UNKNOWN);
+       verifyOperation(operationId, KO);
+       verifyProcessState(operationId, TENANT_0, COMPLETED);
 
         // logbook configuration
         final File logbookConfig = PropertiesUtils.findFile(VitamServerRunner.LOGBOOK_CONF);
@@ -283,8 +238,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         ObjectMapper mapper = new ObjectMapper();
         Set<LogbookCheckError> expectedResults = mapper.readValue(
             PropertiesUtils.getResourceAsStream(EXPECTED_RESULTS_JSON),
-            new TypeReference<Set<LogbookCheckError>>() {
-            });
+            new TypeReference<>() {});
 
         Assertions.assertThat(logbookCheckErrors).containsAll(expectedResults);
     }
@@ -317,15 +271,14 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileContracts = PropertiesUtils.getResourceFile(REFERENTIAL_CONTRACTS_OK_JSON);
             List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<List<IngestContractModel>>() {
-                });
+                new TypeReference<>() {});
             client.importIngestContracts(IngestContractModelList);
 
             // import contrat
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRATS_JSON);
             List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<>() {
                 });
             client.importAccessContracts(accessContractModelList);
 
@@ -335,14 +288,14 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             client.importSecurityProfiles(JsonHandler
                 .getFromFileAsTypeReference(
                     PropertiesUtils.getResourceFile("integration-logbook/data/security_profile_ok.json"),
-                    new TypeReference<List<SecurityProfileModel>>() {
+                    new TypeReference<>() {
                     }));
 
             // Import Context
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importContexts(JsonHandler
                 .getFromFileAsTypeReference(PropertiesUtils.getResourceFile("integration-logbook/data/contexts.json"),
-                    new TypeReference<List<ContextModel>>() {
+                    new TypeReference<>() {
                     }));
 
         } catch (final Exception e) {

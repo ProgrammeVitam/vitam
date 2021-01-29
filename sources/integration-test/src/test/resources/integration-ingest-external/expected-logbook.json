@@ -41,9 +41,8 @@
       "evTypeProc": "INGEST",
       "outcome": "OK",
       "outDetail": "SANITY_CHECK_SIP.OK",
-      "outMessg": "Succ\u00E8s du contr\u00F4le sanitaire du SIP : aucun virus d\u00E9tect\u00E9",
-      "evIdReq": "OPERATION_ID_REPLACE",
-      "obId": "OPERATION_ID_REPLACE"
+      "outMessg": "Succ\u00E8s du contr\u00F4le sanitaire du SIP : aucun virus d\u00E9tect\u00E9 Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
       "evType": "CHECK_CONTAINER",
@@ -51,9 +50,8 @@
       "evTypeProc": "INGEST",
       "outcome": "OK",
       "outDetail": "CHECK_CONTAINER.OK",
-      "outMessg": "Succ\u00E8s du contr\u00F4le du format du conteneur du SIP",
-      "evIdReq": "OPERATION_ID_REPLACE",
-      "obId": "OPERATION_ID_REPLACE"
+      "outMessg": "Succ\u00E8s du contr\u00F4le du format du conteneur du SIP Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
       "evType": "MANIFEST_FILE_NAME_CHECK",
@@ -61,9 +59,8 @@
       "evTypeProc": "INGEST",
       "outcome": "OK",
       "outDetail": "MANIFEST_FILE_NAME_CHECK.OK",
-      "outMessg": "Succ\u00E8s du contr\u00F4le du nom du bordereau de transfert : nom du fichier conforme",
-      "evIdReq": "OPERATION_ID_REPLACE",
-      "obId": "OPERATION_ID_REPLACE"
+      "outMessg": "Succ\u00E8s du contr\u00F4le du nom du bordereau de transfert : nom du fichier conforme Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
       "evType": "STP_UPLOAD_SIP.STARTED",
@@ -632,5 +629,5 @@
     }
   ],
   "_tenant": 0,
-  "_v": 24
+  "_v": 26
 }

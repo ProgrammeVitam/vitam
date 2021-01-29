@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.ingest.internal.client;
 
-import java.io.InputStream;
-import java.util.Optional;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -40,17 +33,20 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.Optional;
 
 /**
  * Ingest Internal client interface
@@ -101,16 +97,6 @@ public interface IngestInternalClient extends MockOrRestClient {
     Response downloadObjectAsync(String objectId, IngestCollection type)
         throws InvalidParseOperationException, IngestInternalClientServerException,
         IngestInternalClientNotFoundException;
-
-    /**
-     * Store ATR in storage
-     * 
-     * @param guid
-     * @param input
-     * @throws VitamClientException
-     */
-    void storeATR(GUID guid, InputStream input)
-        throws VitamClientException;
 
     /**
      * getOperationProcessStatus:
@@ -199,4 +185,6 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws VitamClientException
      */
     Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException;
+
+    void saveObjectToWorkspace(String id, String objectName, InputStream inputStream)throws VitamClientException;
 }

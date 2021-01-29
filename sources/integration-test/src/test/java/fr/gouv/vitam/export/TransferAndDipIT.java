@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 import fr.gouv.vitam.common.model.export.ExportRequest;
@@ -81,6 +82,8 @@ import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -105,6 +108,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,10 +121,15 @@ import java.util.List;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_ID_PROC;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUTCOME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.fail;
@@ -301,6 +310,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
 
+
         ExportRequest exportRequest = new ExportRequest(
             new DataObjectVersions(Collections.singleton("BinaryMaster")),
             select.getFinalSelect(),
@@ -389,7 +399,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         // try Ingest the Transfer SIP
         try (InputStream transferSipStream = getTransferSIP(getVitamSession().getRequestId())) {
-            String opId = VitamTestHelper.doIngest(TENANT_ID, transferSipStream);
+            String opId = VitamTestHelper.doIngest(TENANT_ID, transferSipStream, DEFAULT_WORKFLOW, RESUME, STARTED);
             // As FormatIdentifierMock is used, pdf signature was modified in the first ingest. After transferByIngestGuid manifest and FormatIdentifierMock return the same mime type => status code OK
             VitamTestHelper.verifyOperation(opId, StatusCode.OK);
         }
@@ -451,7 +461,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         // try Ingest the Transfer SIP
         try (InputStream transferSipStream = getTransferSIP(getVitamSession().getRequestId())) {
-            final String ingestTransfertOpId = VitamTestHelper.doIngest(TENANT_ID, transferSipStream);
+            final String ingestTransfertOpId = VitamTestHelper.doIngest(TENANT_ID, transferSipStream, DEFAULT_WORKFLOW, RESUME, STARTED);
             // As FormatIdentifierMock is used, pdf signature was modified in the first ingest. After transferByIngestGuid manifest and FormatIdentifierMock return the same mime type => status code OK
             verifyOperation(ingestTransfertOpId, StatusCode.OK);
         }
@@ -489,7 +499,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         InputStream transferSip = getTransferSIP(transferOpId);
 
 
-        String transferredIngestedSipOpId = VitamTestHelper.doIngest(TENANT_ID, transferSip);
+        String transferredIngestedSipOpId = VitamTestHelper.doIngest(TENANT_ID, transferSip, DEFAULT_WORKFLOW, RESUME, STARTED);
         verifyOperation(transferredIngestedSipOpId, StatusCode.OK);
         String atr = getAtrTransferredSip(transferredIngestedSipOpId);
 

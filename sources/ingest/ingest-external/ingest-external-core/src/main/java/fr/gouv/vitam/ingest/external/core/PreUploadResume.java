@@ -27,41 +27,24 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 
 /**
  * Asynchrone exchange Model
  */
 public class PreUploadResume {
-    private LogbookOperationsClientHelper helper;
-
     private final WorkFlow workFlow;
-    private final LogbookOperationParameters startedParameters;
     private final WorkspaceFileSystem workspaceFileSystem;
 
     public PreUploadResume(
-        LogbookOperationsClientHelper helper,
         WorkFlow workFlow,
-        LogbookOperationParameters startedParameters,
         WorkspaceFileSystem workspaceFileSystem) {
-        this.helper = helper;
         this.workFlow = workFlow;
-        this.startedParameters = startedParameters;
         this.workspaceFileSystem = workspaceFileSystem;
     }
 
     public WorkFlow getWorkFlow() {
         return workFlow;
-    }
-
-    /**
-     * @return LogbookOperationParameters
-     */
-    public LogbookOperationParameters getStartedParameters() {
-        return startedParameters;
     }
 
     /**
@@ -71,10 +54,4 @@ public class PreUploadResume {
         return workspaceFileSystem;
     }
 
-    /**
-     * @return LogbookOperationsClientHelper
-     */
-    public LogbookOperationsClientHelper getHelper() {
-        return helper;
-    }
 }

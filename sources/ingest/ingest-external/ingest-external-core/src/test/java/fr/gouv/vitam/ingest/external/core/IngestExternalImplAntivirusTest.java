@@ -99,8 +99,7 @@ public class IngestExternalImplAntivirusTest {
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null,responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
@@ -120,8 +119,7 @@ public class IngestExternalImplAntivirusTest {
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
@@ -141,8 +139,7 @@ public class IngestExternalImplAntivirusTest {
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        PreUploadResume model =
-            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null,
             null);

@@ -76,7 +76,6 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -199,9 +198,15 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static fr.gouv.vitam.common.VitamTestHelper.doIngestNext;
+import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.ProcessAction.NEXT;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.TRANSFER_CONTAINER;
@@ -405,8 +410,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testEliminationAction() throws Exception {
-        final String ingestOperationGuid = doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
-            StatusCode.OK);
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(ingestOperationGuid, OK);
 
         // Check ingested units
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -563,8 +570,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testTransferReply() throws Exception {
-        final String ingestOperationGuid = doIngest(
-            PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(ingestOperationGuid, OK);
 
         // Check ingested units
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -581,7 +590,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(ingestedObjectIds).hasSize(3);
 
         // Export transfer archive
-        String transferOperation = transfer(ingestedUnitIds, StatusCode.OK);
+        String transferOperation = transfer(ingestedUnitIds, OK);
 
         // Check "opts" field update
         checkTransferOperationsInExportedUnits(accessInternalClient, transferOperation, ingestedUnitIds);
@@ -592,7 +601,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Get exported SIP from transfer request and ingest it
         String transferredSipIngestOperationId;
         try (InputStream sipInputStream = getTransferSip(transferOperation)) {
-            transferredSipIngestOperationId = doIngest(sipInputStream, StatusCode.OK);
+            transferredSipIngestOperationId = doIngest(sipInputStream, OK);
         }
 
         // Check ingested transferred metadata match initial exported ones
@@ -607,7 +616,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Send ATR back for transfer reply workflow
         String transferReplyOperationId;
         try (InputStream atrInputStream = readStoredReport(transferredSipIngestOperationId + XML)) {
-            transferReplyOperationId = startTransferReplyWorkflow(atrInputStream, StatusCode.OK);
+            transferReplyOperationId = startTransferReplyWorkflow(atrInputStream, OK);
         }
 
         List<String> transferPurgedTransferUnitIds = new ArrayList<>(ingestedUnitIds);
@@ -643,8 +652,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testTransferReplyComplex() throws Exception {
-        final String ingestOperationGuid = doIngest(
-            PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(ingestOperationGuid, OK);
 
         // Check ingested units
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -665,7 +676,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Transfer operation 1 : 1 single unit with 1 object group
         String transfer1UnitId = getId(ingestedUnitsByTitle.get(MONTPARNASSE));
         List<String> transfer1UnitIds = Collections.singletonList(transfer1UnitId);
-        String transferOperation1 = transfer(transfer1UnitIds, StatusCode.OK);
+        String transferOperation1 = transfer(transfer1UnitIds, OK);
 
         // Check "opts" field update
         checkTransferOperationsInExportedUnits(accessInternalClient, transferOperation1, transfer1UnitIds);
@@ -693,13 +704,13 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Get exported SIP from transfer request 1 and ingest it
         String transferredSip1IngestOperationId;
         try (InputStream sipInputStream = getTransferSip(transferOperation1)) {
-            transferredSip1IngestOperationId = doIngest(sipInputStream, StatusCode.OK);
+            transferredSip1IngestOperationId = doIngest(sipInputStream, OK);
         }
 
         // Send ATR back for transfer reply workflow 1 ==> Will delete 1 unit & detach 1 object group
         String transferReplyOperationId1;
         try (InputStream atrInputStream = readStoredReport(transferredSip1IngestOperationId + XML)) {
-            transferReplyOperationId1 = startTransferReplyWorkflow(atrInputStream, StatusCode.OK);
+            transferReplyOperationId1 = startTransferReplyWorkflow(atrInputStream, OK);
         }
 
         List<String> transfer1PurgedTransferUnitIds = transfer1UnitIds;
@@ -720,7 +731,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Get exported SIP from transfer request 2 and ingest it
         String transferredSip2IngestOperationId;
         try (InputStream sipInputStream = getTransferSip(transferOperation2)) {
-            transferredSip2IngestOperationId = doIngest(sipInputStream, StatusCode.OK);
+            transferredSip2IngestOperationId = doIngest(sipInputStream, OK);
         }
 
         // Send ATR back for transfer reply workflow 2 ==> Will delete 2/3 units & 1 object group
@@ -764,9 +775,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestRunningIngestThenKO() throws Exception {
 
         // Given
-        String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
-                "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
 
         // When : Run ingest cleanup process
         retrofit2.Response<Void> actionResult =
@@ -816,9 +825,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testCleanupIngestCompletedOKIngestThenKO() throws Exception {
-        // Given
-        String ingestOperationGuid =
-            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(ingestOperationGuid, OK);
 
         // When : Run ingest cleanup process
 
@@ -868,9 +878,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestKilledIngestAfterAccessionRegistersThenOK() throws Exception {
 
         // Given
-        String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
-                "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -894,7 +902,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
 
         // Then
-        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, OK);
 
         // Ensure data purged via DSL
         final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
@@ -933,8 +941,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Check report
         checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
-            getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
-            getIds(ingestedGots).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
+            getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> OK)),
+            getIds(ingestedGots).stream().collect(Collectors.toMap(i -> i, i -> OK)),
             ingestedGots.getResults().stream().collect(toMap(this::getId, this::getBinaryObjectIds))
         );
     }
@@ -948,9 +956,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestUpdatedUnitsThenWarning() throws Exception {
 
         // Given
-        String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
-                "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -1016,7 +1022,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check report
         checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
             getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.WARNING)),
-            getIds(ingestedGots).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
+            getIds(ingestedGots).stream().collect(Collectors.toMap(i -> i, i -> OK)),
             ingestedGots.getResults().stream().collect(toMap(this::getId, this::getBinaryObjectIds))
         );
     }
@@ -1030,8 +1036,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestObjectAttachedToExistingObjectGroupThenKO() throws Exception {
 
         // Given
-        String initialIngestOperationGuid =
-            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
+        prepareVitamSession();
+        final String initialIngestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(initialIngestOperationGuid, OK);
 
         // Ingest another SIP that add an object to an existing object group
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1046,8 +1053,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             initialUnitId);
         zipFolder(PropertiesUtils.getResourcePath(add_object_to_existing_object_group), zipName);
 
-        String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(new FileInputStream(zipName), "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached(new FileInputStream(zipName),
+                "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         final RequestResponseOK<JsonNode> ingestedUnits =
@@ -1102,10 +1109,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testCleanupIngestUnitAttachedToExistingObjectGroupThenKO() throws Exception {
-
-        // Given
-        String initialIngestOperationGuid =
-            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP), StatusCode.OK);
+        // GIVEN
+        prepareVitamSession();
+        final String initialIngestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_ELIMINATION_V2_SIP);
+        verifyOperation(initialIngestOperationGuid, OK);
 
         // Initial ingest of an object group
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1176,9 +1183,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @Test
     public void testCleanupIngestObjectGroupUpdatedByAnotherProcessThenWarning() throws Exception {
         // Given
-        String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
-                "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Update object group by another operation (simulate preservation operation)
@@ -1274,9 +1279,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Check report
         checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
-            getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
+            getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> OK)),
             ingestedGots.getResults().stream().collect(Collectors.toMap(
-                this::getId, i -> getId(i).equals(objectGroupId) ? StatusCode.WARNING : StatusCode.OK)),
+                this::getId, i -> getId(i).equals(objectGroupId) ? StatusCode.WARNING : OK)),
             ingestedGots.getResults().stream().collect(toMap(this::getId, this::getBinaryObjectIds))
         );
     }
@@ -1286,9 +1291,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testDoubleIngestCleanupThenWarning() throws Exception {
 
         // Given
-        String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
-                "STP_ACCESSION_REGISTRATION");
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_ACCESSION_REGISTRATION");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -1310,7 +1313,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(actionResult.isSuccessful()).isTrue();
         String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
 
-        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, OK);
 
         retrofit2.Response<Void> actionResult2 =
             ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
@@ -1365,9 +1368,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     public void testCleanupIngestKilledIngestBeforeAccessionRegistersThenOK() throws Exception {
 
         // Given
-        String ingestOperationGuid =
-            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_V2_SIP),
-                "STP_UPDATE_OBJECT_GROUP");
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached (TEST_ELIMINATION_V2_SIP, "STP_UPDATE_OBJECT_GROUP");
         killProcess(ingestOperationGuid);
 
         // Check ingested units / gots / object groups
@@ -1391,7 +1392,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
 
         // Then
-        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, OK);
 
         // Ensure data purged via DSL
         final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
@@ -1469,7 +1470,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
     private String doIngestStepByStepUntilStepReached(InputStream zipInputStreamSipObject, String targetStepName)
-        throws VitamException, InterruptedException {
+            throws VitamException, InterruptedException {
         final GUID ingestOperationGuid = newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
@@ -1478,9 +1479,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            ingestOperationGuid.toString(), ingestOperationGuid);
+                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -1491,7 +1492,22 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // init workflow before execution
         client.initWorkflow(workflow);
 
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.NEXT.name());
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(ingestOperationGuid.getId());
+
+        client.updateOperationActionProcess(NEXT.getValue(), ingestOperationGuid.getId());
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, NEXT.name());
+
+        runStepByStepUntilStepReached(ingestOperationGuid.getId(), targetStepName);
+        return ingestOperationGuid.getId();
+    }
+
+    private String doIngestStepByStepUntilStepReached(String filePath, String targetStepName)
+            throws VitamException, InterruptedException {
+        prepareVitamSession();
+        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
+        String operationId = doIngestNext(tenantId,filePath);
+        GUID ingestOperationGuid = GUIDReader.getGUID(operationId);
 
         runStepByStepUntilStepReached(ingestOperationGuid.getId(), targetStepName);
         return ingestOperationGuid.getId();
@@ -1555,7 +1571,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         RequestResponse<JsonNode> updateResponse =
             accessInternalClient.updateUnits(updateMultiQuery.getFinalUpdate());
         assertThat(updateResponse.isOk()).isTrue();
-        awaitForWorkflowTerminationWithStatus(updateRequestId, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(updateRequestId, OK);
     }
 
     private void killProcess(String operationGuid)
@@ -1950,7 +1966,11 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // init workflow before execution
         client.initWorkflow(workflow);
 
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(ingestOperationGuid.getId());
+
+        client.updateOperationActionProcess(RESUME.getValue(), ingestOperationGuid.getId());
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, RESUME.name());
 
         awaitForWorkflowTerminationWithStatus(ingestOperationGuid.getId(), expectedStatusCode);
         return ingestOperationGuid.getId();

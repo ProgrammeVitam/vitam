@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -127,9 +128,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -314,9 +317,10 @@ public class DataMigrationIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void startMetadataDataMigration_fullDataSet() throws Exception {
-
         // Given
-        doIngest(PropertiesUtils.getResourceAsStream("elimination/TEST_ELIMINATION_V2.zip"), StatusCode.OK);
+        prepareVitamSession();
+        String operationId = VitamTestHelper.doIngest(tenantId, "elimination/TEST_ELIMINATION_V2.zip");
+        verifyOperation(operationId, OK);
 
         List<JsonNode> unitsBefore = getMetadata(MetadataCollections.UNIT);
         List<JsonNode> objectGroupsBefore = getMetadata(MetadataCollections.OBJECTGROUP);
@@ -328,7 +332,7 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         // Then
         String requestId = response.headers().get(GlobalDataRest.X_REQUEST_ID);
-        awaitForWorkflowTerminationWithStatus(requestId, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(requestId, OK);
 
         List<JsonNode> unitsAfter = getMetadata(MetadataCollections.UNIT);
         List<JsonNode> objectGroupsAfter = getMetadata(MetadataCollections.OBJECTGROUP);
@@ -504,35 +508,6 @@ public class DataMigrationIT extends VitamRuleRunner {
                 RequestResponseOK.getFromJsonNode(result);
             return fromJsonNode.getResults();
         }
-    }
-
-    private String doIngest(InputStream zipInputStreamSipObject, StatusCode expectedStatusCode) throws VitamException {
-        final GUID ingestOperationGuid = newOperationLogbookGUID(tenantId);
-        prepareVitamSession();
-        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
-        // workspace client unzip SIP in workspace
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            ingestOperationGuid.toString(), ingestOperationGuid);
-        params.add(initParameters);
-
-        // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        WorkFlow workflow = WorkFlow.of("DEFAULT_WORKFLOW", "PROCESS_SIP_UNITARY", "INGEST");
-        client.initWorkflow(workflow);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(ingestOperationGuid.getId(), expectedStatusCode);
-        return ingestOperationGuid.getId();
     }
 
     private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {

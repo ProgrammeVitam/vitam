@@ -1,0 +1,28 @@
+{
+    "_id" : "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq",
+    "_og" : "",
+    "_mgt" : {
+    },
+    "DescriptionLevel" : "RecordGrp",
+    "Title" : "Plan jeu de 4 Mo",
+    "Description" : "Plan de rattachement",
+    "StartDate" : "2016-12-15T15:54:18",
+    "EndDate" : "2016-12-15T15:54:18",
+    "_ops" : [],
+    "_sps" : [ 
+        "FR_ORG_AGEN"
+    ],
+    "_sp" : "FR_ORG_AGEN",
+    "_storage" : {
+        "strategyId": "offerId"
+    },
+    "_unitType" : "FILING_UNIT",
+    "_tenant" : 0,
+    "_max" : 1,
+    "_min" : 1,
+    "_up" : [],
+    "_nbc" : 1,
+    "_us" : [],
+    "_graph": [],
+    "_us_sp": {}
+}

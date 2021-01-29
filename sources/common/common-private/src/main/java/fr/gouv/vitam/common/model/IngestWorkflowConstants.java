@@ -135,6 +135,16 @@ public class IngestWorkflowConstants {
 
     public static final String DIFF_SIZE_JSON = "_diffSizeJson";
 
+    /**
+     * Contains the results of checking ingest external operations (antivirus, format and manifest )
+     */
+    public static final String SANITY_CHECK_RESULT_FILE = "sanityCheckResult.json";
+
+    /**
+     * Contains the result of uncompressing SIP in workspace
+     */
+    public static final String STP_UPLOAD_RESULT_JSON = "stpUploadResult.json";
+
     private IngestWorkflowConstants() {}
 
 }

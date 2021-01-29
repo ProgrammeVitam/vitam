@@ -69,7 +69,7 @@ public class StepTest {
                 new ArrayList<>()));
         ArrayList<Action> actions = new ArrayList<>();
         actions.add(action);
-        Step step = new Step(null, "workerId", "stepName", ProcessBehavior.NOBLOCKING, distribution, actions);
+        Step step = new Step(null, "workerId", "stepName", ProcessBehavior.NOBLOCKING, distribution, actions, null);
         step.defaultLifecycleLog(LifecycleState.TEMPORARY);
 
         // When

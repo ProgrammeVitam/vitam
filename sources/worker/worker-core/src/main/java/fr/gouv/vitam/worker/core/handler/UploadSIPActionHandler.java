@@ -24,37 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ingest.external.core;
 
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.guid.GUID;
+package fr.gouv.vitam.worker.core.handler;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import javax.ws.rs.container.AsyncResponse;
+import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * IngestExtern interface
- */
-public interface IngestExternal {
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
 
-    PreUploadResume preUploadAndResume(InputStream input, String workflowIdentifier, GUID guid, String xAction,
-                                       AsyncResponse asyncResponse)
-            throws IngestExternalException, VitamClientException;
+public class UploadSIPActionHandler extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UploadSIPActionHandler.class);
+    private static final String HANDLER_ID = "UPLOAD_SIP";
 
-    /**
-     * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
-     *
-     * @param preUploadResume     informations returned
-     * @param xAction
-     * @param guid
-     * @param manifestDigestValue
-     * @param manifestDigestAlgo
-     * @return Response containing as InputStream the ArchiveTransferReply in XML format
-     * @throws IngestExternalException thrown if an error occurred in workflow
-     */
-    StatusCode upload(PreUploadResume preUploadResume, String xAction, GUID guid, String manifestDigestValue,
-                      String manifestDigestAlgo)
-            throws IngestExternalException;
+    public static final String getId() {
+        return HANDLER_ID;
+    }
+
+    public UploadSIPActionHandler() {
+    }
+
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
+        LOGGER.info("Upload SIP");
+        try {
+            InputStream externalJsonResults = handler.getInputStreamFromWorkspace(STP_UPLOAD_RESULT_JSON);
+            return JsonHandler.getFromInputStream(externalJsonResults, ItemStatus.class);
+        } catch (InvalidParseOperationException | IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error("An exception occured : " + e.getMessage());
+            return new ItemStatus(HANDLER_ID).increment(StatusCode.KO);
+        }
+    }
 }

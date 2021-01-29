@@ -1,0 +1,42 @@
+{
+  "antivirusParam" : {
+    "itemId" : "SANITY_CHECK_SIP",
+    "message" : "",
+    "globalStatus" : "OK",
+    "statusMeter" : [ 0, 0, 0, 1, 0, 0, 0 ],
+    "data" : { },
+    "itemsStatus" : { },
+    "subTaskStatus" : { },
+    "lifecycleEnable" : true
+  },
+  "fileFormatParam" : {
+    "itemId" : "CHECK_CONTAINER",
+    "message" : "",
+    "globalStatus" : "OK",
+    "statusMeter" : [ 0, 0, 0, 1, 0, 0, 0 ],
+    "data" : { },
+    "itemsStatus" : { },
+    "subTaskStatus" : { },
+    "lifecycleEnable" : true
+  },
+  "fileNameManifestParam" : {
+    "itemId" : "MANIFEST_FILE_NAME_CHECK",
+    "message" : "",
+    "globalStatus" : "OK",
+    "statusMeter" : [ 0, 0, 0, 1, 0, 0, 0 ],
+    "data" : { },
+    "itemsStatus" : { },
+    "subTaskStatus" : { },
+    "lifecycleEnable" : true
+  },
+  "digestManifestParam" : {
+    "itemId" : "MANIFEST_DIGEST_CHECK",
+    "message" : "",
+    "globalStatus" : "UNKNOWN",
+    "statusMeter" : [ 0, 0, 0, 0, 0, 0, 0 ],
+    "data" : { },
+    "itemsStatus" : { },
+    "subTaskStatus" : { },
+    "lifecycleEnable" : true
+  }
+}

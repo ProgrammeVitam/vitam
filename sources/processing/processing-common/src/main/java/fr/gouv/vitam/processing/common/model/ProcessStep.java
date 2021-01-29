@@ -109,6 +109,7 @@ public class ProcessStep extends Step {
         setStepName(step.getStepName());
         setBehavior(step.getBehavior());
         setWorkerGroupId(step.getWorkerGroupId());
+        setWaitFor(step.getWaitFor());
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;
     }

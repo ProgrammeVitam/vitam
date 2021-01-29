@@ -557,6 +557,11 @@ public class VitamConfiguration {
      */
     private static long operationMaxSizeForExternal = 15728640;
 
+    /**
+     * Timeout for waitForStep in processingEngine in SECONDS
+     */
+    private static int processEngineWaitForStepTimeout = 172800;
+
     static {
         getConfiguration().setDefault();
     }
@@ -703,6 +708,14 @@ public class VitamConfiguration {
 
     public static void setTextContentMaxLength(int textContentMaxLength) {
         VitamConfiguration.textContentMaxLength = textContentMaxLength;
+    }
+
+    public static int getProcessEngineWaitForStepTimeout() {
+        return processEngineWaitForStepTimeout;
+    }
+
+    public static void setProcessEngineWaitForStepTimeout(int processEngineWaitForStepTimeout) {
+        VitamConfiguration.processEngineWaitForStepTimeout = processEngineWaitForStepTimeout;
     }
 
     /**
@@ -1146,6 +1159,9 @@ public class VitamConfiguration {
         }
         if (null != parameters.getElasticSearchScrollLimit()) {
             setElasticSearchScrollLimit(parameters.getElasticSearchScrollLimit());
+        }
+        if (null != parameters.getProcessEngineWaitForStepTimeout()) {
+            setProcessEngineWaitForStepTimeout(parameters.getProcessEngineWaitForStepTimeout());
         }
     }
 

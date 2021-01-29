@@ -61,6 +61,9 @@ public class Step {
     @JsonProperty("actions")
     private List<Action> actions;
 
+    @JsonProperty("waitFor")
+    private String waitFor;
+
     @JsonIgnore
     private ItemStatus stepResponses;
 
@@ -76,13 +79,15 @@ public class Step {
         @JsonProperty("stepName") String stepName,
         @JsonProperty("behavior") ProcessBehavior behavior,
         @JsonProperty("distribution") Distribution distribution,
-        @JsonProperty("actions") List<Action> actions) {
+        @JsonProperty("actions") List<Action> actions,
+        @JsonProperty("waitFor") String waitFor) {
         this.id = id;
         this.workerGroupId = workerGroupId;
         this.stepName = stepName;
         this.behavior = behavior;
         this.distribution = distribution;
         this.actions = actions;
+        this.waitFor = waitFor;
     }
 
     public String getId() {
@@ -251,4 +256,11 @@ public class Step {
         });
     }
 
+    public String getWaitFor() {
+        return waitFor;
+    }
+
+    public void setWaitFor(String waitFor) {
+        this.waitFor = waitFor;
+    }
 }

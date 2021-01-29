@@ -34,11 +34,13 @@ import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -68,6 +70,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.bson.Document;
@@ -80,6 +84,7 @@ import org.junit.Test;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,10 +105,18 @@ import java.util.zip.ZipOutputStream;
 
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
+import static fr.gouv.vitam.common.VitamTestHelper.prepareVitamSession;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
+import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -113,8 +126,6 @@ public class IngestAttachementIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestAttachementIT.class);
 
     private static final Integer tenantId = 0;
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
@@ -179,12 +190,6 @@ public class IngestAttachementIT extends VitamRuleRunner {
         VitamClientFactory.resetConnections();
     }
 
-    public static void prepareVitamSession(Integer tenantId, String contractId, String contextId) {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setContractId(contractId);
-        VitamThreadUtils.getVitamSession().setContextId(contextId);
-    }
-
     @Before
     public void setUpBefore() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
@@ -222,55 +227,6 @@ public class IngestAttachementIT extends VitamRuleRunner {
         get("/status").then().statusCode(Response.Status.NO_CONTENT.getStatusCode());
     }
 
-    private void ingestToStepThenKO() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        initialize(operationGuid);
-
-        InputStream ingestStream = PropertiesUtils.getResourceAsStream(SIP_BASE_INIT);
-
-        client.upload(ingestStream, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.NEXT.getValue());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, ProcessState.PAUSE);
-
-        for (int i = 0; i <= 5; i++) {
-            processingManagementClient
-                .executeOperationProcess(operationGuid.toString(), Contexts.DEFAULT_WORKFLOW.toString(),
-                    ProcessAction.NEXT.getValue());
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, ProcessState.PAUSE);
-        }
-
-        // stop workflow
-        processingManagementClient.cancelOperationProcessExecution(operationGuid.toString());
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO, ProcessState.COMPLETED);
-
-    }
-
-    private void initialize(GUID operationGuid) throws Exception {
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        // init default logbook operation
-        List<LogbookOperationParameters> params = new ArrayList<>();
-        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-
-        // call ingest
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-    }
-
-    private GUID ingestSip(InputStream sipStream) throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        initialize(operationGuid);
-        client.upload(sipStream, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.getValue());
-        return operationGuid;
-    }
-
     @RunWithCustomExecutor
     @Test
     public void given_unit_with_opi_KO_when_test_link_unit_to_unit_then_KO() throws Exception {
@@ -291,8 +247,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
 
         GUID ingestOperationGuid = ingestSip(streamSip);
-
-        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, KO);
         verifyLogbook(ingestOperationGuid.toString());
     }
 
@@ -317,10 +272,8 @@ public class IngestAttachementIT extends VitamRuleRunner {
             "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
 
         InputStream streamSip = createZipFile(SIP_BASE_WITH_GOT);
-
         GUID ingestOperationGuid = ingestSip(streamSip);
-
-        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, KO);
         verifyLogbook(ingestOperationGuid.toString());
     }
 
@@ -347,7 +300,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
         GUID ingestOperationGuid = ingestSip(streamSip);
 
-        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, KO);
         verifyLogbook(ingestOperationGuid.toString());
     }
 
@@ -416,5 +369,57 @@ public class IngestAttachementIT extends VitamRuleRunner {
                 }
             });
         }
+    }
+
+
+    private void ingestToStepThenKO() throws Exception {
+        String operationId = VitamTestHelper.doIngestNext(tenantId, SIP_BASE_INIT);
+        GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, OK);
+        verifyProcessState(operationId, tenantId, PAUSE);
+
+        for (int i = 0; i <= 7; i++) {
+            processingManagementClient
+                    .executeOperationProcess(operationGuid.toString(), Contexts.DEFAULT_WORKFLOW.toString(),
+                            ProcessAction.NEXT.getValue());
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, PAUSE);
+        }
+
+        // stop workflow
+        processingManagementClient.cancelOperationProcessExecution(operationGuid.toString());
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO, ProcessState.COMPLETED);
+    }
+
+    private void initialize(GUID operationGuid) throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        // init default logbook operation
+        List<LogbookOperationParameters> params = new ArrayList<>();
+        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+    }
+
+    private GUID ingestSip(InputStream sipStream) throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        initialize(operationGuid);
+        try(final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()){
+            InputStream sanityCheckStream = PropertiesUtils.getResourceAsStream(SANITY_CHECK_RESULT_FILE) ;
+            workspaceClient.putObject(operationGuid.getId(), SANITY_CHECK_RESULT_FILE, sanityCheckStream);
+        } catch (FileNotFoundException e) {
+            fail("File not found", e);
+        }
+        client.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationGuid.getId());
+        client.upload(sipStream, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.getValue());
+        return operationGuid;
     }
 }

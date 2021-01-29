@@ -31,12 +31,14 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -87,10 +89,6 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
         return ClientMockResultHelper.getObjectStream();
     }
 
-    @Override
-    public void storeATR(GUID guid, InputStream input) {
-    }
-
     public ItemStatus getOperationProcessStatus(String id) {
         return new ItemStatus(ID);
     }
@@ -137,5 +135,9 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     @Override
     public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) {
         return Optional.of(WorkFlow.of("DEFAULT_WORKFLOW", "PROCESS_SIP_UNITARY", "INGEST"));
+    }
+
+    @Override
+    public void saveObjectToWorkspace(String id, String objectName, InputStream inputStream) throws VitamClientException {
     }
 }

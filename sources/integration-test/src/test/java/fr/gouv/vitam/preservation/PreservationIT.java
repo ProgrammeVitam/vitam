@@ -38,7 +38,6 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -60,7 +59,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.PreservationRequest;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -79,13 +77,8 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.griffin.GriffinReport;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -143,6 +136,7 @@ import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
@@ -239,8 +233,9 @@ public class PreservationIT extends VitamRuleRunner {
             throw new VitamRuntimeException("Wrong execution right for griffin-extraction-au/griffin.");
         }
 
-        doIngest("elimination/TEST_ELIMINATION_V2.zip");
-        doIngest("preservation/OG_with_3_parents.zip");
+        prepareVitamSession();
+        doIngest(TENANT_ID,"elimination/TEST_ELIMINATION_V2.zip");
+        doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
     }
@@ -615,35 +610,6 @@ public class PreservationIT extends VitamRuleRunner {
 
         JsonAssert
             .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
-    }
-
-    private void doIngest(String zip) throws IOException, VitamException {
-        final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
-        prepareVitamSession();
-
-        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
-
-        try (InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(zip)) {
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                ingestOperationGuid.toString(), ingestOperationGuid);
-            params.add(initParameters);
-
-            // call ingest
-            IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-            try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
-                client.uploadInitialLogbook(params);
-
-                // init workflow before execution
-                client.initWorkflow(WORKFLOW);
-
-                client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, WORKFLOW, ProcessAction.RESUME.name());
-            }
-        }
-        waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
     }
 
     private void buildAndSavePreservationResultFileForExtractionAU() throws IOException, InvalidParseOperationException {

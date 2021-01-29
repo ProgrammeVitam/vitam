@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -66,6 +67,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.prometheus.client.Histogram;
 import org.elasticsearch.common.Strings;
 
@@ -94,12 +98,15 @@ public class ProcessEngineImpl implements ProcessEngine {
     private IEventsProcessEngine stateMachineCallback;
     private final ProcessDistributor processDistributor;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
 
     public ProcessEngineImpl(WorkerParameters workerParameters, ProcessDistributor processDistributor,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+                             LogbookOperationsClientFactory logbookOperationsClientFactory,
+                             WorkspaceClientFactory workspaceClientFactory) {
         this.processDistributor = processDistributor;
         this.workerParameters = workerParameters;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     @Override
@@ -154,46 +161,69 @@ public class ProcessEngineImpl implements ProcessEngine {
         Stopwatch stopwatch = Stopwatch.createStarted();
 
         return CompletableFuture
-            // call distributor in async mode
-            .supplyAsync(() -> callDistributor(step, this.workerParameters, operationId),
-                VitamThreadPoolExecutor.getDefaultExecutor())
-            // When the distributor responds, finalize the logbook persistence
-            .thenApply(distributorResponse -> {
-                try {
-                    // Do not log if stop, replay or cancel occurs
-                    // we have to logbook the event of the current step
-                    if (step.getPauseOrCancelAction() ==
-                        PauseOrCancelAction.ACTION_PAUSE) {// Do not logbook the event, as the step will be resumed
-                        return distributorResponse;
-                    }
+                // Check if the property waitFor is assigned before distributing (if yes it's an entry condition)
+                .runAsync(() -> waitForStep(step, operationId, stopwatch), VitamThreadPoolExecutor.getDefaultExecutor())
+                // call distributor in async mode
+                .thenApplyAsync((e) -> callDistributor(step, this.workerParameters, operationId),
+                        VitamThreadPoolExecutor.getDefaultExecutor())
+                // When the distributor responds, finalize the logbook persistence
+                .thenApply(distributorResponse -> {
+                    try {
+                        // Do not log if stop, replay or cancel occurs
+                        // we have to logbook the event of the current step
+                        if (step.getPauseOrCancelAction() ==
+                                PauseOrCancelAction.ACTION_PAUSE) {// Do not logbook the event, as the step will be resumed
+                            return distributorResponse;
+                        }
 
-                    logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
-                        logbookParameter, distributorResponse);
+                        logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
+                                logbookParameter, distributorResponse);
+                        return distributorResponse;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                // Finally handle event of evaluation (state and status and persistence/remove to/from workspace
+                .thenApply(distributorResponse -> {
+                    try {
+                        if (step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_CANCEL) {
+                            stateMachineCallback.onProcessEngineCancel(this.workerParameters);
+                            return distributorResponse;
+                        }
+
+                        stateMachineCallback.onProcessEngineCompleteStep(distributorResponse, this.workerParameters);
+                    } finally {
+                        PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                    }
                     return distributorResponse;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            })
-            // Finally handle event of evaluation (state and status and persistence/remove to/from workspace
-            .thenApply(distributorResponse -> {
-                try {
-                    if (step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_CANCEL) {
-                        stateMachineCallback.onProcessEngineCancel(this.workerParameters);
-                        return distributorResponse;
-                    }
-
-                    stateMachineCallback.onProcessEngineCompleteStep(distributorResponse, this.workerParameters);
-                } finally {
+                })
+                // When exception occurred
+                .exceptionally((e) -> {
+                    stateMachineCallback.onError(e);
                     PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                    throw new CompletionException(e);
+                });
+    }
+
+    private void waitForStep(ProcessStep step, String operationId, Stopwatch stopwatch) {
+        if (step.getWaitFor() != null) {
+            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+                // Increase sleepDelay (*2) in every check to avoid lot of calls to workspace
+                int sleepDelay = 1;
+                final int maxSleepDelay = 60;
+                while (!workspaceClient.isExistingObject(operationId, step.getWaitFor()) &&
+                        stopwatch.elapsed(TimeUnit.SECONDS) < VitamConfiguration.getProcessEngineWaitForStepTimeout()) {
+                    TimeUnit.SECONDS.sleep(sleepDelay);
+                    sleepDelay = Math.min(sleepDelay * 2, maxSleepDelay);
                 }
-                return distributorResponse;
-            })
-            // When exception occurred
-            .exceptionally((e) -> {
-                stateMachineCallback.onError(e);
-                PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-                throw new CompletionException(e);
-            });
+                if (stopwatch.elapsed(TimeUnit.SECONDS) > VitamConfiguration.getProcessEngineWaitForStepTimeout()){
+                    throw new RuntimeException("The file " + step.getWaitFor() + " was not found in workspace!");
+                }
+            } catch (ContentAddressableStorageServerException | InterruptedException e) {
+                LOGGER.error(e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
@@ -350,12 +380,14 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier, stepEventIdentifier);
+        parameters.putParameterValue(LogbookParameterName.eventType, step.getStepName());
         parameters.putParameterValue(LogbookParameterName.outcome,
             stepResponse.getGlobalStatus().name());
         parameters.putParameterValue(LogbookParameterName.outcomeDetail,
             messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), stepResponse.getGlobalStatus()));
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             messageLogbookEngineHelper.getLabelOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
+
         helper.updateDelegate(parameters);
 
         // handle actions logbook

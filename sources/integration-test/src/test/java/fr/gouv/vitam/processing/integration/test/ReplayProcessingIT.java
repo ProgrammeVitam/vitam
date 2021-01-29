@@ -103,6 +103,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
@@ -360,11 +361,12 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                 PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_1);
         }
 
-        //
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());

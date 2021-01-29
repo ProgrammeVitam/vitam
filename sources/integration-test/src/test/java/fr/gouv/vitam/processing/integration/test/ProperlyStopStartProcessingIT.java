@@ -101,6 +101,7 @@ import java.util.concurrent.TimeUnit;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -120,7 +121,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
     private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000;
-    private final int[] elementCountPerStep = {1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
+    private final int[] elementCountPerStep = {1, 1, 1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
 
     public static final String INGEST_LEVEL_STACK_JSON =
         "integration-processing/ingestLevelStack.json";
@@ -263,7 +264,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         // Wait step STP_UNIT_CHECK_AND_PROCESS
-        ProcessStep step2 = processWorkflow.getSteps().get(2);
+        ProcessStep step2 = processWorkflow.getSteps().get(4);
         waitStep(processWorkflow, 2);
 
         // Wait until step 2 have Response from workers
@@ -832,6 +833,9 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         final File existing_got = PropertiesUtils.getResourceFile(EXISING_GOT_FILE);
         workspaceClient
             .putObject(containerName, EXISTING_GOT, Files.newInputStream(existing_got.toPath()));
+
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
     }
 
     private void checkAllSteps(ProcessWorkflow processWorkflow) {

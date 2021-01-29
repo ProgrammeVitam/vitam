@@ -24,37 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ingest.external.core;
+package fr.gouv.vitam.common.model.ingest;
 
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+public enum CheckSanityItem {
+    CHECK_ANTIVIRUS("antivirusParam", "SANITY_CHECK_SIP"),
+    CHECK_FORMAT("fileFormatParam","CHECK_CONTAINER"),
+    CHECK_FILENAME_MANIFEST("fileNameManifestParam","MANIFEST_FILE_NAME_CHECK"),
+    CHECK_DIGEST_MANIFEST("digestManifestParam","MANIFEST_DIGEST_CHECK");
 
-import javax.ws.rs.container.AsyncResponse;
-import java.io.InputStream;
+    private String itemParam;
+    private String itemValue;
 
-/**
- * IngestExtern interface
- */
-public interface IngestExternal {
+    CheckSanityItem(String itemParam, String itemValue) {
+        this.itemParam =  itemParam;
+        this.itemValue = itemValue;
+    }
 
-    PreUploadResume preUploadAndResume(InputStream input, String workflowIdentifier, GUID guid, String xAction,
-                                       AsyncResponse asyncResponse)
-            throws IngestExternalException, VitamClientException;
+    public String getItemValue() {
+        return itemValue;
+    }
 
-    /**
-     * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
-     *
-     * @param preUploadResume     informations returned
-     * @param xAction
-     * @param guid
-     * @param manifestDigestValue
-     * @param manifestDigestAlgo
-     * @return Response containing as InputStream the ArchiveTransferReply in XML format
-     * @throws IngestExternalException thrown if an error occurred in workflow
-     */
-    StatusCode upload(PreUploadResume preUploadResume, String xAction, GUID guid, String manifestDigestValue,
-                      String manifestDigestAlgo)
-            throws IngestExternalException;
+    public String getItemParam() {
+        return itemParam;
+    }
 }

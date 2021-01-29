@@ -38,8 +38,6 @@ import com.google.common.collect.Streams;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.InsertOneModel;
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
-import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
@@ -50,11 +48,10 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
-import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -158,6 +155,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -193,12 +191,19 @@ import java.util.zip.ZipOutputStream;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
+import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
+import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUT_DETAIL;
 import static fr.gouv.vitam.common.model.logbook.LogbookOperation.EVENTS;
 import static fr.gouv.vitam.ingest.external.integration.test.IngestExternalIT.INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON;
@@ -342,14 +347,12 @@ public class ProcessingIT extends VitamRuleRunner {
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientType.MOCK);
         new DataLoader("integration-processing").prepareData();
-
     }
 
-
-    public static void prepareVitamSession() {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setContractId("aName");
-        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+    @Before
+    public void beforeTest() throws Exception {
+        VitamConfiguration.setProcessEngineWaitForStepTimeout(
+                new VitamConfigurationParameters().getProcessEngineWaitForStepTimeout());
     }
 
     @AfterClass
@@ -359,6 +362,8 @@ public class ProcessingIT extends VitamRuleRunner {
         storageClientFactory.setVitamClientType(VitamClientType.PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
+        VitamConfiguration.setProcessEngineWaitForStepTimeout(
+                new VitamConfigurationParameters().getProcessEngineWaitForStepTimeout());
     }
 
     @After
@@ -392,6 +397,12 @@ public class ProcessingIT extends VitamRuleRunner {
             ElasticsearchIndexAlias
                 .ofCrossTenantCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
         );
+    }
+
+    public static void prepareVitamSession() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setContractId("aName");
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
     }
 
     @RunWithCustomExecutor
@@ -464,6 +475,9 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
                 zipInputStreamSipObject);
+            // Insert sanityCheck file & StpUpload
+            insertWaitForStepEssentialFiles(containerName);
+
             // call processing
             String bulkProcessId = GUIDFactory.newGUID().toString();
             metaDataClient.insertUnitBulk(
@@ -490,8 +504,8 @@ public class ProcessingIT extends VitamRuleRunner {
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            assertEquals(COMPLETED, processWorkflow.getState());
+            assertEquals(WARNING, processWorkflow.getStatus());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
@@ -600,6 +614,8 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
                 zipInputStreamSipObject);
+            // Insert sanityCheck file & StpUpload
+            insertWaitForStepEssentialFiles(containerName);
 
 
             // call processing
@@ -635,8 +651,8 @@ public class ProcessingIT extends VitamRuleRunner {
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            assertEquals(COMPLETED, processWorkflow.getState());
+            assertEquals(WARNING, processWorkflow.getStatus());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
@@ -715,8 +731,10 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
-        // call processing
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
+        // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
 
@@ -732,13 +750,13 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertEquals("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO",
-            logbookNode.get("events").get(5).get("outDetail").asText());
+            logbookNode.get("events").get(12).get("outDetail").asText());
         assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
@@ -761,8 +779,10 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
-        // call processing
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
+        // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
 
@@ -778,12 +798,12 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
-        assertThat(logbookNode.get("events").get(5).get("outDetail").asText())
+        assertThat(logbookNode.get("events").get(12).get("outDetail").asText())
             .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
         assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
@@ -793,7 +813,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowProfil() throws Exception {
         prepareVitamSession();
 
-        final String containerName = ingestSIP(SIP_PROFIL_OK, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+        final String containerName = ingestSIP(SIP_PROFIL_OK, DEFAULT_WORKFLOW.name(), WARNING);
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
@@ -829,6 +849,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -842,8 +865,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertThat(processWorkflow).isNotNull();
-        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
-        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(processWorkflow.getState()).isEqualTo(COMPLETED);
+        assertThat(processWorkflow.getStatus()).isEqualTo(WARNING);
     }
 
     @RunWithCustomExecutor
@@ -860,6 +883,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.TAR,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -876,8 +901,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
     }
 
 
@@ -897,6 +922,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
         final RequestResponse<ItemStatus> ret =
@@ -911,8 +938,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
         SelectMultiQuery query = new SelectMultiQuery();
@@ -943,7 +970,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflow_with_herited_ruleCA4() throws Exception {
         prepareVitamSession();
 
-        ingestSIP(SIP_INHERITED_RULE_CA4_OK, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+        ingestSIP(SIP_INHERITED_RULE_CA4_OK, DEFAULT_WORKFLOW.name(), WARNING);
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
         SelectMultiQuery query = new SelectMultiQuery();
@@ -963,7 +990,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflow_with_accession_register() throws Exception {
         prepareVitamSession();
 
-        ingestSIP(SIP_FUND_REGISTER_OK, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+        ingestSIP(SIP_FUND_REGISTER_OK, DEFAULT_WORKFLOW.name(), WARNING);
     }
 
     @RunWithCustomExecutor
@@ -1013,6 +1040,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         // call processing
@@ -1034,9 +1064,9 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // check conformity in warning state
         // File format warning state
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(WARNING, processWorkflow.getStatus());
         // completed execution status
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         // checkMonitoring - meaning something has been added in the monitoring tool
 
     }
@@ -1100,8 +1130,8 @@ public class ProcessingIT extends VitamRuleRunner {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
 
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -1406,6 +1436,8 @@ public class ProcessingIT extends VitamRuleRunner {
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(operationId);
         workspaceClient.uncompressObject(operationId, SIP_FOLDER, CommonMediaType.ZIP, zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(operationId);
 
         ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(operationId, contexts.name());
@@ -1418,7 +1450,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, tenantId);
         assertThat(processWorkflow).isNotNull();
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(expectedStatus, processWorkflow.getStatus());
 
         return processWorkflow;
@@ -1504,6 +1536,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP, zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName2);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -1519,8 +1553,8 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
+        assertEquals(COMPLETED, processWorkflow2.getState());
+        assertEquals(WARNING, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
     }
 
@@ -1531,7 +1565,7 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
 
         // 1. First we create an AU by sip
-        ingestSIP(SIP_PROD_SERV_A, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+        ingestSIP(SIP_PROD_SERV_A, DEFAULT_WORKFLOW.name(), WARNING);
 
         String zipPath;
         // 2. then we link another SIP to it
@@ -1566,6 +1600,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName2);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -1581,7 +1617,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+        assertEquals(COMPLETED, processWorkflow2.getState());
         assertEquals(StatusCode.OK, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
 
@@ -1616,6 +1652,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName3);
         workspaceClient.uncompressObject(containerName3, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName3);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -1631,7 +1669,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName3);
         ProcessWorkflow processWorkflow3 = processMonitoring.findOneProcessWorkflow(containerName3, tenantId);
         assertNotNull(processWorkflow3);
-        assertEquals(ProcessState.COMPLETED, processWorkflow3.getState());
+        assertEquals(COMPLETED, processWorkflow3.getState());
         assertEquals(StatusCode.KO, processWorkflow3.getStatus());
         assertNotNull(processWorkflow3.getSteps());
         try {
@@ -1671,6 +1709,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -1687,7 +1727,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
         try {
@@ -1709,7 +1749,7 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
 
         // 1. First we create an AU by sip
-        final String containerName = ingestSIP(SIP_FILE_OK_NAME, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+        final String containerName = ingestSIP(SIP_FILE_OK_NAME, DEFAULT_WORKFLOW.name(), WARNING);
 
         // 2. then we link another SIP to it
         String zipPath = null;
@@ -1738,6 +1778,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP, zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName2);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -1753,8 +1795,8 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
+        assertEquals(COMPLETED, processWorkflow2.getState());
+        assertEquals(WARNING, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
 
         // check got have to units
@@ -1829,6 +1871,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -1843,7 +1887,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
         try {
@@ -1925,7 +1969,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // re-launch worker
         runner.stopWorkerServer();
         runner.startWorkerServer(CONFIG_BIG_WORKER_PATH);
-        ingestSIP(SIP_FILE_OK_NAME, BIG_WORKFLOW, StatusCode.WARNING);
+        ingestSIP(SIP_FILE_OK_NAME, BIG_WORKFLOW, WARNING);
 
         runner.stopWorkerServer();
         runner.startWorkerServer(VitamServerRunner.CONFIG_WORKER_PATH);
@@ -1945,6 +1989,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -1961,7 +2007,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
     }
@@ -2019,6 +2065,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -2041,19 +2089,28 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
-        // Let the processing do the job
+        // execute sanityCheck and stpUpload
         ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
             containerName);
-
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
         waitOperation(containerName);
+
+        ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                containerName);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+        waitOperation(containerName);
+        // Let the processing do the job
+        ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                containerName);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+        waitOperation(containerName);
+
         processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(WARNING, processWorkflow.getStatus());
 
 
         ret = processingClient.updateOperationActionProcess(RESUME.getValue(),
@@ -2066,8 +2123,8 @@ public class ProcessingIT extends VitamRuleRunner {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
 
         boolean exc = false;
         try {
@@ -2095,6 +2152,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -2107,7 +2167,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertThat(processWorkflow).isNotNull();
-        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+        assertThat(processWorkflow.getState()).isEqualTo(COMPLETED);
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
     }
 
@@ -2126,6 +2186,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -2140,7 +2203,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
@@ -2166,6 +2229,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -2180,8 +2246,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
@@ -2211,6 +2277,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.HOLDING_SCHEME.name());
@@ -2224,7 +2293,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
     }
 
@@ -2306,7 +2375,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(computedInheritedRulesProcess);
         ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(computedInheritedRulesProcess, tenantId);
         assertNotNull(cirWorkflow);
-        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
+        assertEquals(COMPLETED, cirWorkflow.getState());
         assertEquals(StatusCode.OK, cirWorkflow.getStatus());
     }
 
@@ -2355,7 +2424,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         ArrayList<Document> logbookLifeCycleUnits =
@@ -2428,7 +2497,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(computedInheritedRulesProcess);
         ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(computedInheritedRulesProcess, tenantId);
         assertNotNull(cirWorkflow);
-        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
+        assertEquals(COMPLETED, cirWorkflow.getState());
         assertEquals(StatusCode.OK, cirWorkflow.getStatus());
 
         // Verify computed inherited rules existence
@@ -2466,7 +2535,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         ArrayList<Document> logbookLifeCycleUnits =
@@ -2551,6 +2620,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(ingestContainerName);
         workspaceClient.uncompressObject(ingestContainerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(ingestContainerName);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -2563,7 +2634,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(ingestContainerName);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(ingestContainerName, tenantId);
         assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+        assertEquals(COMPLETED, processWorkflow2.getState());
         assertEquals(expectedStatus, processWorkflow2.getStatus());
         return ingestContainerName;
     }
@@ -2581,6 +2652,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2602,8 +2675,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
 
         // 2. Add object to an existing GOT
         containerName = createOperationContainer();
@@ -2632,6 +2705,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2646,8 +2721,8 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
 
         MongoIterable<Document> resultGots = MetadataCollections.OBJECTGROUP.getCollection().find(eq("_id", idGot));
@@ -2678,6 +2753,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2699,8 +2776,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
 
         Document operation =
             LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
@@ -2733,6 +2810,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2747,7 +2826,7 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
         operation =
@@ -2783,6 +2862,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2804,8 +2885,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
 
         // 2. Attach to an existing Unit
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
@@ -2833,6 +2914,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2847,8 +2930,8 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
 
         try {
@@ -2917,6 +3000,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2931,8 +3016,8 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
         processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
 
         try {
@@ -2997,6 +3082,9 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
                 zipInputStreamSipObject);
+            // Insert sanityCheck file & StpUpload
+            insertWaitForStepEssentialFiles(containerName);
+
             // call processing
             String bulkProcessId = GUIDFactory.newGUID().toString();
             metaDataClient.insertUnitBulk(
@@ -3024,8 +3112,8 @@ public class ProcessingIT extends VitamRuleRunner {
             waitOperation(containerName);
             ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+            assertEquals(COMPLETED, processWorkflow.getState());
+            assertEquals(WARNING, processWorkflow.getStatus());
 
             Document operation =
                 LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
@@ -3050,6 +3138,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -3068,8 +3158,8 @@ public class ProcessingIT extends VitamRuleRunner {
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
     }
 
 
@@ -3121,7 +3211,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testWorkflowSipSeda2_1_full() throws Exception {
         prepareVitamSession();
 
-        ingestSIP(SIP_FULL_SEDA_2_1, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+        ingestSIP(SIP_FULL_SEDA_2_1, DEFAULT_WORKFLOW.name(), WARNING);
 
         MongoIterable<Document> resultUnits =
             MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));
@@ -3189,6 +3279,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -3226,8 +3319,8 @@ public class ProcessingIT extends VitamRuleRunner {
 
         waitOperation(containerName);
         // Verify no pause
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(COMPLETED, processWorkflow.getState());
+        assertEquals(WARNING, processWorkflow.getStatus());
     }
 
 
@@ -3250,6 +3343,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName0);
         workspaceClient.uncompressObject(containerName0, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName0);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName0, DEFAULT_WORKFLOW.name());
@@ -3265,7 +3361,7 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName0, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
 
 
@@ -3278,6 +3374,9 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -3291,7 +3390,7 @@ public class ProcessingIT extends VitamRuleRunner {
         processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(1L);
@@ -3312,6 +3411,8 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject2);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName2);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -3327,8 +3428,8 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName2);
         ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
+        assertEquals(COMPLETED, processWorkflow2.getState());
+        assertEquals(WARNING, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
 
         // Check fix bug_5178 bug_5117
@@ -3354,7 +3455,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testIngestHoldRulesThenOK() throws Exception {
         prepareVitamSession();
 
-        final String ingestOperation = ingestSIP(SIP_OK_HOLD_RULES, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+        final String ingestOperation = ingestSIP(SIP_OK_HOLD_RULES, DEFAULT_WORKFLOW.name(), WARNING);
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation));
@@ -3395,7 +3496,7 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
 
         final String ingestOperation =
-            ingestSIP(SIP_OK_HOLD_RULES_WITH_MANAGEMENT_MEDATADA, DEFAULT_WORKFLOW.name(), StatusCode.WARNING);
+            ingestSIP(SIP_OK_HOLD_RULES_WITH_MANAGEMENT_MEDATADA, DEFAULT_WORKFLOW.name(), WARNING);
 
         JsonNode units;
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
@@ -3747,6 +3848,70 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
             .allMatch(Objects::nonNull);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWaitForStepTimeoutWhenUpdateThenIngestOK() throws Exception {
+        prepareVitamSession();
+
+        final String containerName = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        final InputStream zipInputStreamSipObject =PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
+        // update timeout from 2 days (172800sec) to 120sec
+        VitamConfiguration.setProcessEngineWaitForStepTimeout(120);
+
+        // call processing
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
+        RequestResponse<ItemStatus> response =
+                processingClient.updateOperationActionProcess(RESUME.getValue(), containerName);
+
+        assertNotNull(response);
+        assertEquals(Status.ACCEPTED.getStatusCode(), response.getStatus());
+        waitOperation(containerName);
+        verifyOperation(containerName, WARNING);
+        verifyProcessState(containerName, tenantId, COMPLETED);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWaitForStepTimeoutLessThanProcessingDurationThenIngestFatal() throws Exception {
+        prepareVitamSession();
+
+        final String containerName = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        final InputStream zipInputStreamSipObject =PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
+
+        // update timeout from 2 days (172800sec) to -1 !
+        VitamConfiguration.setProcessEngineWaitForStepTimeout(-1);
+
+        // call processing
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
+        RequestResponse<ItemStatus> response =
+                processingClient.updateOperationActionProcess(RESUME.getValue(), containerName);
+
+        assertNotNull(response);
+        assertEquals(Status.ACCEPTED.getStatusCode(), response.getStatus());
+        waitOperation(containerName);
+        verifyOperation(containerName, FATAL);
+        verifyProcessState(containerName, tenantId, PAUSE);
     }
 
     private JsonNode getUnitIdByTitle(JsonNode units, String title) {
