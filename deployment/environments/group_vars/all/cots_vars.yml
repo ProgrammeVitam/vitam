@@ -197,6 +197,9 @@ kibana:
     header_value: "reporting"
     import_delay: 10
     import_retries: 10
+    # logs configuration
+    logrotate: enabled # or disabled
+    history_days: 10 # How many days to store logs if logrotate is set to 'enabled'
     log:
         baseuri: "kibana_log"
         api_call_timeout: 120
