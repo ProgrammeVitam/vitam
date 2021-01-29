@@ -62,15 +62,15 @@ vitam_elasticsearch_tenant_indexation:
       number_of_replicas: 2
     # Default settings for unit indexes (1 index per tenant)
     unit:
-      number_of_shards: 10
+      number_of_shards: 1
       number_of_replicas: 2
     # Default settings for object group indexes (1 index per tenant)
     objectgroup:
-      number_of_shards: 10
+      number_of_shards: 1
       number_of_replicas: 2
     # Default settings for logbook operation indexes (1 index per tenant)
     logbookoperation:
-      number_of_shards: 3
+      number_of_shards: 1
       number_of_replicas: 2
 
   ###
