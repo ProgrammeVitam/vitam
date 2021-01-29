@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>processing</artifactId>
-		<version>3.19.0-SNAPSHOT</version>
+		<version>4.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>processing-monitoring</artifactId>
 	<name>Processing Monitoring</name>
