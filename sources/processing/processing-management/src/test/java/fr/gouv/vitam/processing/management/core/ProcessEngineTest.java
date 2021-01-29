@@ -89,6 +89,7 @@ import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -96,9 +97,10 @@ public class ProcessEngineTest extends ProcessEngineImpl {
 
     private CompletableFuture<ItemStatus> currentTask;
 
-    public ProcessEngineTest(WorkerParameters workerParameters,
-        ProcessDistributor processDistributor, LogbookOperationsClientFactory logbookOperationsClientFactory) {
-        super(workerParameters, processDistributor, logbookOperationsClientFactory);
+    public ProcessEngineTest(WorkerParameters workerParameters, ProcessDistributor processDistributor,
+                             LogbookOperationsClientFactory logbookOperationsClientFactory,
+                             WorkspaceClientFactory workspaceClientFactory) {
+        super(workerParameters, processDistributor, logbookOperationsClientFactory, workspaceClientFactory);
     }
 
 

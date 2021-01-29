@@ -331,6 +331,7 @@ public class VitamConfigurationParameters {
 
     private Map<String, String> vitamDefaultCodeListVersion;
 
+    private Integer processEngineWaitForStepTimeout = 172800;
 
     /**
      * Setter for vitamCleanPeriod;
@@ -1585,5 +1586,13 @@ public class VitamConfigurationParameters {
 
     public void setTextContentMaxLength(Integer textContentMaxLength) {
         this.textContentMaxLength = textContentMaxLength;
+    }
+
+    public Integer getProcessEngineWaitForStepTimeout() {
+        return processEngineWaitForStepTimeout;
+    }
+
+    public void setProcessEngineWaitForStepTimeout(Integer processEngineWaitForStepTimeout) {
+        this.processEngineWaitForStepTimeout = processEngineWaitForStepTimeout;
     }
 }

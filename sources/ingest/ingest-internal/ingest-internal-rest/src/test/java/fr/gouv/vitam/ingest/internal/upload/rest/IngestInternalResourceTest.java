@@ -243,13 +243,15 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
         given()
-            .headers(
-                GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
-                GlobalDataRest.X_ACTION, ProcessAction.INIT,
-                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT, GlobalDataRest.X_TYPE_PROCESS, "INGEST")
+                .headers(
+                        GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
+                        GlobalDataRest.X_ACTION, ProcessAction.INIT,
+                        GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT,
+                        GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT,
+                        GlobalDataRest.X_TYPE_PROCESS, "INGEST")
             .body(inputStreamZip).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
     }
 

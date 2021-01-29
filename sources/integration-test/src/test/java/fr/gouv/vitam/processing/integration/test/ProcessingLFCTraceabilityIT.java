@@ -100,6 +100,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -107,9 +108,13 @@ import java.util.Collections;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -139,8 +144,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     @Rule
     public LogicalClockRule logicalClock = new LogicalClockRule();
 
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000;
     private static final Integer TENANT_ID = 0;
 
 
@@ -152,21 +155,17 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     private static final String LOGBOOK_PATH = "/logbook/v1";
 
 
-    private static String CONFIG_SIEGFRIED_PATH = "";
-
-
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
     private static ProcessMonitoringImpl processMonitoring;
 
-    private static String SIP_3_UNITS_2_GOTS = "integration-processing/3_UNITS_2_GOTS.zip";
-    private static String SIP_12_UNITS_12_GOTS = "integration-processing/12_UNITS_12_GOTS.zip";
+    final private static String SIP_3_UNITS_2_GOTS = "integration-processing/3_UNITS_2_GOTS.zip";
+    final private static String SIP_12_UNITS_12_GOTS = "integration-processing/12_UNITS_12_GOTS.zip";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        CONFIG_SIEGFRIED_PATH =
-            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+        String CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
         new DataLoader("integration-processing").prepareData();
@@ -1190,6 +1189,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName2);
 
         // call processing
         processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());

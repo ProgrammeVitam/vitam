@@ -96,6 +96,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -119,14 +120,12 @@ public class ReindexSwitchIT extends VitamRuleRunner {
                 ProcessManagementMain.class
             ));
     private static final Integer TENANT_ID = 0;
-    private static final long SLEEP_TIME = 20l;
-    private static final long NB_TRY = 18000;
 
     private static final String SIP_FOLDER = "SIP";
 
     private static String CONFIG_SIEGFRIED_PATH;
 
-    private static String SIP_OK = "integration-processing/OK_TEST_REPLAY_1.zip";
+    final private static String SIP_OK = "integration-processing/OK_TEST_REPLAY_1.zip";
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
 
@@ -287,6 +286,8 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+        // Insert sanityCheck file & StpUpload
+        insertWaitForStepEssentialFiles(containerName);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());

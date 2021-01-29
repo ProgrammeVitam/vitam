@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -82,6 +83,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -119,6 +121,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -163,6 +166,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -194,9 +198,28 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
+import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
+import static fr.gouv.vitam.common.VitamTestHelper.prepareVitamSession;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
+import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -204,6 +227,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -211,9 +235,7 @@ import static org.junit.Assert.fail;
  * Ingest Internal integration test
  */
 public class IngestInternalIT extends VitamRuleRunner {
-    private static final String HOLDING_SCHEME = "HOLDING_SCHEME";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
-    private static final String HOLDING_SCHEME_IDENTIFIER = "HOLDINGSCHEME";
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
     private static final String TITLE = "Title";
@@ -262,7 +284,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String ERROR_REPORT_UNKNOW_DURATION =
         "functional-admin/file-rules/error_report_unknow_duration.json";
     private static final TypeReference<List<EventTypeModel>> LIST_TYPE_REFERENCE =
-        new TypeReference<List<EventTypeModel>>() {
+        new TypeReference<>() {
         };
     @ClassRule
     public static VitamServerRunner runner =
@@ -328,8 +350,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/OK_SIPwithProfilRNG.zip";
 
     private static LogbookElasticsearchAccess esClient;
-    private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
-    private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -351,12 +371,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
-    }
-
-    public static void prepareVitamSession(Integer tenantId, String contractId, String contextId) {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setContractId(contractId);
-        VitamThreadUtils.getVitamSession().setContextId(contextId);
     }
 
     @Before
@@ -400,143 +414,50 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_finish_in_COMPLETED_FATAL_when_ATR_step_fails() throws Exception {
         // Given
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "OUR_FAILING_CONTRACT", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
-        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
-
-        List<LogbookOperationParameters> params = Collections.singletonList(
-            LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid,
-                "Process_SIP_unitary",
-                operationGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                operationGuid.toString(),
-                operationGuid
-            )
-        );
-
-        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL, ProcessState.PAUSE);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_FILE_OK_NAME);
+        verifyOperation(operationId, FATAL);
 
         VitamThreadUtils.getVitamSession().setContractId("SHHHH_ITS_ALL_FINE_CONTRACT_UNICORN");
+        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationId);
 
-        // When
-        client.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationGuid.getId());
-
-        // Then
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, ProcessState.COMPLETED);
+        waitOperation(operationId);
+        verifyOperation(operationId, OK);
     }
 
     @RunWithCustomExecutor
-    @Test(expected = IngestInternalClientServerException.class)
-    public void testIngestInternalUploadSipWithBadFormatThenKO() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        try {
-            prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+    @Test
+    public void testIngestInternalUploadSipWithBadFormatThenFATAL() {
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
+        assertThrows(IngestInternalClientServerException.class, () -> {
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_FILE_KO_FORMAT);
+            verifyOperation(operationId, FATAL);
+        });
 
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_KO_FORMAT);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-
-            // call ingest
-            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            throw e;
-        }
     }
 
     @RunWithCustomExecutor
-    @Test(expected = ZipFilesNameNotAllowedException.class)
-    public void testIngestInternalUploadSipWithBadContentFormatThenKO() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        try {
-            prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+    @Test
+    public void testIngestInternalUploadSipWithBadContentFormatThenKO() {
 
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_CONTENT_KO_FORMAT);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-
-            // call ingest
-            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            throw e;
-        }
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
+        assertThrows(ZipFilesNameNotAllowedException.class, () -> {
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_CONTENT_KO_FORMAT);
+            verifyOperation(operationId, KO);
+        });
     }
 
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-
-            // call ingest
-            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
-
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_FILE_OK_NAME);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, OK);
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API", TITLE);
@@ -557,14 +478,14 @@ public class IngestInternalIT extends VitamRuleRunner {
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             RequestResponseOK<ObjectGroup> objectGroupResponse =
-                JsonHandler.getFromJsonNode(jsonResponse, RequestResponseOK.class, ObjectGroup.class);
+                JsonHandler.getFromJsonNode(jsonResponse, new TypeReference<>() {});
             assertThat(objectGroupResponse).isNotNull();
             List<ObjectGroup> objectGroupList = objectGroupResponse.getResults();
             assertThat(objectGroupList).hasSize(1);
             ObjectGroup objectGroup = objectGroupList.iterator().next();
             // Bug 5159: check that all ObjectGroup _up are in _us
-            assertThat(objectGroup.get(VitamFieldsHelper.allunitups(), List.class))
-                .containsAll(objectGroup.get(VitamFieldsHelper.unitups(), List.class));
+            assertThat(objectGroup.getList(VitamFieldsHelper.allunitups(), String.class))
+                .containsAll(objectGroup.getList(VitamFieldsHelper.unitups(), String.class));
             final String objectId = objectGroup.getId();
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage =
@@ -587,7 +508,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitBeforeUpdate =
-                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+                (RequestResponseOK<JsonNode>) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+            assertNotNull(responseUnitBeforeUpdate.getFirstResult());
             assertNotNull(responseUnitBeforeUpdate.getFirstResult().get("#management").get("AccessRule"));
 
             // execute update -> rules to be 'unset'
@@ -596,7 +518,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             action.put("#management.AccessRule.Rules", JsonHandler.createArrayNode());
             UpdateMultiQuery updateQuery = new UpdateMultiQuery().addActions(new SetAction(action));
             updateQuery.addRoots(unitId);
-            RequestResponse response = accessClient
+            RequestResponse<JsonNode> response = accessClient
                 .updateUnitbyId(updateQuery.getFinalUpdate(), unitId);
             assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
 
@@ -612,10 +534,11 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =
-                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+                (RequestResponseOK<JsonNode> ) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
 
             // check version incremented in lfc
             assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
+            assertNotNull(responseUnitAfterUpdate.getFirstResult());
             assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"),
                 responseUnitAfterUpdate.getFirstResult().get("#opi"));
 
@@ -643,7 +566,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitAfterUpdatePreventInheritance =
-                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+                (RequestResponseOK<JsonNode>) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
             assertEquals(0,
                 responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
                     .get("Inheritance").get("PreventRulesId").size());
@@ -697,6 +620,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
                     new fr.gouv.vitam.common.database.builder.request.single.Select();
+                assertNotNull(operationGuid);
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -744,35 +668,12 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testPhysicalArchiveIngestInternal() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.debug(initParameters.toString());
-
-            // call ingest
-            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_PHYSICAL_ARCHIVE);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, WARNING);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -880,35 +781,13 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
         // do the ingest
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.debug(initParameters.toString());
-
-            // call ingest using updated contract
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, WARNING);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -950,32 +829,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     private String doIngestOfTreeAndGetOneParentAU() throws Exception {
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_ARBRE);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.error(initParameters.toString());
-
-            // call ingest
-            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(holding);
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, holding, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+            final String operationGuid = doIngest(tenantId,SIP_ARBRE, HOLDING_SCHEME,
+                    ProcessAction.RESUME, StatusCode.STARTED);
+            waitOperation(operationGuid);
+            verifyOperation(operationGuid, OK);
 
             // Try to check AU - arborescence and parents stuff, without roots
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -1012,36 +869,13 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testPhysicalArchiveWithBinaryMasterInPhysical() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_BINARY_IN_PHYSICAL);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.debug(initParameters.toString());
-
-            // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
-
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_KO_PHYSICAL_ARCHIVE_BINARY_IN_PHYSICAL);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, KO);
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -1058,36 +892,13 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testPhysicalArchiveWithPhysicalMasterInBinary() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.debug(initParameters.toString());
-
-            // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
-
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, KO);
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -1104,36 +915,13 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testPhysicalArchiveWithEmptyPhysicalId() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.debug(initParameters.toString());
-
-            // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
-
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, KO);
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -1150,34 +938,12 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal2182CA1() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid;
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_KO_WITH_SPECIAL_CHARS);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_KO_WITH_SPECIAL_CHARS);
+        operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1187,9 +953,9 @@ public class IngestInternalIT extends VitamRuleRunner {
         final JsonNode elmt = logbookOperation.get("$results").get(0);
         assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
-            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS);
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname())
                     .equals("CHECK_UNIT_SCHEMA")) {
@@ -1205,35 +971,12 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal1791CA1() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid;
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_KO_WITH_EMPTY_TITLE);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
-
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_KO_WITH_EMPTY_TITLE);
+        operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1245,7 +988,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                 checkUnitSuccess = false;
@@ -1259,35 +1002,12 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal1791CA2() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid;
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_KO_WITH_INCORRECT_DATE);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
-
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_KO_WITH_INCORRECT_DATE);
+        operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1299,7 +1019,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                 checkUnitSuccess = false;
@@ -1315,33 +1035,9 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithManifestIncorrectObjectNumber() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // TODO: 6/6/17 why objectGuid ? The test fail on the logbook
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
-
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
+        verifyOperation(operationId, KO);
 
     }
 
@@ -1349,35 +1045,9 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithManifestHavingMgtRules() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
-        // processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
-        // ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_MGT_META_DATA_ONLY_RULES);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_WITH_MGT_META_DATA_ONLY_RULES);
+        verifyOperation(operationId, WARNING);
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -1399,41 +1069,11 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRules() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-        waitOperation(operationGuid.toString());
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertThat(processWorkflow).isNotNull();
-        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
-        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES);
+        GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, WARNING);
+        verifyProcessState(operationGuid.toString(),tenantId, COMPLETED);
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -1458,34 +1098,9 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRulesWithoutObjects() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS);
+        verifyOperation(operationId, WARNING);
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -1509,32 +1124,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testIngestWithAddresseeFieldsInManifest() throws Exception {
         // Now that HTML patterns are refused, this test is now KO
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_ADDRESSEE);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_WITH_ADDRESSEE);
+        GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1546,7 +1139,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname())
                     .equals("CHECK_UNIT_SCHEMA")) {
@@ -1563,32 +1156,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithServiceLevelInManifest() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_SERVICE_LEVEL);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_WITH_SERVICE_LEVEL);
+        GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, WARNING);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1600,7 +1171,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.OK.toString()
+            if (OK.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
                 if ("ServiceLevel0".equals(
@@ -1619,32 +1190,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithoutServiceLevelInManifest() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK_WITHOUT_SERVICE_LEVEL);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_WITHOUT_SERVICE_LEVEL);
+        GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, WARNING);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1656,7 +1205,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.OK.toString()
+            if (OK.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
                 if (JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
@@ -1673,35 +1222,14 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testProdServicesOK() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.error(initParameters.toString());
-
-            // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
-            ProcessWorkflow processWorkflow;
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_FILE_OK_NAME);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, OK);
+            verifyProcessState(operationId, tenantId, COMPLETED);
 
             SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.match("Title", "Sensibilisation API"));
@@ -1728,42 +1256,22 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertTrue(response.isOk());
 
 
-            final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
+
+
             final InputStream zipInputStreamSipObject2 =
                 PropertiesUtils.getResourceAsStream(SIP_TREE);
 
-            // init default logbook operation
-            final List<LogbookOperationParameters> params2 = new ArrayList<>();
-            final LogbookOperationParameters initParameters2 = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid2, "Process_SIP_unitary", operationGuid2,
-                LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                operationGuid2 != null ? operationGuid2.toString() : "outcomeDetailMessage",
-                operationGuid2);
-            params2.add(initParameters2);
-
-            final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
-            client2.uploadInitialLogbook(params2);
-
-            // init workflow before execution
-            client2.initWorkflow(holding);
-            client2.upload(zipInputStreamSipObject2, CommonMediaType.ZIP_TYPE, holding, ProcessAction.RESUME.name());
+            String operationGuid2 = VitamTestHelper.doIngest(tenantId, zipInputStreamSipObject2, HOLDING_SCHEME, RESUME, STARTED);
+            verifyOperation(operationGuid2, OK);
 
             VitamThreadUtils.getVitamSession().setContractId("aName4");
-
-            waitOperation(operationGuid.toString());
-            processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             SelectMultiQuery selectTree = new SelectMultiQuery();
             selectTree.addQueries(QueryHelper.eq("Title", "testArbre2").setDepthLimit(5));
             // Get AU
             RequestResponse<JsonNode> responseTree = accessClient.selectUnits(selectTree.getFinalSelect());
             assertTrue(responseTree.isOk());
-            assertEquals(responseTree.toJsonNode().get("$hits").get("total").asInt(), 1);
+            assertEquals(1, responseTree.toJsonNode().get("$hits").get("total").asInt());
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -1931,49 +1439,19 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternalMultipleActions() throws Exception {
-
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.debug(initParameters.toString());
-
-        // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
-        client2.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client2.initWorkflow(ingestSip);
-
-        client2.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.NEXT.name());
-
-        // lets wait till the step is finished
-        waitStep(operationGuid.toString(), client2);
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
-        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        String operationId = VitamTestHelper.doIngestNext(tenantId, SIP_OK_PHYSICAL_ARCHIVE);
+        GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, OK);
+        verifyProcessState(operationId, tenantId, PAUSE);
 
         RequestResponse<ItemStatus> requestResponse =
-            client2.getOperationProcessExecutionDetails(operationGuid.toString());
+                client2.getOperationProcessExecutionDetails(operationGuid.toString());
         assertThat(requestResponse.isOk()).isTrue();
         RequestResponseOK<ItemStatus> responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
-        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(OK);
 
         assertNotNull(client2.getWorkflowDefinitions());
 
@@ -1983,68 +1461,22 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertThat(requestResponse.getHttpCode()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
         assertThat(responseOK.getResults().iterator().hasNext()).isTrue();
-        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(KO);
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
-        processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
-
-    }
-
-    private void waitStep(String operationId, IngestInternalClient client) {
-        int nbTry = 0;
-        while (true) {
-            try {
-                ItemStatus itemStatus = client.getOperationProcessStatus(operationId);
-                if (itemStatus.getGlobalStatus() == StatusCode.OK &&
-                    itemStatus.getGlobalState() == ProcessState.PAUSE) {
-                    break;
-                }
-                Thread.sleep(VitamServerRunner.SLEEP_TIME);
-            } catch (VitamClientException | InternalServerException | BadRequestException | InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == VitamServerRunner.NB_TRY)
-                break;
-            nbTry++;
-        }
+        verifyOperation(operationGuid.getId(), KO);
+        verifyProcessState(operationGuid.getId(), tenantId, COMPLETED);
     }
 
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal4396() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_4396);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_4396);
+        GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, OK);
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "monSIP"))
@@ -2260,33 +1692,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestSipWithComplexRules() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_V2_SIP);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-
-        // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+        String operationId = VitamTestHelper.doIngest(tenantId, OK_RULES_COMPLEX_COMPLETE_V2_SIP);
+        final GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, OK);
 
         // Select single unit with inherited rules
 
@@ -2445,31 +1854,11 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testEliminationAnalysisOverSipWithComplexRules() throws Exception {
-        final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_V2_SIP);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED, ingestOperationGuid.toString(), ingestOperationGuid);
-        params.add(initParameters);
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, StatusCode.OK);
+        String operationId = VitamTestHelper.doIngest(tenantId, OK_RULES_COMPLEX_COMPLETE_V2_SIP);
+        final GUID ingestOperationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, OK);
 
         // elimination analysis
 
@@ -2489,7 +1878,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         assertThat(analysisResult.isOk()).isTrue();
 
-        awaitForWorkflowTerminationWithStatus(eliminationAnalysisOperationGuid, StatusCode.OK);
+        awaitForWorkflowTerminationWithStatus(eliminationAnalysisOperationGuid, OK);
 
         // Check indexation querying
         final RequestResponseOK<JsonNode> destroyableIndexedUnitsResponse =
@@ -2563,36 +1952,14 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testLFCAccessForUnitAndGot() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID operationGuid = null;
         try {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setContractId("aName4");
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC);
-
-            // init default logbook operation
-            final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
-            params.add(initParameters);
-            LOGGER.debug(initParameters.toString());
-
-            // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            client.uploadInitialLogbook(params);
-
-            // init workflow before execution
-            client.initWorkflow(ingestSip);
-
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, WARNING);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -2650,7 +2017,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {
-        awaitForWorkflowTerminationWithStatus(operationGuid, status, ProcessState.COMPLETED);
+        awaitForWorkflowTerminationWithStatus(operationGuid, status, COMPLETED);
     }
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status,
@@ -2698,7 +2065,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 "EXT_External_Operation",
                 operationGuid,
                 LogbookTypeProcess.EXTERNAL_LOGBOOK,
-                StatusCode.OK,
+                OK,
                 "outcomeDetailMessage",
                 operationGuid);
         Set<LogbookParameters> events = new LinkedHashSet<>();
@@ -2728,7 +2095,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                     .selectOperationById(operationGuidForRequestId.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode();
             // assert certain parameters in the master are overloaded
-            assertEquals(StatusCode.OK.name(), logbookOperation.get("$results").get(0)
+            assertEquals(OK.name(), logbookOperation.get("$results").get(0)
                 .get(LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.outcome).getDbname()).asText());
 
             assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
@@ -2778,30 +2145,11 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestAndFillLogbookObIdInWithManifestMessageIdentifier() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(OK_OBIDIN_MESSAGE_IDENTIFIER);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+        String operationId = VitamTestHelper.doIngest(tenantId, OK_OBIDIN_MESSAGE_IDENTIFIER);
+        final GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, OK);
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
             accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
@@ -2816,33 +2164,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithManifestIncorrectAlgorithm() throws Exception {
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_ALGO_INCORRECT_IN_MANIFEST);
-
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "STP_INGEST_CONTROL_SIP", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-        LOGGER.error(initParameters.toString());
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_ALGO_INCORRECT_IN_MANIFEST);
+        final GUID operationGuid = GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -2864,34 +2189,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithCustodialHistoryFileContainingDataObjectReferenceId() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE);
+        verifyOperation(operationId, WARNING);
 
         // Try to check AU and custodialHistoryModel
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -2933,27 +2234,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void should_ingest_SIP_with_logbook() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_LOGBOOK);
-
-        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid.toString(),
-            operationGuid);
-
-        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(Collections.singletonList(initParameters));
-
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_WITH_LOGBOOK);
+        verifyOperation(operationId, WARNING);
 
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
@@ -2983,60 +2267,19 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void should_NOT_ingest_SIP_with_malformed_logbook() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_MALFORMED_LOGBOOK);
-
-        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid.toString(),
-            operationGuid);
-
-        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(Collections.singletonList(initParameters));
-
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_WITH_MALFORMED_LOGBOOK);
+        verifyOperation(operationId, KO);
     }
 
     @RunWithCustomExecutor
     @Test
     public void testIngestWithOrganizationDescriptiveMetadataFreeTagsThenOK() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId, "aName3", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        // workspace client unzip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_WITH_ORGANIZATION_METADATA_DESCRIPTION_FREE_TAGS);
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-
-        // call ingest
+        prepareVitamSession(tenantId, "aName", "Context_IT");
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_WITH_ORGANIZATION_METADATA_DESCRIPTION_FREE_TAGS);
+        verifyOperation(operationId, WARNING);
 
         // Try to check AU and custodialHistoryModel
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -3056,33 +2299,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithObjectAttachementWithDifferentOriginatingThenKO() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_ATTACHMENT_WITH_OBJECT);
-
-        // init default logbook operation
-        List<LogbookOperationParameters> params = new ArrayList<>();
-        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_ATTACHMENT_WITH_OBJECT);
+        verifyOperation(operationId, WARNING);
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -3109,35 +2329,12 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         String SIP_TO_ATTACH = ZIP_LINK_AU_TO_GOT_KO_SP + "/" + zipName;
 
-        final GUID operationGuidAttachement = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         prepareVitamSession(tenantId, "aName", "Context_IT");
-
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuidAttachement);
-
-        InputStream zipInputStreamSipObjectLinking =
-            PropertiesUtils.getResourceAsStream(SIP_TO_ATTACH);
-
-        // init default logbook operation
-        List<LogbookOperationParameters> _params = new ArrayList<>();
-        LogbookOperationParameters _initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuidAttachement, "Process_SIP_unitary", operationGuidAttachement,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuidAttachement != null ? operationGuidAttachement.toString() : "outcomeDetailMessage",
-            operationGuidAttachement);
-        _params.add(_initParameters);
-
-        // call ingest of second SIP
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        IngestInternalClient _client = IngestInternalClientFactory.getInstance().getClient();
-        _client.uploadInitialLogbook(_params);
-
-        // init workflow before execution
-        _client.initWorkflow(ingestSip);
-        _client
-            .upload(zipInputStreamSipObjectLinking, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-        awaitForWorkflowTerminationWithStatus(operationGuidAttachement, StatusCode.KO);
-
+        String operationIdAttachement = VitamTestHelper.doIngest(tenantId, SIP_TO_ATTACH);
+        GUID operationGuidAttachement = GUIDReader.getGUID(operationIdAttachement);
+        verifyOperation(operationIdAttachement, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -3149,7 +2346,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.outcomeDetail.getDbname())
                     .equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_BAD_SP.KO")) {
@@ -3171,9 +2368,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithProfileRNGWithoutPathThenKO() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession(tenantId, "aName", "Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         AdminManagementClient mgtClient = AdminManagementClientFactory.getInstance().getClient();
         RequestResponseOK<ProfileModel> response =
@@ -3186,29 +2381,10 @@ public class IngestInternalIT extends VitamRuleRunner {
         UpdateResult updateResult = FunctionalAdminCollections.PROFILE.getCollection().updateOne(filter, update);
         assertEquals(updateResult.getModifiedCount(), 1);
 
-        InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_WITH_ARCHIVE_PROFILE);
-
-        // init default logbook operation
-        List<LogbookOperationParameters> params = new ArrayList<>();
-        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationGuid, "Process_SIP_unitary", operationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-            operationGuid);
-        params.add(initParameters);
-
-        // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
-        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(ingestSip);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_WITH_ARCHIVE_PROFILE);
+        final GUID operationGuid= GUIDReader.getGUID(operationId);
+        verifyOperation(operationId, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =

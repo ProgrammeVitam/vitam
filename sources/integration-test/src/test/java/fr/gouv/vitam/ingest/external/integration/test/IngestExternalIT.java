@@ -79,6 +79,7 @@ import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -106,6 +107,7 @@ public class IngestExternalIT extends VitamRuleRunner {
     private static final String SIP_NOT_ALLOWED_NAME = "integration-processing/KO_FILE_extension_caractere_special.zip";
     private static final String SIP_INCORRECT_OBJECT_SIZE = "integration-processing/KO_SIP_INCORRECT_OBJECT_SIZE.zip";
     private static final String SIP_MISSED_OBJECT_SIZE = "integration-processing/OK_SIP_MISSED_OBJECT_SIZE.zip";
+    private static final String UNKNOWN_FORMAT_SIP_KO = "integration-processing/UNKNOWN_FORMAT_SIP";
     private static final String ACCESS_CONTRACT = "aName3";
     public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
     public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
@@ -214,7 +216,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
 
             // Number of steps in ingest workflow
-            int numberOfIngestSteps = 11;
+            int numberOfIngestSteps = 13;
 
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
             boolean process_timeout = vitamPoolingClient
@@ -265,8 +267,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertThat(numberOfIngestSteps).isEqualTo(0);
 
             // Get logbook and check all events
-            Document operation =
-                LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId), Document.class)
+            Document operation = LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId), Document.class)
                     .first();
             InputStream expected =
                 PropertiesUtils.getResourceAsStream(INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON);
@@ -569,6 +570,45 @@ public class IngestExternalIT extends VitamRuleRunner {
                         " \"$projection\" : { \"$fields\" : { \"#id\": 1} } " +
                         " }";
         return accessExternalClient.selectUnits(vitamContext, JsonHandler.getFromString(queryDsql));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_ingest_with_invalid_type_sip_ko() throws Exception {
+        try (InputStream inputStream =
+                     PropertiesUtils.getResourceAsStream(UNKNOWN_FORMAT_SIP_KO)) {
+            IngestRequestParameters ingestRequestParameters =
+                    new IngestRequestParameters(DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+            RequestResponse response = ingestExternalClient
+                    .ingest(
+                            new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                                    .setAccessContract("aName3"),
+                            inputStream,
+                            ingestRequestParameters);
+
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
+            boolean process_timeout = vitamPoolingClient
+                    .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+
+            RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
+                    .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
+                            .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
+            LogbookOperation logbookOperation = ((RequestResponseOK<LogbookOperation>)
+                    logbookOperationRequestResponse).getFirstResult();
+            String logbookOperationStr = JsonHandler.prettyPrint(JsonHandler.toJsonNode(logbookOperation));
+
+            assertThat(logbookOperationStr).contains("PROCESS_SIP_UNITARY.KO");
+            assertThat(logbookOperationStr).contains("CHECK_CONTAINER.KO");
+        }
     }
 
     private RequestResponse<LogbookOperation> getLogbookOperation(String operationId, int tenantId, String accessContract)

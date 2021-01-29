@@ -54,6 +54,7 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -110,12 +111,16 @@ public class ProcessEngineImplTest {
     @Mock
     private IEventsProcessEngine stateMachineCallback;
 
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
     @Before
     public void init() throws WorkflowNotFoundException {
         reset(logbookOperationsClient);
         reset(logbookOperationsClientFactory);
         reset(processDistributor);
         reset(stateMachineCallback);
+        reset(workspaceClientFactory);
 
         LogbookOperationsClientFactory.changeMode(null);
         workParams = WorkerParametersFactory.newWorkerParameters();
@@ -128,8 +133,7 @@ public class ProcessEngineImplTest {
 
         processData = ProcessDataAccessImpl.getInstance();
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        processEngine =
-            ProcessEngineFactory.get().create(workParams, processDistributor, logbookOperationsClientFactory);
+        processEngine = ProcessEngineFactory.get().create(workParams, processDistributor, logbookOperationsClientFactory, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachineCallback);
     }
 

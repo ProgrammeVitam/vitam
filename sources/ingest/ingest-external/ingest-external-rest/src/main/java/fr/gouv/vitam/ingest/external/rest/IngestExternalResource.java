@@ -260,20 +260,13 @@ public class IngestExternalResource extends ApplicationStatusResource {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             PreUploadResume preUploadResume;
             try {
-                preUploadResume =
-                    ingestExternal.preUploadAndResume(uploadedInputStream, contextId, operationId, asyncResponse);
+                preUploadResume = ingestExternal.preUploadAndResume(uploadedInputStream, contextId, operationId, xAction, asyncResponse);
             } catch (WorkflowNotFoundException ex) {
                 LOGGER.error(ex);
                 String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
                     "TransferringAgencyToBeDefined",
                     IngestExternalImpl.INGEST_INT_UPLOAD, ex.getMessage(), StatusCode.KO, LocalDateUtil.now());
                 ingestExternal.handleResponseWithATR(operationId, asyncResponse, atr);
-                return;
-            } catch (WorkspaceClientServerException e) {
-                LOGGER.error(e);
-                ingestExternal
-                    .createATRFatalWorkspace(e.getWorkflowIdentifier(), e.getLogbookTypeProcess(), operationId,
-                        asyncResponse);
                 return;
             }
             ingestExternal.upload(preUploadResume, xAction, operationId, manifestDigestValue, manifestDigestAlgo);

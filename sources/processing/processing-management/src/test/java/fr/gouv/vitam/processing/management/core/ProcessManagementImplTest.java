@@ -225,12 +225,12 @@ public class ProcessManagementImplTest {
         Assert.assertNotNull(workflowDefinitions.get("DEFAULT_WORKFLOW"));
         Assert.assertEquals("FILINGSCHEME",
             workflowDefinitions.get("FILING_SCHEME").getIdentifier());
-        Assert.assertEquals(11,
+        Assert.assertEquals(13,
             workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().size());
         Assert.assertEquals(4,
-            workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().get(2).getActions().size());
+            workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().get(4).getActions().size());
         Assert.assertEquals("CHECK_UNIT_SCHEMA",
-            workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().get(2).getActions().get(0).getActionDefinition()
+            workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().get(4).getActions().get(0).getActionDefinition()
                 .getActionKey());
     }
 

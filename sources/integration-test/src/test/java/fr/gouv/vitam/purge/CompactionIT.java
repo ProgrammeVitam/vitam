@@ -31,43 +31,34 @@ import com.google.common.collect.Sets;
 import com.mongodb.client.MongoIterable;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -110,12 +101,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.VitamTestHelper.prepareVitamSession;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.COMPACTED_OFFER_LOG;
@@ -133,9 +124,6 @@ public class CompactionIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CompactionIT.class);
 
     private static final Integer tenantId = 0;
-
-    private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
-    private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
 
     private static final String XML = ".xml";
 
@@ -164,8 +152,6 @@ public class CompactionIT extends VitamRuleRunner {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -232,8 +218,9 @@ public class CompactionIT extends VitamRuleRunner {
     @Test
     public void should_compact_offer_log() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
-            doIngest(PropertiesUtils.getResourceAsStream("compaction/sip_compaction.zip"), StatusCode.OK);
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
+            final String operationGuid = VitamTestHelper.doIngest(tenantId,"compaction/sip_compaction.zip");
+            awaitForWorkflowTerminationWithStatusOK(operationGuid);
 
             RequestResponse<OfferLog> offerLogsDescResponseBeforeCompaction = storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), UNIT, null, 6, DESC);
             RequestResponse<OfferLog> offerLogsAscResponseBeforeCompaction = storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), UNIT, null, 6, ASC);
@@ -297,37 +284,7 @@ public class CompactionIT extends VitamRuleRunner {
         }
     }
 
-    private String doIngest(InputStream zipInputStreamSipObject, StatusCode expectedStatusCode) throws VitamException {
-        final GUID ingestOperationGuid = newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setContractId("aName3");
-        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
-        // workspace client unzip SIP in workspace
-
-        // init default logbook operation
-        final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
-            ingestOperationGuid.toString(), ingestOperationGuid);
-        params.add(initParameters);
-
-        // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
-        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        client.uploadInitialLogbook(params);
-
-        // init workflow before execution
-        client.initWorkflow(workflow);
-
-        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
-
-        awaitForWorkflowTerminationWithStatus(ingestOperationGuid.getId(), expectedStatusCode);
-        return ingestOperationGuid.getId();
-    }
-
-    private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {
+    private void awaitForWorkflowTerminationWithStatusOK(String operationGuid) {
 
         waitOperation(operationGuid);
 
@@ -337,7 +294,7 @@ public class CompactionIT extends VitamRuleRunner {
         try {
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(expectedStatusCode, processWorkflow.getStatus());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
         } catch (AssertionError e) {
             tryLogLogbookOperation(operationGuid);
             tryLogATR(operationGuid);

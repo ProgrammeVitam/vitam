@@ -61,10 +61,12 @@ import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.IngestAccessionRegisterActionHandler;
+import fr.gouv.vitam.worker.core.handler.IngestPrepareActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareStorageInfoActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
+import fr.gouv.vitam.worker.core.handler.UploadSIPActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
@@ -97,9 +99,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_ANTIVIRUS;
+import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_DIGEST_MANIFEST;
+import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_FORMAT;
+import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_FILENAME_MANIFEST;
 import static fr.gouv.vitam.common.model.processing.LifecycleState.FLUSH_LFC;
 
 
@@ -159,6 +162,11 @@ public class WorkerImpl implements Worker {
         /*
          * Pool of action 's object
          */
+        actions.put(UploadSIPActionHandler.getId(), UploadSIPActionHandler::new);
+        actions.put(CHECK_ANTIVIRUS.getItemValue(), IngestPrepareActionHandler::new);
+        actions.put(CHECK_FORMAT.getItemValue(), IngestPrepareActionHandler::new);
+        actions.put(CHECK_FILENAME_MANIFEST.getItemValue(), IngestPrepareActionHandler::new);
+        actions.put(CHECK_DIGEST_MANIFEST.getItemValue(), IngestPrepareActionHandler::new);
         actions.put(CheckSedaActionHandler.getId(), CheckSedaActionHandler::new);
         actions.put(CheckIngestContractActionHandler.getId(), CheckIngestContractActionHandler::new);
         actions.put(CheckObjectsNumberActionHandler.getId(), CheckObjectsNumberActionHandler::new);

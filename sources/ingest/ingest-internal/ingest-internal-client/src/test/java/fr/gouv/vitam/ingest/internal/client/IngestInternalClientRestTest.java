@@ -331,17 +331,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void givenInputstreamWhenDownloadObjectThenStoreATR()
-        throws Exception {
-        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-        try (final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
-            assertNotNull(fakeUploadResponseInputStream);
-            client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
-        }
-    }
-
-    @Test
     public void givenNotFoundWhenDownloadObjectThenReturnKo() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
         ThrowingCallable throwingCallable =

@@ -35,6 +35,7 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
@@ -53,14 +54,14 @@ public class StateMachineFactoryTest {
         StateMachineFactory.get().create(
             processWorkflow,
             new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class),
-                mock(LogbookOperationsClientFactory.class)));
+                mock(LogbookOperationsClientFactory.class), mock(WorkspaceClientFactory.class)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructorProcessWorkflowRequired() throws WorkflowNotFoundException {
         StateMachineFactory.get().create(null,
             new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class),
-                mock(LogbookOperationsClientFactory.class)));
+                mock(LogbookOperationsClientFactory.class), mock(WorkspaceClientFactory.class)));
     }
 
     @Test(expected = IllegalArgumentException.class)

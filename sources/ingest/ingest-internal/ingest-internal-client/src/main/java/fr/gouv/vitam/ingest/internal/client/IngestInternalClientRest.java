@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -89,7 +88,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
     private static final String BLANK_TYPE = "Type should be filled";
 
-    private static final String REPORT = "/report";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final String OPERATION_URI = "/operations";
     private static final String WORKFLOWS_URI = "/workflows";
@@ -195,20 +193,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         }
 
 
-    }
-
-    @Override
-    public void storeATR(GUID guid, InputStream input) throws VitamClientException {
-
-
-        try (Response response = make(post()
-            .withPath(INGEST_URL + "/" + guid + REPORT).withBody(input, "check input Parameter")
-            .withOctetContentType()
-            .withOctetAccept())) {
-            check(response);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
-            throw new VitamClientException(e);
-        }
     }
 
     @Override
@@ -345,6 +329,25 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
         } catch (IngestInternalClientNotFoundException e) {
             return Optional.empty();
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    @Override
+    public void saveObjectToWorkspace(String id, String objectName, InputStream inputStream) throws VitamClientException {
+        Response response = null;
+        try {
+            response = make(put()
+                .withPath("workspace" + "/" + id + "/" + objectName)
+                .withBody(inputStream)
+                .withJson()
+            );
+            check(response);
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
+            throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
         } finally {
             if (response != null) {
                 response.close();

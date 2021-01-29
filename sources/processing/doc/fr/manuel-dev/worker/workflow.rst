@@ -87,11 +87,21 @@ Un Workflow est défini en JSON avec la structure suivante :
 Etapes
 ------
 
-- **Step 1** - STP_INGEST_CONTROL_SIP : Check SIP  / distribution sur REF GUID/SIP/manifest.xml
+- **Step 1** - STP_SANITY_CHECK_SIP : Vérification des opérations effectuées dans la partie external : vérification par Antivirus, vérification des formats et vérification du nom & empreinte du fichier manifest
 
-  - PREPARE_STORAGE_INFO :
-    - Vérifier que le storage est disponible
-    - Récupérer les informations de connection au storage et les offres de stockage.
+  - SANITY_CHECK_SIP : Scanner le SIP par antivirus
+
+  - CHECK_CONTAINER : Contrôle du format du conteneur du SIP
+
+  - MANIFEST_FILE_NAME_CHECK : Contrôle du nom du bordereau de transfert
+
+  - MANIFEST_DIGEST_CHECK : Contrôle de l'empreinte du bordereau de transfert
+
+- **Step 2** - STP_UPLOAD_SIP : Vérification la décompression du SIP en workspace
+
+  - UPLOAD_SIP : Validation de l'existence du SIP dans workspace
+
+- **Step 3** - STP_INGEST_CONTROL_SIP : Check SIP  / distribution sur REF GUID/SIP/manifest.xml
 
   - CHECK_SEDA :
     - Test existence manifest.xml
@@ -102,6 +112,10 @@ Etapes
     - CHECK_CONTRACT_INGEST : Vérifier l'existence des contrats d'entrée dans le manifest et dans le référentiel des contrats d'entrée
     - CHECK_IC_AP_RELATION: Vérifier le profile d'archivage et sa relation avec le contrat d'entrée
     - CHECK_ARCHIVEPROFILE: valider le manifest avec le fichier XSD/RNG défini dans le profile d'archivage
+
+  - PREPARE_STORAGE_INFO :
+     - Vérifier que le storage est disponible
+     - Récupérer les informations de connection au storage et les offres de stockage.
 
   - CHECK_DATAOBJECTPACKAGE:
 
@@ -117,72 +131,70 @@ Etapes
         - CHECK_MANIFEST
         - CHECK_CONSISTENCY
 
-  - CHECK_NO_OBJECT: Vérifier l'existence ou pas des objets binaires et des objets physiques
-    - Vérifier l'égalité du nomber de fichiers binaires dans le workspace par rapport au manifest.
-    - Extract seda: créer des fichiers json représentant les méta-données des unités archivistiques et groupes d'objets
-    - Si en plus, l'ingest n'est pas un arbre ou un plan de classement, vérifier la cohérence entre les unités archivistiques et les groupes d'objets.
+  - CHECK_ATTACHEMENT: Vérification du rattachement entre objets, groupes d'objets et unités archivistiques existantes et les nouveaux
 
-  - CHECK_MANIFEST_OBJECTNUMBER :
-    - Comptage BinaryDataObject dans manifest.xml en s'assurant d'aucun doublon :
-    - List Workspace GUID/SIP/content/
-    - CheckObjectsNumber Comparaison des 2 nombres et des URI
-
-  - CHECK_MANIFEST :
-    - Extraction BinaryDataObject de manifest.xml / MAP des Id BDO / Génération GUID
-    - Extraction ArchiveUnit de manifest.xml / MAP des id AU / Génération GUID
-    - Contrôle des références dans les AU des Id BDO
-    - Stockage dans Workspace des BDO et AU
-
-  - CHECK_CONSISTENCY : vérification de la cohérence objet/unit
-
-- **Step 2** - STP_OG_CHECK_AND_TRANSFORME : Check Objects Compliance du SIP / distribution sur LIST GUID/BinaryDataObject
+- **Step 4** - STP_OG_CHECK_AND_TRANSFORME : Check Objects Compliance du SIP / distribution sur LIST GUID/BinaryDataObject
 
   - CHECK_DIGEST : Contrôle de l'objet binaire correspondant du BDO taille et empreinte via Workspace
+
+  - CHECK_OBJECT_SIZE : Vérification de la taille des fichiers
 
   - OG_OBJECTS_FORMAT_CHECK :
     - Contrôle du format des objets binaires
     - Consolidation de l'information du format dans l'object groupe correspondant si nécessaire
 
-- **Step 3** - STP_UNIT_CHECK_AND_PROCESS : Check des archive unit et de leurs règles associées
+- **Step 5** - STP_UNIT_CHECK_AND_PROCESS : Check des archive unit et de leurs règles associées
 
   - CHECK_UNIT_SCHEMA : Contrôles intelligents du Json représentant l'Archive Unit par rapport à un schéma Json
+  - CHECK_ARCHIVE_UNIT_PROFILE : Vérification de la conformité aux profils d'unité archivistique
+  - CHECK_CLASSIFICATION_LEVEL : Vérification du niveau de classification
   - UNITS_RULES_COMPUTE : Calcul des règles de gestion
 
-- **Step 4** - STP_STORAGE_AVAILABILITY_CHECK : Check Storage Availability / distribution REF GUID/SIP/manifest.xml
+- **Step 6** - STP_STORAGE_AVAILABILITY_CHECK : Check Storage Availability / distribution REF GUID/SIP/manifest.xml
 
   - STORAGE_AVAILABILITY_CHECK : Contrôle de la taille totale à stocker par rapport à la capacité des offres de stockage pour une stratégie et un tenant donnés
 
-- **Step 5** - STP_OBJ_STORING : Rangement et indexation des objets
+- **Step 7** - STP_OBJ_STORING : Rangement et indexation des objets
 
   - OBJ_STORAGE : Écriture des objets sur l’offre de stockage des BDO des GO
 
   - OG_METADATA_INDEXATION : Indexation des métadonnées des ObjectGroup
 
-- **Step 6** - STP_UNIT_METADATA : Indexation des métadonnées des Units
+- **Step 8** - STP_UNIT_METADATA : Indexation des métadonnées des Units
 
   - UNIT_METADATA_INDEXATION : Transformation Json Unit et intégration GUID Unit + GUID GO
 
-- **Step 7** - STP_OG_STORING : Rangement des métadonnées des objets
-
-  - OG_METADATA_STORAGE : Enregistrement en base des métadonnées des ObjectGroup ainsi que leurs journaux de cycle de vie
+- **Step 9** - STP_OG_STORING : Rangement des métadonnées des objets
 
   - COMMIT_LIFE_CYCLE_OBJECT_GROUP : Écriture des objets sur l’offre de stockage des BDO des GO
 
-- **Step 8** - STP_UNIT_STORING : Index Units / distribution sur LIST GUID/Units
+  - OG_METADATA_STORAGE : Enregistrement en base des métadonnées des ObjectGroup ainsi que leurs journaux de cycle de vie
 
-  - UNIT_METADATA_STORAGE : Enregistrement en base des métadonnées des Units ainsi que leurs journaux de cycle de vie
+- **Step 10** - STP_UNIT_STORING : Index Units / distribution sur LIST GUID/Units
 
   - COMMIT_LIFE_CYCLE_UNIT : Écriture des métadonnées des Units sur l’offre de stockage des BDO des GO
 
-- **Step 9** - STP_ACCESSION_REGISTRATION : Alimentation du registre de fond
+  - UNIT_METADATA_STORAGE : Enregistrement en base des métadonnées des Units ainsi que leurs journaux de cycle de vie
+
+- **Step 11** - STP_UPDATE_OBJECT_GROUP : Processus de mise à jour du groupe d'objets
+
+  - OBJECT_GROUP_UPDATE : Mise à jour des groupes d'objets existants
+
+  - COMMIT_LIFE_CYCLE_OBJECT_GROUP : Enregistrement des journaux du cycle de vie des groupes d'objets
+
+  - OG_METADATA_STORAGE : Écriture des métadonnées du groupe d'objets sur les offres de stockage
+
+- **Step 12** - STP_ACCESSION_REGISTRATION : Alimentation du registre de fond
 
   - ACCESSION_REGISTRATION :  enregistrement des archives prises en charge dans le Registre des Fonds
 
-- **Step 10 et finale** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
+- **Step 13 et finale** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
 
   - ATR_NOTIFICATION :
     - génération de l'ArchiveTransferReply xml (OK ou KO)
     - enregistrement de l'ArchiveTransferReply xml dans les offres de stockage
+
+  - ROLL_BACK : Mise en cohérence des Journaux du Cycle de Vie
 
 
 Création d'un nouveau step
