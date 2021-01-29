@@ -58,6 +58,7 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -94,7 +95,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String AU_PREFIX_WITH_END_DATE = "WithEndDte_";
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
-    private static final String UNLIMITED_RULE_DURATION = "unlimited";
     private static final String NON_EXISTING_RULE = "Rule %s does not exist";
     private static final String BAD_CATEGORY_RULE = "Rule %s don't match expected category %s but was %s";
 
@@ -527,7 +527,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             if (checkRulesParameters(ruleNode)) {
                 final String duration = ruleNode.get(FileRules.RULEDURATION).asText();
                 final String measurement = ruleNode.get(FileRules.RULEMEASUREMENT).asText();
-                if (duration.equalsIgnoreCase(UNLIMITED_RULE_DURATION)) {
+                if (duration.equalsIgnoreCase(ArchiveUnitUpdateUtils.UNLIMITED_RULE_DURATION)) {
                     return null;
                 }
                 final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);

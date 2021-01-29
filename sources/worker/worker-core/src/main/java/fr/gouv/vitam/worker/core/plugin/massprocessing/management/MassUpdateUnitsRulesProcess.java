@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.management;
 
+import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -104,6 +105,7 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils.UNLIMITED_RULE_DURATION;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
@@ -322,8 +324,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
             // save duration and measurement for usage in MongoDbInMemory if needed
             final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-            if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) &&
-                ruleMeasurement != null) {
+            if (bindRuleDuration.get(ruleId) == null && !UNLIMITED_RULE_DURATION.equalsIgnoreCase(duration)) {
                 bindRuleDuration.put(ruleId,
                     new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
             }

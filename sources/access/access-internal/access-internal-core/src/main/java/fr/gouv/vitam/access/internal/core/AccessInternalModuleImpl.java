@@ -151,6 +151,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static fr.gouv.vitam.access.internal.core.DslParserHelper.getValueForUpdateDsl;
+import static fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils.computeEndDate;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -1526,7 +1527,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
                         try {
                             updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
-                        } catch (AccessInternalRuleExecutionException e) {
+                        } catch (IllegalStateException e) {
                             throw new AccessInternalRuleExecutionException(
                                 VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE.name());
                         }
@@ -1586,7 +1587,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
                     try {
                         updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
-                    } catch (AccessInternalRuleExecutionException e) {
+                    } catch (IllegalStateException e) {
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE.name());
                     }
@@ -1648,40 +1649,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new AccessInternalExecutionException("Error during checking existing rules", e);
         }
         return response.get(RESULTS).get(0);
-    }
-
-
-
-    private JsonNode computeEndDate(ObjectNode updatingRule, JsonNode ruleInReferential)
-        throws AccessInternalRuleExecutionException {
-        LocalDate endDate = null;
-
-        // FIXME Start of duplicated method, need to add it in a common module
-        final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        String startDateString = updatingRule.get("StartDate") != null ? updatingRule.get("StartDate").asText() : null;
-        String ruleId = updatingRule.get("Rule").asText();
-        String currentRuleType = ruleInReferential.get(RULE_TYPE).asText();
-        if (ParametersChecker.isNotEmpty(startDateString) && ParametersChecker.isNotEmpty(ruleId, currentRuleType)) {
-            ParametersChecker.checkDateParam("wrong date format", startDateString);
-            LocalDate startDate = LocalDate.parse(startDateString, timeFormatter);
-            if (startDate.getYear() >= 9000) {
-                throw new AccessInternalRuleExecutionException("Wrong Start Date");
-            }
-
-            final String duration = ruleInReferential.get(FileRules.RULEDURATION).asText();
-            final String measurement = ruleInReferential.get(FileRules.RULEMEASUREMENT).asText();
-            if (!"unlimited".equalsIgnoreCase(duration)) {
-                final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-                endDate = startDate.plus(Integer.parseInt(duration), ruleMeasurement.getTemporalUnit());
-            }
-        }
-        // End of duplicated method
-        if (endDate != null) {
-            updatingRule.put("EndDate", endDate.format(timeFormatter));
-        }
-
-        return updatingRule;
     }
 
     @Override
