@@ -92,7 +92,7 @@ elasticsearch:
         # default index template
         index_templates:
             default:
-                shards: 10
+                shards: 1
                 replica: 2
         log_appenders:
             root:
@@ -139,7 +139,7 @@ mongodb:
     drop_info_log: false # Drop mongo (I)nformational log, for Verbosity Level of 0
     # logs configuration
     logrotate: enabled # or disabled
-    history_days: 10 # How many days to store logs if logrotate is set to 'enabled'
+    history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
 
 logstash:
     host: "logstash.service.{{ consul_domain }}"
@@ -184,17 +184,17 @@ grafana:
 curator:
     log:
         metrics:
-            close: 5
+            close: 7
             delete: 30
         logstash:
-            close: 5
+            close: 7
             delete: 30
         metricbeat:
             close: 5
-            delete: 30
+            delete: 10
         packetbeat:
             close: 5
-            delete: 30
+            delete: 10
 
 kibana:
     header_value: "reporting"
@@ -202,7 +202,7 @@ kibana:
     import_retries: 10
     # logs configuration
     logrotate: enabled # or disabled
-    history_days: 10 # How many days to store logs if logrotate is set to 'enabled'
+    history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
     log:
         baseuri: "kibana_log"
         api_call_timeout: 120
@@ -211,19 +211,19 @@ kibana:
         default_index_pattern: "logstash-vitam*"
         check_consul: 10 # in seconds
         # default shards & replica
-        shards: 5
+        shards: 1
         replica: 1
         # pour index logstash-*
         metrics:
-            shards: 5
+            shards: 1
             replica: 1
         # pour index metrics-vitam-*
         logs:
-            shards: 5
+            shards: 1
             replica: 1
         # pour index metricbeat-*
         metricbeat:
-            shards: 5 # must be a factor of 30
+            shards: 3 # must be a factor of 30
             replica: 1
     data:
         baseuri: "kibana_data"
@@ -256,7 +256,7 @@ clamav:
     db_update_periodicity: 1
     # logs configuration
     logrotate: enabled # or disabled
-    history_days: 10 # How many days to store logs if logrotate is set to 'enabled'
+    history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
 
 mongo_express:
     baseuri: "mongo-express"
