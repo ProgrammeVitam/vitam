@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>logbook</artifactId>
-		<version>3.14.4-SNAPSHOT</version>
+		<version>3.14.4</version>
 	</parent>
 	<artifactId>logbook-rest</artifactId>
 	<name>Logbook Rest</name>
