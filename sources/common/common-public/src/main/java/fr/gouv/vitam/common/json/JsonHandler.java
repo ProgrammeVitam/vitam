@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -134,7 +135,8 @@ public final class JsonHandler {
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         objectMapper.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true);
         objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
-
+        // For upgrade of Jackson libs (see https://github.com/FasterXML/jackson-databind/issues/1744)
+        objectMapper.setDateFormat(new StdDateFormat().withColonInTimeZone(false));
 
         return objectMapper;
     }
