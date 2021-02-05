@@ -113,6 +113,10 @@ public class ArchiveUnitUpdateUtils {
     public static JsonNode computeEndDate(@Nonnull ObjectNode updatingRule, JsonNode ruleModel) {
         final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+        if(!updatingRule.has(START_DATE)) {
+            return updatingRule;
+        }
+
         String startDateString = updatingRule.get(START_DATE).asText();
         String ruleId = updatingRule.get(RULE).asText();
 
