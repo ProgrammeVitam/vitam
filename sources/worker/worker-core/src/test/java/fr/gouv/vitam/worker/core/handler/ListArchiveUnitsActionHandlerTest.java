@@ -95,7 +95,8 @@ public class ListArchiveUnitsActionHandlerTest {
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
+    };
     private static final String UPDATED_RULES_JSON = "ListArchiveUnitsActionPlugin/updatedRules.json";
     private static final String UPDATED_AU = "ListArchiveUnitsActionPlugin/archiveUnitsToBeUpdated.json";
     private ListArchiveUnitsActionHandler plugin;
@@ -231,6 +232,4 @@ public class ListArchiveUnitsActionHandlerTest {
         }
 
     }
-
-
 }

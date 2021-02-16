@@ -32,6 +32,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
+import static fr.gouv.vitam.common.model.administration.RuleMeasurementEnum.YEAR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -64,32 +66,32 @@ public class RuleImportDiffTest {
     @Test
     public void shouldHaveOneInsertOneUpdateOneDelete() {
         FileRulesModel ruleToDelete = new FileRulesModel("APP-00001",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            AppraisalRule,
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            YEAR);
 
         FileRulesModel ruleToUpdate = new FileRulesModel("APP-00002",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            AppraisalRule,
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            YEAR);
 
         FileRulesModel ruleUpdated = new FileRulesModel("APP-00002",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "new rule description",
-                "80",
-                "YEAR");
+            AppraisalRule,
+            "Dossier individuel d’agent civil",
+            "new rule description",
+            "80",
+            YEAR);
 
         FileRulesModel ruleToInsert = new FileRulesModel("APP-00003",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            AppraisalRule,
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            YEAR);
         List<FileRulesModel> ruleInDatabase = new ArrayList<>();
         List<FileRulesModel> ruleInFile = new ArrayList<>();
 
@@ -121,25 +123,25 @@ public class RuleImportDiffTest {
     @Test
     public void shouldHaveOneUpdateOneUpdateUnsafely() {
         FileRulesModel ruleThatAlreadyExists = new FileRulesModel("APP-00003",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            AppraisalRule,
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            YEAR);
 
         FileRulesModel ruleToUpdate = new FileRulesModel("APP-00002",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "80",
-                "YEAR");
+            AppraisalRule,
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "80",
+            YEAR);
 
         FileRulesModel ruleUpdated = new FileRulesModel("APP-00002",
-                "AppraisalRule",
-                "Dossier individuel d’agent civil",
-                "ruleDescription",
-                "100",
-                "YEAR");
+            AppraisalRule,
+            "Dossier individuel d’agent civil",
+            "ruleDescription",
+            "100",
+            YEAR);
 
         List<FileRulesModel> ruleInDatabase = new ArrayList<>();
         List<FileRulesModel> ruleInFile = new ArrayList<>();

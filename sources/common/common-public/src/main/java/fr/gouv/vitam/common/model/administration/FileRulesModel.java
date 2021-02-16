@@ -24,12 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
 /**
@@ -38,12 +38,12 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileRulesModel {
 
-    public static final String TAG_RULE_ID = "RuleId";
-    public static final String TAG_RULE_TYPE = "RuleType";
-    public static final String TAG_RULE_VALUE = "RuleValue";
-    public static final String TAG_RULE_DESCRIPTION = "RuleDescription";
-    public static final String TAG_RULE_DURATION = "RuleDuration";
-    public static final String TAG_RULE_MEASUREMENT = "RuleMeasurement";
+    public static final String RULE_ID = "RuleId";
+    public static final String RULE_TYPE = "RuleType";
+    public static final String RULE_VALUE = "RuleValue";
+    public static final String RULE_DESCRIPTION = "RuleDescription";
+    public static final String RULE_DURATION = "RuleDuration";
+    public static final String RULE_MEASUREMENT = "RuleMeasurement";
 
     /**
      * unique id
@@ -63,23 +63,23 @@ public class FileRulesModel {
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer version;
 
-    @JsonProperty(TAG_RULE_ID)
+    @JsonProperty(RULE_ID)
     private String ruleId;
 
-    @JsonProperty(TAG_RULE_TYPE)
-    private String ruleType;
+    @JsonProperty(RULE_TYPE)
+    private RuleType ruleType;
 
-    @JsonProperty(TAG_RULE_VALUE)
+    @JsonProperty(RULE_VALUE)
     private String ruleValue;
 
-    @JsonProperty(TAG_RULE_DESCRIPTION)
+    @JsonProperty(RULE_DESCRIPTION)
     private String ruleDescription;
 
-    @JsonProperty(TAG_RULE_DURATION)
+    @JsonProperty(RULE_DURATION)
     private String ruleDuration;
 
-    @JsonProperty(TAG_RULE_MEASUREMENT)
-    private String ruleMeasurement;
+    @JsonProperty(RULE_MEASUREMENT)
+    private RuleMeasurementEnum ruleMeasurement;
 
     @JsonProperty("CreationDate")
     private String creationDate;
@@ -90,8 +90,8 @@ public class FileRulesModel {
     public FileRulesModel() {
     }
 
-    public FileRulesModel(String ruleId, String ruleType, String ruleValue, String ruleDescription,
-                          String ruleDuration, String ruleMeasurement) {
+    public FileRulesModel(String ruleId, RuleType ruleType, String ruleValue, String ruleDescription,
+        String ruleDuration, RuleMeasurementEnum ruleMeasurement) {
         this.ruleId = ruleId;
         this.ruleType = ruleType;
         this.ruleValue = ruleValue;
@@ -116,11 +116,11 @@ public class FileRulesModel {
         this.tenant = tenant;
     }
 
-    public String getRuleType() {
+    public RuleType getRuleType() {
         return ruleType;
     }
 
-    public void setRuleType(String ruleType) {
+    public void setRuleType(RuleType ruleType) {
         this.ruleType = ruleType;
     }
 
@@ -148,11 +148,11 @@ public class FileRulesModel {
         this.ruleDuration = ruleDuration;
     }
 
-    public String getRuleMeasurement() {
+    public RuleMeasurementEnum getRuleMeasurement() {
         return ruleMeasurement;
     }
 
-    public void setRuleMeasurement(String ruleMeasurement) {
+    public void setRuleMeasurement(RuleMeasurementEnum ruleMeasurement) {
         this.ruleMeasurement = ruleMeasurement;
     }
 
@@ -208,24 +208,23 @@ public class FileRulesModel {
 
         final FileRulesModel objectToCompare = (FileRulesModel) obj;
         return new EqualsBuilder()
-                .append(this.ruleId, objectToCompare.getRuleId())
-                .append(this.ruleDuration, objectToCompare.getRuleDuration())
-                .append(this.ruleMeasurement, objectToCompare.getRuleMeasurement())
-                .append(this.ruleDescription, objectToCompare.getRuleDescription())
-                .append(this.ruleValue, objectToCompare.getRuleValue())
-                .append(this.ruleType, objectToCompare.getRuleType())
-                .isEquals();
-
+            .append(this.ruleId, objectToCompare.getRuleId())
+            .append(this.ruleDuration, objectToCompare.getRuleDuration())
+            .append(this.ruleMeasurement, objectToCompare.getRuleMeasurement())
+            .append(this.ruleDescription, objectToCompare.getRuleDescription())
+            .append(this.ruleValue, objectToCompare.getRuleValue())
+            .append(this.ruleType, objectToCompare.getRuleType())
+            .isEquals();
     }
 
     public boolean hasSameRuleId(FileRulesModel rule) {
         return rule != null && rule.getRuleId().equals(this.ruleId);
     }
 
-        @Override
+    @Override
     public String toString() {
         return "ruleId=" + ruleId + ", ruleType=" + ruleType +
-                ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
-                ", ruleMeasurement=" + ruleMeasurement;
+            ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
+            ", ruleMeasurement=" + ruleMeasurement;
     }
 }

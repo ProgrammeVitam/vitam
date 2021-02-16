@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
+import fr.gouv.vitam.common.model.administration.RuleType;
+import org.bson.Document;
 
 /**
  * FileRules create the template of FileRules from VitamDocument
@@ -206,8 +206,8 @@ public class FileRules extends VitamDocument<FileRules> {
         return getString(RULEID);
     }
 
-    public String getRuletype() {
-        return getString(RULETYPE);
+    public RuleType getRuletype() {
+        return RuleType.getEnumFromName(getString(RULETYPE));
     }
 
     public String getRulevalue() {
@@ -222,8 +222,8 @@ public class FileRules extends VitamDocument<FileRules> {
         return getString(RULEDURATION);
     }
 
-    public String getRulemeasurement() {
-        return getString(RULEMEASUREMENT);
+    public RuleMeasurementEnum getRulemeasurement() {
+        return RuleMeasurementEnum.getEnumFromType(getString(RULEMEASUREMENT));
     }
 
     public String getCreationdate() {

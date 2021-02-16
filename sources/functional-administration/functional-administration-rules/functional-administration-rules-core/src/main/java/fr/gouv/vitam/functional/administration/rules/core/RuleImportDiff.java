@@ -106,7 +106,7 @@ public class RuleImportDiff {
 
     private boolean hasRuleDurationChanged(FileRulesModel oldRule, FileRulesModel newRule) {
         boolean sameRuleDuration = StringUtils.equals(oldRule.getRuleDuration(), newRule.getRuleDuration());
-        boolean sameRuleMeasurement = StringUtils.equals(oldRule.getRuleMeasurement(), newRule.getRuleMeasurement());
+        boolean sameRuleMeasurement = oldRule.getRuleMeasurement() == newRule.getRuleMeasurement();
         return !sameRuleDuration || !sameRuleMeasurement;
     }
 

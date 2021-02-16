@@ -7,7 +7,7 @@
     "RuleValue": "Communicabilit\u00e9 des informations portant atteinte \u00e0 la conduite des relations ext\u00e9rieures (date du document)",
     "RuleDescription": "Dur\u00e9e de communicabilit\u00e9 applicable aux informations portant atteinte \u00e0 la conduite des relations ext\u00e9rieures\nL\u2019\u00e9ch\u00e9ance est calcul\u00e9e \u00e0 partir de la date du document ou du document le plus r\u00e9cent inclus dans le dossier",
     "RuleDuration": "30", 
-    "RuleMeasurement": "Year",
+    "RuleMeasurement": "YEAR",
     "CreationDate": "2017-07-21",
     "UpdateDate": "2017-07-21",
     "_v": 1

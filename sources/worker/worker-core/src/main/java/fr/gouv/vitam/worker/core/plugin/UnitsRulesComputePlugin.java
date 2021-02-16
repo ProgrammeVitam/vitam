@@ -50,11 +50,12 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
+import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
@@ -436,8 +437,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 Iterator<FileRules> it = frok.getResults().iterator();
 
                 if (it.hasNext()) {
-                    String rr = it.next().getRuletype();
-                    if (!ruleType.equals(rr)) {
+                    RuleType rr = it.next().getRuletype();
+                    if (!ruleType.equals(rr.name())) {
                         report.append("In the unit ").append(unit).append(" the rule id ").append(ruleId)
                             .append(" is in the wrong RuleType ").append(" it should be in the RuleType ")
                             .append(ruleType).append(" ; ");

@@ -123,6 +123,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.model.administration.RuleMeasurementEnum.MONTH;
+import static fr.gouv.vitam.common.model.administration.RuleMeasurementEnum.YEAR;
+import static fr.gouv.vitam.common.model.administration.RuleType.AccessRule;
+import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
+import static fr.gouv.vitam.common.model.administration.RuleType.HoldRule;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
 import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -159,13 +164,10 @@ public class RulesManagerFileImplTest {
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
-    private static final String ACCESS_RULE = "AccessRule";
-    private static final String HOLD_RULE = "HoldRule";
     private static final String ACC_00003 = "ACC-00003";
     private static final String HOL_00001 = "HOL-00001";
     private static final String HOL_00002 = "HOL-00002";
     private static final String HOL_00003 = "HOL-00003";
-    private static final String APPRAISAL_RULE = "AppraisalRule";
     private static final String FILE_TO_TEST_OK = "jeu_ok.csv";
     private static final String FILE_DURATION_EXCEED = "regle_test_duration.csv";
     private static final String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
@@ -352,14 +354,14 @@ public class RulesManagerFileImplTest {
         assertThat(file.getVersion()).isEqualTo(1);
 
         final FileRules holdRule1 = rulesFileManager.findDocumentById("HOL-00001");
-        assertThat(holdRule1.getRuletype()).isEqualTo("HoldRule");
+        assertThat(holdRule1.getRuletype()).isEqualTo(HoldRule);
         assertThat(holdRule1.getRuleduration()).isNull();
         assertThat(holdRule1.getRulemeasurement()).isNull();
 
         final FileRules holdRule2 = rulesFileManager.findDocumentById("HOL-00002");
-        assertThat(holdRule2.getRuletype()).isEqualTo("HoldRule");
+        assertThat(holdRule2.getRuletype()).isEqualTo(HoldRule);
         assertThat(holdRule2.getRuleduration()).isEqualTo("5");
-        assertThat(holdRule2.getRulemeasurement()).isEqualTo("YEAR");
+        assertThat(holdRule2.getRulemeasurement()).isEqualTo(YEAR);
     }
 
     @Test
@@ -621,7 +623,7 @@ public class RulesManagerFileImplTest {
             assertEquals(25, fileRulesAfterImport.size());
             for (FileRules fileRulesAfter : fileRulesAfterImport) {
                 if (ACC_00003.equals(fileRulesAfter.getRuleid())) {
-                    assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
+                    assertEquals(AccessRule, fileRulesAfter.getRuletype());
                 }
             }
             // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
@@ -633,10 +635,10 @@ public class RulesManagerFileImplTest {
             assertEquals(26, fileRulesAfterInsert.size());
             for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
                 if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
-                    assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+                    assertEquals(AppraisalRule, fileRulesUpdated.getRuletype());
                 }
                 if ("APP-00006".equals(fileRulesUpdated.getRuleid())) {
-                    assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+                    assertEquals(AppraisalRule, fileRulesUpdated.getRuletype());
                 }
             }
 
@@ -957,7 +959,7 @@ public class RulesManagerFileImplTest {
 
         for (FileRules fileRulesAfter : fileRulesAfterImport) {
             if (ACC_00003.equals(fileRulesAfter.getRuleid())) {
-                assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
+                assertEquals(AccessRule, fileRulesAfter.getRuletype());
             }
         }
 
@@ -982,10 +984,10 @@ public class RulesManagerFileImplTest {
 
         for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
             if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
-                assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+                assertEquals(AppraisalRule, fileRulesUpdated.getRuletype());
             }
             if ("APP-00006".equals(fileRulesUpdated.getRuleid())) {
-                assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+                assertEquals(AppraisalRule, fileRulesUpdated.getRuletype());
             }
         }
     }
@@ -1038,23 +1040,23 @@ public class RulesManagerFileImplTest {
         for (FileRules fileRulesAfter : fileRulesAfterImport) {
             switch (fileRulesAfter.getRuleid()) {
                 case ACC_00003:
-                    assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
+                    assertEquals(AccessRule, fileRulesAfter.getRuletype());
                     assertEquals("25", fileRulesAfter.getRuleduration());
                     break;
                 case HOL_00001:
-                    assertEquals(HOLD_RULE, fileRulesAfter.getRuletype());
+                    assertEquals(HoldRule, fileRulesAfter.getRuletype());
                     assertNull(fileRulesAfter.getRuleduration());
                     assertNull(fileRulesAfter.getRulemeasurement());
                     break;
                 case HOL_00002:
-                    assertEquals(HOLD_RULE, fileRulesAfter.getRuletype());
+                    assertEquals(HoldRule, fileRulesAfter.getRuletype());
                     assertEquals("5", fileRulesAfter.getRuleduration());
-                    assertEquals("YEAR", fileRulesAfter.getRulemeasurement());
+                    assertEquals(YEAR, fileRulesAfter.getRulemeasurement());
                     break;
                 case HOL_00003:
-                    assertEquals(HOLD_RULE, fileRulesAfter.getRuletype());
+                    assertEquals(HoldRule, fileRulesAfter.getRuletype());
                     assertEquals("1", fileRulesAfter.getRuleduration());
-                    assertEquals("YEAR", fileRulesAfter.getRulemeasurement());
+                    assertEquals(YEAR, fileRulesAfter.getRulemeasurement());
                     break;
             }
         }
@@ -1083,23 +1085,23 @@ public class RulesManagerFileImplTest {
         for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
             switch (fileRulesUpdated.getRuleid()) {
                 case ACC_00003:
-                    assertEquals(ACCESS_RULE, fileRulesUpdated.getRuletype());
+                    assertEquals(AccessRule, fileRulesUpdated.getRuletype());
                     assertEquals("26", fileRulesUpdated.getRuleduration());
                     break;
                 case HOL_00001:
-                    assertEquals(HOLD_RULE, fileRulesUpdated.getRuletype());
+                    assertEquals(HoldRule, fileRulesUpdated.getRuletype());
                     assertEquals("1", fileRulesUpdated.getRuleduration());
-                    assertEquals("MONTH", fileRulesUpdated.getRulemeasurement());
+                    assertEquals(MONTH, fileRulesUpdated.getRulemeasurement());
                     break;
                 case HOL_00002:
-                    assertEquals(HOLD_RULE, fileRulesUpdated.getRuletype());
+                    assertEquals(HoldRule, fileRulesUpdated.getRuletype());
                     assertNull(fileRulesUpdated.getRuleduration());
                     assertNull(fileRulesUpdated.getRulemeasurement());
                     break;
                 case HOL_00003:
-                    assertEquals(HOLD_RULE, fileRulesUpdated.getRuletype());
+                    assertEquals(HoldRule, fileRulesUpdated.getRuletype());
                     assertEquals("2", fileRulesUpdated.getRuleduration());
-                    assertEquals("MONTH", fileRulesUpdated.getRulemeasurement());
+                    assertEquals(MONTH, fileRulesUpdated.getRulemeasurement());
                     break;
             }
         }
@@ -1124,7 +1126,7 @@ public class RulesManagerFileImplTest {
 
         for (FileRules fileRulesUpdated : fileRulesAfterInsert2) {
             if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
-                assertEquals(ACCESS_RULE, fileRulesUpdated.getRuletype());
+                assertEquals(AccessRule, fileRulesUpdated.getRuletype());
                 assertEquals("26", fileRulesUpdated.getRuleduration());
             }
         }
@@ -1311,8 +1313,8 @@ public class RulesManagerFileImplTest {
     private static VitamRuleService getRuleDurationConfigration(List<Integer> tenants) {
         Map<Integer, Map<String, String>> durationList = new HashMap<>();
         Map<String, String> duration = new HashMap<>();
-        duration.put(APPRAISAL_RULE, "6 day");
-        duration.put(ACCESS_RULE, "5");
+        duration.put(AppraisalRule.name(), "6 day");
+        duration.put(AccessRule.name(), "5");
         for (Integer tenant : tenants) {
 
             durationList.put(tenant, duration);
@@ -1434,5 +1436,4 @@ public class RulesManagerFileImplTest {
             .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), RULES);
         verify(functionalBackupService, times(3)).getCollectionInJson(any(), anyInt());
     }
-
 }

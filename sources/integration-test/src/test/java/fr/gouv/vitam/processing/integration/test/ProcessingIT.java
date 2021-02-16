@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Streams;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.InsertOneModel;
@@ -70,7 +69,6 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlia
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -141,7 +139,6 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -161,6 +158,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -182,10 +180,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -204,8 +204,11 @@ import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.administration.RuleType.AccessRule;
+import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUT_DETAIL;
 import static fr.gouv.vitam.common.model.logbook.LogbookOperation.EVENTS;
+import static fr.gouv.vitam.common.model.unit.RuleCategoryModel.FINAL_ACTION;
 import static fr.gouv.vitam.ingest.external.integration.test.IngestExternalIT.INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON;
 import static fr.gouv.vitam.ingest.external.integration.test.IngestExternalIT.OPERATION_ID_REPLACE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
@@ -249,8 +252,6 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String SIP_KO_AU_REF_OBJ =
         "integration-processing/KO_SIP_1986_unit_declare_IDobjet_au_lieu_IDGOT.zip";
     private static final String SIP_KO_MANIFEST_URI = "integration-processing/KO_MANIFESTE-URI.zip";
-
-    private static final String RESULTS = "$results";
 
     private static final Integer tenantId = 0;
 
@@ -350,20 +351,20 @@ public class ProcessingIT extends VitamRuleRunner {
     }
 
     @Before
-    public void beforeTest() throws Exception {
+    public void beforeTest() {
         VitamConfiguration.setProcessEngineWaitForStepTimeout(
-                new VitamConfigurationParameters().getProcessEngineWaitForStepTimeout());
+            new VitamConfigurationParameters().getProcessEngineWaitForStepTimeout());
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientType.PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
         VitamConfiguration.setProcessEngineWaitForStepTimeout(
-                new VitamConfigurationParameters().getProcessEngineWaitForStepTimeout());
+            new VitamConfigurationParameters().getProcessEngineWaitForStepTimeout());
     }
 
     @After
@@ -516,14 +517,14 @@ public class ProcessingIT extends VitamRuleRunner {
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
-            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            JsonNode events = logbookResult.get(TAG_RESULTS).get(0).get(EVENTS);
             verifyEvent(events, "ROLL_BACK.OK");
             verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
 
-            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
+            assertEquals(logbookResult.get(TAG_RESULTS).get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
-            assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
-            JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
+            assertThat(logbookResult.get(TAG_RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+            JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get(TAG_RESULTS).get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
             // lets check the accession register
@@ -538,53 +539,54 @@ public class ProcessingIT extends VitamRuleRunner {
             // check if unit is valid
             MongoIterable<Document> resultCheckUnits = MetadataCollections.UNIT.getCollection().find();
             Document unitCheck = resultCheckUnits.first();
+            assertNotNull(unitCheck);
             assertThat(unitCheck.get("_storage")).isNotNull();
-            Document storageUnit = (Document) unitCheck.get("_storage");
+            Document storageUnit = unitCheck.get("_storage", Document.class);
             assertThat(storageUnit.get("_nbc")).isNull();
             assertThat(storageUnit.get("offerIds")).isNull();
 
             // check if units are valid
             MongoIterable<Document> resultCheckObjectGroups = MetadataCollections.OBJECTGROUP.getCollection().find();
             Document objectGroupCheck = resultCheckObjectGroups.first();
+            assertNotNull(objectGroupCheck);
             assertThat(objectGroupCheck.get("_storage")).isNotNull();
-            Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
+            Document storageObjectGroup = objectGroupCheck.get("_storage", Document.class);
             assertThat(storageObjectGroup.get("_nbc")).isNull();
             assertThat(storageObjectGroup.get("offerIds")).isNull();
 
-            List<Document> qualifiers = (List<Document>) objectGroupCheck.get("_qualifiers");
+            List<Document> qualifiers = objectGroupCheck.getList("_qualifiers", Document.class);
             assertThat(qualifiers.size()).isEqualTo(3);
             Document binaryMaster = qualifiers.get(0);
             assertThat(binaryMaster.get("_nbc")).isNotNull();
             assertThat(binaryMaster.get("_nbc")).isEqualTo(1);
 
-            List<Document> versions = (List<Document>) binaryMaster.get("versions");
+            List<Document> versions = binaryMaster.getList("versions", Document.class);
             assertThat(versions.size()).isEqualTo(1);
             Document version = versions.get(0);
-            Document storageVersion = (Document) version.get("_storage");
+            Document storageVersion = version.get("_storage",Document.class);
             assertThat(storageVersion.get("_nbc")).isNull();
             assertThat(storageVersion.get("offerIds")).isNull();
         }
     }
 
     private void writeUnitsLogbook(String bulkProcessId)
-        throws FileNotFoundException, InvalidParseOperationException, DatabaseException, LogbookExecutionException {
+        throws FileNotFoundException, InvalidParseOperationException, LogbookExecutionException {
         InputStream logbookIs =
             PropertiesUtils.getResourceAsStream(INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON);
-        JsonNode logbookJsonNode = JsonHandler.getFromInputStream(
-            logbookIs);
+        ObjectNode logbookJsonNode = JsonHandler.getFromInputStream(logbookIs, ObjectNode.class);
 
-        ((ObjectNode) logbookJsonNode).put(VitamDocument.TENANT_ID, tenantId);
+        logbookJsonNode.put(VitamDocument.TENANT_ID, tenantId);
         String json = JsonHandler.prettyPrint(logbookJsonNode).replace(OPERATION_ID_REPLACE, bulkProcessId);
 
         VitamDocument<LogbookOperation> logbookDocument = new LogbookOperation(json);
 
-        LogbookCollections.OPERATION.getCollection().bulkWrite(
-            Collections.singletonList(new InsertOneModel<VitamDocument<LogbookOperation>>(logbookDocument)));
+        LogbookCollections.OPERATION.getCollection()
+            .bulkWrite(Collections.singletonList(new InsertOneModel<>(logbookDocument)));
 
         insertLogbookToElasticsearch(logbookDocument);
     }
 
-    private void insertLogbookToElasticsearch(VitamDocument vitamDocument)
+    private void insertLogbookToElasticsearch(VitamDocument<?> vitamDocument)
         throws LogbookExecutionException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         String id = vitamDocument.getId();
@@ -663,14 +665,14 @@ public class ProcessingIT extends VitamRuleRunner {
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
-            JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+            JsonNode events = logbookResult.get(TAG_RESULTS).get(0).get(EVENTS);
             verifyEvent(events, "ROLL_BACK.OK");
             verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
 
-            assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
+            assertEquals(logbookResult.get(TAG_RESULTS).get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
-            assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
-            JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
+            assertThat(logbookResult.get(TAG_RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+            JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get(TAG_RESULTS).get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
             // lets check the accession register
@@ -685,29 +687,31 @@ public class ProcessingIT extends VitamRuleRunner {
             // check if unit is valid
             MongoIterable<Document> resultCheckUnits = MetadataCollections.UNIT.getCollection().find();
             Document unitCheck = resultCheckUnits.first();
+            assertNotNull(unitCheck);
             assertThat(unitCheck.get("_storage")).isNotNull();
-            Document storageUnit = (Document) unitCheck.get("_storage");
+            Document storageUnit = unitCheck.get("_storage", Document.class);
             assertThat(storageUnit.get("_nbc")).isNull();
             assertThat(storageUnit.get("offerIds")).isNull();
 
             // check if units are valid
             MongoIterable<Document> resultCheckObjectGroups = MetadataCollections.OBJECTGROUP.getCollection().find();
             Document objectGroupCheck = resultCheckObjectGroups.first();
+            assertNotNull(objectGroupCheck);
             assertThat(objectGroupCheck.get("_storage")).isNotNull();
-            Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
+            Document storageObjectGroup = objectGroupCheck.get("_storage", Document.class);
             assertThat(storageObjectGroup.get("_nbc")).isNull();
             assertThat(storageObjectGroup.get("offerIds")).isNull();
 
-            List<Document> qualifiers = (List<Document>) objectGroupCheck.get("_qualifiers");
+            List<Document> qualifiers = objectGroupCheck.getList("_qualifiers", Document.class);
             assertThat(qualifiers.size()).isEqualTo(3);
             Document binaryMaster = qualifiers.get(0);
             assertThat(binaryMaster.get("_nbc")).isNotNull();
             assertThat(binaryMaster.get("_nbc")).isEqualTo(1);
 
-            List<Document> versions = (List<Document>) binaryMaster.get("versions");
+            List<Document> versions = binaryMaster.getList("versions", Document.class);
             assertThat(versions.size()).isEqualTo(1);
             Document version = versions.get(0);
-            Document storageVersion = (Document) version.get("_storage");
+            Document storageVersion = version.get("_storage", Document.class);
             assertThat(storageVersion.get("_nbc")).isNull();
             assertThat(storageVersion.get("offerIds")).isNull();
         }
@@ -754,10 +758,10 @@ public class ProcessingIT extends VitamRuleRunner {
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
-        JsonNode logbookNode = logbookResult.get("$results").get(0);
+        JsonNode logbookNode = logbookResult.get(TAG_RESULTS).get(0);
         assertEquals("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO",
             logbookNode.get("events").get(12).get("outDetail").asText());
-        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+        assertThat(logbookResult.get(TAG_RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
 
@@ -802,10 +806,10 @@ public class ProcessingIT extends VitamRuleRunner {
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
-        JsonNode logbookNode = logbookResult.get("$results").get(0);
+        JsonNode logbookNode = logbookResult.get(TAG_RESULTS).get(0);
         assertThat(logbookNode.get("events").get(12).get("outDetail").asText())
             .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
-        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+        assertThat(logbookResult.get(TAG_RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
     @RunWithCustomExecutor
@@ -820,7 +824,7 @@ public class ProcessingIT extends VitamRuleRunner {
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
         JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-        JsonNode logbookNode = logbookResult.get("$results").get(0);
+        JsonNode logbookNode = logbookResult.get(TAG_RESULTS).get(0);
         assertEquals(logbookNode.get("rightsStatementIdentifier").asText(),
             "{\"ArchivalAgreement\":\"IC_WITH_PROFILE\",\"ArchivalProfile\":\"PR-000001\"}");
         JsonNode agIdExt = JsonHandler.getFromString(logbookNode.get("agIdExt").asText());
@@ -954,14 +958,14 @@ public class ProcessingIT extends VitamRuleRunner {
 
         query.setScrollFilter(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, 100);
         JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-        assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
+        assertNotNull(result.get(TAG_RESULTS).get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
             .get("R1"));
         assertNotNull(result.get("$hits").get("scrollId"));
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importRulesFile(PropertiesUtils.getResourceAsStream("integration-processing/new_rule.csv"),
                 "new_rule.csv");
             JsonNode response = client.getRuleByID("R7");
-            assertTrue(response.get("$results").size() > 0);
+            assertTrue(response.get(TAG_RESULTS).size() > 0);
         }
     }
 
@@ -980,9 +984,9 @@ public class ProcessingIT extends VitamRuleRunner {
                 .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                 .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
         JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-        assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
+        assertNotNull(result.get(TAG_RESULTS).get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
             .get("R1"));
-        assertNull(result.get("$results").get(0).get(VitamFieldsHelper.management()).get("OriginatingAgency"));
+        assertNull(result.get(TAG_RESULTS).get(0).get(VitamFieldsHelper.management()).get("OriginatingAgency"));
     }
 
     @RunWithCustomExecutor
@@ -1287,12 +1291,12 @@ public class ProcessingIT extends VitamRuleRunner {
         MongoCursor<Document> logbookCursor =
             LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, unitRoot)).iterator();
         Document lfcUnit1 = logbookCursor.next();
-        List<JsonNode> eventsUnit1 = lfcUnit1.get("events", List.class);
+        List<Document> eventsUnit1 = lfcUnit1.getList("events", Document.class);
         int lcfUnit1Size = eventsUnit1.size();
 
         logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, unitChild)).iterator();
         Document lfcUnit2 = logbookCursor.next();
-        List<JsonNode> eventsUnit2 = lfcUnit2.get("events", List.class);
+        List<Document> eventsUnit2 = lfcUnit2.getList("events", Document.class);
         int lcfUnit2Size = eventsUnit2.size();
 
         String tmp =
@@ -1344,7 +1348,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Check that we auto attach by IngestContract
         for (Document au : units) {
-            List<String> parents = au.get(Unit.UP, List.class);
+            List<String> parents = au.getList(Unit.UP, String.class);
             if (au.getString("Title").equals("Shout no be attached by ingest contract")) {
                 assertThat(parents).hasSize(1);
                 assertThat(parents).doesNotContain(unitChildOfChild);
@@ -1410,14 +1414,14 @@ public class ProcessingIT extends VitamRuleRunner {
         // Check unit 1 LFC not modified
         logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, unitRoot)).iterator();
         lfcUnit1 = logbookCursor.next();
-        eventsUnit1 = lfcUnit1.get("events", List.class);
+        eventsUnit1 = lfcUnit1.getList("events", Document.class);
         int newLcfUnit1Size = eventsUnit1.size();
         assertThat(newLcfUnit1Size).isEqualTo(lcfUnit1Size);
 
         // Check unit 2 LFC not modified
         logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, unitChild)).iterator();
         lfcUnit2 = logbookCursor.next();
-        eventsUnit2 = lfcUnit2.get("events", List.class);
+        eventsUnit2 = lfcUnit2.getList("events", Document.class);
         int newLcfUnit2Size = eventsUnit2.size();
         assertThat(newLcfUnit2Size).isEqualTo(lcfUnit2Size);
 
@@ -1493,17 +1497,6 @@ public class ProcessingIT extends VitamRuleRunner {
         return objectGuid.getId();
     }
 
-    private String createOperationContainer(String action, LogbookTypeProcess logbookTypeProcess)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid, action, logbookTypeProcess);
-
-        return containerName;
-    }
-
     /**
      * This is a duplicate test for attaching AU to an existing GOT But we want this to test Attach AU by query to an
      * existing one As the query by #object return the wanted number of AU in results We first attach AU to an existing
@@ -1574,8 +1567,9 @@ public class ProcessingIT extends VitamRuleRunner {
         // prepare zip
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
         Document unit = resultUnits.first();
-        String idUnit = (String) unit.get("_id");
-        String idGOT = (String) unit.get("_og");
+        assertNotNull(unit);
+        String idUnit = unit.get("_id", String.class);
+        String idGOT = unit.get("_og", String.class);
         assertThat(idGOT).isNotNull();
 
         // Search unit by #object: {$eq : idGOT}
@@ -1686,7 +1680,7 @@ public class ProcessingIT extends VitamRuleRunner {
         prepareVitamSession();
 
         // We link to a non existing unit
-        String zipPath = null;
+        String zipPath;
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
@@ -1752,13 +1746,14 @@ public class ProcessingIT extends VitamRuleRunner {
         final String containerName = ingestSIP(SIP_FILE_OK_NAME, DEFAULT_WORKFLOW.name(), WARNING);
 
         // 2. then we link another SIP to it
-        String zipPath = null;
+        String zipPath;
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         // prepare zip
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
         Document unit = resultUnits.first();
-        String idGot = (String) unit.get("_og");
+        assertNotNull(unit);
+        String idGot = unit.get("_og",String.class);
         replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
             "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
             idGot);
@@ -1800,7 +1795,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow2.getSteps());
 
         // check got have to units
-        assertEquals(MetadataCollections.UNIT.getCollection().count(eq("_og", idGot)), 2);
+        assertEquals(MetadataCollections.UNIT.getCollection().countDocuments(eq("_og", idGot)), 2);
 
         ArrayList<Document> logbookLifeCycleUnits =
             Lists.newArrayList(LogbookCollections.LIFECYCLE_UNIT.getCollection().find().iterator());
@@ -1809,7 +1804,7 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName2))
                 .collect(Collectors.toList());
 
-        List<Document> events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleUnits).get("events");
+        List<Document> events = Iterables.getOnlyElement(currentLogbookLifeCycleUnits).getList("events", Document.class);
 
         List<Document> lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
             .collect(Collectors.toList());
@@ -1822,7 +1817,7 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookLifeCycleGOTs.stream().filter(t -> t.get("evIdProc").equals(containerName))
                 .collect(Collectors.toList());
 
-        events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleGots).get("events");
+        events = Iterables.getOnlyElement(currentLogbookLifeCycleGots).getList("events", Document.class);
 
         lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.OBJECT_GROUP_UPDATE.OK"))
             .collect(Collectors.toList());
@@ -2096,12 +2091,12 @@ public class ProcessingIT extends VitamRuleRunner {
         waitOperation(containerName);
 
         ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-                containerName);
+            containerName);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
         waitOperation(containerName);
         // Let the processing do the job
         ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-                containerName);
+            containerName);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
         waitOperation(containerName);
 
@@ -2258,7 +2253,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // as logbookClient.selectOperation returns last two events and after removing STARTED from events
         // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
         // "STP_INGEST_FINALISATION.OK"
-        JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
+        JsonNode events = logbookResult.get(TAG_RESULTS).get(0).get(EVENTS);
         verifyEvent(events, "ROLL_BACK.OK");
         verifyEvent(events, "PROCESS_SIP_UNITARY.WARNING");
     }
@@ -2319,7 +2314,7 @@ public class ProcessingIT extends VitamRuleRunner {
         select.setQuery(query);
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-        JsonNode selectUnitsAfterIngest = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+        JsonNode selectUnitsAfterIngest = metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         assertThat(selectUnitsAfterIngest.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
@@ -2333,7 +2328,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Then
         JsonNode selectUnitsAfterComputedInheritedRules =
-            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+            metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
@@ -2341,12 +2336,12 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
             .allMatch(Objects::nonNull);
+        Optional<JsonNode> computedInheritedRulesOptional = StreamSupport.stream(selectUnitsAfterComputedInheritedRules.spliterator(), false)
+            .filter(unit -> unit.get("Title").textValue().equals("Pereire.txt"))
+            .findFirst();
+        assertTrue(computedInheritedRulesOptional.isPresent());
         ObjectNode computedInheritedRules =
-            (ObjectNode) Streams.stream(selectUnitsAfterComputedInheritedRules.elements())
-                .filter(unit -> unit.get("Title").textValue().equals("Pereire.txt"))
-                .findFirst()
-                .get()
-                .get(VitamFieldsHelper.computedInheritedRules());
+            (ObjectNode) computedInheritedRulesOptional.get().get(VitamFieldsHelper.computedInheritedRules());
         assertThat(computedInheritedRules.get("indexationDate")).isNotNull();
         // Check format ignoring indexationDate fields
         computedInheritedRules.remove("indexationDate");
@@ -2358,7 +2353,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     private void computeInheritedRules(SelectMultiQuery select)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException,
+        ContentAddressableStorageServerException,
         InvalidParseOperationException, InternalServerException, BadRequestException, VitamClientException {
         final String computedInheritedRulesProcess = createOperationContainer();
 
@@ -2392,7 +2387,7 @@ public class ProcessingIT extends VitamRuleRunner {
         select.setQuery(query);
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-        JsonNode selectUnitsAfterIngest = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+        JsonNode selectUnitsAfterIngest = metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         assertThat(selectUnitsAfterIngest.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
@@ -2434,11 +2429,11 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(ingestOperation))
                 .collect(Collectors.toList());
         currentLogbookLifeCycleUnits.forEach((lifecycle) -> {
-            List<Document> events = (List<Document>) lifecycle.get("events");
+            List<Document> events = lifecycle.getList("events", Document.class);
             List<Document> lifecycleEvent =
                 events.stream().filter(t -> t.get("outDetail").equals("LFC.UPDATE_UNIT_RULES.OK"))
                     .collect(Collectors.toList());
-            if (lifecycleEvent != null && lifecycleEvent.size() > 0) {
+            if (lifecycleEvent.size() > 0) {
                 String evDetData = Iterables.getOnlyElement(lifecycleEvent).getString(EVENT_DETAILS);
                 assertThat(evDetData).containsIgnoringCase("diff");
                 assertThat(evDetData).contains(ingestOperation);
@@ -2447,15 +2442,17 @@ public class ProcessingIT extends VitamRuleRunner {
             }
         });
 
-        JsonNode selectUnitsAfterRuleUpdate = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+        JsonNode selectUnitsAfterRuleUpdate = metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         // Check end dates
         assertThat(
-            Streams.stream(selectUnitsAfterRuleUpdate.elements())
-                .filter(unit -> unit.has("#management") &&
-                    unit.get("#management").has("AccessRule") &&
-                    unit.get("#management").get("AccessRule").has("Rules"))
-                .flatMap(unit -> Streams.stream(unit.get("#management").get("AccessRule").get("Rules").elements()))
+            StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(),false)
+                .filter(unit -> unit.has(VitamFieldsHelper.management()) &&
+                    unit.get(VitamFieldsHelper.management()).has(AccessRule.name()) &&
+                    unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).has("Rules"))
+                .flatMap(unit -> StreamSupport.stream(
+                    unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).get("Rules").spliterator(),
+                    false))
                 .filter(rule -> rule.get("Rule").asText().equals("ACC-00003"))
         ).allMatch(rule -> rule.get("EndDate").asText().equals(
             LocalDateUtil.getLocalDateFromSimpleFormattedDate(rule.get("StartDate").asText()).plusYears(30).format(
@@ -2503,7 +2500,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // Verify computed inherited rules existence
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
         JsonNode selectUnitsAfterComputedInheritedRules =
-            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+            metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
@@ -2545,11 +2542,11 @@ public class ProcessingIT extends VitamRuleRunner {
             logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(ingestOperation))
                 .collect(Collectors.toList());
         currentLogbookLifeCycleUnits.forEach((lifecycle) -> {
-            List<Document> events = (List<Document>) lifecycle.get("events");
+            List<Document> events = lifecycle.getList("events", Document.class);
             List<Document> lifecycleEvent =
                 events.stream().filter(t -> t.get("outDetail").equals("LFC.UPDATE_UNIT_RULES.OK"))
                     .collect(Collectors.toList());
-            if (lifecycleEvent != null && lifecycleEvent.size() > 0) {
+            if (lifecycleEvent.size() > 0) {
                 String evDetData = Iterables.getOnlyElement(lifecycleEvent).getString(EVENT_DETAILS);
                 assertThat(evDetData).containsIgnoringCase("diff");
                 assertThat(evDetData).contains(ingestOperation);
@@ -2558,54 +2555,54 @@ public class ProcessingIT extends VitamRuleRunner {
             }
         });
 
-        JsonNode selectUnitsAfterRuleUpdate = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+        JsonNode selectUnitsAfterRuleUpdate = metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         // Check end dates
-        assertThat(
-            Streams.stream(selectUnitsAfterRuleUpdate.elements())
-                .filter(unit -> unit.has("#management") &&
-                    unit.get("#management").has("AccessRule") &&
-                    unit.get("#management").get("AccessRule").has("Rules"))
-                .flatMap(unit -> Streams.stream(unit.get("#management").get("AccessRule").get("Rules").elements()))
+        assertTrue(
+            StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
+                .filter(unit -> unit.has(VitamFieldsHelper.management()) &&
+                    unit.get(VitamFieldsHelper.management()).has(AccessRule.name()) &&
+                    unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).has("Rules"))
+                .flatMap(unit -> StreamSupport.stream(unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).get("Rules").spliterator(), false)
                 .filter(rule -> rule.get("Rule").asText().equals("ACC-00003"))
         ).allMatch(rule -> rule.get("EndDate").asText().equals(
             LocalDateUtil.getLocalDateFromSimpleFormattedDate(rule.get("StartDate").asText()).plusYears(30).format(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
+                DateTimeFormatter.ofPattern("yyyy-MM-dd")))));
 
         // Check computed inherited rules invalidation of updated units and all then children
-        List<String> updatedUnitIds = Streams.stream(selectUnitsAfterRuleUpdate.elements())
-            .filter(unit -> unit.has("#management") &&
-                unit.get("#management").has("AccessRule") &&
-                unit.get("#management").get("AccessRule").has("Rules") &&
-                Streams.stream(unit.get("#management").get("AccessRule").get("Rules").elements())
+        List<String> updatedUnitIds = StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
+            .filter(unit -> unit.has(VitamFieldsHelper.management()) &&
+                unit.get(VitamFieldsHelper.management()).has(AccessRule.name()) &&
+                unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).has("Rules") &&
+                StreamSupport.stream(unit.get(VitamFieldsHelper.management()).get(AccessRule.name()).get("Rules").spliterator(), false)
                     .anyMatch(rule -> rule.get("Rule").asText().equals("ACC-00003")))
             .map(unit -> unit.get("#id").asText())
             .collect(Collectors.toList());
 
         Set<String> updateUnitIdsAndTheirChildren =
-            Streams.stream(selectUnitsAfterRuleUpdate.elements())
+            StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
                 .filter(unit -> updatedUnitIds.contains(unit.get("#id").asText()) ||
-                    Streams.stream(unit.get("#allunitups").elements())
+                    StreamSupport.stream(unit.get("#allunitups").spliterator(), false)
                         .anyMatch(entry -> updatedUnitIds.contains(entry.asText())))
                 .map(unit -> unit.get("#id").asText())
                 .collect(Collectors.toSet());
 
         // Check units to be invalidated
-        assertThat(Streams.stream(selectUnitsAfterRuleUpdate.elements())
+        assertThat(StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
             .filter(unit -> updateUnitIdsAndTheirChildren.contains(unit.get("#id").asText())))
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
             .allMatch(entry -> !entry.booleanValue());
-        assertThat(Streams.stream(selectUnitsAfterRuleUpdate.elements())
+        assertThat(StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
             .filter(unit -> updateUnitIdsAndTheirChildren.contains(unit.get("#id").asText())))
             .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
             .allMatch(Objects::isNull);
 
         // Check units NOT to be invalidated
-        assertThat(Streams.stream(selectUnitsAfterRuleUpdate.elements())
+        assertThat(StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
             .filter(unit -> !updateUnitIdsAndTheirChildren.contains(unit.get("#id").asText())))
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
             .allMatch(JsonNode::booleanValue);
-        assertThat(Streams.stream(selectUnitsAfterRuleUpdate.elements())
+        assertThat(StreamSupport.stream(selectUnitsAfterRuleUpdate.spliterator(), false)
             .filter(unit -> !updateUnitIdsAndTheirChildren.contains(unit.get("#id").asText())))
             .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
             .allMatch(Objects::nonNull);
@@ -2685,6 +2682,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // prepare zip
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find(exists("_og", true));
         Document unit = resultUnits.first();
+        assertNotNull(unit);
         String idUnit = unit.getString("_id");
         String idGot = unit.getString("_og");
 
@@ -2790,6 +2788,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // prepare zip
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find(exists("_og", true));
         Document unit = resultUnits.first();
+        assertNotNull(unit);
         String idUnit = unit.getString("_id");
         String idGot = unit.getString("_og");
 
@@ -2894,8 +2893,9 @@ public class ProcessingIT extends VitamRuleRunner {
         // prepare zip
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
         Document unit = resultUnits.first();
-        String idUnit = (String) unit.get("_id");
-        String opiBefore = (String) unit.get("_opi");
+        assertNotNull(unit);
+        String idUnit = unit.get("_id", String.class);
+        String opiBefore = unit.get("_opi", String.class);
         replaceStringInFile(SIP_PROD_SERV_B_ATTACHED + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
         String zipPath =
@@ -2944,16 +2944,17 @@ public class ProcessingIT extends VitamRuleRunner {
         MongoIterable<Document> resultUnitsAfter =
             MetadataCollections.UNIT.getCollection().find(eq("_id", idUnit));
         Document unitAfter = resultUnitsAfter.first();
-        String opiAfter = (String) unitAfter.get("_opi");
+        assertNotNull(unitAfter);
+        String opiAfter = unitAfter.get("_opi", String.class);
         assertEquals(opiBefore, opiAfter);
 
 
         // Check accession register detail
-        long countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count(
+        long countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments(
             eq("OriginatingAgency", "P-A"));
         assertThat(countDetails).isEqualTo(1);
 
-        long countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count(
+        long countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments(
             eq("OriginatingAgency", "P-A"));
         assertThat(countSummary).isEqualTo(1);
 
@@ -2962,22 +2963,22 @@ public class ProcessingIT extends VitamRuleRunner {
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
                 .find(eq("OriginatingAgency", "P-A"));
         assertNotNull(accessReg);
-        assertNotNull(accessReg.first());
         Document accessRegDoc = accessReg.first();
+        assertNotNull(accessRegDoc);
         // 2 units are attached - 1 was previously added
         assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("TotalUnits", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
         assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("TotalObjects", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 1 Got is attached - 1 was previously added
         assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("TotalObjectGroups", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 285804 octets is attached - 4109 was previously added
         assertEquals("4109.0",
-            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("ObjectSize", Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 3. Add object to an existing GOT
         containerName = createOperationContainer();
@@ -3028,11 +3029,11 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Re-check accession register detail
 
-        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count(
+        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments(
             eq("OriginatingAgency", "P-A"));
         assertThat(countDetails).isEqualTo(2);
 
-        countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count(
+        countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments(
             eq("OriginatingAgency", "P-A"));
         assertThat(countSummary).isEqualTo(1);
 
@@ -3040,23 +3041,23 @@ public class ProcessingIT extends VitamRuleRunner {
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
                 .find(eq("OriginatingAgency", "P-A"));
         assertNotNull(accessReg);
-        assertNotNull(accessReg.first());
-
         accessRegDoc = accessReg.first();
+        assertNotNull(accessRegDoc);
+
         // 2 units are attached - 1 was previously added
         assertEquals("2.0",
-            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("TotalUnits",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
         assertEquals("2.0",
-            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("TotalObjects",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 1 Got is attached - 1 was previously added
         assertEquals("1.0",
-            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("TotalObjectGroups",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 285804 octets is attached - 4109 was previously added
         assertEquals("14077.0",
-            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
+            accessRegDoc.get("ObjectSize",Document.class).get(AccessionRegisterSummary.INGESTED).toString());
 
 
         // Check global accession register count
@@ -3071,8 +3072,7 @@ public class ProcessingIT extends VitamRuleRunner {
     @Test
     public void testBlankWorkflow() throws Exception {
         prepareVitamSession();
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
 
             final String containerName = createOperationContainer();
 
@@ -3198,9 +3198,11 @@ public class ProcessingIT extends VitamRuleRunner {
         MongoIterable<Document> resultUnits =
             MetadataCollections.UNIT.getCollection().find(eq("Title", "Porte de Pantin"));
         final Document unitToAssert = resultUnits.first();
-        Document appraisalRule = ((Document) ((Document) unitToAssert.get("_mgt")).get("AppraisalRule"));
-        final List<Object> rules = ((List<Object>) appraisalRule.get("Rules"));
-        final String finalAction = (String) appraisalRule.get("FinalAction");
+        assertNotNull(unitToAssert);
+        Document appraisalRule = unitToAssert.get("_mgt",Document.class).get(AppraisalRule.name(),Document.class);
+        assertNotNull(appraisalRule);
+        final List<Object> rules = appraisalRule.getList("Rules", Object.class);
+        final String finalAction = appraisalRule.get(FINAL_ACTION, String.class);
         assertThat(finalAction).isNotNull().isEqualTo("Keep");
         assertThat(rules).isNull();
 
@@ -3216,21 +3218,22 @@ public class ProcessingIT extends VitamRuleRunner {
         MongoIterable<Document> resultUnits =
             MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));
         final Document unitToAssert = resultUnits.first();
+        assertNotNull(unitToAssert);
 
         //AgentType fullname field
 
-        List<Object> addressees = (List<Object>) unitToAssert.get("Addressee");
+        List<Document> addressees = unitToAssert.getList("Addressee",Document.class);
         assertThat(addressees).isNotNull().isNotEmpty();
 
-        Document addressee = (Document) addressees.get(0);
+        Document addressee = addressees.get(0);
         assertThat(addressee.get("FullName")).isEqualTo("Iulius Caesar Divus");
 
         //sender
-        List<Object> senders = (List<Object>) unitToAssert.get("Sender");
+        List<Document> senders = unitToAssert.getList("Sender", Document.class);
         assertThat(senders).isNotNull().isNotEmpty();
 
-        Document sender = (Document) senders.get(0);
-        final List<String> mandates = ((List<String>) sender.get("Mandate"));
+        Document sender = senders.get(0);
+        final List<String> mandates = sender.getList("Mandate",String.class);
 
         assertThat(sender.get("GivenName")).isEqualTo("Alexander");
         assertThat(mandates.size()).isEqualTo(2);
@@ -3238,11 +3241,11 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(mandates.get(1)).isEqualTo("Mandataire_2");
 
         //transmitter
-        List<Object> transmitters = (List<Object>) unitToAssert.get("Transmitter");
+        List<Document> transmitters = unitToAssert.getList("Transmitter",Document.class);
         assertThat(senders).isNotNull().isNotEmpty();
 
-        Document transmitter = (Document) transmitters.get(0);
-        final List<String> functions = (List<String>) transmitter.get("Function");
+        Document transmitter = transmitters.get(0);
+        final List<String> functions = transmitter.getList("Function",String.class);
         assertThat(functions).isNotNull().isNotEmpty();
         assertThat(functions.get(0)).isEqualTo("Service de transmission");
 
@@ -3251,14 +3254,15 @@ public class ProcessingIT extends VitamRuleRunner {
             .find(eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
         final Document bdoWithMetadataJson = gots.first();
 
-        List<Object> qualifiers = (List<Object>) bdoWithMetadataJson.get("_qualifiers");
+        assertNotNull(bdoWithMetadataJson);
+        List<Document> qualifiers = bdoWithMetadataJson.getList("_qualifiers", Document.class);
         assertThat(qualifiers).isNotNull().isNotEmpty();
 
-        List<Object> versions = (List<Object>) ((Document) qualifiers.get(0)).get("versions");
+        List<Document> versions = qualifiers.get(0).getList("versions", Document.class);
         assertThat(versions).isNotNull().isNotEmpty();
-        Document version = (Document) versions.get(0);
+        Document version =  versions.get(0);
         assertThat(version).isNotNull().isNotEmpty();
-        Document fileInfo = (Document) version.get("FileInfo");
+        Document fileInfo = version.get("FileInfo",Document.class);
         assertNotNull(fileInfo);
         assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00.000+02:00");
         assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");
@@ -3396,9 +3400,9 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(1L);
         ObjectGroup got =
             MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
-        assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(1);
-        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
-        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc")
+        assertThat(got.getList(ObjectGroup.OPS, String.class)).hasSize(1);
+        assertThat(got.getList(ObjectGroup.QUALIFIERS, Document.class)).hasSize(2);
+        assertThat(got.getList(ObjectGroup.QUALIFIERS, Document.class)).extracting("qualifier", "_nbc")
             .contains(tuple("BinaryMaster", 1), tuple("PhysicalMaster", 1));
 
         // 2. Add objects to existing got
@@ -3435,16 +3439,16 @@ public class ProcessingIT extends VitamRuleRunner {
         // Check fix bug_5178 bug_5117
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(1L);
         got = MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
-        assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(2);
-        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
-        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc")
+        assertThat(got.getList(ObjectGroup.OPS, String.class)).hasSize(2);
+        assertThat(got.getList(ObjectGroup.QUALIFIERS, Document.class)).hasSize(2);
+        assertThat(got.getList(ObjectGroup.QUALIFIERS, Document.class)).extracting("qualifier", "_nbc")
             .contains(tuple("BinaryMaster", 3), tuple("PhysicalMaster", 1));
 
         // Fix check bug 5199. Assert that all versions of all qualifiers have DataObjectGroupId equals to got id
         String gotId = got.getString(ObjectGroup.ID);
-        Stream<String> stream = ((List<Document>) got.get(ObjectGroup.QUALIFIERS, List.class))
+        Stream<String> stream = got.getList(ObjectGroup.QUALIFIERS, Document.class)
             .stream()
-            .flatMap(o -> ((List<Document>) o.get("versions", List.class)).stream())
+            .flatMap(o -> o.getList("versions", Document.class).stream())
             .map(o -> o.getString(SedaConstants.TAG_DATA_OBJECT_GROUPE_ID));
 
         assertThat(stream).hasSize(4).allMatch(gotId::equals);
@@ -3506,7 +3510,7 @@ public class ProcessingIT extends VitamRuleRunner {
             select.addUsedProjection("Title", VitamFieldsHelper.management());
 
             JsonNode resp = metaDataClient.selectUnits(select.getFinalSelect());
-            units = resp.get("$results");
+            units = resp.get(TAG_RESULTS);
         }
 
         JsonNode expectedJson = JsonHandler.getFromInputStream(
@@ -3564,7 +3568,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // Then
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
         JsonNode selectUnitsAfterComputedInheritedRules =
-            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+            metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
@@ -3595,7 +3599,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Then
         JsonNode selectUnitsAfterReclassification =
-            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+            metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         // Basic reclassification check
         JsonNode unitA = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitA");
@@ -3636,7 +3640,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
         JsonNode selectUnitsAfterComputedInheritedRules =
-            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+            metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
@@ -3667,7 +3671,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Then
         JsonNode selectUnitsAfterReclassification =
-            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+            metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         // Basic reclassification check
         JsonNode unitA = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitA");
@@ -3706,7 +3710,7 @@ public class ProcessingIT extends VitamRuleRunner {
         select.addUsedProjection(VitamFieldsHelper.id(), "Title");
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-        JsonNode units = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+        JsonNode units = metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         List<String> rearrangeableUnits = Arrays.asList(
             "Unit01", "Unit02", "Unit03", "Unit04", "Unit05", "Unit06", "Unit07", "Unit08", "Unit09", "Unit11",
@@ -3746,7 +3750,7 @@ public class ProcessingIT extends VitamRuleRunner {
         select.addUsedProjection(VitamFieldsHelper.id(), "Title");
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-        JsonNode units = metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+        JsonNode units = metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         List<String> nonRearrangeableUnits = Arrays.asList(
             "Unit10", "Unit13", "Unit16", "Unit19", "Unit22", "Unit25");
@@ -3768,7 +3772,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(reclassificationWorkflow);
-        JsonNode events = logbookResult.get("$results").get(0).get("events");
+        JsonNode events = logbookResult.get(TAG_RESULTS).get(0).get("events");
         JsonNode checkHoldRulesEvent = IteratorUtils.find(events.iterator(),
             e -> e.get(OUT_DETAIL).asText().equals("RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES.KO"));
         assertThat(checkHoldRulesEvent).isNotNull();
@@ -3824,7 +3828,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // Then
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
         JsonNode selectUnitsAfterComputedInheritedRules =
-            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+            metaDataClient.selectUnits(select.getFinalSelect()).get(TAG_RESULTS);
 
         assertThat(selectUnitsAfterComputedInheritedRules.elements())
             .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
@@ -3858,11 +3862,11 @@ public class ProcessingIT extends VitamRuleRunner {
         final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
-        final InputStream zipInputStreamSipObject =PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // Insert sanityCheck file & StpUpload
         insertWaitForStepEssentialFiles(containerName);
 
@@ -3873,7 +3877,7 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
         RequestResponse<ItemStatus> response =
-                processingClient.updateOperationActionProcess(RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(RESUME.getValue(), containerName);
 
         assertNotNull(response);
         assertEquals(Status.ACCEPTED.getStatusCode(), response.getStatus());
@@ -3890,11 +3894,11 @@ public class ProcessingIT extends VitamRuleRunner {
         final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
-        final InputStream zipInputStreamSipObject =PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // Insert sanityCheck file & StpUpload
         insertWaitForStepEssentialFiles(containerName);
 
@@ -3905,7 +3909,7 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
         RequestResponse<ItemStatus> response =
-                processingClient.updateOperationActionProcess(RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(RESUME.getValue(), containerName);
 
         assertNotNull(response);
         assertEquals(Status.ACCEPTED.getStatusCode(), response.getStatus());
@@ -3914,10 +3918,16 @@ public class ProcessingIT extends VitamRuleRunner {
         verifyProcessState(containerName, tenantId, PAUSE);
     }
 
+    @Nonnull
     private JsonNode getUnitIdByTitle(JsonNode units, String title) {
-        return Streams.stream(units.elements())
-            .filter(unit -> unit.get("Title").asText().equals(title))
-            .findFirst().get();
+        Optional<JsonNode> unit = StreamSupport.stream(units.spliterator(), false)
+            .filter(u -> u.get("Title").asText().equals(title))
+            .findFirst();
+        if (unit.isPresent()) {
+            return unit.get();
+        } else {
+            throw new RuntimeException("Unit not found");
+        }
     }
 
     private String getUnitId(JsonNode unit) {
@@ -3925,7 +3935,7 @@ public class ProcessingIT extends VitamRuleRunner {
     }
 
     private List<String> getUnitParents(JsonNode unit) {
-        return Streams.stream(unit.get(VitamFieldsHelper.unitups()).elements())
+        return StreamSupport.stream(unit.get(VitamFieldsHelper.unitups()).spliterator(), false)
             .map(JsonNode::asText)
             .collect(Collectors.toList());
     }

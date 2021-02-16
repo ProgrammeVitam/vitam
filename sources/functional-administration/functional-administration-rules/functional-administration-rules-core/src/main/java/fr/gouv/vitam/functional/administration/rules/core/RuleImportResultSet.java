@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.rules.core;
 
+
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 
 import java.util.List;
