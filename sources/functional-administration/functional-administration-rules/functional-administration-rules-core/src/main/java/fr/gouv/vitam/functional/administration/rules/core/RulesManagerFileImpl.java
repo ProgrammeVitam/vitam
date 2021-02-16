@@ -74,7 +74,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
-import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.functional.administration.common.FileRulesCSV;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
@@ -83,10 +83,11 @@ import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FileRulesErrorCode;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
-import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
+import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -121,6 +122,7 @@ import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.util.CollectionUtils;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -134,6 +136,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -263,13 +266,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         throws FileRulesReadException, StorageException, InvalidParseOperationException, IOException {
         Map<String, FileRulesModel> rulesFromFile;
 
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         try {
             rulesFromFile = getRulesFromCSV(new FileInputStream(file));
         } catch (FileRulesCsvException e) {
             this.logbookRuleImportManager
                 .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_INVALID_CSV, eip);
-            generateReport(StatusCode.KO, errors, eip, Collections.emptyList(), Collections.emptyList(),
+            generateReport(StatusCode.KO, e.getErrorsMap(), eip, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
             this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
             throw e;
@@ -277,7 +279,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             alertService.createAlert(RULE_DURATION_EXCEED);
             this.logbookRuleImportManager
                 .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(MAX_DURATION_EXCEEDS, eip);
-            generateReport(StatusCode.KO, errors, eip, Collections.emptyList(), Collections.emptyList(),
+            generateReport(StatusCode.KO, e.getErrorsMap(), eip, Collections.emptyList(), Collections.emptyList(),
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
             this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
             throw e;
@@ -596,17 +598,16 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
 
         final CsvMapper csvMapper = new CsvMapper();
-        MappingIterator<FileRulesModel> csvReader = csvMapper.readerFor(FileRulesModel.class)
+        MappingIterator<FileRulesCSV> csvReader = csvMapper.readerFor(FileRulesCSV.class)
             .with(CsvSchema.emptySchema().withHeader())
             .readValues(ruleInputStream);
         int lineNumber = 1;
-        List<FileRulesModel> rules = csvReader.readAll();
-        for (FileRulesModel rule : rules) {
+        List<FileRulesCSV> rules = csvReader.readAll();
+        for (FileRulesCSV rule : rules) {
             lineNumber++;
             List<ErrorReport> errors = new ArrayList<>();
 
-            rule.setUpdateDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
-            rule.setCreationDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+
             rule.setRuleDuration(StringUtils.defaultIfEmpty(rule.getRuleDuration(), null));
             rule.setRuleMeasurement(StringUtils.defaultIfEmpty(rule.getRuleMeasurement(), null));
 
@@ -638,9 +639,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
             if (!errors.isEmpty()) {
                 errorsMap.put(lineNumber, errors);
+                rulesModel.put(rule.getRuleId(), new FileRulesModel());
+            }else {
+                FileRulesModel fileRulesModel = getFileRulesModelFromCSV(rule);
+                rulesModel.put(rule.getRuleId(), fileRulesModel);
             }
-
-            rulesModel.put(rule.getRuleId(), rule);
         }
 
         if (!errorsMap.isEmpty()) {
@@ -655,6 +658,20 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
 
         return rulesModel;
+    }
+
+    @Nonnull
+    private FileRulesModel getFileRulesModelFromCSV(FileRulesCSV rule) {
+        FileRulesModel fileRulesModel = new FileRulesModel();
+        fileRulesModel.setRuleId(rule.getRuleId());
+        fileRulesModel.setRuleType(RuleType.getEnumFromName(rule.getRuleType()));
+        fileRulesModel.setRuleDuration(rule.getRuleDuration());
+        fileRulesModel.setRuleDescription(rule.getRuleDescription());
+        fileRulesModel.setRuleValue(rule.getRuleValue());
+        fileRulesModel.setRuleMeasurement(RuleMeasurementEnum.getEnumFromType(rule.getRuleMeasurement()));
+        fileRulesModel.setUpdateDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        fileRulesModel.setCreationDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        return fileRulesModel;
     }
 
     private List<FileRulesModel> getUsedRules(List<FileRulesModel> rules) {
@@ -699,38 +716,36 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         final Update updateFileRules = new Update();
         List<Action> actions = new ArrayList<>();
         SetAction setRuleValue;
-        setRuleValue = new SetAction(FileRulesModel.TAG_RULE_VALUE, fileRulesModel.getRuleValue());
+        setRuleValue = new SetAction(FileRulesModel.RULE_VALUE, fileRulesModel.getRuleValue());
         actions.add(setRuleValue);
-        if (fileRulesModel.getRuleDescription() != null) {
-            SetAction setRuleDescription =
-                new SetAction(FileRulesModel.TAG_RULE_DESCRIPTION, fileRulesModel.getRuleDescription());
-            actions.add(setRuleDescription);
-        }
+        SetAction setRuleDescription =
+            new SetAction(FileRulesModel.RULE_DESCRIPTION, fileRulesModel.getRuleDescription());
+        actions.add(setRuleDescription);
         SetAction setUpdateDate =
             new SetAction(UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         actions.add(setUpdateDate);
 
         if (fileRulesModel.getRuleMeasurement() != null) {
             SetAction setRuleMeasurement =
-                new SetAction(FileRulesModel.TAG_RULE_MEASUREMENT, fileRulesModel.getRuleMeasurement());
+                new SetAction(FileRulesModel.RULE_MEASUREMENT, fileRulesModel.getRuleMeasurement().name());
             actions.add(setRuleMeasurement);
         } else {
-            UnsetAction unsetRuleMeasurement = new UnsetAction(FileRulesModel.TAG_RULE_MEASUREMENT);
+            UnsetAction unsetRuleMeasurement = new UnsetAction(FileRulesModel.RULE_MEASUREMENT);
             actions.add(unsetRuleMeasurement);
         }
 
         if (fileRulesModel.getRuleDuration() != null) {
             SetAction setRuleDuration =
-                new SetAction(FileRulesModel.TAG_RULE_DURATION, fileRulesModel.getRuleDuration());
+                new SetAction(FileRulesModel.RULE_DURATION, fileRulesModel.getRuleDuration());
             actions.add(setRuleDuration);
         } else {
-            UnsetAction unsetRuleDuration = new UnsetAction(FileRulesModel.TAG_RULE_DURATION);
+            UnsetAction unsetRuleDuration = new UnsetAction(FileRulesModel.RULE_DURATION);
             actions.add(unsetRuleDuration);
         }
 
-        SetAction setRuleType = new SetAction(FileRulesModel.TAG_RULE_TYPE, fileRulesModel.getRuleType());
+        SetAction setRuleType = new SetAction(FileRulesModel.RULE_TYPE, fileRulesModel.getRuleType().name());
         actions.add(setRuleType);
-        updateFileRules.setQuery(eq(FileRulesModel.TAG_RULE_ID, fileRulesModel.getRuleId()));
+        updateFileRules.setQuery(eq(FileRulesModel.RULE_ID, fileRulesModel.getRuleId()));
         updateFileRules.addActions(actions.toArray(Action[]::new));
         updateParser.parse(updateFileRules.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
@@ -740,7 +755,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private void deleteFileRules(FileRulesModel fileRulesModel) {
         final Delete delete = new Delete();
         try {
-            delete.setQuery(eq(FileRulesModel.TAG_RULE_ID, fileRulesModel.getRuleId()));
+            delete.setQuery(eq(FileRulesModel.RULE_ID, fileRulesModel.getRuleId()));
             DbRequestResult result = mongoAccess.deleteCollectionForTesting(RULES, delete);
             result.close();
         } catch (InvalidCreateOperationException | DatabaseException e) {
@@ -762,15 +777,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     }
 
-    private List<ErrorReport> checkRuleDuration(FileRulesModel fileRulesModel, int line) {
+    private List<ErrorReport> checkRuleDuration(FileRulesCSV fileRulesCSV, int line) {
         List<ErrorReport> errors = new ArrayList<>();
-        if (fileRulesModel.getRuleDuration() != null &&
-            !UNLIMITED_RULE_DURATION.equalsIgnoreCase(fileRulesModel.getRuleDuration())) {
-            final int duration = parseWithDefault(fileRulesModel.getRuleDuration());
+        if (fileRulesCSV.getRuleDuration() != null &&
+            !UNLIMITED_RULE_DURATION.equalsIgnoreCase(fileRulesCSV.getRuleDuration())) {
+            final int duration = parseWithDefault(fileRulesCSV.getRuleDuration());
             if (duration < 0) {
                 errors.add(
                     new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULEDURATION, line,
-                        fileRulesModel));
+                        fileRulesCSV));
             }
         }
 
@@ -785,17 +800,17 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
     }
 
-    private List<ErrorReport> checkParametersNotEmpty(FileRulesModel fileRulesModel, int line) {
+    private List<ErrorReport> checkParametersNotEmpty(FileRulesCSV fileRulesModel, int line) {
         List<ErrorReport> errors = new ArrayList<>();
         List<String> missingParam = new ArrayList<>();
         if (StringUtils.isEmpty(fileRulesModel.getRuleId())) {
-            missingParam.add(FileRulesModel.TAG_RULE_ID);
+            missingParam.add(FileRulesCSV.TAG_RULE_ID);
         }
         if (StringUtils.isEmpty(fileRulesModel.getRuleType())) {
-            missingParam.add(FileRulesModel.TAG_RULE_TYPE);
+            missingParam.add(FileRulesCSV.TAG_RULE_TYPE);
         }
         if (StringUtils.isEmpty(fileRulesModel.getRuleValue())) {
-            missingParam.add(FileRulesModel.TAG_RULE_VALUE);
+            missingParam.add(FileRulesCSV.TAG_RULE_VALUE);
         }
 
         boolean isHoldRule = RuleType.HoldRule.isNameEquals(fileRulesModel.getRuleType());
@@ -807,17 +822,17 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             // But if duration is present, both duration value & unit must be provided
 
             if (hasRuleMeasurement && !hasRuleDuration) {
-                missingParam.add(FileRulesModel.TAG_RULE_DURATION);
+                missingParam.add(FileRulesCSV.TAG_RULE_DURATION);
             }
             if (hasRuleDuration && !hasRuleMeasurement) {
-                missingParam.add(FileRulesModel.TAG_RULE_MEASUREMENT);
+                missingParam.add(FileRulesCSV.TAG_RULE_MEASUREMENT);
             }
         } else {
             if (!hasRuleDuration) {
-                missingParam.add(FileRulesModel.TAG_RULE_DURATION);
+                missingParam.add(FileRulesCSV.TAG_RULE_DURATION);
             }
             if (!hasRuleMeasurement) {
-                missingParam.add(FileRulesModel.TAG_RULE_MEASUREMENT);
+                missingParam.add(FileRulesCSV.TAG_RULE_MEASUREMENT);
             }
         }
 
@@ -829,39 +844,39 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         return errors;
     }
 
-    private List<ErrorReport> checkAssociationRuleDurationRuleMeasurementLimit(int line, FileRulesModel fileRuleModel) {
+    private List<ErrorReport> checkAssociationRuleDurationRuleMeasurementLimit(int line, FileRulesCSV fileRulesCSV) {
         List<ErrorReport> errors = new ArrayList<>();
         try {
-            if (!fileRuleModel.getRuleDuration().equalsIgnoreCase(UNLIMITED_RULE_DURATION) &&
-                (fileRuleModel.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
-                    Integer.parseInt(fileRuleModel.getRuleDuration()) > YEAR_LIMIT ||
-                    fileRuleModel.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.MONTH.getType()) &&
-                        Integer.parseInt(fileRuleModel.getRuleDuration()) > MONTH_LIMIT ||
-                    fileRuleModel.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.DAY.getType()) &&
-                        Integer.parseInt(fileRuleModel.getRuleDuration()) > DAY_LIMIT)) {
+            if (!fileRulesCSV.getRuleDuration().equalsIgnoreCase(UNLIMITED_RULE_DURATION) &&
+                (fileRulesCSV.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
+                    Integer.parseInt(fileRulesCSV.getRuleDuration()) > YEAR_LIMIT ||
+                    fileRulesCSV.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.MONTH.getType()) &&
+                        Integer.parseInt(fileRulesCSV.getRuleDuration()) > MONTH_LIMIT ||
+                    fileRulesCSV.getRuleMeasurement().equalsIgnoreCase(RuleMeasurementEnum.DAY.getType()) &&
+                        Integer.parseInt(fileRulesCSV.getRuleDuration()) > DAY_LIMIT)) {
                 errors
-                    .add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_TOTALDURATION, line, fileRuleModel));
+                    .add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_TOTALDURATION, line, fileRulesCSV));
             }
         } catch (NumberFormatException e) {
-            errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_TOTALDURATION, line, fileRuleModel));
+            errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_TOTALDURATION, line, fileRulesCSV));
         }
 
         return errors;
     }
 
-    private List<ErrorReport> checkRuleDurationWithConfiguration(int line, FileRulesModel fileRuleModel) {
+    private List<ErrorReport> checkRuleDurationWithConfiguration(int line, FileRulesCSV fileRulesCSV) {
         List<ErrorReport> errors = new ArrayList<>();
-        String ruleType = fileRuleModel.getRuleType();
+        String ruleType = fileRulesCSV.getRuleType();
 
         String[] min = vitamRuleService.getMinimumRuleDuration(getTenantParameter(), ruleType).split(" ");
         int durationConf = 0;
         if (min.length == 2) {
             durationConf = calculDuration(min[0], min[1]);
         }
-        int durationRule = calculDuration(fileRuleModel.getRuleDuration(), fileRuleModel.getRuleMeasurement());
+        int durationRule = calculDuration(fileRulesCSV.getRuleDuration(), fileRulesCSV.getRuleMeasurement());
 
         if (durationRule < durationConf) {
-            errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_RULEDURATION_EXCEED, line, fileRuleModel));
+            errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_RULEDURATION_EXCEED, line, fileRulesCSV));
         }
 
         return errors;
@@ -965,30 +980,30 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                         break;
                     case STP_IMPORT_RULES_RULEID_DUPLICATION:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                            error.getFileRulesModel().getRuleId());
+                            error.getFileRulesCSV().getRuleId());
                         break;
                     case STP_IMPORT_RULES_WRONG_RULEDURATION:
                         errorNode.put(ADDITIONAL_INFORMATION,
-                            error.getFileRulesModel().getRuleDuration());
+                            error.getFileRulesCSV().getRuleDuration());
                         break;
                     case STP_IMPORT_RULES_WRONG_RULEMEASUREMENT:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                            error.getFileRulesModel().getRuleMeasurement());
+                            error.getFileRulesCSV().getRuleMeasurement());
                         break;
                     case STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                            error.getFileRulesModel().getRuleType());
+                            error.getFileRulesCSV().getRuleType());
                         break;
                     case STP_IMPORT_RULES_WRONG_TOTALDURATION:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                            error.getFileRulesModel().getRuleDuration() + " " +
-                                error.getFileRulesModel().getRuleMeasurement());
+                            error.getFileRulesCSV().getRuleDuration() + " " +
+                                error.getFileRulesCSV().getRuleMeasurement());
                         break;
                     case STP_IMPORT_RULES_RULEDURATION_EXCEED:
                         ObjectNode info = JsonHandler.createObjectNode();
-                        info.put("RuleType", error.getFileRulesModel().getRuleType());
+                        info.put("RuleType", error.getFileRulesCSV().getRuleType());
                         info.put("RuleDurationMin", vitamRuleService.getMinimumRuleDuration(getTenantParameter(),
-                            error.getFileRulesModel().getRuleType()));
+                            error.getFileRulesCSV().getRuleType()));
                         errorNode.set(ReportConstants.ADDITIONAL_INFORMATION, info);
                         break;
                     case STP_IMPORT_RULES_NOT_CSV_FORMAT:

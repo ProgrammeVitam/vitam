@@ -1,0 +1,3 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+APP-00001,aPPRAISALrUle,RuleValue1,Rule description 1,1,YEAR
+HOL-00001,holdRule,RuleValue1,Rule description 1,1,YEAR

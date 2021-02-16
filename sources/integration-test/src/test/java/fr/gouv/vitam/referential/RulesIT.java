@@ -129,8 +129,6 @@ public class RulesIT extends VitamRuleRunner {
     private static final String RULES_SIMPLE_RULES_SET_2_CSV = "rules/simple_rules_set_2.csv";
     private static final TypeReference<List<String>> STRING_LIST_TYPE_REFERENCE = new TypeReference<>() {
     };
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000; // equivalent to 16 minute
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -735,11 +733,11 @@ public class RulesIT extends VitamRuleRunner {
             "APP-00001", "APP-00002", "APP-00003", "APP-00004", "APP-00005", "APP-00006",
             "HOL-00001", "HOL-00002", "HOL-00003", "HOL-00004", "HOL-00005"
         );
-        assertThat(fileRulesModelMap.get("APP-00001").getRuleType()).isEqualTo("AppraisalRule");
+        assertThat(fileRulesModelMap.get("APP-00001").getRuleType().name()).isEqualTo("AppraisalRule");
         assertThat(fileRulesModelMap.get("APP-00001").getRuleValue()).isEqualTo("RuleValue1");
         assertThat(fileRulesModelMap.get("APP-00001").getRuleDescription()).isEqualTo("Rule description 1");
         assertThat(fileRulesModelMap.get("APP-00001").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("APP-00001").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("APP-00001").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         assertThat(fileRulesModelMap.get("APP-00002").getRuleDescription()).isEqualTo("Rule description 2");
 
@@ -748,21 +746,21 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesModelMap.get("APP-00004").getRuleValue()).isEqualTo("RuleValue4");
 
         assertThat(fileRulesModelMap.get("APP-00005").getRuleDuration()).isEqualTo("0");
-        assertThat(fileRulesModelMap.get("APP-00005").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("APP-00005").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         assertThat(fileRulesModelMap.get("APP-00006")).isNotNull();
 
         assertThat(fileRulesModelMap.get("APP-00007")).isNull();
 
-        assertThat(fileRulesModelMap.get("HOL-00001").getRuleType()).isEqualTo("HoldRule");
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleType().name()).isEqualTo("HoldRule");
         assertThat(fileRulesModelMap.get("HOL-00001").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("HOL-00001").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         assertThat(fileRulesModelMap.get("HOL-00002").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("HOL-00002").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("HOL-00002").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         assertThat(fileRulesModelMap.get("HOL-00003").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("HOL-00003").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("HOL-00003").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         assertThat(fileRulesModelMap.get("HOL-00004").getRuleDuration()).isNull();
         assertThat(fileRulesModelMap.get("HOL-00004").getRuleMeasurement()).isNull();
@@ -780,11 +778,11 @@ public class RulesIT extends VitamRuleRunner {
             "HOL-00001", "HOL-00002", "HOL-00003", "HOL-00004", "HOL-00005"
         );
         // Unchanged APP-000001
-        assertThat(fileRulesModelMap.get("APP-00001").getRuleType()).isEqualTo("AppraisalRule");
+        assertThat(fileRulesModelMap.get("APP-00001").getRuleType().name()).isEqualTo("AppraisalRule");
         assertThat(fileRulesModelMap.get("APP-00001").getRuleValue()).isEqualTo("RuleValue1");
         assertThat(fileRulesModelMap.get("APP-00001").getRuleDescription()).isEqualTo("Rule description 1");
         assertThat(fileRulesModelMap.get("APP-00001").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("APP-00001").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("APP-00001").getRuleMeasurement().name()).isEqualTo("YEAR");
         // Description update
         assertThat(fileRulesModelMap.get("APP-00002").getRuleDescription()).isEqualTo("Rule description 2 UPDATED");
         assertThat(fileRulesModelMap.get("APP-00003").getRuleDescription()).isEqualTo("Rule description 3 UPDATED");
@@ -792,22 +790,22 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesModelMap.get("APP-00004").getRuleValue()).isEqualTo("RuleValue4 UPDATED");
         // Rule duration update
         assertThat(fileRulesModelMap.get("APP-00005").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("APP-00005").getRuleMeasurement()).isEqualTo("MONTH");
+        assertThat(fileRulesModelMap.get("APP-00005").getRuleMeasurement().name()).isEqualTo("MONTH");
         // Rule delete
         assertThat(fileRulesModelMap.get("APP-00006")).isNull();
         // Rule insert
-        assertThat(fileRulesModelMap.get("APP-00007").getRuleType()).isEqualTo("AppraisalRule");
+        assertThat(fileRulesModelMap.get("APP-00007").getRuleType().name()).isEqualTo("AppraisalRule");
         assertThat(fileRulesModelMap.get("APP-00007").getRuleValue()).isEqualTo("RuleValue7");
         assertThat(fileRulesModelMap.get("APP-00007").getRuleDescription()).isEqualTo("Rule description 7 INSERTED");
         assertThat(fileRulesModelMap.get("APP-00007").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("APP-00007").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("APP-00007").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         // Hold Rule duration changes
         assertThat(fileRulesModelMap.get("HOL-00001").getRuleDuration()).isEqualTo("1");
-        assertThat(fileRulesModelMap.get("HOL-00001").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("HOL-00001").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         assertThat(fileRulesModelMap.get("HOL-00002").getRuleDuration()).isEqualTo("2");
-        assertThat(fileRulesModelMap.get("HOL-00002").getRuleMeasurement()).isEqualTo("YEAR");
+        assertThat(fileRulesModelMap.get("HOL-00002").getRuleMeasurement().name()).isEqualTo("YEAR");
 
         assertThat(fileRulesModelMap.get("HOL-00003").getRuleDuration()).isNull();
         assertThat(fileRulesModelMap.get("HOL-00003").getRuleMeasurement()).isNull();
@@ -816,7 +814,7 @@ public class RulesIT extends VitamRuleRunner {
         assertThat(fileRulesModelMap.get("HOL-00004").getRuleMeasurement()).isNull();
 
         assertThat(fileRulesModelMap.get("HOL-00005").getRuleDuration()).isEqualTo("5");
-        assertThat(fileRulesModelMap.get("HOL-00005").getRuleMeasurement()).isEqualTo("MONTH");
+        assertThat(fileRulesModelMap.get("HOL-00005").getRuleMeasurement().name()).isEqualTo("MONTH");
     }
 
     private String importCsvFile(String csvFileResource)
@@ -836,9 +834,7 @@ public class RulesIT extends VitamRuleRunner {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             InputStream inputStream = client.checkRulesFile(PropertiesUtils.getResourceAsStream(csvFileResource))
                 .readEntity(InputStream.class);
-            FileRulesManagementReport report =
-                JsonHandler.getFromInputStream(inputStream, FileRulesManagementReport.class);
-            return report;
+            return JsonHandler.getFromInputStream(inputStream, FileRulesManagementReport.class);
         }
     }
 
@@ -1035,7 +1031,7 @@ public class RulesIT extends VitamRuleRunner {
         Optional<String> operationId = findUnitRuleUpdateWorkflowOperationId();
         assertThat(operationId).isPresent();
 
-        waitOperation(NB_TRY, SLEEP_TIME, operationId.get());
+        waitOperation(operationId.get());
 
         LogbookOperation logbookOperation = selectLogbookOperation(operationId.get());
         checkStatusCode(logbookOperation, StatusCode.OK);

@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -56,6 +57,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.model.administration.RuleMeasurementEnum.YEAR;
+import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
+import static fr.gouv.vitam.common.model.administration.RuleType.HoldRule;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -97,12 +101,12 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
             .when(adminManagementClient).getRuleByID(anyString());
 
         List<FileRulesModel> knownRules = Arrays.asList(
-            new FileRulesModel("APP-00001", "AppraisalRule", "Val", "Desc", "1", "YEAR"),
-            new FileRulesModel("APP-00002", "AppraisalRule", "Val", "Desc", "10", "YEAR"),
-            new FileRulesModel("HOL-00001", "HoldRule", "Val", "Desc", "1", "YEAR"),
-            new FileRulesModel("HOL-00002", "HoldRule", "Val", "Desc", null, null),
-            new FileRulesModel("HOL-00003", "HoldRule", "Val", "Desc", "10", "YEAR"),
-            new FileRulesModel("HOL-00004", "HoldRule", "Val", "Desc", "unlimited", "YEAR")
+            new FileRulesModel("APP-00001", AppraisalRule, "Val", "Desc", "1", YEAR),
+            new FileRulesModel("APP-00002", AppraisalRule, "Val", "Desc", "10", YEAR),
+            new FileRulesModel("HOL-00001", HoldRule, "Val", "Desc", "1", YEAR),
+            new FileRulesModel("HOL-00002", HoldRule, "Val", "Desc", null, null),
+            new FileRulesModel("HOL-00003", HoldRule, "Val", "Desc", "10", YEAR),
+            new FileRulesModel("HOL-00004", HoldRule, "Val", "Desc", "unlimited", YEAR)
         );
 
         for (FileRulesModel rule : knownRules) {

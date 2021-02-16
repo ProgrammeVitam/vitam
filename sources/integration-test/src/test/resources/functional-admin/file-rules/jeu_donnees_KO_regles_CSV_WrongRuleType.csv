@@ -1,0 +1,4 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+APP-00001,aPPraisalRule,Dossier individuel d’agent civil,"Durée de conservation des dossiers individuels d’agents.
+L’échéance est calculée à partir de la date de naissance de l’agent",80,YEAR
+HOL-00004,holdRule,Règle de gel illimitée,"Gel pour une durée définie illimitée",unlimited,Year
