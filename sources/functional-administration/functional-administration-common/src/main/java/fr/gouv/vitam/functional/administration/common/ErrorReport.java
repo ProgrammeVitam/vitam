@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import fr.gouv.vitam.common.model.administration.FileRulesModel;
-
 /**
  * error report for generate error Report when some think is wrong in import referential This class contain code in
  * vitam-error-messages.properties, the line of the error, Object in error to import (fileRulesModel) and some
@@ -46,7 +44,7 @@ public class ErrorReport {
     /**
      * File Rules Model in error in the .csv to import
      */
-    private FileRulesModel fileRulesModel;
+    private FileRulesCSV fileRulesCSV;
 
     /**
      * Missing informations in .csv
@@ -58,11 +56,11 @@ public class ErrorReport {
         super();
     }
 
-    public ErrorReport(FileRulesErrorCode code, int line, FileRulesModel fileRulesModel) {
+    public ErrorReport(FileRulesErrorCode code, int line, FileRulesCSV fileRulesCSV) {
         super();
         this.code = code;
         this.line = line;
-        this.fileRulesModel = fileRulesModel;
+        this.fileRulesCSV = fileRulesCSV;
     }
 
 
@@ -98,11 +96,11 @@ public class ErrorReport {
         this.line = line;
     }
 
-    public FileRulesModel getFileRulesModel() {
-        return fileRulesModel;
+    public FileRulesCSV getFileRulesCSV() {
+        return fileRulesCSV;
     }
 
-    public void setFileRulesModel(FileRulesModel fileRulesModel) {
-        this.fileRulesModel = fileRulesModel;
+    public void setFileRulesCSV(FileRulesCSV fileRulesCSV) {
+        this.fileRulesCSV = fileRulesCSV;
     }
 }
