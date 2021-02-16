@@ -34,5 +34,9 @@ fi
 
 echo "Deploying VITAM for environment ${VITAM_ENVIRONMENT}..."
 pushd /code/deployment
+cp /code/deployment/environments/group_vars/all/tenants_vars.yml /code/deployment/environments/group_vars/all/tenants_vars.yml.backup
+sed -i 's/number_of_replicas\:.*/number_of_replicas\: 0/' /code/deployment/environments/group_vars/all/tenants_vars.yml
 ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file vault_pass.txt -v -e confirmation=yes
+rm -f /code/deployment/environments/group_vars/all/tenants_vars.yml
+mv /code/deployment/environments/group_vars/all/tenants_vars.yml.backup /code/deployment/environments/group_vars/all/tenants_vars.yml
 popd

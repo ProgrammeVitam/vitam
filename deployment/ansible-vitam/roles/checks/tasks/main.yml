@@ -2,6 +2,8 @@
 
 - import_tasks: check_removed_tenants.yml
 
+- import_tasks: check_elasticsearch_data_replicas.yml
+
 - import_tasks: check_ip.yml
 
 - import_tasks: check_java.yml
