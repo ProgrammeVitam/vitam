@@ -98,7 +98,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -309,10 +308,9 @@ public class VitamTestHelper {
         assertThat(processWorkflow.getState()).isEqualTo(processState);
     }
 
-
-    public static void waitOperation(long nbTry, long timeToSleep, String operationId) {
+    public static void waitOperation(long nbTry, long timeToSleep, String operationId, ProcessState processState) {
         ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        for (int nbtimes = 0; (nbtimes <= nbTry && !processingClient.isNotRunning(operationId)); nbtimes++) {
+        for (int nbtimes = 0; (nbtimes <= nbTry && !processingClient.isNotRunning(operationId,processState)); nbtimes++) {
             try {
                 TimeUnit.MILLISECONDS.sleep(timeToSleep);
             } catch (InterruptedException e) {
@@ -321,26 +319,18 @@ public class VitamTestHelper {
         }
     }
 
+    public static void waitOperation(long nbTry, long timeToSleep, String operationId) {
+        waitOperation(nbTry, timeToSleep, operationId, null);
+    }
+
+    public static void waitOperation(String operationId, ProcessState processState) {
+        waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, operationId, processState);
+    }
+
     public static void waitOperation(String operationId) {
         waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, operationId);
     }
 
-
-    public static void importContract(String filename, int tenant) {
-        int oldTenant = VitamThreadUtils.getVitamSession().getTenantId();
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File fileAccessContracts = PropertiesUtils.getResourceFile(filename);
-            List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeReference(fileAccessContracts, new TypeReference<>() {
-                });
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenant));
-            VitamThreadUtils.getVitamSession().setTenantId(tenant);
-            client.importAccessContracts(accessContractModelList);
-            VitamThreadUtils.getVitamSession().setTenantId(oldTenant);
-        } catch(FileNotFoundException | InvalidParseOperationException | AdminManagementClientServerException  e) {
-            fail("Error import contract", e);
-        }
-    }
     public static void insertWaitForStepEssentialFiles(String containerName){
         try(final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()){
             InputStream sanityCheckStream = PropertiesUtils.getResourceAsStream(SANITY_CHECK_RESULT_FILE);

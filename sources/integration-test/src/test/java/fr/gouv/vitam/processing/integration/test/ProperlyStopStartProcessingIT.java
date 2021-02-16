@@ -102,6 +102,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -109,6 +110,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProperlyStopStartProcessingIT.class);
 
+    private static final int STEP_INDEX = 4;
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -119,8 +121,6 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
                 ProcessManagementMain.class
             ));
     private static final Integer TENANT_ID = 0;
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000;
     private final int[] elementCountPerStep = {1, 1, 1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
 
     public static final String INGEST_LEVEL_STACK_JSON =
@@ -222,26 +222,6 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         }
     }
 
-    private void wait(String operationId) {
-        wait(operationId, ProcessState.COMPLETED);
-    }
-
-    private void wait(String operationId, ProcessState processState) {
-        int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient()
-            .isNotRunning(operationId, processState)) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            if (nbTry == NB_TRY)
-                break;
-            nbTry++;
-        }
-    }
-
     @Test
     @RunWithCustomExecutor
     public void given_running_operations_when_stop_processing_then_pause_operations_when_start_processing_then_start_paused_operations()
@@ -264,12 +244,12 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         // Wait step STP_UNIT_CHECK_AND_PROCESS
-        ProcessStep step2 = processWorkflow.getSteps().get(4);
-        waitStep(processWorkflow, 2);
+        ProcessStep step = processWorkflow.getSteps().get(STEP_INDEX);
+        waitStep(processWorkflow, STEP_INDEX);
 
-        // Wait until step 2 have Response from workers
-        while (step2.getStepResponses() == null ||
-            step2.getStepResponses().getStatusMeter().get(StatusCode.OK.ordinal()) == 0) {
+        // Wait until step STEP_INDEX have Response from workers
+        while (step.getStepResponses() == null ||
+            step.getStepResponses().getStatusMeter().get(StatusCode.OK.ordinal()) == 0) {
             TimeUnit.MILLISECONDS.sleep(1);
         }
 
@@ -293,7 +273,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.startProcessManagementServer();
         LOGGER.warn("After RE-START");
 
-        wait(operationId);
+        waitOperation(operationId);
 
         processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -325,14 +305,14 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         // Wait until operation become PAUSE
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
         // shutdown processing
         runner.stopProcessManagementServer(false);
         LOGGER.warn("=== After STOP");
 
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(processWorkflow.getSteps().get(2).getStepStatusCode()).isEqualTo(StatusCode.UNKNOWN);
+        assertThat(processWorkflow.getSteps().get(STEP_INDEX).getStepStatusCode()).isEqualTo(StatusCode.UNKNOWN);
 
         // restart processing
         runner.startProcessManagementServer();
@@ -341,7 +321,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.NO_RECOVER);
-        assertThat(processWorkflow.getSteps().get(2).getStepStatusCode()).isEqualTo(StatusCode.UNKNOWN);
+        assertThat(processWorkflow.getSteps().get(STEP_INDEX).getStepStatusCode()).isEqualTo(StatusCode.UNKNOWN);
 
         // Then resume operation
         resp = ProcessingManagementClientFactory.getInstance().getClient()
@@ -353,7 +333,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         // Wait until operation become COMPLETED
-        wait(operationId);
+        waitOperation(operationId);
 
         processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -385,12 +365,12 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         // Wait step STP_UNIT_CHECK_AND_PROCESS
-        ProcessStep step2 = processWorkflow.getSteps().get(2);
-        waitStep(processWorkflow, 2);
+        ProcessStep step = processWorkflow.getSteps().get(STEP_INDEX);
+        waitStep(processWorkflow, STEP_INDEX);
 
-        // Wait until step 2 have Response from workers
-        while (step2.getStepResponses() == null ||
-            step2.getStepResponses().getStatusMeter().get(StatusCode.OK.ordinal()) == 0) {
+        // Wait until step STEP_INDEX have Response from workers
+        while (step.getStepResponses() == null ||
+            step.getStepResponses().getStatusMeter().get(StatusCode.OK.ordinal()) == 0) {
             TimeUnit.MILLISECONDS.sleep(1);
         }
 
@@ -412,14 +392,14 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getTargetState()).isEqualTo(ProcessState.COMPLETED);
         assertThat(processWorkflow.getTargetStatus()).isEqualTo(StatusCode.KO);
         assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.RECOVER_FROM_SERVER_PAUSE);
-        assertThat(step2.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_CANCEL);
+        assertThat(step.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_CANCEL);
 
         // Restart processing
         runner.startProcessManagementServer();
         LOGGER.warn("After RE-START");
 
         // Wait in case where the processWorkflow PAUSED By the processing stop server. So in startup of the server the operation will be automatically resumed
-        wait(operationId);
+        waitOperation(operationId);
 
         processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -436,7 +416,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void simulate_crash_test_on_step2_before_distributor_complete_distribution() throws Exception {
+    public void simulate_crash_test_on_step_index_before_distributor_complete_distribution() throws Exception {
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
 
@@ -457,7 +437,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.startProcessManagementServer();
 
         // Wait until operation become PAUSE
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -466,13 +446,13 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
 
-        ProcessStep processStep = processWorkflow.getSteps().get(2);
+        ProcessStep processStep = processWorkflow.getSteps().get(STEP_INDEX);
 
         assertThat(processStep.getElementToProcess().get()).isEqualTo(processStep.getElementProcessed().get());
         assertThat(processStep.getStepStatusCode()).isEqualTo(StatusCode.OK);
         assertThat(processStep.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_COMPLETE);
 
-        processStep = processWorkflow.getSteps().get(3);
+        processStep = processWorkflow.getSteps().get(STEP_INDEX + 1);
         assertThat(processStep.getStepStatusCode()).isEqualTo(StatusCode.UNKNOWN);
 
         // resume
@@ -483,7 +463,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId);
+        waitOperation(operationId);
 
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
@@ -496,7 +476,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void simulate_crash_test_on_step2_when_step_action_pause_before_distributor_complete_distribution()
+    public void simulate_crash_test_on_step_index_when_step_action_pause_before_distributor_complete_distribution()
         throws Exception {
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
@@ -518,7 +498,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.startProcessManagementServer();
 
         // Wait until operation become PAUSE
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -527,14 +507,14 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
 
-        // as step 2 is action pause StateMachine initialize the index step to this step 2
-        ProcessStep processStep = processWorkflow.getSteps().get(2);
+        // as step STEP_INDEX is action pause StateMachine initialize the index step to this step STEP_INDEX
+        ProcessStep processStep = processWorkflow.getSteps().get(STEP_INDEX);
 
         assertThat(processStep.getElementToProcess().get()).isEqualTo(processStep.getElementProcessed().get());
         assertThat(processStep.getStepStatusCode()).isEqualTo(StatusCode.OK);
         assertThat(processStep.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_COMPLETE);
 
-        processStep = processWorkflow.getSteps().get(3);
+        processStep = processWorkflow.getSteps().get(STEP_INDEX + 1);
         assertThat(processStep.getStepStatusCode()).isEqualTo(StatusCode.UNKNOWN);
 
         // resume
@@ -545,7 +525,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId);
+        waitOperation(operationId);
 
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
@@ -558,7 +538,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void simulate_crash_test_on_step2_when_step_action_cancel_before_distributor_complete_distribution()
+    public void simulate_crash_test_on_step_index_when_step_action_cancel_before_distributor_complete_distribution()
         throws Exception {
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
@@ -579,7 +559,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         LOGGER.error("=== After START");
         runner.startProcessManagementServer();
 
-        wait(operationId);
+        waitOperation(operationId);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -588,8 +568,8 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
 
-        // as step 2 is action complete and status ok when processing start, it execute the next step
-        ProcessStep processStep = processWorkflow.getSteps().get(2);
+        // as step STEP_INDEX is action complete and status ok when processing start, it execute the next step
+        ProcessStep processStep = processWorkflow.getSteps().get(STEP_INDEX);
 
         assertThat(processStep.getElementProcessed().get()).isEqualTo(3);
         assertThat(processStep.getStepStatusCode()).isEqualTo(StatusCode.STARTED);
@@ -598,7 +578,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void simulate_crash_test_on_step2_when_step_action_complete() throws Exception {
+    public void simulate_crash_test_on_step_index_when_step_action_complete() throws Exception {
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
 
@@ -619,7 +599,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.startProcessManagementServer();
 
         // Wait until operation become PAUSE
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -628,8 +608,8 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
 
-        // as step 2 is action complete and status ok when processing start, it execute the next step
-        ProcessStep processStep = processWorkflow.getSteps().get(3);
+        // as step STEP_INDEX is action complete and status ok when processing start, it execute the next step
+        ProcessStep processStep = processWorkflow.getSteps().get(STEP_INDEX + 1);
 
         assertThat(processStep.getElementToProcess().get()).isEqualTo(processStep.getElementProcessed().get());
         assertThat(processStep.getStepStatusCode()).isEqualTo(StatusCode.OK);
@@ -643,7 +623,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId);
+        waitOperation(operationId);
 
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
@@ -678,7 +658,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.startProcessManagementServer();
 
         // Wait until operation become PAUSE
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
@@ -696,7 +676,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId);
+        waitOperation(operationId);
 
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
@@ -740,7 +720,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.startProcessManagementServer();
 
         // Wait until operation become PAUSE
-        wait(operationId, ProcessState.PAUSE);
+        waitOperation(operationId, ProcessState.PAUSE);
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, 1);
@@ -758,7 +738,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        wait(operationId);
+        waitOperation(operationId);
 
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
