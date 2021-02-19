@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>fake-storage-drivers</artifactId>
-		<version>4.1.0</version>
+		<version>4.2.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>fake-driver</artifactId>
 	<name>Fake Driver for Junit</name>
