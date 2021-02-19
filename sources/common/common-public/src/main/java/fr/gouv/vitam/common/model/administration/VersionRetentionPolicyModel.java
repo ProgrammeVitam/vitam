@@ -26,45 +26,49 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.administration.VersionUsageModel.IntermediaryVersionEnum;
 
-import static fr.gouv.vitam.common.model.administration.VersionUsageModel.IntermediaryVersionEnum.LAST;
+import java.util.Set;
 
-/**
- * Data Transfer Object Model of management contract (DTO).
- */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ManagementContractModel extends AbstractContractModel {
+public class VersionRetentionPolicyModel {
 
-    /**
-     * number of objects containing all archives for a specific originating agency
-     */
-    @JsonProperty("Storage")
-    private StorageDetailModel storage;
+    public static final String TAG_VERSION_RETENTION_POLICY_INITIAL_VERSION = "VersionRetentionPolicy.InitialVersion";
+    public static final String TAG_VERSION_RETENTION_POLICY_INTERMEDIARY_VERSION = "VersionRetentionPolicy.IntermediaryVersion";
+    public static final String TAG_VERSION_RETENTION_POLICY_USAGES= "VersionRetentionPolicy.Usages";
 
-    @JsonProperty("VersionRetentionPolicy")
-    private VersionRetentionPolicyModel versionRetentionPolicy;
+    @JsonProperty("InitialVersion")
+    private boolean initialVersion;
 
-    public ManagementContractModel() {
-        super();
+    @JsonProperty("IntermediaryVersion")
+    private IntermediaryVersionEnum intermediaryVersion;
+
+    @JsonProperty("Usages")
+    Set<VersionUsageModel> usages;
+
+    public Set<VersionUsageModel> getUsages() {
+        return usages;
     }
 
-    public StorageDetailModel getStorage() {
-        return storage;
-    }
-
-    public ManagementContractModel setStorage(StorageDetailModel storage) {
-        this.storage = storage;
+    public VersionRetentionPolicyModel setUsages(Set<VersionUsageModel> usages) {
+        this.usages = usages;
         return this;
     }
 
-    public VersionRetentionPolicyModel getVersionRetentionPolicy() {
-        return versionRetentionPolicy;
+    public boolean getInitialVersion() {
+        return initialVersion;
     }
 
-    public ManagementContractModel setVersionRetentionPolicy(VersionRetentionPolicyModel versionRetentionPolicy) {
-        this.versionRetentionPolicy = versionRetentionPolicy;
-        return this;
+    public void setInitialVersion(boolean initialVersion) {
+        this.initialVersion = initialVersion;
+    }
+
+    public IntermediaryVersionEnum getIntermediaryVersion() {
+        return intermediaryVersion;
+    }
+
+    public void setIntermediaryVersion(
+        IntermediaryVersionEnum intermediaryVersion) {
+        this.intermediaryVersion = intermediaryVersion;
     }
 }

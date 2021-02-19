@@ -29,10 +29,7 @@ package fr.gouv.vitam.functional.administration.common;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import org.bson.Document;
-
-import java.util.Set;
 
 /**
  * Defines an Management contract model
@@ -98,6 +95,13 @@ public class ManagementContract extends VitamDocument<ManagementContract> {
      * the Object Strategy
      */
     public static final String OBJECT_STRATEGY = "Storage.ObjectStrategy";
+
+
+    public static final String VERSION_RETENTION_POLICY = "VersionRetentionPolicy";
+    public static final String INITIAL_VERSION = "InitialVersion";
+    public static final String INTERMEDIARY_VERSION = "IntermediaryVersion";
+    public static final String USAGES = "Usages";
+    public static final String DEFAULT_USAGE = "Default";
 
     /**
      * Empty Constructor

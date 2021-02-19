@@ -1,0 +1,113 @@
+[
+	{
+		"Identifier": "IdentifierMC1",
+		"Name": "mcContract1",
+		"Description": "Description of the contract 1",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"DeactivationDate": null,
+		"Storage": {
+			"UnitStrategy": "fake-md",
+			"ObjectGroupStrategy": "fake-md",
+			"ObjectStrategy": "fake-object"
+		},
+		"VersionRetentionPolicy": {
+			"InitialVersion": true,
+			"IntermediaryVersion": "LAST",
+			"Usages": [
+				{
+					"UsageName": "BinaryMaster",
+					"InitialVersion": false,
+					"IntermediaryVersion": "LAST"
+				},
+				{
+					"UsageName": "Dissemination",
+					"InitialVersion": false,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "Thumbnail",
+					"InitialVersion": true,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "TextContent",
+					"InitialVersion": false,
+					"IntermediaryVersion": "LAST"
+				}
+			]
+		}
+	},
+	{
+		"Identifier": "IdentifierMC2",
+		"Name": "mcContract2",
+		"Description": "Description of the contract 2",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"VersionRetentionPolicy": {
+			"InitialVersion": true,
+			"IntermediaryVersion": "ALL",
+			"Usages": [
+				{
+					"UsageName": "BinaryMaster",
+					"InitialVersion": true,
+					"IntermediaryVersion": "NONE"
+				},
+				{
+					"UsageName": "Dissemination",
+					"InitialVersion": false,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "Thumbnail",
+					"InitialVersion": true,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "TextContent",
+					"InitialVersion": false,
+					"IntermediaryVersion": "LAST"
+				}
+			]
+		}
+	},
+	{
+		"Identifier": "IdentifierMC3",
+		"Name": "mcContract3",
+		"Description": "Description of the contract 3",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"VersionRetentionPolicy": {
+			"InitialVersion": true,
+			"IntermediaryVersion": "ALL",
+			"Usages": [
+				{
+					"UsageName": "testUsage",
+					"InitialVersion": true,
+					"IntermediaryVersion": "NONE"
+				},
+				{
+					"UsageName": "Dissemination",
+					"InitialVersion": false,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "Thumbnail",
+					"InitialVersion": true,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "TextContent",
+					"InitialVersion": false,
+					"IntermediaryVersion": "LAST"
+				}
+			]
+		}
+	}
+]

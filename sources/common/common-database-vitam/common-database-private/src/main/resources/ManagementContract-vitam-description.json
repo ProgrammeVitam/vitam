@@ -88,5 +88,47 @@
     "type": "signed_long",
     "cardinality": "one",
     "indexed": true
+  },
+  {
+    "path": "VersionRetentionPolicy",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "VersionRetentionPolicy.InitialVersion",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "VersionRetentionPolicy.IntermediaryVersion",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "VersionRetentionPolicy.Usages",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "VersionRetentionPolicy.Usages.InitialVersion",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "VersionRetentionPolicy.Usages.IntermediaryVersion",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "VersionRetentionPolicy.Usages.UsageName",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
   }
 ]

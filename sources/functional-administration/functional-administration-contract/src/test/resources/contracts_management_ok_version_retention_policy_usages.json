@@ -1,0 +1,52 @@
+[
+	{
+		"Identifier": "IdentifierMC1",
+		"Name": "mcContract1",
+		"Description": "Description of the contract 1",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"DeactivationDate": null,
+		"Storage": {
+			"UnitStrategy": "fake-md",
+			"ObjectGroupStrategy": "fake-md",
+			"ObjectStrategy": "fake-object"
+		},
+		"VersionRetentionPolicy": {
+			"InitialVersion": true,
+			"IntermediaryVersion": "LAST",
+			"Usages": [
+				{
+					"UsageName": "BinaryMaster",
+					"InitialVersion": true,
+					"IntermediaryVersion": "LAST"
+				},
+				{
+					"UsageName": "Dissemination",
+					"InitialVersion": false,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "Thumbnail",
+					"InitialVersion": true,
+					"IntermediaryVersion": "ALL"
+				},
+				{
+					"UsageName": "TextContent",
+					"InitialVersion": false,
+					"IntermediaryVersion": "LAST"
+				}
+			]
+		}
+	},
+	{
+		"Identifier": "IdentifierMC2",
+		"Name": "mcContract2",
+		"Description": "Description of the contract 2",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798"
+	}
+]
