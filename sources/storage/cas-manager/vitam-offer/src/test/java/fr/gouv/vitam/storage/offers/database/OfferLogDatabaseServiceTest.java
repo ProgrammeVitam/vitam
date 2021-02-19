@@ -199,13 +199,13 @@ public class OfferLogDatabaseServiceTest {
         service.save("containerGotham", "batman", DELETE, 1);
 
         // When
-        Iterable<OfferLog> descendingOfferLogs = service.getAscendingOfferLogsBy("container", 5L, 3);
+        Iterable<OfferLog> ascendingOfferLogs = service.getAscendingOfferLogsBy("container", 5L, 3);
 
         // Then
-        assertThat(descendingOfferLogs).hasSize(3);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(5L, 6L, 7L);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName2", "fileName3", "fileName4");
-        assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
+        assertThat(ascendingOfferLogs).hasSize(3);
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(5L, 6L, 7L);
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName2", "fileName3", "fileName4");
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
     @Test
@@ -218,13 +218,13 @@ public class OfferLogDatabaseServiceTest {
         service.save("containerGotham", "batman", DELETE, 1);
 
         // When
-        Iterable<OfferLog> descendingOfferLogs = service.getAscendingOfferLogsBy("container", null, 3);
+        Iterable<OfferLog> ascendingOfferLogs = service.getAscendingOfferLogsBy("container", null, 3);
 
         // Then
-        assertThat(descendingOfferLogs).hasSize(3);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(4L, 5L, 6L);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName1", "fileName2", "fileName3");
-        assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
+        assertThat(ascendingOfferLogs).hasSize(3);
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(4L, 5L, 6L);
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName).containsExactly("fileName1", "fileName2", "fileName3");
+        assertThat(ascendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
 
     @Test
