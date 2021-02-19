@@ -43,6 +43,31 @@
           }
         }
       },
+      "VersionRetentionPolicy": {
+        "type": "object",
+        "properties": {
+          "InitialVersion": {
+            "type": "boolean"
+          },
+          "IntermediaryVersion": {
+            "type": "keyword"
+          },
+          "Usages": {
+            "type": "object",
+            "properties": {
+              "UsageName": {
+                "type" : "keyword"
+              },
+              "InitialVersion": {
+                "type": "boolean"
+              },
+              "IntermediaryVersion": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
       "_tenant": {
         "type": "long"
       },

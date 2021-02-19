@@ -77,6 +77,7 @@ public class ContractLogbookService {
     public static final String UPDATE_VALUE_NOT_IN_ENUM = ".NOT_IN_ENUM.KO";
     public static final String UPDATE_WRONG_FILEFORMAT = ".FILEFORMAT_NOT_FOUND.KO";
     public static final String STRATEGY_VALIDATION_ERROR = ".STRATEGY_VALIDATION_ERROR.KO";
+    public static final String VERSION_RETENTION_POLICY_VALIDATION_ERROR = ".VERSION_RETENTION_POLICY_ERROR.KO";
 
     private static final String EVDETDATA_IDENTIFIER = "identifier";
     private static final String UPDATED_DIFFS = "updatedDiffs";
@@ -182,6 +183,7 @@ public class ContractLogbookService {
                 case AC_GLOBAL_ERROR:
                 case IC_GLOBAL_ERROR:
                 case MC_GLOBAL_ERROR:
+                case VERSION_RETENTION_POLICY_VALIDATION_ERROR:
                     evDetDataKey = this.contractCheckKey;
                     break;
                 default:

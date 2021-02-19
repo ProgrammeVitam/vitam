@@ -84,6 +84,46 @@
           "type": "string"
         }
       }
+    },
+    "VersionRetentionPolicy": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "InitialVersion": {
+          "type": "boolean"
+        },
+        "IntermediaryVersion": {
+          "type": "string",
+          "enum": [
+            "ALL",
+            "LAST",
+            "NONE"
+          ]
+        },
+        "Usages": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "properties": {
+              "UsageName": {
+                "type": "string"
+              },
+              "InitialVersion": {
+                "type": "boolean"
+              },
+              "IntermediaryVersion": {
+                "type": "string",
+                "enum": [
+                  "ALL",
+                  "LAST",
+                  "NONE"
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   },
   "required": [

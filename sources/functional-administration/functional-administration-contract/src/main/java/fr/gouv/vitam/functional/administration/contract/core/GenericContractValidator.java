@@ -92,6 +92,9 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_STORAGE_STRATEGY_NOT_FOUND = "Storage Strategy (%s) not found for the field %s";
         private static final String ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER = "Storage Strategy (%s) does not contains one and only one 'referent' offer for the field %s";
 
+        private static final String ERR_VERSION_RETENTION_POLICY_INVALID = "The version retention policy's %s parameter in %s usage is invalid in the contract %s.";
+        private static final String ERR_VERSION_RETENTION_POLICY_INVALID_USAGE = "The usage type %s is invalid in the contract %s.";
+
         private String reason;
 
         /**
@@ -253,6 +256,26 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         public static GenericRejectionCause rejectStorageStrategyDoesNotContainsOneReferent(String storageStrategy, String fieldName) {
             return new GenericRejectionCause(String.format(ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER,
                     storageStrategy, fieldName));
+        }
+
+        /**
+         * Reject if versionRentionPolicy parameter is invalid
+         *
+         *
+         * @param initialVersion
+         * @param fieldName
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectInvalidVersionRetentionPolicyParamOfUsage(String fieldName,
+            String UsageName, String contractName) {
+            return new GenericRejectionCause(
+                String.format(ERR_VERSION_RETENTION_POLICY_INVALID, fieldName, UsageName, contractName));
+        }
+
+        public static GenericRejectionCause rejectInvalidVersionRetentionPolicyUsage(String fieldName,
+            String contractName) {
+            return new GenericRejectionCause(
+                String.format(ERR_VERSION_RETENTION_POLICY_INVALID_USAGE, fieldName, contractName));
         }
 
         /**

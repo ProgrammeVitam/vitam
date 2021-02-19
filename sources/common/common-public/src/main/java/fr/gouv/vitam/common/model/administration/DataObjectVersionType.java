@@ -26,45 +26,21 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+public enum DataObjectVersionType {
 
-import static fr.gouv.vitam.common.model.administration.VersionUsageModel.IntermediaryVersionEnum.LAST;
+    BINARY_MASTER("BinaryMaster"),
+    DISSEMINATION("Dissemination"),
+    THUMBNAIL("Thumbnail"),
+    TEXT_CONTENT("TextContent"),
+    PHYSICAL_MASTER("PhysicalMaster");
 
-/**
- * Data Transfer Object Model of management contract (DTO).
- */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ManagementContractModel extends AbstractContractModel {
+    private String name;
 
-    /**
-     * number of objects containing all archives for a specific originating agency
-     */
-    @JsonProperty("Storage")
-    private StorageDetailModel storage;
-
-    @JsonProperty("VersionRetentionPolicy")
-    private VersionRetentionPolicyModel versionRetentionPolicy;
-
-    public ManagementContractModel() {
-        super();
+    DataObjectVersionType(String dataObjectVersion) {
+        this.name = dataObjectVersion;
     }
 
-    public StorageDetailModel getStorage() {
-        return storage;
-    }
-
-    public ManagementContractModel setStorage(StorageDetailModel storage) {
-        this.storage = storage;
-        return this;
-    }
-
-    public VersionRetentionPolicyModel getVersionRetentionPolicy() {
-        return versionRetentionPolicy;
-    }
-
-    public ManagementContractModel setVersionRetentionPolicy(VersionRetentionPolicyModel versionRetentionPolicy) {
-        this.versionRetentionPolicy = versionRetentionPolicy;
-        return this;
+    public String getName() {
+        return name;
     }
 }

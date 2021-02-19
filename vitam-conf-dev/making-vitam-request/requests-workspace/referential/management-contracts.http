@@ -1,0 +1,92 @@
+# Configuration
+@tenant = 0
+
+@contractId = contractWithoutPolicy 20
+
+### Récupérer un contrat de gestion
+GET {{url}}/admin-external/v1/managementcontracts/{{contractId}}
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}} 
+
+{
+}
+
+### import des contrats de gestions
+POST {{url}}/admin-external/v1/managementcontracts/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+	{
+		"Name": "Contract without conservation policy 20",
+		"Description": "contractWithoutPolicy20",
+		"Identifier": "contractWithoutPolicy 20",
+		"Status": "ACTIVE",
+		"CreationDate": "2021-02-04T11:30:33.798",
+		"LastUpdate": "2021-02-04T11:30:33.798",
+		"ActivationDate": "2021-02-04T11:30:33.798",
+		"DeactivationDate": null,
+		"Storage": {
+			"UnitStrategy": "default",
+			"ObjectGroupStrategy": "default",
+			"ObjectStrategy": "default"
+		},
+		"VersionRetentionPolicy": {
+			 "InitialVersion": true,
+             "IntermediaryVersion": "LAST",
+			 "Usages": [
+				 {
+				    "UsageName": "BinaryMaster",
+				   	"InitialVersion": true,
+                    "IntermediaryVersion": "LAST"
+				 },
+				 {
+					"UsageName": "Dissemination",
+				   	"InitialVersion": false,
+                    "IntermediaryVersion": "ALL"
+				 }
+			 ]
+		}
+	}
+]
+
+### MAJ d'un contrat de gestion
+PUT {{url}}/admin-external/v1/managementcontracts/{{contractId}}
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}} 
+
+{
+  "$action": [
+    {
+      "$set": {
+	   "VersionRetentionPolicy.InitialVersion": true,
+	   "VersionRetentionPolicy.IntermediaryVersion": "ALL",
+       "VersionRetentionPolicy.Usages": [
+		        {
+				    "UsageName": "BinaryMaster",
+				   	"InitialVersion": true,
+                    "IntermediaryVersion": "LAST"
+				 },
+				 {
+				    "UsageName": "Dissemination",
+				   	"InitialVersion": false,
+                    "IntermediaryVersion": "NONE"
+				 },
+				 {
+				    "UsageName": "Thumbnail",
+				   	"InitialVersion": true,
+                    "IntermediaryVersion": "ALL"
+				 },
+				 {
+				    "UsageName": "TextContent",
+				   	"InitialVersion": false,
+                    "IntermediaryVersion": "LAST"
+				 }
+	   ]
+      }
+    }
+  ]
+}

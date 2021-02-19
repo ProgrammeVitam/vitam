@@ -1290,14 +1290,14 @@
     ]
   },
   {
-   "Identifier": "_av",
-   "ApiField": "_av",
-   "Description": "Version interne de l’enregistrement décrit.",
-   "Type": "LONG",
-   "Origin": "INTERNAL",
-   "ShortName": "Version",
+    "Identifier": "_av",
+    "ApiField": "_av",
+    "Description": "Version interne de l’enregistrement décrit.",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "Version",
     "Collections": [
-     "Unit",
+      "Unit",
       "ObjectGroup"
     ]
   },
@@ -3172,6 +3172,39 @@
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
     "ShortName": "ObjectStrategy",
+    "Collections": [
+      "ManagementContract"
+    ]
+  },
+  {
+    "Identifier": "InitialVersion",
+    "ApiField": "InitialVersion",
+    "Description": "Mapping : managementcontract-es-mapping.json. Politique de conservation des versions initiales",
+    "Type": "BOOLEAN",
+    "Origin": "INTERNAL",
+    "ShortName": "InitialVersion",
+    "Collections": [
+      "ManagementContract"
+    ]
+  },
+  {
+    "Identifier": "IntermediaryVersion",
+    "ApiField": "IntermediaryVersion",
+    "Description": "Mapping : managementcontract-es-mapping.json. Politique de conservation des versions intermédiaries",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "IntermediaryVersion",
+    "Collections": [
+      "ManagementContract"
+    ]
+  },
+  {
+    "Identifier": "UsageName",
+    "ApiField": "UsageName",
+    "Description": "Mapping : managementcontract-es-mapping.json. Nom d'usage pour la politique de conservation des versions",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "UsageName",
     "Collections": [
       "ManagementContract"
     ]

@@ -26,45 +26,49 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import static fr.gouv.vitam.common.model.administration.VersionUsageModel.IntermediaryVersionEnum.LAST;
+public class VersionUsageModel {
 
-/**
- * Data Transfer Object Model of management contract (DTO).
- */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ManagementContractModel extends AbstractContractModel {
+    @JsonProperty("UsageName")
+    private String usageName;
 
-    /**
-     * number of objects containing all archives for a specific originating agency
-     */
-    @JsonProperty("Storage")
-    private StorageDetailModel storage;
+    @JsonProperty("InitialVersion")
+    private boolean initialVersion;
 
-    @JsonProperty("VersionRetentionPolicy")
-    private VersionRetentionPolicyModel versionRetentionPolicy;
+    @JsonProperty("IntermediaryVersion")
+    private IntermediaryVersionEnum intermediaryVersion;
 
-    public ManagementContractModel() {
-        super();
+    public boolean getInitialVersion() {
+        return initialVersion;
     }
 
-    public StorageDetailModel getStorage() {
-        return storage;
-    }
-
-    public ManagementContractModel setStorage(StorageDetailModel storage) {
-        this.storage = storage;
+    public VersionUsageModel setInitialVersion(boolean initialVersion) {
+        this.initialVersion = initialVersion;
         return this;
     }
 
-    public VersionRetentionPolicyModel getVersionRetentionPolicy() {
-        return versionRetentionPolicy;
+    public IntermediaryVersionEnum getIntermediaryVersion() {
+        return intermediaryVersion;
     }
 
-    public ManagementContractModel setVersionRetentionPolicy(VersionRetentionPolicyModel versionRetentionPolicy) {
-        this.versionRetentionPolicy = versionRetentionPolicy;
+    public VersionUsageModel setIntermediaryVersion(IntermediaryVersionEnum intermediaryVersion) {
+        this.intermediaryVersion = intermediaryVersion;
         return this;
+    }
+
+    public String getUsageName() {
+        return usageName;
+    }
+
+    public VersionUsageModel setUsageName(String usageName) {
+        this.usageName = usageName;
+        return this;
+    }
+
+    public enum IntermediaryVersionEnum {
+        ALL,
+        LAST,
+        NONE
     }
 }
