@@ -187,12 +187,12 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
         OperationContextMonitor
             .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName,
-                Contexts.REVERT_ESSENTIAL_METDATA.getLogbookTypeProcess(),
+                Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
                 OperationContextMonitor.OperationContextFileName);
 
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METDATA.name());
+        processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METADATA.name());
         processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
         waitOperation(containerName);
@@ -252,12 +252,12 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
         OperationContextMonitor
             .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName,
-                Contexts.REVERT_ESSENTIAL_METDATA.getLogbookTypeProcess(),
+                Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
                 OperationContextMonitor.OperationContextFileName);
 
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METDATA.name());
+        processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METADATA.name());
         processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
         waitOperation(containerName);
@@ -313,12 +313,12 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
         OperationContextMonitor
             .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName,
-                Contexts.REVERT_ESSENTIAL_METDATA.getLogbookTypeProcess(),
+                Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
                 OperationContextMonitor.OperationContextFileName);
 
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METDATA.name());
+        processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METADATA.name());
         processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
         waitOperation(containerName);
@@ -369,11 +369,11 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationId,
-            Contexts.REVERT_ESSENTIAL_METDATA.getEventType(),
+            Contexts.REVERT_ESSENTIAL_METADATA.getEventType(),
             operationId,
             LogbookTypeProcess.MASS_UPDATE,
             STARTED,
-            VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METDATA.getEventType(), STARTED), operationId);
+            VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED), operationId);
         logbookClient.create(initParameters);
     }
 }

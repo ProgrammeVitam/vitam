@@ -180,8 +180,9 @@ public class RevertUpdateUnitCheckPluginTest {
             new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
             });
 
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(List.of(
-            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Description\":\"Old_Description\",\"Title\":\"Old_Title\"}},{\"$unset\":[\"DescriptionLevel\"]}]}"));
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
+            .isEqualTo(List.of(
+                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Description\":\"Old_Description\",\"Title\":\"Old_Title\"}},{\"$unset\":[\"DescriptionLevel\"]}]}}"));
     }
 
     @Test
@@ -226,8 +227,8 @@ public class RevertUpdateUnitCheckPluginTest {
             new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
             });
 
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(List.of(
-            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}"));
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString).isEqualTo(List.of(
+            "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
     }
 
     @Test
@@ -280,6 +281,9 @@ public class RevertUpdateUnitCheckPluginTest {
     public void should_not_distribute_when_operation_is_not_last_and_force_is_false() throws Exception {
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
+
+        File jsonlFile = tempFolder.newFile();
+        when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
 
         RevertUpdateOptions options =
             new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.emptyList());
@@ -342,7 +346,85 @@ public class RevertUpdateUnitCheckPluginTest {
             new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
             });
 
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(List.of(
-            "{\"$roots\":[\"UNIT_ID\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}"));
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString).isEqualTo(List.of(
+            "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}}"));
+    }
+
+    @Test
+    public void should_not_distribute_when_no_unit_found() throws Exception {
+        WorkerParameters params = mock(WorkerParameters.class);
+        HandlerIO handlerIO = mock(HandlerIO.class);
+
+        RevertUpdateOptions options =
+            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.singletonList("Title"));
+        File optionsFile = tempFolder.newFile();
+        JsonHandler.writeAsFile(options, optionsFile);
+        when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
+
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
+            createArrayNode()));
+
+        File jsonlFile = tempFolder.newFile();
+        when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
+
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath(ANY_PATH));
+        when(handlerIO.getNewLocalFile(eq(ANY_PATH))).thenReturn(tempFolder.newFile());
+
+        ItemStatus itemStatus = revertUpdateUnitCheckPlugin.execute(params, handlerIO);
+
+        assertEquals(KO, itemStatus.getGlobalStatus());
+
+
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
+            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
+            });
+
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(Collections.emptyList());
+    }
+
+    @Test
+    public void should_not_include_unit_with_no_diff() throws Exception {
+        WorkerParameters params = mock(WorkerParameters.class);
+        HandlerIO handlerIO = mock(HandlerIO.class);
+
+        RevertUpdateOptions options =
+            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.emptyList());
+        File optionsFile = tempFolder.newFile();
+        JsonHandler.writeAsFile(options, optionsFile);
+        when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
+
+
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
+            createArrayNode().add(createObjectNode().put(VitamFieldsHelper.id(), UNIT_ID)
+                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID)))));
+
+        LogbookOperation logbookOperation = new LogbookOperation();
+        LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
+        logbookEventOperation.setEvIdProc(OPERATION_ID);
+        logbookEventOperation.setObId(UNIT_ID);
+        logbookEventOperation.setEvDetData(
+            DIFF_V1);
+        logbookOperation.setEvents(List.of(logbookEventOperation));
+        List<JsonNode> jsonNodes = List.of(JsonHandler.toJsonNode(logbookOperation));
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(eq(List.of(UNIT_ID)))).thenReturn(jsonNodes);
+
+
+        File jsonlFile = tempFolder.newFile();
+        when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
+
+        when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath(ANY_PATH));
+        when(handlerIO.getNewLocalFile(eq(ANY_PATH))).thenReturn(tempFolder.newFile());
+
+        ItemStatus itemStatus = revertUpdateUnitCheckPlugin.execute(params, handlerIO);
+
+        assertEquals(OK, itemStatus.getGlobalStatus());
+
+
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
+            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
+            });
+
+        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString).isEqualTo(List.of(
+            "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
     }
 }
