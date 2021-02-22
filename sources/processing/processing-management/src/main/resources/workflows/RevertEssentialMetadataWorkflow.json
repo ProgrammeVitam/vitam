@@ -1,7 +1,7 @@
 {
-  "id": "REVERT_ESSENTIAL_METDATA",
-  "name": "Revert Essential Metdata Workflow",
-  "identifier": "REVERT_ESSENTIAL_METDATA",
+  "id": "REVERT_ESSENTIAL_METADATA",
+  "name": "Revert Essential Metadata Workflow",
+  "identifier": "REVERT_ESSENTIAL_METADATA",
   "typeProc": "MASS_UPDATE",
   "comment": "Revert an update operation of Archive Units Workflow",
   "lifecycleLog": "DISABLED",

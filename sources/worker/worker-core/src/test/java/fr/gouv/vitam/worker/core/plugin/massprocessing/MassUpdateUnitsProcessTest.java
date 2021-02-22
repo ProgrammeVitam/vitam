@@ -100,7 +100,7 @@ public class MassUpdateUnitsProcessTest {
     private static final String UNIT1_GUID = "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaa1";
     private static final String UNIT2_GUID = "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaa2";
     private static final String UNIT = "MassUpdateUnitsProcess/unitMd.json";
-    private static final String METDATA_UNIT_RESPONSE_JSON = "MassUpdateUnitsProcess/unit.json";
+    private static final String METADATA_UNIT_RESPONSE_JSON = "MassUpdateUnitsProcess/unit.json";
     private static final String LFC_UNIT_RESPONSE_JSON = "MassUpdateUnitsProcess/lfc.json";
 
     @Rule
@@ -166,7 +166,7 @@ public class MassUpdateUnitsProcessTest {
         adminManagementClient = mock(AdminManagementClient.class);
         given(adminManagementClientFactory.getClient()).willReturn(adminManagementClient);
         unit = PropertiesUtils.getResourceAsStream(UNIT);
-        File mdFile = PropertiesUtils.getResourceFile(METDATA_UNIT_RESPONSE_JSON);
+        File mdFile = PropertiesUtils.getResourceFile(METADATA_UNIT_RESPONSE_JSON);
         unitResponse = JsonHandler.getFromFile(mdFile, RequestResponseOK.class);
         File lfcFile = PropertiesUtils.getResourceFile(LFC_UNIT_RESPONSE_JSON);
         lfcResponse = JsonHandler.getFromFile(lfcFile);
