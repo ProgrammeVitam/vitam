@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.revertupdate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -71,13 +72,12 @@ import fr.gouv.vitam.worker.core.utils.PluginHelper;
 import org.apache.commons.text.StringEscapeUtils;
 import org.bson.Document;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +88,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateProcess.ORIGINAL_QUERY_ROOT_KEY;
+import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateProcess.QUERY_INDEX_KEY;
 
 public class RevertUpdateUnitCheckPlugin extends ActionHandler {
 
@@ -134,68 +137,42 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         File revertUpdateUnitsFile = handler.getNewLocalFile(REVERT_UPDATE_UNITS_JSONL_FILE);
         List<String> queries = new ArrayList<>();
-        try {
-            try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-                LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
+        try (JsonLineWriter logbookOperationsWriter = new JsonLineWriter(new FileOutputStream(revertUpdateUnitsFile))) {
+            try {
                 RevertUpdateOptions options =
                     JsonHandler.getFromFile(handler.getInput(0, File.class), RevertUpdateOptions.class);
                 final String operationId = options.getOperationId();
 
-                final SelectParserMultiple parser = new SelectParserMultiple();
-                parser.parse(options.getDslRequest());
-                parser.getRequest()
-                    .addQueries(QueryHelper.in(VitamFieldsHelper.operations(), operationId));
-                parser.getRequest().setProjection(JsonHandler.createObjectNode()
-                    .set(ParserTokens.PROJECTION.FIELDS.exactToken(),
-                        JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1)
-                            .put(VitamFieldsHelper.operations(), 1)));
-                JsonNode unitsIdsResult = metaDataClient.selectUnits(parser.getRequest().getFinalSelect());
-
-                JsonNode results = unitsIdsResult.get(RequestResponseOK.TAG_RESULTS);
+                JsonNode unitsResult = retriveUnits(options, operationId);
+                JsonNode results = unitsResult.get(RequestResponseOK.TAG_RESULTS);
                 if (results.isEmpty()) {
                     return new ItemStatus(PLUGIN_ID).setItemsStatus(PluginHelper
                         .buildItemStatus(PLUGIN_ID, StatusCode.KO, PluginHelper.EventDetails.of("No unit to revert")));
                 }
-                Iterator<List<JsonNode>> bulkUnitIds =
+
+                Iterator<List<JsonNode>> bulkUnits =
                     Iterators.partition(results.iterator(), VitamConfiguration.getBatchSize());
 
-                Map<UpdateMultiQuery, Set<String>> resultMap = new HashMap<>();
-                while (bulkUnitIds.hasNext()) {
-                    List<JsonNode> unitIds = bulkUnitIds.next();
+                while (bulkUnits.hasNext()) {
+                    List<JsonNode> units = bulkUnits.next();
 
-                    if (!options.isForce()) {
-                        boolean canBeDone = unitIds.stream().map(e -> e.get(VitamFieldsHelper.operations()))
-                            .map(e -> StreamSupport.stream(e.spliterator(), false).map(JsonNode::asText)
-                                .collect(Collectors.toList()))
-                            .map(e -> e.indexOf(operationId) == (e.size() - 1))
-                            .reduce(true, Boolean::logicalAnd);
-
-                        if (!canBeDone) {
-                            return new ItemStatus(PLUGIN_ID).setItemsStatus(PluginHelper
-                                .buildItemStatus(PLUGIN_ID, StatusCode.KO, PluginHelper.EventDetails
-                                    .of("Another operation has changed some units, revert cannot be performed without force.")));
-                        }
+                    if (!options.isForce() && !isCanBeDone(operationId, units)) {
+                        return new ItemStatus(PLUGIN_ID).setItemsStatus(PluginHelper
+                            .buildItemStatus(PLUGIN_ID, StatusCode.KO, PluginHelper.EventDetails
+                                .of("Another operation has changed some units, revert cannot be performed without force.")));
                     }
 
-                    List<String> unitsId = unitIds.stream().map(e -> e.get(VitamFieldsHelper.id())).map(
-                        JsonNode::asText).collect(Collectors.toList());
 
-                    List<JsonNode> unitLifeCycleByIds = logbookLifeCyclesClient.getRawUnitLifeCycleByIds(unitsId);
-                    List<LogbookOperation> events =
-                        JsonHandler.getFromJsonNodeList(unitLifeCycleByIds, new TypeReference<>() {
-                        });
-
-                    Map<String, Document> unitsLFC = events.stream()
-                        .map(e -> e.getEvents().stream().filter(t -> t.getEvIdProc().equals(operationId)).findFirst())
-                        .map(Optional::get)
-                        .map(e -> new SimpleEntry<>(e.getObId(),
-                            Document.parse(e.getEvDetData())))
-                        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-
+                    Map<String, Document> unitsLFC = getUnitsLFC(operationId, units);
 
                     for (String unitId : unitsLFC.keySet()) {
-                        List<String> originalDiffLines =
-                            VitamDocument.getOriginalDiffLines(unitsLFC.get(unitId).getString("diff"));
+                        String diff = unitsLFC.get(unitId).getString("diff");
+
+                        if (diff == null) {
+                            continue;
+                        }
+
+                        List<String> originalDiffLines = VitamDocument.getOriginalDiffLines(diff);
                         int version = unitsLFC.get(unitId).getInteger("version", 0);
                         Stream<String> stringStream = originalDiffLines.stream()
                             .filter(e -> AUTORIZED_FIELDS.get(version).stream().anyMatch(e::matches));
@@ -224,17 +201,19 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
                                 .collect(Collectors.toMap(e -> e[0], e -> e[1]));
 
                         UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
-                        updateParserMultiple.getRequest().resetRoots();
+                        UpdateMultiQuery request = updateParserMultiple.getRequest();
+                        request.resetRoots();
 
                         Set<String> keysToUpdate = Sets.intersection(oldValues.keySet(), newValues.keySet());
                         Set<String> keysToAdd =
-                            oldValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains)).collect(Collectors.toSet());
+                            oldValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains))
+                                .collect(Collectors.toSet());
                         Set<String> keysToDelete =
                             newValues.keySet().stream().filter(Predicate.not(keysToUpdate::contains))
                                 .collect(Collectors.toSet());
 
                         if (!keysToAdd.isEmpty() || !keysToUpdate.isEmpty()) {
-                            updateParserMultiple.getRequest()
+                            request
                                 .addActions(new SetAction(Stream.concat(
                                     keysToAdd.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))),
                                     keysToUpdate.stream().map(e -> new SimpleEntry<>(e, oldValues.get(e))))
@@ -242,45 +221,86 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
                         }
 
                         if (!keysToDelete.isEmpty()) {
-                            updateParserMultiple.getRequest()
+                            request
                                 .addActions(new UnsetAction(keysToDelete.toArray(String[]::new)));
                         }
 
-                        if (!updateParserMultiple.getRequest().getActions().isEmpty()) {
-                            resultMap.put(updateParserMultiple.getRequest(),
-                                Sets.union(resultMap.getOrDefault(updateParserMultiple.getRequest(), new HashSet<>()),
-                                    Set.of(unitId)));
+                        if (!request.getActions().isEmpty()) {
+                            request.addQueries(QueryHelper.eq(VitamFieldsHelper.id(), unitId));
+                            ObjectNode bulkQueryElement = JsonHandler.createObjectNode();
+                            bulkQueryElement.put(QUERY_INDEX_KEY, queries.size());
+                            bulkQueryElement.set(ORIGINAL_QUERY_ROOT_KEY, request.getFinalUpdate());
+                            JsonLineModel entry = new JsonLineModel(unitId, null, bulkQueryElement);
+                            queries.add(request.getFinalUpdate().toString());
+                            logbookOperationsWriter.addEntry(entry);
                         }
                     }
                 }
 
-                if (resultMap.values().isEmpty()) {
+                if (queries.isEmpty()) {
                     return new ItemStatus(PLUGIN_ID).setItemsStatus(PluginHelper
                         .buildItemStatus(PLUGIN_ID, StatusCode.KO,
                             PluginHelper.EventDetails.of("No updated field to revert")));
                 }
 
-                try (JsonLineWriter logbookOperationsWriter = new JsonLineWriter(
-                    new FileOutputStream(revertUpdateUnitsFile))) {
-                    for (UpdateMultiQuery query : resultMap.keySet()) {
-                        query.resetRoots().addRoots(resultMap.get(query).toArray(String[]::new));
-                        String queryString = query.getFinalUpdate().toString();
-                        JsonLineModel entry = new JsonLineModel(queryString, null, null);
-                        queries.add(queryString);
-                        logbookOperationsWriter.addEntry(entry);
-                    }
-                }
-
-                handler.transferFileToWorkspace(REVERT_UPDATE_UNITS_JSONL_FILE, revertUpdateUnitsFile, true, false);
             } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | LogbookClientException | IOException e) {
-                return new ItemStatus(PLUGIN_ID).setItemsStatus(PluginHelper.buildItemStatus(PLUGIN_ID, StatusCode.FATAL));
+                return new ItemStatus(PLUGIN_ID)
+                    .setItemsStatus(PluginHelper.buildItemStatus(PLUGIN_ID, StatusCode.FATAL));
             } finally {
                 HandlerUtils.save(handler, queries, 0);
             }
         } catch (IOException e) {
             throw new ProcessingException(e);
+        } finally {
+            handler.transferFileToWorkspace(REVERT_UPDATE_UNITS_JSONL_FILE, revertUpdateUnitsFile, true, false);
         }
 
         return new ItemStatus(PLUGIN_ID).setItemsStatus(PluginHelper.buildItemStatus(PLUGIN_ID, StatusCode.OK));
+    }
+
+    @Nonnull
+    private Map<String, Document> getUnitsLFC(String operationId, List<JsonNode> units)
+        throws LogbookClientException, InvalidParseOperationException {
+        try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
+            List<String> unitsId = units.stream().map(e -> e.get(VitamFieldsHelper.id())).map(
+                JsonNode::asText).collect(Collectors.toList());
+
+            List<JsonNode> unitLifeCycleByIds = logbookLifeCyclesClient.getRawUnitLifeCycleByIds(unitsId);
+            List<LogbookOperation> events =
+                JsonHandler.getFromJsonNodeList(unitLifeCycleByIds, new TypeReference<>() {
+                });
+
+            return events.stream()
+                .map(e -> e.getEvents().stream().filter(t -> t.getEvIdProc().equals(operationId)).findFirst())
+                .map(Optional::get)
+                .map(e -> new SimpleEntry<>(e.getObId(),
+                    Document.parse(e.getEvDetData())))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        }
+    }
+
+    private boolean isCanBeDone(String operationId, List<JsonNode> unitIds) {
+        return unitIds.stream().map(e -> e.get(VitamFieldsHelper.operations()))
+            .map(e -> StreamSupport.stream(e.spliterator(), false).map(JsonNode::asText)
+                .collect(Collectors.toList()))
+            .map(e -> e.indexOf(operationId) == (e.size() - 1))
+            .reduce(true, Boolean::logicalAnd);
+    }
+
+    private JsonNode retriveUnits(RevertUpdateOptions options, String operationId)
+        throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+            final SelectParserMultiple parser = new SelectParserMultiple();
+            parser.parse(options.getDslRequest());
+            parser.getRequest().addQueries(QueryHelper.and()
+                .add(QueryHelper.in(VitamFieldsHelper.operations(), operationId),
+                    QueryHelper.ne(VitamFieldsHelper.initialOperation(), operationId)));
+            parser.getRequest().setProjection(JsonHandler.createObjectNode()
+                .set(ParserTokens.PROJECTION.FIELDS.exactToken(),
+                    JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1)
+                        .put(VitamFieldsHelper.operations(), 1)));
+            return metaDataClient.selectUnits(parser.getRequest().getFinalSelect());
+        }
     }
 }
