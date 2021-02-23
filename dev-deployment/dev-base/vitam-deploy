@@ -34,5 +34,5 @@ fi
 
 echo "Deploying VITAM for environment ${VITAM_ENVIRONMENT}..."
 pushd /code/deployment
-ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file vault_pass.txt -v -e confirmation=yes
+ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file vault_pass.txt -v -e "@/code/dev-deployment/dev-base/local_extra_vars.yml" -e confirmation=yes
 popd

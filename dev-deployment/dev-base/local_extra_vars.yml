@@ -1,0 +1,139 @@
+
+# Specific conf for xsmall
+
+#ES
+elasticsearch:
+    log:
+        host: "elasticsearch-log.service.{{ consul_domain }}"
+        port_http: "9201"
+        groupe: "log"
+        baseuri: "elasticsearch-log"
+        cluster_name: "elasticsearch-log"
+        consul_check_http: 10 # in seconds
+        consul_check_tcp: 10 # in seconds
+        action_log_level: error
+        https_enabled: false
+        indices_fielddata_cache_size: '30%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/7.6/modules-fielddata.html
+        indices_breaker_fielddata_limit: '40%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/7.6/circuit-breaker.html#fielddata-circuit-breaker
+        dynamic_timeout: 30s
+        # default index template
+        index_templates:
+            default:
+                shards: 1
+                replica: 0
+            packetbeat:
+                shards: 1
+        log_appenders:
+            root:
+                log_level: "info"
+            rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "5GB"
+                max_files: "50"
+            deprecation_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                max_files: "10"
+                log_level: "warn"
+            index_search_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                max_files: "10"
+                log_level: "warn"
+            index_indexing_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                max_files: "10"
+                log_level: "warn"
+    data:
+        host: "elasticsearch-data.service.{{ consul_domain }}"
+        port_http: "9200"
+        groupe: "data"
+        baseuri: "elasticsearch-data"
+        cluster_name: "elasticsearch-data"
+        consul_check_http: 10 # in seconds
+        consul_check_tcp: 10 # in seconds
+        action_log_level: debug
+        https_enabled: false
+        indices_fielddata_cache_size: '30%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-fielddata.html
+        indices_breaker_fielddata_limit: '40%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/circuit-breaker.html#fielddata-circuit-breaker
+        dynamic_timeout: 30s
+        index_templates:
+            default:
+                shards: 1
+                replica: 0
+        log_appenders:
+            root:
+                log_level: "info"
+            rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "5GB"
+                max_files: "50"
+            deprecation_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "5GB"
+                max_files: "50"
+                log_level: "warn"
+            index_search_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "5GB"
+                max_files: "50"
+                log_level: "warn"
+            index_indexing_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "5GB"
+                max_files: "50"
+                log_level: "warn"
+
+kibana:
+    header_value: "reporting"
+    import_delay: 10
+    import_retries: 10
+    logrotate: enabled # or disabled
+    history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
+    log:
+        baseuri: "kibana_log"
+        api_call_timeout: 120
+        groupe: "log"
+        port: 5601
+        default_index_pattern: "logstash-vitam*"
+        check_consul: 10 # in seconds
+        shards: 1
+        replica: 0
+        metrics:
+            shards: 1
+            replica: 0
+        logs:
+            shards: 1
+            replica: 0
+        metricbeat:
+            shards: 3
+            replica: 0
+    data:
+        baseuri: "kibana_data"
+        api_call_timeout: 120
+        groupe: "data"
+        port: 5601
+        default_index_pattern: "logbookoperation_*"
+        check_consul: 10 # in seconds
+        # index template for .kibana
+        shards: 1
+        replica: 0
+
+vitam_elasticsearch_tenant_indexation:
+  default_config:
+    masterdata:
+      number_of_shards: 1
+      number_of_replicas: 0
+    unit:
+      number_of_shards: 1
+      number_of_replicas: 0
+    objectgroup:
+      number_of_shards: 1
+      number_of_replicas: 0
+    logbookoperation:
+      number_of_shards: 1
+      number_of_replicas: 0
+  masterdata:
+  dedicated_tenants:
+  grouped_tenants:
