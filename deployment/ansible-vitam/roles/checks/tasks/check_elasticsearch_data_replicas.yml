@@ -1,0 +1,32 @@
+---
+
+- name: Check elasticsearch default_config replicas
+  fail: msg="Invalid default number_of_replicas configuration. Should not exceed elasticsearch cluster size - 1"
+  when: >
+    (groups["hosts_elasticsearch_data"] | length) < (vitam_elasticsearch_tenant_indexation.default_config.masterdata.number_of_replicas + 1) or
+    (groups["hosts_elasticsearch_data"] | length) < (vitam_elasticsearch_tenant_indexation.default_config.unit.number_of_replicas + 1) or
+    (groups["hosts_elasticsearch_data"] | length) < (vitam_elasticsearch_tenant_indexation.default_config.objectgroup.number_of_replicas + 1) or
+    (groups["hosts_elasticsearch_data"] | length) < (vitam_elasticsearch_tenant_indexation.default_config.logbookoperation.number_of_replicas + 1)
+
+- name: Check elasticsearch masterdata replicas
+  fail: msg="Invalid number_of_replicas for masterdata. Should not exceed elasticsearch cluster size - 1"
+  when: '(groups["hosts_elasticsearch_data"] | length) < (({{ item.value.number_of_replicas }} | default(0)) + 1)'
+  with_dict: "{{ (vitam_elasticsearch_tenant_indexation.masterdata is mapping) | ternary (vitam_elasticsearch_tenant_indexation.masterdata, {}) }}"
+
+- name: Check elasticsearch dedicated_tenants replicas
+  fail: msg="Invalid number_of_replicas for dedicated tenants '{{item.tenants}}'. Should not exceed elasticsearch cluster size - 1"
+  when: >
+    {{ (item.unit is defined) and ((groups['hosts_elasticsearch_data'] | length) < (( item.unit.number_of_replicas | default(0)) + 1)) or
+       (item.objectgroup is defined) and ((groups['hosts_elasticsearch_data'] | length) < (( item.objectgroup.number_of_replicas | default(0)) + 1)) or
+       (item.logbookoperation is defined) and ((groups['hosts_elasticsearch_data'] | length) < (( item.logbookoperation.number_of_replicas | default(0)) + 1))
+    }}
+  loop: "{{ (vitam_elasticsearch_tenant_indexation.dedicated_tenants is iterable) | ternary (vitam_elasticsearch_tenant_indexation.dedicated_tenants, []) }}"
+
+- name: Check elasticsearch grouped_tenants replicas
+  fail: msg="Invalid number_of_replicas for tenant group '{{item.name}}'. Should not exceed elasticsearch cluster size - 1"
+  when: >
+    {{ (item.unit is defined) and ((groups['hosts_elasticsearch_data'] | length) < (( item.unit.number_of_replicas | default(0)) + 1)) or
+       (item.objectgroup is defined) and ((groups['hosts_elasticsearch_data'] | length) < (( item.objectgroup.number_of_replicas | default(0)) + 1)) or
+       (item.logbookoperation is defined) and ((groups['hosts_elasticsearch_data'] | length) < (( item.logbookoperation.number_of_replicas | default(0)) + 1))
+    }}
+  loop: "{{ (vitam_elasticsearch_tenant_indexation.grouped_tenants is iterable) | ternary (vitam_elasticsearch_tenant_indexation.grouped_tenants, []) }}"
