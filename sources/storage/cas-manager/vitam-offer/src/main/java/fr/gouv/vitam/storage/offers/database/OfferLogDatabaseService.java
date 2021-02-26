@@ -28,25 +28,28 @@ package fr.gouv.vitam.storage.offers.database;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.collection.CloseableIterable;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
@@ -101,30 +104,36 @@ public class OfferLogDatabaseService {
         }
     }
 
-    public CloseableIterable<OfferLog> getDescendingOfferLogsBy(String containerName, Long offset, int limit) {
+    public List<OfferLog> getDescendingOfferLogsBy(String containerName, Long offset, int limit) {
+
         Bson searchFilter = offset != null
             ? and(eq(CONTAINER, containerName), lte(SEQUENCE, offset))
             : eq(CONTAINER, containerName);
 
-        return toCloseableIterable(
-            mongoCollection.find(searchFilter)
-                .sort(Sorts.orderBy(Sorts.descending(SEQUENCE)))
-                .limit(limit)
-                .map(this::transformDocumentToOfferLog)
-        );
+        try (MongoCursor<OfferLog> cursor = mongoCollection.find(searchFilter)
+            .sort(Sorts.orderBy(Sorts.descending(SEQUENCE)))
+            .limit(limit)
+            .map(this::transformDocumentToOfferLog)
+            .cursor()
+        ) {
+            return IteratorUtils.toList(cursor);
+        }
     }
 
-    public CloseableIterable<OfferLog> getAscendingOfferLogsBy(String containerName, Long offset, int limit) {
+    public List<OfferLog> getAscendingOfferLogsBy(String containerName, Long offset, int limit) {
+
         Bson searchFilter = offset != null
             ? and(eq(CONTAINER, containerName), gte(SEQUENCE, offset))
             : eq(CONTAINER, containerName);
 
-        return toCloseableIterable(
-            mongoCollection.find(searchFilter)
-                .sort(Sorts.orderBy(Sorts.ascending(SEQUENCE)))
-                .limit(limit)
-                .map(this::transformDocumentToOfferLog)
-        );
+        try (MongoCursor<OfferLog> cursor = mongoCollection.find(searchFilter)
+            .sort(Sorts.orderBy(Sorts.ascending(SEQUENCE)))
+            .limit(limit)
+            .map(this::transformDocumentToOfferLog)
+            .cursor()
+        ) {
+            return IteratorUtils.toList(cursor);
+        }
     }
 
     public CloseableIterable<OfferLog> getExpiredOfferLogByContainer(long expirationValue, ChronoUnit expirationUnit) {

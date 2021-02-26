@@ -20,6 +20,7 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.COMPACTED_OFFER_LOG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,9 +37,10 @@ public class OfferLogCompactionDatabaseServiceTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Before
-    public void before() {
+    public void before() throws InvalidParseOperationException {
         cleanDatabase();
-        service = new OfferLogCompactionDatabaseService(mongoRule.getMongoDatabase().getCollection(COMPACTED_OFFER_LOG.getName()));
+        service = new OfferLogCompactionDatabaseService(
+            mongoRule.getMongoDatabase().getCollection(COMPACTED_OFFER_LOG.getName()));
     }
 
     @AfterClass
@@ -48,186 +50,342 @@ public class OfferLogCompactionDatabaseServiceTest {
     }
 
     @Test
-    public void should_get_descending_offer_log_compaction_in_range() throws Exception {
+    public void should_get_descending_offer_log_compaction_without_start_offset_with_high_limit() throws Exception {
+
         // Given
-        CompactedOfferLog compactedOfferLog1 = new CompactedOfferLog(
-            40,
-            40,
-            LocalDateUtil.now(),
-            "containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog2 = new CompactedOfferLog(
-            41,
-            42,
-            LocalDateUtil.now(),
-            "containerName",
-            Arrays.asList(new OfferLog(), new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog3 = new CompactedOfferLog(
-            1,
-            5,
-            LocalDateUtil.now(),
-            "OTHER_containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        save(compactedOfferLog1);
-        save(compactedOfferLog2);
-        save(compactedOfferLog3);
+        importCompactedOfferLogDataSet();
 
         // When
-        Iterable<CompactedOfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 42L);
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", null, 1000);
 
         // Then
-        assertThat(compactionLogs).hasSize(2);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceStart).containsExactly(41L, 40L);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceEnd).containsExactly(42L, 40L);
-        assertThat(compactionLogs).extracting(o -> o.getLogs().size()).containsExactly(2, 1);
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(51L, 48L, 46L, 43L, 42L, 40L);
     }
 
     @Test
-    public void should_get_descending_offer_log_compaction_with_no_range() throws Exception {
+    public void should_get_descending_offer_log_compaction_without_start_offset_with_limit() throws Exception {
+
         // Given
-        CompactedOfferLog compactedOfferLog1 = new CompactedOfferLog(
-            40,
-            40,
-            LocalDateUtil.now(),
-            "containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog2 = new CompactedOfferLog(
-            41,
-            42,
-            LocalDateUtil.now(),
-            "containerName",
-            Arrays.asList(new OfferLog(), new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog3 = new CompactedOfferLog(
-            43,
-            45,
-            LocalDateUtil.now(),
-            "containerName",
-            Arrays.asList(new OfferLog(), new OfferLog(), new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog4 = new CompactedOfferLog(
-            1,
-            5,
-            LocalDateUtil.now(),
-            "OTHER_containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        save(compactedOfferLog1);
-        save(compactedOfferLog2);
-        save(compactedOfferLog3);
-        save(compactedOfferLog4);
+        importCompactedOfferLogDataSet();
 
         // When
-        Iterable<CompactedOfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", null);
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", null, 4);
 
         // Then
-        assertThat(compactionLogs).hasSize(3);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceStart).containsExactly(43L, 41L, 40L);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceEnd).containsExactly(45L, 42L, 40L);
-        assertThat(compactionLogs).extracting(o -> o.getLogs().size()).containsExactly(3, 2, 1);
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(51L, 48L, 46L, 43L);
     }
 
     @Test
-    public void should_get_ascending_offer_log_compaction_in_range() throws Exception {
+    public void should_get_descending_offer_log_compaction_with_high_start_offset_with_high_limit() throws Exception {
+
         // Given
-        CompactedOfferLog compactedOfferLog1 = new CompactedOfferLog(
-            40,
-            40,
-            LocalDateUtil.now(),
-            "containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog2 = new CompactedOfferLog(
-            41,
-            42,
-            LocalDateUtil.now(),
-            "containerName",
-            Arrays.asList(new OfferLog(), new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog3 = new CompactedOfferLog(
-            43,
-            45,
-            LocalDateUtil.now(),
-            "containerName",
-            Arrays.asList(new OfferLog(), new OfferLog(), new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog4 = new CompactedOfferLog(
-            1,
-            5,
-            LocalDateUtil.now(),
-            "OTHER_containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        save(compactedOfferLog1);
-        save(compactedOfferLog2);
-        save(compactedOfferLog3);
-        save(compactedOfferLog4);
+        importCompactedOfferLogDataSet();
 
         // When
-        Iterable<CompactedOfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 42L);
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 52L, 1000);
 
         // Then
-        assertThat(compactionLogs).hasSize(1);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceStart).containsExactly(43L);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceEnd).containsExactly(45L);
-        assertThat(compactionLogs).extracting(o -> o.getLogs().size()).containsExactly(3);
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(51L, 48L, 46L, 43L, 42L, 40L);
     }
 
     @Test
-    public void should_get_ascending_offer_log_compaction_with_no_range() throws Exception {
+    public void should_get_descending_offer_log_compaction_with_high_start_offset_with_limit() throws Exception {
+
         // Given
-        CompactedOfferLog compactedOfferLog1 = new CompactedOfferLog(
-            40,
-            40,
-            LocalDateUtil.now(),
-            "containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog2 = new CompactedOfferLog(
-            41,
-            42,
-            LocalDateUtil.now(),
-            "containerName",
-            Arrays.asList(new OfferLog(), new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog3 = new CompactedOfferLog(
-            43,
-            45,
-            LocalDateUtil.now(),
-            "containerName",
-            Arrays.asList(new OfferLog(), new OfferLog(), new OfferLog())
-        );
-        CompactedOfferLog compactedOfferLog4 = new CompactedOfferLog(
-            1,
-            5,
-            LocalDateUtil.now(),
-            "OTHER_containerName",
-            Collections.singletonList(new OfferLog())
-        );
-        save(compactedOfferLog1);
-        save(compactedOfferLog2);
-        save(compactedOfferLog3);
-        save(compactedOfferLog4);
+        importCompactedOfferLogDataSet();
 
         // When
-        Iterable<CompactedOfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", null);
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 52L, 4);
 
         // Then
-        assertThat(compactionLogs).hasSize(3);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceStart).containsExactly(40L, 41L, 43L);
-        assertThat(compactionLogs).extracting(CompactedOfferLog::getSequenceEnd).containsExactly(40L, 42L, 45L);
-        assertThat(compactionLogs).extracting(o -> o.getLogs().size()).containsExactly(1 ,2, 3);
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(51L, 48L, 46L, 43L);
+    }
+
+    @Test
+    public void should_get_descending_offer_log_compaction_with_upper_range_start_offset_with_high_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 51L, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(51L, 48L, 46L, 43L, 42L, 40L);
+    }
+
+    @Test
+    public void should_get_descending_offer_log_compaction_with_upper_range_start_offset_with_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 51L, 4);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(51L, 48L, 46L, 43L);
+    }
+
+    @Test
+    public void should_get_descending_offer_log_compaction_with_middle_range_start_offset_with_high_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 49L, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(48L, 46L, 43L, 42L, 40L);
+    }
+
+    @Test
+    public void should_get_descending_offer_log_compaction_with_middle_range_start_offset_with_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 49L, 4);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(48L, 46L, 43L, 42L);
+    }
+
+    @Test
+    public void should_get_descending_offer_log_compaction_with_lower_range_start_offset_with_high_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 43L, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(43L, 42L, 40L);
+    }
+
+    @Test
+    public void should_get_descending_offer_log_compaction_with_lower_range_start_offset_with_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 43L, 2);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(43L, 42L);
+    }
+
+    @Test
+    public void should_get_descending_offer_log_compaction_with_too_low_start_offset() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getDescendingOfferLogCompactionBy("containerName", 39L, 1000);
+
+        // Then
+        assertThat(compactionLogs).isEmpty();
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_without_start_offset_with_high_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", null, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(40L, 42L, 43L, 46L, 48L, 51L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_without_start_offset_with_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", null, 4);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(40L, 42L, 43L, 46L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_low_start_offset_with_high_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 39L, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(40L, 42L, 43L, 46L, 48L, 51L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_low_start_offset_with_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 39L, 4);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(40L, 42L, 43L, 46L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_lower_range_start_offset_with_high_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 40L, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(40L, 42L, 43L, 46L, 48L, 51L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_lower_range_start_offset_with_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 40L, 4);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(40L, 42L, 43L, 46L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_middle_range_start_offset_with_high_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 41L, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(42L, 43L, 46L, 48L, 51L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_middle_range_start_offset_with_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 41L, 4);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(42L, 43L, 46L, 48L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_upper_range_start_offset_with_high_limit()
+        throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 43L, 1000);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(43L, 46L, 48L, 51L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_upper_range_start_offset_with_limit() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 43L, 2);
+
+        // Then
+        assertThat(compactionLogs).extracting(OfferLog::getSequence).containsExactly(43L, 46L);
+    }
+
+    @Test
+    public void should_get_ascending_offer_log_compaction_with_too_high_start_offset() throws Exception {
+
+        // Given
+        importCompactedOfferLogDataSet();
+
+        // When
+        List<OfferLog> compactionLogs = service.getAscendingOfferLogCompactionBy("containerName", 52L, 1000);
+
+        // Then
+        assertThat(compactionLogs).isEmpty();
     }
 
     private static void cleanDatabase() {
-        mongoRule.getMongoDatabase().getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName()).deleteMany(new Document());
+        mongoRule.getMongoDatabase().getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName())
+            .deleteMany(new Document());
         OfferCollections collectionPrefixed = OfferCollections.COMPACTED_OFFER_LOG;
         collectionPrefixed.setPrefix(PREFIX);
         mongoRule.getMongoDatabase().getCollection(collectionPrefixed.getName()).deleteMany(new Document());
+    }
+
+    private void importCompactedOfferLogDataSet() throws InvalidParseOperationException {
+        // Dataset
+        CompactedOfferLog compactedOfferLog1 = new CompactedOfferLog(
+            40,
+            42,
+            LocalDateUtil.now(),
+            "containerName",
+            Arrays.asList(new OfferLog().setSequence(40), new OfferLog().setSequence(42))
+        );
+        CompactedOfferLog compactedOfferLog2 = new CompactedOfferLog(
+            43,
+            43,
+            LocalDateUtil.now(),
+            "containerName",
+            Collections.singletonList(new OfferLog().setSequence(43))
+        );
+        CompactedOfferLog compactedOfferLog3 = new CompactedOfferLog(
+            1,
+            50,
+            LocalDateUtil.now(),
+            "OTHER_containerName",
+            Arrays.asList(new OfferLog().setSequence(1), new OfferLog().setSequence(30), new OfferLog().setSequence(50))
+        );
+        CompactedOfferLog compactedOfferLog4 = new CompactedOfferLog(
+            46,
+            51,
+            LocalDateUtil.now(),
+            "containerName",
+            Arrays
+                .asList(new OfferLog().setSequence(46), new OfferLog().setSequence(48), new OfferLog().setSequence(51))
+        );
+        save(compactedOfferLog1);
+        save(compactedOfferLog2);
+        save(compactedOfferLog3);
+        save(compactedOfferLog4);
     }
 
     private void save(CompactedOfferLog compactedOfferLog) throws InvalidParseOperationException {

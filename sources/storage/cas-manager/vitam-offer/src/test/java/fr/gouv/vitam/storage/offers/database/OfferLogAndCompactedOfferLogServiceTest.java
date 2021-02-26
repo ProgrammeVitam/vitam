@@ -1,6 +1,7 @@
 package fr.gouv.vitam.storage.offers.database;
 
 import com.mongodb.client.MongoIterable;
+import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -58,27 +59,31 @@ public class OfferLogAndCompactedOfferLogServiceTest {
     @Test
     public void should_save_and_delete_offer_log_and_compacted() throws Exception {
         // Given
-        OfferLog offerLog1 = new OfferLog(1L, LocalDateUtil.now(), "Container1", "MY_FIRST_FILE1", WRITE);
-        OfferLog offerLog2 = new OfferLog(2L, LocalDateUtil.now(), "Container1", "MY_FIRST_FILE2", WRITE);
-        OfferLog offerLog3 = new OfferLog(3L, LocalDateUtil.now(), "Container1", "MY_FIRST_FILE3", WRITE);
-        OfferLog offerLog4 = new OfferLog(4L, LocalDateUtil.now(), "Container1", "MY_FIRST_FILE4", WRITE);
-        OfferLog offerLog5 = new OfferLog(5L, LocalDateUtil.now(), "Container1", "MY_FIRST_FILE5", WRITE);
+        OfferLog offerLog1 = new OfferLog(1L, LocalDateUtil.now(), "Container0", "FILE1", WRITE);
+        OfferLog offerLog2 = new OfferLog(2L, LocalDateUtil.now(), "Container1", "FILE2", WRITE);
+        OfferLog offerLog3 = new OfferLog(3L, LocalDateUtil.now(), "Container1", "FILE3", WRITE);
+        OfferLog offerLog4 = new OfferLog(4L, LocalDateUtil.now(), "Container0", "FILE4", WRITE);
+        OfferLog offerLog5 = new OfferLog(5L, LocalDateUtil.now(), "Container1", "FILE5", WRITE);
+        OfferLog offerLog6 = new OfferLog(6L, LocalDateUtil.now(), "Container1", "FILE6", WRITE);
+        OfferLog offerLog7 = new OfferLog(7L, LocalDateUtil.now(), "Container0", "FILE7", WRITE);
 
         save(offerLog1);
         save(offerLog2);
         save(offerLog3);
         save(offerLog4);
         save(offerLog5);
+        save(offerLog6);
+        save(offerLog7);
 
-        List<OfferLog> offerLogs = Arrays.asList(offerLog1, offerLog2, offerLog3, offerLog4, offerLog5);
-        CompactedOfferLog compactedOfferLog = new CompactedOfferLog(1, 1, LocalDateUtil.now(), "Container1", offerLogs);
+        List<OfferLog> offerLogs = Arrays.asList(offerLog2, offerLog3, offerLog5);
+        CompactedOfferLog compactedOfferLog = new CompactedOfferLog(2, 5, LocalDateUtil.now(), "Container1", offerLogs);
 
         // When
         service.almostTransactionalSaveAndDelete(compactedOfferLog, offerLogs);
 
         // Then
-        assertThat(getCompactedOfferLogs().first()).isEqualTo(compactedOfferLog);
-        assertThat(getOfferLogs()).isEmpty();
+        assertThat(getCompactedOfferLogs()).containsExactly(compactedOfferLog);
+        assertThat(getOfferLogs()).containsExactly(offerLog1, offerLog4, offerLog6, offerLog7);
     }
 
     private static void cleanDatabase() {
@@ -115,6 +120,7 @@ public class OfferLogAndCompactedOfferLogServiceTest {
     public MongoIterable<OfferLog> getOfferLogs() {
         return mongoRule.getMongoDatabase().getCollection(OFFER_LOG.getName())
             .find()
+            .sort(Sorts.ascending(OfferLog.SEQUENCE))
             .map(this::getOfferLog);
     }
 
