@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -54,12 +55,12 @@ public class MongoDbAccessMetadataFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration) {
+    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration, MappingLoader mappingLoader) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
 
         ElasticsearchAccessMetadata esClient;
         try {
-            esClient = ElasticsearchAccessMetadataFactory.create(configuration);
+            esClient = ElasticsearchAccessMetadataFactory.create(configuration, mappingLoader);
 
         } catch (final MetaDataException | IOException e1) {
             throw new IllegalArgumentException(e1);

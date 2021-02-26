@@ -89,9 +89,11 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
 import fr.gouv.vitam.metadata.core.trigger.History;
+import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.metadata.core.validation.CachedArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.validation.CachedSchemaValidatorLoader;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
@@ -116,7 +118,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -151,6 +152,8 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -186,7 +189,7 @@ public class DbRequestTest {
     private static final String _OPS = "_ops";
     private static final String ROOTS = "$roots";
     private static final String _UDS = "_uds";
-    ;
+
     private static final String DATA = "$data";
     private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE = "au_tree_negative_depth_level_one.json";
     private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO = "au_tree_negative_depth_level_two.json";
@@ -194,91 +197,93 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST = "{$query: {$eq: {\"id\" : \"id\" }}, $projection : []}";
     private static final String UUID2 = "aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq";
     private static final String REQUEST_INSERT_TEST_1 =
-        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryabbaq\", \"id\": \"id\" }";
+            "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryabbaq\", \"id\": \"id\" }";
     private static final String REQUEST_INSERT_TEST_2 =
-        "{ \"#id\": \"aeaqaaaaaaaaaaababid6akzxqwg6qqaaaaq\", \"id\": \"id\" }";
+            "{ \"#id\": \"aeaqaaaaaaaaaaababid6akzxqwg6qqaaaaq\", \"id\": \"id\" }";
     private static final String REQUEST_SELECT_TEST_ES_1 =
-        "{$query: { $match : { 'Description' : 'OK' , '$max_expansions' : 1  } }}";
+            "{$query: { $match : { 'Description' : 'OK' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_SELECT_TEST_ES_2 =
-        "{$query: { $match : { 'Description' : 'dèscription OK' , '$max_expansions' : 1  } }}";
+            "{$query: { $match : { 'Description' : 'dèscription OK' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_SELECT_TEST_ES_3 =
-        "{$query: { $match : { 'Description' : 'est OK description' , '$max_expansions' : 1  } }}";
+            "{$query: { $match : { 'Description' : 'est OK description' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_SELECT_TEST_ES_4 =
-        "{$query: { $or : [ { $match : { 'Title' : 'Vitam' , '$max_expansions' : 1  } }, " +
-            "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
-            "] } }";
+            "{$query: { $or : [ { $match : { 'Title' : 'Vitam' , '$max_expansions' : 1  } }, " +
+                    "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
+                    "] } }";
     private static final String REQUEST_SELECT_TEST_ES_5 =
-        "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
-            "$facets : [ { $name : 'desc_level_facet' , $terms : { $field : 'DescriptionLevel', $size: 10, $order: 'ASC' } } ] }";
+            "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
+                    "$facets : [ { $name : 'desc_level_facet' , $terms : { $field : 'DescriptionLevel', $size: 10, $order: 'ASC' } } ] }";
     private static final String REQUEST_SELECT_TEST_ES_6 =
-        "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
-            "$facets : [ { $name : 'EndDate' ,  \"$date_range\": { $field : 'EndDate',$format : 'yyyy' , \"$ranges\": [ {\"$from\": \"1800\",\"$to\": \"2080\"}]} } ] }";
+            "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
+                    "$facets : [ { $name : 'EndDate' ,  \"$date_range\": { $field : 'EndDate',$format : 'yyyy' , \"$ranges\": [ {\"$from\": \"1800\",\"$to\": \"2080\"}]} } ] }";
     private static final String REQUEST_SELECT_TEST_ES_7 =
-        "{$query: [ { $match : { 'Description' : 'OK' } } ]," +
-            "$facets : [ { $name : 'filtersFacet',  $filters: { $query_filters: [ {$name:'has_desc_level', $query : { $exists : 'DescriptionLevel' } }]} } ] }";
+            "{$query: [ { $match : { 'Description' : 'OK' } } ]," +
+                    "$facets : [ { $name : 'filtersFacet',  $filters: { $query_filters: [ {$name:'has_desc_level', $query : { $exists : 'DescriptionLevel' } }]} } ] }";
     private static final String REQUEST_INSERT_TEST_ES_1_TENANT_1 =
-        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaabaq\", " +
-            "\"#tenant\": 1, " +
-            "\"Title\": \"title vitam\", " +
-            "\"Description\": \"description est OK\"," +
-            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
+            "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaabaq\", " +
+                    "\"#tenant\": 1, " +
+                    "\"Title\": \"title vitam\", " +
+                    "\"Description\": \"description est OK\"," +
+                    "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
     private static final String REQUEST_INSERT_TEST_ES =
-        "{ \"#id\": \"" + UUID2 + "\", " + "\"Title\": \"title vitam\", " +
-            "\"Description\": \"description est OK\"," +
-            "\"DescriptionLevel\": \"Item\"," +
-            "\"EndDate\": \"2050-12-30\"," +
-            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
+            "{ \"#id\": \"" + UUID2 + "\", " + "\"Title\": \"title vitam\", " +
+                    "\"Description\": \"description est OK\"," +
+                    "\"DescriptionLevel\": \"Item\"," +
+                    "\"EndDate\": \"2050-12-30\"," +
+                    "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
+            "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
+            "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\", \"DescriptionLevel\": \"Item\"  }";
+            "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\", \"DescriptionLevel\": \"Item\"  }";
     private static final String UUID1 = "aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq";
     private static final String REQUEST_UPDATE_INDEX_TEST =
-        "{$roots:['" + UUID1 +
-            "'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'Title':'ArchiveDoubleTest'}}]}";
+            "{$roots:['" + UUID1 +
+                    "'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'Title':'ArchiveDoubleTest'}}]}";
     private static final String REQUEST_UPDATE_COMPUTED_FIELD =
-        "{$roots:['" + UUID1 +
-            "'],$query:[],$filter:{},$action:[{$push:{'_elimination': [{'OperationId':'my_guid'}] }}, {'$set': {'_glpd':'2018-01-01T01-34-59'}}]}";
+            "{$roots:['" + UUID1 +
+                    "'],$query:[],$filter:{},$action:[{$push:{'_elimination': [{'OperationId':'my_guid'}] }}, {'$set': {'_glpd':'2018-01-01T01-34-59'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
-        "{$query: { $eq : { '#id' : '" + UUID1 + "' } }}";
+            "{$query: { $eq : { '#id' : '" + UUID1 + "' } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE = "REQUEST_INSERT_TEST_ES_UPDATE.json";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE_KO =
-        "{ \"#id\": \"aeaqaaaaaagbcaacabg44ak45e54criaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
-            "\"_mgt\": {\"OriginatingAgency\": \"XXXXXXX\"}," +
-            " \"DescriptionLevel\": \"toto\" }";
+            "{ \"#id\": \"aeaqaaaaaagbcaacabg44ak45e54criaaaaq\", \"#tenant\": 0, \"Title\": \"Archive3\", " +
+                    "\"_mgt\": {\"OriginatingAgency\": \"XXXXXXX\"}," +
+                    " \"DescriptionLevel\": \"toto\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST_KO =
-        "{$roots:['aeaqaaaaaagbcaacabg44ak45e54criaaaaq'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
+            "{$roots:['aeaqaaaaaagbcaacabg44ak45e54criaaaaq'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
     private static final String ADDITIONAL_SCHEMA =
-        "{ \"$schema\": \"http://vitam-json-germain-schema.org/draft-04/schema#\", \"id\": \"http://example.com/root.json\", \"type\": \"object\", \"additionalProperties\": true, \"anyOf\": [ { \"required\": [ \"specificField\" ] } ], \"properties\": { \"specificField\": { \"description\": \"champ obligatoire - valeur = item\", \"type\": \"array\", \"items\": { \"description\": \"at least 1 element\", \"type\": \"string\" }, \"minItems\": 1 } } }";
+            "{ \"$schema\": \"http://vitam-json-germain-schema.org/draft-04/schema#\", \"id\": \"http://example.com/root.json\", \"type\": \"object\", \"additionalProperties\": true, \"anyOf\": [ { \"required\": [ \"specificField\" ] } ], \"properties\": { \"specificField\": { \"description\": \"champ obligatoire - valeur = item\", \"type\": \"array\", \"items\": { \"description\": \"at least 1 element\", \"type\": \"string\" }, \"minItems\": 1 } } }";
     private static final String REQUEST_UPDATE_INDEX_TEST_KO_SECONDARY_SCHEMA =
-        "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
+            "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
     private static final String REQUEST_UPDATE_INDEX_TEST_OK_SECONDARY_SCHEMA =
-        "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}," +
-            "{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
+            "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}," +
+                    "{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+            new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
     static MongoDbVarNameAdapter mongoDbVarNameAdapter;
     private static ElasticsearchAccess esClientWithoutVitamBehavior;
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     private FieldHistoryManager fieldHistoryManager;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
         List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+        elasticsearchAccessMetadata =
+                new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
-            elasticsearchAccessMetadata, TENANT_ID_0,
-            TENANT_ID_1, TENANT_ID_2);
+                elasticsearchAccessMetadata, TENANT_ID_0,
+                TENANT_ID_1, TENANT_ID_2);
     }
 
     /**
@@ -290,12 +295,12 @@ public class DbRequestTest {
     }
 
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
-        throws Exception {
+            throws Exception {
         return JsonHandler.getFromString(new StringBuilder()
-            .append("{ $roots : [ ], ")
-            .append("$query : [ " + query + " ], ")
-            .append("$data : " + data + " }")
-            .toString());
+                .append("{ $roots : [ ], ")
+                .append("$query : [ " + query + " ], ")
+                .append("$data : " + data + " }")
+                .toString());
     }
 
     /**
@@ -305,7 +310,7 @@ public class DbRequestTest {
     public void setUp() throws Exception {
         fieldHistoryManager = mock(FieldHistoryManager.class);
         List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         esClientWithoutVitamBehavior = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
         mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
@@ -318,7 +323,7 @@ public class DbRequestTest {
     @After
     public void after() throws Exception {
         MetadataCollections.afterTest(TENANT_ID_0,
-            TENANT_ID_1, TENANT_ID_2);
+                TENANT_ID_1, TENANT_ID_2);
     }
 
     /**
@@ -365,8 +370,8 @@ public class DbRequestTest {
             OntologyValidator ontologyValidator = mock(OntologyValidator.class);
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
-            dbRequest.execUpdateRequest(updateParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+            dbRequest.execUpdateRequest(updateParser, uuid.toString(), UNIT, ontologyValidator,
+                    mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -386,7 +391,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, deleteParser);
         } finally {
             // clean
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -409,11 +414,11 @@ public class DbRequestTest {
 
             // prepare unit with one parent -> depth_negative_level = -1.
             final ObjectNode insertReq1 =
-                (ObjectNode) createInsertRequestTreeWithParents(guidParent1, "Fake titre_A", operation);
+                    (ObjectNode) createInsertRequestTreeWithParents(guidParent1, "Fake titre_A", operation);
             final ObjectNode insertReq2 =
-                (ObjectNode) createInsertRequestTreeWithParents(guidParent2, "Fake titre_B", operation);
+                    (ObjectNode) createInsertRequestTreeWithParents(guidParent2, "Fake titre_B", operation);
             final ObjectNode insertReq3 =
-                (ObjectNode) createInsertRequestTreeWithParents(guidChild, "Fake titre_C", operation);
+                    (ObjectNode) createInsertRequestTreeWithParents(guidChild, "Fake titre_C", operation);
             insertReq3.set(ROOTS, JsonHandler.toJsonNode(Arrays.asList(guidParent1, guidParent2)));
             ObjectNode uds = JsonHandler.createObjectNode().put("1", guidParent1).put("2", guidParent2);
             ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds);
@@ -433,7 +438,7 @@ public class DbRequestTest {
 
             // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -1)
             JsonNode selectQuery =
-                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE));
+                    JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE));
             selectParser.parse(selectQuery);
             LOGGER.debug("selectParser: {}", selectParser);
 
@@ -447,7 +452,7 @@ public class DbRequestTest {
 
             try {
                 JsonNode selectIncorrectQuery =
-                    JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_INCORRECT_OFF_LIMIT));
+                        JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_INCORRECT_OFF_LIMIT));
                 selectParser.parse(selectIncorrectQuery);
                 LOGGER.debug("selectParser: {}", selectParser);
                 dbRequest.execRequest(selectParser, Collections.emptyList());
@@ -457,12 +462,12 @@ public class DbRequestTest {
             }
 
         } finally {
-            MetadataCollections.UNIT.getCollection()
-                .deleteOne(new Document(MetadataDocument.ID, guidParent1));
-            MetadataCollections.UNIT.getCollection()
-                .deleteOne(new Document(MetadataDocument.ID, guidParent2));
-            MetadataCollections.UNIT.getCollection()
-                .deleteOne(new Document(MetadataDocument.ID, guidChild));
+            UNIT.getCollection()
+                    .deleteOne(new Document(MetadataDocument.ID, guidParent1));
+            UNIT.getCollection()
+                    .deleteOne(new Document(MetadataDocument.ID, guidParent2));
+            UNIT.getCollection()
+                    .deleteOne(new Document(MetadataDocument.ID, guidChild));
         }
     }
 
@@ -472,7 +477,7 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testExecRequestWithNegativeDepthLevel_Two()
-        throws Exception {
+            throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final String guidParent = "aeaqaaaaaaagsoddab2wcak75hnwm6aaaaba";
         final String guidChild1 = "aeaqaaaaaadu6tbzablxaak75hfyaoiaaaba";
@@ -486,16 +491,16 @@ public class DbRequestTest {
 
             // prepare unit with one parent ==> depth_negative_level = -2.
             final ObjectNode insertReq1 =
-                (ObjectNode) createInsertRequestTreeWithParents(guidParent, "Fake titre_A", operation);
+                    (ObjectNode) createInsertRequestTreeWithParents(guidParent, "Fake titre_A", operation);
 
             final ObjectNode insertReq2 =
-                (ObjectNode) createInsertRequestTreeWithParents(guidChild1, "Fake titre_B", operation);
+                    (ObjectNode) createInsertRequestTreeWithParents(guidChild1, "Fake titre_B", operation);
             insertReq2.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent)));
             ObjectNode uds = JsonHandler.createObjectNode().put("1", guidParent);
             ((ObjectNode) insertReq2.get(DATA)).set(_UDS, uds);
 
             final ObjectNode insertReq3 =
-                (ObjectNode) createInsertRequestTreeWithParents(guidChild2, "Fake titre_C", operation);
+                    (ObjectNode) createInsertRequestTreeWithParents(guidChild2, "Fake titre_C", operation);
             insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent, guidChild1)));
             ObjectNode uds1 = JsonHandler.createObjectNode().put("2", guidParent).put("1", guidChild1);
             ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds1);
@@ -515,7 +520,7 @@ public class DbRequestTest {
 
             // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -2)
             JsonNode selectQuery =
-                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO));
+                    JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO));
             selectParser.parse(selectQuery);
             LOGGER.debug("selectParser: {}", selectParser);
 
@@ -531,12 +536,12 @@ public class DbRequestTest {
             LOGGER.debug("result2 title: {}", docs.get(1).get(TITLE));
 
         } finally {
-            MetadataCollections.UNIT.getCollection()
-                .deleteOne(new Document(MetadataDocument.ID, guidParent));
-            MetadataCollections.UNIT.getCollection()
-                .deleteOne(new Document(MetadataDocument.ID, guidChild1));
-            MetadataCollections.UNIT.getCollection()
-                .deleteOne(new Document(MetadataDocument.ID, guidChild2));
+            UNIT.getCollection()
+                    .deleteOne(new Document(MetadataDocument.ID, guidParent));
+            UNIT.getCollection()
+                    .deleteOne(new Document(MetadataDocument.ID, guidChild1));
+            UNIT.getCollection()
+                    .deleteOne(new Document(MetadataDocument.ID, guidChild2));
         }
     }
 
@@ -547,7 +552,7 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testExecRequestThroughRequestParserHelper()
-        throws Exception {
+            throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
@@ -558,7 +563,7 @@ public class DbRequestTest {
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
             InsertParserMultiple insertParserMultiple =
-                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+                    (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             LOGGER.debug("InsertParser: {}", insertParserMultiple);
             // Now execute the request
             dbRequest.execInsertUnitRequest(insertParserMultiple);
@@ -567,7 +572,7 @@ public class DbRequestTest {
             JsonNode selectRequest = createSelectRequestWithUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -576,21 +581,21 @@ public class DbRequestTest {
             final JsonNode updateRequest = createUpdateRequestWithUUID(uuid);
             // Now considering update request and parsing it as in Data Server (PATCH command)
             requestParser =
-                RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
             LOGGER.debug("UpdateParser: {}", requestParser);
 
             // Now execute the request
             OntologyValidator ontologyValidator = mock(OntologyValidator.class);
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
-            dbRequest.execUpdateRequest(requestParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+            dbRequest.execUpdateRequest(requestParser, uuid.toString(), UNIT, ontologyValidator,
+                    mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -599,13 +604,13 @@ public class DbRequestTest {
             final JsonNode deleteRequest = createDeleteRequestWithUUID(uuid);
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
-                RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
             LOGGER.debug("DeleteParser: " + requestParser.toString());
 
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -621,7 +626,7 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testExecRequestThroughAllCommands()
-        throws Exception {
+            throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
@@ -632,7 +637,7 @@ public class DbRequestTest {
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
             InsertParserMultiple insertParserMultiple =
-                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+                    (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             LOGGER.debug("InsertParser: {}", insertParserMultiple);
             // Now execute the request
             dbRequest.execInsertUnitRequest(insertParserMultiple);
@@ -641,7 +646,7 @@ public class DbRequestTest {
             JsonNode selectRequest = createSelectRequestWithUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -650,20 +655,20 @@ public class DbRequestTest {
             final JsonNode updateRequest = clientRichUpdateBuild(uuid);
             // Now considering update request and parsing it as in Data Server (PATCH command)
             requestParser =
-                RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
             LOGGER.debug("UpdateParser: {}", requestParser);
             // Now execute the request
             OntologyValidator ontologyValidator = mock(OntologyValidator.class);
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
-            dbRequest.execUpdateRequest(requestParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+            dbRequest.execUpdateRequest(requestParser, uuid.toString(), UNIT, ontologyValidator,
+                    mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -672,7 +677,7 @@ public class DbRequestTest {
             selectRequest = clientRichSelectAllBuild(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -681,13 +686,13 @@ public class DbRequestTest {
             final JsonNode deleteRequest = createDeleteRequestWithUUID(uuid);
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
-                RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
             LOGGER.debug("DeleteParser: " + requestParser.toString());
             // Now execute the request
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -712,7 +717,7 @@ public class DbRequestTest {
             JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
             InsertParserMultiple insertParserMultiple1 =
-                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+                    (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             LOGGER.debug("InsertParser: {}", insertParserMultiple1);
             // Now execute the request
             dbRequest.execInsertUnitRequest(insertParserMultiple1);
@@ -720,7 +725,7 @@ public class DbRequestTest {
             insertRequest = createInsertChild2ParentRequest(uuid2, uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
             InsertParserMultiple insertParserMultiple2 =
-                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+                    (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             LOGGER.debug("InsertParser: {}", insertParserMultiple2);
             // Now execute the request
             dbRequest.execInsertUnitRequest(insertParserMultiple2);
@@ -729,7 +734,7 @@ public class DbRequestTest {
             JsonNode selectRequest = createSelectRequestWithOnlyUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -738,7 +743,7 @@ public class DbRequestTest {
             selectRequest = createSelectRequestWithOnlyUUID(uuid2);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -747,7 +752,7 @@ public class DbRequestTest {
             selectRequest = createSelectRequestWithUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -756,7 +761,7 @@ public class DbRequestTest {
             selectRequest = clientSelect2Build(uuid2);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -765,7 +770,7 @@ public class DbRequestTest {
             selectRequest = clientSelectMultiQueryBuild(uuid, uuid2);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -774,20 +779,20 @@ public class DbRequestTest {
             final JsonNode updateRequest = createUpdateRequestWithUUID(uuid);
             // Now considering update request and parsing it as in Data Server (PATCH command)
             requestParser =
-                RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
             LOGGER.debug("UpdateParser: {}", requestParser);
             // Now execute the request
             OntologyValidator ontologyValidator = mock(OntologyValidator.class);
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
-            dbRequest.execUpdateRequest(requestParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class), Collections.emptyList());
+            dbRequest.execUpdateRequest(requestParser, uuid.toString(), UNIT, ontologyValidator,
+                    mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -796,21 +801,21 @@ public class DbRequestTest {
             JsonNode deleteRequest = clientDelete2Build(uuid2);
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
-                RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
             LOGGER.debug("DeleteParser: " + requestParser.toString());
             // Now execute the request
             executeRequest(dbRequest, requestParser);
             deleteRequest = createDeleteRequestWithUUID(uuid);
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
-                RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
             LOGGER.debug("DeleteParser: " + requestParser.toString());
             // Now execute the request
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
         }
     }
 
@@ -826,36 +831,36 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
         ontologyModels.addAll(Arrays.asList(
-            new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
-            new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
+                new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
+                new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
         ));
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // AUP Schema
         AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
-            .setControlSchema(PropertiesUtils.getResourceAsString("unitAUP_OK.json"))
-            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+                .setControlSchema(PropertiesUtils.getResourceAsString("unitAUP_OK.json"))
+                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
         )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
+                new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // When
         final DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager);
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager);
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
@@ -870,8 +875,8 @@ public class DbRequestTest {
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         UpdatedDocument updatedDocument =
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList());
+                dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
+                        Collections.emptyList());
 
         // Then
         ObjectNode expectedUnit = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(initialUnit));
@@ -884,10 +889,10 @@ public class DbRequestTest {
         String expected = JsonHandler.unprettyPrint(expectedUnit);
 
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
-            JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
+                JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
     }
@@ -904,29 +909,29 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
         ontologyModels.addAll(Arrays.asList(
-            new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
-            new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
+                new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
+                new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
         ));
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json"))
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json"))
         );
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // No AUP Schema
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
 
         // When
         final DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager);
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager);
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
         update.addActions(set("Flag", "TEXT"));
@@ -940,13 +945,13 @@ public class DbRequestTest {
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList())
+                dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
+                        Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -962,23 +967,23 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // AUP Schema
         String controlSchema = PropertiesUtils.getResourceAsString("unitAUP_KO.json");
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         doReturn(
-            Optional.of(new ArchiveUnitProfileModel().setStatus(ArchiveUnitProfileStatus.ACTIVE)
-                .setControlSchema(controlSchema)))
-            .when(archiveUnitProfileLoader).loadArchiveUnitProfile("AUP_IDENTIFIER");
+                Optional.of(new ArchiveUnitProfileModel().setStatus(ArchiveUnitProfileStatus.ACTIVE)
+                        .setControlSchema(controlSchema)))
+                .when(archiveUnitProfileLoader).loadArchiveUnitProfile("AUP_IDENTIFIER");
 
         // When
         final DbRequest dbRequest = new DbRequest();
@@ -997,13 +1002,13 @@ public class DbRequestTest {
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList())
+                dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
+                        Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -1019,15 +1024,15 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // No external AUP Schema
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
@@ -1047,13 +1052,13 @@ public class DbRequestTest {
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList())
+                dbRequest.execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
+                        Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -1093,9 +1098,9 @@ public class DbRequestTest {
             SelectMultiQuery selectRequest = new SelectMultiQuery();
             selectRequest.addUsedProjection(all());
             selectRequest
-                .addQueries(or().add(eq(id(), uuid1.toString()))
-                    .add(eq(id(), uuid2.toString()))
-                    .setDepthLimit(2));
+                    .addQueries(or().add(eq(id(), uuid1.toString()))
+                            .add(eq(id(), uuid2.toString()))
+                            .setDepthLimit(2));
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
@@ -1110,8 +1115,8 @@ public class DbRequestTest {
             selectRequest = new SelectMultiQuery();
             selectRequest.addUsedProjection(all());
             selectRequest
-                .addQueries(eq(MY_BOOLEAN, false),
-                    or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(0));
+                    .addQueries(eq(MY_BOOLEAN, false),
+                            or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(0));
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
@@ -1125,7 +1130,7 @@ public class DbRequestTest {
             selectRequest = new SelectMultiQuery();
             selectRequest.addUsedProjection(all());
             selectRequest.addQueries(match(TITLE, "mon Complet").setDepthLimit(0),
-                or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(0));
+                    or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(0));
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
@@ -1137,8 +1142,8 @@ public class DbRequestTest {
 
         } finally {
             // clean
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid1.toString()));
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid1.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
         }
     }
 
@@ -1152,14 +1157,14 @@ public class DbRequestTest {
         InsertParserMultiple insertParser;
 
         insertParser = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+                .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParser);
-        assertEquals(1, MetadataCollections.UNIT.getCollection().countDocuments());
+        assertEquals(1, UNIT.getCollection().countDocuments());
 
         insertParser = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
+                .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParser);
-        assertEquals(2, MetadataCollections.UNIT.getCollection().countDocuments());
+        assertEquals(2, UNIT.getCollection().countDocuments());
     }
 
     @Test
@@ -1171,10 +1176,10 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
 
         InsertParserMultiple insertParserMultiple1 = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+                .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParserMultiple1);
         InsertParserMultiple insertParserMultiple2 = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
+                .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParserMultiple2);
 
         final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery(TITLE, VALUE_MY_TITLE + 2);
@@ -1194,43 +1199,43 @@ public class DbRequestTest {
 
 
         SearchResponse response = esClientWithoutVitamBehavior
-            .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb1, null, null, null, 0, 1000, null,
-                null, null);
+                .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb1, null, null, null, 0, 1000, null,
+                        null, null);
         assertEquals(1, response.getHits().getTotalHits().value);
 
         response = esClientWithoutVitamBehavior
-            .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb2, null, null, null, 0, 1000, null,
-                null, null);
+                .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb2, null, null, null, 0, 1000, null,
+                        null, null);
         assertEquals(2, response.getHits().getTotalHits().value);
 
         response = esClientWithoutVitamBehavior
-            .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb3, null, null, null, 0, 1000, null,
-                null, null);
+                .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb3, null, null, null, 0, 1000, null,
+                        null, null);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
-            .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb4, null, null, null, 0, 1000, null,
-                null, null);
+                .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb4, null, null, null, 0, 1000, null,
+                        null, null);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
-            .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb5, null, null, null, 0, 1000, null,
-                null, null);
+                .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb5, null, null, null, 0, 1000, null,
+                        null, null);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
-            .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb6, null, null, null, 0, 1000, null,
-                null, null);
+                .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb6, null, null, null, 0, 1000, null,
+                        null, null);
         assertEquals(1, response.getHits().getTotalHits().value);
 
         try {
             response = esClientWithoutVitamBehavior
-                .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb7, null, null, null, 0, 1000,
-                    null,
-                    null, null);
+                    .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb7, null, null, null, 0, 1000,
+                            null,
+                            null, null);
             fail("should throws exception as matchPhrasePrefixQuery is no allowed for numbers");
         } catch (BadRequestException e) {
             //
@@ -1238,9 +1243,9 @@ public class DbRequestTest {
 
         try {
             response = esClientWithoutVitamBehavior
-                .search(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0, qb8, null, null, null, 0, 1000,
-                    null,
-                    null, null);
+                    .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb8, null, null, null, 0, 1000,
+                            null,
+                            null, null);
             fail("should throws exception as matchPhrasePrefixQuery is no allowed for keyWords");
         } catch (BadRequestException e) {
             //
@@ -1257,18 +1262,18 @@ public class DbRequestTest {
      * @throws IllegalArgumentException
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
-        throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
-        InvalidParseOperationException, BadRequestException,
-        VitamDBException, IOException, DatabaseException {
+            throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
+            InvalidParseOperationException, BadRequestException,
+            VitamDBException, IOException, DatabaseException {
 
         final Result result = dbRequest.execRequest(requestParser, Collections.emptyList());
         LOGGER.warn("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
         assertEquals("Must have 1 result", result.getNbResult(), 1);
         assertEquals("Must have 1 result", result.getCurrentIds().size(), 1);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
+        UNIT.getEsClient()
+                .refreshIndex(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
     }
 
     /**
@@ -1287,10 +1292,10 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode createSelectAllRequestWithUUID(GUID uuid)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(all())
-            .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("SelectAllString: " + select.getFinalSelect().toString());
         return select.getFinalSelect();
     }
@@ -1302,7 +1307,7 @@ public class DbRequestTest {
     private JsonNode createUpdateRequestWithUUID(GUID uuid) throws InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"))
-            .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("UpdateString: " + update.getFinalUpdate().toString());
         return update.getFinalUpdate();
     }
@@ -1312,10 +1317,10 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode createSelectRequestWithUUID(GUID uuid)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(id(), TITLE, DESCRIPTION)
-            .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
         return select.getFinalSelect();
     }
@@ -1339,14 +1344,14 @@ public class DbRequestTest {
         // INSERT
         final List<String> list = Arrays.asList("val1", "val2");
         final ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
-            .put(TITLE, VALUE_MY_TITLE).put(DESCRIPTION, "Ma description est bien détaillée")
-            .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 20)
-            .put(tenant(), TENANT_ID_0)
-            .put("underscore", "underscore")
-            .put("_underscore", "underscore")
-            .put("_nbc", 100)
-            .put("_unitType", "object")
-            .put(MY_BOOLEAN, false).putNull(EMPTY_VAR).put(MY_FLOAT, 2.0);
+                .put(TITLE, VALUE_MY_TITLE).put(DESCRIPTION, "Ma description est bien détaillée")
+                .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 20)
+                .put(tenant(), TENANT_ID_0)
+                .put("underscore", "underscore")
+                .put("_underscore", "underscore")
+                .put("_nbc", 100)
+                .put("_unitType", "object")
+                .put(MY_BOOLEAN, false).putNull(EMPTY_VAR).put(MY_FLOAT, 2.0);
         data.putArray(ARRAY_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
         data.putArray(ARRAY2_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
         final InsertMultiQuery insert = new InsertMultiQuery();
@@ -1362,8 +1367,8 @@ public class DbRequestTest {
      */
     private JsonNode createInsertChild2ParentRequest(GUID child, GUID parent) throws Exception {
         final ObjectNode data = JsonHandler.createObjectNode().put(id(), child.toString())
-            .put(TITLE, VALUE_MY_TITLE + "2").put(DESCRIPTION, "Ma description2 vitam")
-            .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 10);
+                .put(TITLE, VALUE_MY_TITLE + "2").put(DESCRIPTION, "Ma description2 vitam")
+                .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 10);
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addData(data).addRoots(parent.toString());
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
@@ -1375,15 +1380,15 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode clientRichSelectAllBuild(GUID uuid)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(all())
-            .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE),
-                exists(CREATED_DATE), missing(UNKNOWN_VAR), isNull(EMPTY_VAR),
-                or().add(in(ARRAY_VAR, "val1"), nin(ARRAY_VAR, "val3")),
-                gt(MY_INT, 1), lt(MY_INT, 100),
-                ne(MY_BOOLEAN, true), range(MY_FLOAT, 0.0, false, 100.0, true),
-                term(TITLE, VALUE_MY_TITLE)));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE),
+                        exists(CREATED_DATE), missing(UNKNOWN_VAR), isNull(EMPTY_VAR),
+                        or().add(in(ARRAY_VAR, "val1"), nin(ARRAY_VAR, "val3")),
+                        gt(MY_INT, 1), lt(MY_INT, 100),
+                        ne(MY_BOOLEAN, true), range(MY_FLOAT, 0.0, false, 100.0, true),
+                        term(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("SelectAllString: " + select.getFinalSelect().toString());
         return select.getFinalSelect();
     }
@@ -1395,9 +1400,9 @@ public class DbRequestTest {
     private JsonNode clientRichUpdateBuild(GUID uuid) throws InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"),
-            unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
-            add(ARRAY2_VAR, "val2"))
-            .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
+                unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
+                add(ARRAY2_VAR, "val2"))
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("UpdateString: " + update.getFinalUpdate().toString());
         return update.getFinalUpdate();
     }
@@ -1407,10 +1412,10 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode clientSelect2Build(GUID uuid)
-        throws InvalidCreateOperationException, InvalidParseOperationException {
+            throws InvalidCreateOperationException, InvalidParseOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(id(), TITLE, DESCRIPTION)
-            .addQueries(eq(id(), uuid.toString()).setDepthLimit(2));
+                .addQueries(eq(id(), uuid.toString()).setDepthLimit(2));
         LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
         return select.getFinalSelect();
     }
@@ -1421,11 +1426,11 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode clientSelectMultiQueryBuild(GUID uuid, GUID uuid2)
-        throws InvalidCreateOperationException, InvalidParseOperationException {
+            throws InvalidCreateOperationException, InvalidParseOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection(id(), TITLE, DESCRIPTION)
-            .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)),
-                eq(id(), uuid2.toString()));
+                .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)),
+                        eq(id(), uuid2.toString()));
         LOGGER.debug("SelectString: " + select.getFinalSelect().toString());
         return select.getFinalSelect();
     }
@@ -1448,8 +1453,8 @@ public class DbRequestTest {
                 col.getCollection().drop();
             }
         }
-        assertEquals(0, MetadataCollections.UNIT.getCollection().countDocuments());
-        assertEquals(0, MetadataCollections.OBJECTGROUP.getCollection().countDocuments());
+        assertEquals(0, UNIT.getCollection().countDocuments());
+        assertEquals(0, OBJECTGROUP.getCollection().countDocuments());
     }
 
     private ObjectNode createInsertRequestGO(GUID uuid, GUID uuidParent) throws InvalidParseOperationException {
@@ -1458,10 +1463,10 @@ public class DbRequestTest {
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         final JsonNode json =
-            JsonHandler
-                .getFromString("{\"#id\":\"" +
-                    uuid +
-                    "\", \"#Originating_Agency\": \"FRAN_NP_050056\",  \"FileInfo\": { \"Filename\": \"Filename0\"}, \"#qualifiers\": [{ \"qualifier\": \"BinaryMaster\"}]}");
+                JsonHandler
+                        .getFromString("{\"#id\":\"" +
+                                uuid +
+                                "\", \"#Originating_Agency\": \"FRAN_NP_050056\",  \"FileInfo\": { \"Filename\": \"Filename0\"}, \"#qualifiers\": [{ \"qualifier\": \"BinaryMaster\"}]}");
         insert.addData((ObjectNode) json);
         insert.addRoots(uuidParent.getId());
         final ObjectNode insertRequest = insert.getFinalInsert();
@@ -1478,7 +1483,7 @@ public class DbRequestTest {
         InsertParserMultiple insertParser;
 
         insertParser = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+                .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParser);
         Result result = checkExistence(dbRequest, uuid, false);
         assertFalse(result.isError());
@@ -1500,7 +1505,7 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
         InsertParserMultiple insertParser;
         insertParser = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+                .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParser);
         Result result = checkExistence(dbRequest, uuid, false);
         assertFalse(result.isError());
@@ -1515,10 +1520,10 @@ public class DbRequestTest {
         final QueryBuilder qb = QueryBuilders.termQuery("_id", uuid2.toString());
 
         SearchResponse response = esClientWithoutVitamBehavior
-            .search(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0, qb, null, null, null, 0,
-                GlobalDatas.LIMIT_LOAD,
-                null,
-                null, null);
+                .search(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0, qb, null, null, null, 0,
+                        GlobalDatas.LIMIT_LOAD,
+                        null,
+                        null, null);
 
         assertTrue(response != null);
         checkElasticResponseField(response, uuid.getId());
@@ -1565,8 +1570,8 @@ public class DbRequestTest {
     }
 
     private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG)
-        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        BadRequestException, VitamDBException, ArchiveUnitOntologyValidationException {
+            throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
+            BadRequestException, VitamDBException, ArchiveUnitOntologyValidationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
         if (isOG) {
@@ -1589,10 +1594,10 @@ public class DbRequestTest {
         // Insert OG
         final InsertMultiQuery insert = new InsertMultiQuery();
         final ObjectNode json =
-            (ObjectNode) JsonHandler
-                .getFromString("{\"#id\":\"" +
-                    uuidGot.getId() +
-                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
+                (ObjectNode) JsonHandler
+                        .getFromString("{\"#id\":\"" +
+                                uuidGot.getId() +
+                                "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
 
         insert.addData(json);
         final ObjectNode insertNode = insert.getFinalInsert();
@@ -1633,7 +1638,7 @@ public class DbRequestTest {
         final GUID uuid01 = GUIDFactory.newUnitGUID(TENANT_ID_0);
         final DbRequest dbRequest = new DbRequest();
         InsertParserMultiple insertParser = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertRequestWithUUID(uuid01), mongoDbVarNameAdapter);
+                .getParser(createInsertRequestWithUUID(uuid01), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParser);
         Result result = checkExistence(dbRequest, uuid01, false);
         assertFalse(result.isError());
@@ -1642,10 +1647,10 @@ public class DbRequestTest {
         final InsertMultiQuery insert = new InsertMultiQuery();
 
         final ObjectNode json =
-            (ObjectNode) JsonHandler
-                .getFromString("{\"#id\":\"" +
-                    uuid1 +
-                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
+                (ObjectNode) JsonHandler
+                        .getFromString("{\"#id\":\"" +
+                                uuid1 +
+                                "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
         insert.addData(json).addRoots(uuid01.getId());
         ObjectNode insertRequestString = insert.getFinalInsert();
         insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1679,8 +1684,8 @@ public class DbRequestTest {
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execInsertUnitRequest(insertParser);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
@@ -1728,8 +1733,8 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_2);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_2);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelect1.nbResult);
 
@@ -1793,55 +1798,55 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execInsertUnitRequest(insertParser);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_2);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_2);
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
-            .addRoots(UUID2);
+                .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel0 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel0.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
-            resultSelectRel0.getCurrentIds().iterator().next().toString());
+                resultSelectRel0.getCurrentIds().iterator().next().toString());
 
         select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
-            .addRoots(UUID2);
+                .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel1.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
-            resultSelectRel1.getCurrentIds().iterator().next().toString());
+                resultSelectRel1.getCurrentIds().iterator().next().toString());
 
         select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(3))
-            .addRoots(UUID2);
+                .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result<MetadataDocument<?>> resultSelectRel3 =
-            dbRequest.execRequest(selectParser1, Collections.emptyList());
+                dbRequest.execRequest(selectParser1, Collections.emptyList());
 
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
-            resultSelectRel3.getCurrentIds().iterator().next());
+                resultSelectRel3.getCurrentIds().iterator().next());
 
         insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_3).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execInsertUnitRequest(insertParser);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_2);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_2);
 
         final Result<MetadataDocument<?>> resultSelectRel4 =
-            dbRequest.execRequest(selectParser1, Collections.emptyList());
+                dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(2, resultSelectRel4.nbResult);
         for (final String root : resultSelectRel4.getCurrentIds()) {
             assertTrue(root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaat") ||
-                root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar"));
+                    root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar"));
         }
 
         insert = new InsertMultiQuery();
@@ -1849,19 +1854,19 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execInsertUnitRequest(insertParser);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_2);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_2);
 
         select = new SelectMultiQuery();
         select.addQueries(match("Title", "othervalue").setDepthLimit(1))
-            .addRoots(UUID2);
+                .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result<MetadataDocument<?>> resultSelectRel5 =
-            dbRequest.execRequest(selectParser1, Collections.emptyList());
+                dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
-            resultSelectRel5.getCurrentIds().iterator().next().toString());
+                resultSelectRel5.getCurrentIds().iterator().next().toString());
 
         // Check for "France.pdf"
         select = new SelectMultiQuery();
@@ -1871,7 +1876,7 @@ public class DbRequestTest {
         final Result resultSelectRel6 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel6.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
-            resultSelectRel6.getCurrentIds().iterator().next().toString());
+                resultSelectRel6.getCurrentIds().iterator().next().toString());
 
         // Check for "social vs sociales"
         select = new SelectMultiQuery();
@@ -1881,18 +1886,18 @@ public class DbRequestTest {
         final Result resultSelectRel7 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel7.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
-            resultSelectRel7.getCurrentIds().iterator().next().toString());
+                resultSelectRel7.getCurrentIds().iterator().next().toString());
 
         // Check for "name_with_underscore"
         select = new SelectMultiQuery();
         select
-            .addQueries(match("Title", "abcd").setDepthLimit(1));
+                .addQueries(match("Title", "abcd").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel8 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel8.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
-            resultSelectRel8.getCurrentIds().iterator().next().toString());
+                resultSelectRel8.getCurrentIds().iterator().next().toString());
     }
 
     @Test
@@ -1910,8 +1915,8 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_1);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_1);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelect1.nbResult);
     }
@@ -1931,10 +1936,10 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_1);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_1);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelect1.nbResult);
     }
@@ -1948,13 +1953,13 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
         String requestInsertTestEsUpdate =
-            IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
+                IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
         insert.parseData(requestInsertTestEsUpdate);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execInsertUnitRequest(insertParser);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         // check value should exist in the collection
         SelectParserMultiple selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -1974,10 +1979,10 @@ public class DbRequestTest {
         OntologyValidator dummyOntologyValidator = mock(OntologyValidator.class);
         doAnswer((args) -> args.getArgument(0)).when(dummyOntologyValidator).verifyAndReplaceFields(any());
 
-        dbRequest.execUpdateRequest(updateParser, unitId, MetadataCollections.UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class), Collections.emptyList());
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
+                mock(UnitValidator.class), Collections.emptyList());
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         // check new value
         SelectParserMultiple selectParser3 = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -1988,7 +1993,7 @@ public class DbRequestTest {
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals(UUID1, resultSelectRel3.getCurrentIds().iterator().next().toString());
         assertEquals(
-            ((Unit) resultSelectRel3.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
+                ((Unit) resultSelectRel3.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
 
         // update computed field should not increment version
         final JsonNode updateRequest5 = JsonHandler.getFromString(REQUEST_UPDATE_COMPUTED_FIELD);
@@ -1996,10 +2001,10 @@ public class DbRequestTest {
         updateParser5.parse(updateRequest5);
         LOGGER.debug("UpdateParser: {}", updateParser5.getRequest());
 
-        dbRequest.execUpdateRequest(updateParser5, unitId, MetadataCollections.UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class), Collections.emptyList());
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        dbRequest.execUpdateRequest(updateParser5, unitId, UNIT, dummyOntologyValidator,
+                mock(UnitValidator.class), Collections.emptyList());
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         // check new value
         SelectParserMultiple selectParser4 = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -2011,12 +2016,12 @@ public class DbRequestTest {
         assertEquals(UUID1, resultSelectRel4.getCurrentIds().iterator().next().toString());
         // Still 1, not incremented to 2
         assertEquals(
-            ((Unit) resultSelectRel4.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
+                ((Unit) resultSelectRel4.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
 
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         doReturn(Optional.of(new ArchiveUnitProfileModel().setControlSchema(ADDITIONAL_SCHEMA)
-            .setStatus(ArchiveUnitProfileStatus.ACTIVE)))
-            .when(archiveUnitProfileLoader).loadArchiveUnitProfile("AdditionalSchema");
+                .setStatus(ArchiveUnitProfileStatus.ACTIVE)))
+                .when(archiveUnitProfileLoader).loadArchiveUnitProfile("AdditionalSchema");
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
@@ -2029,8 +2034,8 @@ public class DbRequestTest {
             updateParser2.parse(updateRequest2);
             LOGGER.debug("UpdateParser: {}", updateParser2.getRequest());
             dbRequest
-                .execUpdateRequest(updateParser2, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator,
-                    Collections.emptyList());
+                    .execUpdateRequest(updateParser2, unitId, UNIT, ontologyValidator, unitValidator,
+                            Collections.emptyList());
             fail("should throw an exception cause of the additional schema");
         } catch (MetadataValidationException e) {
             assertTrue(e.getCause().getMessage().contains("\"missing\":[\"specificField\"]"));
@@ -2042,10 +2047,10 @@ public class DbRequestTest {
         updateParserSchema.parse(updateRequestSchema);
         LOGGER.debug("UpdateParser: {}", updateParserSchema.getRequest());
         dbRequest
-            .execUpdateRequest(updateParserSchema, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList());
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+                .execUpdateRequest(updateParserSchema, unitId, UNIT, ontologyValidator, unitValidator,
+                        Collections.emptyList());
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         // check new value that should exist in the collection
         selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -2055,7 +2060,7 @@ public class DbRequestTest {
         resultSelectRel6 = dbRequest.execRequest(selectParser2, Collections.emptyList());
         assertEquals(1, resultSelectRel6.nbResult);
         assertEquals(UUID1,
-            resultSelectRel6.getCurrentIds().iterator().next().toString());
+                resultSelectRel6.getCurrentIds().iterator().next().toString());
 
         // check old value should not exist in the collection
         selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -2075,7 +2080,7 @@ public class DbRequestTest {
         final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals(UUID1,
-            resultSelectRel5.getCurrentIds().iterator().next().toString());
+                resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
 
     @Test
@@ -2090,8 +2095,8 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execInsertUnitRequest(insertParser);
-        MetadataCollections.UNIT.getEsClient()
-            .refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        UNIT.getEsClient()
+                .refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO);
         final UpdateParserMultiple updateParser = new UpdateParserMultiple();
@@ -2102,7 +2107,7 @@ public class DbRequestTest {
         doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
         dbRequest.execUpdateRequest(updateParser, "aeaqaaaaaagbcaacabg44ak45e54criaaaaq",
-            MetadataCollections.UNIT, ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
+                UNIT, ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
     }
 
     @Test
@@ -2129,10 +2134,10 @@ public class DbRequestTest {
         // INSERT
         final List<String> list = Arrays.asList("val1", "val2");
         final ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
-            .put(TITLE, VALUE_MY_TITLE).put(DESCRIPTION, "Ma description est bien détaillée")
-            .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 20)
-            .put(tenant(), TENANT_ID_0)
-            .put(MY_BOOLEAN, false).putNull(EMPTY_VAR).put(MY_FLOAT, 2.0);
+                .put(TITLE, VALUE_MY_TITLE).put(DESCRIPTION, "Ma description est bien détaillée")
+                .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 20)
+                .put(tenant(), TENANT_ID_0)
+                .put(MY_BOOLEAN, false).putNull(EMPTY_VAR).put(MY_FLOAT, 2.0);
         data.putArray(ARRAY_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
         data.putArray("_up").addAll((ArrayNode) JsonHandler.toJsonNode(list));
         final InsertMultiQuery insert = new InsertMultiQuery();
@@ -2150,7 +2155,7 @@ public class DbRequestTest {
         final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         final DbRequest dbRequest = new DbRequest();
         InsertParserMultiple insertParser = (InsertParserMultiple) RequestParserHelper
-            .getParser(createInsertRequestGOTenant(uuid), mongoDbVarNameAdapter);
+                .getParser(createInsertRequestGOTenant(uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertObjectGroupRequests(Collections.singletonList(insertParser));
 
         final SelectMultiQuery select = new SelectMultiQuery();
@@ -2176,10 +2181,10 @@ public class DbRequestTest {
         InsertParserMultiple requestParser;
         // INSERT 1
         ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
-            .put(TITLE, "Rectorat 1").put(DESCRIPTION, "Ma description public est bien détaillée")
-            .put("DescriptionLevel", "Item")
-            .put(CREATED_DATE, "" + LocalDateUtil.now())
-            .put(tenant(), TENANT_ID_0);
+                .put(TITLE, "Rectorat 1").put(DESCRIPTION, "Ma description public est bien détaillée")
+                .put("DescriptionLevel", "Item")
+                .put(CREATED_DATE, "" + LocalDateUtil.now())
+                .put(tenant(), TENANT_ID_0);
         InsertMultiQuery insert = new InsertMultiQuery();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data);
@@ -2190,10 +2195,10 @@ public class DbRequestTest {
         // Insert 2
         final GUID uuid2 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data2 = JsonHandler.createObjectNode().put(id(), uuid2.toString())
-            .put(TITLE, "Rectorat 2").put(DESCRIPTION, "Ma description privé est bien détaillée")
-            .put("DescriptionLevel", "Item")
-            .put(CREATED_DATE, "" + LocalDateUtil.now())
-            .put(tenant(), TENANT_ID_0);
+                .put(TITLE, "Rectorat 2").put(DESCRIPTION, "Ma description privé est bien détaillée")
+                .put("DescriptionLevel", "Item")
+                .put(CREATED_DATE, "" + LocalDateUtil.now())
+                .put(tenant(), TENANT_ID_0);
         insert.reset();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data2);
@@ -2204,10 +2209,10 @@ public class DbRequestTest {
         // Insert 3 false description
         final GUID uuid3 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data3 = JsonHandler.createObjectNode().put(id(), uuid3.toString())
-            .put(TITLE, "Rectorat 3").put(DESCRIPTION, "Ma description est bien détaillée")
-            .put("DescriptionLevel", "Item")
-            .put(CREATED_DATE, "" + LocalDateUtil.now())
-            .put(tenant(), TENANT_ID_0);
+                .put(TITLE, "Rectorat 3").put(DESCRIPTION, "Ma description est bien détaillée")
+                .put("DescriptionLevel", "Item")
+                .put(CREATED_DATE, "" + LocalDateUtil.now())
+                .put(tenant(), TENANT_ID_0);
         insert.reset();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data3);
@@ -2218,10 +2223,10 @@ public class DbRequestTest {
         // Insert 4 false Title
         final GUID uuid4 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data4 = JsonHandler.createObjectNode().put(id(), uuid4.toString())
-            .put(TITLE, "Title 4").put(DESCRIPTION, "Ma description public est bien détaillée")
-            .put("DescriptionLevel", "Item")
-            .put(CREATED_DATE, "" + LocalDateUtil.now())
-            .put(tenant(), TENANT_ID_0);
+                .put(TITLE, "Title 4").put(DESCRIPTION, "Ma description public est bien détaillée")
+                .put("DescriptionLevel", "Item")
+                .put(CREATED_DATE, "" + LocalDateUtil.now())
+                .put(tenant(), TENANT_ID_0);
         insert.reset();
         insert.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
         insert.addData(data4);
@@ -2231,10 +2236,10 @@ public class DbRequestTest {
         dbRequest.execInsertUnitRequest(requestParser);
 
         String query = "{\"$roots\": [],\"$query\": [{\"$or\": " +
-            "[{\"$and\": [{\"$match\": {\"Title\": \"Rectorat\"}},{\"$match\": {\"Description\": \"public\"}}]}," +
-            "{\"$and\": [{\"$match\": {\"Title\": \"Rectorat\"}},{\"$match\": {\"Description\": \"privé\"}}]}]," +
-            "\"$depth\": 20}],\"$filter\": {\"$hint\": [\"units\"], \"$orderby\": {\"TransactedDate\": 1}}," +
-            "\"$projection\": {\"$fields\": {\"TransactedDate\": 1,\"#id\": 1,\"Title\": 1,\"#object\": 1,\"Description\": 1}}}";
+                "[{\"$and\": [{\"$match\": {\"Title\": \"Rectorat\"}},{\"$match\": {\"Description\": \"public\"}}]}," +
+                "{\"$and\": [{\"$match\": {\"Title\": \"Rectorat\"}},{\"$match\": {\"Description\": \"privé\"}}]}]," +
+                "\"$depth\": 20}],\"$filter\": {\"$hint\": [\"units\"], \"$orderby\": {\"TransactedDate\": 1}}," +
+                "\"$projection\": {\"$fields\": {\"TransactedDate\": 1,\"#id\": 1,\"Title\": 1,\"#object\": 1,\"Description\": 1}}}";
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(JsonHandler.getFromString(query));
         final Result result = dbRequest.execRequest(selectParser, Collections.emptyList());
@@ -2242,7 +2247,7 @@ public class DbRequestTest {
         // Clean
         final DeleteMultiQuery delete = new DeleteMultiQuery();
         delete.addQueries(
-            in(VitamFieldsHelper.id(), uuid.toString(), uuid2.toString(), uuid3.toString(), uuid4.toString()));
+                in(VitamFieldsHelper.id(), uuid.toString(), uuid2.toString(), uuid3.toString(), uuid4.toString()));
         delete.setMult(true);
         final DeleteParserMultiple deleteParser = new DeleteParserMultiple(mongoDbVarNameAdapter);
         deleteParser.parse(delete.getFinalDelete());
@@ -2258,12 +2263,12 @@ public class DbRequestTest {
      * @return the created insert query
      */
     private JsonNode createInsertRequestTreeWithParents(final String guid, final String title, final String op)
-        throws InvalidParseOperationException {
+            throws InvalidParseOperationException {
         final ObjectNode data = JsonHandler.createObjectNode()
-            .put(id(), guid)
-            .put(TITLE, title)
-            .put(tenant(), TENANT_ID_0)
-            .put(DESCRIPTION, "Fake description");
+                .put(id(), guid)
+                .put(TITLE, title)
+                .put(tenant(), TENANT_ID_0)
+                .put(DESCRIPTION, "Fake description");
         data.putArray(_OPS).addAll((ArrayNode) JsonHandler.toJsonNode(Arrays.asList(op)));
         final InsertMultiQuery insertQuery = new InsertMultiQuery();
         insertQuery.addData(data);
@@ -2284,7 +2289,7 @@ public class DbRequestTest {
     @Test(expected = BadRequestException.class)
     @RunWithCustomExecutor
     public void testExecRequestThroughAllCommandsForNested()
-        throws Exception {
+            throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
@@ -2294,37 +2299,37 @@ public class DbRequestTest {
 
             // SELECT
             JsonNode selectRequest =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("select_request_with_nested.json"));
+                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("select_request_with_nested.json"));
             ;
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser =
-                RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
 
             // UPDATE
             final JsonNode updateRequest =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("update_request_with_nested.json"));
+                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("update_request_with_nested.json"));
             // Now considering update request and parsing it as in Data Server (PATCH command)
             requestParser =
-                RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
             LOGGER.debug("UpdateParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
 
             // DELETE
             final JsonNode deleteRequest =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("delete_request_with_nested.json"));
+                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("delete_request_with_nested.json"));
             // Now considering delete request and parsing it as in Data Server (DELETE command)
             requestParser =
-                RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(deleteRequest, mongoDbVarNameAdapter);
             LOGGER.debug("DeleteParser: " + requestParser.toString());
             // Now execute the request
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -2339,19 +2344,19 @@ public class DbRequestTest {
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
         ontologyModels.addAll(Arrays.asList(
-            new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
-            new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
+                new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
+                new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
         ));
 
         // AUP Schema
@@ -2359,42 +2364,42 @@ public class DbRequestTest {
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
-            .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_OK.json"))
-            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+                .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_OK.json"))
+                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
         )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
+                new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // Request
         RuleActions ruleActions = new RuleActions();
         ruleActions.getAdd().add(ImmutableMap.of(
-            "AccessRule", new RuleCategoryAction()
-                .setPreventInheritance(true)
-                .setRules(Collections.singletonList(
-                    new RuleAction().setRule("ACC-00001").setStartDate("2000-01-01")
-                ))));
+                "AccessRule", new RuleCategoryAction()
+                        .setPreventInheritance(true)
+                        .setRules(Collections.singletonList(
+                                new RuleAction().setRule("ACC-00001").setStartDate("2000-01-01")
+                        ))));
 
         ruleActions.getUpdate().add(ImmutableMap.of(
-            "AccessRule", new RuleCategoryAction()
-                .setRules(Collections.singletonList(
-                    new RuleAction().setOldRule("ACC-00002").setRule("ACC-00003").setStartDate("2000-01-01")
-                ))));
+                "AccessRule", new RuleCategoryAction()
+                        .setRules(Collections.singletonList(
+                                new RuleAction().setOldRule("ACC-00002").setRule("ACC-00003").setStartDate("2000-01-01")
+                        ))));
 
         RuleCategoryActionDeletion accessRule = new RuleCategoryActionDeletion();
         accessRule.setRules(Collections.singletonList(new RuleAction().setRule("ACC-00004")));
         ruleActions.getDelete().add(ImmutableMap.of("AccessRule", accessRule));
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
-            "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
-            "ACC-00002", new DurationData(1, ChronoUnit.MONTHS),
-            "ACC-00003", new DurationData(1, ChronoUnit.YEARS),
-            "ACC-00004", new DurationData(1, ChronoUnit.CENTURIES)
+                "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
+                "ACC-00002", new DurationData(1, ChronoUnit.MONTHS),
+                "ACC-00003", new DurationData(1, ChronoUnit.YEARS),
+                "ACC-00004", new DurationData(1, ChronoUnit.CENTURIES)
         );
 
         // Grrrrrrrr. Since when archive unit profile is a "Rule metadata" !
         ruleActions.setAddOrUpdateMetadata(
-            new ManagementMetadataAction()
-                .setArchiveUnitProfile("AUP_IDENTIFIER")
+                new ManagementMetadataAction()
+                        .setArchiveUnitProfile("AUP_IDENTIFIER")
         );
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
@@ -2404,24 +2409,24 @@ public class DbRequestTest {
 
         // When
         final DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager);
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager);
         UpdatedDocument updatedDocument =
-            dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
-                Collections.emptyList());
+                dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
+                        Collections.emptyList());
 
         // Then
         final Unit expectedUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesAfterUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesAfterUpdate.json")));
 
         String expected = BsonHelper.stringify(expectedUnit);
 
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
-            JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
+                JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
     }
@@ -2438,43 +2443,43 @@ public class DbRequestTest {
 
         // Corrupted unit
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
         initialUnit.put("StartDate", 1234);
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         // AUP Schema
         AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
-            .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_KO.json"))
-            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+                .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_KO.json"))
+                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
         )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
+                new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // Request
         RuleActions ruleActions = new RuleActions();
         ruleActions.getAdd().add(ImmutableMap.of(
-            "AccessRule", new RuleCategoryAction()
-                .setPreventInheritance(true)
-                .setRules(Collections.singletonList(
-                    new RuleAction().setRule("ACC-00001").setStartDate("2000-01-01")
-                ))));
+                "AccessRule", new RuleCategoryAction()
+                        .setPreventInheritance(true)
+                        .setRules(Collections.singletonList(
+                                new RuleAction().setRule("ACC-00001").setStartDate("2000-01-01")
+                        ))));
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
-            "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
-            "ACC-00002", new DurationData(1, ChronoUnit.MONTHS),
-            "ACC-00003", new DurationData(1, ChronoUnit.YEARS),
-            "ACC-00004", new DurationData(1, ChronoUnit.CENTURIES)
+                "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
+                "ACC-00002", new DurationData(1, ChronoUnit.MONTHS),
+                "ACC-00003", new DurationData(1, ChronoUnit.YEARS),
+                "ACC-00004", new DurationData(1, ChronoUnit.CENTURIES)
         );
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
@@ -2484,19 +2489,19 @@ public class DbRequestTest {
 
         // When
         final DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager);
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager);
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
-                Collections.emptyList()))
-            .isInstanceOf(MetadataValidationException.class);
+                () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
+                        Collections.emptyList()))
+                .isInstanceOf(MetadataValidationException.class);
 
         // Then
         String expected = BsonHelper.stringify(initialUnit);
 
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2511,39 +2516,39 @@ public class DbRequestTest {
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         // AUP Schema
         AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
-            .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_KO.json"))
-            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+                .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_KO.json"))
+                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
         )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
+                new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // Request
         RuleActions ruleActions = new RuleActions();
         ruleActions.getAdd().add(ImmutableMap.of(
-            "AccessRule", new RuleCategoryAction()
-                .setPreventInheritance(true)
+                "AccessRule", new RuleCategoryAction()
+                        .setPreventInheritance(true)
         ));
 
         // Grrrrrrrr. Since when archive unit profile is a "Rule metadata" !
         ruleActions.setAddOrUpdateMetadata(
-            new ManagementMetadataAction()
-                .setArchiveUnitProfile("AUP_IDENTIFIER")
+                new ManagementMetadataAction()
+                        .setArchiveUnitProfile("AUP_IDENTIFIER")
         );
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
@@ -2553,19 +2558,19 @@ public class DbRequestTest {
 
         // When
         final DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager);
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager);
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator,
-                Collections.emptyList()))
-            .isInstanceOf(MetadataValidationException.class);
+                () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator,
+                        Collections.emptyList()))
+                .isInstanceOf(MetadataValidationException.class);
 
         // Then
         String expected = BsonHelper.stringify(initialUnit);
 
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2581,18 +2586,18 @@ public class DbRequestTest {
 
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
         // Corrupt initial unit
         initialUnit.remove("Title");
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         // No external AUP Schema
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
@@ -2600,8 +2605,8 @@ public class DbRequestTest {
         // Request
         RuleActions ruleActions = new RuleActions();
         ruleActions.getAdd().add(ImmutableMap.of(
-            "AccessRule", new RuleCategoryAction()
-                .setPreventInheritance(true)
+                "AccessRule", new RuleCategoryAction()
+                        .setPreventInheritance(true)
         ));
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
@@ -2612,15 +2617,15 @@ public class DbRequestTest {
         // When
         final DbRequest dbRequest = new DbRequest();
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator,
-                Collections.emptyList()))
-            .isInstanceOf(MetadataValidationException.class);
+                () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator,
+                        Collections.emptyList()))
+                .isInstanceOf(MetadataValidationException.class);
 
         // Then
         String expected = BsonHelper.stringify(initialUnit);
 
         String after =
-            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+                JsonHandler.unprettyPrint(UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2634,40 +2639,40 @@ public class DbRequestTest {
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
-            .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_OK.json"))
-            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+                .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_OK.json"))
+                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
         )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
 
         RuleActions ruleActions = new RuleActions();
         RuleCategoryAction classificationRule = new RuleCategoryAction()
-            .setRules(Collections.singletonList(new RuleAction().setRule("ACC-00001")))
-            .setClassificationLevel("Batman defense");
+                .setRules(Collections.singletonList(new RuleAction().setRule("ACC-00001")))
+                .setClassificationLevel("Batman defense");
         ruleActions.getDelete().add(ImmutableMap.of("ClassificationLevel", new RuleCategoryActionDeletion()));
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
-            "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
-            "ACC-00002", new DurationData(1, ChronoUnit.MONTHS),
-            "ACC-00003", new DurationData(1, ChronoUnit.YEARS),
-            "ACC-00004", new DurationData(1, ChronoUnit.CENTURIES)
+                "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
+                "ACC-00002", new DurationData(1, ChronoUnit.MONTHS),
+                "ACC-00003", new DurationData(1, ChronoUnit.YEARS),
+                "ACC-00004", new DurationData(1, ChronoUnit.CENTURIES)
         );
 
         ruleActions.setAddOrUpdateMetadata(
-            new ManagementMetadataAction().setArchiveUnitProfile("AUP_IDENTIFIER")
+                new ManagementMetadataAction().setArchiveUnitProfile("AUP_IDENTIFIER")
         );
 
         DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager
         );
 
         JsonNode history = new History("BatmanHistory", 1L, JsonHandler.createObjectNode()).getArrayNode();
@@ -2683,11 +2688,11 @@ public class DbRequestTest {
 
         // When
         UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
-            ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
+                ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
 
         // Then
         assertThat(updatedDocument.getAfterUpdate().get("_history").get(0).get("data").get("BatmanHistory"))
-            .isNotNull();
+                .isNotNull();
         verify(fieldHistoryManager).trigger(any(JsonNode.class), any(JsonNode.class));
     }
 
@@ -2703,23 +2708,23 @@ public class DbRequestTest {
 
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_1.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_1.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         // No external AUP Schema
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
-            "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
-            "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
+                "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
+                "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
         );
         // Request
         RuleActions ruleActions = new RuleActions();
@@ -2733,15 +2738,15 @@ public class DbRequestTest {
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager
         );
 
         // When
         UpdatedDocument updatedDocument = dbRequest
-            .execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
-                Collections.emptyList());
+                .execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
+                        Collections.emptyList());
 
         // Then
         assertThat(updatedDocument).isNotNull();
@@ -2760,31 +2765,31 @@ public class DbRequestTest {
 
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_2.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_2.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         // No external AUP Schema
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
-            "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
-            "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
+                "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
+                "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
         );
         // Request
         RuleActions ruleActions = new RuleActions();
         Set<String> preventRulesIdToBlock = new HashSet<>();
         preventRulesIdToBlock.add("DIS-00001");
         ruleActions.getUpdate().add(ImmutableMap.of(
-            "DisseminationRule", new RuleCategoryAction()
-                .setPreventRulesId(preventRulesIdToBlock)
+                "DisseminationRule", new RuleCategoryAction()
+                        .setPreventRulesId(preventRulesIdToBlock)
         ));
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
@@ -2794,16 +2799,16 @@ public class DbRequestTest {
 
         // When
         DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager
         );
 
         // When
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
-                Collections.emptyList()))
-            .isInstanceOf(MetadataValidationException.class);
+                () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
+                        Collections.emptyList()))
+                .isInstanceOf(MetadataValidationException.class);
     }
 
     @RunWithCustomExecutor
@@ -2820,31 +2825,31 @@ public class DbRequestTest {
 
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_2.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_2.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
 
         // No external AUP Schema
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
-            "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
-            "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
+                "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
+                "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
         );
         // Request
         RuleActions ruleActions = new RuleActions();
         Set<String> preventRulesIdToBlock = new HashSet<>();
         Boolean preventInheritanceAllow = Boolean.FALSE;
         ruleActions.getUpdate().add(ImmutableMap.of(
-            "DisseminationRule", new RuleCategoryAction()
-                .setPreventRulesId(preventRulesIdToBlock).setPreventInheritance(preventInheritanceAllow)
+                "DisseminationRule", new RuleCategoryAction()
+                        .setPreventRulesId(preventRulesIdToBlock).setPreventInheritance(preventInheritanceAllow)
         ));
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
@@ -2854,21 +2859,21 @@ public class DbRequestTest {
 
         // When
         DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager
         );
 
         UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
-            ontologyValidator, unitValidator, Collections.emptyList());
+                ontologyValidator, unitValidator, Collections.emptyList());
 
         // Then
         assertThat(updatedDocument).isNotNull();
         assertThat(updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
-            .get("PreventRulesId")).isEqualTo(JsonHandler.createArrayNode());
+                .get("PreventRulesId")).isEqualTo(JsonHandler.createArrayNode());
         assertThat(Boolean.valueOf(
-            updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
-                .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
+                updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+                        .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
 
         // Second case :  Block Rule After Allowing inheritance
 
@@ -2877,27 +2882,27 @@ public class DbRequestTest {
         preventRulesIdToDelete.add("DIS-00001");
         preventRulesIdToDelete.add("DIS-00002");
         ruleActions.getUpdate().add(ImmutableMap.of(
-            "DisseminationRule", new RuleCategoryAction()
-                .setPreventRulesId(preventRulesIdToDelete)
+                "DisseminationRule", new RuleCategoryAction()
+                        .setPreventRulesId(preventRulesIdToDelete)
         ));
 
         // When
         new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager
         );
 
         updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
-            ontologyValidator, unitValidator, Collections.emptyList());
+                ontologyValidator, unitValidator, Collections.emptyList());
 
         // Then
         assertThat(updatedDocument).isNotNull();
         assertEquals(updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
-            .get("PreventRulesId").size(), 2);
+                .get("PreventRulesId").size(), 2);
         assertThat(Boolean.valueOf(
-            updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
-                .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
+                updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+                        .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
 
     }
 
@@ -2912,40 +2917,40 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
-                new TypeReference<List<OntologyModel>>() {
-                });
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
+                        new TypeReference<List<OntologyModel>>() {
+                        });
         ontologyModels.addAll(Arrays.asList(
-            new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
-            new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
+                new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
+                new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
         ));
 
         final Unit initialUnit = new Unit(
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
 
-        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
-        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+        UNIT.getCollection().insertOne(initialUnit);
+        UNIT.getEsClient().insertFullDocument(UNIT, 0, uuid, initialUnit);
 
         // AUP Schema
         AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
-            .setControlSchema(PropertiesUtils.getResourceAsString("unitAUP_OK.json"))
-            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+                .setControlSchema(PropertiesUtils.getResourceAsString("unitAUP_OK.json"))
+                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
         )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
+                new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+                new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
+                new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+                fieldHistoryManager
         );
 
         UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(
-            push("#operations", "aedqaaaabggsoscfaat22albarkwtiqaaaaq"));             // <- here existing operation ID
+                push("#operations", "aedqaaaabggsoscfaat22albarkwtiqaaaaq"));             // <- here existing operation ID
 
         UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
         updateParser.parse(update.getFinalUpdate());
@@ -2957,13 +2962,13 @@ public class DbRequestTest {
 
         // When
         UpdatedDocument updatedDocument = dbRequest
-            .execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
-                Collections.emptyList());
+                .execUpdateRequest(updateParser, uuid, UNIT, ontologyValidator, unitValidator,
+                        Collections.emptyList());
 
         // Then
         String diff = String.join("\n", VitamDocument.getConcernedDiffLines(VitamDocument
-            .getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
-                JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
+                .getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
+                        JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
         assertThat(diff).isEmpty();
     }
 }

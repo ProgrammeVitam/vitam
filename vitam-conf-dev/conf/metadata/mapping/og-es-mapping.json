@@ -1,0 +1,316 @@
+{
+  "dynamic_templates": [
+    {
+      "object": {
+        "match_mapping_type": "object",
+        "mapping": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "all_string": {
+        "match": "*",
+        "mapping": {
+          "type": "text"
+        }
+      }
+    }
+  ],
+  "properties": {
+    "FileInfo": {
+      "properties": {
+        "CreatingApplicationName": {
+          "type": "text"
+        },
+        "CreatingApplicationVersion": {
+          "type": "text"
+        },
+        "CreatingOs": {
+          "type": "text"
+        },
+        "CreatingOsVersion": {
+          "type": "text"
+        },
+        "DateCreatedByApplication": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Filename": {
+          "type": "text"
+        },
+        "LastModified": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        }
+      }
+    },
+    "Metadata": {
+      "properties": {
+        "Text": {
+          "type": "object"
+        },
+        "Document": {
+          "type": "object"
+        },
+        "Image": {
+          "type": "object"
+        },
+        "Audio": {
+          "type": "object"
+        },
+        "Video": {
+          "type": "object"
+        }
+      }
+    },
+    "OtherMetadata": {
+      "type": "object",
+      "properties": {
+        "RawMetadata": {
+          "type": "object"
+        }
+      }
+    },
+    "_profil": {
+      "type": "keyword"
+    },
+    "_qualifiers": {
+      "properties": {
+        "_nbc": {
+          "type": "long"
+        },
+        "qualifier": {
+          "type": "keyword"
+        },
+        "versions": {
+          "type": "nested",
+          "properties": {
+            "Compressed": {
+              "type": "text"
+            },
+            "DataObjectGroupId": {
+              "type": "keyword"
+            },
+            "DataObjectVersion": {
+              "type": "keyword"
+            },
+            "DataObjectSystemId": {
+              "type": "keyword"
+            },
+            "DataObjectGroupSystemId": {
+              "type": "keyword"
+            },
+            "_opi": {
+              "type": "keyword"
+            },
+            "FileInfo": {
+              "properties": {
+                "CreatingApplicationName": {
+                  "type": "text"
+                },
+                "CreatingApplicationVersion": {
+                  "type": "text"
+                },
+                "CreatingOs": {
+                  "type": "text"
+                },
+                "CreatingOsVersion": {
+                  "type": "text"
+                },
+                "DateCreatedByApplication": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Filename": {
+                  "type": "text"
+                },
+                "LastModified": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
+            },
+            "FormatIdentification": {
+              "properties": {
+                "FormatId": {
+                  "type": "keyword"
+                },
+                "FormatLitteral": {
+                  "type": "keyword"
+                },
+                "MimeType": {
+                  "type": "keyword"
+                },
+                "Encoding": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "MessageDigest": {
+              "type": "keyword"
+            },
+            "Algorithm": {
+              "type": "keyword"
+            },
+            "PhysicalDimensions": {
+              "properties": {
+                "Diameter": {
+                  "properties": {
+                    "unit": {
+                      "type": "keyword"
+                    },
+                    "dValue": {
+                      "type": "double"
+                    }
+                  }
+                },
+                "Height": {
+                  "properties": {
+                    "unit": {
+                      "type": "keyword"
+                    },
+                    "dValue": {
+                      "type": "double"
+                    }
+                  }
+                },
+                "Depth": {
+                  "properties": {
+                    "unit": {
+                      "type": "keyword"
+                    },
+                    "dValue": {
+                      "type": "double"
+                    }
+                  }
+                },
+                "Shape": {
+                  "type": "keyword"
+                },
+                "Thickness": {
+                  "properties": {
+                    "unit": {
+                      "type": "keyword"
+                    },
+                    "dValue": {
+                      "type": "double"
+                    }
+                  }
+                },
+                "Length": {
+                  "properties": {
+                    "unit": {
+                      "type": "keyword"
+                    },
+                    "dValue": {
+                      "type": "double"
+                    }
+                  }
+                },
+                "NumberOfPage": {
+                  "type": "long"
+                },
+                "Weight": {
+                  "properties": {
+                    "unit": {
+                      "type": "keyword"
+                    },
+                    "dValue": {
+                      "type": "double"
+                    }
+                  }
+                },
+                "Width": {
+                  "properties": {
+                    "unit": {
+                      "type": "keyword"
+                    },
+                    "dValue": {
+                      "type": "double"
+                    }
+                  }
+                }
+              }
+            },
+            "PhysicalId": {
+              "type": "keyword"
+            },
+            "Size": {
+              "type": "long"
+            },
+            "Uri": {
+              "type": "keyword"
+            },
+            "_id": {
+              "type": "keyword"
+            },
+            "_storage": {
+              "properties": {
+                "_nbc": {
+                  "type": "long"
+                },
+                "offerIds": {
+                  "type": "keyword"
+                },
+                "strategyId": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_av": {
+      "type": "long"
+    },
+    "_nbc": {
+      "type": "long"
+    },
+    "_ops": {
+      "type": "keyword"
+    },
+    "_opi": {
+      "type": "keyword"
+    },
+    "_sp": {
+      "type": "keyword"
+    },
+    "_sps": {
+      "type": "keyword"
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_up": {
+      "type": "keyword"
+    },
+    "_uds": {
+      "type": "object",
+      "enabled": false
+    },
+    "_us": {
+      "type": "keyword"
+    },
+    "_storage": {
+      "properties": {
+        "_nbc": {
+          "type": "long"
+        },
+        "offerIds": {
+          "type": "keyword"
+        },
+        "strategyId": {
+          "type": "keyword"
+        }
+      }
+    },
+    "_glpd": {
+      "enabled": false
+    }
+  }
+}

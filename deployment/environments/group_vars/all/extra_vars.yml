@@ -21,7 +21,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:
@@ -38,6 +38,7 @@ vitam:
         # metricsunit: MINUTES
         access_retention_days: 15 # Number of days for file retention
         access_total_size_cap: "14GB" # total acceptable size
+        elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/ihm-recette/mapping"
     library:
         vitam_component: library
         host: "library.service.{{ consul_domain }}"
@@ -50,7 +51,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file: 
+          file:
             history_days: 10
             totalsize: "5GB"
           security:

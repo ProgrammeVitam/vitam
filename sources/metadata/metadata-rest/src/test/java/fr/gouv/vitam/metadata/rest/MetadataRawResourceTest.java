@@ -45,10 +45,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -64,6 +65,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -74,7 +77,7 @@ public class MetadataRawResourceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String METADATA_URI = "/metadata/v1";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
@@ -92,25 +95,29 @@ public class MetadataRawResourceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+            new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        MetadataCollections.UNIT.getVitamCollection()
-            .setName(GUIDFactory.newGUID().getId() + MetadataCollections.UNIT.getClasz().getSimpleName());
-        mongoRule.addCollectionToBePurged(MetadataCollections.UNIT.getName());
-        MetadataCollections.OBJECTGROUP.getVitamCollection()
-            .setName(GUIDFactory.newGUID().getId() + MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
-        mongoRule.addCollectionToBePurged(MetadataCollections.OBJECTGROUP.getName());
+        UNIT.getVitamCollection()
+                .setName(GUIDFactory.newGUID().getId() + UNIT.getClasz().getSimpleName());
+        mongoRule.addCollectionToBePurged(UNIT.getName());
+        OBJECTGROUP.getVitamCollection()
+                .setName(GUIDFactory.newGUID().getId() + OBJECTGROUP.getClasz().getSimpleName());
+        mongoRule.addCollectionToBePurged(OBJECTGROUP.getName());
         junitHelper = JunitHelper.getInstance();
 
         List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
+
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
+                new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
+                        mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         VitamConfiguration.setTenants(tenantList);
@@ -154,17 +161,17 @@ public class MetadataRawResourceTest {
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         String objectGroupId = GUIDFactory.newObjectGroupGUID(TENANT_ID).getId();
         ObjectNode objectGroup =
-            (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("objectgroup.json"));
+                (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("objectgroup.json"));
         objectGroup.put("_id", objectGroupId);
         objectGroup.set("_ops", JsonHandler.createArrayNode().add(operationId));
         objectGroup.set("_up", JsonHandler.createArrayNode().add(unitId));
-        MetadataCollections.OBJECTGROUP.getCollection().insertOne(new ObjectGroup(objectGroup));
+        OBJECTGROUP.getCollection().insertOne(new ObjectGroup(objectGroup));
         String reponseString = given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .get("/raw/objectgroups/" + objectGroupId)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when()
+                .get("/raw/objectgroups/" + objectGroupId)
+                .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
@@ -176,11 +183,11 @@ public class MetadataRawResourceTest {
 
         String objectGroupId = GUIDFactory.newObjectGroupGUID(TENANT_ID).getId();
         given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .get("/raw/objectgroups/" + objectGroupId).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when()
+                .get("/raw/objectgroups/" + objectGroupId).then()
+                .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @RunWithCustomExecutor
@@ -191,19 +198,19 @@ public class MetadataRawResourceTest {
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         String parentUnitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         ObjectNode unit =
-            (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("unit.json"));
+                (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("unit.json"));
         unit.put("_id", unitId);
         unit.set("_ops", JsonHandler.createArrayNode().add(operationId));
         unit.set("_up", JsonHandler.createArrayNode().add(parentUnitId));
         unit.put("_nbc", 1L);
-        MetadataCollections.UNIT.getCollection().insertOne(new Unit(unit));
+        UNIT.getCollection().insertOne(new Unit(unit));
 
         String reponseString = given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .get("/raw/units/" + unitId)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when()
+                .get("/raw/units/" + unitId)
+                .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
@@ -216,10 +223,10 @@ public class MetadataRawResourceTest {
 
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         given()
-            .contentType(MediaType.APPLICATION_JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .get("/raw/units/" + unitId).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when()
+                .get("/raw/units/" + unitId).then()
+                .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 }
