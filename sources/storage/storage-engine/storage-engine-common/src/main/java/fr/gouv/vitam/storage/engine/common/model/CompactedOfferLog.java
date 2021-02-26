@@ -37,6 +37,7 @@ public class CompactedOfferLog {
     public static final String SEQUENCE_START = "SequenceStart";
     public static final String SEQUENCE_END = "SequenceEnd";
     public static final String CONTAINER = "Container";
+    public static final String LOGS = "Logs";
 
     @JsonProperty(SEQUENCE_START)
     private long sequenceStart;
@@ -50,7 +51,7 @@ public class CompactedOfferLog {
     @JsonProperty(CONTAINER)
     private String container;
 
-    @JsonProperty("Logs")
+    @JsonProperty(LOGS)
     private List<OfferLog> logs;
 
     public CompactedOfferLog() {
