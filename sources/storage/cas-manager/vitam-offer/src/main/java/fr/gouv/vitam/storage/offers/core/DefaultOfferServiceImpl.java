@@ -72,6 +72,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.iterators.PeekingIterator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,6 +89,7 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.commons.collections4.iterators.PeekingIterator.peekingIterator;
 
 public class DefaultOfferServiceImpl implements DefaultOfferService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
@@ -280,7 +283,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Log in offer log
         Stopwatch times = Stopwatch.createStarted();
-        long sequence = offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        long sequence =
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
         offerDatabaseService.save(containerName, objectId, OfferLogAction.WRITE, sequence);
         log(times, containerName, "LOG_CREATE_IN_DB");
     }
@@ -361,7 +365,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Log in offer log
         Stopwatch times = Stopwatch.createStarted();
-        long sequence = offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, objectIds.size());
+        long sequence = offerSequenceDatabaseService
+            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, objectIds.size());
         offerDatabaseService.bulkSave(containerName, objectIds, OfferLogAction.WRITE, sequence);
         log(times, containerName, "BULK_LOG_CREATE_IN_DB");
     }
@@ -407,7 +412,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
         }
 
-        long sequence = offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        long sequence =
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
         // Log in offer
         offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE, sequence);
         log(times, containerName, "LOG_DELETE_IN_DB");
@@ -446,7 +452,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                                 return new StorageBulkMetadataResultEntry(objectMetadata.getObjectName(),
                                     objectMetadata.getDigest(), objectMetadata.getFileSize());
 
-                            }  catch (ContentAddressableStorageNotFoundException e) {
+                            } catch (ContentAddressableStorageNotFoundException e) {
                                 LOGGER.info("Object " + objectId + " not found in container " + containerName, e);
                                 return new StorageBulkMetadataResultEntry(objectId, null, null);
                             } catch (ContentAddressableStorageException | IOException e) {
@@ -492,7 +498,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order) throws ContentAddressableStorageDatabaseException {
+    public List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
+        throws ContentAddressableStorageDatabaseException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             switch (order) {
@@ -504,71 +511,100 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                     throw new VitamRuntimeException("Order must be ASC or DESC, here " + order);
             }
         } catch (Exception e) {
-            throw new ContentAddressableStorageDatabaseException(String.format("Database Error while getting OfferLog for container %s", containerName), e);
+            throw new ContentAddressableStorageDatabaseException(
+                String.format("Database Error while getting OfferLog for container %s", containerName), e);
         } finally {
             log(times, containerName, "GET_OFFER_LOGS");
         }
     }
 
-    private List<OfferLog> searchDescending(String containerName, Long offset, int limit) throws Exception {
-        List<OfferLog> logs = new ArrayList<>();
-        try (CloseableIterable<OfferLog> offerLogs = offerDatabaseService.getDescendingOfferLogsBy(containerName, offset, limit)) {
-            for (OfferLog log : offerLogs) {
-                logs.add(log);
-            }
+    private List<OfferLog> searchDescending(String containerName, Long offset, int limit) {
+
+        // First seek results from newest records (OfferLog)
+        List<OfferLog> offerLogs = offerDatabaseService.getDescendingOfferLogsBy(
+            containerName, offset, limit);
+
+        // If not enough entries, then fetch next entries from older records (CompactedOfferLog)
+        int remainingLimit = getRemainingLimit(offerLogs, limit);
+        Long nextOffset = getNextOffsetDescending(offerLogs, offset);
+
+        if (remainingLimit == 0) {
+            return offerLogs;
         }
 
-        if (logs.size() == limit) {
-            return logs;
-        }
+        List<OfferLog> compactedOfferLogs = offerLogCompactionDatabaseService
+            .getDescendingOfferLogCompactionBy(containerName, nextOffset, remainingLimit);
 
-        try (CloseableIterable<CompactedOfferLog> offerLogsFromCompaction = offerLogCompactionDatabaseService.getDescendingOfferLogCompactionBy(containerName, getNextOffsetDescending(logs, offset))) {
-            addCompactedLogsDescending(limit, logs, offerLogsFromCompaction);
-        }
-        return logs;
+        return ListUtils.union(offerLogs, compactedOfferLogs);
     }
 
-    private void addCompactedLogsDescending(int limit, List<OfferLog> logs, Iterable<CompactedOfferLog> offerLogsFromCompaction) {
-        for (CompactedOfferLog compaction : offerLogsFromCompaction) {
-            List<OfferLog> compactedLogs = compaction.getLogs();
-            for (int i = compactedLogs.size() - 1; i >= 0; i--) {
-                logs.add(compactedLogs.get(i));
-                if (logs.size() >= limit) {
-                    return;
-                }
-            }
+    private List<OfferLog> searchAscending(String containerName, Long offset, int limit) {
+
+        // First seek results from oldest records (CompactedOfferLog)
+        List<OfferLog> compactedOfferLogs = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(
+            containerName, offset, limit);
+
+        int remainingLimit = getRemainingLimit(compactedOfferLogs, limit);
+        Long nextOffset = getNextOffsetAscending(compactedOfferLogs, offset);
+
+        if (remainingLimit == 0) {
+            return compactedOfferLogs;
         }
+
+        // If not enough entries, then fetch next entries from new records
+        // CAUTION : We need to double check OfferLog + CompactedOfferLog to avoid concurrent offer log compaction :
+        //  - If we only fetch from OfferLog, we might miss entries that have just been compacted concurrently
+        //  - If we fetch from both OfferLog & CompactedOfferLog, we might get duplicates (non transactional update)
+        // So we fetch both collections & merge results
+        List<OfferLog> nextOfferLogs = offerDatabaseService.getAscendingOfferLogsBy(
+            containerName, nextOffset, remainingLimit);
+
+        List<OfferLog> nextCompactedOfferLogs = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(
+            containerName, nextOffset, remainingLimit);
+
+        List<OfferLog> nextMergedOfferLogs =
+            mergeAndResolveDuplicates(nextOfferLogs, nextCompactedOfferLogs, remainingLimit);
+
+        return ListUtils.union(compactedOfferLogs, nextMergedOfferLogs);
     }
 
-    private List<OfferLog> searchAscending(String containerName, Long offset, int limit) throws Exception {
-        List<OfferLog> logs = new ArrayList<>();
-        try (CloseableIterable<CompactedOfferLog> offerLogsFromCompaction = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(containerName, offset)) {
-            addCompactedLogsAscending(limit, logs, offerLogsFromCompaction);
+    private List<OfferLog> mergeAndResolveDuplicates(List<OfferLog> list1, List<OfferLog> list2, int limit) {
+
+        if (list1.isEmpty()) {
+            return list2;
+        }
+        if (list2.isEmpty()) {
+            return list1;
         }
 
-        if (logs.size() == limit) {
-            return logs;
-        }
+        // MergeSort algorithm with result limit
+        PeekingIterator<OfferLog> iterator1 = peekingIterator(list1.iterator());
+        PeekingIterator<OfferLog> iterator2 = peekingIterator(list2.iterator());
 
-        try (CloseableIterable<OfferLog> offerLogs = offerDatabaseService.getAscendingOfferLogsBy(containerName, getNextOffsetAscending(logs, offset), getLimit(logs, limit))) {
-            for (OfferLog log : offerLogs) {
-                logs.add(log);
+        List<OfferLog> results = new ArrayList<>();
+        while (results.size() < limit) {
+
+            boolean shouldTakeFromList1 = iterator1.hasNext() &&
+                (!iterator2.hasNext() || iterator1.peek().getSequence() <= iterator2.peek().getSequence());
+
+            boolean shouldTakeFromList2 = iterator2.hasNext() &&
+                (!iterator1.hasNext() || iterator1.peek().getSequence() >= iterator2.peek().getSequence());
+
+            if(shouldTakeFromList1 && shouldTakeFromList2) {
+                results.add(iterator1.next());
+                iterator2.next();
+            } else if(shouldTakeFromList1) {
+                results.add(iterator1.next());
+            } else if(shouldTakeFromList2) {
+                results.add(iterator2.next());
+            } else {
+                break;
             }
         }
-
-
-        if (logs.size() == limit) {
-            return logs;
-        }
-
-        try (CloseableIterable<CompactedOfferLog> offerLogsFromCompaction = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(containerName, getNextOffsetAscending(logs, offset))) {
-            addCompactedLogsAscending(limit, logs, offerLogsFromCompaction);
-        }
-
-        return logs;
+        return results;
     }
 
-    private int getLimit(List<OfferLog> logs, int limit) {
+    private int getRemainingLimit(List<OfferLog> logs, int limit) {
         return limit - logs.size();
     }
 
@@ -586,20 +622,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return offset;
     }
 
-    private void addCompactedLogsAscending(int limit, List<OfferLog> logs, Iterable<CompactedOfferLog> offerLogsFromCompaction) {
-        for (CompactedOfferLog compaction : offerLogsFromCompaction) {
-            for (OfferLog log : compaction.getLogs()) {
-                logs.add(log);
-                if (logs.size() >= limit) {
-                    return;
-                }
-            }
-        }
-    }
-
     public void checkOfferPath(String... paths) throws IOException {
         StorageProvider provider = StorageProvider.getStorageProvider(configuration.getProvider());
-        if(provider.hasStoragePath()) {
+        if (provider.hasStoragePath()) {
             SafeFileChecker.checkSafeFilePath(configuration.getStoragePath(), paths);
             return;
         }
@@ -609,8 +634,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public void compactOfferLogs() throws Exception {
         Stopwatch timer = Stopwatch.createStarted();
-        try (CloseableIterable<OfferLog> expiredOfferLogsByContainer = offerDatabaseService.getExpiredOfferLogByContainer(
-            offerLogCompactionConfig.getExpirationValue(), offerLogCompactionConfig.getExpirationUnit())) {
+        try (CloseableIterable<OfferLog> expiredOfferLogsByContainer = offerDatabaseService
+            .getExpiredOfferLogByContainer(
+                offerLogCompactionConfig.getExpirationValue(), offerLogCompactionConfig.getExpirationUnit())) {
             List<OfferLog> bulkToSend = new ArrayList<>();
 
             for (OfferLog offerLog : expiredOfferLogsByContainer) {

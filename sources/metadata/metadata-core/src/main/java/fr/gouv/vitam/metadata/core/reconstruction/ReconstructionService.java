@@ -603,6 +603,7 @@ public class ReconstructionService {
     private void preventAlreadyExistingGraphData(MetadataCollections collection,
         List<MetadataBackupModel> dataFromOffer) {
 
+        // TODO : Enhance deduplication algorithm (too complex / avoid costly List.removeAll(list))
         List<MetadataBackupModel> toRemove = new ArrayList<>();
         Map<String, MetadataBackupModel> dataMap = new HashMap<>();
 
