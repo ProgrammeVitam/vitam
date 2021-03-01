@@ -38,4 +38,4 @@
         port: "53"
         state: started
 
-  when:  consul_disabled is not defined or consul_disabled |lower != "true"
+  when: consul_disabled is not defined or consul_disabled |lower != "true"

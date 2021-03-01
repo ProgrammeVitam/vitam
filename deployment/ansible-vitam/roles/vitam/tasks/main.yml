@@ -300,7 +300,7 @@
     - reload consul configuration
 
 - include_tasks: remove_metrics.yml
-  when: vitam_struct.metrics_enabled |lower != "true"
+  when: metrics_enabled |lower != "true"
 
 - import_tasks: consul.yml
 

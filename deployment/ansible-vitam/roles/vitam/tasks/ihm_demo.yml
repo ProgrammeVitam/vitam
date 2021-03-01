@@ -10,4 +10,4 @@
   delay: "{{ packages_install_retries_delay }}"
   tags:
     - update_package_vitam
-  when:  vitam_struct.vitam_component == "ihm-demo"
+  when: vitam_struct.vitam_component == "ihm-demo"

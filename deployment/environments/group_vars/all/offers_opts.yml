@@ -1,29 +1,34 @@
 # This is the default vitam strategy ('default'). It is mandatory and must define a referent offer.
-# This list of offers is ordered. It can and has to be completed if more offers are necessary
+# This list of offers is ordered. It has to be completed if more offers are necessary
 # Strategy order (1st has to be the preferred one)
 vitam_strategy:
   - name: offer-fs-1
     referent: true
-#    id: idoffre # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
+
+# Optional params for each offers in vitam_strategy. If not set, the default values are applied.
+#    referent: false              # true / false (default), only one per site must be referent
+#    status: ACTIVE               # ACTIVE (default) / INACTIVE
+#    vitam_site_name: distant-dc2 # default is the value of vitam_site_name defined in your local inventory file, should be specified with the vitam_site_name defined for the distant offer
+#    distant: false               # true / false (default). If set to true, it will not check if the provider for this offer is correctly set
+#    id: idoffre                  # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
+#    asyncRead: false             # true / false (default). Should be set to true for tape offer only
+
+# Example for tape offer:
 # Tape offer mustn't be referent (referent: false) and should be configured as asynchrone read (asyncRead: true)
 #  - name: offer-tape-1
 #    referent: false
 #    asyncRead: true
-#    id: idoffre # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
-# status : enable (value=ACTIVE, default value) or disable (value=INACTIVE) this offer
-#    status: ACTIVE
-#    vitam_site_name: prod-dc2
-#  - name: offer-swift-1
-# Example :
+
+# Example distant offer:
 #  - name: distant
-#    referent: true
-#    status: INACTIVE
+#    referent: false
 #    vitam_site_name: distant-dc2
-#    id: idoffre # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
+#    distant: true # Only add this parameter when distant offer (not on same platform)
 
 # WARNING : multi-strategy is a BETA functionality
 # More strategies can be added but are optional
 # Strategy name must only use [a-z][a-z0-9-]* pattern
+# Any strategy must contain at least one offer
 # This list of offers is ordered. It can and has to be completed if more offers are necessary
 # Every strategy can define at most one referent offer.
 # other_strategies:
@@ -45,6 +50,7 @@ vitam_offers:
   offer-fs-1:
     # param can be filesystem-hash (recomended) or filesystem (not recomended)
     provider: filesystem-hash
+    ### Optional parameters
     # Offer log compaction
     offer_log_compaction:
       ## Expiration, here offer logs 21 days old will be compacted
@@ -57,6 +63,86 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
+################################################################################
+  offer-swift-1:
+    # provider : openstack-swift for v1 or openstack-swift-v3 for v3
+    provider: openstack-swift-v3
+    # swiftKeystoneAuthUrl : URL de connexion à keystone
+    swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
+    # swiftDomain : domaine OpenStack dans lequel l'utilisateur est enregistré
+    swiftDomain: domaine
+    # swiftUser : identifiant de l'utilisateur
+    swiftUser: utilisateur
+    # swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
+    # swiftProjectName : nom du projet openstack
+    swiftProjectName: monTenant
+    ### Optional parameters
+    # swiftUrl: optional variable to force the swift URL
+    # swiftUrl: https://swift-hostname:port/swift/v1
+    #SSL TrustStore
+    swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+    #Max connection (concurrent connections), per route, to keep in pool (if a pooling ConnectionManager is used) (optional, 200 by default)
+    swiftMaxConnectionsPerRoute: 200
+    #Max total connection (concurrent connections) to keep in pool (if a pooling ConnectionManager is used) (optional, 1000 by default)
+    swiftMaxConnections: 1000
+    #Max time (in milliseconds) for waiting to establish connection (optional, 200000 by default)
+    swiftConnectionTimeout: 200000
+    #Max time (in milliseconds) waiting for a data from the server (socket) (optional, 60000 by default)
+    swiftReadTimeout: 60000
+    #Time (in seconds) to renew a token before expiration occurs (blocking) (optional, 60 by default)
+    swiftHardRenewTokenDelayBeforeExpireTime: 60
+    #Time (in seconds) to renew a token before expiration occurs (optional, 300 by default)
+    swiftSoftRenewTokenDelayBeforeExpireTime: 300
+    # Offer log compaction
+    offer_log_compaction:
+      ## Expiration, here offer logs 21 days old will be compacted
+      expiration_value: 21
+      ## Choose one of "MILLENNIA", "HALF_DAYS", "MILLIS", "FOREVER", "MICROS", "CENTURIES", "DECADES", "YEARS", "DAYS", "SECONDS", "HOURS", "MONTHS", "WEEKS", "NANOS", "MINUTES", "ERAS"
+      expiration_unit: "DAYS"
+      ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
+      compaction_size: 10000
+    # Batch processing thread pool size
+    maxBatchThreadPoolSize: 32
+    # Batch metadata computation timeout in seconds
+    batchMetadataComputationTimeout: 600
+################################################################################
+  offer-s3-1:
+    # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
+    provider: 'amazon-s3-v1'
+    # s3Endpoint : URL of connection to S3
+    s3Endpoint: http://172.17.0.2:6007
+    ### Optional parameters
+    # s3RegionName (optional): Region name (default value us-east-1)
+    s3RegionName: us-west-1
+    # s3SignerType (optional): Signing algorithm.
+    #     - signature V4 : 'AWSS3V4SignerType' (default value)
+    #     - signature V2 : 'S3SignerType'
+    s3SignerType: AWSS3V4SignerType
+    # s3PathStyleAccessEnabled (optional): 'true' to access bucket in "path-style", else "virtual-hosted-style" (true by default)
+    s3PathStyleAccessEnabled: true
+    # s3MaxConnections (optional): Max total connection (concurrent connections) (50 by default)
+    s3MaxConnections: 1000
+    # s3ConnectionTimeout (optional): Max time (in milliseconds) for waiting to establish connection (10000 by default)
+    s3ConnectionTimeout: 200000
+    # s3SocketTimeout (optional): Max time (in milliseconds) for reading from a connected socket (50000 by default)
+    s3SocketTimeout: 50000
+    # s3RequestTimeout (optional): Max time (in milliseconds) for a request (0 by default, disabled)
+    s3RequestTimeout: 0
+    # s3ClientExecutionTimeout (optional): Max time (in milliseconds) for a request by java client (0 by default, disabled)
+    s3ClientExecutionTimeout: 0
+    # Offer log compaction
+    offer_log_compaction:
+      ## Expiration, here offer logs 21 days old will be compacted
+      expiration_value: 21
+      ## Choose one of "MILLENNIA", "HALF_DAYS", "MILLIS", "FOREVER", "MICROS", "CENTURIES", "DECADES", "YEARS", "DAYS", "SECONDS", "HOURS", "MONTHS", "WEEKS", "NANOS", "MINUTES", "ERAS"
+      expiration_unit: "DAYS"
+      ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
+      compaction_size: 10000
+    # Batch processing thread pool size
+    maxBatchThreadPoolSize: 32
+    # Batch metadata computation timeout in seconds
+    batchMetadataComputationTimeout: 600
+################################################################################
   offer-tape-1:
     provider: tape-library
     # Offer log compaction
@@ -71,85 +157,7 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
-  offer-swift-1:
-    # provider : openstack-swift for v1 or openstack-swift-v3 for v3
-    provider: openstack-swift-v3
-    # swiftKeystoneAuthUrl : URL de connexion à keystone
-    swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
-    # swiftDomain : domaine OpenStack dans lequel l'utilisateur est enregistré
-    swiftDomain: domaine
-    # swiftUser : identifiant de l'utilisateur
-    swiftUser: utilisateur
-    # swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
-    # swiftProjectName : nom du projet openstack
-    swiftProjectName: monTenant
-    # swiftUrl: optional variable to force the swift URL
-    # swiftUrl: https://swift-hostname:port/swift/v1
-    #SSL TrustStore
-    swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
-    #Max connection (concurrent connections), per route, to keep in pool (if a pooling ConnectionManager is used) (by default 2 for Apache HttpClient)
-    swiftMaxConnectionsPerRoute: 200
-    #Max total connection (concurrent connections) to keep in pool (if a pooling ConnectionManager is used) (by default 20 for Apache HttpClient)
-    swiftMaxConnections: 1000
-    #Max time (in milliseconds) for waiting to establish connection
-    swiftConnectionTimeout: 200000
-    #Max time (in milliseconds) waiting for a data from the server (socket)
-    swiftReadTimeout: 60000
-    #Time (in seconds) to renew a token before expiration occurs (blocking)
-    swiftHardRenewTokenDelayBeforeExpireTime: 60
-
-    #Time (in seconds) to renew a token before expiration occurs
-    swiftSoftRenewTokenDelayBeforeExpireTime: 300
-
-    # Offer log compaction
-    offer_log_compaction:
-      ## Expiration, here offer logs 21 days old will be compacted
-      expiration_value: 21
-      ## Choose one of "MILLENNIA", "HALF_DAYS", "MILLIS", "FOREVER", "MICROS", "CENTURIES", "DECADES", "YEARS", "DAYS", "SECONDS", "HOURS", "MONTHS", "WEEKS", "NANOS", "MINUTES", "ERAS"
-      expiration_unit: "DAYS"
-      ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
-      compaction_size: 10000
-    # Batch processing thread pool size
-    maxBatchThreadPoolSize: 32
-    # Batch metadata computation timeout in seconds
-    batchMetadataComputationTimeout: 600
-
-  # example_offer-s3-1:
-  #   # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
-  #   provider: 'amazon-s3-v1'
-  #   # s3Endpoint :  : URL of connection to S3
-  #   s3Endpoint: http://172.17.0.2:6007
-  #   # s3RegionName (optional):  Region name (default value us-east-1)
-  #   s3RegionName: us-west-1
-  #   # s3SignerType (optional):  Signing algorithm.
-  #   #     - signature V4 : 'AWSS3V4SignerType' (default value)
-  #   #     - signature V2 : 'S3SignerType'
-  #   s3SignerType: AWSS3V4SignerType
-  #   # s3PathStyleAccessEnabled (optional):  'true' to access bucket in "path-style", else "virtual-hosted-style" (false by default in java client, true by default in ansible scripts)
-  #   s3PathStyleAccessEnabled: true
-  #   # s3MaxConnections (optional): Max total connection (concurrent connections) (50 by default in java client, 1000 by default in ansible scripts)
-  #   s3MaxConnections: 1000
-  #   # s3ConnectionTimeout (optional): Max time (in milliseconds) for waiting to establish connection (10000 by default in java client, 200000 by default in ansible scripts)
-  #   s3ConnectionTimeout: 200000
-  #   # s3SocketTimeout (optional): Max time (in milliseconds) for reading from a connected socket (50000 by default)
-  #   s3SocketTimeout: 50000
-  #   # s3RequestTimeout (optional): Max time (in milliseconds) for a request (0 by default, disabled)
-  #   s3RequestTimeout: 0
-  #   # s3ClientExecutionTimeout (optional): Max time (in milliseconds) for a request by java client (0 by default, disabled)
-  #   s3ClientExecutionTimeout: 0
-  #   # Offer log compaction
-  #   offer_log_compaction:
-  #     ## Expiration, here offer logs 21 days old will be compacted
-  #     expiration_value: 21
-  #     ## Choose one of "MILLENNIA", "HALF_DAYS", "MILLIS", "FOREVER", "MICROS", "CENTURIES", "DECADES", "YEARS", "DAYS", "SECONDS", "HOURS", "MONTHS", "WEEKS", "NANOS", "MINUTES", "ERAS"
-  #     expiration_unit: "DAYS"
-  #     ## Compaction bulk size here 10 000 offers logs (at most) will be compacted (Expected value between 1 000 and 200 000)
-  #     compaction_size: 10000
-  #   # Batch processing thread pool size
-  #   maxBatchThreadPoolSize: 32
-  #   # Batch metadata computation timeout in seconds
-  #   batchMetadataComputationTimeout: 600
-
+################################################################################
   # example_swift_v1:
   #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
@@ -173,11 +181,11 @@ vitam_offers:
   #    swiftRegionName: related to OS_REGION_NAME
   #    swiftInterface: related to OS_INTERFACE
 
-  # swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
-  # swiftMaxConnectionsPerRoute: 200
-  # swiftMaxConnections: 1000
-  # swiftConnectionTimeout: 200000
-  # swiftReadTimeout: 60000
-  # Time (in seconds) to renew a token before expiration occurs
-  # swiftHardRenewTokenDelayBeforeExpireTime: 60
-  # swiftSoftRenewTokenDelayBeforeExpireTime: 300
+  #    swiftTrustStore: /chemin_vers_mon_fichier/monSwiftTrustStore.jks
+  #    swiftMaxConnectionsPerRoute: 200
+  #    swiftMaxConnections: 1000
+  #    swiftConnectionTimeout: 200000
+  #    swiftReadTimeout: 60000
+  #    Time (in seconds) to renew a token before expiration occurs
+  #    swiftHardRenewTokenDelayBeforeExpireTime: 60
+  #    swiftSoftRenewTokenDelayBeforeExpireTime: 300

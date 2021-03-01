@@ -218,17 +218,13 @@ dns_servers=["10.100.211.222", "8.8.8.8"]
 memory_opts="-Xms1024m -Xmx1024m"
 timer_memory_opts="-Xms64m -Xmx128m"
 
-### logback ###
-days_to_delete_logback_logfiles=30
-
-vitam_site_name=local
+vitam_site_name=small
 primary_site=true
 
 # ===============================
 # EXTRA
 # ===============================
 
-# environnement=local
 ### vitam-itest repository ###
 vitam_tests_branch=master_2.1.x
 vitam_tests_gitrepo_protocol=https
