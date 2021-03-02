@@ -27,92 +27,133 @@
 package fr.gouv.vitam.storage.offers.database;
 
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoIterable;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
-import fr.gouv.vitam.common.collection.CloseableIterable;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import org.bson.BsonDocument;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lte;
-import static fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog.CONTAINER;
-import static fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog.SEQUENCE_END;
-import static fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog.SEQUENCE_START;
 
 public class OfferLogCompactionDatabaseService {
+
+    private final static int COMPACTED_OFFER_LOG_BULK = 10;
+
     private final MongoCollection<Document> offerLogCompactionCollection;
 
     public OfferLogCompactionDatabaseService(MongoCollection<Document> offerLogCompactionCollection) {
         this.offerLogCompactionCollection = offerLogCompactionCollection;
     }
 
-    public CloseableIterable<CompactedOfferLog> getDescendingOfferLogCompactionBy(String containerName, Long offset) {
-        Bson searchFilterCompaction = offset != null
-            ? and(eq(CONTAINER, containerName), lte(SEQUENCE_END, offset))
-            : eq(CONTAINER, containerName);
+    public List<OfferLog> getDescendingOfferLogCompactionBy(String containerName, Long offset, int limit) {
 
-        Bson sequenceSort = Sorts.orderBy(Sorts.descending(SEQUENCE_END));
-        return toCloseableIterable(
-            offerLogCompactionCollection.find(searchFilterCompaction)
-                .sort(sequenceSort)
-                .map(this::transformDocumentToOfferLogCompaction)
-        );
+        List<OfferLog> results = new ArrayList<>();
+
+        int nextLimit = limit;
+        Long nextOffset = offset;
+        while (nextLimit > 0) {
+
+            if (!loadNextOfferLogsDescending(containerName, nextOffset, nextLimit, results)) {
+                // No more data
+                break;
+            }
+
+            nextLimit = limit - results.size();
+            nextOffset = results.get(results.size() - 1).getSequence() - 1;
+        }
+
+        return results;
     }
 
-    public CloseableIterable<CompactedOfferLog> getAscendingOfferLogCompactionBy(String containerName, Long offset) {
-        Bson searchFilterCompaction = offset != null
-            ? and(eq(CONTAINER, containerName), gte(SEQUENCE_START, offset))
-            : eq(CONTAINER, containerName);
+    private boolean loadNextOfferLogsDescending(String containerName, Long offset, int limit, List<OfferLog> results) {
 
-        Bson sequenceSort = Sorts.orderBy(Sorts.ascending(SEQUENCE_START));
-        return toCloseableIterable(
-            offerLogCompactionCollection.find(searchFilterCompaction)
-            .sort(sequenceSort)
-            .map(this::transformDocumentToOfferLogCompaction)
-        );
+        int lastSize = results.size();
+        try (MongoCursor<OfferLog> offerLogCursor = offerLogCompactionCollection.aggregate(Arrays.asList(
+            Aggregates.match(offset != null
+                ? and(eq(CompactedOfferLog.CONTAINER, containerName), lte(CompactedOfferLog.SEQUENCE_START, offset))
+                : eq(CompactedOfferLog.CONTAINER, containerName)),
+            Aggregates.sort(Sorts.orderBy(Sorts.descending(CompactedOfferLog.SEQUENCE_START))),
+            Aggregates.limit(COMPACTED_OFFER_LOG_BULK),
+            Aggregates.project(Projections.fields(
+                new Document("_id", 0),
+                new Document(CompactedOfferLog.LOGS, new Document("$reverseArray", "$" + CompactedOfferLog.LOGS))
+            )),
+            Aggregates.unwind("$" + CompactedOfferLog.LOGS),
+            Aggregates.match(offset != null
+                ? lte(CompactedOfferLog.LOGS + "." + OfferLog.SEQUENCE, offset)
+                : new BsonDocument()
+            ),
+            Aggregates.limit(limit),
+            Aggregates.replaceWith("$" + CompactedOfferLog.LOGS)
+        )).map(this::transformDocumentToOfferLog)
+            .cursor()) {
+            offerLogCursor.forEachRemaining(results::add);
+        }
+        return results.size() != lastSize;
     }
 
-    private CompactedOfferLog transformDocumentToOfferLogCompaction(Document document) {
+    public List<OfferLog> getAscendingOfferLogCompactionBy(String containerName, Long offset, int limit) {
+
+        List<OfferLog> results = new ArrayList<>();
+
+        int nextLimit = limit;
+        Long nextOffset = offset;
+        while (nextLimit > 0) {
+
+            if (!loadNextOfferLogsAscending(containerName, nextOffset, nextLimit, results)) {
+                // No more data
+                break;
+            }
+
+            nextLimit = limit - results.size();
+            nextOffset = results.get(results.size() - 1).getSequence() + 1;
+        }
+
+        return results;
+    }
+
+    public boolean loadNextOfferLogsAscending(String containerName, Long offset, int limit, List<OfferLog> results) {
+
+        int lastSize = results.size();
+        try (MongoCursor<OfferLog> offerLogCursor = offerLogCompactionCollection.aggregate(Arrays.asList(
+            Aggregates.match(offset != null
+                ? and(eq(CompactedOfferLog.CONTAINER, containerName), gte(CompactedOfferLog.SEQUENCE_END, offset))
+                : eq(CompactedOfferLog.CONTAINER, containerName)),
+            Aggregates.sort(Sorts.orderBy(Sorts.ascending(CompactedOfferLog.SEQUENCE_END))),
+            Aggregates.limit(COMPACTED_OFFER_LOG_BULK),
+            Aggregates.unwind("$" + CompactedOfferLog.LOGS),
+            Aggregates.match(offset != null
+                ? gte(CompactedOfferLog.LOGS + "." + OfferLog.SEQUENCE, offset)
+                : new BsonDocument()
+            ),
+            Aggregates.limit(limit),
+            Aggregates.replaceWith("$" + CompactedOfferLog.LOGS)
+        )).map(this::transformDocumentToOfferLog)
+            .cursor()) {
+            offerLogCursor.forEachRemaining(results::add);
+        }
+        return results.size() != lastSize;
+    }
+
+    private OfferLog transformDocumentToOfferLog(Document document) {
         try {
-            return JsonHandler.getFromString(BsonHelper.stringify(document), CompactedOfferLog.class);
+            return JsonHandler.getFromString(BsonHelper.stringify(document), OfferLog.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }
-    }
-
-    private CloseableIterable<CompactedOfferLog> toCloseableIterable(MongoIterable<CompactedOfferLog> mongoIterable) {
-        return new CloseableIterable<>() {
-            @Override
-            public Iterator<CompactedOfferLog> iterator() {
-                return mongoIterable.iterator();
-            }
-
-            @Override
-            public void forEach(Consumer<? super CompactedOfferLog> action) {
-                mongoIterable.forEach(action);
-            }
-
-            @Override
-            public Spliterator<CompactedOfferLog> spliterator() {
-                return mongoIterable.spliterator();
-            }
-
-            @Override
-            public void close() {
-                mongoIterable.cursor()
-                    .close();
-            }
-        };
     }
 }

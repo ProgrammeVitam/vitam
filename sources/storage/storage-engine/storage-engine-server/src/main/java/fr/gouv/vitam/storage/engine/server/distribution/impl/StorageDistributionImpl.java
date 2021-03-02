@@ -1115,6 +1115,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         if (StringUtils.isBlank(offerId)) {
 
+            // FIXME : Only select data from referent offer
+            //  Fetching data from non referent offers may resolve incomplete/old results (data read from incomplete
+            //  offer) OR might leaks performance problems for deleted/eliminated data (all offers will be queried)
             final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
             List<StorageOffer> collect = offerReferences.stream()

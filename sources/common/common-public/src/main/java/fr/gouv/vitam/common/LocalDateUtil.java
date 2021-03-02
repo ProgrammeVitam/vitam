@@ -26,9 +26,14 @@
  */
 package fr.gouv.vitam.common;
 
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -40,12 +45,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalUnit;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * LocalDateTime utilities
@@ -74,6 +74,8 @@ public final class LocalDateUtil {
     private static final DateTimeFormatter INDEX_DATE_TIME_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     public static final String LONG_SECOND_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+
+    private static Clock clock = Clock.systemUTC();
 
     private LocalDateUtil() {
         // empty
@@ -107,7 +109,7 @@ public final class LocalDateUtil {
      * @return the LocalDateTime now in UTC
      */
     public static LocalDateTime now() {
-        return LocalDateTime.now(ZoneOffset.UTC)
+        return LocalDateTime.now(clock)
             .truncatedTo(ChronoUnit.MILLIS);
     }
 
@@ -233,7 +235,7 @@ public final class LocalDateUtil {
      */
     public static LocalDate getLocalDateFromSimpleFormattedDate(String date) {
         if (date == null) {
-            return LocalDate.now(ZoneOffset.UTC);
+            return LocalDate.now(clock);
         }
         return LocalDate.parse(date, DateTimeFormatter.ofPattern(SIMPLE_DATE_FORMAT));
     }
@@ -333,4 +335,23 @@ public final class LocalDateUtil {
             .toFormatter()
             .withZone(ZoneOffset.UTC);
     }
+    public static long currentTimeMillis() {
+        return clock.millis();
+    }
+
+    @VisibleForTesting
+    public static Clock getClock() {
+        return clock;
+    }
+
+    @VisibleForTesting
+    public static void setClock(Clock clock) {
+        LocalDateUtil.clock = clock;
+    }
+
+    @VisibleForTesting
+    public static void resetClock() {
+        LocalDateUtil.clock = Clock.systemUTC();
+    }
+
 }
