@@ -1,6 +1,9 @@
 ---
 
-- include_tasks: grafana_server_enabled.yml
+- include_tasks: "{{ item }}"
+  loop:
+    - grafana_server_enabled.yml
+    - provisionning.yml
   when: grafana.enabled == true
 
 - include_tasks: grafana_server_disabled.yml

@@ -178,7 +178,25 @@ prometheus:
 grafana:
     enabled: false
     check_consul: 10 # in seconds
+    host: "{{ groups['grafana']|first }}"
     http_port: 13000
+    grafana_datasources:
+      - name: "prometheus"
+        type: "prometheus"
+        access: "proxy"
+        url: "http://{{ groups['hosts_prometheus']|first }}:19090/prometheus"
+        basicAuth: "true"
+    grafana_dashboards:
+      - name: 'vitam-dashboard'
+        orgId: 1
+        folder: ''
+        folderUid: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: "/etc/grafana/provisioning/dashboards"
 
 # Curator units: days
 curator:

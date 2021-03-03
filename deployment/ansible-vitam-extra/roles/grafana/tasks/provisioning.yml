@@ -1,0 +1,35 @@
+---
+
+- name: Create Grafana Datasources provisioning file
+  template:
+    src: datasources.yml.j2
+    dest: "{{ grafana_path_provisioning }}/datasources/datasources.yml"
+    owner: "root"
+    group: "{{ grafana_group }}"
+    mode: 0640
+  notify: restart grafana
+
+- name: Copy dashboard json file to provisioning dashboard folder
+  copy:
+    src: vitam_standard_dashboard.json
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    owner: "root"
+    group: "{{ grafana_group }}"
+    mode: 0640
+
+- name: Set the correct data source name in the dashboard
+  replace:
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    regexp: '"(?:\${)?DS_[A-Z0-9_-]+(?:})?"'
+    replace: '"prometheus"'
+  changed_when: false
+  when: grafana.grafana_dashboards | length > 0
+
+- name: Create Grafana Dashboard provisioning file
+  template:
+    src: dashboards.yml.j2
+    dest: "{{ grafana_path_provisioning }}/dashboards/dashboards.yml"
+    owner: "root"
+    group: "{{ grafana_group }}"
+    mode: 0640
+  notify: restart grafana
