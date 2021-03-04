@@ -1,7 +1,7 @@
 {
     "__inputs": [
       {
-        "name": "DS_PROMETHEUS_ALERTMANAGER",
+        "name": "DS_ALERTMANAGER",
         "label": "Prometheus AlertManager",
         "description": "",
         "type": "datasource",
@@ -144,7 +144,7 @@
     "panels": [
       {
         "cacheTimeout": null,
-        "datasource": "${DS_PROMETHEUS_ALERTMANAGER}",
+        "datasource": "${DS_ALERTMANAGER}",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -227,7 +227,7 @@
       },
       {
         "cacheTimeout": null,
-        "datasource": "${DS_PROMETHEUS_ALERTMANAGER}",
+        "datasource": "${DS_ALERTMANAGER}",
         "fieldConfig": {
           "defaults": {
             "custom": {},
@@ -309,7 +309,7 @@
       },
       {
         "cacheTimeout": null,
-        "datasource": "${DS_PROMETHEUS_ALERTMANAGER}",
+        "datasource": "${DS_ALERTMANAGER}",
         "fieldConfig": {
           "defaults": {
             "custom": {},
@@ -490,7 +490,7 @@
       },
       {
         "cacheTimeout": null,
-        "datasource": "${DS_PROMETHEUS_ALERTMANAGER}",
+        "datasource": "${DS_ALERTMANAGER}",
         "fieldConfig": {
           "defaults": {
             "custom": {},
@@ -572,7 +572,7 @@
       },
       {
         "cacheTimeout": null,
-        "datasource": "${DS_PROMETHEUS_ALERTMANAGER}",
+        "datasource": "${DS_ALERTMANAGER}",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -654,7 +654,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_PROMETHEUS_ALERTMANAGER}",
+        "datasource": "${DS_ALERTMANAGER}",
         "fieldConfig": {
           "defaults": {
             "custom": {

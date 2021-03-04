@@ -176,16 +176,29 @@ prometheus:
         api_port: 19093
         cluster_port: 19094
 grafana:
-    enabled: false
+    enabled: true
     check_consul: 10 # in seconds
     host: "{{ groups['grafana']|first }}"
     http_port: 13000
     grafana_datasources:
-      - name: "prometheus"
+      - name: "Prometheus"
         type: "prometheus"
         access: "proxy"
         url: "http://{{ groups['hosts_prometheus']|first }}:19090/prometheus"
         basicAuth: "true"
+        editable: false
+      - name: "Prometheus AlertManager"
+        type: "camptocamp-prometheus-alertmanager-datasource"
+        access: "proxy"
+        url: "http://{{ groups['hosts_alertmanager']|first }}:19093"
+        basicAuth: "true"
+        jsonData:
+          keepCookies: "[]"
+          severity_critical: "4"
+          severity_high: "3"
+          severity_warning: "2"
+          severity_info: "1"
+        editable: true
     grafana_dashboards:
       - name: 'vitam-dashboard'
         orgId: 1
@@ -197,6 +210,8 @@ grafana:
         allowUiUpdates: true
         options:
           path: "/etc/grafana/provisioning/dashboards"
+    grafana_plugins:
+      - "camptocamp-prometheus-alertmanager-datasource"
 
 # Curator units: days
 curator:

@@ -9,7 +9,7 @@
     mode: 0640
   notify: restart grafana
 
-- name: Copy dashboard json file to provisioning dashboard folder
+- name: Copy vitam dashboard json file to provisioning dashboard folder
   copy:
     src: vitam_standard_dashboard.json
     dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
@@ -17,11 +17,19 @@
     group: "{{ grafana_group }}"
     mode: 0640
 
-- name: Set the correct data source name in the dashboard
+- name: Set the correct data source name in the dashboard for prometheus
   replace:
     dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
-    regexp: '"(?:\${)?DS_[A-Z0-9_-]+(?:})?"'
-    replace: '"prometheus"'
+    regexp: '"(?:\${)?DS_PROMETHEUS+(?:})?"'
+    replace: '"Prometheus"'
+  changed_when: false
+  when: grafana.grafana_dashboards | length > 0
+
+- name: Set the correct data source name in the dashboard for alertmanager
+  replace:
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    regexp: '"(?:\${)?DS_ALERTMANAGER+(?:})?"'
+    replace: '"Prometheus AlertManager"'
   changed_when: false
   when: grafana.grafana_dashboards | length > 0
 
