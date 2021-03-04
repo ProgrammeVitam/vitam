@@ -8,6 +8,7 @@ disable_internet_repositories_install: false
 droid_filename: "DROID_SignatureFile_V97.xml"
 droid_container_filename: "container-signature-20201001.xml"
 
+# The global defaults parameters for vitam & vitam components
 vitam_defaults:
     folder:
         root_path: /vitam
@@ -29,16 +30,48 @@ vitam_defaults:
         api_long_call_timeout: 300
         status_retries_number: 60
         status_retries_delay: 5
-    # Filter for the vitam package version to install
-    # FIXME : commented as has to be removed becuase doesn't work under Debain
-    #package_version: "*"
-    ### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false) ###
+### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
     vitam_ssl_user_header: true
-    ### Force chunk mode : set true if chunk header should be checked
+### Force chunk mode : set true if chunk header should be checked
     vitam_force_chunk_mode: false
     # syslog_facility
     syslog_facility: local0
-    # Configuration of log for reconstruction services (INFO or DEBUG for active logs). Logs will be present only on secondary site.
+
+################################################################################
+### Default Components parameters
+### Uncomment them if you want to update the default value applied on all components
+
+### Ontology cache settings (max entries in cache & retention timeout in seconds)
+    # ontologyCacheMaxEntries: 100
+    # ontologyCacheTimeoutInSeconds: 300
+### Elasticsearch scroll timeout in milliseconds settings
+    # elasticSearchScrollTimeoutInMilliseconds: 300000
+
+### The following values can be overwritten for each components in vitam: parameters.
+    jvm_log: false
+    performance_logger: false
+
+    # consul_business_check: 10 # value in seconds
+    # consul_admin_check: 10 # value in seconds
+
+    # metricslevel: DEBUG
+    # metricsinterval: 3
+    # metricsunit: MINUTES
+
+    # access_retention_days: 30 # Number of days for file retention
+    # access_total_size_cap: "10GB" # total acceptable size
+    # logback_max_file_size: "10MB"
+    # logback_total_size_cap:
+    #   file:
+    #     history_days: 30
+    #     totalsize: "5GB"
+    #   security:
+    #     history_days: 30
+    #     totalsize: "5GB"
+
+### Logs configuration for reconstruction services (INFO or DEBUG for active logs).
+### Logs will be present only on secondary site.
+### Available for the following components: logbook, metadata & functional-administration.
     reconstruction:
         log_level: INFO
 
@@ -144,13 +177,15 @@ vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administ
 vitam_griffins: []
 
 ### Composants Vitam ###
-
 vitam:
-    # Ontology cache settings (max entries in cache & retention timeout in seconds)
-    ontologyCacheMaxEntries: 100
-    ontologyCacheTimeoutInSeconds: 300
-    # Elasticsearch scroll timeout in milliseconds settings
-    elasticSearchScrollTimeoutInMilliseconds: 300000
+### All available parameters for each components are described in the vitam_defaults variable
+
+### Example
+  # component:
+  #    logback_rolling_policy: true
+  ## Force the log level for this component. Available logback values are (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
+  ## If this var is not set, the default one will be used (vitam_defaults.services.log_level)
+  #    log_level: "DEBUG"
 
     accessexternal:
         # Component name: do not modify
@@ -164,29 +199,6 @@ vitam:
         https_enabled: true
         # Use platform secret for this component ? : do not modify
         secret_platform: "false"
-        # Force the log level for this component: this are logback values (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
-        # If this var is not set, the default one will be used (vitam_defaults.services.log_level)
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -195,27 +207,6 @@ vitam:
         baseuri: "access-internal"
         https_enabled: false
         secret_platform: "true"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -225,27 +216,6 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
         # Number of AccessionRegisterSymbolic creation threads that can be run in parallel.
         accessionRegisterSymbolicThreadPoolSize: 16
         # Number of rule audit threads that can be run in parallel.
@@ -259,27 +229,6 @@ vitam:
         https_enabled: false
         secret_platform: "false"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     batchreport:
         vitam_component: batch-report
         host: "batch-report.service.{{ consul_domain }}"
@@ -288,27 +237,6 @@ vitam:
         baseuri: "batchreport"
         https_enabled: false
         secret_platform: "false"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
@@ -330,31 +258,10 @@ vitam:
         fail_dir: "/vitam/data/ingest-external/upload/failure"
         # Action done to file after local ingest (see below for further information)
         upload_final_action: "MOVE"
-        # log_level: "DEBUG"
         # upload_final_action can be set to three different values (lower or upper case does not matter)
         #   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
         #   DELETE : After upload, the local file will be deleted if the upload succeeded
         #   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -363,27 +270,6 @@ vitam:
         baseuri: "ingest"
         https_enabled: false
         secret_platform: "true"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     ihm_demo:
         vitam_component: ihm-demo
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -393,6 +279,7 @@ vitam:
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
         baseuri: "ihm-demo"
         https_enabled: true
+        # metrics_enabled: false # Set to false if ihm_demo component is outside the Vitam area (default: true)
         secret_platform: "false"
         # User session timeout in milliseconds (for shiro)
         session_timeout: 1800000
@@ -411,7 +298,6 @@ vitam:
             # - x509Realm
             - iniRealm
             # - ldapRealm
-        # log_level: "DEBUG"
         allowedMediaTypes:
             - type: "application"
               subtype: "pdf"
@@ -421,26 +307,6 @@ vitam:
               subtype: "jpeg"
             - type: "image"
               subtype: "tiff"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -476,27 +342,6 @@ vitam:
         lifecycleTraceabilityMaxRenewalDelayUnit: MINUTES
         # Max entries selected per (Unit or Object Group) LFC traceability operation
         lifecycleTraceabilityMaxEntries: 100000
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -506,22 +351,6 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
         archiveUnitProfileCacheMaxEntries: 100
         archiveUnitProfileCacheTimeoutInSeconds: 300
@@ -531,11 +360,6 @@ vitam:
         # DIP cleanup delay (in minutes)
         dipTimeToLiveInMinutes: 10080 # 7 days
         transfersSIPTimeToLiveInMinutes: 10080 # 7 days
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
         elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
         #### Audit data consistency MongoDB-ES ####
         isDataConsistencyAuditRunnable: false
@@ -548,29 +372,8 @@ vitam:
         baseuri: "processing"
         https_enabled: false
         secret_platform: "true"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
         maxDistributionInMemoryBufferSize: 100000
         maxDistributionOnDiskBufferSize: 100000000
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -579,27 +382,6 @@ vitam:
         baseuri: "security-internal"
         https_enabled: false
         secret_platform: "true"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -621,35 +403,15 @@ vitam:
         offerSyncFirstAttemptWaitingTime: 15
         offerSyncWaitingTime: 30
         offerSyncThreadPoolSize: 32
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
           offersync:
             history_days: 30
             totalsize: "5GB"
           offerdiff:
             history_days: 30
             totalsize: "5GB"
-        jvm_log: false
         # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer (if the calculated result is less than 60s, this time is used)
         timeoutMsPerKB: 100
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -657,33 +419,13 @@ vitam:
         baseuri: "offer"
         https_enabled: false
         secret_platform: "true"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
         logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
           offer_tape:
             history_days: 30
             totalsize: "5GB"
           offer_tape_backup:
             history_days: 30
             totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     worker:
         vitam_component: worker
         host: "worker.service.{{ consul_domain }}"
@@ -692,22 +434,6 @@ vitam:
         baseuri: "worker"
         https_enabled: false
         secret_platform: "true"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
         api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
         rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
@@ -724,11 +450,6 @@ vitam:
         bulkAtomicUpdateThreadPoolSize: 8
         # Number of jobs that can be queued in memory before blocking for bulk atomic update
         bulkAtomicUpdateThreadPoolQueueSize: 16
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -737,27 +458,6 @@ vitam:
         baseuri: "workspace"
         https_enabled: false
         secret_platform: "true"
-        # log_level: "DEBUG"
-        metrics_enabled: true
-        logback_rolling_policy: true
-        logback_max_file_size: "10MB"
-        logback_total_size_cap:
-          file:
-            history_days: 30
-            totalsize: "5GB"
-          security:
-            history_days: 30
-            totalsize: "5GB"
-        jvm_log: false
-        performance_logger: "false"
-        reconstruction:
-        consul_check_business: 10 # value in seconds
-        consul_admin_check: 10 # value in seconds
-        # metricslevel: DEBUG
-        # metricsinterval: 3
-        # metricsunit: MINUTES
-        access_retention_days: 15 # Number of days for file retention
-        access_total_size_cap: "14GB" # total acceptable size
 
 # for functional-administration, manage master/slave tenant configuration
 vitam_tenants_usage_external:

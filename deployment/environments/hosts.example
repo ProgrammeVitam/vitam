@@ -160,7 +160,7 @@ hosts_mongodb_offer
 
 [hosts_storage_offer_default]
 # TODO: Put here servers where this service will be deployed : storage-offer-default
-# LIMIT : only 1 offer per machine 
+# LIMIT : only 1 offer per machine
 # LIMIT and 1 machine per offer when filesystem or filesystem-hash provider
 # Possibility to declare multiple machines with same provider only when provider is s3 or swift.
 # Mandatory param for each offer is offer_conf and points to offer_opts.yml & vault-vitam.yml (with same tree)
@@ -349,28 +349,22 @@ ansible_become=true
 
 # Related to Consul ; apply in a table your DNS server(s)
 # Example : dns_servers=["8.8.8.8","8.8.4.4"]
-# If no recursors, use : dns_servers=
+# If no dns recursors are available, leave this value empty.
 dns_servers=
-
-### Logback configuration ###
-# Days before deleting logback log files (java & access logs for vitam components)
-days_to_delete_logback_logfiles=
 
 # Define local Consul datacenter name
 # CAUTION !!! Only alphanumeric characters when using s3 as offer backend !!!
 vitam_site_name=prod-dc1
-# On offer, value is the prefix for all containers' names. If upgrading from R8, you MUST UNCOMMENT this parameter AS IS !!!
+
+# On offer, value is the prefix for all container's names. If upgrading from R8, you MUST UNCOMMENT this parameter AS IS !!!
 #vitam_prefix_offer=""
-# EXAMPLE : vitam_site_name = prod-dc1
+
 # check whether on primary site (true) or secondary (false)
 primary_site=true
-
 
 # ===============================
 # EXTRA
 # ===============================
-# Environment (defines title in extra on reverse homepage). Variable is DEPRECATED !
-#environnement=
 
 ### vitam-itest repository ###
 vitam_tests_branch=master

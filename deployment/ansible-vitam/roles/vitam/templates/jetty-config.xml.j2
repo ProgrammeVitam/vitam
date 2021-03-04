@@ -60,36 +60,34 @@
         <Set name="sendDateHeader">false</Set>
         <Set name="headerCacheSize">512</Set>
 
-        <!-- Uncomment to enable handling of X-Forwarded- style headers
-        <Call name="addCustomizer">
+        <!-- Uncomment to enable handling of X-Forwarded- style headers -->
+        <!-- <Call name="addCustomizer">
           <Arg><New class="org.eclipse.jetty.server.ForwardedRequestCustomizer"/></Arg>
-        </Call>
-        -->
+        </Call> -->
+
     </New>
 
-    <!-- ======================== Original Connector =============================== -->
-    <!-- <Call name="addConnector">								-->
-    <!--     <Arg>										-->
-    <!--         <New class="org.eclipse.jetty.server.ServerConnector">				-->
-    <!--             <Arg name="server"><Ref refid="Server" /></Arg>				-->
-    <!--             <Arg name="factories">							-->
-    <!--                 <Array type="org.eclipse.jetty.server.ConnectionFactory">		-->
-    <!--                     <Item>								-->
-    <!--                         <New class="org.eclipse.jetty.server.HttpConnectionFactory">	-->
-    <!--                             <Arg name="config"><Ref refid="httpConfig" /></Arg>	-->
-    <!--                         </New>								-->
-    <!--                     </Item>								-->
-    <!--                 </Array>								-->
-    <!--             </Arg>									-->
-    <!--             <Set name="port">{{ vitam_struct.port_service }}</Set>					-->
-    <!--             <Set name="idleTimeout">							-->
-    <!--                 <Property name="http.timeout" default="{{ vitam_defaults.services.port_service_timeout }}"/>	-->
-    <!--             </Set>									-->
-    <!--         </New>										-->
-    <!--     </Arg>										-->
-    <!-- </Call>										-->
-
-
+    <!-- ======================= Original Connector ======================= -->
+    <!-- <Call name="addConnector">
+        <Arg>
+            <New class="org.eclipse.jetty.server.ServerConnector">
+                <Arg name="server"><Ref refid="Server" /></Arg>
+                <Arg name="factories">
+                    <Array type="org.eclipse.jetty.server.ConnectionFactory">
+                        <Item>
+                            <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                                <Arg name="config"><Ref refid="httpConfig" /></Arg>
+                            </New>
+                        </Item>
+                    </Array>
+                </Arg>
+                <Set name="port">{{ vitam_struct.port_service }}</Set>
+                <Set name="idleTimeout">
+                    <Property name="http.timeout" default="{{ vitam_defaults.services.port_service_timeout }}"/>
+                </Set>
+            </New>
+        </Arg>
+    </Call> -->
 
     <!-- =========================================================== -->
     <!-- Set the default handler structure for the Server            -->
@@ -210,14 +208,14 @@
         <Set name="port">
             <SystemProperty name="jetty.port" default="{{ vitam_struct.port_service }}"/>
         </Set>
-	<Set name="name">business</Set>
+        <Set name="name">business</Set>
     </New>
 
 {% else %}
 
     <!-- =========================================================== -->
-    <!-- Connector for API business            			     -->
-    <!-- Attach all ContextHanlder except Admin			     -->
+    <!-- Connector for API business                                  -->
+    <!-- Attach all ContextHanlder except Admin                      -->
     <!-- =========================================================== -->
 
     <New id="businessConnector" class="org.eclipse.jetty.server.ServerConnector">
@@ -233,7 +231,7 @@
         </Arg>
         <Set name="host">{{ ip_service }}</Set>
         <Set name="port">{{ vitam_struct.port_service }}</Set>
-	<Set name="name">business</Set>
+        <Set name="name">business</Set>
         <Set name="idleTimeout">
             <Property name="http.timeout" default="{{ vitam_defaults.services.port_service_timeout }}"/>
         </Set>
@@ -242,8 +240,8 @@
 {% endif %}
 
     <!-- =========================================================== -->
-    <!-- Connector for API Admin            			     -->
-    <!-- Attach all ContextHanlder				     -->
+    <!-- Connector for API Admin                                     -->
+    <!-- Attach all ContextHanlder                                   -->
     <!-- =========================================================== -->
 
     <New id="adminConnector" class="org.eclipse.jetty.server.ServerConnector">
@@ -259,14 +257,11 @@
         </Arg>
         <Set name="host">{{ ip_admin }}</Set>
         <Set name="port">{{ vitam_struct.port_admin }}</Set>
-	<Set name="name">admin</Set>
+        <Set name="name">admin</Set>
         <Set name="idleTimeout">
             <Property name="http.timeout" default="{{ vitam_defaults.services.port_service_timeout }}"/>
         </Set>
     </New>
-
-
-
 
     <Call name="setConnectors">
         <Arg>

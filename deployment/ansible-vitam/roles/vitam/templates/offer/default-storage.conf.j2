@@ -28,7 +28,7 @@ s3Endpoint: {{ vitam_offers[offer_conf]["s3Endpoint"] }}
 s3AccessKey: {{ vitam_offers[offer_conf]["s3AccessKey"] }}
 s3SecretKey: {{ vitam_offers[offer_conf]["s3SecretKey"] }}
 s3PathStyleAccessEnabled: {{ vitam_offers[offer_conf]["s3PathStyleAccessEnabled"] | default(true) }}
-s3SignerType: {{ vitam_offers[offer_conf]["s3SignerType"] | default("") }}
+s3SignerType: {{ vitam_offers[offer_conf]["s3SignerType"] | default("AWSS3V4SignerType") }}
 s3MaxConnections: {{ vitam_offers[offer_conf]["s3MaxConnections"] | default(50) }}
 s3ConnectionTimeout: {{ vitam_offers[offer_conf]["s3ConnectionTimeout"] | default(10000) }}
 s3SocketTimeout: {{ vitam_offers[offer_conf]["s3SocketTimeout"] | default(50000) }}

@@ -3,8 +3,8 @@ jettyConfig: jetty-config.xml
 authentication: false
 tenantFilter : true
 antiVirusScriptName: scan-{{ vitam_struct.antivirus }}.sh
-timeoutScanDelay: {{ vitam_struct.scantimeout|default(60000) }}
-baseUploadPath: {{ vitam_struct.upload_dir }}
-successfulUploadDir: {{ vitam_struct.success_dir }}
-failedUploadDir: {{ vitam_struct.fail_dir }}
-fileActionAfterUpload: {{ vitam_struct.upload_final_action}}
+timeoutScanDelay: {{ vitam_struct.scantimeout | default(60000) }}
+baseUploadPath: {{ vitam_struct.upload_dir | default('/vitam/data/ingest-external/upload') }}
+successfulUploadDir: {{ vitam_struct.success_dir | default('/vitam/data/ingest-external/upload/success') }}
+failedUploadDir: {{ vitam_struct.fail_dir | default('/vitam/data/ingest-external/upload/failure') }}
+fileActionAfterUpload: {{ vitam_struct.upload_final_action | default('MOVE') }}
