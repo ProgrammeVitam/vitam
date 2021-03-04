@@ -12,7 +12,7 @@ Les principes d'implémentation applicative ont pour but de faciliter, voire d'a
 * Couplage lâche entre les composants ;
 * Nécessité de pouvoir disposer de composants de générations différentes rendant un même service ;
 * Usage d’:term:`API` :term:`REST` pour la communication entre composants internes à :term:`VITAM`, ainsi qu'en extrême majorité pour les services exposés à l'extérieur ;
-* Exploitabilité de la solution : limiter le coût d’entrée et de maintenance en : 
+* Exploitabilité de la solution : limiter le coût d’entrée et de maintenance en :
 
     - Intégrant un outillage favorisant le déploiement et les mises à jour de la plateforme ;
     - Intégrant les éléments nécessaires pour l’exploiter (supervision, sauvegarde, ordonnancement) ;
@@ -22,7 +22,7 @@ Les principes d'implémentation applicative ont pour but de faciliter, voire d'a
 Services
 ========
 
-La solution logicielle :term:`VITAM` est découpée en services autonomes interagissant pour permettre de rendre le service global ; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle. 
+La solution logicielle :term:`VITAM` est découpée en services autonomes interagissant pour permettre de rendre le service global ; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle.
 
 Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants qui sont en jaune, sont fournis dans le cadre de la solution logicielle VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ``ihm-demo`` et ``storage-offer-default`` (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle :term:`VITAM`.
 
@@ -30,26 +30,26 @@ Les schémas suivants présentent l'architecture applicative et les flux d'infor
 .. figure:: images/vitam-applicative-architecture-legend.*
     :align: center
 
-    Architecture applicative : légende 
+    Architecture applicative : légende
 
 
 .. figure:: images/vitam-applicative-architecture-datacmd.*
     :align: center
     :height: 10 cm
 
-    Architecture applicative : flux de données d'archives et de commandes    
+    Architecture applicative : flux de données d'archives et de commandes
 
 .. figure:: images/vitam-applicative-architecture-logbook.*
     :align: center
     :height: 10 cm
 
-    Architecture applicative : flux de données de journalisation   
- 
+    Architecture applicative : flux de données de journalisation
+
 .. figure:: images/vitam-applicative-architecture-ref.*
     :align: center
     :height: 10 cm
 
-    Architecture applicative : flux de données de référentiels    
+    Architecture applicative : flux de données de référentiels
 
 
 
@@ -73,7 +73,7 @@ Détail des flux d'information métier
 
 On distingue globalement 4 types de flux de données différents :
 
-* Les flux de données d'archives : ils  portent les informations métiers associées aux contenus des archives (données stockées ou métadonnées associées) ;
+* Les flux de données d'archives : ils portent les informations métiers associées aux contenus des archives (données stockées ou métadonnées associées) ;
 * Les flux de commandes : ils portent les demandes d'exécution de traitement d'archives et l'état de ces exécutions (et comprennent donc notamment les notifications de fin d'exécution de ces traitements) ;
 * Les flux de journaux : ils portent les journaux d'évènements (traces probantes des actions réalisées sur les archives) ;
 * Les flux de référentiels : ils portent les informations des référentiels hébergés au sein de :term:`VITAM` (référentiels des formats, des contrats, ...)
@@ -84,5 +84,4 @@ On distingue globalement 4 types de flux de données différents :
 Données métier
 ==============
 
-Le modèle de donnés métier est décrit dans `un document dédié <http://www.programmevitam.fr/ressources/DocCourante/html/data-model>`_ . 
-
+Le modèle de donnés métier est décrit dans `un document dédié <http://www.programmevitam.fr/ressources/DocCourante/html/data-model>`_ .

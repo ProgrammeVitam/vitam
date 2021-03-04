@@ -14,4 +14,3 @@
 - name: Compute all offers (with offer configuration from vitam_offer by default)
   set_fact:
     all_used_offers: "{{ vitam_strategy + other_strategy_offers_list }}"
-

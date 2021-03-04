@@ -1,171 +1,171 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<!-- Send debug messages to System.out -->
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-		<!-- By default, encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
-		<encoder>
-			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}]  %-5level %logger - %replace(%caller{1..2}){'Caller\+1	 at |\n',''} : %msg %rootException%n</pattern>
-		</encoder>
-	</appender>
+  <!-- Send debug messages to System.out -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- By default, encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+    <encoder>
+      <pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}]  %-5level %logger - %replace(%caller{1..2}){'Caller\+1   at |\n',''} : %msg %rootException%n</pattern>
+    </encoder>
+  </appender>
 
-{% if vitam_struct.logback_rolling_policy|lower == "true" %}
-	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
-			<maxHistory>{{ vitam_struct.logback_total_size_cap.file.history_days }}</maxHistory>
-      		<totalSizeCap>{{ vitam_struct.logback_total_size_cap.file.totalsize }}</totalSizeCap>
-		</rollingPolicy>
+{% if logback_rolling_policy|lower == "true" %}
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>{{ vitam_struct.logback_max_file_size | default(logback_max_file_size) }}</maxFileSize>
+      <maxHistory>{{ vitam_struct.logback_total_size_cap.file.history_days | default(logback_total_size_cap.file.history_days) }}</maxHistory>
+          <totalSizeCap>{{ vitam_struct.logback_total_size_cap.file.totalsize | default(logback_total_size_cap.file.totalsize) }}</totalSizeCap>
+    </rollingPolicy>
 {% else %}
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}.log</file>
-		<append>true</append>
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}.log</file>
+    <append>true</append>
 {% endif %}
-		<encoder>
-			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</pattern>
-		</encoder>
-	</appender>
+    <encoder>
+      <pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</pattern>
+    </encoder>
+  </appender>
 
-{% if vitam_struct.logback_rolling_policy|lower == "true" %}
-	<appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_security.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
-			<maxHistory>{{ vitam_struct.logback_total_size_cap.security.history_days }}</maxHistory>
-      		<totalSizeCap>{{ vitam_struct.logback_total_size_cap.security.totalsize }}</totalSizeCap>
-		</rollingPolicy>
+{% if logback_rolling_policy|lower == "true" %}
+  <appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_security.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>{{ vitam_struct.logback_max_file_size | default(logback_max_file_size) }}</maxFileSize>
+      <maxHistory>{{ vitam_struct.logback_total_size_cap.security.history_days | default(logback_total_size_cap.security.history_days) }}</maxHistory>
+          <totalSizeCap>{{ vitam_struct.logback_total_size_cap.security.totalsize | default(logback_total_size_cap.security.totalsize) }}</totalSizeCap>
+    </rollingPolicy>
 {% else %}
-	<appender name="SECURITY" class="ch.qos.logback.core.FileAppender">
-		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_security.log</file>
-		<append>true</append>
+  <appender name="SECURITY" class="ch.qos.logback.core.FileAppender">
+    <file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_security.log</file>
+    <append>true</append>
 {% endif %}
-		<encoder>
-			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
-			</pattern>
-		</encoder>
-	</appender>
+    <encoder>
+      <pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+      </pattern>
+    </encoder>
+  </appender>
 
 {% if vitam_struct.vitam_component == 'storage' %}
- {% if vitam_struct.logback_rolling_policy|lower == "true" %}
-	<appender name="OFFERSYNC" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_sync.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
-			<maxHistory>{{ vitam_struct.logback_total_size_cap.offersync.history_days }}</maxHistory>
-			<totalSizeCap>{{ vitam_struct.logback_total_size_cap.offersync.totalsize }}</totalSizeCap>
-		</rollingPolicy>
+ {% if logback_rolling_policy|lower == "true" %}
+  <appender name="OFFERSYNC" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_sync.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>{{ vitam_struct.logback_max_file_size | default(logback_max_file_size) }}</maxFileSize>
+      <maxHistory>{{ vitam_struct.logback_total_size_cap.offersync.history_days }}</maxHistory>
+      <totalSizeCap>{{ vitam_struct.logback_total_size_cap.offersync.totalsize }}</totalSizeCap>
+    </rollingPolicy>
   {% else %}
-	<appender name="OFFERSYNC" class="ch.qos.logback.core.FileAppender">
-		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_sync.log</file>
-		<append>true</append>
+  <appender name="OFFERSYNC" class="ch.qos.logback.core.FileAppender">
+    <file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_sync.log</file>
+    <append>true</append>
   {% endif %}
-		<encoder>
-			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
-			</pattern>
-		</encoder>
-	</appender>
+    <encoder>
+      <pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+      </pattern>
+    </encoder>
+  </appender>
 {% endif %}
 
 {% if vitam_struct.vitam_component == 'storage' %}
- {% if vitam_struct.logback_rolling_policy|lower == "true" %}
-	<appender name="OFFERDIFF" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_diff.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
-			<maxHistory>{{ vitam_struct.logback_total_size_cap.offerdiff.history_days }}</maxHistory>
-			<totalSizeCap>{{ vitam_struct.logback_total_size_cap.offerdiff.totalsize }}</totalSizeCap>
-		</rollingPolicy>
+ {% if logback_rolling_policy|lower == "true" %}
+  <appender name="OFFERDIFF" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_diff.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>{{ vitam_struct.logback_max_file_size | default(logback_max_file_size) }}</maxFileSize>
+      <maxHistory>{{ vitam_struct.logback_total_size_cap.offerdiff.history_days }}</maxHistory>
+      <totalSizeCap>{{ vitam_struct.logback_total_size_cap.offerdiff.totalsize }}</totalSizeCap>
+    </rollingPolicy>
   {% else %}
-	<appender name="OFFERDIFF" class="ch.qos.logback.core.FileAppender">
-		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_diff.log</file>
-		<append>true</append>
+  <appender name="OFFERDIFF" class="ch.qos.logback.core.FileAppender">
+    <file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_diff.log</file>
+    <append>true</append>
   {% endif %}
-		<encoder>
-			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
-			</pattern>
-		</encoder>
-	</appender>
+    <encoder>
+      <pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+      </pattern>
+    </encoder>
+  </appender>
 {% endif %}
 
 {% if vitam_struct.vitam_component == 'offer' %}
   {% if vitam_offers[offer_conf]["provider"] == 'tape-library' %}
-    {% if vitam_struct.logback_rolling_policy|lower == "true" %}
-	<appender name="OFFER_TAPE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_tape.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
-			<maxHistory>{{ vitam_struct.logback_total_size_cap.offer_tape.history_days }}</maxHistory>
-			<totalSizeCap>{{ vitam_struct.logback_total_size_cap.offer_tape.totalsize }}</totalSizeCap>
-		</rollingPolicy>
+    {% if logback_rolling_policy|lower == "true" %}
+  <appender name="OFFER_TAPE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_tape.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>{{ vitam_struct.logback_max_file_size | default(logback_max_file_size) }}</maxFileSize>
+      <maxHistory>{{ vitam_struct.logback_total_size_cap.offer_tape.history_days }}</maxHistory>
+      <totalSizeCap>{{ vitam_struct.logback_total_size_cap.offer_tape.totalsize }}</totalSizeCap>
+    </rollingPolicy>
     {% else %}
-	<appender name="OFFER_TAPE" class="ch.qos.logback.core.FileAppender">
-		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_tape.log</file>
-		<append>true</append>
+  <appender name="OFFER_TAPE" class="ch.qos.logback.core.FileAppender">
+    <file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_tape.log</file>
+    <append>true</append>
     {% endif %}
-		<encoder>
-			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
-			</pattern>
-		</encoder>
-	</appender>
+    <encoder>
+      <pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+      </pattern>
+    </encoder>
+  </appender>
   {% endif %}
 {% endif %}
 
 {% if vitam_struct.vitam_component == 'offer' %}
   {% if vitam_offers[offer_conf]["provider"] == 'tape-library' %}
-  	{% if vitam_struct.logback_rolling_policy|lower == "true" %}
-	<appender name="OFFER_TAPE_BACKUP" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_tape_backup.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
-			<maxHistory>{{ vitam_struct.logback_total_size_cap.offer_tape_backup.history_days }}</maxHistory>
-			<totalSizeCap>{{ vitam_struct.logback_total_size_cap.offer_tape_backup.totalsize }}</totalSizeCap>
-		</rollingPolicy>
-  	{% else %}
-	<appender name="OFFER_TAPE_BACKUP" class="ch.qos.logback.core.FileAppender">
-		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_tape_backup.log</file>
-		<append>true</append>
-  	{% endif %}
-		<encoder>
-			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
-			</pattern>
-		</encoder>
-	</appender>
+    {% if logback_rolling_policy|lower == "true" %}
+  <appender name="OFFER_TAPE_BACKUP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_tape_backup.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>{{ vitam_struct.logback_max_file_size | default(logback_max_file_size) }}</maxFileSize>
+      <maxHistory>{{ vitam_struct.logback_total_size_cap.offer_tape_backup.history_days }}</maxHistory>
+      <totalSizeCap>{{ vitam_struct.logback_total_size_cap.offer_tape_backup.totalsize }}</totalSizeCap>
+    </rollingPolicy>
+    {% else %}
+  <appender name="OFFER_TAPE_BACKUP" class="ch.qos.logback.core.FileAppender">
+    <file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_tape_backup.log</file>
+    <append>true</append>
+    {% endif %}
+    <encoder>
+      <pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+      </pattern>
+    </encoder>
+  </appender>
   {% endif %}
 {% endif %}
 
-	<appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
-		<syslogHost>localhost</syslogHost>
-		<facility>{{ vitam_defaults.syslog_facility }}</facility>
-		<suffixPattern>vitam-{{ vitam_struct.vitam_component }}: %d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</suffixPattern>
-	</appender>
-	<!-- By default, the level of the root level is set to TRACE -->
-	<root level="{{ vitam_struct.log_level | default(vitam_defaults.services.log_level) }}">
-		<!-- <appender-ref ref="STDOUT" /> -->
-		<appender-ref ref="FILE" />
-		<appender-ref ref="SYSLOG" />
-	</root>
+  <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+    <syslogHost>localhost</syslogHost>
+    <facility>{{ vitam_defaults.syslog_facility }}</facility>
+    <suffixPattern>vitam-{{ vitam_struct.vitam_component }}: %d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</suffixPattern>
+  </appender>
+  <!-- By default, the level of the root level is set to TRACE -->
+  <root level="{{ vitam_struct.log_level | default(vitam_defaults.services.log_level) }}">
+    <!-- <appender-ref ref="STDOUT" /> -->
+    <appender-ref ref="FILE" />
+    <appender-ref ref="SYSLOG" />
+  </root>
 
   <logger name="org.eclipse.jetty" level="WARN"/>
   <logger name="fr.gouv.vitam.storage.engine.server.logbook.StorageLogbookMock" level="INFO"/>
   <logger name="fr.gouv.vitam.metadata.core.graph.StoreGraphService" level="INFO"/>
   <logger name="fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl" level="INFO"/>
   <logger name="fr.gouv.vitam.common" level="WARN" />
-{% if vitam_defaults.reconstruction.log_level is defined or vitam_struct.reconstruction.log_level is defined %}
-  <logger name="fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
-  <logger name="fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
-  <logger name="fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
-  <logger name="fr.gouv.vitam.logbook.common.server.reconstruction.RestoreBackupService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
-  <logger name="fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
-  <logger name="fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
+{% if vitam_defaults.reconstruction.log_level is defined or reconstruction.log_level is defined %}
+  <logger name="fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService" level="{{ vitam_struct.reconstruction.log_level | default(reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService" level="{{ vitam_struct.reconstruction.log_level |default(reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService" level="{{ vitam_struct.reconstruction.log_level | default(reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.logbook.common.server.reconstruction.RestoreBackupService" level="{{ vitam_struct.reconstruction.log_level | default(reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl" level="{{ vitam_struct.reconstruction.log_level | default(reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl" level="{{ vitam_struct.reconstruction.log_level | default(reconstruction.log_level) }}"/>
 {% endif %}
-{% if vitam_struct.performance_logger|lower == "true" %}}
+{% if performance_logger|lower == "true" %}}
   <logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="DEBUG" additivity="false" >
      <appender-ref ref="SYSLOG" />
   </logger>
 {% endif %}
   <logger name="fr.gouv.vitam.common.alert.AlertServiceImpl" level="INFO">
-	  <appender-ref ref="SECURITY" />
+    <appender-ref ref="SECURITY" />
   </logger>
 
 {% if vitam_struct.vitam_component == 'storage' %}

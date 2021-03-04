@@ -201,16 +201,12 @@ dns_servers=["10.100.211.222", "8.8.8.8"]
 memory_opts="-Xms32m -Xmx256m"
 timer_memory_opts="-Xms32m -Xmx128m"
 
-### logback ###
-days_to_delete_logback_logfiles=30
-
 vitam_site_name=cots
 primary_site=true
 
 # ===============================
 # EXTRA
 # ===============================
-#environnement=cots
 
 ### vitam-itest repository ###
 vitam_tests_branch=master

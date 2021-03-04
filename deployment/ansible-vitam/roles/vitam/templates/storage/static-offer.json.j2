@@ -9,9 +9,9 @@
 {% if item.id is defined %}
     "id" : "{{ item.id }}",
 {% else %}
-    "id" : "{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}",
+    "id" : "{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}",
 {% endif %}
-    "baseUrl" : "{{ protocol }}://{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
+    "baseUrl" : "{{ protocol }}://{{ item.name }}.service.{{ item.vitam_site_name | default(vitam_site_name) }}.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
     {% if item.asyncRead is defined %} "asyncRead": {{item.asyncRead|lower }}, {% endif %}
     "parameters" : {
         {% if vitam.storageofferdefault.https_enabled==true %}

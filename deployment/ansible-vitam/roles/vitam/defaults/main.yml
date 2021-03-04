@@ -1,22 +1,45 @@
 ---
 # defaults file for common
-vitam_user: vitam
-vitam_group: vitam
 memory_opts: -Xms512m -Xmx512m
 timer_memory_opts: -Xms32m -Xmx128m
 gc_opts: "-Xlog:gc*,gc+age=trace,safepoint:file={{ vitam_folder_log }}/gc.log:utctime,pid,tags:filecount=32,filesize=64m"
 jmx_exporter_opts: ""
 java_opts: ""
-java_args: ""
+
+default_jvm_log: "{{ vitam_defaults.jvm_log | default(false) }}"
+jvm_log: "{{ vitam_struct.jvm_log | default(default_jvm_log) }}"
+default_performance_logger: "{{ vitam_defaults.performance_logger | default(false) }}"
+performance_logger: "{{ vitam_struct.performance_logger | default(default_performance_logger) }}"
+
 package_name: "vitam-{{ vitam_struct.vitam_component }}"
 
-# Configuration par défaut du connecteur de service
-# Configuration par défaut du connecteur admin
-days_to_delete_logback_logfiles: 30
-days_to_delete_access_local: 7
 vitam_worker_capacity: "{{ ansible_processor_vcpus }}"
 
 vitam_site_id: 1
 
 # Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
-vitam_ssl_user_header: false
+vitam_ssl_user_header: "{{ vitam_defaults.vitam_ssl_user_header | default(false) }}"
+
+consul_business_check: "{{ vitam_defaults.consul_business_check | default(10) }}"
+consul_admin_check: "{{ vitam_defaults.consul_admin_check | default(10) }}"
+
+metrics_enabled: "{{ vitam_struct.metrics_enabled | default(true) }}"
+metricslevel: "{{ vitam_defaults.metricslevel | default('DEBUG') }}"
+metricsinterval: "{{ vitam_defaults.metricsinterval | default(3) }}"
+metricsunit: "{{ vitam_defaults.metricsunit | default('MINUTES') }}"
+
+access_retention_days: "{{ vitam_defaults.access_retention_days | default(30) }}"
+access_total_size_cap: "{{ vitam_defaults.access_total_size_cap | default('10GB') }}"
+
+logback_rolling_policy: "{{ vitam_struct.logback_rolling_policy | default(true) }}"
+logback_max_file_size: "{{ vitam_defaults.logback_max_file_size | default('10MB') }}"
+logback_total_size_cap:
+  file:
+    history_days: "{{ vitam_defaults.logback_total_size_cap.file.history_days | default(30) }}"
+    totalsize: "{{ vitam_defaults.logback_total_size_cap.file.history_days | default('5GB') }}"
+  security:
+    history_days: "{{ vitam_defaults.logback_total_size_cap.security.history_days | default(30) }}"
+    totalsize: "{{ vitam_defaults.logback_total_size_cap.security.history_days | default('5GB') }}"
+
+reconstruction:
+  log_level: "{{ vitam_defaults.reconstruction.log_level | default('INFO') }}"
