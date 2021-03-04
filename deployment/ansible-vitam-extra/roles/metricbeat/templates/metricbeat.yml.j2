@@ -7,7 +7,7 @@
 # You can find the full configuration reference here:
 # https://www.elastic.co/guide/en/beats/metricbeat/index.html
 
-#==========================  Modules configuration ============================
+# =========================== Modules configuration ============================
 
 metricbeat.config.modules:
   # Glob pattern for configuration loading
@@ -19,7 +19,7 @@ metricbeat.config.modules:
   # Period on which files under path should be checked for changes
   #reload.period: 10s
 
-#==================== Elasticsearch template setting ==========================
+# ======================= Elasticsearch template setting =======================
 
 setup.template.settings:
   index.number_of_shards: {{ kibana.log.metricbeat.shards }}
@@ -31,7 +31,7 @@ setup.template.settings:
   index.number_of_replicas: 0
 {% endif %}
 
-#================================ General =====================================
+# ================================== General ===================================
 
 # The name of the shipper that publishes the network data. It can be used to group
 # all the transactions sent by a single shipper in the web interface.
@@ -48,11 +48,10 @@ tags: [{% for groupe in groups %}{% if groupe is search('^zone') %}{% if invento
 fields:
  env: {{ vitam_site_name }}
 
-
-#============================== Dashboards =====================================
+# ================================= Dashboards =================================
 # These settings control loading the sample dashboards to the Kibana index. Loading
 # the dashboards is disabled by default and can be enabled either by setting the
-# options here, or by using the `-setup` CLI flag or the `setup` command.
+# options here or by using the `setup` command.
 #setup.dashboards.enabled: false
 
 # The URL from where to download the dashboards archive. By default this URL
@@ -67,20 +66,25 @@ fields:
 
 # Starting with Beats version 6.0.0, the dashboards are loaded via the Kibana API.
 # This requires a Kibana endpoint configuration.
-
 setup.kibana:
-  # Kibana Host
-  # Scheme and port can be left out and will be set to the default (http and 5601)
-  # In case you specify and additional path, the scheme is required: http://localhost:5601/path
-  # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
-  #host: "localhost:5601"
-  
+
+# Kibana Host
+# Scheme and port can be left out and will be set to the default (http and 5601)
+# In case you specify and additional path, the scheme is required: http://localhost:5601/path
+# IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
+#host: "localhost:5601"
+
   host: "{{ hostvars[groups['hosts_kibana_log'][0]].ip_admin }}:{{ kibana.log.port }}"
 {% endif %}
 
-#============================= Elastic Cloud ==================================
+# Kibana Space ID
+# ID of the Kibana Space into which the dashboards should be loaded. By default,
+# the Default Space will be used.
+#space.id:
 
-# These settings simplify using metricbeat with the Elastic Cloud (https://cloud.elastic.co/).
+# =============================== Elastic Cloud ================================
+
+# These settings simplify using Metricbeat with the Elastic Cloud (https://cloud.elastic.co/).
 
 # The cloud.id setting overwrites the `output.elasticsearch.hosts` and
 # `setup.kibana.host` options.
@@ -91,23 +95,26 @@ setup.kibana:
 # `output.elasticsearch.password` settings. The format is `<user>:<pass>`.
 #cloud.auth:
 
-#================================ Outputs =====================================
+# ================================== Outputs ===================================
 
 # Configure what output to use when sending the data collected by the beat.
 
-#-------------------------- Elasticsearch output ------------------------------
+# ---------------------------- Elasticsearch Output ----------------------------
 output.elasticsearch:
   # Array of hosts to connect to.
   hosts: [{% for item in groups['hosts_elasticsearch_log'] %}"{{ hostvars[item]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
   # see https://www.elastic.co/guide/en/beats/libbeat/6.4/upgrading-5-to-6.html for further details
   template.overwrite: true
 
-  # Optional protocol and basic auth credentials.
+  # Protocol - either `http` (default) or `https`.
   #protocol: "https"
+
+  # Authentication credentials - either API key or username/password.
+  #api_key: "id:api_key"
   #username: "elastic"
   #password: "changeme"
 
-#----------------------------- Logstash output --------------------------------
+# ------------------------------ Logstash Output -------------------------------
 {% if external_siem is defined %}
 output.logstash:
   # The Logstash hosts
@@ -125,7 +132,45 @@ output.logstash:
 {% endif %}
 #================================ Logging =====================================
 
-#================================ Logging ======================================
+# ====================== Index Lifecycle Management (ILM) ======================
+
+# Configure index lifecycle management (ILM). These settings create a write
+# alias and add additional settings to the index template. When ILM is enabled,
+# output.elasticsearch.index is ignored, and the write alias is used to set the
+# index name.
+
+# Enable ILM support. Valid values are true, false, and auto. When set to auto
+# (the default), the Beat uses index lifecycle management when it connects to a
+# cluster that supports ILM; otherwise, it creates daily indices.
+#setup.ilm.enabled: auto
+
+setup.ilm.enabled: false
+
+# Set the prefix used in the index lifecycle write alias name. The default alias
+# name is 'metricbeat-%{[agent.version]}'.
+#setup.ilm.rollover_alias: 'metricbeat'
+
+# Set the rollover index pattern. The default is "%{now/d}-000001".
+#setup.ilm.pattern: "{now/d}-000001"
+
+# Set the lifecycle policy name. The default policy name is
+# 'beatname'.
+#setup.ilm.policy_name: "mypolicy"
+
+# The path to a JSON file that contains a lifecycle policy configuration. Used
+# to load your own lifecycle policy.
+#setup.ilm.policy_file:
+
+# Disable the check for an existing lifecycle policy. The default is true. If
+# you disable this check, set setup.ilm.overwrite: true so the lifecycle policy
+# can be installed.
+#setup.ilm.check_exists: true
+
+# Overwrite the lifecycle policy at startup. The default is false.
+#setup.ilm.overwrite: false
+
+# ================================== Logging ===================================
+
 # There are four options for the log output: file, stderr, syslog, eventlog
 # The file output is the default.
 
@@ -138,13 +183,16 @@ output.logstash:
 # Multiple selectors can be chained.
 #logging.selectors: [ ]
 
+# Send all logging output to stderr. The default is false.
+#logging.to_stderr: false
+
 # Send all logging output to syslog. The default is false.
 #logging.to_syslog: false
 
 # Send all logging output to Windows Event Logs. The default is false.
 #logging.to_eventlog: false
 
-# If enabled, metricbeat periodically logs its internal metrics that have changed
+# If enabled, Metricbeat periodically logs its internal metrics that have changed
 # in the last period. For each metric that changed, the delta from the value at
 # the beginning of the period is logged. Also, the total values for
 # all non-zero internal metrics are logged on shutdown. The default is true.
@@ -182,20 +230,42 @@ logging.files:
   # Unix epoch. Defaults to disabled.
   #interval: 0
 
+  # Rotate existing logs on startup rather than appending to the existing
+  # file. Defaults to true.
+  # rotateonstartup: true
+
 # Set to true to log messages in JSON format.
 #logging.json: false
 
-#============================== Xpack Monitoring ===============================
-# metricbeat can export internal metrics to a central Elasticsearch monitoring
+# Set to true, to log messages with minimal required Elastic Common Schema (ECS)
+# information. Recommended to use in combination with `logging.json=true`
+# Defaults to false.
+#logging.ecs: false
+
+# ============================= X-Pack Monitoring ==============================
+# Metricbeat can export internal metrics to a central Elasticsearch monitoring
 # cluster.  This requires xpack monitoring to be enabled in Elasticsearch.  The
 # reporting is disabled by default.
 
 # Set to true to enable the monitoring reporter.
-#xpack.monitoring.enabled: false
+#monitoring.enabled: false
+
+# Sets the UUID of the Elasticsearch cluster under which monitoring data for this
+# Metricbeat instance will appear in the Stack Monitoring UI. If output.elasticsearch
+# is enabled, the UUID is derived from the Elasticsearch cluster referenced by output.elasticsearch.
+#monitoring.cluster_uuid:
 
 # Uncomment to send the metrics to Elasticsearch. Most settings from the
-# Elasticsearch output are accepted here as well. Any setting that is not set is
-# automatically inherited from the Elasticsearch output configuration, so if you
-# have the Elasticsearch output configured, you can simply uncomment the
-# following line.
-#xpack.monitoring.elasticsearch:
+# Elasticsearch output are accepted here as well.
+# Note that the settings should point to your Elasticsearch *monitoring* cluster.
+# Any setting that is not set is automatically inherited from the Elasticsearch
+# output configuration, so if you have the Elasticsearch output configured such
+# that it is pointing to your Elasticsearch monitoring cluster, you can simply
+# uncomment the following line.
+#monitoring.elasticsearch:
+
+# ================================= Migration ==================================
+
+# This allows to enable 6.7 migration aliases
+#migration.6_to_7.enabled: true
+
