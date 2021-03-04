@@ -223,24 +223,21 @@ dns_servers=["10.100.211.222", "8.8.8.8"]
 memory_opts="-Xms32m -Xmx256m"
 timer_memory_opts="-Xms32m -Xmx128m"
 
-### logback configuration
-days_to_delete_logback_logfiles=30
-
 vitam_site_name=fulllocal
 primary_site=true
 
 # ===============================
 # EXTRA
 # ===============================
-#environnement=fulllocal
+
 ### vitam-itest repository ###
 vitam_tests_branch=master
 vitam_tests_gitrepo_protocol=https
 vitam_tests_gitrepo_baseurl=gitlab.dev.programmevitam.fr
 vitam_tests_gitrepo_url={{ vitam_tests_gitrepo_protocol }}://{{ vitam_tests_gitrepo_baseurl }}/vitam/vitam-itests.git
 
-### proxy & reverse proxy configuration ###
-vitam_reverse_external_dns=localhost
-vitam_reverse_external_protocol=http
+### reverse proxy ###
 reverse_proxy_port=80
 http_proxy_environnement=
+vitam_reverse_external_dns=localhost
+vitam_reverse_external_protocol=http

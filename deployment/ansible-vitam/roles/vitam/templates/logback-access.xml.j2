@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-{% if vitam_struct.logback_rolling_policy|lower == "true" %}
+{% if logback_rolling_policy|lower == "true" %}
 
-	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>{{ vitam_folder_log }}/accesslog-{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>{{ vitam_struct.access_retention_days }}</maxHistory>
-      		<totalSizeCap>{{ vitam_struct.access_total_size_cap }}</totalSizeCap>
-		</rollingPolicy>
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>{{ vitam_folder_log }}/accesslog-{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>{{ vitam_struct.access_retention_days | default(access_retention_days) }}</maxHistory>
+          <totalSizeCap>{{ vitam_struct.access_total_size_cap | default(access_total_size_cap) }}</totalSizeCap>
+    </rollingPolicy>
 {% else %}}
 
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>{{ vitam_folder_log }}/accesslog-{{ vitam_struct.vitam_component }}.log</file>
-		<append>true</append>
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>{{ vitam_folder_log }}/accesslog-{{ vitam_struct.vitam_component }}.log</file>
+    <append>true</append>
 {% endif %}}
-		<encoder>
-			<pattern>%h %l %u %t "%r" %s %b "%i{Referer}" "%i{User-agent}" %D %i{X-Request-Id} %i{X-Tenant-Id} %i{X-Application-Id}</pattern>
-		</encoder>
-	</appender>
-	<appender-ref ref="FILE" />
+    <encoder>
+      <pattern>%h %l %u %t "%r" %s %b "%i{Referer}" "%i{User-agent}" %D %i{X-Request-Id} %i{X-Tenant-Id} %i{X-Application-Id}</pattern>
+    </encoder>
+  </appender>
+  <appender-ref ref="FILE" />
 </configuration>

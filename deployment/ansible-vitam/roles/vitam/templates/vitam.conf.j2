@@ -18,29 +18,29 @@ computedInheritedRulesThreshold : 100000000
 intervalDelayCheckIdle : 5000
 maxDelayUnusedConnection : 5000
 delayValidationAfterInactivity : 2500
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
-adminTenant : {{ vitam_tenant_admin }}
-forceChunkModeInputStream : {{ vitam_defaults.vitam_force_chunk_mode }}
+tenants: [ "{{ vitam_tenant_ids | join('", "') }}" ]
+adminTenant : {{ vitam_tenant_admin | default(1) }}
+forceChunkModeInputStream : {{ vitam_defaults.vitam_force_chunk_mode | default(false) }}
 
 {% if vitam_struct.vitam_component == vitam.worker.vitam_component %}
 reclassificationMaxBulkThreshold: 1000
 reclassificationMaxUnitsThreshold: 10000
 reclassificationMaxGuildListSizeInLogbookOperation: 1000
-queriesThreshold: {{ vitam.worker.queriesThreshold }}
-bulkAtomicUpdateBatchSize: {{ vitam.worker.bulkAtomicUpdateBatchSize }}
-bulkAtomicUpdateThreadPoolSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolSize }}
-bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolQueueSize }}
+queriesThreshold: {{ vitam.worker.queriesThreshold | default(100000) }}
+bulkAtomicUpdateBatchSize: {{ vitam.worker.bulkAtomicUpdateBatchSize | default(100) }}
+bulkAtomicUpdateThreadPoolSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolSize | default(8) }}
+bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolQueueSize | default(16) }}
 {% endif %}
 
 keywordMaxLength: 32766
 textMaxLength: 32766
 
 classificationLevel :
-  allowList :  [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
+  allowList : [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
   authorizeNotDefined: {{ classificationLevelOptional }}
 
-indexInheritedRulesWithAPIV2OutputByTenant: [ "{{  vitam.worker.api_output_index_tenants | join('", "') }}" ]
-indexInheritedRulesWithRulesIdByTenant: [ "{{  vitam.worker.rules_index_tenants | join('", "') }}" ]
+indexInheritedRulesWithAPIV2OutputByTenant: [ "{{ vitam.worker.api_output_index_tenants | join('", "') }}" ]
+indexInheritedRulesWithRulesIdByTenant: [ "{{ vitam.worker.rules_index_tenants | join('", "') }}" ]
 
 environmentName: {{ vitam_prefix_offer|default(vitam_site_name) }}
 
@@ -49,10 +49,11 @@ criticalRequestTime: {{ criticalRequestTime|default(60) }}
 requestTimeAlertThrottlingDelay: {{ requestTimeAlertThrottlingDelay|default(60) }}
 
 # Ontology cache settings (max entries in cache & retention timeout in seconds)
-ontologyCacheMaxEntries: {{ vitam.ontologyCacheMaxEntries }}
+ontologyCacheMaxEntries: {{ vitam_defaults.ontologyCacheMaxEntries | default(100) }}
+ontologyCacheTimeoutInSeconds: {{ vitam_defaults.ontologyCacheTimeoutInSeconds | default(300) }}
 
 # Elasticsearch scroll timeout settings
-elasticSearchScrollTimeoutInMilliseconds: {{ vitam.elasticSearchScrollTimeoutInMilliseconds }}
+elasticSearchScrollTimeoutInMilliseconds: {{ vitam_defaults.elasticSearchScrollTimeoutInMilliseconds | default(300000) }}
 
 {% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
 processEngineWaitForStepTimeout: 172800

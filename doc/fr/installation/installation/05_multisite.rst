@@ -366,7 +366,7 @@ Avant la génération des keystores
 
 Déposer les :term:`CA` du client storage du site 1 ``environments/certs/client-storage/ca/*`` dans le client storage du site 2 ``environments/certs/client-storage/ca/``.
 
-Déposer le certificat du client storage du site 1 ``environments/certs/client-storage/clients/storage/*`` dans le client storage du site 2 ``environments/certs/client-storage/clients/storage/``.
+Déposer le certificat du client storage du site 1 ``environments/certs/client-storage/clients/storage/*.crt`` dans le client storage du site 2 ``environments/certs/client-storage/clients/storage/``.
 
 Déposer les :term:`CA` du serveur offer du site 2 ``environments/certs/server/ca/*`` dans le répertoire des :term:`CA` serveur du site 1 ``environments/certs/server/ca/*``
 
