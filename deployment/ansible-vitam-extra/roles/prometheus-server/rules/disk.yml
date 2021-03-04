@@ -24,3 +24,29 @@ groups:
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
           summary: Out of disk space (instance {{ $labels.instance }})
+
+  - name: vitam_disk
+    rules:
+      - alert: OutOfDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/vitam"} * 100) / node_filesystem_size_bytes{mountpoint="/vitam"} < 20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          description: |-
+            Disk is almost full (< 20% left)
+              VALUE = {{ $value }}
+              LABELS: {{ $labels }}
+          summary: Out of disk space (instance {{ $labels.instance }})
+
+      - alert: OutOfDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/vitam"} * 100) / node_filesystem_size_bytes{mountpoint="/vitam"} < 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Disk is almost full (< 5% left)
+              VALUE = {{ $value }}
+              LABELS: {{ $labels }}
+          summary: Out of disk space (instance {{ $labels.instance }})
