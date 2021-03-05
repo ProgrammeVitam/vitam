@@ -71,7 +71,9 @@ import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.assertj.core.api.AbstractThrowableAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -432,6 +434,23 @@ public class DefaultOfferServiceTest {
             .collect(Collectors.toSet());
         Set<String> expectedObjectIds = IntStream.range(0, 150).mapToObj(i -> OBJECT + i).collect(Collectors.toSet());
         assertThat(objectIds).isEqualTo(expectedObjectIds);
+    }
+
+    @Test
+    public void listObjectMissingContainer() throws Exception {
+
+        // Given
+        String unknownContainer = "unknown-container-" + GUIDFactory.newGUID().toString();
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
+
+        // When
+        offerService.listObjects(unknownContainer, objectListingListener);
+
+        // Then
+        File containerFolder = new File(tempFolder.getRoot(), unknownContainer);
+        assertThat(containerFolder).exists();
+        assertThat(containerFolder).isDirectory();
+        verifyNoMoreInteractions(objectListingListener);
     }
 
     @Test

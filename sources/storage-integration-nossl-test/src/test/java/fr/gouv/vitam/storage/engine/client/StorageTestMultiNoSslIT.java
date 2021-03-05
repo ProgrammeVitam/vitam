@@ -96,6 +96,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class StorageTestMultiNoSslIT {
@@ -614,14 +615,11 @@ public class StorageTestMultiNoSslIT {
 
 
     @RunWithCustomExecutor
-    @Test(expected = StorageNotFoundClientException.class)
-    public void listingTestErrorWhenContainerNotFound() throws StorageNotFoundClientException {
+    public void listingTestErrorWhenContainerNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(99);
-        try (CloseableIterator<ObjectEntry> ignored = storageClient
+        try (CloseableIterator<ObjectEntry> objectEntryCloseableIterator = storageClient
             .listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
-            Assert.fail("Should raize StorageNotFoundClientException exception");
-        } catch (StorageServerClientException e) {
-            Assert.fail("Should raize StorageNotFoundClientException exception");
+            assertFalse(objectEntryCloseableIterator.hasNext());
         }
     }
 }
