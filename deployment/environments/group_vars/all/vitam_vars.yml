@@ -171,6 +171,9 @@ consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_compon
 # elastic-kibana-interceptor is present as kibana is present, if kibana-data & interceptor are not needed in the secondary site, just do not add them in the hosts file
 vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" , "consul" ]
 
+# containers list
+containers_list: ['units', 'objects', 'objectgroups', 'logbooks', 'reports', 'manifests', 'profiles', 'storagelog', 'storageaccesslog', 'storagetraceability', 'rules', 'dip', 'agencies', 'backup', 'backupoperations', 'unitgraph', 'objectgroupgraph', 'distributionreports', 'accessionregistersdetail', 'accessionregisterssymbolic', 'tmp', 'archivaltransferreply']
+
 # Vitams griffins required to launch preservation scenario
 # Example:
 # vitam_griffins: ["vitam-imagemagick-griffin", "vitam-libreoffice-griffin", "vitam-jhove-griffin", "vitam-odfvalidator-griffin", "vitam-siegfried-griffin", "vitam-tesseract-griffin", "vitam-verapdf-griffin", "vitam-ffmpeg-griffin"]
