@@ -1,0 +1,5 @@
+---
+
+apiVersion: 1
+deleteDatasources: []
+{{ { 'datasources': grafana.grafana_datasources } | to_nice_yaml(width=80, indent=2) }}

@@ -38,7 +38,7 @@
 # When upgrade the Grafana version, get the corresponding grafana.ini file and replace grafana.conf.j2 with corresponding changes
 - name: "Grafana configuration file copy"
   template:
-    src: "grafana.conf.j2"
+    src: "grafana.ini.j2"
     dest: /etc/grafana/grafana.ini
   tags:
     - update_grafana_configuration
@@ -67,7 +67,7 @@
 
 - name: Deploy consul agent service declaration
   template:
-    src: "service-componentid.json.j2"
+    src: "service-grafana.json.j2"
     dest: "{{ consul_folder_conf }}/service-grafana.json"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"

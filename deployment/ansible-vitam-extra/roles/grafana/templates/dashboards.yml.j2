@@ -1,0 +1,4 @@
+---
+
+apiVersion: 1
+{{ { 'providers': grafana.grafana_dashboards } | to_nice_yaml(width=80, indent=2) }}
