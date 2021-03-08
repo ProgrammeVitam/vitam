@@ -33,7 +33,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -1385,10 +1387,9 @@ public class ManagementContractImplTest {
 
     }
 
-
     @Test
     @RunWithCustomExecutor
-    public void when_create_should_insert_contracts_correct_version_retention_policy_usages()
+    public void when_create_contracts_should_insert_correct_version_retention_policy_usages()
         throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts =
@@ -1432,7 +1433,7 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_create_should_fail_contracts_incorrect_default_version_retention_policy()
+    public void when_create_contracts_should_fail_incorrect_default_version_retention_policy()
         throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts =
@@ -1487,7 +1488,7 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_create_should_fail_contracts_incorrect_binaryMaster_version_retention_policy()
+    public void when_create_contract_should_fail_incorrect_binaryMaster_version_retention_policy()
         throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts =
@@ -1547,7 +1548,7 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_update_should_update_contracts_given_invalid_default_version_retention_policy()
+    public void when_update_contracts_should_fail_invalid_default_version_retention_policy()
         throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
@@ -1612,7 +1613,7 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_update_should_update_contracts_given_invalid_BinaryMaster_usage_version_retention_policy()
+    public void when_update_contracts_should_fail_given_invalid_BinaryMaster_usage_version_retention_policy()
         throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
@@ -1678,7 +1679,7 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_update_should_update_contracts_given_invalid_other_usage_version_retention_policy()
+    public void when_update_contracts_should_fail_given_invalid_other_usage_version_retention_policy()
         throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
@@ -1744,7 +1745,7 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_update_should_update_contracts_given_invalid_name_other_usage_version_retention_policy()
+    public void when_update_contracts_should_fail_given_invalid_name_other_usage_version_retention_policy()
         throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
@@ -1813,6 +1814,61 @@ public class ManagementContractImplTest {
             .setCreationdate("2017-04-10T11:30:33.798").setActivationdate("2017-04-10T11:30:33.798")
             .setLastupdate("2017-04-11T11:30:33.798").setStatus(ActivationStatus.ACTIVE);
         return mc;
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void when_update_old_contracts_should_add_default_version_retention_policy_if_not_exists()
+        throws VitamException, FileNotFoundException, InvalidCreateOperationException {
+        // Given
+        final SetAction updateName = UpdateActionHelper.set("Name", "New name");
+
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Identifier", "IdentifierMC1"));
+        update.addActions(updateName);
+
+        DbRequestResult updateResult = new DbRequestResult();
+        updateResult.setCount(1l);
+        updateResult.setDiffs(Collections.singletonMap("mc_guid", Arrays.asList("Name: +New Name -Old Name")));
+        when(mongoAccess.updateData(any(JsonNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
+            .thenReturn(updateResult);
+
+        DbRequestResult findResultMock = mock(DbRequestResult.class);
+        when(findResultMock.getCount()).thenReturn(1l);
+        when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
+            .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
+        when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
+            .thenReturn(findResultMock);
+        when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
+
+        ArgumentCaptor<JsonNode> contractToUpdateCaptor = ArgumentCaptor.forClass(JsonNode.class);
+
+        // When
+        RequestResponse<ManagementContractModel> response = managementContractService.updateContract("IdentifierMC1",
+            update.getFinalUpdate());
+
+        // Then
+        assertThat(response.isOk()).isTrue();
+
+        verify(mongoAccess, times(1)).updateData(contractToUpdateCaptor.capture(),
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+        JsonNode contractToUpdateCalled = contractToUpdateCaptor.getValue();
+        assertThat(contractToUpdateCalled).isNotNull();
+        assertTrue(contractToUpdateCalled.get(BuilderToken.GLOBAL.ACTION.exactToken()).toString().contains(
+            "{\"$set\":{\"VersionRetentionPolicy\":{\"InitialVersion\":true,\"IntermediaryVersion\":\"LAST\"}}}"));
+
+        verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
+        verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
+        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
+            .getAllValues();
+        assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
+        assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
+            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
     }
 
     private RequestResponseOK<StorageStrategy> loadStorageStrategies()

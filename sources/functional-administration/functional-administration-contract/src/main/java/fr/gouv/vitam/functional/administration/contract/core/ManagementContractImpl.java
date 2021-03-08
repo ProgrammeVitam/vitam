@@ -33,7 +33,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -101,6 +104,7 @@ import static fr.gouv.vitam.common.model.administration.VersionUsageModel.Interm
 import static fr.gouv.vitam.functional.administration.common.ManagementContract.DEFAULT_USAGE;
 import static fr.gouv.vitam.functional.administration.common.ManagementContract.INITIAL_VERSION;
 import static fr.gouv.vitam.functional.administration.common.ManagementContract.INTERMEDIARY_VERSION;
+import static fr.gouv.vitam.functional.administration.common.ManagementContract.VERSION_RETENTION_POLICY;
 
 public class ManagementContractImpl implements ContractService<ManagementContractModel> {
 
@@ -321,6 +325,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
 
         logbookService.logUpdateStarted(managementContractModel.getId());
 
+        boolean isVersionRetentionPolicyUpdated = false;
         final JsonNode actionNode = queryDsl.get(BuilderToken.GLOBAL.ACTION.exactToken());
         for (final JsonNode fieldToSet : actionNode) {
             final JsonNode fieldName = fieldToSet.get(BuilderToken.UPDATEACTION.SET.exactToken());
@@ -329,6 +334,9 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                 while (it.hasNext()) {
                     final String field = it.next();
                     final JsonNode value = fieldName.findValue(field);
+                    if (field.contains(VERSION_RETENTION_POLICY)){
+                        isVersionRetentionPolicyUpdated = true;
+                    }
                     validateUpdateAction(validationService, managementContractModel.getName(), error, field, value,
                         managementContractModel);
                 }
@@ -338,8 +346,20 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             }
         }
 
-        Map<String, List<String>> updateDiffs;
+        // Add Version retention policy if does not exists
+        if (managementContractModel.getVersionRetentionPolicy() == null && !isVersionRetentionPolicyUpdated) {
+            VersionRetentionPolicyModel versionRetentionPolicyModel = new VersionRetentionPolicyModel();
+            versionRetentionPolicyModel.setInitialVersion(true);
+            versionRetentionPolicyModel.setIntermediaryVersion(LAST);
+            final ObjectNode versionRetentionPolicyNode = JsonHandler.createObjectNode();
+            versionRetentionPolicyNode
+                .set(VERSION_RETENTION_POLICY, JsonHandler.toJsonNode(versionRetentionPolicyModel));
+            ObjectNode setFields = JsonHandler.createObjectNode();
+            setFields.set(BuilderToken.UPDATEACTION.SET.exactToken(), versionRetentionPolicyNode);
+            ((ArrayNode) actionNode).add(setFields);
+        }
 
+        Map<String, List<String>> updateDiffs;
         try {
 
             if (error.getErrors() != null && !error.getErrors().isEmpty()) {
