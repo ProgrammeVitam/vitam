@@ -81,9 +81,11 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+import fr.gouv.vitam.metadata.api.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
@@ -164,16 +166,17 @@ public class MetaDataImpl {
     private final OntologyValidator objectGroupOntologyValidator;
     private final OntologyLoader unitOntologyLoader;
     private final OntologyLoader objectGroupOntologyLoader;
+    private final MappingLoader mappingLoader;
 
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess,
         int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
-        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
+        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds, MappingLoader mappingLoader) {
 
         this(mongoDbAccess, AdminManagementClientFactory.getInstance(), IndexationHelper.getInstance(),
             new DbRequest(), ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
             archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds,
-            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
+            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds, mappingLoader);
     }
 
     @VisibleForTesting
@@ -182,9 +185,10 @@ public class MetaDataImpl {
         IndexationHelper indexationHelper,
         DbRequest dbRequest, int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
-        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
+        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds, MappingLoader mappingLoader) {
         this.mongoDbAccess = mongoDbAccess;
         this.indexationHelper = indexationHelper;
+        this.mappingLoader = mappingLoader;
         this.dbRequest = dbRequest;
 
         this.unitOntologyLoader = new CachedOntologyLoader(
@@ -224,11 +228,11 @@ public class MetaDataImpl {
     public static MetaDataImpl newMetadata(MongoDbAccessMetadataImpl mongoDbAccessMetadata,
         int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
-        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
+        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds, MappingLoader mappingLoader) {
 
         return new MetaDataImpl(mongoDbAccessMetadata, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
             archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds,
-            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
+            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds, mappingLoader);
     }
 
     /**
@@ -880,7 +884,21 @@ public class MetaDataImpl {
 
     public IndexationResult reindex(IndexParameters indexParam) {
         MetadataCollections collection;
+        Optional<ElasticsearchExternalMetadataMapping> metadataCollection;
         try {
+            metadataCollection =
+                    mappingLoader.getElasticsearchExternalMappings().stream()
+                            .filter(m -> m.getCollection().equalsIgnoreCase(indexParam.getCollectionName()))
+                            .findFirst();
+
+            if (metadataCollection.isEmpty()) {
+                String message = String.format("Try to reindex a non metadata collection '%s' with metadata module",
+                        indexParam.getCollectionName());
+                LOGGER.error(message + " : given collections :" + mappingLoader.getElasticsearchExternalMappings().stream().map(
+                        ElasticsearchExternalMetadataMapping::getCollection)
+                        .collect(Collectors.joining(", ")));
+                return indexationHelper.getFullKOResult(indexParam, message);
+            }
             collection = MetadataCollections.valueOf(indexParam.getCollectionName().toUpperCase());
         } catch (IllegalArgumentException exc) {
             String message = String.format("Try to reindex a non metadata collection '%s' with metadata module",
@@ -890,8 +908,7 @@ public class MetaDataImpl {
         }
         // mongo collection
         MongoCollection<Document> mongoCollection = collection.getCollection();
-        try (InputStream mappingStream = ElasticsearchCollections.valueOf(indexParam.getCollectionName().toUpperCase())
-            .getMappingAsInputStream()) {
+        try (InputStream mappingStream = mappingLoader.loadMapping(collection.name())) {
             return indexationHelper.reindex(mongoCollection, collection.getName(), mongoDbAccess.getEsClient(),
                 indexParam.getTenants(), mappingStream);
         } catch (IOException exc) {

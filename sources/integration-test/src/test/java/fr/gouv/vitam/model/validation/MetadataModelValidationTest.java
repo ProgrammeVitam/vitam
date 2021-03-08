@@ -26,24 +26,33 @@
  */
 package fr.gouv.vitam.model.validation;
 
-import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.common.MappingLoaderTestUtils;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
+import org.junit.Before;
 import org.junit.Test;
+
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 
 public class MetadataModelValidationTest {
 
-    @Test
-    public void testObjectGroupElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(
-            ObjectGroup.class.getResourceAsStream(ElasticsearchAccessMetadata.MAPPING_OBJECT_GROUP_FILE),
-            MetadataCollections.OBJECTGROUP.getVitamCollection());
+    private MappingLoader mappingLoader;
+
+    @Before
+    public void setup() throws Exception {
+        mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
     }
 
     @Test
     public void testUnitElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(
-            ObjectGroup.class.getResourceAsStream(ElasticsearchAccessMetadata.MAPPING_UNIT_FILE),
-            MetadataCollections.UNIT.getVitamCollection());
+
+        ModelValidatorUtils.validateDataModel(mappingLoader.loadMapping(UNIT.name()), UNIT.getVitamCollection());
     }
+
+    @Test
+    public void testObjectGroupElasticsearchMapping() throws Exception {
+        ModelValidatorUtils
+                .validateDataModel(mappingLoader.loadMapping(OBJECTGROUP.name()), OBJECTGROUP.getVitamCollection());
+    }
+
 }

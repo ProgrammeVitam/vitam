@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
@@ -66,6 +67,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -92,6 +94,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
@@ -102,11 +106,11 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class MetadataResourceTest {
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\", " + "\"data\": \"data1\" }";
+            "{ \"_id\": \"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+            "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String OG_DATA =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+            "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String INVALID_DATA = "{ \"INVALID\": true }";
 
     private static final String DATA_URI = "/metadata/v1";
@@ -117,7 +121,7 @@ public class MetadataResourceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -141,20 +145,22 @@ public class MetadataResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
-                elasticsearchRule.getClusterName(), esNodes);
+                new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
+                        elasticsearchRule.getClusterName(), esNodes, mappingLoader);
 
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata, 0, 1);
         accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes);
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, accessFunctionalAdmin,
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         VitamConfiguration.setTenants(tenantList);
@@ -176,8 +182,8 @@ public class MetadataResourceTest {
     public static void tearDownAfterClass() {
         MetadataCollections.afterTestClass(true, 0, 1);
         FunctionalAdminCollections
-            .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
+                .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
         try {
             metadataMain.stop();
         } catch (final Exception e) {
@@ -192,18 +198,18 @@ public class MetadataResourceTest {
     public void tearDown() {
         MetadataCollections.afterTest(0, 1);
         FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {
         return JsonHandler.toJsonNode(new BulkUnitInsertRequest(Collections.singletonList(
-            new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(data))
+                new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(data))
         )));
     }
 
     private static final JsonNode buildInsertUnitRequest(String data, String... roots) throws Exception {
         return JsonHandler.toJsonNode(new BulkUnitInsertRequest(Collections.singletonList(
-            new BulkUnitInsertEntry(new HashSet<>(Arrays.asList(roots)), JsonHandler.getFromString(data))
+                new BulkUnitInsertEntry(new HashSet<>(Arrays.asList(roots)), JsonHandler.getFromString(data))
         )));
     }
 
@@ -225,10 +231,10 @@ public class MetadataResourceTest {
     }
 
     private static String generateResponseErrorFromStatus(Status status, String message)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setContext("ingest").setState("code_vitam")
-            .setMessage(status.getReasonPhrase()).setDescription(message));
+                .setContext("ingest").setState("code_vitam")
+                .setMessage(status.getReasonPhrase()).setDescription(message));
     }
 
 
@@ -246,45 +252,45 @@ public class MetadataResourceTest {
     @Test
     public void shouldRaiseExceptionIfBodyIsNotCorrect() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(INVALID_DATA).when()
-            .post("units/bulk").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(INVALID_DATA).when()
+                .post("units/bulk").then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public void shouldReturnOKIfIdDuplicated() throws Exception {
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA)).when()
+                .post("units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA)).when()
+                .post("units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
     public void givenInsertUnitWithRootsExistsWhenParentFoundThenReturnCreated() throws Exception {
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA)).when()
+                .post("units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildInsertUnitRequest(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
-            .post("units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildInsertUnitRequest(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
+                .post("units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -342,105 +348,105 @@ public class MetadataResourceTest {
         String unitData = "{" + "\"_id\": \"" + id + "\"," + "\"_sp\": \"" + sp + "\"" + "}";
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildInsertUnitRequest(unitData, directParents)).when()
-            .post("units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildInsertUnitRequest(unitData, directParents)).when()
+                .post("units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
     }
 
     private void checkUnitGraph(String id, String expectedContentFileName)
-        throws InvalidParseOperationException, IOException {
+            throws InvalidParseOperationException, IOException {
         String responseJson = given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .get("/raw/units/" + id).then()
-            .statusCode(Status.OK.getStatusCode())
-            .extract().body().asString();
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .get("/raw/units/" + id).then()
+                .statusCode(Status.OK.getStatusCode())
+                .extract().body().asString();
 
         ObjectNode actualUnitJson = (ObjectNode) JsonHandler.getFromString(responseJson).get("$results").get(0);
         ObjectNode expectedUnitJson = (ObjectNode) JsonHandler.getFromFile(
-            PropertiesUtils.getResourceFile(expectedContentFileName));
+                PropertiesUtils.getResourceFile(expectedContentFileName));
 
         // Check last persisted date
         LocalDateTime graphLastPersistedDate = LocalDateUtil.parseMongoFormattedDate(
-            actualUnitJson.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE).asText());
+                actualUnitJson.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE).asText());
         assertThat(graphLastPersistedDate)
-            .isAfter(LocalDateUtil.now().minusMinutes(1)).isBefore(LocalDateUtil.now().plusSeconds(1));
+                .isAfter(LocalDateUtil.now().minusMinutes(1)).isBefore(LocalDateUtil.now().plusSeconds(1));
 
         // Compare jsons (excluding graph last persisted date)
         actualUnitJson.remove(MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
         expectedUnitJson.remove(MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
 
         JsonAssert.assertJsonEquals(expectedUnitJson.toString(), actualUnitJson.toString(),
-            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
     @Test(expected = MarshalException.class)
     public void shouldReturnErrorIfContentTypeIsNotJson() throws Exception {
         given()
-            .contentType("metadataMain/xml")
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("units/bulk").then()
-            .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+                .contentType("metadataMain/xml")
+                .body(buildDSLWithOptions(DATA)).when()
+                .post("units/bulk").then()
+                .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
     public void shouldReturnErrorNotFoundIfParentNotFound() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildInsertUnitRequest(DATA, "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")).when()
-            .post("/units/bulk")
-            .then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND,
-                "Cannot find parents: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
-            .statusCode(Status.NOT_FOUND.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildInsertUnitRequest(DATA, "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")).when()
+                .post("/units/bulk")
+                .then()
+                .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND,
+                        "Cannot find parents: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
+                .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void shouldReturnResponseOKIfDocumentCreated() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA)).when()
+                .post("units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
     }
 
     // Test object group
     @Test
     public void givenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(INVALID_DATA).when()
-            .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "Parse in error for Insert: empty data")))
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(INVALID_DATA).when()
+                .post("/objectgroups").then()
+                .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "Parse in error for Insert: empty data")))
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public void givenInsertObjectGroupWithIdDuplicatedThenReturnOK() throws Exception {
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildDSLWithOptions(DATA)).when()
+                .post("units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildInsertObjectGroupRequest(OG_DATA, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
-            .post("/objectgroups").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildInsertObjectGroupRequest(OG_DATA, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
+                .post("/objectgroups").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildInsertObjectGroupRequest(OG_DATA, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
-            .post("/objectgroups").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .body(buildInsertObjectGroupRequest(OG_DATA, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
+                .post("/objectgroups").then()
+                .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -449,11 +455,11 @@ public class MetadataResourceTest {
         GlobalDatasParser.limitRequest = 99;
         try {
             given()
-                .contentType(ContentType.JSON)
-                .body(buildDSLWithOptions(createJsonStringWithDepth(60))).when()
-                .post("/objectgroups").then()
-                .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "String exceeds sanity check of 99")))
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                    .contentType(ContentType.JSON)
+                    .body(buildDSLWithOptions(createJsonStringWithDepth(60))).when()
+                    .post("/objectgroups").then()
+                    .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "String exceeds sanity check of 99")))
+                    .statusCode(Status.BAD_REQUEST.getStatusCode());
         } finally {
             GlobalDatasParser.limitRequest = limitRequest;
         }
@@ -467,25 +473,25 @@ public class MetadataResourceTest {
 
         VitamRepositoryFactory factory = VitamRepositoryFactory.get();
         VitamMongoRepository mongo =
-            factory.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
+                factory.getVitamMongoRepository(UNIT.getVitamCollection());
         Document doc = new Document("_id", "1")
-            .append("_ops", singletonList(operationId))
-            .append("_tenant", 0)
-            .append("_max", 1)
-            .append("_sp", "sp1")
-            .append("_opi", operationId)
-            .append("_sps", Arrays.asList("sp1", "sp2"));
+                .append("_ops", singletonList(operationId))
+                .append("_tenant", 0)
+                .append("_max", 1)
+                .append("_sp", "sp1")
+                .append("_opi", operationId)
+                .append("_sps", Arrays.asList("sp1", "sp2"));
         mongo.save(doc);
 
-        VitamElasticsearchRepository es = factory.getVitamESRepository(MetadataCollections.UNIT.getVitamCollection());
+        VitamElasticsearchRepository es = factory.getVitamESRepository(UNIT.getVitamCollection());
         es.save(doc);
 
         given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .get("/accession-registers/units/" + operationId).then()
-            .body("$results.size()", equalTo(1))
-            .statusCode(Status.OK.getStatusCode());
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when()
+                .get("/accession-registers/units/" + operationId).then()
+                .body("$results.size()", equalTo(1))
+                .statusCode(Status.OK.getStatusCode());
 
     }
 
@@ -494,28 +500,28 @@ public class MetadataResourceTest {
     public void should_find_accession_register_on_object_group() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Document doc = (Document) (new ObjectGroup(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))));
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))));
         VitamRepositoryFactory factory = VitamRepositoryFactory.get();
         VitamMongoRepository mongo =
-            factory.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+                factory.getVitamMongoRepository(OBJECTGROUP.getVitamCollection());
         mongo.save(doc);
         VitamElasticsearchRepository es =
-            factory.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+                factory.getVitamESRepository(OBJECTGROUP.getVitamCollection());
         es.save(doc);
         String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
 
         given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when()
-            .get("/accession-registers/objects/" + operationId).then()
-            .body("$results.size()", equalTo(1))
-            .statusCode(Status.OK.getStatusCode());
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when()
+                .get("/accession-registers/objects/" + operationId).then()
+                .body("$results.size()", equalTo(1))
+                .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void indexCollectionNoBodyPreconditionFailed() {
         given().contentType(MediaType.APPLICATION_JSON)
-            .when().post("/reindex").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .when().post("/reindex").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -527,18 +533,18 @@ public class MetadataResourceTest {
         indexParameters.setCollectionName("fake");
 
         given().contentType(MediaType.APPLICATION_JSON).body(indexParameters)
-            .when().post("/reindex").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .body("collectionName", equalTo("fake"))
-            .body("KO.size()", equalTo(1))
-            .body("KO.get(0).indexName", equalTo("fake_0_*"))
-            .body("KO.get(0).message", containsString("'fake'"))
-            .body("KO.get(0).tenant", equalTo(0));
+                .when().post("/reindex").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .body("collectionName", equalTo("fake"))
+                .body("KO.size()", equalTo(1))
+                .body("KO.get(0).indexName", equalTo("fake_0_*"))
+                .body("KO.get(0).message", containsString("'fake'"))
+                .body("KO.get(0).tenant", equalTo(0));
     }
 
     @Test
     public void aliasCollectionNoBodyPreconditionFailed() {
         given().contentType(MediaType.APPLICATION_JSON)
-            .when().post("/alias").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .when().post("/alias").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -547,6 +553,6 @@ public class MetadataResourceTest {
         parameters.setAlias("alias");
         parameters.setIndexName("indexName");
         given().contentType(MediaType.APPLICATION_JSON).body(parameters)
-            .when().post("/alias").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                .when().post("/alias").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 }

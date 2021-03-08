@@ -44,6 +44,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -120,9 +121,10 @@ public class VitamRuleRunner {
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes), tenants);
+            new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes, mappingLoader), tenants);
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
             new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes));
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), prefix,

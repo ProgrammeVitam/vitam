@@ -56,9 +56,9 @@ La configuration des droits d'accès à VITAM est réalisée dans le fichier |re
      :language: yaml
      :linenos:
 
-.. note:: Pour la directive ``admin_context_certs`` concernant l'intégration de certificats :term:`SIA` au déploiement, se reporter à la section :ref:`external_sia_certs_integration`. 
+.. note:: Pour la directive ``admin_context_certs`` concernant l'intégration de certificats :term:`SIA` au déploiement, se reporter à la section :ref:`external_sia_certs_integration`.
 
-.. note:: Pour la directive ``admin_personal_certs`` concernant l'intégration de certificats personnels (*personae*) au déploiement, se reporter à la section :ref:`personal_certs_integration`. 
+.. note:: Pour la directive ``admin_personal_certs`` concernant l'intégration de certificats personnels (*personae*) au déploiement, se reporter à la section :ref:`personal_certs_integration`.
 
 Fichier ``offers_opts.yml``
 ----------------------------
@@ -164,7 +164,7 @@ Commande ansible-vault
 
 Certains fichiers présents sous |repertoire_inventory|/group_vars/all commençant par **vault-** doivent être protégés (encryptés) avec l'utilitaire ``ansible-vault``.
 
-.. note:: Ne pas oublier de mettre en conformité le fichier ``vault_pass.txt`` 
+.. note:: Ne pas oublier de mettre en conformité le fichier ``vault_pass.txt``
 
 Générer des fichiers *vaultés* depuis des fichier en clair
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -183,3 +183,24 @@ Exemple du fichier ``vault-cots.yml`` ::
 
    ansible-vault rekey vault-cots.yml
 
+
+Le mapping ELasticsearch pour Unit et ObjectGroup
+=================================================
+
+Les mappings des index elasticsearch pour les collections metadata Unit et ObjectGroup sont configurables de l'extérieur, plus spécifiquement dans le dossier |repertoire_inventory| ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/``, ce dossier contient:
+
+* ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/unit-es-mapping.json``
+* ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/og-es-mapping.json``
+
+Exemple du fichier mapping de la collection ObjectGroup :
+
+  .. literalinclude:: ../../../../deployment/ansible-vitam/roles/elasticsearch-mapping/files/og-es-mapping.json
+     :language: json
+     :linenos:
+
+.. note:: Le paramétrage de ce mapping se fait sur les deux composants ``Metadata`` et le composant extra``Ihm Recette``.
+
+.. caution::
+    En cas de changement du mapping, il faut veiller à ce que cette mise à jour soit en accord avec l'Ontologie de :term:`VITAM`.
+
+    Le mapping est pris en compte lors de la première création des indexes. Pour une nouvelle installation de :term:`VITAM`,  les mapping seront automatiquement pris en compte. Cependant, la modification des mapping nécessite une réindexation via l'API dédiée si VITAM est déjà installé.

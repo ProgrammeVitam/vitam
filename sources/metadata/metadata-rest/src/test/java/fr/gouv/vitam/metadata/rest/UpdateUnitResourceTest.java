@@ -49,11 +49,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.After;
@@ -70,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 
@@ -77,16 +80,16 @@ public class UpdateUnitResourceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID_0 = 0;
     private static final List tenantList = Collections.singletonList(TENANT_ID_0);
     private static final String DATA =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"_tenant\": 0, " + "\"data\": \"data2\" }";
+            "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"_tenant\": 0, " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"_tenant\": 0, " + "\"data\": \"data2\", " +
-            "\"Title\": \"Archive3\", \"_mgt\": {\"NeedAuthorization\": true}," +
-            " \"DescriptionLevel\": \"Item\" }";
+            "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"_tenant\": 0, " + "\"data\": \"data2\", " +
+                    "\"Title\": \"Archive3\", \"_mgt\": {\"NeedAuthorization\": true}," +
+                    " \"DescriptionLevel\": \"Item\" }";
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
@@ -98,18 +101,18 @@ public class UpdateUnitResourceTest {
     private static final Integer TENANT_ID = 0;
 
     private static final String BODY_TEST =
-        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
+            "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
 
     private static final String BODY_TEST_BAD_REQUEST =
-        "{\"$query\": [{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaa22\"}], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
+            "{\"$query\": [{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaa22\"}], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
 
     private static final String REAL_UPDATE_BODY_TEST =
-        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}], \"$filter\": {}}";
+            "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}], \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+            new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     private static MetadataMain application;
     private static ElasticsearchAccessMetadata esClient;
@@ -119,15 +122,18 @@ public class UpdateUnitResourceTest {
         junitHelper = JunitHelper.getInstance();
 
         List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
+        MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+
+        esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
 
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
-            esClient, 0);
+                esClient, 0);
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
+                new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes, mappingLoader);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         VitamConfiguration.setTenants(tenantList);
@@ -145,8 +151,8 @@ public class UpdateUnitResourceTest {
         RestAssured.basePath = DATA_URI;
 
         ClientMockResultHelper.setOntologies(JsonHandler.getFromInputStreamAsTypeReference(
-            OntologyTestHelper.loadOntologies(), new TypeReference<List<OntologyModel>>() {
-            }));
+                OntologyTestHelper.loadOntologies(), new TypeReference<List<OntologyModel>>() {
+                }));
     }
 
     @AfterClass
@@ -171,14 +177,14 @@ public class UpdateUnitResourceTest {
 
     private static final BulkUnitInsertRequest bulkInsertRequest(String data) throws InvalidParseOperationException {
         return new BulkUnitInsertRequest(Collections.singletonList(
-            new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(data))
+                new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(data))
         ));
     }
 
     private static final BulkUnitInsertRequest bulkInsertRequest(String data, String root)
-        throws InvalidParseOperationException {
+            throws InvalidParseOperationException {
         return new BulkUnitInsertRequest(Collections.singletonList(
-            new BulkUnitInsertEntry(Collections.singleton(root), JsonHandler.getFromString(data))
+                new BulkUnitInsertEntry(Collections.singleton(root), JsonHandler.getFromString(data))
         ));
     }
 
@@ -197,51 +203,51 @@ public class UpdateUnitResourceTest {
     @RunWithCustomExecutor
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-            .body(bulkInsertRequest(DATA2)).when()
-            .post("/units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .body(bulkInsertRequest(DATA2)).when()
+                .post("/units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-            .body(bulkInsertRequest(DATA, ID_UNIT)).when()
-            .post("/units/bulk").then()
-            .statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .body(bulkInsertRequest(DATA, ID_UNIT)).when()
+                .post("/units/bulk").then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-        esClient.refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
-
-        given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST)).when()
-            .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.OK.getStatusCode());
-        esClient.refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        esClient.refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()
-            .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.OK.getStatusCode());
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .contentType(ContentType.JSON)
+                .body(JsonHandler.getFromString(BODY_TEST)).when()
+                .put("/units/" + ID_UNIT).then()
+                .statusCode(Status.OK.getStatusCode());
+        esClient.refreshIndex(UNIT.getName().toLowerCase(), TENANT_ID_0);
+
+        given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .contentType(ContentType.JSON)
+                .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()
+                .put("/units/" + ID_UNIT).then()
+                .statusCode(Status.OK.getStatusCode());
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(""))
-            .when()
-            .put("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(JsonHandler.getFromString(""))
+                .when()
+                .put("/units/" + ID_UNIT)
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -249,14 +255,14 @@ public class UpdateUnitResourceTest {
     public void given_bad_header_when_UpdateByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-            .body(JsonHandler.getFromString(BODY_TEST_BAD_REQUEST))
-            .when()
-            .put("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
+                .body(JsonHandler.getFromString(BODY_TEST_BAD_REQUEST))
+                .when()
+                .put("/units/" + ID_UNIT)
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -264,20 +270,20 @@ public class UpdateUnitResourceTest {
         final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
-            .contentType(ContentType.JSON)
-            .body(bulkInsertRequest(createJsonStringWithDepth(101))).when()
-            .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(bulkInsertRequest(createJsonStringWithDepth(101))).when()
+                .put("/units/" + ID_UNIT).then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON)
-            .body(bulkInsertRequest("lkvhvgvuyqvkvj")).when()
-            .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(bulkInsertRequest("lkvhvgvuyqvkvj")).when()
+                .put("/units/" + ID_UNIT).then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }
