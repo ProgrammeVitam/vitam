@@ -7,6 +7,74 @@
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_SANITY_CHECK_SIP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "waitFor": "sanityCheckResult.json",
+      "actions": [
+        {
+          "action": {
+            "actionKey": "SANITY_CHECK_SIP",
+            "behavior": "BLOCKING",
+            "in": {
+              "name": "paramToCheck",
+              "uri": "VALUE:antivirusParam"
+            }
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_CONTAINER",
+            "behavior": "BLOCKING",
+            "in": {
+              "name": "paramToCheck",
+              "uri": "VALUE:fileFormatParam"
+            }
+          }
+        },
+        {
+          "action": {
+            "actionKey": "MANIFEST_FILE_NAME_CHECK",
+            "behavior": "BLOCKING",
+            "in": {
+              "name": "paramToCheck",
+              "uri": "VALUE:fileNameManifestParam"
+            }
+          }
+        },
+        {
+          "action": {
+            "actionKey": "MANIFEST_DIGEST_CHECK",
+            "behavior": "BLOCKING",
+            "in": {
+              "name": "paramToCheck",
+              "uri": "VALUE:digestManifestParam"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UPLOAD_SIP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "waitFor": "stpUploadResult.json",
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UPLOAD_SIP",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_CONTROL_SIP",
       "behavior": "BLOCKING",
       "distribution": {
