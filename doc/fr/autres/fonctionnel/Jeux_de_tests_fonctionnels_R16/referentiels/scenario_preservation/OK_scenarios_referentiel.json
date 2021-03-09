@@ -1,0 +1,95 @@
+[
+  {
+    "Identifier": "PSC-000001",
+    "Name": "Identification de tout type de formats avec Siegfried",
+    "Description": "Ce scénario, appelant le griffon Siegfried, permet de réidentifier des fichiers quel que soit leur format, du moment que le format est défini dans le référentiel des formats",
+    "ActionList": [
+      "IDENTIFY"
+    ],
+    "GriffinByFormat": [],
+    "DefaultGriffin": {
+      "GriffinIdentifier": "GRI-000003",
+      "Timeout": 20,
+      "MaxSize": 10000000,
+      "Debug": true,
+      "ActionDetail": [
+        {
+          "Type": "IDENTIFY"
+        }
+      ]
+    }
+  },
+  {
+    "Identifier": "PSC-000002",
+    "Name": "Validation de PDF/A avec VeraPDF",
+    "Description": "Ce scénario, appelant le griffon VeraPDF, permet de valider des fichiers au format PDF/A",
+    "ActionList": [
+      "ANALYSE"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/95", "fmt/354", "fmt/476", "fmt/477", "fmt/478", "fmt/479", "fmt/480", "fmt/481"],
+        "GriffinIdentifier": "GRI-000007",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "ANALYSE",
+          "Values": null
+          }
+        ]
+      }
+    ]   
+  },
+  {
+    "Identifier": "PSC-000003",
+    "Name": "Validation de PDF avec JHOVE",
+    "Description": "Ce scénario, appelant le griffon JHOVE, permet de valider des fichiers au format PDF (quel que soit le type de PDF)",
+    "ActionList": [
+      "ANALYSE"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/14", "fmt/15", "fmt/16", "fmt/17", "fmt/18", "fmt/19", "fmt/20", "fmt/95", "fmt/144", "fmt/145", "fmt/146", "fmt/147", "fmt/148", "fmt/157", "fmt/158", "fmt/276", "fmt/354", "fmt/476", "fmt/477", "fmt/478", "fmt/479", "fmt/480", "fmt/481", "fmt/488", "fmt/489", "fmt/490", "fmt/491", "fmt/492", "fmt/493", "fmt/1129"],
+        "GriffinIdentifier": "GRI-000002",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "ANALYSE",
+          "Values": {
+            "Args": [
+              "-strict"
+            ]
+          }
+          }
+        ]
+      }
+    ]   
+  },
+  {
+    "Identifier": "PSC-000004",
+    "Name": "Validation de formats Open Document avec ODFValidator",
+    "Description": "Ce scénario, appelant le griffon ODFValidator, permet de valider des fichiers Open Document (odt, ods, odp, odg, odc, odf, odb, odi, odm, ott, ots, otp, otg).",
+    "ActionList": [
+      "ANALYSE"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/290", "fmt/291", "fmt/292", "fmt/293", "fmt/294", "fmt/295", "fmt/296", "fmt/297", "fmt/424", "fmt/444", "fmt/135", "fmt/136", "fmt/137", "fmt/138", "fmt/139", "fmt/140"],
+        "GriffinIdentifier": "GRI-000006",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "ANALYSE"
+          }
+        ]
+      }
+    ]   
+  }
+  
+]

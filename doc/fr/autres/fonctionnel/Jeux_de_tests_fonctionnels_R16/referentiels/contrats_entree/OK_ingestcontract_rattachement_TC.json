@@ -1,0 +1,8 @@
+[
+	{
+		"Name":"Rattachement automatique",
+		"Description":"Contrat permettant de tester le rattachement automatique de SIP",
+		"Status" : "ACTIVE",
+		"LinkParentId": "TOBECOMPLETED"
+	}
+]

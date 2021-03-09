@@ -1,0 +1,27 @@
+{
+    "Identifier": "PSC-000001",
+    "Name": "Validation avec JHOVE (fmt/412)",
+    "Description": "Ce scénario, appelant le griffon JHOVE, permet de valider des fichiers docx (fmt/412)",
+    "ActionList": [
+      "ANALYSE"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/412"],
+        "GriffinIdentifier": "GRI-000002",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "ANALYSE",
+          "Values": {
+            "Args": [
+              "-strict"
+            ]
+          }
+          }
+        ]
+      }
+    ]   
+  }

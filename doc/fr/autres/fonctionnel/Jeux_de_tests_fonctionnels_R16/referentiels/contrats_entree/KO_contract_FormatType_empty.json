@@ -1,0 +1,11 @@
+[
+	{
+		"Name": "Rejette_tous_formats_liste_blanche_vide",
+		"Identifier": "Rejette_tous_formats_liste_blanche_vide",
+		"Description": "Contrat Vitam 0",
+		"Status": "ACTIVE",
+		"EveryFormatType": false,
+		"FormatType":[""]
+	}
+
+]

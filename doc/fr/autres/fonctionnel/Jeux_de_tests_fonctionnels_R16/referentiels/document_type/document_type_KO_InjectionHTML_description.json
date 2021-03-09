@@ -1,0 +1,12 @@
+[
+	{ 	"Identifier":"AUP_IDENTIFIER_0",
+		"Name":"NameForTest",
+		"Description":"<h1>Bonjour</h1>",
+		"Status":"ACTIVE",
+		"ControlSchema":"{}",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
+	}
+]

@@ -1,0 +1,17 @@
+[
+	{
+		"Name":"Contrat_FormatUnidentified_EveryFormatType_plus_autres",
+		"Identifier":"Contrat_FormatUnidentified_EveryFormatType_plus_autres",
+		"Description":"Contrat de test",
+		"Status":"ACTIVE",
+		"MasterMandatory": false,
+		"EveryDataObjectVersion": true,
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"FormatUnidentifiedAuthorized":true,
+		"EveryFormatType": false,
+		"FormatType":["fmt/17", "x-fmt/279"]
+	}
+]

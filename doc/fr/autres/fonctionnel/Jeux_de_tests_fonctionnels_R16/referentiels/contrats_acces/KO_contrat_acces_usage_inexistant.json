@@ -1,0 +1,13 @@
+[
+	{
+		"Name":"Contrat usage inexistant dans le système",
+		"Description":"Contrat usage inexistant dans le système",
+		"Status":"ACTIVE",
+		"EveryDataObjectVersion": true,
+		"OriginatingAgencies":["Identifier0"],
+		"DataObjectVersion": ["toto"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"WritingPermission": true
+	}
+]

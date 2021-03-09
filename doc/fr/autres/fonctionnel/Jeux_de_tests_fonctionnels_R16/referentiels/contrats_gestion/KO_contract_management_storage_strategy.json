@@ -1,0 +1,15 @@
+[
+    {
+        "Name": "Contrat de gestion avec stockage invalide",
+        "Identifier": "MCFakeStrategy",
+        "Description": "Contrat de gestion valide déclarant pas de surcharge pour le stockage des métadonnées des unités archivistiques avec une stratégie qui n'existe pas",
+        "Status": "ACTIVE",
+        "LastUpdate": "10/12/2016",
+        "CreationDate": "10/12/2016",
+        "ActivationDate": "10/12/2016",
+        "DeactivationDate": "10/12/2016",
+        "Storage": {
+            "UnitStrategy": "fake-strategy-not-found"
+        }
+    }
+]

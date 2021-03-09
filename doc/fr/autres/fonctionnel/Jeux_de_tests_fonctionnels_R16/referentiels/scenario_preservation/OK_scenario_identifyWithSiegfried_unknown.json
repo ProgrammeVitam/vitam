@@ -1,0 +1,22 @@
+{
+    "Identifier": "PSC-000001",
+    "Name": "Identification avec Siegfried",
+    "Description": "Ce scénario, appelant le griffon Siegfried, permet de réidentifier des fichiers image",
+    "ActionList": [
+      "IDENTIFY"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["UNKNOWN"],
+        "GriffinIdentifier": "GRI-000003",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "IDENTIFY"
+          }
+        ]
+      }
+    ]   
+  }

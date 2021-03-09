@@ -1,0 +1,12 @@
+[
+
+  {
+    "Identifier": "Contexte011",
+    "Name": "Contexte_du_programme_Vitam",
+    "Status":"ACTIVE",
+    "SecurityProfile": "admin-security-profile",
+    "Permissions": [
+		{"tenant":"blabla"}
+	]
+ }
+ ]

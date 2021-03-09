@@ -1,0 +1,12 @@
+[
+	{
+		"Name":"Contrat Identifier0 - tout usage et ecriture",
+		"Description":"Contrat permettant de faire des opérations de lecture et d'écriture sur le producteur Identifier0 et sur tous les usages",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["Identifier0"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"WritingPermission": true
+	}
+]

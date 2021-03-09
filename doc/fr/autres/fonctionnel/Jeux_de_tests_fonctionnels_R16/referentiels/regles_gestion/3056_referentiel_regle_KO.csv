@@ -1,0 +1,9 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+APP-2,AppraisalRule,app,"KO",15,day
+APP-3,AppraisalRule,app,"OK",3000,day
+APP-4,AppraisalRule,app,"KO",10,month
+APP-5,AppraisalRule,app,"OK",40,month
+APP-6,AppraisalRule,app,"KO",0,year
+APP-7,AppraisalRule,app,"OK",1,year
+APP-8,AppraisalRule,app,"OK",10,year
+STO-9,StorageRule,sto,"OK",1,day

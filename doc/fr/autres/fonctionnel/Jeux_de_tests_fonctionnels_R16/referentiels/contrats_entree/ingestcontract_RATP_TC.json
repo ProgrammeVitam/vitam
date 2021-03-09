@@ -1,0 +1,8 @@
+[
+	{
+		"Name":"RATP",
+		"Description":"Contrat permettant de tester le SIP avec les regles",
+		"Status" : "ACTIVE",
+		"LinkParentId": "TOBECOMPLETED"
+	}
+]

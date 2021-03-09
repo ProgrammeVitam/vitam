@@ -1,0 +1,23 @@
+{
+    "Identifier": "PSC-000001",
+    "Name": "Génération d'OCR avec Tesseract (fmt/353)",
+    "Description": "Ce scénario, appelant le griffon Tesseract, permet de faire de la reconnaissance optique de textes à partir de fichier au format TIF (fmt/353) et de générer un fichier contenant le texte brut à l'issue de l'océrisation",
+    "ActionList": [
+      "GENERATE"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/353"],
+        "GriffinIdentifier": "GRI-000005",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {"Extension": "txt", "Args": ["-psm","3"]}
+          }
+        ]
+      }
+    ]   
+  }

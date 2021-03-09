@@ -1,0 +1,10 @@
+[
+  {
+    "Name":"GRIFFIN1",
+    "ExecutableVersion":"V1",
+    "ExecutableName":"imagemagick-griffin",
+    "Description":"Griffon KO ne contenant pas le champ obligatoire Identifier.",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016"
+  }
+]

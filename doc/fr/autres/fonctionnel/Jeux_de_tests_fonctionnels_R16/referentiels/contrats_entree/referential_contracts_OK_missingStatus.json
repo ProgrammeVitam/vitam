@@ -1,0 +1,12 @@
+[
+	{
+		"Name":"aName",
+		"Description":"aDescription of the contract",
+		"Status" : "ACTIVE"
+	},
+		{
+		"Name":"aName2",
+		"Description":"aDescription of the contract",
+		"Status" : ""
+	}
+]

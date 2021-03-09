@@ -1,0 +1,51 @@
+[
+  {
+    "Identifier": "GRI-000001",
+    "Name": "Griffon 1 : ImageMagick",
+    "Description": "ImageMagick est un outil de validation et de conversion de fichiers image, ainsi que d'extraction de métadonnées. Il a avant tout été développé pour créer, modifier, composer et convertir des images. Il est capable de traiter 200 types de formats de fichiers – dont PNG, JPEG, GIF, HEIC, TIFF, DPX, EXR, WebP, Postscript, PDF, et SVG.",
+    "ExecutableName": "imagemagick-griffin",
+    "ExecutableVersion": "V1.0.0"
+  },
+   {
+    "Identifier": "GRI-000002",
+    "Name": "Griffon 2 : Griffon Jhove",
+    "Description": "JHOVE est un outil de validation de fichiers. Il traite les formats suivants : AIFF, ASCII, GIF, HTML, JPEG, JPEG 2000, PDF, TIFF, UTF-8, WAVE, XML, GZIP, PNG, WARC.",
+    "ExecutableName": "jhove-griffin",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000003",
+    "Name": "Griffon 3 : Griffon Siegfried",
+    "Description": "Siegfried est un outil d'identification. Couplé avec le référentiel PRONOM, il permet d'identifier et/ou de réidentifier les formats de fichier.",
+    "ExecutableName": "siegfried-griffin",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000004",
+    "Name": "Griffon 4 : Griffon LibreOffice",
+    "Description": "LibreOffice est un outil de conversion de fichiers bureautiques.",
+    "ExecutableName": "libreoffice-griffin",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000005",
+    "Name": "Griffon 5 : Griffon Tesseract",
+    "Description": "Tesseract est un outil d'extraction de métadonnées. Il permet notamment de faire de la reconnaissance optique de caractères (OCR).",
+    "ExecutableName": "tesseract-griffin",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000006",
+    "Name": "Griffon 6 : Griffon ODFvalidator",
+    "Description": "ODFvalidator est un outil de validation de fichiers Open Document.",
+    "ExecutableName": "odfvalidator-griffin",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000007",
+    "Name": "Griffon 7 : Griffon VeraPDF",
+    "Description": "VeraPDF est un outil de validation de fichiers PDF.",
+    "ExecutableName": "verapdf-griffin",
+    "ExecutableVersion": "V1.0.0"
+  }
+]

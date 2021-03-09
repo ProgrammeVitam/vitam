@@ -1,0 +1,8 @@
+[
+	{
+		"Name":"Rattachement automatique",
+		"Description":"Contrat permettant de tester le rattachement automatique de SIP lorsque le rattachement est inexistant dans Vitam",
+		"Status" : "ACTIVE",
+		"LinkParentId": "aeaaaq"
+	}
+]

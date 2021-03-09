@@ -1,0 +1,14 @@
+[
+	{
+		"Name":"Contrat_Acces_Par-Defaut",
+		"Description":"Contrat permettant de faire des opérations pour tous les services producteurs et sur tousles usages",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":[],
+		"DataObjectVersion": [],
+		"LastUpdate":"04/08/2017",
+		"CreationDate":"12/02/1976",
+		"WritingPermission": true,
+		"EveryOriginatingAgency": true,
+		"EveryDataObjectVersion": true
+	}
+]

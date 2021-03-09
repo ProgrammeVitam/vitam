@@ -1,0 +1,30 @@
+{
+  "$schema": "http://vitam-json-schema.org/draft-04/schema#",
+  "id": "http://example.com/root.json",
+  "type": "object",
+  "patternProperties": {
+    "#management": {
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "DescriptionLevel": {
+      "type": "string",
+      "enum": [
+        "RecordGrp",
+        "SubGrp",
+        "File"
+      ]
+    }
+	Title": {
+      "description": "All TitleGroup",
+      "type": [
+        "string",
+        "array",
+        "number"
+      ],
+      "minLength": 1,
+      "minItems": 1
+    }
+  }
+}

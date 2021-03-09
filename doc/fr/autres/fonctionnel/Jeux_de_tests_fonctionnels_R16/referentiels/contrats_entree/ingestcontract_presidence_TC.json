@@ -1,0 +1,8 @@
+[
+	{
+		"Name":"Presidence_2",
+		"Description":"Contrat permettant de tester le multi rattachement",
+		"Status" : "ACTIVE",
+		"LinkParentId": "TOBECOMPLETED"
+	}
+]

@@ -1,0 +1,8 @@
+[
+    {
+		"Name": "Contrat de gestion format json invalide",
+		"Identifier": "MCJsonFormatInvalid"
+		"Description": "Contrat de gestion dont le format json est invalide"
+		}
+	}
+]

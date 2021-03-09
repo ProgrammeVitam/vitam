@@ -1,0 +1,14 @@
+[
+	{
+		"Name":"Contrat mauvais format de date",
+		"Description":"Contrat en KO mauvais format de date",
+		"Status":"ACTIVE",
+		"EveryOriginatingAgency":true,
+		"EveryDataObjectVersion": true,
+		"LastUpdate":"toto",
+		"CreationDate":"tom",
+		"ActivationDate":"test",
+		"DeactivationDate":"tata",
+		"WritingPermission": true
+	}
+]

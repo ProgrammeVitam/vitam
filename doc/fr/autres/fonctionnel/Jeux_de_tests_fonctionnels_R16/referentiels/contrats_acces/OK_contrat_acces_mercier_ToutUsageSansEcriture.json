@@ -1,0 +1,14 @@
+[
+	{
+		"Name":"Contrat Mercier - tout usage, sans ecriture",
+		"Description":"Contrat permettant de faire des opérations de lecture (mais pas d'écriture) sur le producteur Mercier et sur tous les usages",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FRAN_NP_009734"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": false
+	}
+]

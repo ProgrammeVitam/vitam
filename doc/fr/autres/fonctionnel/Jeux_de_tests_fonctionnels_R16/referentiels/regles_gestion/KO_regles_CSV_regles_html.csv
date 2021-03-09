@@ -1,0 +1,5 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+APP-00001,AppraisalRule,<h1><b>Dossier individuel d’agent civil</b></h1>,"Durée de conservation des dossiers individuels d’agents. 
+L’échéance est calculée à partir de la date de naissance de l’agent",80,Year
+APP-00002,AppraisalRule,Offres non retenues des marchés,"Durée de conservation des offres non retenues des marchés publics
+L’échéance est calculée à partir de la date de notification du marché au titulaire",5,Year

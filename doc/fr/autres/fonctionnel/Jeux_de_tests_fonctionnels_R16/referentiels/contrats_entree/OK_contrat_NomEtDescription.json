@@ -1,0 +1,7 @@
+[
+	{
+		"Name":"Contrat d'entrée Nom + Description",
+		"Description":"Contrat d'entrée ayant seulement un intitulé et une description. Permet de vérifier l'autocomplétion de l'identifiant, du tenant, des dates de création, de modification et du statut"
+	}
+
+]

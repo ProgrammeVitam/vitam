@@ -1,0 +1,15 @@
+[
+	{
+		"Name":"3328_IC_INVALID",
+		"Identifier":"3328_IC_INVALID",
+		"Description":"3328_IC_INVALID",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"LinkParentId": "",
+		"CheckParentLink": "WRONG_TEST"
+	}
+
+]

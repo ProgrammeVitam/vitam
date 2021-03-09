@@ -1,0 +1,206 @@
+[
+{
+    "Identifier": "PSC-000001",
+    "Name": "Tranformation en GIF",
+    "Description": "Tranformation en GIF",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "ActionList": [
+      "GENERATE"
+    ],
+    "MetadataFilter": null,
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "GIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "DefaultGriffin": {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "GIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    
+  },
+  {
+    "Identifier": "PSC-000005",
+    "Name": "Tranformation en PNG",
+    "Description": "Tranformation en PNG",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "ActionList": [
+      "GENERATE"
+    ],
+    "MetadataFilter": null,
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "PNG",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "DefaultGriffin": {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "GIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    
+  },
+  {
+    "Identifier": "PSC-000003",
+    "Name": "Tranformation en TIF",
+    "Description": "Tranformation en TIF",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "ActionList": [
+      "GENERATE"
+    ],
+    "MetadataFilter": null,
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "TIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "DefaultGriffin": {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "GIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    
+  },
+  {
+    "Identifier": "PSC-000018",
+    "Name": "Tranformation en TIFF",
+    "Description": "Tranformation en TIFF",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "ActionList": [
+      "GENERATE"
+    ],
+    "MetadataFilter": null,
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "TIFF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "DefaultGriffin": {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "GIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    
+  }
+]

@@ -1,0 +1,11 @@
+[
+	{
+		"Name": "Rejette_tous_formats_mais_mauvaise_liste_blanche",
+		"Identifier": "Rejette_tous_formats_mais_mauvaise_liste_blanche",
+		"Description": "Contrat Vitam 0",
+		"Status": "ACTIVE",
+		"EveryFormatType": false,
+		"FormatType":["Hello World"]
+	}
+
+]

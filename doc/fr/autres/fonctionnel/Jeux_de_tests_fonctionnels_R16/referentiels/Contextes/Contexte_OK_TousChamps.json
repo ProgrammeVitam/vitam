@@ -1,0 +1,12 @@
+[
+
+  {
+    "Identifier": "ID1",
+    "Name": "ContexteToutChamps",
+    "Status":"ACTIVE",
+    "SecurityProfile": "admin-security-profile",
+	"ActivationDate": "2010-01-01",
+	"DeactivationDate": "2011-01-01",
+    "Permissions": [{"tenant": 1}]
+ }
+ ]

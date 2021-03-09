@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<ManagementContract>
+    <Name>Contrat de gestion format xml</Name>
+    <Identifier>MCXmlFormat</Identifier>
+    <Description>Contrat de gestion format xml</Description>
+</ManagementContract>

@@ -1,0 +1,12 @@
+[
+	{ 	"Identifier":"<h1>Bonjour</h1>",
+		"Name":"DocumentTypeRecette",
+		"Description":"Test d'import d'un document type",
+		"ControlSchema":"{}",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
+	}
+]

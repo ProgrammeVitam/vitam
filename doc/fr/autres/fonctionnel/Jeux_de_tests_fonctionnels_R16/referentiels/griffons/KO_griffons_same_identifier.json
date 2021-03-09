@@ -1,0 +1,18 @@
+[
+  {	"Identifier":"GRIFFIN1",
+    "Name":"GRIFFIN1",
+    "ExecutableVersion":"V1",
+    "ExecutableName":"imagemagick-griffin-1",
+    "Description":"GRIFFIN1",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016"
+  },
+  {	"Identifier":"GRIFFIN1",
+    "Name":"GRIFFIN5",
+    "Description":"GRIFFIN5",
+    "ExecutableVersion":"V1",
+    "ExecutableName":"imagemagick-griffin-2",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016"
+  }
+]

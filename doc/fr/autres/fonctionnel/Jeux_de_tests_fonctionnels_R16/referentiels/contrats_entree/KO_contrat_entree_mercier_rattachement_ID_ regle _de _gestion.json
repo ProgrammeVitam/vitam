@@ -1,0 +1,8 @@
+[
+	{
+		"Name":"Rattachement automatique",
+		"Description":"Mise à jour d’un contrat d’entrée – cas KO de la déclaration d’un identifiant correspondant à un identifiant de règle de gestion",
+		"Status" : "ACTIVE",
+		"LinkParentId": "REU-00001"
+	}
+]

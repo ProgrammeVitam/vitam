@@ -1,0 +1,27 @@
+{
+    "Identifier": "PSC-000001",
+    "Name": "Identification avec JHOVE",
+    "Description": "Ce scénario, appelant le griffon JHOVE, permet d'identifier des fichiers image, action que ce griffon ne fait pas (il faut uniquement de l'analyse de formats)",
+    "ActionList": [
+      "ANALYSE"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43", "fmt/42", "fmt/353", "fmt/44", "fmt/645", "fmt/41", "x-fmt/392", "fmt/41", "fmt/4", "fmt/12", "fmt/353", "fmt/341", "fmt/116", "fmt/124", "x-fmt/92"],
+        "GriffinIdentifier": "GRI-000002",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "IDENTIFY",
+          "Values": {
+            "Args": [
+              "-strict"
+            ]
+          }
+          }
+        ]
+      }
+    ]   
+  }

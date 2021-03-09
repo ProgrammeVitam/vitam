@@ -1,0 +1,14 @@
+[
+
+  {
+    "Identifier": "CONTEXT_KO_1",
+    "Name": "Contexte_KO"
+
+    "Status": "ACTIVE",
+
+    "Permissions": [
+	{"tenant":1}
+	],
+    "SecurityProfile": "admin-security-profile"
+ }
+ ]

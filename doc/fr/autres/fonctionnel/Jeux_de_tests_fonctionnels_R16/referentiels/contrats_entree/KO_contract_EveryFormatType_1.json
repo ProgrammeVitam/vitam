@@ -1,0 +1,11 @@
+[
+	{
+		"Name": "Accepte_tous_formats_mais_liste_blanche_existe",
+		"Identifier": "Accepte_tous_formats_mais_liste_blanche_existe",
+		"Description": "Contrat Vitam 0",
+		"Status": "ACTIVE",
+		"EveryFormatType": true,
+		"FormatType":["fmt/17", "x-fmt/279"]
+	}
+
+]

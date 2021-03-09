@@ -1,0 +1,137 @@
+[
+  {
+    "Identifier": "PSC-000001",
+    "Name": "Extraction de métadonnées techniques avec ImageMagick (All_Metadata)",
+    "Description": "Ce scénario, appelant le griffon ImageMagick, permet d'extraire l'ensemble des métadonnées techniques de fichiers image et de les enregistrer dans les métadonnées des groupes d'objets techniques. Les métadonnées sont enregistrées dans OtherMetadata, chacune sous forme de tableau et indexée.",
+    "ActionList": [
+      "EXTRACT"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43", "fmt/42", "fmt/353", "fmt/44", "fmt/645", "fmt/41", "x-fmt/392", "fmt/41", "fmt/4", "fmt/12", "fmt/353", "fmt/341", "fmt/116", "fmt/124", "x-fmt/92"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 200,
+        "MaxSize": 10000000,
+        "Debug": true,
+        "ActionDetail": [
+          {
+            "Type": "EXTRACT",
+            "Values": {
+              "FilteredExtractedObjectGroupData": [
+                "ALL_METADATA"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Identifier": "PSC-000002",
+    "Name": "Extraction de métadonnées techniques avec ImageMagick (Raw_Metadata)",
+    "Description": "Ce scénario, appelant le griffon ImageMagick, permet d'extraire l'ensemble des métadonnées techniques de fichiers image et de les enregistrer dans les métadonnées des groupes d'objets techniques. Les métadonnées sont enregistrées dans OtherMetadata dans un unique tableau. Seul RAW_METADATA est indexé.",
+    "ActionList": [
+      "EXTRACT"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43", "fmt/42", "fmt/353", "fmt/44", "fmt/645", "fmt/41", "x-fmt/392", "fmt/41", "fmt/4", "fmt/12", "fmt/353", "fmt/341", "fmt/116", "fmt/124", "x-fmt/92"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 200,
+        "MaxSize": 10000000,
+        "Debug": true,
+        "ActionDetail": [
+          {
+            "Type": "EXTRACT",
+            "Values": {
+              "FilteredExtractedObjectGroupData": [
+                "RAW_METADATA"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Identifier": "PSC-000003",
+    "Name": "Extraction de métadonnées techniques avec ImageMagick (SelectionOfMetadata)",
+    "Description": "Ce scénario, appelant le griffon ImageMagick, permet d'extraire une partie des métadonnées techniques de fichiers image (compression, resolution, geometry) et de les enregistrer dans les métadonnées des groupes d'objets techniques. Les métadonnées sont enregistrées dans OtherMetadata, chacune sous forme de tableau et indexée.",
+    "ActionList": [
+      "EXTRACT"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43", "fmt/42", "fmt/353", "fmt/44", "fmt/645", "fmt/41", "x-fmt/392", "fmt/41", "fmt/4", "fmt/12", "fmt/353", "fmt/341", "fmt/116", "fmt/124", "x-fmt/92"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 200,
+        "MaxSize": 10000000,
+        "Debug": true,
+        "ActionDetail": [
+          {
+            "Type": "EXTRACT",
+            "Values": {
+              "FilteredExtractedObjectGroupData": [
+                "compression", "resolution", "geometry"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Identifier": "PSC-000004",
+    "Name": "Extraction de métadonnées techniques avec ImageMagick (SelectionOfMetadata + Raw_Metadata)",
+    "Description": "Ce scénario, appelant le griffon ImageMagick, permet d'extraire une partie des métadonnées techniques de fichiers image (compression, resolution, geometry) et de les enregistrer dans les métadonnées des groupes d'objets techniques. Les métadonnées sont enregistrées dans OtherMetadata, chacune sous forme de tableau et indexée, ainsi que dans RAW_METADATA qui est indexé.",
+    "ActionList": [
+      "EXTRACT"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43", "fmt/42", "fmt/353", "fmt/44", "fmt/645", "fmt/41", "x-fmt/392", "fmt/41", "fmt/4", "fmt/12", "fmt/353", "fmt/341", "fmt/116", "fmt/124", "x-fmt/92"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 200,
+        "MaxSize": 10000000,
+        "Debug": true,
+        "ActionDetail": [
+          {
+            "Type": "EXTRACT",
+            "Values": {
+              "FilteredExtractedObjectGroupData": [
+                "compression", "resolution", "geometry", "RAW_METADATA"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Identifier": "PSC-000005",
+    "Name": "Extraction de métadonnées techniques avec ImageMagick (All_Metadata + Raw_Metadata)",
+    "Description": "Ce scénario, appelant le griffon ImageMagick, permet d'extraire une partie des métadonnées techniques de fichiers image et de les enregistrer dans les métadonnées des groupes d'objets techniques. Les métadonnées sont enregistrées dans OtherMetadata, chacune sous forme de tableau et indexée, ainsi que dans RAW_METADATA qui est indexé.",
+    "ActionList": [
+      "EXTRACT"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43", "fmt/42", "fmt/353", "fmt/44", "fmt/645", "fmt/41", "x-fmt/392", "fmt/41", "fmt/4", "fmt/12", "fmt/353", "fmt/341", "fmt/116", "fmt/124", "x-fmt/92"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 200,
+        "MaxSize": 10000000,
+        "Debug": true,
+        "ActionDetail": [
+          {
+            "Type": "EXTRACT",
+            "Values": {
+              "FilteredExtractedObjectGroupData": [
+                "ALL_METADATA", "RAW_METADATA"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

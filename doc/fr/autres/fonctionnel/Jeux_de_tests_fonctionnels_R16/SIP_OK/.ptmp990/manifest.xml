@@ -1,0 +1,184 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.1-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:pr="info:lc/xmlns/premis-v2" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2016-10-18T15:23:00</Date>
+    <MessageIdentifier>SIP OK avec management métadata</MessageIdentifier>
+    <ArchivalAgreement>IC-000001</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID7">
+            <DataObjectGroupId>ID6</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID7.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >f5d6880f323e5aa73a95cece09a66fed2ca462c60690acdbf438216981d5c7f0c6f16e879c07199bb2a45a64f73fa6466d43296e18bb3e68123a7df9a6ad97b0</MessageDigest>
+            <Size>524372</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Histoire de la station de sa cération à 1946.pdf</Filename>
+                <LastModified>2015-12-04T09:02:25.713+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID13">
+            <DataObjectGroupId>ID12</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID13.odp</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >422d96b979ebe53082b951048890cf09daebf1caf487d90a1e288978bdb57afb4c9f109159b40c8fc1319fa22bb96ded8b9e05b6529abc3a04e11f06707f0871</MessageDigest>
+            <Size>2201507</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Histoire de la station de sa création à 1946.odp</Filename>
+                <LastModified>2016-06-02T15:32:29.146+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Management>
+                    <AccessRule>
+                        <Rule>ACC-00002</Rule>
+                        <StartDate>2015-11-19</StartDate>
+                    </AccessRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Liste des Métros de Tokyo</Title>
+                    <Description>Le métro de Tokyo (東京の地下鉄, Tōkyō no chikatetsu) est un des systèmes de transport en commun desservant l'agglomération de Tokyo au Japon. Il se compose des lignes de deux compagnies : Tokyo Metro et Toei.
+                       La première ligne du métro de Tokyo, la ligne Ginza, a été ouverte en 1927.</Description>
+                    <AcquiredDate>2015-12-04T09:02:25</AcquiredDate>
+                    <StartDate>2015-12-04T09:02:25</StartDate>
+                    <EndDate>2016-06-02T15:32:29</EndDate>
+                    <Event>
+                        <EventDateTime>2013-11-04T09:02:25</EventDateTime>
+                    </Event>
+                </Content>
+                <ArchiveUnit id="ID5">
+                    <ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID11">
+                    <ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID4">
+                <Management>
+                    <ReuseRule>
+                        <Rule>REU-00001</Rule>
+                        <StartDate>2015-11-19</StartDate>
+                    </ReuseRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Ginza</Title>
+                    <Description>ELa ligne Ginza (東京地下鉄銀座線, Tōkyō Chikatetsu Ginza-sen) est une ligne de métro à Tokyo au Japon gérée par le réseau Tōkyō Métro. Elle relie la station de Shibuya à celle d'Asakusa. Longue de 14,3 km, elle traverse Tokyo du sud-ouest au nord-est en traversant les arrondissements de Shibuya, Minato, Chūō, Chiyoda, et Taitō. Sur les cartes, sa couleur est orange et est identifiée avec la lettre G.</Description>
+                    <AcquiredDate>2014-12-04T09:02:25</AcquiredDate>
+                    <StartDate>2015-12-04T09:02:25</StartDate>
+                    <EndDate>2015-12-04T09:02:25</EndDate>
+                </Content>
+                <ArchiveUnit id="ID9">
+                    <ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID8">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Histoire de la station de sa cération à aujourd'hui.pdf</Title>
+                    <Description>Cette ligne ferroviaire souterraine est la plus ancienne en Asie : les travaux de construction du tronçon entre Ueno et Asakusa ont commencé le 27 septembre 19251. La ligne a ouvert le 30 décembre 1927, puis elle a été prolongée à Manseibashi en 1931 et à Shinbashi en 1934.
+                        
+                        En 1938, la Tokyo Rapid Railway, l’ancêtre de la compagnie Tōkyū, ouvre une ligne entre Shibuya et Toranomon. Cette dernière est prolongée à Shimbashi l'année suivante et les deux lignes sont interconnectées. En 1941, ces deux lignes sont regroupées en une seule qui prend le nom de ligne Ginza en 1951 (pour la différencier de la ligne Marunouchi nouvellement créée).</Description>
+                    <Keyword>
+                        <KeywordContent>blabla</KeywordContent>
+                        <KeywordType>subject</KeywordType>
+                    </Keyword>
+                    <TransactedDate>2015-12-04T09:02:25</TransactedDate>
+                    <Gps>
+                        <GpsLatitude>1235</GpsLatitude>
+                    </Gps>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID10">
+                <Management>
+                    <DisseminationRule>
+                        <Rule>DIS-00001</Rule>
+                        <StartDate>2015-11-19</StartDate>
+                    </DisseminationRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Marunouchi</Title>
+                    <Description>La ligne Marunouchi (東京地下鉄丸ノ内線, Tōkyō Chikatetsu Marunouchi-sen) est une ligne de métro à Tokyo au Japon gérée par le réseau Tokyo Metro. Elle relie la station d'Ikebukuro à la station d'Ogikubo, avec une branche entre les stations de Nakano-Sakaue et Hōnanchō. Longue de 27,4 km, elle traverse Tokyo du nord-ouest à l'ouest en passant par le centre. Les arrondissements traversés sont Suginami, Nakano, Shinjuku, Minato, Chiyoda, Chūō, Bunkyō et Toshima. Sur les cartes, la ligne est de couleur rouge et identifiée par la lettre M pour la branche principale et m pour la branche secondaire.</Description>
+                    <Coverage>
+                        <Juridictional></Juridictional>
+                    </Coverage>
+                    <StartDate>2016-06-02T15:32:29</StartDate>
+                    <EndDate>2017-10-02T15:32:29</EndDate>
+                </Content>
+                <ArchiveUnit id="ID15">
+                    <ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID14">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Histoire de la station de sa création à 2000.odp</Title>
+                    <Description>JLa ligne Marunouchi est la deuxième ligne construite du réseau, après la ligne Ginza. La première section entre Ikebukuro and Ochanomizu est inaugurée le 20 janvier 19541. La ligne est ensuite prolongée plusieurs fois entre 1956 et 1964.
+                        
+                        Le 20 mars 1995, la ligne est touchée par l'attentat au gaz sarin dans le métro de Tokyo.</Description>
+                    <Tag>métro</Tag>
+                    <Writer>
+                        <FirstName>Marc</FirstName>
+                        <BirthName>Graf</BirthName>
+                    </Writer>
+                    <TransactedDate>2016-06-02T15:32:29</TransactedDate>
+                    <ReceivedDate>2010-09-15</ReceivedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID12</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+<OriginatingAgencyIdentifier>FRAN_NP_009915</OriginatingAgencyIdentifier>
+<SubmissionAgencyIdentifier>FRAN_NP_005761</SubmissionAgencyIdentifier>
+            <DisseminationRule>
+                <Rule>DIS-00002</Rule>
+                <StartDate>2016-12-04</StartDate>
+            </DisseminationRule>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

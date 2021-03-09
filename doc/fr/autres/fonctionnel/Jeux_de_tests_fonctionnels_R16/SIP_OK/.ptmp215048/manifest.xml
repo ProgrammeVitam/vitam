@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.1-main.xsd"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:pr="info:lc/xmlns/premis-v2">
+    <Comment>Jeu de test OK comprenant un objet binaire et un objet physique</Comment>
+    <Date>2006-05-04T18:13:51.0</Date>
+    <MessageIdentifier>Jeu de test OK comprenant un objet binaire et un objet
+        physique</MessageIdentifier>
+    <ArchivalAgreement>IC-000001</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+        <BinaryDataObject id="ID009">
+            <DataObjectGroupId>ID010</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+            <Size>29403</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Filename0</Filename>
+                <CreatingApplicationName>CreatingApplicationName0</CreatingApplicationName>
+                <CreatingApplicationVersion>CreatingApplicationVersion0</CreatingApplicationVersion>
+                <DateCreatedByApplication>2006-05-04T18:13:51.0</DateCreatedByApplication>
+                <CreatingOs>CreatingOs0</CreatingOs>
+                <CreatingOsVersion>CreatingOsVersion0</CreatingOsVersion>
+                <LastModified>2006-05-04T18:13:51.0</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <PhysicalDataObject id="ID101">
+            <DataObjectGroupReferenceId>ID010</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster</DataObjectVersion>
+            <PhysicalId>123456789</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">21</Height>
+                <Length unit="centimetre">29.7</Length>
+                <Weight unit="kilogram">1</Weight>
+            </PhysicalDimensions>
+        </PhysicalDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID026">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Steffi Graf</Title>
+                    <Description>Stefanie Maria Graf, dite Steffi Graf, est une joueuse de tennis allemande, née le 14 juin 1969 à Mannheim en République fédérale d'Allemagne dont la carrière professionnelle s'étend de 1982 à 1999.
+                        
+                        Elle est la joueuse qui a occupé le plus longtemps la place de numéro 1 mondiale dans l'histoire de la WTA en nombre de saisons (8), de semaines consécutives (186, avec Serena Williams) et de semaines cumulées (377), et a remporté 107 titres en simple dames, dont 22 titres du Grand Chelem, entre 1987 et 1999, ce qui constitue le deuxième meilleur résultat en ère Open hommes et femmes confondus derrière Serena Williams, et le troisième meilleur résultat toutes époques confondues, derrière Margaret Smith Court (24 titres).
+                        
+                        Elle a été également victorieuse de 5 Masters, et s'est adjugée 3 médailles en simple (2 en or et 1 d'argent) lors de trois Jeux olympiques différents (19842, 1988, et 1992). Elle est, avec 28 trophées, la 2e joueuse en simple la plus titrée dans les tournois majeurs.
+                        
+                        Seconde joueuse la plus titrée dans cinq des six tournois majeurs, elle est aussi la seule à détenir au minimum quatre titres dans chaque tournoi du Grand Chelem. Elle a remporté 4 fois l'Open d'Australie, 6 fois Roland-Garros, 7 fois Wimbledon, 5 fois l'US Open, 5 fois le Masters et 1 fois les Jeux Olympiques2.
+                        
+                        Steffi Graf a été sacrée Championne du Monde par la FIT à sept reprises (un record), entre 1987 et 1996.
+                        
+                        Elle est considérée comme l'une des plus grandes joueuses de tous les temps, étant la seule tenniswoman à avoir réalisé à deux reprises le Grand Chelem : le Grand Chelem doré, en remportant les quatre tournois du Grand Chelem et le titre olympique dans la même année, en 1988, mais aussi un Grand Chelem à cheval sur deux saisons, réalisé entre 1993 et 1994. Elle a réalisé en outre quatre Petits Chelems en 1989, 1993, 1995, et 1996.
+                        
+                        Graf a également remporté onze titres en double dames, dont Wimbledon 1988, associée à l'argentine Gabriela Sabatini.
+                        
+                        En 1987 et 1992, elle remporte la Fed Cup avec l'équipe d'Allemagne.
+                        
+                        En décembre 1999, Graf a été élue  « Plus grande joueuse de tennis du vingtième siècle » par un panel d'experts de l'Associated Press.
+                        
+                        Elle a fait son entrée au Tennis Hall of Fame en 2004.
+                        
+                        Steffi Graf devient la compagne d'Andre Agassi après leurs victoires simultanées à Roland-Garros 1999. Elle prend sa retraite sportive deux mois après cet ultime succès en Grand Chelem, et le couple se marie en 2001. Ils ont deux enfants.</Description>
+                    <CreatedDate>2006-05-04T18:13:51.0</CreatedDate>
+                    <ReceivedDate>2017-02-23T14:10:51.0</ReceivedDate>
+                    <RegisteredDate>2017-05-15T14:17:54.0</RegisteredDate>
+                    <StartDate>2005-07-14T18:55:32.0</StartDate>
+                    <EndDate>2006-12-12T18:13:51.0</EndDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID010</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>FRAN_NP_050056</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_050056</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <RelatedTransferReference>RelatedTransferReference0</RelatedTransferReference>
+    <TransferRequestReplyIdentifier>TransferRequestReplyIdentifier0</TransferRequestReplyIdentifier>
+    <ArchivalAgency>
+        <Identifier>Identifier2</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier3</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

@@ -1,0 +1,12 @@
+[
+	{ 	"Identifier":"",
+		"Name":"ArchiveUnitProfile correspondant à un dossier de militaire",
+		"Description":"Exemple d'ArchiveUnitProfile pour un dossier de militaire",
+		"Status":"ACTIVE",
+		"ControlSchema":"{}",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
+	}
+]

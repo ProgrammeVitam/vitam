@@ -1,0 +1,17 @@
+[
+    {
+		"Name": "Contrat de gestion dates invalides",
+		"Identifier": "MCInvalidDate",
+		"Description": "Contrat de gestion contenant des dates au format invalide",
+		"Status": "ACTIVE",
+		"LastUpdate":"toto",
+		"CreationDate":"tom",
+		"ActivationDate":"test",
+		"DeactivationDate":"tata",
+		"Storage": {
+			"UnitStrategy": "default",
+			"ObjectGroupStrategy": "default",
+			"ObjectStrategy": "default"
+		}
+	}
+]

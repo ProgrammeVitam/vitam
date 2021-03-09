@@ -1,0 +1,18 @@
+[
+	{
+		"Name":"Contrat d'accès permettant de déclarer des noeuds inaccessibles et accessibles ",
+		"Description":"Contrat d'accès permettant de tester la story #2956",
+		"Identifier":"Contrat d'accès Itération n°35",
+		"Status" : "ACTIVE",
+		"LastUpdate":"24/05/2018",
+		"CreationDate":"13/10/1987",
+		"ActivationDate":"14/01/1988",
+		"DeactivationDate":"31/12/2216",
+		"WritingPermission": true,
+		"EveryOriginatingAgency": true,
+		"EveryDataObjectVersion": true,
+		"ExcludedRootUnits": ["TOBECOMPLETED"],
+		"RootUnits": ["TOBECOMPLETED"]
+	}
+
+]

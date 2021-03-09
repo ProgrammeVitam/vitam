@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1">
+    <Comment>Test SIP for HoldRules</Comment>
+    <Date>2016-10-12T16:28:40</Date>
+    <MessageIdentifier>20161012002</MessageIdentifier>
+    <ArchivalAgreement>IC-000001</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID01">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit1</Title>
+                    <Description>Unit1 - Sans HoldRules</Description>
+                </Content>
+                <ArchiveUnit id="ID_REF_1">
+                    <ArchiveUnitRefId>ID02</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID_REF_2">
+                    <ArchiveUnitRefId>ID03</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID02">
+                <Management>
+                    <AppraisalRule>
+                        <Rule>APP-00002</Rule>
+                        <StartDate>2000-01-01</StartDate>
+                        <FinalAction>Keep</FinalAction>
+                    </AppraisalRule>
+                    <HoldRule>
+                        <Rule>HOL-00001</Rule>
+                        <StartDate>2000-01-01</StartDate>
+                        <HoldOwner>Owner de la règle de Gel</HoldOwner>
+                        <HoldReassessingDate>2005-01-01</HoldReassessingDate>
+                        <HoldReason>Motif du gel</HoldReason>
+                        <PreventRearrangement>true</PreventRearrangement>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit2</Title>
+                    <Description>Unit2 - Hold rules avec durée définie, et date de début</Description>
+                </Content>
+                <ArchiveUnit id="ID_REF_3">
+                    <ArchiveUnitRefId>ID05</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID03">
+                <Management>
+                    <HoldRule>
+                        <Rule>HOL-00001</Rule>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit3</Title>
+                    <Description>Unit3 - Hold rules avec durée définie, sans date de début</Description>
+                </Content>
+                <ArchiveUnit id="ID_REF_4">
+                    <ArchiveUnitRefId>ID06</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID_REF_5">
+                    <ArchiveUnitRefId>ID07</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID04">
+                <Management>
+                    <HoldRule>
+                        <Rule>HOL-00002</Rule>
+                        <StartDate>2000-01-01</StartDate>
+                        <HoldEndDate>2010-01-01</HoldEndDate>
+                        <HoldOwner>Owner de la règle de Gel</HoldOwner>
+                        <HoldReassessingDate>2005-01-01</HoldReassessingDate>
+                        <HoldReason>Motif du gel</HoldReason>
+                        <PreventRearrangement>false</PreventRearrangement>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit4</Title>
+                    <Description>Unit4 - Hold rules avec durée indéfinie, et durée de fin explicite HoldEndDate</Description>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID05">
+                <Management>
+                    <HoldRule>
+                        <Rule>HOL-00002</Rule>
+                        <StartDate>2000-01-01</StartDate>
+                        <HoldOwner>Owner de la règle de Gel</HoldOwner>
+                        <HoldReassessingDate>2005-01-01</HoldReassessingDate>
+                        <PreventRearrangement>false</PreventRearrangement>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit5</Title>
+                    <Description>Unit5 - Hold rules avec durée indéfinie, et sans durée de fin explicite HoldEndDate</Description>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID06">
+                <Management>
+                    <HoldRule>
+                        <RefNonRuleId>HOL-00001</RefNonRuleId>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit6</Title>
+                    <Description>Unit6 - HoldRules avec RefNonRuleId</Description>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID07">
+                <Management>
+                    <HoldRule>
+                        <PreventInheritance>true</PreventInheritance>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit7</Title>
+                    <Description>Unit7 - HoldRules avec PreventInheritence</Description>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID08">
+                <Management>
+                    <HoldRule>
+                        <Rule>HOL-00001</Rule>
+                        <StartDate>2000-01-01</StartDate>
+                        <HoldOwner>Owner de la règle de Gel HOL-00001</HoldOwner>
+                        <Rule>HOL-00002</Rule>
+                        <HoldEndDate>2010-01-01</HoldEndDate>
+                        <HoldOwner>Owner de la règle de Gel HOL-00002</HoldOwner>
+                        <HoldReassessingDate>2005-01-01</HoldReassessingDate>
+                        <PreventRearrangement>false</PreventRearrangement>
+                        <Rule>HOL-00003</Rule>
+                        <RefNonRuleId>HOL-00004</RefNonRuleId>
+                    </HoldRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Unit8</Title>
+                    <Description>Unit8 - Multiples HoldRules</Description>
+                </Content>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>Vitam</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>Vitam</SubmissionAgencyIdentifier>
+            <HoldRule>
+                <Rule>HOL-00003</Rule>
+                <StartDate>2000-01-01</StartDate>
+                <HoldOwner>Owner de la règle de Gel HOL-00003</HoldOwner>
+                <HoldReassessingDate>2005-01-01</HoldReassessingDate>
+                <HoldReason>Motif du gel HOL-00003</HoldReason>
+                <PreventRearrangement>false</PreventRearrangement>
+            </HoldRule>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <RelatedTransferReference>RelatedTransferReference0</RelatedTransferReference>
+    <TransferRequestReplyIdentifier>TransferRequestReplyIdentifier0</TransferRequestReplyIdentifier>
+    <ArchivalAgency>
+        <Identifier>BBBBBB</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>FRAN_NP_050758</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

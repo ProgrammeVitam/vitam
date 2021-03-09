@@ -1,0 +1,10 @@
+[
+	{
+		"Name":"Contrat RATP",
+		"Description":"Contrat permettant de faire des opérations sur le producteur RATP et sur tous les usages",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["RATP"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+		"WritingPermission": true
+	}
+]

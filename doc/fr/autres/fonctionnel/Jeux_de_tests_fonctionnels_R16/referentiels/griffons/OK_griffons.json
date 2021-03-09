@@ -1,0 +1,35 @@
+[
+  {	"Identifier":"GRIFFIN1",
+    "Name":"GRIFFIN1",
+    "ExecutableVersion":"V1",
+    "ExecutableName":"imageMagic",
+    "Description":"GRIFFIN1",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016"
+  },
+  {	"Identifier":"GRIFFIN2",
+    "Name":"GRIFFIN5",
+    "Description":"GRIFFIN5",
+    "ExecutableVersion":"V1",
+    "ExecutableName":"imageMagic2",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016"
+  },
+  {	"Identifier":"GRIFFIN3",
+    "Name":"dsf",
+    "ExecutableVersion":"V1",
+    "ExecutableName":"imageMagic3",
+    "Description":"GRIFFIN3",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016"
+  },
+  {
+    "Identifier": "GRI-000001",
+    "Name": "Griffon ImageMagick",
+    "Description": "TEST my dear",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "imagemagick-griffin",
+    "ExecutableVersion": "V1.0.0"
+  }
+]

@@ -1,0 +1,21 @@
+[
+	{
+		"Name":"Ingest contract profile xsd",
+		"Description":"aDescription of the contract 1",
+		"Status":"ACTIVE",
+		"ArchiveProfiles":["Format_RNG"]
+	},
+	{
+		"Name":"Ingest contract profile rng",
+		"Description":"aDescription of the contract 1",
+		"Status":"ACTIVE",
+		"ArchiveProfiles":["Format_RNG"]
+	}
+,
+	{
+		"Name":"Ingest contract deux profiles",
+		"Description":"aDescription of the contract 1",
+		"Status":"ACTIVE",
+		"ArchiveProfiles":["Format_RNG1", "Format_RNG2"]
+	}
+]

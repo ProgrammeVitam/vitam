@@ -1,0 +1,9 @@
+[{
+		"Name": "Accepte_les_formats_non_identifies",
+		"Identifier": "Accepte_les_formats_non_identifies",
+		"Description": "Contrat Vitam 0",
+		"Status": "ACTIVE",
+		"FormatUnidentifiedAuthorized": "maybe"
+	}
+
+]

@@ -1,0 +1,16 @@
+[
+    {
+		"Identifier": "MCNoName",
+		"Description": "Contrat de gestion sans champ Name",
+		"Status": "ACTIVE",
+		"LastUpdate": "10/12/2016",
+		"CreationDate": "10/12/2016",
+		"ActivationDate": "10/12/2016",
+		"DeactivationDate": "10/12/2016",
+		"Storage": {
+			"UnitStrategy": "default",
+			"ObjectGroupStrategy": "default",
+			"ObjectStrategy": "default"
+		}
+	}
+]

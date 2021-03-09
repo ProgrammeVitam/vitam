@@ -1,0 +1,15 @@
+[
+	{
+		"Name":"Contrat d'accès_Tenant_Admin",
+		"Identifier":"Contrat001",
+		"Description":"Contrat permettant de faire des opérations pour tous les services producteurs et sur tousles usages sur le tenant d'Administration",
+		"Status":"TOTO",
+		"OriginatingAgencies":[],
+		"DataObjectVersion": [],
+		"LastUpdate":"04/08/2017",
+		"CreationDate":"12/02/1976",
+		"WritingPermission": true,
+		"EveryOriginatingAgency": true,
+		"EveryDataObjectVersion": true
+	}
+]

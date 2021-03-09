@@ -1,0 +1,17 @@
+[
+    {
+        "Name": "<html><body><h1>Contrat de gestion injection html</h1><body></html>",
+		"Identifier": "MCHtml",
+		"Description": "Contrat de gestion contenant de l''injection html dans le champ Name",
+		"Status": "ACTIVE",
+		"LastUpdate": "10/12/2016",
+		"CreationDate": "10/12/2016",
+		"ActivationDate": "10/12/2016",
+		"DeactivationDate": "10/12/2016",
+		"Storage": {
+			"UnitStrategy": "default",
+			"ObjectGroupStrategy": "default",
+			"ObjectStrategy": "default"
+		}
+	}
+]

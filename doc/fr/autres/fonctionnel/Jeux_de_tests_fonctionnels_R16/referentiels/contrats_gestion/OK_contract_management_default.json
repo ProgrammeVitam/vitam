@@ -1,0 +1,40 @@
+[
+	{
+		"Name": "Contrat de gestion sans stockage",
+		"Identifier": "MCNoStorage",
+		"Description": "Contrat de gestion valide ne déclarant pas de surcharge pour le stockage",
+		"Status": "ACTIVE",
+		"LastUpdate": "10/12/2016",
+		"CreationDate": "10/12/2016",
+		"ActivationDate": "10/12/2016",
+		"DeactivationDate": "10/12/2016"
+	},
+	{
+		"Name": "Contrat de gestion avec stockage",
+		"Identifier": "MCDefaultStorageAll",
+		"Description": "Contrat de gestion valide ne déclarant pas de surcharge pour le stockage avec la stratégie par défaut",
+		"Status": "ACTIVE",
+		"LastUpdate": "10/12/2016",
+		"CreationDate": "10/12/2016",
+		"ActivationDate": "10/12/2016",
+		"DeactivationDate": "10/12/2016",
+		"Storage": {
+			"UnitStrategy": "default",
+			"ObjectGroupStrategy": "default",
+			"ObjectStrategy": "default"
+		}
+	},
+	{
+		"Name": "Contrat de gestion avec stockage binaires",
+		"Identifier": "MCDefaultStorageObject",
+		"Description": "Contrat de gestion valide déclarant ne pas de surcharge pour le stockage des binaires avec la stratégie par défaut",
+		"Status": "ACTIVE",
+		"LastUpdate": "10/12/2016",
+		"CreationDate": "10/12/2016",
+		"ActivationDate": "10/12/2016",
+		"DeactivationDate": "10/12/2016",
+		"Storage": {
+			"ObjectStrategy": "default"
+		}
+	}
+]

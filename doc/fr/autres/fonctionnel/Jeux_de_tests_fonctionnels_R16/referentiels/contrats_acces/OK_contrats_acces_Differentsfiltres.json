@@ -1,0 +1,44 @@
+[
+	{
+		"Name":"Contrat 1 - filtres : tous SP, tout usages, WritingRight",
+		"Description":"Contrat permettant de faire des opérations pour tous les services producteurs et sur tous les usages",
+		"Status":"ACTIVE",
+		"EveryOriginatingAgency":true,
+		"EveryDataObjectVersion": true,
+		"WritingPermission": true
+	},
+	{
+		"Name":"Contrat 2 - filtres : 1 SP = RATP, tout usages, WritingRight",
+		"Description":"Contrat permettant de faire des opérations sur le producteur RATP et sur tous les usages",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["RATP"],
+		"EveryDataObjectVersion": true,
+		"WritingPermission": true
+	},
+	{
+		"Name":"Contrat 3 - filtres : 1 SP = RATP, tout usages, ReadRight",
+		"Description":"Contrat permettant d'accéder aux informations sur le producteur RATP et sur tous les usages, mais interdisant d'écrire",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["RATP"],
+		"EveryDataObjectVersion": true,
+		"WritingPermission": false
+	},
+	{
+		"Name":"Contrat 4 - filtres : 1 SP = RATP, tout usages, WritingRestrictedDesc = true",
+		"Description":"Contrat permettant de faire des opérations sur le producteur RATP et sur tous les usages, mais ne pouvant que modifier des MD descriptives",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["RATP"],
+		"EveryDataObjectVersion": true,
+		"WritingPermission": true,
+		"WritingRestrictedDesc": "true"
+	},
+	{
+		"Name":"Contrat 5 - filtres : tous SP, tout usages, WritingRight",
+		"Description":"Contrat permettant de faire des opérations pour tous les services producteurs et sur tous les usages",
+		"Status":"ACTIVE",
+		"EveryOriginatingAgency":true,
+		"EveryDataObjectVersion": true,
+		"WritingPermission": true,
+		"WritingRestrictedDesc": false
+	}
+]

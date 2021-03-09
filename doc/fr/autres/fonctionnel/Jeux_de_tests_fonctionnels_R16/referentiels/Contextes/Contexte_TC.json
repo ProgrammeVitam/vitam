@@ -1,0 +1,15 @@
+[
+  {
+    "Identifier": "Contexte_OK_2",
+    "Name": "Contexte_à_compléter",
+    "Status":"ACTIVE",
+    "SecurityProfile": "admin-security-profile",
+    "Permissions": [
+      {
+        "tenant": "TOBECOMPLETED",
+        "AccessContracts": ["TOBECOMPLETED"],
+        "IngestContracts": ["TOBECOMPLETED"]
+      }
+    ]
+  }
+]

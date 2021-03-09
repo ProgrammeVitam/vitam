@@ -1,0 +1,18 @@
+[
+	{
+		"Name":"ArchivalAgreement0",
+		"Description":"Contrat Vitam 0",
+		"Status" : "ACTIVE"
+	},
+	{
+		"Name":"ArchivalAgreement1",
+		"Description":"Contrat Vitam 1",
+		"Status" : "ACTIVE"
+	},
+	{
+		"Name":"ArchivalAgreement0Test",
+		"Description":"Contrat Vitam 0",
+		"Status" : "ACTIVE"
+	}
+
+]

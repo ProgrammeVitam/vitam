@@ -1,0 +1,10 @@
+[
+	{
+		"Name":"Contrat RATP inactif",
+		"Description":"Contrat inactif permettant de faire des opérations sur le producteur RATP et sur tous les usages",
+		"Status":"INACTIVE",
+		"OriginatingAgencies":["RATP"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+		"WritingPermission": true
+	}
+]

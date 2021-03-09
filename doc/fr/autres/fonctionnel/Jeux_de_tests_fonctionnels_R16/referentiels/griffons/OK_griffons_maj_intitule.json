@@ -1,0 +1,16 @@
+[
+  {
+    "Identifier": "GRI-000001",
+    "Name": "Griffon 1 : ImageMagick BLABLA",
+    "Description": "ImageMagick est un outil de validation et de conversion de fichiers image. Il a avant tout été développé pour créer, modifier, composer et convertir des images. Il est capable de traiter 200 types de formats de fichiers – dont PNG, JPEG, GIF, HEIC, TIFF, DPX, EXR, WebP, Postscript, PDF, et SVG.",
+    "ExecutableName": "imagemagick-griffin",
+    "ExecutableVersion": "V1.0.0"
+  },
+   {
+    "Identifier": "GRI-000002",
+    "Name": "Griffon 2 : Griffon Jhove",
+    "Description": "JHOVE est un outil d'identification, de validation et de conversion de fichiers. Il traite les formats suivants : AIFF, ASCII, GIF, HTML, JPEG, JPEG 2000, PDF, TIFF, UTF-8, WAVE, XML, GZIP, PNG, WARC.",
+    "ExecutableName": "jhove-griffin",
+    "ExecutableVersion": "V1.0.0"
+  }
+]

@@ -1,0 +1,11 @@
+[
+	{
+		"Name":"Contrat avec un champ supplémentaire",
+		"Description":"Contrat ayant un champ supplémentaire intitulé Blabla",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["RATP"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+		"WritingPermission": true,
+		"Blabla": "Champ supplémentaire"
+	}
+]
