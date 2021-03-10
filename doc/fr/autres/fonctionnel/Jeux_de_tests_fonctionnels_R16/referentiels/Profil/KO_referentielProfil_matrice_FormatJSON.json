@@ -1,8 +1,0 @@
-[
-	{
-		"Name":"Matrice - notice KO (Format = JSON)",
-		"Description":"Le champ Format contient une valeur non attendue",
-		"Status":"ACTIVE",
-		"Format":"JSON"
-	}
-]

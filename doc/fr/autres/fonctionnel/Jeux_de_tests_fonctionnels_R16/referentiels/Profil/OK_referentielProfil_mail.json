@@ -1,8 +1,0 @@
-[
-	{
-		"Name":"ProfilRNG_mail",
-		"Description":"Ce contrat d'entrée attend un profil RNG et est actif",
-		"Status":"ACTIVE",
-		"Format":"RNG"
-	}
-]

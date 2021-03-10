@@ -1,8 +1,0 @@
-[
-	{ 	"Identifier":"Profil d'unité archivistique_mise à jour de masse",
-		"Name":"Profil d'unité archivistique_mise à jour de masse",
-		"Description":"Ce document type définit le schéma de contrôle d'une unité archivistique correspondant à un mail.",
-		"Status":"ACTIVE",
-		"ControlSchema":"{}"
-	}
-]

@@ -1,8 +1,0 @@
-[
-	{
-		"Name":"Mercier",
-		"Description":"Contrat permettant de tester le rattachement automatique d'un SIP monoracine avec producteur different",
-		"Status" : "ACTIVE",
-		"LinkParentId": "TOBECOMPLETED"
-	}
-]

@@ -1,8 +1,0 @@
-[
-	{ 	"Identifier":"AUP_mail_1",
-		"Name":"AUP_mail",
-		"Description":"Ce document type définit le schéma de contrôle d'une unité archivistique correspondant à un mail.",
-		"Status":"ACTIVE",
-		"ControlSchema":"{}"
-	}
-]
