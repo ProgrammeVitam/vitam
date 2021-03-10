@@ -594,9 +594,13 @@ public class DefaultOfferResourceTest {
     public void listObjectsTest() {
         given().when().get(OBJECTS_URI + "/" + DataCategory.OBJECT.name()).then().statusCode(400);
 
-        given().header(GlobalDataRest.X_TENANT_ID, "1").when().get(OBJECTS_URI + "/" + DataCategory.OBJECT.name())
-            .then()
-            .statusCode(404);
+        io.restassured.response.Response emptyContainerListObjectResponse =
+            given().header(GlobalDataRest.X_TENANT_ID, "1").when().get(OBJECTS_URI + "/" + DataCategory.OBJECT.name())
+                .andReturn();
+        assertThat(emptyContainerListObjectResponse.getStatusCode()).isEqualTo(200);
+
+        ObjectEntryReader emptyContainerObjectEntryReader = new ObjectEntryReader(emptyContainerListObjectResponse.asInputStream());
+        assertThat(emptyContainerObjectEntryReader).isEmpty();
 
         for (int i = 0; i < 10; i++) {
 
