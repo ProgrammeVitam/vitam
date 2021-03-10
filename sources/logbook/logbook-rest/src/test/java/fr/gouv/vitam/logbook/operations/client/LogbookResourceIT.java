@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Lists;
@@ -72,8 +72,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
-import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -107,9 +107,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_ID;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.IMPORT_ONTOLOGY;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.INGEST_CLEANUP;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
@@ -144,7 +144,7 @@ public class LogbookResourceIT {
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private static final String REST_URI = "/logbook/v1";
-    private static JunitHelper junitHelper = JunitHelper.getInstance();
+    private static final JunitHelper JUNIT_HELPER = JunitHelper.getInstance();
     private static int serverPort;
     private static LogbookMain application;
     private static final int NB_TEST = 100;
@@ -164,9 +164,9 @@ public class LogbookResourceIT {
     private static LogbookLifeCycleObjectGroupParameters logbookLcParametersWrongStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLcParametersWrongAppend;
 
-    private static int workspacePort = junitHelper.findAvailablePort();
+    private static final int WORKSPACE_PORT = JUNIT_HELPER.findAvailablePort();
     @ClassRule
-    public static WireMockClassRule workspaceWireMockRule = new WireMockClassRule(workspacePort);
+    public static WireMockClassRule workspaceWireMockRule = new WireMockClassRule(WORKSPACE_PORT);
     @Rule
     public WireMockClassRule workspaceInstanceRule = workspaceWireMockRule;
 
@@ -179,7 +179,7 @@ public class LogbookResourceIT {
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
-        serverPort = junitHelper.findAvailablePort();
+        serverPort = JUNIT_HELPER.findAvailablePort();
 
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
@@ -189,7 +189,7 @@ public class LogbookResourceIT {
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
-            logbookConf.setWorkspaceUrl("http://localhost:" + workspacePort);
+            logbookConf.setWorkspaceUrl("http://localhost:" + WORKSPACE_PORT);
             logbookConf.setProcessingUrl("http://localhost:8097");
             logbookConf.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
             logbookConf.setElasticsearchNodes(esNodes);
@@ -249,7 +249,7 @@ public class LogbookResourceIT {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             if (application != null) {
@@ -261,8 +261,8 @@ public class LogbookResourceIT {
 
         LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
 
-        junitHelper.releasePort(serverPort);
-        junitHelper.releasePort(workspacePort);
+        JUNIT_HELPER.releasePort(serverPort);
+        JUNIT_HELPER.releasePort(WORKSPACE_PORT);
         VitamClientFactory.resetConnections();
     }
 
@@ -356,7 +356,8 @@ public class LogbookResourceIT {
                 select.setLimitFilter(0, 1);
                 select.setQuery(QueryHelper.and().add(eventProcType, logType, eventType, outcome));
                 JsonNode json = client.selectOperation(select.getFinalSelect());
-                RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
+                RequestResponseOK<JsonNode> response = JsonHandler.getFromJsonNode(json, new TypeReference<>() {
+                    });
                 assertEquals(1, response.getHits().getTotal());
 
             } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -370,12 +371,14 @@ public class LogbookResourceIT {
                 select.setQuery(QueryHelper.and().add(eventProcType));
                 select.addOrderByDescFilter("evDateTime");
                 JsonNode json = client.selectOperation(select.getFinalSelect());
-                RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
-                Iterator responseResults = response.getResults().iterator();
-                Map<String, Object> firstResult = (Map<String, Object>) responseResults.next();
+                RequestResponseOK<Map<String, Object>> response =
+                    JsonHandler.getFromJsonNode(json, new TypeReference<>() {
+                    });
+                Iterator<Map<String, Object>> responseResults = response.getResults().iterator();
+                Map<String, Object> firstResult = responseResults.next();
                 String eventIdProc1 = (String) firstResult.get(LogbookMongoDbName.eventIdentifierProcess.getDbname());
                 assertEquals(eip2.toString(), eventIdProc1);
-                Map<String, Object> secondResult = (Map<String, Object>) responseResults.next();
+                Map<String, Object> secondResult = responseResults.next();
                 String eventIdProc2 = (String) secondResult.get(LogbookMongoDbName.eventIdentifierProcess.getDbname());
                 assertEquals(eip1.toString(), eventIdProc2);
             } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -410,14 +413,20 @@ public class LogbookResourceIT {
             client.create(ingestStart);
 
             final Select select = new Select();
-            JsonNode json = client.selectOperation(select.getFinalSelect());
-            RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
-            List<LinkedHashMap<String, String>> list = response.getResults();
-            Map<String, LinkedHashMap<String, String>> logbooks = list.stream()
-                    .collect(Collectors.toMap(l -> l.get("evId"), l -> l));
+            JsonNode json = client.selectOperation(select.getFinalSelect(),false, true);
+            RequestResponseOK<LinkedHashMap<String, JsonNode>> response =
+                JsonHandler.getFromJsonNode(json, new TypeReference<>() {
+                });
 
             assertEquals(2, response.getHits().getTotal());
-            assertThat(logbooks).containsKeys(eip1.getId(), eip3.getId());
+            assertThat(response.getResults()).extracting(e -> e.get(EV_ID).asText()).containsOnly(eip1.getId(), eip3.getId());
+
+
+            json = client.selectOperationById(eip1.getId(), new Select().getFinalSelect(), false, true);
+            response =
+                JsonHandler.getFromJsonNode(json, new TypeReference<>() {
+                });
+            assertEquals(1, response.getHits().getTotal());
         }
     }
 
@@ -753,12 +762,12 @@ public class LogbookResourceIT {
             .when().get("/raw/unitlifecycles/byids")
             .then().statusCode(Response.Status.OK.getStatusCode())
             .extract().body().as(JsonNode.class);
-        RequestResponseOK requestResponseOK = RequestResponseOK.getFromJsonNode(responseJson);
+        RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(responseJson);
 
-        List results = requestResponseOK.getResults();
+        List<JsonNode> results = requestResponseOK.getResults();
         assertThat(results).hasSize(2);
         results.sort(
-            Comparator.comparing(o -> ((ObjectNode) o).get("_id").asText())
+            Comparator.comparing(o -> o.get("_id").asText())
         );
         JsonAssert.assertJsonEquals(results.get(0), doc1);
         JsonAssert.assertJsonEquals(results.get(1), doc3);

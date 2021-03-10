@@ -157,7 +157,7 @@ public class AuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationId, new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationId).toJsonNode()
                 .get("$results").get(0).get("events");
 
             // Then
@@ -246,7 +246,7 @@ public class AuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationId, new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationId).toJsonNode()
                 .get("$results").get(0).get("events");
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
@@ -337,7 +337,7 @@ public class AuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationGuid.getId()).toJsonNode()
                 .get("$results").get(0).get("events");
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())

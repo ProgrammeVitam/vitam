@@ -26,10 +26,6 @@
  */
 package fr.gouv.vitam.logbook.operations.core;
 
-import java.text.MessageFormat;
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -40,7 +36,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -50,6 +45,11 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
+
+import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * LogbookOperationsDecorator implementation.
@@ -95,13 +95,27 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperations(JsonNode select) throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
+    public List<LogbookOperation> selectOperations(JsonNode select) throws LogbookDatabaseException,
+        InvalidParseOperationException, VitamDBException {
         return logbookOperations.selectOperations(select);
     }
 
     @Override
-    public RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced) throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
-        return logbookOperations.selectOperations(select, sliced);
+    public List<LogbookOperation> selectOperations(JsonNode select, boolean sliced, boolean crossTenant)
+        throws VitamDBException, LogbookDatabaseException {
+        return logbookOperations.selectOperations(select, sliced, crossTenant);
+    }
+
+    @Override
+    public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced,
+        boolean crossTenant) throws VitamDBException, LogbookDatabaseException {
+        return logbookOperations.selectOperationsAsRequestResponse(select, sliced, crossTenant);
+    }
+
+    @Override
+    public LogbookOperation getById(String idProcess, JsonNode query, boolean sliced, boolean crossTenant)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        return logbookOperations.getById(idProcess, query, sliced, crossTenant);
     }
 
     @Override
@@ -131,7 +145,8 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
             traceabilityStartDate, traceabilityEndDate);
     }
     @Override
-    public LogbookOperation findLastOperationByType(String operationType) throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
+    public Optional<LogbookOperation> findLastOperationByType(String operationType) throws InvalidCreateOperationException,
+        LogbookDatabaseException, InvalidParseOperationException {
         return logbookOperations.findLastOperationByType(operationType);
     }
 

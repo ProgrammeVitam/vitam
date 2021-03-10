@@ -64,8 +64,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
-import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
@@ -336,6 +336,7 @@ public class LogBookLifeCycleObjectGroupTest {
         logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
             .put(LIFE_OBJECT_GROUP_ID_URI, operationId,
@@ -347,6 +348,7 @@ public class LogBookLifeCycleObjectGroupTest {
         // Update illegal argument incoherence parameters ; response bad_request
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
             .put(LIFE_OBJECT_GROUP_ID_URI, operationId,
@@ -357,6 +359,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
         // Commit
         given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .when()
             .put("/operations/" + operationId + "/objectgrouplifecycles/" +
                 objectId +
@@ -422,6 +425,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersUpdate.toString())
             .when()
             .put(LIFE_OBJECT_GROUP_ID_URI,

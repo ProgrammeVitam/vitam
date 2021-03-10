@@ -458,7 +458,7 @@ public class LogbookLFCAdministration {
                 Select selectQuery = new Select();
                 selectQuery.setQuery(QueryHelper.eq(LogbookMongoDbName.eventIdentifier.getDbname(), operationId));
                 List<LogbookOperation> operations
-                    = logbookOperations.select(selectQuery.getFinalSelect());
+                    = logbookOperations.selectOperations(selectQuery.getFinalSelect());
 
                 if (operations.isEmpty()) {
                     throw new LogbookNotFoundException("Could not find logbook operation " + operationId);

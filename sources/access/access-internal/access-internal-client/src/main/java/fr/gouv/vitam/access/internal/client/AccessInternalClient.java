@@ -180,28 +180,42 @@ public interface AccessInternalClient extends MockOrRestClient {
      * selectOperation
      *
      * @param select
+     * @param isSliced
+     * @param isCrossTenant
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse<JsonNode> selectOperation(JsonNode select)
+    RequestResponse<JsonNode> selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
-
-    RequestResponse<JsonNode> selectOperationSliced(JsonNode select)
-            throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectOperationbyId
      *
      * @param processId ID of the operation
      * @param queryDsl query to be executed
+     * @param isSliced true to slice response
+     * @param isCrossTenant true to include cross tenant collection operations
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl)
+    RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl, boolean isSliced,
+        boolean isCrossTenant)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
+
+    /**
+     * selectOperationbyId
+     *
+     * @param processId ID of the operation
+     * @return a response containing a json node
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException
+     */
+    RequestResponse<JsonNode> selectOperationById(String processId)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**

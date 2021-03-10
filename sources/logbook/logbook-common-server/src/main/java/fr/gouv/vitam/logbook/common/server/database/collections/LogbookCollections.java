@@ -39,6 +39,10 @@ import org.bson.Document;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.IMPORT_ONTOLOGY;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFERENTIAL_FORMAT_IMPORT;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFRENTIAL_FORMAT_DELETE;
+
 
 /**
  * All collections
@@ -67,6 +71,12 @@ public enum LogbookCollections {
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
     private final VitamCollection<? extends VitamDocument<?>> vitamCollection;
+
+    public static final String[] MULTI_TENANT_EV_TYPES = {
+        IMPORT_ONTOLOGY.getEventType(),
+        REFERENTIAL_FORMAT_IMPORT.getEventType(),
+        REFRENTIAL_FORMAT_DELETE.getEventType()
+    };
 
     LogbookCollections(final Class<? extends VitamDocument<?>> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());

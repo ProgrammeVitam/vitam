@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.logbook.operations.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
@@ -34,7 +33,6 @@ import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -44,8 +42,6 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Decorator for LogbookOperations
@@ -75,18 +71,6 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
         throws LogbookNotFoundException, LogbookDatabaseException {
         logbookOperations.update(parameters);
 
-    }
-
-    @Override
-    public List<LogbookOperation> select(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        return logbookOperations.select(select);
-    }
-
-    @Override
-    public List<LogbookOperation> select(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        return logbookOperations.select(select, sliced);
     }
 
     @Override

@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
@@ -190,6 +191,7 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     public void given_coherent_data_shoud_run_audit_without_error() throws InvalidParseOperationException, IOException {
         populateData(PopulateMode.FULL);
 
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
         LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
                 new TypeReference<>() {
@@ -205,6 +207,7 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     public void given_empty_data_on_elasticsearch_when_run_audit_then_warning() throws InvalidParseOperationException, IOException {
         populateData(PopulateMode.MONGO_ONLY);
 
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
         LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
                 new TypeReference<>() {
@@ -221,6 +224,7 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     public void given_empty_data_on_mongodb_when_run_audit_then_warning() throws InvalidParseOperationException, IOException {
         populateData(PopulateMode.FULL);
 
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         MetadataCollections.UNIT.getCollection().deleteMany(Filters.eq(MetadataDocument.OPI, OPI));
         MetadataCollections.OBJECTGROUP.getCollection().deleteMany(Filters.eq(MetadataDocument.OPI, OPI));
 

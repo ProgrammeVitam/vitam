@@ -90,7 +90,10 @@ public interface LogbookOperationsClient extends BasicClient {
      */
     JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
-    JsonNode selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant) throws LogbookClientException, InvalidParseOperationException;
+
+    JsonNode selectOperationById(String processId, JsonNode query, boolean isSliced, boolean isCrossTenant)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * @param id identifier
@@ -255,6 +258,5 @@ public interface LogbookOperationsClient extends BasicClient {
     LogbookCheckResult checkLogbookCoherence() throws LogbookClientServerException;
 
 
-    RequestResponse<JsonNode> getLastOperationByType(String operationType)
-        throws LogbookClientNotFoundException, LogbookClientServerException;
+    RequestResponse<JsonNode> getLastOperationByType(String operationType) throws LogbookClientServerException;
 }
