@@ -42,7 +42,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 
 import java.time.LocalDateTime;
@@ -78,7 +77,6 @@ public class LogbookAuditAdministration {
      * @throws LogbookAuditException Internal check error
      */
     public int auditTraceability(String type, int amount, ChronoUnit unit) throws LogbookAuditException {
-        int nbLog;
         Select selectQuery = new Select();
 
         try {
@@ -89,21 +87,19 @@ public class LogbookAuditAdministration {
                             QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), type),
                             QueryHelper.gte(LogbookMongoDbName.eventDateTime.getDbname(), LocalDateUtil.getFormattedDateForMongo(startDateTime))
                     ));
-            List<LogbookOperation> ops = logbookOperations.select(selectQuery.getFinalSelect());
-            nbLog = ops.size();
+            List<LogbookOperation> ops = logbookOperations.selectOperations(selectQuery.getFinalSelect());
+            int nbLog = ops.size();
 
-        } catch (LogbookNotFoundException e) {
-            nbLog = 0;
+            if (nbLog == 0) {
+                String error = String.format("No %s traceability found for tenant %d in the last %d %s",
+                    type, VitamThreadUtils.getVitamSession().getTenantId(), amount, unit);
+                LOGGER.error(error);
+                alertService.createAlert(error);
+            }
+            return nbLog;
+
         } catch (LogbookDatabaseException | InvalidParseOperationException | InvalidCreateOperationException | VitamDBException e) {
             throw new LogbookAuditException(e.getMessage());
         }
-
-        if (nbLog == 0) {
-            String error = String.format("No %s traceability found for tenant %d in the last %d %s",
-                type, VitamThreadUtils.getVitamSession().getTenantId(), amount, unit);
-            LOGGER.error(error);
-            alertService.createAlert(error);
-        }
-        return nbLog;
     }
 }

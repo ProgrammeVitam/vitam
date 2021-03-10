@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.logbook.common.LogbookDataRest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -100,6 +101,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -185,16 +187,14 @@ public class LogbookInternalResourceImpl {
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl) {
+    public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl,
+        @HeaderParam(LogbookDataRest.X_SLICED_OPERATIONS) boolean sliced,
+        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant) {
         Status status;
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(operationId);
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
-            final JsonNode result = client.selectOperationById(operationId);
+            final JsonNode result = client.selectOperationById(operationId, queryDsl, sliced, crossTenant);
             return Response.status(OK).entity(result).build();
         } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(e);
@@ -207,10 +207,6 @@ public class LogbookInternalResourceImpl {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error(e);
-            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -226,14 +222,15 @@ public class LogbookInternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(JsonNode query) {
+    public Response selectOperation(JsonNode query, @HeaderParam(LogbookDataRest.X_SLICED_OPERATIONS) boolean sliced,
+        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant) {
         Status status;
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             // Check correctness of request
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(query);
             parser.getRequest().reset();
-            final JsonNode result = client.selectOperation(query);
+            final JsonNode result = client.selectOperation(query, sliced, crossTenant);
             return Response.status(OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -245,31 +242,6 @@ public class LogbookInternalResourceImpl {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
-
-    @GET
-    @Path("/slicedOperations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationSliced(JsonNode query) {
-        Status status;
-        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-            // Check correctness of request
-            final SelectParserSingle parser = new SelectParserSingle();
-            parser.parse(query);
-            parser.getRequest().reset();
-            final JsonNode result = client.selectOperationSliced(query);
-            return Response.status(Status.OK).entity(result).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        }
-    }
-
 
     /**
      * gets the unit life cycle based on its id

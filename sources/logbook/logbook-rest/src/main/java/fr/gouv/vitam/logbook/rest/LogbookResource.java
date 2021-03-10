@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
@@ -73,6 +72,7 @@ import fr.gouv.vitam.logbook.administration.audit.exception.LogbookAuditExceptio
 import fr.gouv.vitam.logbook.administration.core.LfcTraceabilityType;
 import fr.gouv.vitam.logbook.administration.core.LogbookAdministration;
 import fr.gouv.vitam.logbook.administration.core.LogbookLFCAdministration;
+import fr.gouv.vitam.logbook.common.LogbookDataRest;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
@@ -138,7 +138,9 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Path("/logbook/v1")
 @Tag(name = "Logbook")
@@ -222,24 +224,31 @@ public class LogbookResource extends ApplicationStatusResource {
         LOGGER.debug("LogbookResource operation & lifecycles initialized");
     }
 
+
     /**
-     * Selects an operation only by Id
+     * Selects an operation by id and queryDSL
      *
      * @param id operation ID
+     * @param queryDsl the queryDsl containing the ID
      * @return the response with a specific HTTP status
      */
     @GET
     @Path("/operations/{id_op}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperationOnlyById(@PathParam("id_op") String id) {
+    public Response getOperation(@PathParam("id_op") String id, JsonNode queryDsl,
+        @HeaderParam(LogbookDataRest.X_SLICED_OPERATIONS) boolean sliced,
+        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant) {
         Status status;
         try {
-            final LogbookOperation result = logbookOperation.getById(id);
+            final LogbookOperation result = logbookOperation.getById(id, queryDsl, sliced, crossTenant);
+            
             return Response.status(Status.OK)
-                .entity(
-                    new RequestResponseOK<LogbookOperation>(new Select().getFinalSelect()).addResult(result)
-                        .setHttpCode(Status.OK.getStatusCode()))
+                .entity(new RequestResponseOK<LogbookOperation>(queryDsl)
+                    .addResult(result)
+                    .setHttpCode(Status.OK.getStatusCode()))
                 .build();
+
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             status = Status.NOT_FOUND;
@@ -251,66 +260,6 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException | LogbookException exc) {
-            LOGGER.error(exc);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
-        }
-    }
-
-    /**
-     * Selects an operation
-     *
-     * @param id operation ID
-     * @param queryDsl the query containing the ID
-     * @return the response with a specific HTTP status
-     */
-    @GET
-    @Path("/operations/{id_op}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperation(@PathParam("id_op") String id, JsonNode queryDsl) throws VitamException {
-        Status status;
-        try {
-            // With resteasy, queryDsl couldnt be null
-            if (queryDsl == null ||
-                (queryDsl.get("$query") != null && queryDsl.get("$query").size() == 0)) {
-                final LogbookOperation result = logbookOperation.getById(id);
-                return Response.status(Status.OK)
-                    .entity(
-                        new RequestResponseOK<LogbookOperation>(queryDsl).addResult(result)
-                            .setHttpCode(Status.OK.getStatusCode()))
-                    .build();
-            } else {
-
-                final List<LogbookOperation> result;
-                result = logbookOperation.select(queryDsl, false);
-                if (result.size() != 1) {
-                    // TODO: Seriously ? Slice is false, select may return a list of operations. Why is this an error ?
-                    throw new LogbookDatabaseException("Result size different than 1.");
-                }
-                return Response.status(Status.OK)
-                    .entity(new RequestResponseOK<LogbookOperation>(queryDsl)
-                        .addResult(result.iterator().next())
-                        .setHttpCode(Status.OK.getStatusCode()))
-                    .build();
-            }
-        } catch (final LogbookNotFoundException exc) {
-            LOGGER.debug(exc);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
-        } catch (final InvalidParseOperationException | IllegalArgumentException | LogbookException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -514,36 +463,28 @@ public class LogbookResource extends ApplicationStatusResource {
 
     }
 
-
     /**
      * Select a list of operations
      *
      * @param query DSL as JsonNode
+     * @param sliced true if sliced operations
+     * @param crossTenant true to inclure admin tenant operations
      * @return Response containt the list of loglook operation
      */
     @GET
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(JsonNode query) {
-        return selectOperation(query, false);
-    }
-
-    @GET
-    @Path("/slicedOperations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperationSliced(JsonNode query) {
-        return selectOperation(query, true);
-    }
-
-    private Response selectOperation(JsonNode query, boolean sliced) {
+    public Response selectOperation(JsonNode query, @HeaderParam(LogbookDataRest.X_SLICED_OPERATIONS) boolean sliced,
+        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant) {
         Status status;
         try {
-            final RequestResponse<LogbookOperation> result = logbookOperation.selectOperations(query, sliced);
+
+            RequestResponseOK<LogbookOperation> response =
+                logbookOperation.selectOperationsAsRequestResponse(query, sliced, crossTenant);
 
             return Response.status(Status.OK)
-                .entity(result
+                .entity(response
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final VitamDBException ve) {
@@ -555,16 +496,6 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setState(CODE_VITAM)
                     .setMessage(ve.getMessage())
                     .setDescription(status.getReasonPhrase()))
-                .build();
-        } catch (final LogbookNotFoundException exc) {
-            LOGGER.debug(exc);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
                 .build();
         } catch (final IllegalArgumentException | LogbookException exc) {
             LOGGER.error(exc);
@@ -615,19 +546,9 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response getLastOperationByType(String operationType) {
         Status status;
         try {
-            final LogbookOperation result = logbookOperation.findLastOperationByType(operationType);
+            final Optional<LogbookOperation> result = logbookOperation.findLastOperationByType(operationType);
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookOperation>().addResult(result))
-                .build();
-        } catch (final LogbookNotFoundException exc) {
-            LOGGER.debug(exc);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
+                .entity(new RequestResponseOK<LogbookOperation>().addAllResults(result.stream().collect(Collectors.toList())))
                 .build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException | LogbookDatabaseException exc) {
             LOGGER.error(exc);

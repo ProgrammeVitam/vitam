@@ -103,8 +103,15 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     }
 
     @Override
-    public JsonNode selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant)
+        throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookResults();
+    }
+
+    @Override
+    public JsonNode selectOperationById(String processId, JsonNode query, boolean isSliced, boolean isCrossTenant)
+        throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
@@ -152,9 +159,8 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     public void bulkUpdate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
-            final Iterator<LogbookOperationParameters> iterator = queue.iterator();
-            while (iterator.hasNext()) {
-                logInformation(UPDATE, iterator.next());
+            for (LogbookOperationParameters logbookOperationParameters : queue) {
+                logInformation(UPDATE, logbookOperationParameters);
             }
         } else {
             LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());

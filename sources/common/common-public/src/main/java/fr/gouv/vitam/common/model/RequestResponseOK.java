@@ -112,6 +112,27 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
+     * Initialize from a query and results
+     *
+     * @param query
+     */
+    public RequestResponseOK(JsonNode query, List<T> results, int total) {
+        this(query);
+        this.results.addAll(results);
+        this.hits = new DatabaseCursor(total, hits.getOffset(), hits.getLimit(), results.size());
+    }
+
+    /**
+     * Initialize from a query and results
+     *
+     * @param query
+     */
+    public RequestResponseOK(JsonNode query, List<T> results, int total, String scrollId) {
+        this(query,results,total);
+        hits = new DatabaseCursor(total, hits.getOffset(), hits.getLimit(), results.size(), scrollId);
+    }
+
+    /**
      * Add one result
      *
      * @param result to add to request response

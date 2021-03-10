@@ -415,7 +415,7 @@ public class PreservationIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationGuid.getId()).toJsonNode()
                 .get("$results")
                 .get(0)
                 .get("events");
@@ -535,7 +535,7 @@ public class PreservationIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationGuid.getId()).toJsonNode()
                 .get("$results")
                 .get(0)
                 .get("events");

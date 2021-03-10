@@ -29,16 +29,17 @@ package fr.gouv.vitam.access.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
-import fr.gouv.vitam.common.exception.ForbiddenClientException;
-import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
+import fr.gouv.vitam.common.exception.ForbiddenClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 import javax.ws.rs.core.Response;
@@ -64,9 +66,11 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_CROSS_TENANT;
+import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_SLICED_OPERATIONS;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.STORAGEACCESSLOG;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
@@ -76,7 +80,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String FORBIDDEN_OPERATION = "Empty query cannot be executed";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
-    private static final String NOT_FOUND_EXCEPTION = "Unit not found";
+    private static final String NOT_FOUND_EXCEPTION = "Element not found";
     private static final String ACCESS_CONTRACT_EXCEPTION = "Access by Contract Exception";
     private static final String NO_WRITING_PERMISSION = "No Writing Permission";
     private static final String BLANK_DSL = "select DSL is blank";
@@ -86,7 +90,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String BLANK_TRACEABILITY_OPERATION_ID = "traceability operation identifier should be filled";
 
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
-    private static final String LOGBOOK_SLICED_OPERATIONS_URL = "/slicedOperations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
     private static final String LOGBOOK_CHECK = "/traceability/check";
@@ -256,9 +259,20 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> selectOperation(JsonNode select)
+    public RequestResponse<JsonNode> selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OPERATIONS_URL).withBody(select, "Select cannot be empty or null.").withJson())) {
+        VitamRequestBuilder request = get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OPERATIONS_URL)
+            .withBody(select, "Select cannot be empty or null.").withJson();
+
+        if (isSliced) {
+            request.withHeader(X_SLICED_OPERATIONS, true);
+        }
+
+        if (isCrossTenant) {
+            request.withHeader(X_CROSS_TENANT, true);
+        }
+
+        try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -269,30 +283,38 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> selectOperationSliced(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_SLICED_OPERATIONS_URL).withBody(select, "Select cannot be empty or null.").withJson())) {
-            check(response);
-            return RequestResponse.parseFromResponse(response);
-        } catch (BadRequestException e) {
-            throw new InvalidParseOperationException(e);
-        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
-            throw new LogbookClientException(e);
-        }
-    }
-
-    @Override
-    public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode select)
+    public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode select, boolean isSliced,
+        boolean isCrossTenant)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("processId cannot be blank.", processId);
-        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OPERATIONS_URL + "/" + processId).withBody(select, "Select cannot be empty or null.").withJson())){
+
+        VitamRequestBuilder request =
+            get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OPERATIONS_URL + "/" + processId)
+                .withBody(select, "Select cannot be empty or null.").withJson();
+
+        if (isSliced) {
+            request.withHeader(X_SLICED_OPERATIONS, true);
+        }
+        if (isCrossTenant) {
+            request.withHeader(X_CROSS_TENANT, true);
+        }
+
+        try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
-        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
+        } catch (AccessInternalClientNotFoundException e) {
+            throw new LogbookClientNotFoundException(e);
+        } catch (AccessInternalClientServerException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new LogbookClientException(e);
         }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectOperationById(String processId)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        return selectOperationById(processId, new Select().getFinalSelect(), false, false);
     }
 
     @Override

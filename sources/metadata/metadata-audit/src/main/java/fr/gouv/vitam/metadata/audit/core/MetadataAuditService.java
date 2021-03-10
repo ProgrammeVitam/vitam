@@ -327,19 +327,15 @@ public class MetadataAuditService {
     }
 
     private boolean isAuditAlreadyRunning(LogbookOperationsClient logbookClient)
-            throws LogbookClientServerException, InvalidParseOperationException {
-        try {
-            RequestResponse<JsonNode> lastOperationByType = logbookClient.getLastOperationByType(AUDIT_DATA_CONSISTENCY_EVT);
-            if (lastOperationByType instanceof RequestResponseOK &&
-                    !((RequestResponseOK<JsonNode>) lastOperationByType).getResults().isEmpty()) {
-                LogbookOperation lastLogbook = JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) lastOperationByType).getResults().get(0),
-                        LogbookOperation.class);
-                if (lastLogbook.getEvents().isEmpty()) {
-                    return true;
-                }
-            }
-        } catch (LogbookClientNotFoundException e) {
-            return false;
+        throws LogbookClientServerException, InvalidParseOperationException {
+        RequestResponse<JsonNode> lastOperationByType =
+            logbookClient.getLastOperationByType(AUDIT_DATA_CONSISTENCY_EVT);
+        if (lastOperationByType instanceof RequestResponseOK &&
+            !((RequestResponseOK<JsonNode>) lastOperationByType).getResults().isEmpty()) {
+            LogbookOperation lastLogbook =
+                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) lastOperationByType).getResults().get(0),
+                    LogbookOperation.class);
+            return lastLogbook.getEvents().isEmpty();
         }
         return false;
     }

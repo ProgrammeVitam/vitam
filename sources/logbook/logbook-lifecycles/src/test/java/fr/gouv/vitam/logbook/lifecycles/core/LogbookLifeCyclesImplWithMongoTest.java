@@ -288,7 +288,9 @@ public class LogbookLifeCyclesImplWithMongoTest {
     }
 
     @Test(expected = LogbookNotFoundException.class)
+    @RunWithCustomExecutor
     public void given_BAdParameters_When_UpdateUni_tThenThrow_NotFoundException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateUnit(
             logbookLifeCyclesUnitParametersBAD.getParameterValue(LogbookParameterName.eventIdentifierProcess),
