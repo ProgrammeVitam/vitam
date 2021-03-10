@@ -174,7 +174,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(evidenceAuditOperation, new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(evidenceAuditOperation).toJsonNode()
                 .get("$results").get(0).get("events");
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
@@ -211,7 +211,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode evidenceAuditOperationEvents = (ArrayNode) accessClient
-                .selectOperationById(evidenceAuditOperation, new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(evidenceAuditOperation).toJsonNode()
                 .get("$results").get(0).get("events");
             // Then
             assertThat(evidenceAuditOperationEvents.iterator()).extracting(j -> j.get("outcome").asText())
@@ -244,7 +244,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode rectificationAuditOperationEvents = (ArrayNode) accessClient
-                .selectOperationById(rectificationAuditOperationGUID.getId(), new SelectMultiQuery().getFinalSelect())
+                .selectOperationById(rectificationAuditOperationGUID.getId())
                 .toJsonNode()
                 .get("$results").get(0).get("events");
             // Then
@@ -302,7 +302,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             // When
             String operationId = runEvidenceAudit(evidenceQuery);
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationId, new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .selectOperationById(operationId).toJsonNode()
                 .get("$results").get(0).get("events");
 
             //Then

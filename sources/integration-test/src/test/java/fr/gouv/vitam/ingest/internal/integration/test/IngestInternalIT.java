@@ -579,7 +579,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(size2, size);
 
             JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                accessClient.selectOperationById(operationGuid.getId())
                     .toJsonNode();
             assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
             Set<String> eventIds = new HashSet<>();
@@ -947,7 +947,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         boolean checkDataObject = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
@@ -980,7 +980,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         boolean checkUnitSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
@@ -1011,7 +1011,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         boolean checkUnitSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
@@ -1131,7 +1131,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         boolean checkUnitSuccess = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
@@ -1163,7 +1163,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         boolean checkServiceLevel = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
@@ -1197,7 +1197,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         boolean checkServiceLevel = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
@@ -1252,7 +1252,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Get logbook
             SelectMultiQuery select3 = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq("evType", "Process_SIP_unitary"));
-            response = accessClient.selectOperation(select3.getFinalSelect());
+            response = accessClient.selectOperation(select3.getFinalSelect(), false, false);
             assertTrue(response.isOk());
 
 
@@ -1515,7 +1515,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> unitList =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils
                     .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
-                new TypeReference<List<Document>>() {
+                new TypeReference<>() {
                 });
 
         // Save units in Mongo
@@ -2092,7 +2092,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             JsonNode logbookOperation =
                 accessClient
-                    .selectOperationById(operationGuidForRequestId.getId(), new SelectMultiQuery().getFinalSelect())
+                    .selectOperationById(operationGuidForRequestId.getId())
                     .toJsonNode();
             // assert certain parameters in the master are overloaded
             assertEquals(OK.name(), logbookOperation.get("$results").get(0)
@@ -2152,7 +2152,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         final JsonNode element = logbookOperation.get("$results").get(0);
 
@@ -2171,7 +2171,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
 
         assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
@@ -2338,7 +2338,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuidAttachement.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuidAttachement.getId())
                 .toJsonNode();
         boolean checkKOLinkingSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
@@ -2388,7 +2388,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+            accessClient.selectOperationById(operationGuid.getId())
                 .toJsonNode();
         assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
         logbookOperation.get("$results").get(0).get("events").forEach(event -> {
@@ -2418,7 +2418,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         try (
             FileOutputStream fos = new FileOutputStream(zipFilePath);
             ZipOutputStream zos = new ZipOutputStream(fos)) {
-            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(path, new SimpleFileVisitor<>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
                     Files.copy(file, zos);

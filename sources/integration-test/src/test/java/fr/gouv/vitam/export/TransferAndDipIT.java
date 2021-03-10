@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 import fr.gouv.vitam.common.model.export.ExportRequest;
@@ -82,8 +81,6 @@ import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -108,7 +105,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -123,9 +119,7 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_ID_PROC;
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUTCOME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
@@ -568,7 +562,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             JsonNode logbookEvents =
-                client.selectOperationById(transferReplyWorkflowGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                client.selectOperationById(transferReplyWorkflowGuid.getId())
                     .toJsonNode()
                     .get("$results")
                     .get(0)
@@ -681,8 +675,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
     private InputStream getTransferSIP(String operationId) throws Exception {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            JsonNode logbook = client.selectOperationById(operationId, new SelectMultiQuery()
-                .getFinalSelect()).toJsonNode().get(TAG_RESULTS).get(0);
+            JsonNode logbook = client.selectOperationById(operationId).toJsonNode().get(TAG_RESULTS).get(0);
             String evIdProc = logbook.get(EV_ID_PROC).asText();
             return client.findTransferSIPByID(evIdProc).readEntity(InputStream.class);
         }

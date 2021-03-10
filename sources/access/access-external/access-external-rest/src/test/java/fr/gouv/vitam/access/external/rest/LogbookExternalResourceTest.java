@@ -62,6 +62,8 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -159,12 +161,12 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         when(accessInternalClientFactory.getClient()).thenReturn(accessInternalClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
-        when(accessInternalClient.selectOperation(any()))
-            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
-        when(accessInternalClient.selectOperationSliced(any()))
+        when(accessInternalClient.selectOperation(any(), anyBoolean(), anyBoolean()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
 
-        when(accessInternalClient.selectOperationById(any(), any()))
+        when(accessInternalClient.selectOperationById(any()))
+            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
+        when(accessInternalClient.selectOperationById(any(),any(),anyBoolean(),anyBoolean()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
         when(accessInternalClient.selectUnitLifeCycleById(any(), any()))
@@ -179,7 +181,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
         // Mock AccessInternal response for download TRACEABILITY operation request
         when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID))
-            .thenReturn(ClientMockResultHelper.getObjectStream());        
+            .thenReturn(ClientMockResultHelper.getObjectStream());
 
     }
 
@@ -271,9 +273,11 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .thenThrow(new LogbookClientNotFoundException(""));
         when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any()))
             .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectOperationById(any(), any()))
+        when(accessInternalClient.selectOperationById(any()))
             .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectOperation(any()))
+        when(accessInternalClient.selectOperationById(any(), any(), anyBoolean(), anyBoolean()))
+            .thenThrow(new LogbookClientNotFoundException(""));
+        when(accessInternalClient.selectOperation(any(), anyBoolean(), anyBoolean()))
             .thenReturn(new RequestResponseOK<>());
 
         given()
@@ -341,7 +345,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
         when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(
             request)))
-                .thenThrow(new LogbookClientException(""));
+            .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -371,7 +375,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testSelectOperations_InternalServerError() throws Exception {
-        when(accessInternalClient.selectOperation(JsonHandler.getFromString(bad_request)))
+        when(accessInternalClient.selectOperation(eq(JsonHandler.getFromString(bad_request)), anyBoolean(), anyBoolean()))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
@@ -403,8 +407,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testSelectOperationById_InternalServerError() throws Exception {
         when(
-            accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
-                .thenThrow(new LogbookClientException(""));
+            accessInternalClient.selectOperationById(bad_id))
+            .thenThrow(new LogbookClientException(""));
 
         given()
             .contentType(ContentType.JSON)

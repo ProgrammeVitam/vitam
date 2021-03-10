@@ -350,6 +350,7 @@ public class LogBookLifeCycleUnitTest {
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.OK);
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookLifeCyclesUnitParametersStart.toString())
             .when()
             .put(LIFE_UNIT_ID_URI,
@@ -372,6 +373,7 @@ public class LogBookLifeCycleUnitTest {
         // Commit the created unit lifeCycle
         given()
             .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
             .when()
             .put(LIFE_UNIT_ID_URI,
@@ -518,6 +520,7 @@ public class LogBookLifeCycleUnitTest {
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesUnitParametersUpdate.toString())
             .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.toString())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .put(LIFE_UNIT_ID_URI,
                 logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.eventIdentifierProcess),

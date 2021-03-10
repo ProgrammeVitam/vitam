@@ -33,8 +33,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import org.bson.Document;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -65,7 +64,7 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
         for (final LogbookLifeCycleMongoDbName name : LogbookLifeCycleMongoDbName.values()) {
             append(name.getDbname(), map.get(name.getLogbookParameterName()));
         }
-        append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
+        append(LogbookDocument.EVENTS, Collections.emptyList());
         checkId();
     }
 
@@ -120,22 +119,6 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     }
 
     public List<Document> events() {
-        return (ArrayList<Document>) get(LogbookDocument.EVENTS);
-    }
-
-
-    /**
-     * Initialize indexes for Collection
-     */
-    static void addIndexes() {
-        // TODO P1
-    }
-
-    /**
-     * Drop indexes for Collection
-     */
-    static void dropIndexes() {
-        // TODO P1
-
+        return getList(LogbookDocument.EVENTS,Document.class);
     }
 }

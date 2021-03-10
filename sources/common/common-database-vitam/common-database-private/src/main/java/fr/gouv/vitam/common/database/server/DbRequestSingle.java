@@ -313,7 +313,7 @@ public class DbRequestSingle {
      *
      * @param parser
      * @param list list of Ids
-     * @return MongoCursor<VitamDocument < ?>>
+     * @return MongoCursor<VitamDocument<?>>
      * @throws InvalidParseOperationException when query is not correct
      * @throws InvalidCreateOperationException
      */

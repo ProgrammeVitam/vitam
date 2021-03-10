@@ -541,7 +541,6 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_QUERY))
             .when()
             .get(OPERATIONS_URI)

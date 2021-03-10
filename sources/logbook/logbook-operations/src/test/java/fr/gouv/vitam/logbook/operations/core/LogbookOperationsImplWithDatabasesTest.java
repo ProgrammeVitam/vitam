@@ -52,9 +52,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
@@ -276,14 +276,12 @@ public class LogbookOperationsImplWithDatabasesTest {
             fail("Should failed");
         } catch (final IllegalArgumentException ignored) {
         }
-        try {
 
-            final Select select = new Select();
-            select.setQuery(exists("notExistVariable"));
-            logbookOperationsImpl.select(JsonHandler.getFromString(select.getFinalSelect().toString()));
-            fail("Should failed");
-        } catch (final LogbookNotFoundException ignored) {
-        }
+        final Select select = new Select();
+        select.setQuery(exists("notExistVariable"));
+        List<LogbookOperation> result =
+            logbookOperationsImpl.selectOperations(JsonHandler.getFromString(select.getFinalSelect().toString()));
+        assertTrue(result.isEmpty());
     }
 
     @Test
@@ -300,14 +298,14 @@ public class LogbookOperationsImplWithDatabasesTest {
         final Select select = new Select();
         select.setQuery(new CompareQuery(QUERY.EQ, "evId", eip1.toString()));
         List<LogbookOperation> res1;
-        res1 = logbookOperationsImpl.select(select.getFinalSelect());
+        res1 = logbookOperationsImpl.selectOperations(select.getFinalSelect());
         assertNotNull(res1);
         assertTrue(res1.get(0).containsValue(eip1.getId()));
 
         select.setQuery(new CompareQuery(QUERY.EQ, "evType", "eventType"));
         List<LogbookOperation> res3;
         select.addOrderByDescFilter("evDateTime");
-        res3 = logbookOperationsImpl.select(select.getFinalSelect());
+        res3 = logbookOperationsImpl.selectOperations(select.getFinalSelect());
         assertTrue(res3.get(0).containsValue("2016-12-12"));
         assertTrue(res3.get(1).containsValue("2015-01-01"));
         assertTrue(res3.get(2).containsValue("1990-10-01"));
