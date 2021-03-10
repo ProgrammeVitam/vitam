@@ -425,6 +425,24 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    public void listObjectMissingContainer() throws Exception {
+
+        // Given
+        String unknownContainer = "unknown-container-" + GUIDFactory.newGUID().toString();
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
+
+        // When
+        offerService.listObjects(unknownContainer, objectListingListener);
+
+        // Then
+        File containerFolder = new File(tempFolder.getRoot(), unknownContainer);
+        assertThat(containerFolder).exists();
+        assertThat(containerFolder).isDirectory();
+        verifyNoMoreInteractions(objectListingListener);
+    }
+
+
+    @Test
     public void getOfferLogs() {
         when(offerDatabaseService.getDescendingOfferLogsBy(CONTAINER_PATH, 0L, 2))
             .thenReturn(getOfferLogs(CONTAINER_PATH, 0, 2));

@@ -209,7 +209,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return digest;
     }
 
-    @VisibleForTesting
     void ensureContainerExists(String containerName) throws ContentAddressableStorageServerException {
         // Create container if not exists
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -423,6 +422,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public void listObjects(String containerName, ObjectListingListener objectListingListener)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ensureContainerExists(containerName);
         defaultStorage.listContainer(containerName, objectListingListener);
     }
 
