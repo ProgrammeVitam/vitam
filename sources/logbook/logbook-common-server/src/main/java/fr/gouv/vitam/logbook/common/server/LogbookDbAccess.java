@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.logbook.common.server;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
@@ -51,6 +49,8 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+
+import java.util.List;
 
 /**
  * MongoDbAccess interface
@@ -115,6 +115,7 @@ public interface LogbookDbAccess {
     boolean existsLogbookLifeCycleObjectGroup(final String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
+
     /**
      * Get one Operation
      *
@@ -122,10 +123,25 @@ public interface LogbookDbAccess {
      * @return the corresponding LogbookOperation if it exists
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws VitamDBException
      */
-    LogbookOperation getLogbookOperation(final String eventIdentifierProcess)
+    LogbookOperation getLogbookOperationById(String eventIdentifierProcess)
         throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Get one Operation
+     *
+     * @param eventIdentifierProcess
+     * @param query
+     * @param slice
+     * @param crossTenant
+     * @return the corresponding LogbookOperation if it exists
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws VitamDBException
+     */
+    LogbookOperation getLogbookOperationById(String eventIdentifierProcess, JsonNode query, boolean slice,
+        boolean crossTenant) throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Create one Logbook Operation
@@ -351,6 +367,9 @@ public interface LogbookDbAccess {
     void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
+    VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
+        throws LogbookDatabaseException, VitamDBException;
+
     /**
      * Get a list of Logbook Operation through Closeable MongoCursor
      *
@@ -361,8 +380,8 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
+    VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced, boolean crossTenant)
+        throws LogbookDatabaseException, VitamDBException;
     
     /**
      * Get a list of Logbook LifeCycles through Closeable MongoCursor
@@ -562,5 +581,4 @@ public interface LogbookDbAccess {
         throws DatabaseException;
 
     void updateLogbookLifeCycle(LogbookCollections collection, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
-
 }

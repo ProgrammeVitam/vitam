@@ -225,9 +225,6 @@ public class LogbookMongoDbAccessTest {
         String status = mongoDbAccess.getInfo();
         assertTrue(status.indexOf("LogbookOperation") > 0);
         assertEquals(status, mongoDbAccess.getInfo());
-        LogbookMongoDbAccessImpl.removeIndexBeforeImport();
-
-        assertEquals(status, mongoDbAccess.getInfo());
         LogbookMongoDbAccessImpl.resetIndexAfterImport();
 
         assertEquals(status, mongoDbAccess.getInfo());
@@ -266,7 +263,7 @@ public class LogbookMongoDbAccessTest {
         } catch (final VitamException e) {
         }
         try {
-            mongoDbAccess.getLogbookOperation(GUIDFactory.newGUID().getId());
+            mongoDbAccess.getLogbookOperationById(GUIDFactory.newGUID().getId());
             fail("Should throw an exception");
         } catch (final VitamException e) {
         }
@@ -354,7 +351,7 @@ public class LogbookMongoDbAccessTest {
         assertEquals(nbl, mongoDbAccess.getLogbookLifeCyleUnitSize());
         assertEquals(nbo + 1, mongoDbAccess.getLogbookOperationSize());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
-        final LogbookOperation ragnarLogbook = mongoDbAccess.getLogbookOperation(eip);
+        final LogbookOperation ragnarLogbook = mongoDbAccess.getLogbookOperationById(eip);
         assertNotNull(ragnarLogbook);
         assertEquals(1, ragnarLogbook.get(LogbookDocument.VERSION));
         final List<LogbookOperationParameters> listeOperations = ragnarLogbook.getOperations(true);
@@ -388,7 +385,7 @@ public class LogbookMongoDbAccessTest {
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         mongoDbAccess.updateBulkLogbookOperation(parameters, parameters2);
-        assertEquals(2, mongoDbAccess.getLogbookOperation(eip).get(LogbookDocument.VERSION));
+        assertEquals(2, mongoDbAccess.getLogbookOperationById(eip).get(LogbookDocument.VERSION));
         assertEquals(nbl, mongoDbAccess.getLogbookLifeCyleUnitSize());
         assertEquals(nbo + 1, mongoDbAccess.getLogbookOperationSize());
 
@@ -416,7 +413,7 @@ public class LogbookMongoDbAccessTest {
             assertEquals(3, operation.getOperations(true).size());
             assertEquals(2, operation.getOperations(false).size());
         }
-        final LogbookOperation operation2 = mongoDbAccess.getLogbookOperation(eip);
+        final LogbookOperation operation2 = mongoDbAccess.getLogbookOperationById(eip);
         assertNotNull(operation2);
         assertEquals(4, operation2.getOperations(true).size());
         assertEquals(2, operation2.getOperations(false).size());
@@ -1028,7 +1025,7 @@ public class LogbookMongoDbAccessTest {
 
         mongoDbAccess.createLogbookOperation(logbookOperationParameters);
         LogbookOperation logbookOperation =
-            mongoDbAccess.getLogbookOperation(logbookOperationParameters.getParameterValue
+            mongoDbAccess.getLogbookOperationById(logbookOperationParameters.getParameterValue
                 (LogbookParameterName.eventIdentifierProcess));
         assertNotNull(logbookOperation);
         assertEquals(0, logbookOperation.get(VitamDocument.VERSION));
@@ -1120,7 +1117,7 @@ public class LogbookMongoDbAccessTest {
 
         mongoDbAccess.createLogbookOperation(logbookOperationParameters);
         LogbookOperation logbookOperation =
-            mongoDbAccess.getLogbookOperation(logbookOperationParameters.getParameterValue
+            mongoDbAccess.getLogbookOperationById(logbookOperationParameters.getParameterValue
                 (LogbookParameterName.eventIdentifierProcess));
         assertNotNull(logbookOperation);
         assertEquals(0, logbookOperation.get(VitamDocument.VERSION));
@@ -1163,7 +1160,7 @@ public class LogbookMongoDbAccessTest {
 
         // update -> _v: 1
         mongoDbAccess.updateLogbookOperation(logbookOperationParameters);
-        logbookOperation = mongoDbAccess.getLogbookOperation(eventIdentifierProcess.getId());
+        logbookOperation = mongoDbAccess.getLogbookOperationById(eventIdentifierProcess.getId());
         assertNotNull(logbookOperation);
         assertEquals(1, logbookOperation.get(VitamDocument.VERSION));
 
@@ -1197,7 +1194,7 @@ public class LogbookMongoDbAccessTest {
         mongoDbAccess.createBulkLogbookOperation(logbookOperationParameters, logbookOperationParameters,
             logbookOperationParameters);
         LogbookOperation logbookOperation =
-            mongoDbAccess.getLogbookOperation(logbookOperationParameters.getParameterValue
+            mongoDbAccess.getLogbookOperationById(logbookOperationParameters.getParameterValue
                 (LogbookParameterName.eventIdentifierProcess));
         assertNotNull(logbookOperation);
         assertEquals(0, logbookOperation.get(VitamDocument.VERSION));
@@ -1237,7 +1234,7 @@ public class LogbookMongoDbAccessTest {
         // update -> _v: 1
         mongoDbAccess.updateBulkLogbookOperation(logbookOperationParameters, logbookOperationParameters,
             logbookOperationParameters);
-        logbookOperation = mongoDbAccess.getLogbookOperation(logbookOperationParameters.getParameterValue
+        logbookOperation = mongoDbAccess.getLogbookOperationById(logbookOperationParameters.getParameterValue
             (LogbookParameterName.eventIdentifierProcess));
         assertNotNull(logbookOperation);
         assertEquals(1, logbookOperation.get(VitamDocument.VERSION));

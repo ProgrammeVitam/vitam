@@ -174,7 +174,7 @@ public class VitamTestHelper {
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             return client.selectOperationById(opId);
         } catch (LogbookClientException | InvalidParseOperationException e) {
-            fail("cannot find logbook with id = ", opId, e);
+            fail("cannot find logbook with id = " + opId, e);
         }
         return null;
     }

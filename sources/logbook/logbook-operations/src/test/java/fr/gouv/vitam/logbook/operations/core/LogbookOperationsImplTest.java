@@ -42,7 +42,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -140,12 +139,13 @@ public class LogbookOperationsImplTest {
         logbookOperationsImpl.update(logbookParameters);
     }
 
-    @Test(expected = LogbookNotFoundException.class)
+    @Test(expected = LogbookDatabaseException.class)
     public void givenSelectOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
+        ObjectNode select = JsonHandler.createObjectNode();
         doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
-            .getLogbookOperations(JsonHandler.createObjectNode(), true);
-        logbookOperationsImpl.select(null);
+            .getLogbookOperations(select, false, false);
+        logbookOperationsImpl.selectOperations(select);
     }
 
     @Test(expected = LogbookAlreadyExistsException.class)
@@ -164,20 +164,12 @@ public class LogbookOperationsImplTest {
         logbookOperationsImpl.update(logbookParameters);
     }
 
-    @Test(expected = LogbookNotFoundException.class)
-    public void givenSelectOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
-        reset(mongoDbAccess);
-        doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
-            .getLogbookOperations(JsonHandler.createObjectNode(), true);
-        logbookOperationsImpl.select(null);
-    }
-
     @Test
     public void getByIdTest() throws Exception {
         reset(mongoDbAccess);
         GUID guid = GUIDFactory.newEventGUID(0);
         ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
-        doReturn(new LogbookOperation(data)).when(mongoDbAccess).getLogbookOperation(guid.getId());
+        doReturn(new LogbookOperation(data)).when(mongoDbAccess).getLogbookOperationById(guid.getId());
         LogbookOperation lo = logbookOperationsImpl.getById(guid.getId());
         assertNotNull(lo);
     }
@@ -187,7 +179,7 @@ public class LogbookOperationsImplTest {
     public void createBulkLogbookOperationTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         reset(mongoDbAccess);
-        when(mongoDbAccess.getLogbookOperation(any())).thenReturn(new LogbookOperation(logbookParameters));
+        when(mongoDbAccess.getLogbookOperationById(any())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParameterHelper.newLogbookOperationParameters();
         param[1] = LogbookParameterHelper.newLogbookOperationParameters();
@@ -199,7 +191,7 @@ public class LogbookOperationsImplTest {
     public void updateBulkLogbookOperationTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         reset(mongoDbAccess);
-        when(mongoDbAccess.getLogbookOperation(any())).thenReturn(new LogbookOperation(logbookParameters));
+        when(mongoDbAccess.getLogbookOperationById(any())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParameterHelper.newLogbookOperationParameters();
         param[1] = LogbookParameterHelper.newLogbookOperationParameters();
@@ -220,11 +212,10 @@ public class LogbookOperationsImplTest {
     @Test
     public void selectOperationsTest() throws Exception {
         reset(mongoDbAccess);
-        doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
+        doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean(), anyBoolean());
         Select select = new Select();
-        RequestResponse<LogbookOperation> response = logbookOperationsImpl.selectOperations(select.getFinalSelect());
-        assertNotNull(response);
-        assertEquals(1, response.toJsonNode().get("$hits").get("total").asLong());
+        List<LogbookOperation> operations = logbookOperationsImpl.selectOperations(select.getFinalSelect());
+        assertEquals(1, operations.size());
     }
 
 

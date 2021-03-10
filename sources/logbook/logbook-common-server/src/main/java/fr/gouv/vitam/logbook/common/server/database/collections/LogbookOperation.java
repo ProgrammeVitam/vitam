@@ -199,18 +199,4 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         return list;
     }
 
-    /**
-     * Initialize indexes for Collection
-     */
-    static final void addIndexes() {
-        // TODO P1
-    }
-
-    /**
-     * Drop indexes for Collection
-     */
-    static final void dropIndexes() {
-        // TODO P1
-
-    }
 }

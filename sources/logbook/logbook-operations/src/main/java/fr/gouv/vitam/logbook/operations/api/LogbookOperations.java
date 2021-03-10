@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -46,6 +45,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Logbook operations interface for database operations
@@ -79,43 +79,35 @@ public interface LogbookOperations {
      *
      * @param select the select request in format of JsonNode
      * @return List of the logbook operation
-     * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    List<LogbookOperation> select(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
+    List<LogbookOperation> selectOperations(JsonNode select)
+        throws LogbookDatabaseException, InvalidParseOperationException, VitamDBException;
 
-    RequestResponse<LogbookOperation> selectOperations(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
+    List<LogbookOperation> selectOperations(JsonNode select, boolean sliced, boolean crossTenant)
+        throws VitamDBException, LogbookDatabaseException;
 
-    RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
-        throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException;
+    RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced, boolean crossTenant)
+        throws VitamDBException, LogbookDatabaseException;
 
-    /**
-     * Select logbook operation entries
-     *
-     * @param select the select request in format of JsonNode
-     * @param sliced the boolean sliced to filter events or not
-     * @return List of the logbook operation
-     * @throws LogbookNotFoundException if no operation selected cannot be found
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws InvalidParseOperationException if invalid parse for selecting the operation
-     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
-     */
-    List<LogbookOperation> select(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
+    LogbookOperation getById(String idProcess) throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Select logbook operation by the operation's ID
      *
-     * @param IdProcess the operation identifier
+     * @param idProcess the operation identifier
+     * @param query
+     * @param sliced
+     * @param crossTenant
      * @return the logbook operation found by the ID
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if no operation selected cannot be found
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    LogbookOperation getById(String IdProcess) throws LogbookDatabaseException, LogbookNotFoundException;
+    LogbookOperation getById(String idProcess, JsonNode query, boolean sliced, boolean crossTenant)
+        throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Create one Logbook Operation with already multiple sub-events
@@ -227,6 +219,6 @@ public interface LogbookOperations {
      * @throws LogbookDatabaseException
      * @throws InvalidParseOperationException
      */
-    LogbookOperation findLastOperationByType(String operationType) throws InvalidCreateOperationException,
-            LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException;
+    Optional<LogbookOperation> findLastOperationByType(String operationType) throws InvalidCreateOperationException,
+            LogbookDatabaseException, InvalidParseOperationException;
 }

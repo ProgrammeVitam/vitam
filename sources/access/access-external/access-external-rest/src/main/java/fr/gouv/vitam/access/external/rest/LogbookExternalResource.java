@@ -29,8 +29,6 @@ package fr.gouv.vitam.access.external.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
@@ -42,8 +40,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -60,7 +56,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.LOGBOOKOBJECTSLIFECYCLES_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.LOGBOOKOPERATIONS_ID_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.LOGBOOKOPERATIONS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.LOGBOOKUNITLIFECYCLES_ID_READ;
 
 @Path("/access-external/v1")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -100,7 +99,7 @@ public class LogbookExternalResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(query);
-            RequestResponse<JsonNode> result = client.selectOperationSliced(query);
+            RequestResponse<JsonNode> result = client.selectOperation(query, true, true);
 
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -150,14 +149,8 @@ public class LogbookExternalResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(operationId);
-            final SelectParserSingle parser = new SelectParserSingle();
-            parser.parse(queryDsl);
-            Select select = parser.getRequest();
-            select.setQuery(QueryHelper.eq(LogbookEvent.EV_ID_PROC, operationId));
-            RequestResponse<JsonNode> result = client.selectOperation(select.getFinalSelect());
-            if (((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
-                throw new LogbookClientNotFoundException("logbook operation not found");
-            }
+            SanityChecker.checkJsonAll(queryDsl);
+            RequestResponse<JsonNode> result = client.selectOperationById(operationId, queryDsl, false, true);
 
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -179,11 +172,6 @@ public class LogbookExternalResource {
                     .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
                     .setHttpCode(status.getStatusCode()))
                 .build();
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper

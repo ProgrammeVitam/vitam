@@ -28,6 +28,8 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -50,6 +52,7 @@ import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.List;
@@ -60,12 +63,13 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.parameter.ParameterHelper.getTenantParameter;
+import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_CROSS_TENANT;
+import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_SLICED_OPERATIONS;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
     private static final String OPERATIONS_URL = "/operations";
-    private static final String OPERATIONS_SLICED_URL = "/slicedOperations";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -95,9 +99,22 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         }
     }
 
+
     @Override
     public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
-        try (Response response = make(get().withPath(OPERATIONS_URL).withBody(select).withJson())) {
+       return selectOperation(select, false, false);
+    }
+
+    @Override
+    public JsonNode selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant) throws LogbookClientException, InvalidParseOperationException {
+        VitamRequestBuilder request = get().withPath(OPERATIONS_URL).withBody(select).withJson();
+        if (isSliced) {
+            request.withHeader(X_SLICED_OPERATIONS, true);
+        }
+        if (isCrossTenant) {
+            request.withHeader(X_CROSS_TENANT, true);
+        }
+        try (Response response = make(request)) {
             check(response);
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (VitamClientInternalException e) {
@@ -106,9 +123,21 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public JsonNode selectOperationSliced(JsonNode select)
+    public JsonNode selectOperationById(String processId, JsonNode query, boolean isSliced, boolean isCrossTenant)
         throws LogbookClientException, InvalidParseOperationException {
-        try (Response response = make(get().withPath(OPERATIONS_SLICED_URL).withBody(select).withJson())) {
+
+        VitamRequestBuilder request = get().withPath(OPERATIONS_URL + "/" + processId).withBody(query)
+            .withContentType(MediaType.APPLICATION_JSON_TYPE).withJsonAccept();
+
+        if (isSliced) {
+            request.withHeader(X_SLICED_OPERATIONS, true);
+        }
+        if (isCrossTenant) {
+            request.withHeader(X_CROSS_TENANT, true);
+        }
+
+        try (Response response = make(
+            request)) {
             check(response);
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (VitamClientInternalException e) {
@@ -119,12 +148,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     @Override
     public JsonNode selectOperationById(String processId)
         throws LogbookClientException, InvalidParseOperationException {
-        try (Response response = make(get().withPath(OPERATIONS_URL + "/" + processId).withJsonAccept())) {
-            check(response);
-            return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (VitamClientInternalException e) {
-            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        }
+        return selectOperationById(processId, new Select().getFinalSelect(), false, false);
     }
 
     @Override
@@ -306,11 +330,11 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     @Override
     public RequestResponse<JsonNode> getLastOperationByType(String operationType)
-        throws LogbookClientNotFoundException, LogbookClientServerException {
+        throws LogbookClientServerException {
         try (Response response = make(get().withPath("/lastOperationByType").withBody(operationType).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
+        } catch (VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientNotFoundException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
     }

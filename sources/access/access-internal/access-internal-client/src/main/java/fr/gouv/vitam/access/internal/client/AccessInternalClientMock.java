@@ -28,18 +28,12 @@ package fr.gouv.vitam.access.internal.client;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
-import fr.gouv.vitam.common.exception.ForbiddenClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.PreservationRequest;
@@ -59,8 +53,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 
 
 /**
@@ -130,19 +122,21 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> selectOperation(JsonNode select)
+    public RequestResponse<JsonNode> selectOperation(JsonNode select, boolean isSliced, boolean isCrossTenant)
         throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults());
     }
 
     @Override
-    public RequestResponse<JsonNode> selectOperationSliced(JsonNode select) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        throw new IllegalStateException("Stop using mocks in production");
+    public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl, boolean isSliced,
+        boolean isCrossTenant)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 
     @Override
-    public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl)
-        throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> selectOperationById(String processId)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 

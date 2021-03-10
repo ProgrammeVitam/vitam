@@ -112,7 +112,7 @@ public class AlertLogbookOperationsDecoratorTest {
         doNothing().when(workspaceClient).createContainer(anyString());
         doNothing().when(workspaceClient).putObject(anyString(), anyString(), any());
         doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
-        when(mongoDbAccess.getLogbookOperation(anyString())).thenReturn(new LogbookOperation(logbookParameters));
+        when(mongoDbAccess.getLogbookOperationById(anyString())).thenReturn(new LogbookOperation(logbookParameters));
     }
 
     @RunWithCustomExecutor

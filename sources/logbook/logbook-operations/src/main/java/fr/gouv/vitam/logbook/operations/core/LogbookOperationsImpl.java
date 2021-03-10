@@ -56,8 +56,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.DatabaseCursor;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -96,6 +94,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -154,46 +153,45 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public List<LogbookOperation> select(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
-        return select(select, false);
+    public List<LogbookOperation> selectOperations(JsonNode select)
+        throws VitamDBException, LogbookDatabaseException {
+        return selectOperations(select, false, false);
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperations(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
-        return selectOperations(select, false);
-    }
-
-    @Override
-    public RequestResponseOK<LogbookOperation> selectOperations(JsonNode select, boolean sliced)
-        throws VitamDBException, LogbookNotFoundException, LogbookDatabaseException {
-        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced);
+    public List<LogbookOperation> selectOperations(JsonNode select, boolean sliced, boolean crossTenant)
+        throws VitamDBException, LogbookDatabaseException {
+        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced, crossTenant);
         List<LogbookOperation> operations = new ArrayList<>();
+
         while (cursor.hasNext()) {
             LogbookOperation doc = cursor.next();
             filterFinalResponse(doc);
             operations.add(doc);
         }
 
-        long offset = 0;
-        long limit = 0;
-        if (select.get("$filter") != null) {
-            if (select.get("$filter").get("$offset") != null) {
-                offset = select.get("$filter").get("$offset").asLong();
-            }
-            if (select.get("$filter").get("$limit") != null) {
-                limit = select.get("$filter").get("$limit").asLong();
-            }
+       return operations;
+    }
+
+    @Override
+    public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced, boolean crossTenant)
+        throws VitamDBException, LogbookDatabaseException {
+        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, sliced, crossTenant);
+
+        List<LogbookOperation> operations = new ArrayList<>();
+
+        while (cursor.hasNext()) {
+            LogbookOperation doc = cursor.next();
+            filterFinalResponse(doc);
+            operations.add(doc);
         }
 
-        DatabaseCursor hits = (cursor.getScrollId() != null) ?
-                new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
-                :
-                new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
-        return new RequestResponseOK<LogbookOperation>(select)
-                .addAllResults(operations).setHits(hits);
+        return (cursor.getScrollId() == null) ?
+            new RequestResponseOK<>(select, operations, (int) cursor.getTotal()) :
+            new RequestResponseOK<>(select, operations, (int) cursor.getTotal());
+
     }
+
 
     private void filterFinalResponse(VitamDocument<?> document) {
         for (final ParserTokens.PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
@@ -233,28 +231,15 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public List<LogbookOperation> select(JsonNode select, boolean sliced)
-        throws LogbookNotFoundException, LogbookDatabaseException, VitamDBException {
-        final List<LogbookOperation> result = new ArrayList<>();
-        try (final VitamMongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, sliced)) {
-            if (logbook == null || !logbook.hasNext()) {
-                // TODO: seriously, thrown a not found exception here ??? Not found only if I search a specific
-                // operation with an ID, not if the logbook is empty ! But fix this and evreything may be broken
-                // Should return an empty list i think.
-                throw new LogbookNotFoundException("Logbook entry not found");
-            }
-            while (logbook.hasNext()) {
-                LogbookOperation doc = logbook.next();
-                filterFinalResponse(doc);
-                result.add(doc);
-            }
-        }
-        return result;
+    public LogbookOperation getById(String idProcess)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        return mongoDbAccess.getLogbookOperationById(idProcess);
     }
 
     @Override
-    public LogbookOperation getById(String idProcess) throws LogbookDatabaseException, LogbookNotFoundException {
-        return mongoDbAccess.getLogbookOperation(idProcess);
+    public LogbookOperation getById(String idProcess, JsonNode query, boolean sliced, boolean crossTenant)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        return mongoDbAccess.getLogbookOperationById(idProcess, query, sliced, crossTenant);
     }
 
     @Override
@@ -274,7 +259,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(LocalDateTime startDate,
         LocalDateTime endDate)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidCreateOperationException,
+        throws LogbookDatabaseException, InvalidCreateOperationException,
         InvalidParseOperationException {
 
         Select select = new Select();
@@ -297,7 +282,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public LogbookOperation findFirstTraceabilityOperationOKAfterDate(final LocalDateTime date)
-        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException {
+        throws InvalidCreateOperationException, LogbookDatabaseException {
         final Select select = new Select();
         final Query query = QueryHelper.gt("evDateTime", date.toString());
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
@@ -317,7 +302,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public LogbookOperation findLastTraceabilityOperationOK()
-        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
+        throws InvalidCreateOperationException, LogbookDatabaseException,
         InvalidParseOperationException {
         final Select select = new Select();
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
@@ -353,24 +338,21 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
             query.addOrderByDescFilter("evDateTime");
 
-            List<LogbookOperation> operations = select(query.getFinalSelect());
+            List<LogbookOperation> operations = selectOperations(query.getFinalSelect());
             if (operations.isEmpty()) {
+                LOGGER.debug("Logbook not found, this is the first Operation of this type");
                 return null;
             }
             return operations.get(0);
 
-        } catch (LogbookNotFoundException e) {
-            LOGGER.debug("Logbook not found, this is the first Operation of this type");
-            return null;
         } catch (InvalidCreateOperationException e) {
             throw new VitamException("Could not find last LFC traceability", e);
         }
     }
 
     @Override
-    public LogbookOperation findLastOperationByType(String operationType)
-        throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException,
-        LogbookNotFoundException {
+    public Optional<LogbookOperation> findLastOperationByType(String operationType)
+        throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException {
         final Select select = new Select();
         final Query type = QueryHelper.eq(LogbookEvent.EV_TYPE_PROC, operationType);
         select.setQuery(type);
@@ -378,8 +360,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         select.setLimitFilter(0, 1);
 
         try {
-            List<LogbookOperation> result = this.select(select.getFinalSelect(), false);
-            return result.get(0);
+            return this.selectOperations(select.getFinalSelect()).stream().findFirst();
         } catch (VitamDBException e) {
             throw new LogbookDatabaseException(e);
         }
@@ -517,14 +498,14 @@ public class LogbookOperationsImpl implements LogbookOperations {
             // Limit to 1 result
             select.setLimitFilter(0, 1);
 
-            List<LogbookOperation> logbookOperations = select(select.getFinalSelect(), false);
+            List<LogbookOperation> logbookOperations = selectOperations(select.getFinalSelect());
+            if (logbookOperations.isEmpty()) {
+                LOGGER.debug("No new logbook operations since last traceability");
+            }
             return !logbookOperations.isEmpty();
 
         } catch (InvalidCreateOperationException | VitamDBException e) {
             throw new LogbookDatabaseException("Could not parse last traceability operation information", e);
-        } catch (LogbookNotFoundException e) {
-            LOGGER.debug("No new logbook operations since last traceability", e);
-            return false;
         }
     }
 
@@ -532,7 +513,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         String operationGuid = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         LogbookOperation logbookOperation;
         try {
-            logbookOperation = mongoDbAccess.getLogbookOperation(operationGuid);
+            logbookOperation = mongoDbAccess.getLogbookOperationById(operationGuid);
         } catch (LogbookNotFoundException e) {
             throw new LogbookDatabaseException("Cannot find operation with GUID " + operationGuid + ", cannot backup " +
                 "it", e);
