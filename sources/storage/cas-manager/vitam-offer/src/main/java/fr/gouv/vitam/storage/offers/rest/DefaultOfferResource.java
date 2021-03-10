@@ -189,10 +189,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 // No errors ==> write EOF
                 objectEntryWriter.writeEof();
 
-            } catch (ContentAddressableStorageNotFoundException e) {
-                String msg = "Could not return object listing. Not found";
-                LOGGER.error(msg, e);
-                throw new WebApplicationException(msg, e, Response.status(Status.NOT_FOUND).entity(msg).build());
             } catch (Exception e) {
                 LOGGER.error("Could not return object listing. Internal server error", e);
                 throw new WebApplicationException("Could not return object listing", e);
