@@ -134,181 +134,181 @@ pipeline {
             }
         }
 
-        stage ("Execute unit and integration tests on master branches") {
-            when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                }
-            }
-            environment {
-                LANG="fr_FR.UTF-8" // to bypass dateformat problem
-            }
-            steps {
-                dir('sources') {
-                    script {
-                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            // minIO SSL first
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
-                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
-                                    sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
-                                    sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
-                                        //minIO without SSL
-                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
-                                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
-                                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    junit 'sources/**/target/surefire-reports/*.xml'
-                }
-                success {
-                    archiveArtifacts (
-                        artifacts: '**/dependency-check-report.html'
-                        , fingerprint: true
-                        , allowEmptyArchive: true
+        // stage ("Execute unit and integration tests on master branches") {
+        //     when {
+        //         anyOf {
+        //             branch "develop*"
+        //             branch "master_*"
+        //             branch "master"
+        //             tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+        //         }
+        //     }
+        //     environment {
+        //         LANG="fr_FR.UTF-8" // to bypass dateformat problem
+        //     }
+        //     steps {
+        //         dir('sources') {
+        //             script {
+        //                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+        //                     // minIO SSL first
+        //                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
+        //                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
+        //                             sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+        //                             sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+        //                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
+        //                                 //minIO without SSL
+        //                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
+        //                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
+        //                                         sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             junit 'sources/**/target/surefire-reports/*.xml'
+        //         }
+        //         success {
+        //             archiveArtifacts (
+        //                 artifacts: '**/dependency-check-report.html'
+        //                 , fingerprint: true
+        //                 , allowEmptyArchive: true
 
-                    )
-                }
-            }
-        }
+        //             )
+        //         }
+        //     }
+        // }
 
-        stage ("Execute unit and integration tests on merge requests") {
-            when {
-                not{
-                    anyOf {
-                        branch "develop*"
-                        branch "master_*"
-                        branch "master"
-                        branch "PR*" // do not try to update on github status
-                        tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    }
-                }
-            }
-            environment {
-                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
-                LANG="fr_FR.UTF-8" // to bypass dateformat problem
-            }
-            steps {
-                updateGitlabCommitStatus name: 'mergerequest', state: "running"
-                dir('sources') {
-                    script {
-                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            // minIO SSL first
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls/private.key:/root/.minio/certs/private.key -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls/public.crt:/root/.minio/certs/public.crt  -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
-                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
-                                    sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
-                                    sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
-                                        //minIO without SSL
-                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
-                                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
-                                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    junit 'sources/**/target/surefire-reports/*.xml'
-                }
-                success {
-                    archiveArtifacts (
-                        artifacts: '**/dependency-check-report.html'
-                        , fingerprint: true
-                        , allowEmptyArchive: true
+        // stage ("Execute unit and integration tests on merge requests") {
+        //     when {
+        //         not{
+        //             anyOf {
+        //                 branch "develop*"
+        //                 branch "master_*"
+        //                 branch "master"
+        //                 branch "PR*" // do not try to update on github status
+        //                 tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+        //             }
+        //         }
+        //     }
+        //     environment {
+        //         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
+        //         LANG="fr_FR.UTF-8" // to bypass dateformat problem
+        //     }
+        //     steps {
+        //         updateGitlabCommitStatus name: 'mergerequest', state: "running"
+        //         dir('sources') {
+        //             script {
+        //                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+        //                     // minIO SSL first
+        //                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls/private.key:/root/.minio/certs/private.key -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls/public.crt:/root/.minio/certs/public.crt  -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
+        //                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
+        //                             sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+        //                             sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+        //                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
+        //                                 //minIO without SSL
+        //                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
+        //                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
+        //                                         sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             junit 'sources/**/target/surefire-reports/*.xml'
+        //         }
+        //         success {
+        //             archiveArtifacts (
+        //                 artifacts: '**/dependency-check-report.html'
+        //                 , fingerprint: true
+        //                 , allowEmptyArchive: true
 
-                    )
-                    updateGitlabCommitStatus name: 'mergerequest', state: "success"
-				    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
-                }
-                failure {
-                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
-                }
-                unstable {
-                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
-                }
-                aborted {
-                    updateGitlabCommitStatus name: 'mergerequest', state: "canceled"
-                }
-            }
-        }
+        //             )
+        //             updateGitlabCommitStatus name: 'mergerequest', state: "success"
+		// 		    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+        //         }
+        //         failure {
+        //             updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+        //         }
+        //         unstable {
+        //             updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+        //         }
+        //         aborted {
+        //             updateGitlabCommitStatus name: 'mergerequest', state: "canceled"
+        //         }
+        //     }
+        // }
 
-        stage ("Execute unit and integration tests on pull requests") {
-            when {
-                branch "PR*" // do not try to update on github status
-            }
-            environment {
-                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
-                LANG="fr_FR.UTF-8" // to bypass dateformat problem
-            }
-            steps {
-                // updateGitlabCommitStatus name: 'mergerequest', state: "running"
-                // script {
-                    githubNotify status: "PENDING", description: "Building & testing", credentialsId: "vitam-prg-token"
-                // }
-                dir('sources') {
-                    script {
-                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            // minIO SSL first
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs  -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
-                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
-                                    sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
-                                    sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
-                                        //minIO without SSL
-                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
-                                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
-                                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    junit 'sources/**/target/surefire-reports/*.xml'
-                }
-                success {
-                    archiveArtifacts (
-                        artifacts: '**/dependency-check-report.html'
-                        , fingerprint: true
-                        , allowEmptyArchive: true
+        // stage ("Execute unit and integration tests on pull requests") {
+        //     when {
+        //         branch "PR*" // do not try to update on github status
+        //     }
+        //     environment {
+        //         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
+        //         LANG="fr_FR.UTF-8" // to bypass dateformat problem
+        //     }
+        //     steps {
+        //         // updateGitlabCommitStatus name: 'mergerequest', state: "running"
+        //         // script {
+        //             githubNotify status: "PENDING", description: "Building & testing", credentialsId: "vitam-prg-token"
+        //         // }
+        //         dir('sources') {
+        //             script {
+        //                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+        //                     // minIO SSL first
+        //                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9000:9000 -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs  -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { o ->
+        //                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { d ->
+        //                             sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+        //                             sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+        //                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s','mongod --bind_ip_all --replSet rs0') { i ->
+        //                                 //minIO without SSL
+        //                                 docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
+        //                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
+        //                                         sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+        //                                     }
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             junit 'sources/**/target/surefire-reports/*.xml'
+        //         }
+        //         success {
+        //             archiveArtifacts (
+        //                 artifacts: '**/dependency-check-report.html'
+        //                 , fingerprint: true
+        //                 , allowEmptyArchive: true
 
-                    )
-                    githubNotify status: "SUCCESS", description: "Build successul", credentialsId: "vitam-prg-token"
-                }
-                failure {
-                    githubNotify status: "FAILURE", description: "Build failed", credentialsId: "vitam-prg-token"
-                }
-                unstable {
-                    githubNotify status: "FAILURE", description: "Build unstable", credentialsId: "vitam-prg-token"
-                }
-                aborted {
-                    githubNotify status: "ERROR", description: "Build canceled", credentialsId: "vitam-prg-token"
-                }
-            }
-        }
+        //             )
+        //             githubNotify status: "SUCCESS", description: "Build successul", credentialsId: "vitam-prg-token"
+        //         }
+        //         failure {
+        //             githubNotify status: "FAILURE", description: "Build failed", credentialsId: "vitam-prg-token"
+        //         }
+        //         unstable {
+        //             githubNotify status: "FAILURE", description: "Build unstable", credentialsId: "vitam-prg-token"
+        //         }
+        //         aborted {
+        //             githubNotify status: "ERROR", description: "Build canceled", credentialsId: "vitam-prg-token"
+        //         }
+        //     }
+        // }
 
 
         stage("Build packages") {
