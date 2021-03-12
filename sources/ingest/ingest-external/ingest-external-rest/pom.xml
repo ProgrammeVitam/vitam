@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ingest-external</artifactId>
-		<version>3.0.15</version>
+		<version>3.0.16-SNAPSHOT</version>
 	</parent>
 	<artifactId>ingest-external-rest</artifactId>
 	<name>ingest-external-rest</name>
