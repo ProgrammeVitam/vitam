@@ -192,7 +192,7 @@
         <commons-lang3>3.9</commons-lang3>
         <commons-text>1.8</commons-text>
         <easymock.version>4.0.2</easymock.version>
-        <jackson.version>2.10.2</jackson.version>
+        <jackson.version>2.12.2</jackson.version>
         <apache-shiro.version>1.5.0</apache-shiro.version>
         <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>4.3.0</rest-assured.version>
