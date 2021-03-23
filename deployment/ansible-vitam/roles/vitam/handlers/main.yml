@@ -35,6 +35,7 @@
     name: "vitam-{{ consul_component }}"
     state: reloaded
   listen: reload consul configuration
+  when: consul_disabled is not defined or consul_disabled |lower != "true"
 
 - name: check if service name is resolved
   wait_for:
