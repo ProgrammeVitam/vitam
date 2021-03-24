@@ -9,3 +9,4 @@
 - name: reload consul
   include_tasks: tasks/reload_consul.yml
   listen: "reload consul configuration"
+  when: consul_disabled is not defined or consul_disabled |lower != "true"
