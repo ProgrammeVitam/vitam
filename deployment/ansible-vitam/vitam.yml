@@ -55,7 +55,6 @@
 - hosts: hosts_functional_administration
   gather_facts: no
   any_errors_fatal: true
-  serial: 1
   roles:
     - check_ontologies
   vars:
@@ -65,7 +64,6 @@
 - hosts: hosts_consul_server
   gather_facts: no
   any_errors_fatal: true
-  serial: 1
   roles:
     - consul
 
@@ -79,7 +77,6 @@
 - hosts: vitam
   gather_facts: no
   any_errors_fatal: true
-  serial: 1
   roles:
     - { role: prometheus-node-exporter, tags: install_node_exporter, when: "( prometheus.node_exporter.enabled == true )" }
 
