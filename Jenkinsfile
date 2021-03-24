@@ -289,7 +289,7 @@ pipeline {
                 parallel(
                     "Package VITAM solution" : {
                         dir('sources') {
-                            sh '$MVN_COMMAND -f pom.xml -Dmaven.test.skip=true -DskipTests=true clean javadoc:aggregate-jar $DEPLOY_GOAL jdeb:jdeb rpm:attached-rpm'
+                            sh '$MVN_COMMAND -f pom.xml -Dmaven.test.skip=true -DskipTests=true clean javadoc:aggregate-jar $DEPLOY_GOAL rpm:attached-rpm jdeb:jdeb'
                             // -T 1C // Doesn't work with the javadoc:aggregate-jar goal
                         }
                     },
