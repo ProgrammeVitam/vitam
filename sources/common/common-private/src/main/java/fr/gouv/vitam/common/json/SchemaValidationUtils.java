@@ -27,15 +27,9 @@
 package fr.gouv.vitam.common.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -48,49 +42,66 @@ import java.util.Set;
 public class SchemaValidationUtils {
 
     private static final String PROPERTIES = "properties";
-
     private static final String ITEMS = "items";
-
-    private static final List<String> SCHEMA_DECLARATION_TYPE = Arrays.asList("$schema",
-        "id", "type", "additionalProperties", "anyOf", "required", "description", ITEMS, "title",
-        "oneOf", "enum", "minLength", "minItems", PROPERTIES);
+    private static final String PATTERN_PROPERTIES = "patternProperties";
 
     /**
-     * Get fields list declared in schema
+     * Get fields list declared in schema.
+     * Only leaf nodes are selected (Vitam Ontology only references leaf nodes. Eg for a complex structure X.Y.Z, only "Z" is returned)
      *
      * @param schemaJsonAsString schemaJsonAsString
      * @return a the list of fields declared in the schema
      */
     public static List<String> extractFieldsFromSchema(String schemaJsonAsString)
         throws InvalidParseOperationException {
-        List<String> listProperties = new ArrayList<>();
+        Set<String> propertySet = new HashSet<>();
         JsonNode externalSchema = JsonHandler.getFromString(schemaJsonAsString);
-        if (externalSchema != null && externalSchema.get(PROPERTIES) != null) {
-            extractPropertyFromJsonNode(externalSchema.get(PROPERTIES), listProperties);
+        if (externalSchema.has(PROPERTIES)) {
+            JsonNode jsonNode = externalSchema.get(PROPERTIES);
+            extractFromFieldNames(jsonNode, propertySet, false);
         }
-        return listProperties;
-
+        return new ArrayList<>(propertySet);
     }
 
-    private static void extractPropertyFromJsonNode(JsonNode currentJson, List<String> listProperties) {
-        final Iterator<Map.Entry<String, JsonNode>> iterator = currentJson.fields();
+    /**
+     * Parse the json schema type
+     * if jsonNodeValue is object, get theses type of technical nodes: properties, patternProperties or items
+     * More advanced schema directives like "anyOf", "allOf", "oneOf" and "not" are NOT SUPPORTED
+     */
+    private static void extractFromJsonSchemaType(String businessKey, JsonNode jsonNodeValue,
+        Set<String> propertySet, boolean isPatternPropertiesParent) {
+
+        if (jsonNodeValue.has(PROPERTIES)) {
+            extractFromFieldNames(jsonNodeValue.get(PROPERTIES), propertySet, false);
+            return;
+        }
+
+        if (jsonNodeValue.has(PATTERN_PROPERTIES)) {
+            extractFromFieldNames(jsonNodeValue.get(PATTERN_PROPERTIES), propertySet, true);
+            return;
+        }
+
+        if (jsonNodeValue.has(ITEMS)) {
+            extractFromJsonSchemaType(businessKey, jsonNodeValue.get(ITEMS), propertySet, false);
+            return;
+        }
+
+        if (!isPatternPropertiesParent) {
+            propertySet.add(businessKey);
+        }
+    }
+
+    /**
+     * Iterate over the sub-fields (properties or patternProperties entries)
+     */
+    private static void extractFromFieldNames(JsonNode jsonNode, Set<String> propertySet,
+        boolean isPatternPropertiesParent) {
+        final Iterator<Map.Entry<String, JsonNode>> iterator = jsonNode.fields();
         while (iterator.hasNext()) {
             final Map.Entry<String, JsonNode> entry = iterator.next();
-            String key = entry.getKey();
-            JsonNode value = entry.getValue();
-            if (value == null) {
-                continue;
-            }
-            if (value.isObject() || value.isArray()) {
-                // if subproperties
-                extractPropertyFromJsonNode(value, listProperties);
-            }
-
-            if (!SCHEMA_DECLARATION_TYPE.contains(key) && value.isObject() && value.get(PROPERTIES) == null &&
-                (value.get(ITEMS) == null || (value.get(ITEMS) != null && value.get(ITEMS).get(PROPERTIES) == null)) &&
-                !listProperties.contains(key)) {
-                listProperties.add(key);
-            }
+            String businessKey = entry.getKey();
+            JsonNode jsonNodeValue = entry.getValue();
+            extractFromJsonSchemaType(businessKey, jsonNodeValue, propertySet, isPatternPropertiesParent);
         }
     }
 }
