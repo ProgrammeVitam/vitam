@@ -1,0 +1,14 @@
+{
+  "_id": "aegaaaaaaeeu4mlpab6hialbt7tvkjqaaaaq",
+  "Identifier": "AUP_000001",
+  "Name": "AUP Name",
+  "Description": "Archive unit profil description",
+  "Status": "INACTIVE",
+  "CreationDate": "2016-12-10T00:00:00.000",
+  "LastUpdate": "2018-02-16T18:36:33.444",
+  "ActivationDate": "2016-12-10T00:00:00.000",
+  "DeactivationDate": "2016-12-10T00:00:00.000",
+	"ControlSchema": "{\n  \"$schema\": \"http://json-schema.org/draft-04/schema\",\n  \"type\": \"object\",\n  \"patternProperties\": {\n    \"^_\": {\n      \"description\": \"autorise tous les champs techniques\"\n    },\n    \"^DataObjectReference$\": {},\n    \"^ImplementationVersion$\": {},\n    \"^SedaVersion$\": {},\n    \"^Management$\": {}\n  },\n  \"additionalProperties\": false,\n  \"required\": [\n    \"ArchiveUnitProfile\",\n    \"Description\",\n    \"Title\"\n  ],\n  \"anyOf\": [\n    {\n      \"required\": [\n        \"Description\"\n      ]\n    },\n    {\n      \"required\": [\n        \"Description_\"\n      ]\n    }\n  ],\n  \"properties\": {\n    \"ArchiveUnitProfile\": {\n      \"type\": \"string\"\n    },\n    \"properties\": {\n      \"type\": \"string\"\n    },\n    \"Title\": {\n      \"description\": \"Title : cardinalité 1-1 / valeur libre\",\n      \"type\": \"string\"\n    },\n    \"Description\": {\n      \"type\": \"string\",\n      \"minLength\": 1\n    },\n    \"Description_\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"en\": {\n          \"type\": \"string\",\n          \"minLength\": 1\n        },\n        \"fr\": {\n          \"type\": \"string\",\n          \"minLength\": 1\n        }\n      },\n      \"additionalProperties\": false\n    },\n    \"Title_\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"en\": {\n          \"type\": \"string\",\n          \"minLength\": 1\n        },\n        \"fr\": {\n          \"type\": \"string\",\n          \"minLength\": 1\n        }\n      },\n      \"additionalProperties\": false\n    },\n    \"DescriptionArrayWithPatternProperties\": {\n      \"items\": {\n        \"patternProperties\": {\n          \"^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$\": {\n            \"properties\": {\n                \"Toto\":{\n                  \"type\": \"string\",\n                  \"minLength\": 1\n                }\n            }\n          }\n        },\n        \"additionalProperties\": false\n      }\n    }\n  }\n}\n\n",
+  "_tenant": 1,
+  "_v": 0
+}
