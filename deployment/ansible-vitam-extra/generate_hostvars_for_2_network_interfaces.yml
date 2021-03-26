@@ -1,4 +1,5 @@
 ---
+
 - hosts: hosts
   roles:
     - generate_hostvars_for_2_network_interfaces

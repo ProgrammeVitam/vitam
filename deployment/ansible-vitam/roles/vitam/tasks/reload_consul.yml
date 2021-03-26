@@ -1,10 +1,10 @@
 ---
 
 - debug:
-    msg: "Reload vitam-{{ consul_component }} service"
+    msg: "Reload vitam-consul service"
 - name: reload consul
   service:
-    name: "vitam-{{ consul_component }}"
+    name: "vitam-consul"
     state: reloaded
 
 - name: check if service name is resolved

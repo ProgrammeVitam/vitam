@@ -1,8 +1,3 @@
-.. |repertoire_deploiement| replace:: ``deployment``
-.. |repertoire_inventory| replace:: ``environments``
-.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
-
-
 Paramétrages supplémentaires
 #############################
 
@@ -15,7 +10,7 @@ Paramétrages supplémentaires
 
 
 Un `tuning` fin des paramètres :term:`JVM` de chaque composant :term:`VITAM` est possible.
-Pour cela, il faut modifier le contenu du fichier ``environments/group_vars/all/jvm_opts.yml``
+Pour cela, il faut modifier le contenu du fichier ``deployment/environments/group_vars/all/jvm_opts.yml``
 
 Pour chaque composant, il est possible de modifier ces 3 variables:
 
@@ -30,7 +25,7 @@ Installation des *griffins* (greffons de préservation)
 
 .. caution:: Cette version de :term:`VITAM` ne mettant pas encore en oeuvre de mesure d'isolation particulière des *griffins*, il est recommandé de veiller à ce que l'usage de chaque *griffin* soit en conformité avec la politique de sécurité de l'entité. Il est en particulier déconseillé d'utiliser un griffon qui utiliserait un outil externe qui n'est plus maintenu.
 
-Il est possible de choisir les *griffins* installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``environments/group_vars/all/vitam_vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
+Il est possible de choisir les *griffins* installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
 
 Exemple::
 
@@ -54,7 +49,7 @@ La solution logicielle :term:`VITAM` utilise logback pour la rotation des log, a
 
 Il est possible d'appliquer un paramétrage spécifique pour chaque composant VITAM.
 
-Éditer le fichier ``environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans le bloc ``logback_total_size_cap`` de chaque composant sur lequel appliquer la modification de paramétrage.
+Éditer le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans le bloc ``logback_total_size_cap`` de chaque composant sur lequel appliquer la modification de paramétrage.
 Pour chaque **APPENDER**, la valeur associée doit être exprimée en taille et unité (exemple : 14GB ; représente 14 gigabytes).
 
 .. note :: des *appenders* supplémentaires existent pour le composant storage-engine (appender offersync) et offer (offer_tape et offer_tape_backup).
@@ -65,14 +60,14 @@ Cas des accesslog
 
 Il est également possible d'appliquer un paramétrage différent par composant VITAM sur le logback *access*.
 
-Éditer le fichier ``environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
+Éditer le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
 
 Paramétrage de l'antivirus (ingest-external)
 ============================================
 
 L'antivirus utilisé par ingest-external est modifiable (par défaut, ClamAV) ; pour cela :
 
-* Éditer la variable ``vitam.ingestexternal.antivirus`` dans le fichier ``environments/group_vars/all/vitam_vars.yml`` pour indiquer le nom de l'antivirus à utiliser.
+* Éditer la variable ``vitam.ingestexternal.antivirus`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` pour indiquer le nom de l'antivirus à utiliser.
 * Créer un script shell (dont l'extension doit être ``.sh``) sous ``environments/antivirus/`` (norme : scan-<vitam.ingestexternal.antivirus>.sh) ; prendre comme modèle le fichier ``scan-clamav.sh``. Ce script shell doit respecter le contrat suivant :
 
     * Argument : chemin absolu du fichier à analyser
@@ -181,11 +176,11 @@ Par défaut tous les services référentiels de Vitam fonctionnent en mode maît
 Paramétrage du batch de calcul pour l'indexation des règles héritées
 ====================================================================
 
-La paramétrage du batch de calcul pour l'indexation des règles héritées peut être réalisé dans le fichier ``/group_vars/all/vitam_vars.yml``.
+La paramétrage du batch de calcul pour l'indexation des règles héritées peut être réalisé dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``.
 
 La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la fréquence de passage du batch :
 
-.. code:: json
+.. code-block:: yaml
 
     vitam_timers:
         metadata:
@@ -194,7 +189,7 @@ La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la fréq
 
 La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la liste des tenants sur lequels s'exécute le batch :
 
-.. code:: json
+.. code-block:: yaml
 
     vitam:
       worker:
@@ -210,7 +205,9 @@ Afin de se prémunir contre une alimentation du référentiel des règles de ges
 
 Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``vitam_tenant_rule_duration`` dans le fichier ansible ``deployment/environments/group_vars/all/vitam_vars.yml``.
 
-Exemple::
+Exemple:
+
+.. code-block:: yaml
 
   vitam_tenant_rule_duration:
     - name: 2 # applied tenant
@@ -218,9 +215,9 @@ Exemple::
         - AppraisalRule : "1 year" # rule name : rule value
     - name: 3
       rules:
-        AppraisaleRule : "5 year" # rule name : rule value
-        StorageRule : "5 year" # rule name : rule value
-        ReuseRule : "2 year" # rule name : rule value
+        AppraisaleRule : "5 year"
+        StorageRule : "5 year"
+        ReuseRule : "2 year"
 
 
 Par `tenant`, les directives possibles sont :
@@ -234,7 +231,7 @@ Par `tenant`, les directives possibles sont :
 
 Les valeurs associées sont une durée au format <nombre> <unité en anglais, au singulier>
 
-Exemples::
+Exemples:
 
    6 month
    1 year
@@ -249,7 +246,7 @@ Fichiers complémentaires
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées dans les fichiers suivants :
 
-* |repertoire_inventory| ``/group_vars/all/vitam_vars.yml``, comme suit :
+* ``deployment/environments/group_vars/all/vitam_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vitam_vars.yml
      :language: yaml
@@ -259,7 +256,7 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 .. warning:: Selon les informations apportées par le métier, redéfinir les valeurs associées dans les directives ``classificationList`` et ``classificationLevelOptional``. Cela permet de définir quels niveaux de protection du secret de la défense nationale, supporte l'instance. Attention : une instance de niveau supérieur doit toujours supporter les niveaux inférieurs.
 
-* |repertoire_inventory| ``/group_vars/all/cots_vars.yml``, comme suit :
+* ``deployment/environments/group_vars/all/cots_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
      :language: yaml
@@ -269,7 +266,7 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 .. note:: Concernant Curator, en environnement de production, il est recommandé de procéder à la fermeture des index au bout d'une semaine pour les index de type "logstash" (3 jours pour les index "metrics"), qui sont le reflet des traces applicatives des composants de la solution logicielle :term:`VITAM`. Il est alors recommandé de lancer le *delete* de ces index au bout de la durée minimale de rétention : 1 an (il n'y a pas de durée de rétention minimale légale sur les index "metrics", qui ont plus une vocation technique et, éventuellement, d'investigations).
 
-* |repertoire_inventory|``/group_vars/all/jvm_vars.yml``, comme suit :
+* ``deployment/environments/group_vars/all/jvm_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/jvm_opts.yml
      :language: yaml
@@ -291,7 +288,9 @@ Un paramètre a été ajouté aux définitions de stratégie.
 Une offre froide "offer-tape" doit être configurée en lecture asynchrone.
 La valeur par défaut pour `asyncRead` est False.
 
-Exemple::
+Exemple:
+
+.. code-block:: yaml
 
         vitam_strategy:
           - name: offer-tape-1
@@ -300,6 +299,7 @@ Exemple::
           - name: offer-fs-2
             referent: true
             asyncRead: false
+
 
 * Périphériques liés à l'usage des bandes magnétiques
 
@@ -325,28 +325,31 @@ Exemple::
 
         Une offre froide (OF) doit être définie dans la rubrique "vitam_offers" avec un provider de type *tape-library*
 
-Exemple::
+Exemple:
+
+.. code-block:: yaml
 
         vitam_offers:
           offer-tape-1:
             provider: tape-library
             tapeLibraryConfiguration:
-
+..
 
 La description "tapeLibraryConfiguration" débute par la définition des répertoires de stockage ainsi que le paramétrage des `tars`.
+* **inputFileStorageFolder** Répertoire où seront stockés les objets à intégrer à l'OF
+* **inputTarStorageFolder** Répertoire où seront générés et stockés les `tars` avant transfert sur bandes
+* **outputTarStorageFolder** Répertoire où seront rapatriés les `tars` depuis les bandes.
+* **MaxTarEntrySize** Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
+* **maxTarFileSize** Taile maximale des `tars` à constituer, en octets.
+* **forceOverrideNonEmptyCartridge** Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*
+* **useSudo** Réservé à un usage futur – laisser à *false*.
 
-        **inputFileStorageFolder** Répertoire où seront stockés les objets à intégrer à l'OF
-        **inputTarStorageFolder** Répertoire où seront générés et stockés les `tars` avant transfert sur bandes
-        **outputTarStorageFolder** Répertoire où seront rapatriés les `tars` depuis les bandes.
-        **MaxTarEntrySize** Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
-        **maxTarFileSize** Taile maximale des `tars` à constituer, en octets.
-        **forceOverrideNonEmptyCartridge** Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*
-        **useSudo** Réservé à un usage futur – laisser à *false*.
-
-        .. note:: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
+.. note:: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
 
 
-Exemple::
+Exemple:
+
+.. code-block:: yaml
 
         inputFileStorageFolder: "/vitam/data/offer/offer/inputFiles"
         inputTarStorageFolder: "/vitam/data/offer/offer/inputTars"
@@ -355,13 +358,16 @@ Exemple::
         maxTarFileSize: 10000000000
         ForceOverrideNonEmptyCartridge: False
         useSudo: false
+..
 
 Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des *buckets*, qu'on peut voir comme un ensemble logique de bandes, et de les associer à un ou plusieurs tenants.
 
-        **tenants** tableau de 1 à n identifiants de tenants au format [1,...,n]
-        **tarBufferingTimeoutInMinutes** Valeur en minutes durant laquelle un tar peut rester ouvert
+* **tenants** tableau de 1 à n identifiants de tenants au format [1,...,n]
+* **tarBufferingTimeoutInMinutes** Valeur en minutes durant laquelle un tar peut rester ouvert
 
-Exemple::
+Exemple:
+
+.. code-block:: yaml
 
         topology:
           buckets:
@@ -374,23 +380,26 @@ Exemple::
             prod:
               tenants: [2,3,4,5,6,7,8,9]
               tarBufferingTimeoutInMinutes: 60
-
+..
 
 Enfin, la définition des équipements robotiques proprement dite doit être réalisée dans le paragraphe "tapeLibraries".
 
-        **robots:** Définition du bras robotique de la librairie.
-        **device:** Chemin du fichier de périphérique scsi générique associé au bras.
-        **mtxPath:** Chemin vers la commande Linux de manipulation du bras.
-        **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
-        **drives:** Définition du/ou des lecteurs de cartouches de la librairie.
-        **index:** Numéro de lecteur, valeur débutant à 0
-        **device:** Chemin du fichier de périphérique scsi SANS REMBOBINAGE associé au lecteur.
-        **mtPath:** Chemin vers la commande Linux de manipulation des lecteurs.
-        **ddPath:** Chemin vers la commande Linux de copie de bloc de données.
-        **tarPath:** Chemin vers la commande Linux de création d'archives tar.
-        **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
+* **robots:** Définition du bras robotique de la librairie.
+*   **device:** Chemin du fichier de périphérique scsi générique associé au bras.
+*   **mtxPath:** Chemin vers la commande Linux de manipulation du bras.
+*   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
 
-Exemple::
+* **drives:** Définition du/ou des lecteurs de cartouches de la librairie.
+*   **index:** Numéro de lecteur, valeur débutant à 0
+*   **device:** Chemin du fichier de périphérique scsi SANS REMBOBINAGE associé au lecteur.
+*   **mtPath:** Chemin vers la commande Linux de manipulation des lecteurs.
+*   **ddPath:** Chemin vers la commande Linux de copie de bloc de données.
+*   **tarPath:** Chemin vers la commande Linux de création d'archives tar.
+*   **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
+
+Exemple:
+
+.. code-block:: yaml
 
         tapeLibraries:
           TAPE_LIB_1:
@@ -428,7 +437,7 @@ Exemple::
                 ddPath: "/bin/dd"
                 tarPath: "/bin/tar"
                 timeoutInMilliseconds: 3600000
-
+..
 
 Sécurisation SELinux
 ====================
@@ -471,7 +480,7 @@ Installation de la stack prometheus
 Prometheus server et alertmanager sont des addons dans la solution :term:`VITAM`. Il possible de les installer ou désinstaller via la configuration dans le fichier ``cots_var.yml``.
 Voici à quoi correspond une configuration qui permettra d'installer toute la stack prometheus.
 
-.. code-block:: text
+.. code-block:: yaml
 
     prometheus:
         metrics_path: /admin/v1/metrics
@@ -501,19 +510,18 @@ Veuillez vous référer à la documentation d'exploitation pour plus d'informati
 
 * Installer prometheus et alertmanager
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        ansible-playbook ansible-vitam-extra/prometheus.yml -i environments/hosts.<environnement> --ask-vault-pass
-
-    ..
+    ansible-playbook ansible-vitam-extra/prometheus.yml -i environments/hosts.<environnement> --ask-vault-pass
+..
 
 * Générer le fichier de conf ``prometheus.yml`` dans le dossier ``prometheus_config_file_target_directory``
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        ansible-playbook ansible-vitam-extra/prometheus.yml -i environments/hosts.<environnement> --ask-vault-pass
- --tags gen_prometheus_config
-    ..
+    ansible-playbook ansible-vitam-extra/prometheus.yml -i environments/hosts.<environnement> --ask-vault-pass
+--tags gen_prometheus_config
+..
 
 
 Installation de grafana
@@ -524,7 +532,7 @@ Installation de grafana
 Grafana server est un addon dans la solution :term:`VITAM`. Il possible de l'installer/désinstaller via la configuration dans le fichier ``cots_var.yml``.
 Voici à quoi correspond une configuration qui permettra d'installer ce serveur.
 
-.. code-block:: text
+.. code-block:: yaml
 
     grafana:
         enabled: true
@@ -543,11 +551,10 @@ Veuillez vous référer à la documentation d'exploitation pour plus d'informati
 
 * Installer Grafana
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        ansible-playbook ansible-vitam-extra/grafana.yml -i environments/hosts.<environnement> --ask-vault-pass
-
-    ..
+    ansible-playbook ansible-vitam-extra/grafana.yml -i environments/hosts.<environnement> --ask-vault-pass
+..
 
 Configuration
 -------------
@@ -556,15 +563,14 @@ Dans le cas ou le serveur grafana est dernière un serveur proxy, vous devez app
 
 Voici les variables modifiées par la solution :term:`VITAM` pour que ça marche derrière le proxy apache.
 
-    .. code-block:: text
+.. code-block:: text
 
-        [server]
-        root_url = http://{{ ip_admin }}:{{grafana.http_port}}/grafana
-        serve_from_sub_path = true
+    [server]
+    root_url = http://{{ ip_admin }}:{{grafana.http_port}}/grafana
+    serve_from_sub_path = true
 
-        [auth.basic]
-        enabled = false
-
-    ..
+    [auth.basic]
+    enabled = false
+..
 
 .. warning:: Lors de la première connexion, vous devrez changer le mot de passe par défaut (login: admin; password: admin) et configurer le datasource et créer/importer les dashboards manuellement.
