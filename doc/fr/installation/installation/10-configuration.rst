@@ -1,6 +1,6 @@
-.. |repertoire_deploiement| replace:: ``deployment``
-.. |repertoire_inventory| replace:: ``environments``
-.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
+.. |repertoire_deploiement| replace:: ``deployment/``
+.. |repertoire_inventory| replace:: ``environments/``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam/``
 
 Configuration du déploiement
 ############################
@@ -11,7 +11,7 @@ Configuration du déploiement
 Fichiers de déploiement
 =======================
 
-Les fichiers de déploiement sont disponibles dans la version :term:`VITAM` livrée, dans le sous-répertoire |repertoire_deploiement| . Concernant l'installation, ils se déclinent en 2 parties :
+Les fichiers de déploiement sont disponibles dans la version :term:`VITAM` livrée, dans le sous-répertoire |repertoire_deploiement|. Concernant l'installation, ils se déclinent en 2 parties :
 
  * les playbooks ansible de déploiement, présents dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer ; ces fichiers ne sont normalement pas à modifier pour réaliser une installation.
  * l'arborescence d'inventaire ; des fichiers d'exemples sont disponibles dans le sous-répertoire |repertoire_inventory|. Cette arborescence est valable pour le déploiement d'un environnement, et doit être dupliquée lors de l'installation d'environnements ultérieurs. Les fichiers contenus dans cette arborescence doivent être adaptés avant le déploiement, comme expliqué dans les paragraphes suivants.
@@ -25,7 +25,7 @@ Informations `plate-forme`
 Inventaire
 -----------
 
-Pour configurer le déploiement, il est nécessaire de créer, dans le répertoire |repertoire_inventory|, un nouveau fichier d'inventaire (par la suite, ce fichier sera communément appelé  ``hosts.<environnement>``). Ce fichier devra se conformer à la structure présente dans le fichier ``hosts.example`` (et notamment respecter scrupuleusement l'arborescence des groupes `ansible`). Les commentaires dans ce fichier fournissent les explications permettant l'adaptation à l'environnement cible :
+Pour configurer le déploiement, il est nécessaire de créer, dans le répertoire |repertoire_inventory|, un nouveau fichier d'inventaire (par la suite, ce fichier sera communément appelé ``hosts.<environnement>``). Ce fichier devra se conformer à la structure présente dans le fichier ``hosts.example`` (et notamment respecter scrupuleusement l'arborescence des groupes `ansible`). Les commentaires dans ce fichier fournissent les explications permettant l'adaptation à l'environnement cible :
 
 .. literalinclude:: ../../../../deployment/environments/hosts.example
    :language: ini
@@ -50,7 +50,7 @@ Pour chaque type de `host`, indiquer le(s) serveur(s) défini(s), pour chaque fo
 Fichier ``vitam_security.yml``
 -------------------------------
 
-La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/vitam_security.yml``, comme suit :
+La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory|``group_vars/all/vitam_security.yml``, comme suit :
 
 .. literalinclude:: ../../../../deployment/environments/group_vars/all/vitam_security.yml
      :language: yaml
@@ -65,7 +65,7 @@ Fichier ``offers_opts.yml``
 
 .. hint:: Fichier à créer depuis ``offers_opts.yml.example`` et à paramétrer selon le besoin.
 
-La déclaration de configuration des offres de stockage associées se fait dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
+La déclaration de configuration des offres de stockage associées se fait dans le fichier |repertoire_inventory|``group_vars/all/offers_opts.yml`` :
 
  .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml.example
      :language: yaml
@@ -82,22 +82,22 @@ Se référer aux commentaires dans le fichier pour le renseigner correctement.
 Fichier ``cots_vars.yml``
 ----------------------------
 
-La configuration s'effectue dans le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
+La configuration s'effectue dans le fichier |repertoire_inventory|``group_vars/all/cots_vars.yml`` :
 
  .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
      :language: yaml
      :linenos:
 
-Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, il est possible de choisir entre ``syslog-ng`` et ``rsyslog``. Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par défaut est ``rsyslog``.
+Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, il est possible de choisir entre ``syslog-ng`` et ``rsyslog``. Il faut alors modifier la valeur de la directive ``syslog.name``; la valeur par défaut est ``rsyslog``.
 
-.. note:: si vous  décommentez et renseignez les valeurs dans le bloc ``external_siem``, les messages seront envoyés (par ``syslog`` ou ``syslog-ng``, selon votre choix de déploiement) dans un :term:`SIEM` externe à la solution logicielle :term:`VITAM`, aux valeurs indiquées dans le bloc ; il n'est alors pas nécessaire de renseigner de partitions pour les groupes ansible ``[hosts_logstash]`` et ``[hosts_elasticsearch_log]``.
+.. note:: si vous décommentez et renseignez les valeurs dans le bloc ``external_siem``, les messages seront envoyés (par ``syslog`` ou ``syslog-ng``, selon votre choix de déploiement) dans un :term:`SIEM` externe à la solution logicielle :term:`VITAM`, aux valeurs indiquées dans le bloc ; il n'est alors pas nécessaire de renseigner de partitions pour les groupes ansible ``[hosts_logstash]`` et ``[hosts_elasticsearch_log]``.
 
 Fichier ``tenants_vars.yml``
 ----------------------------
 
 .. hint:: Fichier à créer depuis ``tenants_vars.yml.example`` et à paramétrer selon le besoin.
 
-Le fichier |repertoire_inventory| ``/group_vars/all/tenants_vars.yml`` permet de gérer les configurations spécifiques associés aux tenants de la plateforme (liste des tenants, regroupement de tenants, configuration du nombre de shards et replicas, etc...).
+Le fichier |repertoire_inventory|``group_vars/all/tenants_vars.yml`` permet de gérer les configurations spécifiques associés aux tenants de la plateforme (liste des tenants, regroupement de tenants, configuration du nombre de shards et replicas, etc...).
 
  .. literalinclude:: ../../../../deployment/environments/group_vars/all/tenants_vars.yml
      :language: yaml
@@ -143,7 +143,7 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 
 .. warning:: Leur contenu est donc à modifier avant tout déploiement.
 
-* Le fichier |repertoire_inventory| ``/group_vars/all/vault-vitam.yml`` contient les secrets généraux :
+* Le fichier |repertoire_inventory|``group_vars/all/vault-vitam.yml`` contient les secrets généraux :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.yml.example
      :language: ini
@@ -151,39 +151,39 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 
 .. caution:: Seuls les caractères alphanumériques sont valides pour les directives ``passphrase``.
 
-.. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l':term:`IHM` démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de  choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
+.. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l':term:`IHM` démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
 
 .. note:: Dans le cadre d'une installation avec au moins une offre `swift`, il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et le mot de passe de connexion `swift` associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre swift `offer-swift-1`.
 
 .. note:: Dans le cadre d'une installation avec au moins une offre `s3`, il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et l'access key secret `s3` associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre s3 `offer-s3-1`.
 
-* Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
+* Le fichier |repertoire_inventory|``group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.yml.example
      :language: ini
      :linenos:
 
-.. warning:: il convient de sécuriser votre environnement en définissant des mots de passe `forts`.
+.. warning:: Il convient de sécuriser votre environnement en définissant des mots de passe forts.
 
 Cas des extras
 --------------
 
-* Le fichier |repertoire_inventory| ``/group_vars/all/vault-extra.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
+* Le fichier |repertoire_inventory|``group_vars/all/vault-extra.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.yml.example
      :language: ini
      :linenos:
 
-.. note:: Il est possible, depuis le fichier ``cots_var.yml``  d'activer ou désactiver l'installation de la stack prometheus et grafana. La co-localisation de la stack prometheus et grafa est fortement recommandable.
+.. note:: Il est possible, depuis le fichier ``cots_var.yml`` d'activer ou désactiver l'installation de la stack prometheus et grafana. La co-localisation de la stack prometheus et grafana est fortement recommandable.
 
 
-.. note:: le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
+.. note:: Le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
 
 
 Commande ansible-vault
 -----------------------
 
-Certains fichiers présents sous |repertoire_inventory|/group_vars/all commençant par **vault-** doivent être protégés (encryptés) avec l'utilitaire ``ansible-vault``.
+Certains fichiers présents sous |repertoire_inventory|``group_vars/all`` commençant par **vault-** doivent être protégés (encryptés) avec l'utilitaire ``ansible-vault``.
 
 .. note:: Ne pas oublier de mettre en conformité le fichier ``vault_pass.txt``
 
@@ -196,7 +196,6 @@ Exemple du fichier ``vault-cots.example`` ::
    ansible-vault encrypt vault-cots.yml
 
 
-
 Ré-encoder un fichier *vaulté*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -205,10 +204,10 @@ Exemple du fichier ``vault-cots.yml`` ::
    ansible-vault rekey vault-cots.yml
 
 
-Le mapping ELasticsearch pour Unit et ObjectGroup
+Le mapping ElasticSearch pour Unit et ObjectGroup
 =================================================
 
-Les mappings des index elasticsearch pour les collections masterdata Unit et ObjectGroup sont configurables de l'extérieur, plus spécifiquement dans le dossier |repertoire_inventory| ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/``, ce dossier contient:
+Les mappings des indexes elasticsearch pour les collections masterdata Unit et ObjectGroup sont configurables de l'extérieur, plus spécifiquement dans le dossier |repertoire_inventory|``deployment/ansible-vitam/roles/elasticsearch-mapping/files/``, ce dossier contient:
 
 * ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/unit-es-mapping.json``
 * ``deployment/ansible-vitam/roles/elasticsearch-mapping/files/og-es-mapping.json``
@@ -219,9 +218,9 @@ Exemple du fichier mapping de la collection ObjectGroup :
      :language: json
      :linenos:
 
-.. note:: Le paramétrage de ce mapping se fait sur les deux composants ``Metadata`` et le composant extra``Ihm Recette``.
+.. note:: Le paramétrage de ce mapping se fait sur les deux composants ``metadata`` et le composant extra``ihm-recette``.
 
 .. caution::
-    En cas de changement du mapping, il faut vailler à ce que cette mise à jour soit en accord avec l'Ontologie de :term:`VITAM`.
+    En cas de changement du mapping, il faut veiller à ce que cette mise à jour soit en accord avec l'Ontologie de :term:`VITAM`.
 
-    Le mapping est pris en compte lors de la première création des indexes. Pour une nouvelle installation de :term:`VITAM`,  les mapping seront automatiquement pris en compte. Cependant, la modification des mapping nécessite une réindexation via l'API dédiée si VITAM est déjà installé.
+    Le mapping est pris en compte lors de la première création des indexes. Pour une nouvelle installation de :term:`VITAM`, les mapping seront automatiquement pris en compte. Cependant, la modification des mappings nécessite une réindexation via l'API dédiée si VITAM est déjà installé.

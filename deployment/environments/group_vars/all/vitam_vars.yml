@@ -164,8 +164,7 @@ vitam_timers:
 #          Example: consul_domain=vitam means you will have to generate some certificates with .service.vitam domain
 #                   access-external.service.vitam, ingest-external.service.vitam, ...
 consul_domain: consul
-consul_component: consul
-consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_component }}"
+consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/consul"
 
 # Workspace should be useless but storage have a dependency to it...
 # elastic-kibana-interceptor is present as kibana is present, if kibana-data & interceptor are not needed in the secondary site, just do not add them in the hosts file

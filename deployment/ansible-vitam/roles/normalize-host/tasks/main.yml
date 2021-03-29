@@ -14,7 +14,7 @@
     msg: "Whoops! VITAM parent dir should not be a symlink !"
   when: root_dir.stat.islnk is defined and root_dir.stat.islnk == "true"
 
-- name: Ensure parent dir is OK ith correct permissions
+- name: Ensure parent dir is OK with correct permissions
   file:
     path: "{{ vitam_defaults.folder.root_path }}"
     state: directory

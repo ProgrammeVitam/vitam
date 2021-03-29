@@ -27,7 +27,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   delegate_to: "{{ item[1] }}"
   run_once: true
-  with_nested: 
+  with_nested:
     - "{{ context_check_json.results }}" # item[0]
     - "{{ groups['hosts_mongos_data'] | first }}" # item[1]
 
@@ -36,7 +36,8 @@
   shell: "mongo {{ hostvars[groups['hosts_mongos_data'][0]]['ip_service'] }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb['mongo-data'].admin.user }} -p {{ mongodb['mongo-data'].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/tmp/mongos/delete_certificates_{{ item.Identifier }}.js"
   delegate_to: "{{ groups['hosts_mongos_data'] | first }}"
   run_once: true
-  with_items: 
+  no_log: "{{ hide_passwords_during_deploy }}"
+  with_items:
     - "{{ context_check_json.results }}"
 
 - name: remove temporary script to delete certificates associated to contexts (that are related to {{ admin_security_profile }} security profile)
