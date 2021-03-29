@@ -1,4 +1,6 @@
 ---
+# Doc: http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/30-installation.html#mise-en-place-des-repositories-vitam-optionnel
+
 - hosts: vitam
   roles:
     - bootstrap_repo

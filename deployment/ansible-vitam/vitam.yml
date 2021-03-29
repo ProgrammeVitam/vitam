@@ -19,12 +19,12 @@
 #  13. IHM Demo
 
 ### CONFIRM PLAYBOOK LAUNCH ###
-- hosts: all
+- hosts: localhost
   any_errors_fatal: yes
   gather_facts: no
   vars_prompt:
     name: "confirmation"
-    prompt: "Are you sure you want to run this playbook? Answer with 'YES'"
+    prompt: "Are you sure you want to run this playbook ?\nAnswer with 'YES'"
     default: "NO"
     private: no
   tasks:
