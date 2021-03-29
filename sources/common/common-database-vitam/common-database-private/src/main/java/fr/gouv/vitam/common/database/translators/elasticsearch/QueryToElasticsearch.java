@@ -79,6 +79,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static java.lang.Math.min;
+
 /**
  * Elasticsearch Translator
  */
@@ -1050,7 +1052,9 @@ public class QueryToElasticsearch {
         TermsAggregationBuilder termsBuilder = AggregationBuilders.terms(facet.getName());
         termsBuilder.field(fieldName);
         if (terms.has(FACETARGS.SIZE.exactToken())) {
-            termsBuilder.size(terms.get(FACETARGS.SIZE.exactToken()).asInt());
+            int size = terms.get(FACETARGS.SIZE.exactToken()).asInt();
+            termsBuilder.size(size);
+            termsBuilder.shardSize((int) min(Integer.MAX_VALUE, ((long)  size * 3 + 10))); // This is used to get accurate results
         }
 
         if (terms.get(FACETARGS.SUBOBJECT.exactToken()) != null) {
