@@ -1,4 +1,4 @@
-.. _releases_updates: 
+.. _releases_updates:
 
 Montées de version mineure
 ##########################
@@ -15,3 +15,4 @@ Montées de version mineure
    r12_update.rst
    r13_update.rst
    r15_updates.rst
+   r16_update.rst

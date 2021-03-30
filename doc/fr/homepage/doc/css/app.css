@@ -1044,7 +1044,27 @@ label{
     width: 49.5%;
 }
 
+#vitamui {
+    float: right;
+    width: 49.5%;
+}
+
 #vademecum {
+    float: left;
+    width: 49.5%;
+}
+
+#technique {
+    float: right;
+    width: 49.5%;
+}
+
+#tests {
+    float: right;
+    width: 49.5%;
+}
+
+#developpeur {
     float: right;
     width: 49.5%;
 }
