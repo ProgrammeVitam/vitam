@@ -12,7 +12,7 @@
         ]
     }
     {% if other_strategies is defined %}
-    {% for strategy_name, strategy_offers in other_strategies.iteritems() %}
+    {% for strategy_name, strategy_offers in other_strategies.items() %}
     ,
     {
         "id" : "{{ strategy_name }}",
