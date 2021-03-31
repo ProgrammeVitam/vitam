@@ -73,6 +73,22 @@
   notify:
     - restart kibana
 
+- name: Disable data usage collection (telemetry)
+  lineinfile:
+    path: "/etc/kibana/kibana.yml"
+    insertafter: EOF
+    line: "telemetry.enabled: false"
+  notify:
+    - restart kibana
+
+- name: Disable News Feed
+  lineinfile:
+    path: "/etc/kibana/kibana.yml"
+    insertafter: EOF
+    line: "newsfeed.enabled: false"
+  notify:
+    - restart kibana
+
 - name: Ensure Kibana log dir is OK
   file:
     path: "{{ vitam_defaults.folder.root_path }}/log/kibana/"
