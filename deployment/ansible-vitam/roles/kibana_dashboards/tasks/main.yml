@@ -20,7 +20,7 @@
     method: GET
     #status_code: 200,302
   register: kibana_result
-  until: kibana_result.status == 200 
+  until: kibana_result.status == 200
   retries: "{{ composant.api_call_timeout }}"
   delay: 1
   tags: load_kibana
@@ -125,23 +125,6 @@
     body_format: json
     timeout: "{{ composant.api_call_timeout }}"
     status_code: 200, 201
-  register: kibana_result
-  until: kibana_result.status in [200,201]
-  retries: "{{ kibana.import_retries }}"
-  delay: "{{ kibana.import_delay }}"
-
-- name: disable optIn popup message
-  run_once: true
-  tags: load_kibana
-  uri:
-    url: "http://{{ ip_admin }}:{{ composant.port }}/api/kibana/settings"
-    method: POST
-    body: "{\"changes\":{\"telemetry:optIn\": \"false\"}}"
-    body_format: json
-    status_code: 200, 201
-    headers:
-      kbn-xsrf: "{{ kibana.header_value }}"
-    timeout: "{{ composant.api_call_timeout }}"
   register: kibana_result
   until: kibana_result.status in [200,201]
   retries: "{{ kibana.import_retries }}"
