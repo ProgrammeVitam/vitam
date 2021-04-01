@@ -77,6 +77,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.regex;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -135,7 +136,7 @@ public class SelectParserMultipleTest {
             "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
             "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
-            "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
+            "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], $track_total_hits: true, " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }," +
             "$facets : [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1, $order: 'ASC'}}," +
@@ -582,6 +583,29 @@ public class SelectParserMultipleTest {
         final String ex = "{}";
         request.parseQueryOnly(ex);
         assertNotNull(request);
+    }
+
+    @Test
+    public void testParseQueryWithTrackTotalHits() throws InvalidParseOperationException {
+
+        SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+        selectMultiQuery.trackTotalHits(true);
+
+        final SelectParserMultiple request = new SelectParserMultiple();
+        request.parse(selectMultiQuery.getFinalSelect());
+
+        assertThat(request.trackTotalHits()).isTrue();
+    }
+
+    @Test
+    public void testParseQueryWithoutTrackTotalHits() throws InvalidParseOperationException {
+
+        SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+
+        final SelectParserMultiple request = new SelectParserMultiple();
+        request.parse(selectMultiQuery.getFinalSelect());
+
+        assertThat(request.trackTotalHits()).isFalse();
     }
 
     @Test
