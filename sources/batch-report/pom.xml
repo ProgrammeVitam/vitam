@@ -6,7 +6,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>fr.gouv.vitam</groupId>
-        <version>4.3.0-SNAPSHOT</version>
+        <version>4.3.0</version>
     </parent>
 
     <artifactId>batch-report</artifactId>
