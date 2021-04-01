@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -37,6 +39,8 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
+
+import static fr.gouv.vitam.worker.core.plugin.CommonReportService.WORKSPACE_REPORT_URI;
 
 
 /**
@@ -65,7 +69,18 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
         try {
             String containerName = param.getContainerName();
-            evidenceAuditReportService.storeReportToOffers(containerName);
+            if (handlerIO.isExistingFileInWorkspace(WORKSPACE_REPORT_URI)) {
+                evidenceAuditReportService.storeReportToOffers(containerName);
+            } else {
+                LOGGER.warn("No report generated");
+
+                ObjectNode eventDetails = JsonHandler.createObjectNode();
+                eventDetails.put("error", "No report generated");
+
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(eventDetails));
+                itemStatus.increment(StatusCode.WARNING);
+            }
+
             evidenceAuditReportService.cleanupReport(containerName);
 
             itemStatus.increment(StatusCode.OK);
