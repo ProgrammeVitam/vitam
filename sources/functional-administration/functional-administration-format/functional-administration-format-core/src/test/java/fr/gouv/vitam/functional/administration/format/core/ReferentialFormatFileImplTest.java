@@ -198,6 +198,8 @@ public class ReferentialFormatFileImplTest {
 
         // Given / When
         FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
+        final FileFormat fileFormatBefore = formatFile.findDocumentById("x-fmt/2");
+
         FormatImportReport report2 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V2);
 
         // Then
@@ -222,6 +224,15 @@ public class ReferentialFormatFileImplTest {
         assertThat(report2.getRemovedPuids()).isEmpty();
         assertThat(report2.getUpdatedPuids()).containsOnlyKeys("x-fmt/1", "x-fmt/2");
         assertThat(report2.getAddedPuids()).containsExactlyInAnyOrder("x-fmt/4", "x-fmt/5", "x-fmt/6");
+
+        assertThat(fileFormatBefore.getVersion()).isEqualTo(0);
+        assertThat(fileFormatBefore.getString(FileFormat.NAME)).isEqualTo("Microsoft Word for Macintosh Document V1");
+        assertThat(fileFormatBefore.getString(FileFormat.VERSION_PRONOM)).isEqualTo("1");
+
+        final FileFormat fileFormatAfter = formatFile.findDocumentById("x-fmt/2");
+        assertThat(fileFormatAfter.getVersion()).isEqualTo(1);
+        assertThat(fileFormatAfter.getString(FileFormat.NAME)).isEqualTo("Microsoft Word for Macintosh Document V2");
+        assertThat(fileFormatAfter.getString(FileFormat.VERSION_PRONOM)).isEqualTo("2");
     }
 
     @Test
@@ -230,6 +241,8 @@ public class ReferentialFormatFileImplTest {
 
         // Given / When
         FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V2);
+        final FileFormat fileFormatBefore = formatFile.findDocumentById("x-fmt/2");
+
         FormatImportReport report2 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
 
         // Then
@@ -255,6 +268,15 @@ public class ReferentialFormatFileImplTest {
         assertThat(report2.getRemovedPuids()).containsExactlyInAnyOrder("x-fmt/4", "x-fmt/5", "x-fmt/6");
         assertThat(report2.getUpdatedPuids()).containsOnlyKeys("x-fmt/1", "x-fmt/2");
         assertThat(report2.getAddedPuids()).isEmpty();
+
+        assertThat(fileFormatBefore.getVersion()).isEqualTo(0);
+        assertThat(fileFormatBefore.getString(FileFormat.NAME)).isEqualTo("Microsoft Word for Macintosh Document V2");
+        assertThat(fileFormatBefore.getString(FileFormat.VERSION_PRONOM)).isEqualTo("2");
+
+        final FileFormat fileFormatAfter = formatFile.findDocumentById("x-fmt/2");
+        assertThat(fileFormatAfter.getVersion()).isEqualTo(1);
+        assertThat(fileFormatAfter.getString(FileFormat.NAME)).isEqualTo("Microsoft Word for Macintosh Document V1");
+        assertThat(fileFormatAfter.getString(FileFormat.VERSION_PRONOM)).isEqualTo("1");
     }
 
     @Test
@@ -263,6 +285,8 @@ public class ReferentialFormatFileImplTest {
 
         // Given / When
         FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
+        final FileFormat fileFormatBefore = formatFile.findDocumentById("x-fmt/2");
+
         FormatImportReport report2 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
 
         // Then
@@ -287,6 +311,15 @@ public class ReferentialFormatFileImplTest {
         assertThat(report2.getWarnings()).hasSize(2);
         assertThat(report2.getRemovedPuids()).isEmpty();
         assertThat(report2.getAddedPuids()).isEmpty();
+
+        assertThat(fileFormatBefore.getVersion()).isEqualTo(0);
+        assertThat(fileFormatBefore.getString(FileFormat.NAME)).isEqualTo("Microsoft Word for Macintosh Document V1");
+        assertThat(fileFormatBefore.getString(FileFormat.VERSION_PRONOM)).isEqualTo("1");
+
+        final FileFormat fileFormatAfter = formatFile.findDocumentById("x-fmt/2");
+        assertThat(fileFormatAfter.getVersion()).isEqualTo(1);
+        assertThat(fileFormatAfter.getString(FileFormat.NAME)).isEqualTo("Microsoft Word for Macintosh Document V1");
+        assertThat(fileFormatAfter.getString(FileFormat.VERSION_PRONOM)).isEqualTo("1");
     }
 
     private FormatImportReport importFormatFileAndDownloadReport(String fileToTest)
