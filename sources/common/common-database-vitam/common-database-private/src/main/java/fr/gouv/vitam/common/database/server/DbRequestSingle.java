@@ -30,10 +30,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoException;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -65,7 +68,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -73,6 +75,8 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -82,16 +86,20 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getConcernedDiffLines;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getUnifiedDiff;
 
@@ -571,39 +579,85 @@ public class DbRequestSingle {
     public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,
         VitamCollection<VitamDocument<?>> vitamCollection) throws DatabaseException {
 
-        Bson documentCondition = getDocumentSelectionQuery(identifierValue, identifierKey, vitamCollection);
+        replaceDocuments(Collections.singletonMap(identifierValue, document),
+            identifierKey, vitamCollection);
+    }
 
-        VitamDocument<?> documentInDataBase = vitamCollection.getCollection().find(documentCondition)
-            .projection(Projections.include(VitamDocument.ID, VitamDocument.VERSION)).first();
-
-        ((ObjectNode) document).put(VitamDocument.ID, documentInDataBase.getId());
-        VitamDocument<?> updatedDocument = documentInDataBase.newInstance(document);
-
-        updatedDocument.put(VitamDocument.VERSION, documentInDataBase.getVersion() + 1);
-
-        Bson condition = and(
-            eq(VitamDocument.ID, documentInDataBase.getId()),
-            eq(VitamDocument.VERSION, documentInDataBase.getVersion()));
+    public void replaceDocuments(Map<String, JsonNode> documentByIdentifiers, String identifierKey,
+        VitamCollection<VitamDocument<?>> vitamCollection) throws DatabaseException {
 
         MongoCollection<VitamDocument<?>> collection = vitamCollection.getCollection();
 
-        UpdateResult updateResult = collection.replaceOne(condition, updatedDocument);
-
-        if (updateResult.getModifiedCount() == 0) {
-            throw new VitamFatalRuntimeException(
-                "Document updated or deleted concurrently? id=" + documentInDataBase.getId());
+        if (documentByIdentifiers.isEmpty()) {
+            return;
         }
 
-        insertToElasticsearch(Collections.singletonList(updatedDocument));
+        Bson documentCondition = getDocumentSelectionQuery(
+            documentByIdentifiers.keySet(), identifierKey, vitamCollection);
+
+        List<VitamDocument<?>> dbDocuments;
+        Bson projection =
+            Projections.include(Set.of(VitamDocument.ID, VitamDocument.VERSION, identifierKey).toArray(String[]::new));
+        try (MongoCursor<VitamDocument<?>> documentsInDataBase = vitamCollection.getCollection().find(documentCondition)
+            .projection(projection).cursor()) {
+            dbDocuments = IteratorUtils.toList(documentsInDataBase);
+        }
+
+        Map<String, VitamDocument<?>> dbDocumentsByIdentifiers = dbDocuments.stream()
+            .collect(Collectors.toMap(doc -> (String) doc.get(identifierKey), doc -> doc));
+
+        Set<String> missingIdentifiers =
+            SetUtils.difference(documentByIdentifiers.keySet(), dbDocumentsByIdentifiers.keySet());
+
+        if (!missingIdentifiers.isEmpty()) {
+            throw new DatabaseException(
+                "Documents not found with " + identifierKey + " in [" + missingIdentifiers + "]");
+        }
+
+        List<ReplaceOneModel<VitamDocument<?>>> replaceOneModels = new ArrayList<>();
+        List<VitamDocument<?>> updatedDocuments = new ArrayList<>();
+        for (String identifier : dbDocumentsByIdentifiers.keySet()) {
+
+            VitamDocument<?> dbDocument = dbDocumentsByIdentifiers.get(identifier);
+            JsonNode document = documentByIdentifiers.get(identifier);
+
+            ((ObjectNode) document).put(VitamDocument.ID, dbDocument.getId());
+            VitamDocument<?> updatedDocument = dbDocument.newInstance(document);
+
+            updatedDocument.put(VitamDocument.VERSION, dbDocument.getVersion() + 1);
+            updatedDocuments.add(updatedDocument);
+
+            Bson condition = and(
+                eq(VitamDocument.ID, dbDocument.getId()),
+                eq(VitamDocument.VERSION, dbDocument.getVersion()));
+            replaceOneModels.add(new ReplaceOneModel<>(condition, updatedDocument));
+        }
+
+        try {
+            BulkWriteResult bulkWriteResult = collection.bulkWrite(replaceOneModels,
+                new BulkWriteOptions().ordered(false));
+            if (bulkWriteResult.getMatchedCount() != dbDocumentsByIdentifiers.size()) {
+                throw new DatabaseException(
+                    String.format("Error while bulk update document count : %s != size : %s :",
+                        bulkWriteResult.getModifiedCount(), dbDocumentsByIdentifiers.size()));
+            }
+        } catch (MongoException e) {
+            throw new DatabaseException("Could not update documents in DB", e);
+        }
+
+        insertToElasticsearch(updatedDocuments);
     }
 
-    private Bson getDocumentSelectionQuery(String identifierValue, String identifierKey,
+    private Bson getDocumentSelectionQuery(Collection<String> identifierValues, String identifierKey,
         VitamCollection<VitamDocument<?>> vitamCollection) {
 
         if (vitamCollection.isMultiTenant()) {
-            return and(eq(identifierKey, identifierValue), eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
+            return and(
+                in(identifierKey, identifierValues),
+                eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter())
+            );
         }
 
-        return eq(identifierKey, identifierValue);
+        return in(identifierKey, identifierValues);
     }
 }

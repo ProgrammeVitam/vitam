@@ -58,7 +58,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
@@ -90,14 +89,9 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
@@ -116,7 +110,6 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private static final String BACKUP_FORMAT_EVENT = "STP_BACKUP_REFERENTIAL_FORMAT";
-    private static final int UPDATE_THREAD_POOL_SIZE = 16;
     private final MongoDbAccessAdminImpl mongoAccess;
     public static final String FILE_FORMAT_REPORT = "FILE_FORMAT_REPORT";
     private static final String VERSION = " version ";
@@ -245,46 +238,26 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
             .filter(fileFormatModel -> !report.getRemovedPuids().contains(fileFormatModel.getPuid()))
             .collect(Collectors.toList());
 
-        ExecutorService executorService =
-            Executors.newFixedThreadPool(UPDATE_THREAD_POOL_SIZE,  VitamThreadFactory.getInstance());
-
-        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-        final Integer scopedTenant = VitamThreadUtils.getVitamSession().getTenantId();
-        final String scopedRequestId = VitamThreadUtils.getVitamSession().getRequestId();
-
-        for (FileFormatModel fileFormatModel : existingFormatsToUpdate) {
-            CompletableFuture<Void> completableFuture =
-                CompletableFuture.runAsync(() -> {
-                    VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
-                    VitamThreadUtils.getVitamSession().setRequestId(scopedRequestId);
-                    updateExistingFormat(fileFormatModel);
-                }, executorService);
-            completableFutures.add(completableFuture);
-        }
-
-        try {
-            sequence(completableFutures).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new ReferentialException("An error occurred during format referential update", e);
-        }
+        updateExistingFormats(existingFormatsToUpdate);
     }
 
-    private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
-        CompletableFuture<Void> allDoneFuture =
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        return allDoneFuture
-            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
-    }
+    private void updateExistingFormats(List<FileFormatModel> fileFormatModels) throws ReferentialException {
 
-    private void updateExistingFormat(FileFormatModel fileFormatModel) {
+        Map<String, JsonNode> fileFormatModelMap = fileFormatModels.stream()
+            .collect(Collectors.toMap(FileFormatModel::getPuid,
+                fileFormatModel -> {
+                    try {
+                        return JsonHandler.toJsonNode(fileFormatModel);
+                    } catch (InvalidParseOperationException e) {
+                        throw new VitamRuntimeException(
+                            "Could not update format document with puid " + fileFormatModel.getPuid(), e);
+                    }
+                }));
         try {
-
-            mongoAccess.replaceDocument(JsonHandler.toJsonNode(fileFormatModel), fileFormatModel.getPuid(), PUID,
-                    FunctionalAdminCollections.FORMATS);
-
-        } catch (DatabaseException | InvalidParseOperationException e) {
-            throw new VitamRuntimeException(
-                "Could not update format document with puid " + fileFormatModel.getPuid(), e);
+            mongoAccess.replaceDocuments(fileFormatModelMap, PUID, FunctionalAdminCollections.FORMATS);
+        } catch (DatabaseException e) {
+            throw new ReferentialException(
+                "Could not update format documents with PUIDs " + fileFormatModelMap.keySet(), e);
         }
     }
 

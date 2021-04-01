@@ -59,6 +59,8 @@ import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFuncti
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import org.bson.Document;
 
+import java.util.Map;
+
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
@@ -265,6 +267,16 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                 indexManager.getElasticsearchIndexAliasResolver(vitamCollection).resolveIndexName(null));
 
         dbRequest.replaceDocument(document, identifierValue, identifierKey, vitamCollection.getVitamCollection());
+    }
+
+    public void replaceDocuments(Map<String, JsonNode> documentByIdentifier, String identifierKey,
+        FunctionalAdminCollections vitamCollection) throws DatabaseException {
+
+        final DbRequestSingle dbRequest =
+            new DbRequestSingle(vitamCollection.getVitamCollection(), this.ontologyLoader,
+                indexManager.getElasticsearchIndexAliasResolver(vitamCollection).resolveIndexName(null));
+
+        dbRequest.replaceDocuments(documentByIdentifier, identifierKey, vitamCollection.getVitamCollection());
     }
 
     @Override
