@@ -127,6 +127,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -174,7 +176,6 @@ public class DbRequestTest {
     private static final Integer TENANT_ID_0 = 0;
     private static final Integer TENANT_ID_1 = 1;
     private static final Integer TENANT_ID_2 = 2;
-    private final static String HOST_NAME = "127.0.0.1";
     private static final String MY_INT = "MyInt";
     private static final String CREATED_DATE = "CreatedDate";
     private static final String DESCRIPTION = "Description";
@@ -1200,42 +1201,42 @@ public class DbRequestTest {
 
         SearchResponse response = esClientWithoutVitamBehavior
                 .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb1, null, null, null, 0, 1000, null,
-                        null, null);
+                        null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
         response = esClientWithoutVitamBehavior
                 .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb2, null, null, null, 0, 1000, null,
-                        null, null);
+                        null, null, false);
         assertEquals(2, response.getHits().getTotalHits().value);
 
         response = esClientWithoutVitamBehavior
                 .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb3, null, null, null, 0, 1000, null,
-                        null, null);
+                        null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
                 .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb4, null, null, null, 0, 1000, null,
-                        null, null);
+                        null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
                 .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb5, null, null, null, 0, 1000, null,
-                        null, null);
+                        null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
                 .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb6, null, null, null, 0, 1000, null,
-                        null, null);
+                        null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
         try {
             response = esClientWithoutVitamBehavior
                     .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb7, null, null, null, 0, 1000,
                             null,
-                            null, null);
+                            null, null, false);
             fail("should throws exception as matchPhrasePrefixQuery is no allowed for numbers");
         } catch (BadRequestException e) {
             //
@@ -1245,7 +1246,7 @@ public class DbRequestTest {
             response = esClientWithoutVitamBehavior
                     .search(UNIT.getName().toLowerCase(), TENANT_ID_0, qb8, null, null, null, 0, 1000,
                             null,
-                            null, null);
+                            null, null, false);
             fail("should throws exception as matchPhrasePrefixQuery is no allowed for keyWords");
         } catch (BadRequestException e) {
             //
@@ -1523,7 +1524,7 @@ public class DbRequestTest {
                 .search(OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0, qb, null, null, null, 0,
                         GlobalDatas.LIMIT_LOAD,
                         null,
-                        null, null);
+                        null, null, false);
 
         assertTrue(response != null);
         checkElasticResponseField(response, uuid.getId());
@@ -2080,7 +2081,7 @@ public class DbRequestTest {
         final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals(UUID1,
-                resultSelectRel5.getCurrentIds().iterator().next().toString());
+            resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
 
     @Test
@@ -2970,5 +2971,36 @@ public class DbRequestTest {
                 .getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
                         JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
         assertThat(diff).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldSelectTotalHitsWhenTrackTotalHitsEnabled() throws Exception {
+
+        // Given: More than 10K documents
+        int totalDocuments = 10010;
+        List<Unit> units = IntStream.range(0, totalDocuments)
+            .mapToObj(i -> new Unit(
+                JsonHandler.createObjectNode()
+                    .put(VitamDocument.ID, GUIDFactory.newGUID().toString())
+                    .put(VitamDocument.TENANT_ID, TENANT_ID_0)
+                    .put("MyCustomField", "MyCustomValue"))
+            ).collect(Collectors.toList());
+
+        UNIT.getCollection().insertMany(units);
+        UNIT.getEsClient().insertFullDocuments(UNIT, 0, units);
+
+        // When
+        final QueryBuilder query = QueryBuilders.matchPhrasePrefixQuery("MyCustomField", "MyCustomValue");
+
+        SearchResponse responseWithoutTrackTotalSizeFlag = esClientWithoutVitamBehavior.search(UNIT.getName().toLowerCase(), TENANT_ID_0, query, null, null, null, 0, 1000, null,
+            null, null, false);
+
+        SearchResponse responseWithTrackTotalSizeFlag = esClientWithoutVitamBehavior.search(UNIT.getName().toLowerCase(), TENANT_ID_0, query, null, null, null, 0, 1000, null,
+            null, null, true);
+
+        // Then
+        assertThat(responseWithoutTrackTotalSizeFlag.getHits().getTotalHits().value).isLessThan(totalDocuments);
+        assertThat(responseWithTrackTotalSizeFlag.getHits().getTotalHits().value).isEqualTo(totalDocuments);
     }
 }

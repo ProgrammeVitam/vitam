@@ -121,7 +121,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 .search(collection.getName().toLowerCase(), null, query, filter, VitamDocument.ES_FILTER_OUT,
                     null,
                     0,
-                    GlobalDatas.LIMIT_LOAD, null, null, null);
+                    GlobalDatas.LIMIT_LOAD, null, null, null, false);
         } catch (DatabaseException e) {
             throw new ReferentialException(e);
         }

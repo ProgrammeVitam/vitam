@@ -33,8 +33,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Optional;
-
+import fr.gouv.vitam.common.json.JsonHandler;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -262,4 +262,22 @@ public class SelectMultiQueryTest {
         assertEquals(1, select.roots.size());
     }
 
+    @Test
+    public void testTrackTotalHits() {
+
+        // Given
+        SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+
+        // When
+        selectMultiQuery.trackTotalHits(true);
+        selectMultiQuery.setLimitFilter(10, 50);
+        ObjectNode finalSelect = selectMultiQuery.getFinalSelect();
+
+        // Then
+        ObjectNode expectedFilters = JsonHandler.createObjectNode()
+            .put("$offset", 10)
+            .put("$limit", 50)
+            .put("$track_total_hits", true);
+        JsonAssert.assertJsonEquals(expectedFilters, finalSelect.get("$filter"));
+    }
 }

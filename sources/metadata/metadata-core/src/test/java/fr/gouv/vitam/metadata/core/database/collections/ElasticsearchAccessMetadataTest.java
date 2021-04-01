@@ -73,7 +73,6 @@ public class ElasticsearchAccessMetadataTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
 
     private static final Integer TENANT_ID_0 = 0;
@@ -185,7 +184,7 @@ public class ElasticsearchAccessMetadataTest {
             // When
             Result result = elasticsearchAccessMetadata
                     .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
-                            10_000, null, "START", 0);
+                            10_000, null, "START", 0, false);
             // Then
             assertThat(result.getNbResult()).isEqualTo(2);
             assertThat(result.getCurrentIds().indexOf(id)).isEqualTo(1);

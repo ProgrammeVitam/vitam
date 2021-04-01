@@ -111,17 +111,18 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @throws MetaDataExecutionException
      */
     protected final Result search(final MetadataCollections collection, final Integer tenantId,
-                                  final QueryBuilder query, final List<SortBuilder> sorts, int offset, Integer limit,
-                                  final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
-            throws MetaDataExecutionException, BadRequestException {
+        final QueryBuilder query, final List<SortBuilder> sorts, int offset, Integer limit,
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        boolean trackTotalHits)
+        throws MetaDataExecutionException, BadRequestException {
 
         final SearchResponse response;
         try {
             response = super
-                    .search(collection.getName().toLowerCase(), tenantId, query, null, MetadataDocument.ES_PROJECTION,
-                            sorts,
-                            offset,
-                            limit, facets, scrollId, scrollTimeout);
+                .search(collection.getName().toLowerCase(), tenantId, query, null, MetadataDocument.ES_PROJECTION,
+                    sorts,
+                    offset,
+                    limit, facets, scrollId, scrollTimeout, trackTotalHits);
         } catch (DatabaseException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -208,7 +209,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         try {
             return super.search(collection.getName().toLowerCase(), tenantId, query, null, null,
                     Lists.newArrayList(SortBuilders.fieldSort(FieldSortBuilder.DOC_FIELD_NAME).order(SortOrder.ASC)), 0,
-                    GlobalDatas.LIMIT_LOAD, aggregations, null, null);
+                    GlobalDatas.LIMIT_LOAD, aggregations, null, null, false);
         } catch (DatabaseException | BadRequestException e) {
             throw new MetaDataExecutionException(e);
         }

@@ -385,7 +385,14 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         return FILTERARGS.UNITS;
     }
 
-
+    /**
+     * Returns whether total hits is computed (defaults to false).
+     * See ES documentation for more details on "track_total_hits"
+     */
+    public boolean trackTotalHits() {
+        final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.TRACK_TOTAL_HITS.exactToken());
+        return jsonNode != null && jsonNode.isBoolean() && jsonNode.booleanValue();
+    }
 
     /**
      * get ScrollId

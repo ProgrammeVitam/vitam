@@ -28,8 +28,10 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -94,8 +96,13 @@ public class CheckDistributionThresholdTest {
 
         // check query
         assertThat(selectMultiQuery).isNotNull();
-        // set filter.limit to 1
-        assertThat(selectMultiQuery.getFilter().toString()).isEqualTo("{\"$limit\":1}");
+        // Check Filter
+        SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
+        selectParserMultiple.parse(selectMultiQuery.getFinalSelect());
+        assertThat(selectParserMultiple.trackTotalHits()).isTrue();
+
+        JsonNode limit = selectParserMultiple.getRequest().getFilter().get(BuilderToken.SELECTFILTER.LIMIT.exactToken());
+        assertThat(limit.intValue()).isEqualTo(1);
     }
 
     @Test

@@ -150,6 +150,8 @@ public abstract class CheckDistributionThresholdBase extends ActionHandler {
         Query[] queries = multiQuery.getQueries().toArray(new Query[0]);
         selectMultiQuery.addQueries(queries);
         selectMultiQuery.setLimitFilter(0, 1);
+        // Enable trackTotalHits flag to compute total result set count
+        selectMultiQuery.trackTotalHits(true);
         selectMultiQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
         return selectMultiQuery;
     }
