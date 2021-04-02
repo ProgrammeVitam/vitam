@@ -26,9 +26,11 @@
  */
 package fr.gouv.vitam.common.database.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -51,6 +53,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -60,6 +63,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -70,9 +74,12 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
@@ -92,6 +99,7 @@ public class DbRequestSingleTest {
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
     private static final Integer TENANT_ID = 0;
+    private static final Integer ADMIN_TENANT_ID = 1;
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
@@ -99,7 +107,8 @@ public class DbRequestSingleTest {
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
         new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
-    static VitamCollection vitamCollection;
+    private static VitamCollection vitamCollection;
+    private static VitamCollection vitamCollectionCrossTenant;
     private static ElasticsearchAccess esClient;
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -108,7 +117,7 @@ public class DbRequestSingleTest {
     @BeforeClass
     public static void setUp() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
+        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         List<VitamDescriptionType> descriptions = Collections.singletonList(
             new VitamDescriptionType("Title", null, text, one, true));
         VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(descriptions);
@@ -116,6 +125,12 @@ public class DbRequestSingleTest {
         esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         vitamCollection.initialize(esClient);
         vitamCollection.initialize(mongoRule.getMongoDatabase(), true);
+
+        vitamCollectionCrossTenant =
+            VitamCollectionHelper.getCollection(CollectionSample.class, false, false, PREFIX, vitamDescriptionResolver);
+        esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        vitamCollectionCrossTenant.initialize(esClient);
+        vitamCollectionCrossTenant.initialize(mongoRule.getMongoDatabase(), true);
     }
 
     @AfterClass
@@ -219,6 +234,129 @@ public class DbRequestSingleTest {
         assertEquals(1, deleteResult.getCount());
         assertEquals(1, vitamCollection.getCollection().countDocuments());
         deleteResult.close();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReplaceMultiTenantCollectionDocuments() throws Exception {
+
+        // Given: (multi-tenant data set)
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList);
+        assertEquals(0, vitamCollection.getCollection().countDocuments());
+        DocumentValidator documentValidator = mock(DocumentValidator.class);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        dbRequestSingle.execute(new Insert().setData(JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(
+                "replaceDocumentMultiTenantCollection/inputDataSetTenant0.json"))), 0, documentValidator);
+
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT_ID);
+        dbRequestSingle.execute(new Insert().setData(JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(
+                "replaceDocumentMultiTenantCollection/inputDataSetTenant1.json"))), 0, documentValidator);
+
+        // When: Replace docs from tenant 0
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        dbRequestSingle.replaceDocuments(
+            Map.of(
+                "Identifier2", JsonHandler.createObjectNode()
+                    .put("_tenant", 0).put("Identifier", "Identifier2").put("Description", "NewDescription2"),
+                "Identifier4", JsonHandler.createObjectNode()
+                    .put("_tenant", 0).put("Identifier", "Identifier4").put("NewField", "NewFieldValue")
+            ),
+            "Identifier",
+            vitamCollection
+        );
+
+        // Then
+        // Check tenant 0 updates
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        List<JsonNode> tenant0Documents = getAllDocuments(dbRequestSingle);
+
+        final JsonNode expectedTenant0Results = JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(
+                "replaceDocumentMultiTenantCollection/expectedTenant0Results.json"));
+
+        JsonAssert.assertJsonEquals(expectedTenant0Results, JsonHandler.toJsonNode(tenant0Documents));
+
+        // Ensure tenant 1 unchanged
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT_ID);
+        List<JsonNode> tenant1Documents = getAllDocuments(dbRequestSingle);
+
+        final JsonNode expectedTenant1Results = JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(
+                "replaceDocumentMultiTenantCollection/expectedTenant1Results.json"));
+
+        JsonAssert.assertJsonEquals(expectedTenant1Results, JsonHandler.toJsonNode(tenant1Documents));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReplaceCrossTenantCollectionDocuments() throws Exception {
+
+        // Given: (multi-tenant data set)
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollectionCrossTenant, Collections::emptyList);
+        assertEquals(0, vitamCollectionCrossTenant.getCollection().countDocuments());
+        DocumentValidator documentValidator = mock(DocumentValidator.class);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        dbRequestSingle.execute(new Insert().setData(JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(
+                "replaceDocumentCrossTenantCollection/inputDataSet.json"))), 0, documentValidator);
+
+        // When
+        dbRequestSingle.replaceDocuments(
+            Map.of(
+                "Identifier2", JsonHandler.createObjectNode()
+                    .put("Identifier", "Identifier2").put("Description", "NewDescription2"),
+                "Identifier4", JsonHandler.createObjectNode()
+                    .put("Identifier", "Identifier4").put("NewField", "NewFieldValue")
+            ),
+            "Identifier",
+            vitamCollectionCrossTenant
+        );
+
+        // Then
+        List<JsonNode> updatedDocuments = getAllDocuments(dbRequestSingle);
+
+        final JsonNode expectedTenant0Results = JsonHandler.getFromInputStream(
+            PropertiesUtils.getConfigAsStream(
+                "replaceDocumentCrossTenantCollection/expectedResults.json"));
+
+        JsonAssert.assertJsonEquals(expectedTenant0Results, JsonHandler.toJsonNode(updatedDocuments));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReplaceNotFoundDocumentThenThrowDatabaseException() {
+
+        // Given
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollectionCrossTenant, Collections::emptyList);
+        assertEquals(0, vitamCollectionCrossTenant.getCollection().countDocuments());
+
+        // When / Then
+        assertThatThrownBy( () -> dbRequestSingle.replaceDocuments(
+            Map.of("No such doc", JsonHandler.createObjectNode()),
+            "Title",
+            vitamCollectionCrossTenant
+        )).isInstanceOf(DatabaseException.class);
+    }
+
+    private List<JsonNode> getAllDocuments(DbRequestSingle dbRequestSingle)
+        throws InvalidCreateOperationException, InvalidParseOperationException, DatabaseException, BadRequestException,
+        VitamDBException, SchemaValidationException {
+        final Select sortedSelectES = new Select();
+        DbRequestResult sortedSelectESResult = dbRequestSingle.execute(sortedSelectES);
+        return sortedSelectESResult.getDocuments(VitamDocument.class).stream()
+            .map(doc -> {
+                try {
+                    return JsonHandler.getFromString(BsonHelper.stringify(doc));
+                } catch (InvalidParseOperationException e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .sorted(Comparator.comparing(doc -> doc.get("Identifier").asText()))
+            .collect(Collectors.toList());
     }
 
     @Test
