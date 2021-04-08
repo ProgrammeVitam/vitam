@@ -160,7 +160,9 @@ Trois exemples :
 
 # Audit de cohérence
 
-Il est possible de définir les requêtes pour lancer un audit de cohérence sur des unités archivistiques, objets, groupe d'objets, opération(s) ou bien sur un tenant
+Il est possible de définir les requêtes pour lancer un audit de cohérence à partir d'une requête DSL.
+
+**Remarque :** L'audit de cohérence est un workflow lourd qui doit être lancé sur un volume modéré d'unités archivistiques (**100K maximum**).
 
 Deux exemples de requête :
 
@@ -211,18 +213,5 @@ Deux exemples de requête :
   ],
   "$filter": {},
   "$projection": {}
-}
-```
-* Audit de cohérence sur un tenant (exemple : tenant 0):
-
-```JSON
-{
-  "$query": [
-     {
-       "$eq":
-       { "#tenant": 0 }
-      }
-      ],
-      "$projection": {}
 }
 ```
