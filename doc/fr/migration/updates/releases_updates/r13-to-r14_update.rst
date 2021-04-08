@@ -126,11 +126,8 @@ Récupérer les clés de cryptage p12 pour l'audit de cohérence ::
 Audit coherence r13
 -------------------
 
-Cette commande réalise un audit sur les tenants et leur contrat d'accès associés ::
-
-   ansible-playbook ansible-vitam-exploitation/audit_coherence.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e access_contract=ContratTNR -e tenants=[0,1] --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
-
-
+Il est recommandé de procéder à un audit de cohérence aléatoire suite à une procédure de montée de version VITAM ou de migration de données.
+Pour ce faire, se référer au dossier d'exploitation (DEX) de la solution VITAM, section ``Audit de cohérence``
 
 Étapes préalables à la montée de version - Gestion de l'arrêt de R13
 ====================================================================
@@ -352,7 +349,5 @@ Récupérer les clés de cryptage p12 pour l'audit de cohérence ::
 Audit coherence R14
 -------------------
 
-Cette commande réalise un audit sur les tenants et leur contrat d'accès associés ::
-
-   ansible-playbook ansible-vitam-exploitation/audit_coherence.yml -i environments/hosts --private-key <path_to_private_key> -u centos --vault-password-file vault_pass.txt -e access_contract=ContratTNR -e tenants=[0,1] --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml
-
+Il est recommandé de procéder à un audit de cohérence aléatoire suite à une procédure de montée de version VITAM ou de migration de données.
+Pour ce faire, se référer au dossier d'exploitation (DEX) de la solution VITAM, section ``Audit de cohérence``
