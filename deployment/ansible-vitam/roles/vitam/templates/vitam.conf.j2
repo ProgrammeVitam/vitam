@@ -30,6 +30,17 @@ queriesThreshold: {{ vitam.worker.queriesThreshold | default(100000) }}
 bulkAtomicUpdateBatchSize: {{ vitam.worker.bulkAtomicUpdateBatchSize | default(100) }}
 bulkAtomicUpdateThreadPoolSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolSize | default(8) }}
 bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.worker.bulkAtomicUpdateThreadPoolQueueSize | default(16) }}
+
+binarySizePlatformThreshold: # 1 Go
+ limit: {{ vitam.worker.binarySizePlatformThreshold | default(1) }}
+ sizeUnit: {{ vitam.worker.binarySizePlatformThresholdSizeUnit | default('GIGABYTE') }}
+
+binarySizeTenantThreshold: # exemple for tenant 0 max dip/transfer size is 20 Mo, true means can exceed tenant threshold.
+#  - tenant: 0
+#    limit: 20
+#    sizeUnit: MEGABYTE
+#    authorize: true
+
 {% endif %}
 
 keywordMaxLength: 32766

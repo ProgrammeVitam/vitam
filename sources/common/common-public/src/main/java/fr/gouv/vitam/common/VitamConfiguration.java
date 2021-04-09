@@ -31,6 +31,8 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
+import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -395,6 +397,16 @@ public class VitamConfiguration {
      */
     private static int optimisticLockSleepTime = 20;
 
+    /**
+     * max binary size for SIP and trasnfer
+     */
+    private static BinarySizePlatformThreshold binarySizePlatformThreshold =
+        new BinarySizePlatformThreshold(1, BinarySizePlatformThreshold.SizeUnit.GIGABYTE); // 1 Go
+
+    /**
+     * list of max binary size for SIP and trasnfer by tenant
+     */
+    private static List<BinarySizeTenantThreshold> binarySizeTenantThreshold = new ArrayList<>();
 
     /**
      * This is a limitation of lucene. Fields whose UTF8 encoding is longer than the max length 32766 are not accepted
@@ -1028,7 +1040,12 @@ public class VitamConfiguration {
         if (null != parameters.getMaxCacheEntries()) {
             setMaxCacheEntries(parameters.getMaxCacheEntries());
         }
-
+        if(null != parameters.getBinarySizePlatformThreshold()) {
+            setBinarySizePlatformThreshold(parameters.getBinarySizePlatformThreshold());
+        }
+        if(null != parameters.getBinarySizeTenantThreshold()) {
+            setBinarySizeTenantThreshold(parameters.getBinarySizeTenantThreshold());
+        }
         if (null != parameters.getExpireCacheEntriesDelay()) {
             setExpireCacheEntriesDelay(parameters.getExpireCacheEntriesDelay());
         }
@@ -2501,6 +2518,22 @@ public class VitamConfiguration {
 
     public static void setWorkspaceWorkflowsFolder(String workspaceWorkflowsFolder) {
         VitamConfiguration.workspaceWorkflowsFolder = workspaceWorkflowsFolder;
+    }
+
+    public static BinarySizePlatformThreshold getBinarySizePlatformThreshold() {
+        return binarySizePlatformThreshold;
+    }
+
+    public static void setBinarySizePlatformThreshold(BinarySizePlatformThreshold binarySizePlatformThreshold) {
+        VitamConfiguration.binarySizePlatformThreshold = binarySizePlatformThreshold;
+    }
+
+    public static List<BinarySizeTenantThreshold> getBinarySizeTenantThreshold() {
+        return binarySizeTenantThreshold;
+    }
+
+    public static void setBinarySizeTenantThreshold(List<BinarySizeTenantThreshold> binarySizeTenantThreshold) {
+        VitamConfiguration.binarySizeTenantThreshold = binarySizeTenantThreshold;
     }
 
     /**

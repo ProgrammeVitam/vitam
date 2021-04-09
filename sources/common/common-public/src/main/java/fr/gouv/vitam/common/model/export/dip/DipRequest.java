@@ -45,6 +45,9 @@ public class DipRequest {
     @JsonProperty("exportWithLogBookLFC")
     private boolean exportWithLogBookLFC;
 
+    @JsonProperty("maxSizeThreshold")
+    private Long maxSizeThreshold;
+
     @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
@@ -57,10 +60,15 @@ public class DipRequest {
         this.dslRequest = dslRequest;
     }
 
-    public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
+    public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC, Long maxSizeThreshold) {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
         this.exportWithLogBookLFC = withLogBookLFC;
+        this.maxSizeThreshold = maxSizeThreshold;
+    }
+
+    public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
+        this(dataObjectVersionToExport, dslRequest, withLogBookLFC, null);
     }
 
     public DipRequest(DipExportRequest dipExportRequest) {
@@ -107,5 +115,13 @@ public class DipRequest {
 
     public void setDslRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
+    }
+    
+    public Long getMaxSizeThreshold() {
+        return maxSizeThreshold;
+    }
+
+    public void setMaxSizeThreshold(Long maxSizeThreshold) {
+        this.maxSizeThreshold = maxSizeThreshold;
     }
 }
