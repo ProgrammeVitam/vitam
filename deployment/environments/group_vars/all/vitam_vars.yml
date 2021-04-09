@@ -452,6 +452,9 @@ vitam:
         bulkAtomicUpdateThreadPoolSize: 8
         # Number of jobs that can be queued in memory before blocking for bulk atomic update
         bulkAtomicUpdateThreadPoolQueueSize: 16
+        # Dip/transfer threshold file size
+        binarySizePlatformThreshold: 1
+        binarySizePlatformThresholdSizeUnit: "GIGABYTE"
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"

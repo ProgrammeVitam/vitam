@@ -47,6 +47,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.Arrays;
 
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
+import static fr.gouv.vitam.common.model.VitamConstants.JSONL_EXTENSION;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.ARCHIVE_TRANSFER;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.DIP_CONTAINER;
@@ -132,6 +133,8 @@ public class StoreExportsTest {
         doReturn(storageClient).when(storageClientFactory).getClient();
 
         doReturn(true).when(workspaceClient).isExistingObject(requestId, SEDA_FILE);
+        doReturn(true).when(handlerIO).isExistingFileInWorkspace(requestId + JSONL_EXTENSION);
+
 
         StoreExports storeExports = new StoreExports(storageClientFactory);
 

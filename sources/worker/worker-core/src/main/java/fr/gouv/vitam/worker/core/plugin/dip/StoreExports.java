@@ -96,7 +96,7 @@ public class StoreExports extends ActionHandler {
             String tenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
             String zipFileName = params.getContainerName();
 
-            if (isTransferWorkflow(params)) {
+            if (isTransferWorkflow(params) && handler.isExistingFileInWorkspace(params.getContainerName() + JSONL_EXTENSION)) {
                 storeReportToOffers(params.getContainerName());
             }
 

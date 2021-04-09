@@ -36,6 +36,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -51,9 +52,20 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
+import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
 import fr.gouv.vitam.common.model.export.ExportRequest;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -90,6 +102,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Iterables.partition;
@@ -219,6 +232,8 @@ public class CreateManifest extends ActionHandler {
                 ? exportRequest.getDataObjectVersionToExport().getDataObjectVersions()
                 : Collections.emptySet();
 
+            long exportSize = 0;
+
             Iterable<List<Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
             for (List<Entry<String, String>> partition : partitions) {
 
@@ -235,15 +250,20 @@ public class CreateManifest extends ActionHandler {
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
                 ArrayNode objects = (ArrayNode) response.get("$results");
 
+
                 for (JsonNode object : objects) {
                     List<String> linkedUnits = unitsForObjectGroupId.get(
                         object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
                     idBinaryWithFileName.putAll(manifestBuilder
                         .writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), dataObjectVersions,
                             exportWithLogBookLFC));
-
+                    exportSize += computeSize(object, dataObjectVersions);
                 }
             }
+
+            int tenant = VitamThreadUtils.getVitamSession().getTenantId();
+            long threshold = retriveRelevantThreshold(exportRequest.getMaxSizeThreshold(), tenant);
+            checkSize(itemStatus, exportSize, threshold, tenant);
 
             storeBinaryInformationOnWorkspace(handlerIO, idBinaryWithFileName);
 
@@ -353,6 +373,93 @@ public class CreateManifest extends ActionHandler {
         }
 
         return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
+    }
+
+    private void checkSize(ItemStatus itemStatus, long exportSize, long threshold, int tenant) throws ExportException {
+        if (exportSize > threshold) {
+            throw new ExportException(
+                String.format("export size exceeds threshold. \n Export Size = [%d]\n Threshold = [%d]", exportSize,
+                    threshold));
+        }
+        Optional<BinarySizeTenantThreshold> first = VitamConfiguration.getBinarySizeTenantThreshold().stream()
+            .filter(e -> e.getTenant() == tenant).findFirst();
+        if (first.isPresent()) {
+            if (exportSize > first.get().getThreshold()) {
+                if (first.get().isAuthorized()) {
+                    updateItemStatus(itemStatus, exportSize, threshold,
+                        "export size exceeds tenant threshold.\n Export Size = [%d]\n Tenant Threshold = [%d]");
+                } else {
+                    throw new ExportException(String
+                        .format("export size exceeds tenant threshold. \n Export Size = [%d]\n Tenant Threshold = [%d]",
+                            exportSize, threshold));
+                }
+            }
+        } else {
+            if (exportSize > VitamConfiguration.getBinarySizePlatformThreshold().getThreshold()) {
+                updateItemStatus(itemStatus, exportSize, threshold,
+                    "export size exceeds platform threshold.\n Export Size = [%d]\n Platform Threshold = [%d]");
+            }
+        }
+    }
+
+    private void updateItemStatus(ItemStatus itemStatus, long exportSize, long threshold, String s) {
+        itemStatus.increment(StatusCode.WARNING);
+        ObjectNode infoNode = JsonHandler.createObjectNode();
+        infoNode.put(REASON_FIELD, String.format(s, exportSize, threshold));
+        String evDetData = JsonHandler.unprettyPrint(infoNode);
+        itemStatus.setEvDetailData(evDetData);
+    }
+
+    private long retriveRelevantThreshold(Long threshold, int tenant) {
+        if (threshold != null) {
+            return threshold;
+        }
+        return VitamConfiguration.getBinarySizeTenantThreshold().stream()
+            .filter(e -> e.getTenant() == tenant).findFirst().map(BinarySizePlatformThreshold::getThreshold)
+            .orElseGet(() -> VitamConfiguration.getBinarySizePlatformThreshold().getThreshold());
+    }
+
+    private AccessContractModel findAccessContract() throws ProcessingException {
+        AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
+        if (accessContractModel != null) {
+            return accessContractModel;
+        }
+
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        Select select = new Select();
+        try {
+            Query query =
+                QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
+            select.setQuery(query);
+            return
+                ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(select.getFinalSelect()))
+                    .getResults().get(0);
+        } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
+            throw new ProcessingException(e);
+        }
+    }
+
+    private long computeSize(JsonNode og, Set<String> dataObjectVersionFilter)
+        throws InvalidParseOperationException, ProcessingException {
+        AccessContractModel accessContract = findAccessContract();
+        ObjectGroupResponse objectGroup = JsonHandler.getFromJsonNode(og, ObjectGroupResponse.class);
+
+        Stream<QualifiersModel> stream = objectGroup.getQualifiers().stream();
+        if (!accessContract.isEveryDataObjectVersion()) {
+            stream =
+                stream.filter(qualifier -> accessContract.getDataObjectVersion().contains(qualifier.getQualifier()));
+        }
+
+        if (!dataObjectVersionFilter.isEmpty()) {
+            stream = stream.filter(qualifier -> dataObjectVersionFilter.contains(qualifier.getQualifier()));
+        }
+
+        return stream.map(this::getLastVersion)
+            .map(VersionsModel::getSize).reduce(0L, Long::sum);
+    }
+
+    private VersionsModel getLastVersion(QualifiersModel qualifier) {
+        return Iterables.getLast(qualifier.getVersions());
     }
 
     private boolean checkNumberOfUnit(ItemStatus itemStatus, long total) {

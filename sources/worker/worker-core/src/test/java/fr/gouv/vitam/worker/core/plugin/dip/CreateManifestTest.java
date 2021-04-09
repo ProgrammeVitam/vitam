@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -80,10 +79,8 @@ import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_R
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.REPORT;
 import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -463,20 +460,7 @@ public class CreateManifestTest {
             .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
-        ExportRequest exportRequest = new ExportRequest();
-        exportRequest.setExportWithLogBookLFC(true);
-        exportRequest.setDslRequest(queryUnit);
-        exportRequest.setExportType(ArchiveTransfer);
-        ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
-        exportRequestParameters.setArchivalAgreement("ArchivalAgreement");
-        exportRequestParameters.setOriginatingAgencyIdentifier("OriginatingAgencyIdentifier");
-        exportRequestParameters.setComment("Comment");
-        exportRequestParameters.setSubmissionAgencyIdentifier("SubmissionAgencyIdentifier");
-        exportRequestParameters.setRelatedTransferReference(Collections.singletonList("RelatedTransferReference"));
-        exportRequestParameters.setTransferRequestReplyIdentifier("TransferRequestReplyIdentifier");
-        exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgencyIdentifier");
-        exportRequestParameters.setTransferringAgency("TransferringAgency");
-        exportRequest.setExportRequestParameters(exportRequestParameters);
+        ExportRequest exportRequest = getExportRequest(queryUnit);
         given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
@@ -552,6 +536,88 @@ public class CreateManifestTest {
             .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
+        ExportRequest exportRequest = getExportRequest(queryUnit);
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+
+        WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
+
+        // When
+        ItemStatus itemStatus = createManifest.execute(wp, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
+        verify(handlerIO).transferInputStreamToWorkspace(eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
+            any(InputStream.class), eq(null), eq(false));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_exceed_threshold() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryDataObjectVersion(true);
+        accessContractModel.setEveryOriginatingAgency(true);
+
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        JsonNode queryUnit =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
+
+        JsonNode queryUnitWithTree = JsonHandler
+            .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+
+        JsonNode queryObjectGroup =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
+
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
+
+        given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")));
+
+        given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
+
+        given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
+
+        File manifestFile = tempFolder.newFile();
+        given(handlerIO.getOutput(MANIFEST_XML_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
+
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
+        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
+
+        File guidToPathFile = tempFolder.newFile();
+        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
+        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
+
+        File binaryFile = tempFolder.newFile();
+        given(handlerIO.getOutput(BINARIES_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
+
+        ExportRequest exportRequest = getExportRequest(queryUnit);
+        exportRequest.setMaxSizeThreshold(10L);
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+
+        WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
+
+        // When
+        ItemStatus itemStatus = createManifest.execute(wp, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
+    }
+
+    private ExportRequest getExportRequest(JsonNode queryUnit) {
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setExportWithLogBookLFC(true);
         exportRequest.setDslRequest(queryUnit);
@@ -566,16 +632,6 @@ public class CreateManifestTest {
         exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgencyIdentifier");
         exportRequestParameters.setTransferringAgency("TransferringAgency");
         exportRequest.setExportRequestParameters(exportRequestParameters);
-        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
-
-        WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
-
-        // When
-        ItemStatus itemStatus = createManifest.execute(wp, handlerIO);
-
-        // Then
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
-        verify(handlerIO).transferInputStreamToWorkspace(eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
-            any(InputStream.class), eq(null), eq(false));
+        return exportRequest;
     }
 }

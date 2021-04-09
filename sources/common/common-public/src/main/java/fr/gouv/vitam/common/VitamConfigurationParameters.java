@@ -28,6 +28,8 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
+import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
+import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
 
 import java.util.List;
 import java.util.Map;
@@ -332,6 +334,16 @@ public class VitamConfigurationParameters {
     private Map<String, String> vitamDefaultCodeListVersion;
 
     private Integer processEngineWaitForStepTimeout = 172800;
+
+    /**
+     * max binary size for SIP and trasnfer
+     */
+    private BinarySizePlatformThreshold binarySizePlatformThreshold;
+
+    /**
+     * list of max binary size for SIP and trasnfer by tenant
+     */
+    private List<BinarySizeTenantThreshold> binarySizeTenantThreshold;
 
     /**
      * Setter for vitamCleanPeriod;
@@ -1594,5 +1606,21 @@ public class VitamConfigurationParameters {
 
     public void setProcessEngineWaitForStepTimeout(Integer processEngineWaitForStepTimeout) {
         this.processEngineWaitForStepTimeout = processEngineWaitForStepTimeout;
+    }
+
+    public BinarySizePlatformThreshold getBinarySizePlatformThreshold() {
+        return binarySizePlatformThreshold;
+    }
+
+    public void setBinarySizePlatformThreshold(BinarySizePlatformThreshold binarySizePlatformThreshold) {
+        this.binarySizePlatformThreshold = binarySizePlatformThreshold;
+    }
+
+    public List<BinarySizeTenantThreshold> getBinarySizeTenantThreshold() {
+        return binarySizeTenantThreshold;
+    }
+
+    public void setBinarySizeTenantThreshold(List<BinarySizeTenantThreshold> binarySizeTenantThreshold) {
+        this.binarySizeTenantThreshold = binarySizeTenantThreshold;
     }
 }

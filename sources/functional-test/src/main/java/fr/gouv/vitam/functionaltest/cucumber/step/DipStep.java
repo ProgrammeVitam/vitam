@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.apache.commons.collections.EnumerationUtils;
@@ -86,6 +87,36 @@ public class DipStep {
 
         DipRequest dipExportRequest = new DipRequest(jsonNode);
         RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
+
+        assertThat(response.isOk()).isTrue();
+
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("dip processing not finished. Timeout exceeded.");
+        }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
+
+    @When("^j'exporte le DIP$")
+    public void exportDIP() throws VitamException {
+
+        cleanTempDipFile();
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+        String query = world.getQuery();
+        DipRequest dipExportRequest = JsonHandler.getFromString(query,DipRequest.class );
+
+        RequestResponse<JsonNode> response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 
         assertThat(response.isOk()).isTrue();
 
