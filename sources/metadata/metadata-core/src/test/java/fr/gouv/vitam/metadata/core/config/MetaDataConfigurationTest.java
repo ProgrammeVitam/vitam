@@ -46,9 +46,9 @@ public class MetaDataConfigurationTest {
     private static final int PORT = 1234;
     private static final String DB_NAME = "dbNameTest";
     private static final String JETTY_CONF = "jettyConfig";
-    private final static String CLUSTER_NAME = "cluster-vitam";
-    private final static String HOST_NAME = "localhost";
-    private static int TCP_PORT = 9300;
+    private static final String CLUSTER_NAME = "cluster-vitam";
+    private static final String HOST_NAME = "localhost";
+    private static final int TCP_PORT = 9300;
 
 
     @Test

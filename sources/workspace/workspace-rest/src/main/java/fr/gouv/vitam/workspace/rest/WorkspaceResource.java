@@ -83,6 +83,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.common.model.WorkspaceConstants.FREESPACE;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
 @Path("/workspace/v1")
@@ -110,6 +111,21 @@ public class WorkspaceResource extends ApplicationStatusResource {
             throw new IllegalStateException(ex);
         }
         LOGGER.info("init Workspace Resource server");
+    }
+
+    /**
+     * retrieve free space
+     *
+     * @return free space percentage
+     */
+    @Path("/" + FREESPACE)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "get workspace free space",
+        description = "obtenir de l'espace libre du dossier workspace")
+    public Response getFreespacePercent() {
+        JsonNode result = JsonHandler.createObjectNode().put(FREESPACE, workspace.getWorkspaceFreeSpace());
+        return Response.ok(result).build();
     }
 
     /**

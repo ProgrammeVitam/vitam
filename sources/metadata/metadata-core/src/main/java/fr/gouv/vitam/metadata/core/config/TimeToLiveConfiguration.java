@@ -24,57 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.model;
 
-/**
- * Constants for the Workspace.
- */
-public class WorkspaceConstants {
+package fr.gouv.vitam.metadata.core.config;
 
-    /**
-     * query file
-     */
-    public static final String QUERY = "query.json";
+public class TimeToLiveConfiguration {
 
-    /**
-     * report file
-     */
-    public static final String REPORT = "report.json";
+    private final int dipTimeToLiveInMinutes;
+    private final int criticalDipTimeToLiveInMinutes;
+    private final int transfersSIPTimeToLiveInMinutes;
 
-    /**
-     * report jsonl file
-     */
-    public static final String REPORT_JSONL = "report.jsonl";
-
-    /**
-     * data file
-     */
-    public static final String DATA_FILE = "data.txt";
-
-    /*
-     * options file
-     */
-    public static final String OPTIONS_FILE = "options.json";
-
-    /**
-     * TRACEABILITY path
-     */
-    public static final String TRACEABILITY_OPERATION_DIRECTORY = "traceabilityOperation";
-
-    /**
-     * error file flag
-     */
-    public static final String ERROR_FLAG = "error";
-
-    public static final String TMP_FILE_NAME_FOR_SHARDS_CONFIG = "mongoDbShardsTimestampConfiguration";
-
-    /**
-     * freespace tag
-     */
-    public static final String FREESPACE = "freespace";
-
-    private WorkspaceConstants() {
-        // Do nothing
+    public TimeToLiveConfiguration(int dipTimeToLiveInMinutes, int criticalDipTimeToLiveInMinutes,
+        int transfersSIPTimeToLiveInMinutes) {
+        this.dipTimeToLiveInMinutes = dipTimeToLiveInMinutes;
+        this.criticalDipTimeToLiveInMinutes = criticalDipTimeToLiveInMinutes;
+        this.transfersSIPTimeToLiveInMinutes = transfersSIPTimeToLiveInMinutes;
     }
 
+    public int getDipTimeToLiveInMinutes() {
+        return dipTimeToLiveInMinutes;
+    }
+
+    public int getCriticalDipTimeToLiveInMinutes() {
+        return criticalDipTimeToLiveInMinutes;
+    }
+
+    public int getTransfersSIPTimeToLiveInMinutes() {
+        return transfersSIPTimeToLiveInMinutes;
+    }
 }

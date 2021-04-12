@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.metadata.core.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -53,6 +54,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private int schemaValidatorCacheTimeoutInSeconds = 300;
 
     private int dipTimeToLiveInMinutes = 60 * 24 * 7;
+    private int criticalDipTimeToLiveInMinutes = 60 * 24;
     private int transfersSIPTimeToLiveInMinutes = 60 * 24 * 7;
 
     private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
@@ -204,9 +206,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         return dipTimeToLiveInMinutes;
     }
 
-    public MetaDataConfiguration setDipTimeToLiveInMinutes(int dipTimeToLiveInMinutes) {
+    public void setDipTimeToLiveInMinutes(int dipTimeToLiveInMinutes) {
         this.dipTimeToLiveInMinutes = dipTimeToLiveInMinutes;
-        return this;
     }
 
     public int getTransfersSIPTimeToLiveInMinutes() {
@@ -215,6 +216,14 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setTransfersSIPTimeToLiveInMinutes(int transfersSIPTimeToLiveInMinutes) {
         this.transfersSIPTimeToLiveInMinutes = transfersSIPTimeToLiveInMinutes;
+    }
+
+    public int getCriticalDipTimeToLiveInMinutes() {
+        return criticalDipTimeToLiveInMinutes;
+    }
+
+    public void setCriticalDipTimeToLiveInMinutes(int criticalDipTimeToLiveInMinutes) {
+        this.criticalDipTimeToLiveInMinutes = criticalDipTimeToLiveInMinutes;
     }
 
     public List<ElasticsearchExternalMetadataMapping> getElasticsearchExternalMetadataMappings() {
@@ -258,5 +267,11 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setMongodShardsConf(MongoDbShardConf mongodShardsConf) {
         this.mongodShardsConf = mongodShardsConf;
+    }
+
+    @JsonIgnore
+    public TimeToLiveConfiguration getTimeToLiveConfiguration() {
+        return new TimeToLiveConfiguration(dipTimeToLiveInMinutes, criticalDipTimeToLiveInMinutes,
+            transfersSIPTimeToLiveInMinutes);
     }
 }

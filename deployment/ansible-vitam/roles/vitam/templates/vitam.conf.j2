@@ -10,6 +10,7 @@ storeGraphOverlapDelay: 300
 expireCacheEntriesDelay: 300
 deleteIncompleteReconstructedUnitDelay: 2592000
 migrationBulkSize: 10000
+workspaceFreespaceThreshold: {{ vitam.metadata.workspaceFreespaceThreshold | default(25) }}
 {% endif %}
 distributionThreshold : 100000
 eliminationAnalysisThreshold : 100000

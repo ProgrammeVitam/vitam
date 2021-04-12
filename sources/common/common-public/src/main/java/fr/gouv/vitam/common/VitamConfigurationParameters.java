@@ -335,6 +335,11 @@ public class VitamConfigurationParameters {
 
     private Integer processEngineWaitForStepTimeout = 172800;
 
+    /*
+     * Threshold to purge dip or sip transfer in workspace
+     */
+    private Integer workspaceFreespaceThreshold;
+
     /**
      * max binary size for SIP and trasnfer
      */
@@ -1606,6 +1611,14 @@ public class VitamConfigurationParameters {
 
     public void setProcessEngineWaitForStepTimeout(Integer processEngineWaitForStepTimeout) {
         this.processEngineWaitForStepTimeout = processEngineWaitForStepTimeout;
+    }
+
+    public Integer getWorkspaceFreespaceThreshold() {
+        return workspaceFreespaceThreshold;
+    }
+
+    public void setWorkspaceFreespaceThreshold(Integer workspaceFreespaceThreshold) {
+        this.workspaceFreespaceThreshold = workspaceFreespaceThreshold;
     }
 
     public BinarySizePlatformThreshold getBinarySizePlatformThreshold() {
