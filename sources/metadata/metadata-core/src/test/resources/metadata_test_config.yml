@@ -10,10 +10,11 @@ schemaValidatorCacheMaxEntries: 100
 schemaValidatorCacheTimeoutInSeconds: 300
 
 # DIP purge service (in minutes)
-dipTimeToLiveInMinutes: 10080
+dipTimeToLiveInMinutes: 10080 # 7 days
+criticalDipTimeToLiveInMinutes: 1440 # 1 day
 
 # TRANSFER purge service (in minutes)
-transfersSIPTimeToLiveInMinutes: 10080
+transfersSIPTimeToLiveInMinutes: 10080 # 7 days
 
 # Configuration MongoDB
 mongoDbNodes:

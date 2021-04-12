@@ -25,10 +25,14 @@
  * accept its terms.
  */
 package fr.gouv.vitam.metadata.core.ExportsPurge;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.metadata.core.config.TimeToLiveConfiguration;
 import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -44,32 +48,52 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 
+import static fr.gouv.vitam.common.model.WorkspaceConstants.FREESPACE;
+
 public class ExportsPurgeService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExportsPurgeService.class);
 
+    public static final String DIP_CONTAINER ="DIP";
+    public static final String TRANSFERS_CONTAINER ="TRANSFER";
+
     private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
-    private final int timeToLiveInMinutes;
+    private final TimeToLiveConfiguration timeToLiveConfiguration;
 
-    public ExportsPurgeService(int timeToLiveInMinutes) {
-        this(WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(), timeToLiveInMinutes);
+    public ExportsPurgeService(TimeToLiveConfiguration timeToLiveConfiguration) {
+        this(WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(), timeToLiveConfiguration);
     }
 
     @VisibleForTesting
-    public ExportsPurgeService(WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory, int timeToLiveInMinutes) {
+    public ExportsPurgeService(WorkspaceClientFactory workspaceClientFactory, StorageClientFactory storageClientFactory,
+        TimeToLiveConfiguration timeToLiveConfiguration) {
         this.workspaceClientFactory = workspaceClientFactory;
         this.storageClientFactory = storageClientFactory;
-        this.timeToLiveInMinutes = timeToLiveInMinutes;
+        this.timeToLiveConfiguration = timeToLiveConfiguration;
     }
 
     public void purgeExpiredFiles(String container) throws ContentAddressableStorageServerException {
-
         try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient()) {
-            workspaceClient.purgeOldFilesInContainer(
-                container,
-                new TimeToLive(this.timeToLiveInMinutes, ChronoUnit.MINUTES));
+            int timeToLiveInMinutes = getTimeToLiveInMinutes(container, workspaceClient);
+            workspaceClient.purgeOldFilesInContainer(container,
+                new TimeToLive(timeToLiveInMinutes, ChronoUnit.MINUTES));
+        } catch (VitamClientException e) {
+            throw new ContentAddressableStorageServerException(e);
+        }
+    }
+
+    private int getTimeToLiveInMinutes(String container, WorkspaceClient workspaceClient) throws VitamClientException {
+        JsonNode percent = workspaceClient.getFreespacePercent();
+        int freespace = percent.get(FREESPACE).asInt();
+        if(container.equals(DIP_CONTAINER)) {
+            if (freespace <= VitamConfiguration.getWorkspaceFreespaceThreshold()) {
+                return timeToLiveConfiguration.getCriticalDipTimeToLiveInMinutes();
+            } else {
+                return timeToLiveConfiguration.getDipTimeToLiveInMinutes();
+            }
+        } else {
+            return timeToLiveConfiguration.getTransfersSIPTimeToLiveInMinutes();
         }
     }
 

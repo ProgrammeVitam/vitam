@@ -493,6 +493,8 @@ public class VitamConfiguration {
 
     private static final short DIFF_VERSION = 1;
 
+    private static int workspaceFreespaceThreshold = 25;
+
     private String config;
 
     private String log;
@@ -728,6 +730,14 @@ public class VitamConfiguration {
 
     public static void setProcessEngineWaitForStepTimeout(int processEngineWaitForStepTimeout) {
         VitamConfiguration.processEngineWaitForStepTimeout = processEngineWaitForStepTimeout;
+    }
+
+    public static int getWorkspaceFreespaceThreshold() {
+        return VitamConfiguration.workspaceFreespaceThreshold;
+    }
+
+    public static void setWorkspaceFreespaceThreshold(int workspaceFreespaceThreshold) {
+        VitamConfiguration.workspaceFreespaceThreshold = workspaceFreespaceThreshold;
     }
 
     /**
@@ -1179,6 +1189,9 @@ public class VitamConfiguration {
         }
         if (null != parameters.getProcessEngineWaitForStepTimeout()) {
             setProcessEngineWaitForStepTimeout(parameters.getProcessEngineWaitForStepTimeout());
+        }
+        if (null != parameters.getWorkspaceFreespaceThreshold()) {
+            setWorkspaceFreespaceThreshold(parameters.getWorkspaceFreespaceThreshold());
         }
     }
 

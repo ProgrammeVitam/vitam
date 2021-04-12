@@ -33,7 +33,10 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -69,6 +72,7 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
+import static fr.gouv.vitam.common.model.WorkspaceConstants.FREESPACE;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
@@ -81,14 +85,27 @@ public class WorkspaceClient extends DefaultClient {
     private static final String CONTAINERS = "/containers/";
     private static final String ATOMIC_CONTAINERS = "/atomic_containers/";
     private static final String FILES_WITH_PARAMS = "/filesWithParams";
+    private static final String FREESPACE_URL = "/" + FREESPACE;
 
-    private static final GenericType<List<URI>> URI_LIST_TYPE = new GenericType<List<URI>>() {
+    private static final GenericType<List<URI>> URI_LIST_TYPE = new GenericType<>() {
     };
     private static final GenericType<Map<String, FileParams>> FILES_MAP_TYPE = new GenericType<>() {
     };
 
     WorkspaceClient(WorkspaceClientFactory factory) {
         super(factory);
+    }
+
+    public JsonNode getFreespacePercent() throws VitamClientException {
+        try (Response response = make(get().withPath(FREESPACE_URL).withJsonAccept())) {
+            Response.StatusType status = response.getStatusInfo();
+            if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+                return JsonHandler.getFromInputStream(response.readEntity(InputStream.class));
+            }
+            throw new VitamClientException("Could not retrieve workspace free space");
+        } catch (VitamClientInternalException | InvalidParseOperationException e) {
+            throw new VitamClientException(e);
+        }
     }
 
     public void createContainer(String containerName)

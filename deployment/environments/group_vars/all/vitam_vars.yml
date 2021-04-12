@@ -148,9 +148,9 @@ vitam_timers:
         - name: vitam-metadata-computed-inherited-rules
           frequency: "*-*-* 02:30:00"
         - name: vitam-metadata-purge-dip
-          frequency: "*-*-* 02:20:00"
+          frequency: "*-*-* *:00:00"
         - name: vitam-metadata-purge-transfers-SIP
-          frequency: "*-*-* 02:25:00"
+          frequency: "*-*-* *:05:00"
         - name: vitam-metadata-audit-mongodb-es
           frequency: "2020-01-01 00:00:00"
     offer:
@@ -361,7 +361,9 @@ vitam:
         schemaValidatorCacheTimeoutInSeconds: 300
         # DIP cleanup delay (in minutes)
         dipTimeToLiveInMinutes: 10080 # 7 days
+        criticalDipTimeToLiveInMinutes: 1440 # 1 day
         transfersSIPTimeToLiveInMinutes: 10080 # 7 days
+        workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
         elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
         #### Audit data consistency MongoDB-ES ####
         isDataConsistencyAuditRunnable: false

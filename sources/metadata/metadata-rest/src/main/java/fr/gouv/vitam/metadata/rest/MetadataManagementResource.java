@@ -113,6 +113,8 @@ import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
+import static fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService.DIP_CONTAINER;
+import static fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService.TRANSFERS_CONTAINER;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -146,8 +148,6 @@ public class MetadataManagementResource {
     private static final String PURGE_EXPIRED_DIP_FILES_URI = "/purgeDIP";
     private static final String PURGE_EXPIRED_TRANSFER_SIP_FILES_URI = "/purgeTransfersSIP";
     private static final String MIGRATION_PURGE_EXPIRED_FROM_OFFERS = "/migrationDeleteDipFromOffers";
-    private static final String DIP_CONTAINER ="DIP";
-    private static final String TRANSFERS_CONTAINER ="TRANSFER";
 
     /**
      * Error/Exceptions messages.
@@ -180,7 +180,7 @@ public class MetadataManagementResource {
             LogbookOperationsClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(),
             configuration,
-            new ExportsPurgeService(configuration.getTransfersSIPTimeToLiveInMinutes()));
+            new ExportsPurgeService(configuration.getTimeToLiveConfiguration()));
     }
 
     @VisibleForTesting

@@ -114,7 +114,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceFileSystem.class);
 
-    private Path root;
+    private final Path root;
 
     /**
      * Default constructor Define the root of workspace with the storagePath property from configuration
@@ -802,5 +802,13 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     private boolean isManifestFileName(String fileName) {
         return fileName.matches(VitamConstants.MANIFEST_FILE_NAME_REGEX);
+    }
+
+    public int getWorkspaceFreeSpace() {
+        File workspace = root.toFile();
+        if (workspace.getTotalSpace() == 0L) {
+            return 100;
+        }
+        return (int) ((float) workspace.getUsableSpace() / workspace.getTotalSpace() * 100);
     }
 }
