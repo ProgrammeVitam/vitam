@@ -291,6 +291,24 @@ clamav:
     logrotate: enabled # or disabled
     history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
 
+## Avast Business Antivirus for Linux
+## if undefined, the following default values are applied.
+# avast:
+#     manage_repository: true
+#     repository:
+#         state: present
+#         # For CentOS
+#         baseurl: http://rpm.avast.com/lin/repo/dists/rhel/release
+#         gpgcheck: no
+#         proxy: _none_
+#         # For Debian
+#         baseurl: 'deb http://deb.avast.com/lin/repo debian-buster release'
+#     vps_repository: http://linux-av.u.avcdn.net/linux-av/avast/x86_64
+#     ## List of sha256 hash of excluded files from antivirus. Useful for test environments.
+#     whitelist:
+#         - xxxxxx
+#         - yyyyyy
+
 mongo_express:
     baseuri: "mongo-express"
 

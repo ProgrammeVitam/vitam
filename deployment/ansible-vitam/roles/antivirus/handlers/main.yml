@@ -4,3 +4,8 @@
   service:
     name: "{{ clamav_service_name }}"
     state: restarted
+
+- name: restart avast
+  service:
+    name: avast
+    state: restarted
