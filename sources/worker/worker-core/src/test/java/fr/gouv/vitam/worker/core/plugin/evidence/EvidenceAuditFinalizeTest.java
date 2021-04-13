@@ -45,8 +45,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static fr.gouv.vitam.worker.core.plugin.CommonReportService.WORKSPACE_REPORT_URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 public class EvidenceAuditFinalizeTest {
@@ -69,20 +71,43 @@ public class EvidenceAuditFinalizeTest {
 
     @RunWithCustomExecutor
     @Test
-    public void shouldFinalizeAudit() throws Exception {
+    public void shouldFinalizeAuditWhenReportFound() throws Exception {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         String containerName = GUIDFactory.newGUID().getId();
         VitamThreadUtils.getVitamSession().setRequestId(containerName);
         doReturn(containerName).when(defaultWorkerParameters).getContainerName();
+        doReturn(true).when(handlerIO).isExistingFileInWorkspace(WORKSPACE_REPORT_URI);
 
         // When
         ItemStatus itemStatus = evidenceAuditFinalize.execute(defaultWorkerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(itemStatus.getEvDetailData()).isEqualTo("{}");
         verify(evidenceAuditReportService).storeReportToOffers(containerName);
+        verify(evidenceAuditReportService).cleanupReport(containerName);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void shouldFinalizeAuditWhenReportNotFound() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        String containerName = GUIDFactory.newGUID().getId();
+        VitamThreadUtils.getVitamSession().setRequestId(containerName);
+        doReturn(containerName).when(defaultWorkerParameters).getContainerName();
+        doReturn(false).when(handlerIO).isExistingFileInWorkspace(WORKSPACE_REPORT_URI);
+
+        // When
+        ItemStatus itemStatus = evidenceAuditFinalize.execute(defaultWorkerParameters, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(itemStatus.getEvDetailData()).contains("No report generated");
+        verify(evidenceAuditReportService, never()).storeReportToOffers(containerName);
         verify(evidenceAuditReportService).cleanupReport(containerName);
     }
 }
