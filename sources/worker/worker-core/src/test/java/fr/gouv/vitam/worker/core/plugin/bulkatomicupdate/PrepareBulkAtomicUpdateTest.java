@@ -84,6 +84,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -372,11 +373,15 @@ public class PrepareBulkAtomicUpdateTest {
             new TypeReference<>() {
             });
         List<RequestResponseOK<JsonNode>> first = response.subList(0, 8);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         doAnswer(args -> {
             List<JsonNode> selectQueryBulk = args.getArgument(0);
             if (selectQueryBulk.get(0).toString().contains("\"Value1\"")) {
+                countDownLatch.countDown();
                 return first;
             } else if (selectQueryBulk.get(0).toString().contains("\"Value9\"")) {
+                // Ensure first query bulk already started processing (otherwise, may be cancelled)
+                countDownLatch.await();
                 throw new InvalidParseOperationException("");
             } else {
                 throw new IllegalStateException("Unexpected queries " + selectQueryBulk);
