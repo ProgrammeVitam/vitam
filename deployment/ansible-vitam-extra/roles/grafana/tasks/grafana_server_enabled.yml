@@ -35,8 +35,19 @@
   notify:
     - restart grafana
 
-# When upgrade the Grafana version, get the corresponding grafana.ini file and replace grafana.conf.j2 with corresponding changes
-- name: "Grafana configuration file copy"
+- name: Ensure grafana directories are present
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/grafana/"
+    state: directory
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  loop:
+    - lib
+    - log
+
+# When upgrade the Grafana version, get the corresponding grafana.ini file and replace templates/grafana.ini.j2 with corresponding changes
+- name: Apply grafana custom configuration
   template:
     src: "grafana.ini.j2"
     dest: /etc/grafana/grafana.ini
