@@ -24,16 +24,7 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  notify:
-    - restart grafana
-
-- name: Add grafana autostart at boot
-  systemd:
-    name: grafana-server
-    daemon_reload: yes
-    enabled: yes
-  notify:
-    - restart grafana
+  notify: restart grafana
 
 - name: Ensure grafana directories are present
   file:
@@ -53,18 +44,16 @@
     dest: /etc/grafana/grafana.ini
   tags:
     - update_grafana_configuration
-  notify:
-    - restart grafana
+  notify: restart grafana
 
-- name: Make sure grafana is started
+- name: flush_handlers
+  meta: flush_handlers
+
+- name: Make sure grafana-server is started and enabled at boot
   systemd:
     name: grafana-server
     enabled: true
     state: started
-
-
-- name: flush_handlers
-  meta: flush_handlers
 
 #### Consul configuration ####
 
