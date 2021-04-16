@@ -181,7 +181,7 @@ public class ElasticsearchAccessMetadataTest {
         // When
         Result<?> result = elasticsearchAccessMetadata
             .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
-                10_000, null, "START", 0);
+                10_000, null, "START", 0, false);
         // Then
         assertThat(result.getNbResult()).isEqualTo(2);
         assertThat(result.getCurrentIds().indexOf(id)).isEqualTo(1);
@@ -194,7 +194,7 @@ public class ElasticsearchAccessMetadataTest {
         // As limit == 1, first call should return only 1 document even 2 documents found
         result = elasticsearchAccessMetadata
             .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
-                1, null, "START", 5000);
+                1, null, "START", 5000, false);
 
         assertThat(result.getNbResult()).isEqualTo(1);
         assertThat(result.getTotal()).isEqualTo(2);
@@ -205,7 +205,7 @@ public class ElasticsearchAccessMetadataTest {
         // Next result should return the remaining documents
         result = elasticsearchAccessMetadata
             .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
-                1, null, result.scrollId, 5000);
+                1, null, result.scrollId, 5000, false);
 
         assertThat(result.getNbResult()).isEqualTo(1);
         assertThat(result.getTotal()).isEqualTo(2);
@@ -214,14 +214,14 @@ public class ElasticsearchAccessMetadataTest {
         // Third call result should be empty
         result = elasticsearchAccessMetadata
             .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
-                1, null, result.scrollId, 5000);
+                1, null, result.scrollId, 5000, false);
 
         assertThat(result.getNbResult()).isEqualTo(0);
 
         // Last call should fail as scroll is cleared event scrollTimeout = 5000
         try {
             elasticsearchAccessMetadata
-                .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1, 1, null, result.scrollId, 5000);
+                .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1, 1, null, result.scrollId, 5000, false);
             fail("should throw an exception (scroll id not found)");
         } catch (Exception e) {
             // Elasticsearch exception [type=search_context_missing_exception, reason=No search context found for id]

@@ -146,7 +146,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     protected final Result<MetadataDocument<?>> search(final MetadataCollections collection, final Integer tenantId,
         final QueryBuilder query, final List<SortBuilder<?>> sorts, int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, boolean trackTotalHits)
         throws MetaDataExecutionException, BadRequestException {
 
         final SearchResponse response;
@@ -161,7 +161,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .search(indexAlias, finalQuery, null, MetadataDocument.ES_PROJECTION,
                     sorts,
                     offset,
-                    limit, facets, scrollId, scrollTimeout);
+                    limit, facets, scrollId, scrollTimeout, trackTotalHits);
         } catch (DatabaseException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -253,7 +253,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
             return super.search(indexAlias, finalQuery, null, null,
                 Lists.newArrayList(SortBuilders.fieldSort(FieldSortBuilder.DOC_FIELD_NAME).order(SortOrder.ASC)), 0,
-                GlobalDatas.LIMIT_LOAD, aggregations, null, null);
+                GlobalDatas.LIMIT_LOAD, aggregations, null, null, false);
         } catch (DatabaseException | BadRequestException e) {
             throw new MetaDataExecutionException(e);
         }

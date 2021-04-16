@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jsonpatch.diff.JsonDiff;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -118,9 +117,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Accumulators.addToSet;
 import static com.mongodb.client.model.Aggregates.group;
@@ -530,6 +527,12 @@ public class DbRequest {
         if (exactDepth < 0) {
             exactDepth = GlobalDatas.MAXDEPTH;
         }
+
+        boolean trackTotalHits = false;
+        if(isLastQuery) {
+            trackTotalHits = requestParser.trackTotalHits();
+        }
+
         final int relativeDepth = QueryDepthHelper.HELPER.getRelativeDepth(realQuery);
         Result<MetadataDocument<?>> result;
         try {
@@ -538,24 +541,24 @@ public class DbRequest {
                     // Exact Depth request (descending)
                     LOGGER.debug("Unit Exact Depth request (descending)");
                     result = exactDepthUnitQuery(realQuery, previous, exactDepth, tenantId, sorts,
-                        offset, limit, facets, scrollId, scrollTimeout, parserTokens);
+                        offset, limit, facets, scrollId, scrollTimeout, parserTokens, trackTotalHits);
                 } else if (relativeDepth != 0) {
                     // Relative Depth request (ascending or descending)
                     LOGGER.debug("Unit Relative Depth request (ascending or descending)");
                     result = relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, sorts, offset, limit,
-                        facets, scrollId, scrollTimeout, parserTokens);
+                        facets, scrollId, scrollTimeout, parserTokens, trackTotalHits);
                 } else {
                     // Current sub level request
                     LOGGER.debug("Unit Current sub level request");
                     result = sameDepthUnitQuery(realQuery, previous, tenantId, sorts, offset, limit, facets, scrollId,
-                        scrollTimeout, parserTokens);
+                        scrollTimeout, parserTokens, trackTotalHits);
                 }
             } else {
                 // OBJECTGROUPS
                 // No depth at all
                 LOGGER.debug("ObjectGroup No depth at all");
                 result = objectGroupQuery(realQuery, previous, tenantId, sorts, offset,
-                    limit, scrollId, scrollTimeout, facets, parserTokens);
+                    limit, scrollId, scrollTimeout, facets, parserTokens, trackTotalHits);
             }
         } finally {
             previous.clear();
@@ -574,6 +577,7 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
+     * @param trackTotalHits
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
@@ -582,7 +586,7 @@ public class DbRequest {
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int exactDepth, Integer tenantId, final List<SortBuilder<?>> sorts, final int offset, final int limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
-        DynamicParserTokens parserTokens)
+        DynamicParserTokens parserTokens, boolean trackTotalHits)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         final BoolQueryBuilder roots =
@@ -602,7 +606,8 @@ public class DbRequest {
 
         final Result<MetadataDocument<?>> result =
             metadataCollections.getEsClient()
-                .search(metadataCollections, tenantId, query, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                .search(metadataCollections, tenantId, query, sorts, offset, limit, facets, scrollId, scrollTimeout,
+                    trackTotalHits);
 
         LOGGER.warn("UnitExact: {}", result);
 
@@ -620,6 +625,7 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
+     * @param trackTotalHits
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
@@ -628,7 +634,7 @@ public class DbRequest {
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int relativeDepth, Integer tenantId, final List<SortBuilder<?>> sorts, final int offset,
         final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
-        DynamicParserTokens parserTokens)
+        DynamicParserTokens parserTokens, boolean trackTotalHits)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         QueryBuilder roots;
@@ -665,7 +671,7 @@ public class DbRequest {
         final Result<MetadataDocument<?>> result =
             MetadataCollections.UNIT.getEsClient()
                 .search(MetadataCollections.UNIT, tenantId, query, sorts, offset, limit, facets, scrollId,
-                    scrollTimeout);
+                    scrollTimeout, trackTotalHits);
 
         LOGGER.debug("UnitRelative: {}", result);
 
@@ -723,6 +729,7 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
+     * @param trackTotalHits
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
@@ -731,7 +738,7 @@ public class DbRequest {
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder<?>> sorts, final int offset, final int limit,
         final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
-        DynamicParserTokens parserTokens)
+        DynamicParserTokens parserTokens, boolean trackTotalHits)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query =
@@ -748,7 +755,7 @@ public class DbRequest {
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.UNIT.getEsClient()
             .search(MetadataCollections.UNIT, tenantId, finalQuery, sorts, offset, limit, facets, scrollId,
-                scrollTimeout);
+                scrollTimeout, trackTotalHits);
     }
 
     /**
@@ -760,6 +767,7 @@ public class DbRequest {
      * @param sorts
      * @param offset
      * @param limit
+     * @param trackTotalHits
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
@@ -768,7 +776,7 @@ public class DbRequest {
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder<?>> sorts, final int offset, final int limit,
         final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets,
-        DynamicParserTokens parserTokens)
+        DynamicParserTokens parserTokens, boolean trackTotalHits)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query =
@@ -789,7 +797,7 @@ public class DbRequest {
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.OBJECTGROUP.getEsClient()
             .search(MetadataCollections.OBJECTGROUP, tenantId, finalQuery, sorts, offset, limit, facets, scrollId,
-                scrollTimeout);
+                scrollTimeout, trackTotalHits);
     }
 
     /**

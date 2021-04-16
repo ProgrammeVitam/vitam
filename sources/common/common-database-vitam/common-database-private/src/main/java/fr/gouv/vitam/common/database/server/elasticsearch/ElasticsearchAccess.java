@@ -441,19 +441,27 @@ public class ElasticsearchAccess implements DatabaseConnection {
         final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
         int offset, Integer limit)
         throws DatabaseException, BadRequestException {
-        return search(indexAlias, query, filter, esProjection, sorts, offset, limit, null, null, null);
+        return search(indexAlias, query, filter, esProjection, sorts, offset, limit, null, null, null, false);
     }
 
     public final SearchResponse searchCrossIndices(Set<ElasticsearchIndexAlias> indexAliases,
-                                       final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
-                                       int offset, Integer limit,
-                                       final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
+        int offset, Integer limit,
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        boolean trackTotalHits)
             throws DatabaseException, BadRequestException {
         SearchResponse response;
         SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.searchSource()
                 .explain(false)
                 .query(query)
                 .size(VitamConfiguration.getElasticSearchScrollLimit());
+
+
+        if (trackTotalHits) {
+            // Enable trackTotalHits flag to compute total result set count (not 10000 since ES 7.0)
+            // Warning, only call trackTotalHits setter only for "true". Setting "false" causes $hits to not be computed
+            searchSourceBuilder.trackTotalHits(true);
+        }
 
         if (null != filter) {
             searchSourceBuilder.postFilter(filter);
@@ -529,10 +537,10 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public final SearchResponse search(ElasticsearchIndexAlias indexAlias,
         final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder<?>> sorts,
         int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, boolean trackTotalHits)
         throws DatabaseException, BadRequestException {
         return searchCrossIndices(Set.of(indexAlias), query, filter,  esProjection,  sorts,
-        offset, limit, facets, scrollId, scrollTimeout);
+        offset, limit, facets, scrollId, scrollTimeout, trackTotalHits);
     }
 
     public void clearScroll(String scrollId) throws DatabaseException {

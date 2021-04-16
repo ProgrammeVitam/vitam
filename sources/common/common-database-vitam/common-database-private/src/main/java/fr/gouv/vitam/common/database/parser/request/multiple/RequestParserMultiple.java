@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
@@ -385,7 +386,14 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         return FILTERARGS.UNITS;
     }
 
-
+    /**
+     * Returns whether total hits is computed (defaults to false).
+     * See ES documentation for more details on "track_total_hits"
+     */
+    public boolean trackTotalHits() {
+        final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.TRACK_TOTAL_HITS.exactToken());
+        return jsonNode != null && jsonNode.isBoolean() && jsonNode.booleanValue();
+    }
 
     /**
      * get ScrollId
