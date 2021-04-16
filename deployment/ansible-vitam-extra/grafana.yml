@@ -3,5 +3,4 @@
 - hosts: grafana
   roles:
     - role: grafana
-      tags: [tag_grafana, update_prometheus_configuration]
-      when: grafana.enabled == true
+      tags: [grafana, update_prometheus_configuration]

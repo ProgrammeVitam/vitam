@@ -176,7 +176,6 @@ prometheus:
         api_port: 19093
         cluster_port: 19094
 grafana:
-    enabled: false
     check_consul: 10 # in seconds
     http_port: 13000
 
