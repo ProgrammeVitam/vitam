@@ -1,20 +1,6 @@
 ---
 
 #### Grafana installation ####
-- name: Set command for CentOS
-  set_fact:
-    check_grafana_version: "rpm -q grafana"
-  when: ansible_os_family == "RedHat"
-
-- name: Set command for Debian
-  set_fact:
-    check_grafana_version: "dpkg-query -l  'grafana'"
-  when: ansible_os_family == "Debian"
-
-- name: checking whether grafana is already installed
-  shell : "{{ check_grafana_version }}"
-  register: is_installed
-  ignore_errors: true
 
 - name: Install vitam-grafana package
   package:
