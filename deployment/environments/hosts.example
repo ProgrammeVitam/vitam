@@ -299,7 +299,7 @@ hosts_kibana_data
 log_servers
 hosts_elasticsearch_log
 prometheus
-grafana
+hosts_grafana
 
 [hosts_cerebro]
 # TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
@@ -344,8 +344,8 @@ hosts_alertmanager
 # TODO: Put here servers where this service will be deployed : alertmanager
 
 
-[grafana]
-# TODO: Put here servers where this service will be deployed : grafana
+[hosts_grafana]
+# TODO: Put here servers where this service will be deployed : grafana-server
 
 
 ########### Global vars ###########
