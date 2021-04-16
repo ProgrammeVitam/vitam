@@ -1,6 +1,6 @@
 ---
 
-- hosts: grafana
+- hosts: hosts_grafana
   roles:
     - role: grafana
       tags: [grafana, update_prometheus_configuration]

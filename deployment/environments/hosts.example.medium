@@ -183,7 +183,7 @@ hosts_kibana_data
 log_servers
 hosts_elasticsearch_log
 prometheus
-grafana
+hosts_grafana
 
 [hosts_cerebro]
 medium-admin-vm-1
@@ -221,7 +221,7 @@ hosts_alertmanager
 
 [hosts_alertmanager]
 
-[grafana]
+[hosts_grafana]
 
 ########### Global vars ###########
 
