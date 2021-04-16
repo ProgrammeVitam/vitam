@@ -7,8 +7,6 @@
 
 [hosts:children]
 vitam
-prometheus
-grafana
 reverse
 hosts_dev_tools
 ldap
@@ -16,18 +14,6 @@ ldap
 ########### Tests environments specifics ###########
 
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
-
-########### Extra VITAM applications ###########
-[prometheus:children]
-hosts_prometheus
-hosts_alertmanager
-
-[hosts_prometheus]
-
-[hosts_alertmanager]
-
-[grafana]
-
 
 [ldap] # Extra : OpenLDAP server
 
@@ -226,6 +212,8 @@ hosts_consul_server
 hosts_kibana_data
 log_servers
 hosts_elasticsearch_log
+prometheus
+grafana
 
 [hosts_cerebro]
 xlarge-admin-vm-1
@@ -252,6 +240,17 @@ xlarge-admin-vm-1
 xlarge-admin-vm-3
 xlarge-admin-vm-4
 xlarge-admin-vm-5
+
+########### Extra VITAM applications ###########
+[prometheus:children]
+hosts_prometheus
+hosts_alertmanager
+
+[hosts_prometheus]
+
+[hosts_alertmanager]
+
+[grafana]
 
 ########### Global vars ###########
 
