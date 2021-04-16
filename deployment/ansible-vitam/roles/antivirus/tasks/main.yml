@@ -8,7 +8,7 @@
     state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - name: "Copy antivirus scripts & apply correct rights"
   copy:
@@ -20,3 +20,6 @@
 
 - include_tasks: clamav.yml
   when: vitam_struct.antivirus == 'clamav'
+
+- include_tasks: avast.yml
+  when: vitam_struct.antivirus == 'avast'

@@ -1,0 +1,5 @@
+{% if avast.whitelist is defined %}
+{% for hash in avast.whitelist %}
+{{ hash }}
+{% endfor %}
+{% endif %}
