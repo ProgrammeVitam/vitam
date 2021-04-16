@@ -44,8 +44,6 @@ Voici la liste des greffons disponibles au moment de la présente publication :
 
 .. warning:: Ne pas oublier d'avoir déclaré au préalable sur les machines cibles le dépôt de binaires associé aux *griffins*.
 
-.. _confantivirus:
-
 
 Rétention liée aux logback
 ===========================
@@ -66,6 +64,8 @@ Cas des access_log
 Il est également possible d'appliquer un paramétrage différent par composant VITAM sur le logback *access*.
 
 Editer le fichier ``environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
+
+.. _confantivirus:
 
 Paramétrage de l'antivirus (ingest-external)
 ============================================
@@ -88,6 +88,48 @@ L'antivirus utilisé par ingest-external est modifiable (par défaut, ClamAV) ; 
 .. caution:: En cas de remplacement de clamAV par un autre antivirus, l'installation de celui-ci devient dès lors un prérequis de l'installation et le script doit être testé.
 
 .. warning:: Sur plate-forme Debian, ClamAV est installé sans base de données. Pour que l'antivirus soit fonctionnel, il est nécessaire, durant l'installation, de le télécharger ; il est donc nécessaire de renseigner dans l'inventaire la directive ``http_proxy_environnement``.
+
+
+Extra: Avast Business Antivirus for Linux
+-----------------------------------------
+
+.. note:: Avast étant un logiciel soumis à licence, Vitam ne fournit pas de support ni de licence nécessaire à l'utilisation de Avast Antivirus for Linux.
+
+  Vous trouverez plus d'informations sur le site officiel : `Avast Business Antivirus for Linux <https://www.avast.com/fr-fr/business/products/linux-antivirus>`_
+
+..
+
+À la place de clamAV, il est possible de déployer l'antivirus **Avast Business Antivirus for Linux**.
+
+Pour se faire, il suffit d'éditer la variable ``vitam.ingestexternal.antivirus: avast`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``.
+
+Il sera nécessaire de fournir le fichier de licence sous ``deployment/environments/antivirus/license.avastlic`` pour pouvoir deployer et utiliser l'antivirus Avast.
+
+De plus, il est possible de paramétrer l'accès aux repositories (Packages & Virus definitions database) dans le fichier ``deployment/environments/group_vars/all/cots_vars.yml``.
+
+Si les paramètres ne sont pas définis, les valeurs suivantes sont appliquées par défaut.
+
+.. code-block:: yaml
+
+  ## Avast Business Antivirus for Linux
+  ## if undefined, the following default values are applied.
+  avast:
+      manage_repository: true
+      repository:
+          state: present
+          # For CentOS
+          baseurl: http://rpm.avast.com/lin/repo/dists/rhel/release
+          gpgcheck: no
+          proxy: _none_
+          # For Debian
+          baseurl: 'deb http://deb.avast.com/lin/repo debian-buster release'
+      vps_repository: http://linux-av.u.avcdn.net/linux-av/avast/x86_64
+      ## List of sha256 hash of excluded files from antivirus. Useful for test environments.
+      whitelist:
+          - <EMPTY>
+
+..
+
 
 Paramétrage des certificats externes (\*-externe)
 =================================================

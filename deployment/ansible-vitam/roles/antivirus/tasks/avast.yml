@@ -1,0 +1,115 @@
+---
+
+- name: ensure {{ vitam_defaults.folder.root_path }}/conf/avast exists
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/conf/avast"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: Copy Avast public key for repository
+  copy:
+    src: files/avast/avast.gpg
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/avast/avast.gpg"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+
+# RedHat config
+- block:
+
+  - name: Configure YUM repository for Avast
+    yum_repository:
+      name: avast
+      description: Avast YUM repo
+      baseurl: "{{ avast.repository.baseurl | default('http://rpm.avast.com/lin/repo/dists/rhel/release') }}"
+      gpgcheck: "{{ avast.repository.gpgcheck | default('no') }}"
+      state: "{{ avast.repository.state | default('present') }}"
+      proxy: "{{ avast.repository.proxy | default('_none_') }}"
+
+  - name: Add Avast public rpm_key
+    rpm_key:
+      key: "{{ vitam_defaults.folder.root_path }}/conf/avast/avast.gpg"
+      state: "{{ avast.repository.state | default('present') }}"
+    when: avast.repository.gpgcheck | default('no') | bool == true
+
+  when:
+    - ansible_os_family == "RedHat"
+    - avast.manage_repository | default(true) | bool == true
+
+# Debian config
+- block:
+
+  - name: Configure DEB repository for Avast
+    apt_repository:
+      filename: avast
+      repo: "{{ avast.repository.baseurl | default('deb http://deb.avast.com/lin/repo debian-buster release') }}"
+      state: "{{ avast.repository.state | default('present') }}"
+
+  # Or configure: echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/99unauthenticated
+  - name: Add Avast public apt_key
+    apt_key:
+      file: "{{ vitam_defaults.folder.root_path }}/conf/avast/avast.gpg"
+      state: "{{ avast.repository.state | default('present') }}"
+
+  when:
+    - ansible_os_family == "Debian"
+    - avast.manage_repository | default(true) | bool == true
+
+- name: Install Avast package
+  package:
+    name: avast
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+
+- name: Adding {{ vitam_defaults.users.group }} group to avast so it can scan {{ vitam_defaults.users.group }}-based files
+  user:
+    name: avast
+    groups: "{{ vitam_defaults.users.group }}"
+    append: yes
+
+- name: Insert Avast license file
+  copy:
+    src: "{{ inventory_dir }}/antivirus/license.avastlic"
+    dest: /etc/avast/license.avastlic
+    owner: avast
+    group: avast
+    mode: 0600
+  notify: restart avast
+
+- name: Configure VPS repository
+  template:
+    src: avast/vps.conf.j2
+    dest: /etc/avast/vps.conf
+    owner: avast
+    group: avast
+    mode: 0640
+
+# VPS is downloaded during the installation of avast package, unless the VPS repository wasn't properly configured.
+# So we need to download it once to properly start avast service.
+- name: Update Avast VPS
+  command: /var/lib/avast/Setup/avast.vpsupdate
+  args:
+    creates: /var/lib/avast/Setup/filedir/vps9.raw
+  notify: restart avast
+
+- name: Create whitelist file
+  template:
+    src: avast/whitelist.j2
+    dest: /etc/avast/whitelist
+    owner: avast
+    group: avast
+    mode: 0640
+  notify: restart avast
+
+- meta: flush_handlers
+
+- name: Ensure Avast daemon is started at boot
+  service:
+    name: avast
+    enabled: yes
+    state: started
