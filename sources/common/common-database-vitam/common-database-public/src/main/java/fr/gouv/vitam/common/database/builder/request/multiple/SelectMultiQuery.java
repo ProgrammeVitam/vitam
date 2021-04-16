@@ -130,6 +130,22 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
+     * @param trackTotalHits to set. false (default) to return approximative total hits, true to return exact total hits
+     * @return this Query
+     */
+    public final SelectMultiQuery trackTotalHits(boolean trackTotalHits) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        if(trackTotalHits) {
+            filter.put(BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken(), true);
+        } else {
+            filter.remove(BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken());
+        }
+        return this;
+    }
+
+    /**
      * @param filter string filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid

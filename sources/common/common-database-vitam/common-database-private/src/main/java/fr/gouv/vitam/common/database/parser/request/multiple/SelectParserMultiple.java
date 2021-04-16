@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.facet.Facet;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
@@ -70,7 +71,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
 
     /**
      * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter, $projection :
-     *        projection }
+     * projection }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -88,6 +89,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
         projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
         facetsParse(rootNode.get(GLOBAL.FACETS.exactToken()));
         thresholdParse(rootNode.get(GLOBAL.THRESOLD.exactToken()));
+        parseTrackTotalHits(rootNode);
     }
 
     /**
@@ -133,7 +135,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
 
     /**
      * Get the facet command
-     * 
+     *
      * @param facet facet
      * @return FACET command
      * @throws InvalidParseOperationException when valid command could not be found
@@ -150,6 +152,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
 
     /**
      * Generate a Facet from a Json + command
+     *
      * @param facet facet as json
      * @param facetCommand facet command
      * @return Facet
@@ -218,6 +221,26 @@ public class SelectParserMultiple extends RequestParserMultiple {
             throw new InvalidParseOperationException(
                 "Parse in error for Action: " + rootNode, e);
         }
+    }
+
+    protected void parseTrackTotalHits(JsonNode rootNode) throws InvalidParseOperationException {
+
+        if (!rootNode.has(GLOBAL.FILTER.exactToken())) {
+            return;
+        }
+
+        JsonNode filterNode = rootNode.get(GLOBAL.FILTER.exactToken());
+        if (!filterNode.has(BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken())) {
+            return;
+        }
+
+        JsonNode trackTotalHits = filterNode.get(BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken());
+
+        if (!trackTotalHits.isBoolean()) {
+            throw new InvalidParseOperationException("Invalid trackTotalHits node format");
+        }
+
+        ((SelectMultiQuery) request).trackTotalHits(trackTotalHits.asBoolean());
     }
 
     @Override
