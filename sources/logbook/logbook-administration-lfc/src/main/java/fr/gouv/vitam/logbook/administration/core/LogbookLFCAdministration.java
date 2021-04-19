@@ -154,7 +154,7 @@ public class LogbookLFCAdministration {
                     VitamLogbookMessages.getCodeOp(workflowContext.getEventType(), StatusCode.STARTED),
                     traceabilityOperationGUID);
             LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersStart);
-            createLogBookEntry(logbookUpdateParametersStart);
+            logbookOperations.create(logbookUpdateParametersStart);
             try {
                 createContainer(traceabilityOperationGUID.getId());
 
@@ -193,7 +193,7 @@ public class LogbookLFCAdministration {
                                 StatusCode.KO),
                             traceabilityOperationGUID);
                 LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersEnd);
-                updateLogBookEntry(logbookUpdateParametersEnd);
+                logbookOperations.update(logbookUpdateParametersEnd);
                 throw e;
             }
         }
@@ -208,32 +208,6 @@ public class LogbookLFCAdministration {
                 return Contexts.OBJECTGROUP_LFC_TRACEABILITY;
             default:
                 throw new IllegalStateException("Unknown traceability type " + lfcTraceabilityType);
-        }
-    }
-
-    /**
-     * Create a LogBook Entry related to object's creation
-     *
-     * @param logbookParametersStart
-     */
-    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
-        try {
-            logbookOperations.create(logbookParametersStart);
-        } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
-            LOGGER.error(e.getMessage());
-        }
-    }
-
-    /**
-     * Create a LogBook Entry related to object's update
-     *
-     * @param logbookParametersEnd
-     */
-    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
-        try {
-            logbookOperations.update(logbookParametersEnd);
-        } catch (LogbookNotFoundException | LogbookDatabaseException e) {
-            LOGGER.error(e.getMessage());
         }
     }
 
