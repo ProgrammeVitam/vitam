@@ -245,6 +245,9 @@ cerebro:
     baseuri: "cerebro"
     port: 9000
     check_consul: 10 # in seconds
+    # logs configuration
+    logrotate: enabled # or disabled
+    history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
 
 siegfried:
     port: 19000
