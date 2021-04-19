@@ -52,7 +52,7 @@
   notify:
     - restart cerebro
 
-- name: aply custom configuration
+- name: apply cerebro custom configuration
   template:
     src: application.conf.j2
     dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/application.conf"
@@ -62,7 +62,7 @@
   notify:
     - restart cerebro
 
-- name: ensure sysconfig subdir is present
+- name: ensure cerebro sysconfig subdir is present
   file:
     path: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig"
     state: directory
@@ -70,7 +70,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
 
-- name: aply custom configuration
+- name: apply cerebro sysconfig custom configuration
   template:
     src: cerebro.j2
     dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig/cerebro"
@@ -79,6 +79,39 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart cerebro
+
+- name: Ensure cerebro log dir is present
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/log/cerebro/"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: apply cerebro custom configuration for logs
+  template:
+    src: logback.xml.j2
+    dest: "{{ vitam_defaults.folder.root_path }}/app/cerebro/conf/logback.xml"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  notify:
+    - restart cerebro
+
+- name: Enable logrotate for cerebro
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/cerebro
+    owner: root
+    group: root
+    mode: 0644
+  when: cerebro.logrotate | default('enabled') | lower == 'enabled'
+
+- name: Disable logrotate for cerebro
+  file:
+    path: /etc/logrotate.d/cerebro
+    state: absent
+  when: cerebro.logrotate | default('enabled') | lower == 'disabled'
 
 - name: Add vitam-elasticsearch-cerebro autostart at boot
   service:
