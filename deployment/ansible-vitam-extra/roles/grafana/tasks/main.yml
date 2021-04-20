@@ -1,7 +1,4 @@
 ---
 
-- include_tasks: grafana_server_enabled.yml
-  when: grafana.enabled == true
+- include_tasks: install.yml
 
-- include_tasks: grafana_server_disabled.yml
-  when: grafana.enabled != true
