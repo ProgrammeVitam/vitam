@@ -34,12 +34,16 @@ tenant_to_clean_before_tnr: ["0","1"]
 
 # Period units in seconds
 metricbeat:
+    enabled: false
     system:
         period: 10
     mongodb:
         period: 10
     elasticsearch:
         period: 10
+
+packetbeat:
+    enabled: false
 
 docker_opts:
     registry_httponly: yes
