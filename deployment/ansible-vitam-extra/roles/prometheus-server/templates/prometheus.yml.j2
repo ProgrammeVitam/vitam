@@ -1,7 +1,7 @@
 # my global config
 global:
-  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  scrape_interval:     {{ prometheus.server.scrape_interval | default(15) }}s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: {{ prometheus.server.evaluation_interval | default(15) }}s # Evaluate rules every 15 seconds. The default is every 1 minute.
   # scrape_timeout is set to the global default (10s).
 
 # Alertmanager configuration
@@ -11,7 +11,7 @@ alerting:
     - targets:
     # - alertmanager:9093
 {% for host in groups['hosts_alertmanager'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{prometheus.alertmanager.api_port}}
+      - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.alertmanager.api_port | default(9093) }}
 {% endfor %}
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
@@ -22,150 +22,152 @@ rule_files:
 {% endfor %}
 
 scrape_configs:
+{% if prometheus.node_exporter.enabled | default(true) | bool == true %}
   - job_name: vitam-node-exporter
-    metrics_path: {{ prometheus.node_exporter.metrics_path }}
+    metrics_path: {{ prometheus.node_exporter.metrics_path | default('/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['vitam'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{prometheus.node_exporter.port}}
+      - {{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}
 {% endfor %}
+{% endif %}
 
 {% if (groups['hosts_access_internal']|length >0) %}
   - job_name: vitam-access-internal
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_access_internal'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.accessinternal.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.accessinternal.port_admin | default(28101) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_access_external']|length >0) %}
   - job_name: vitam-access-external
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_access_external'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.accessexternal.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.accessexternal.port_admin | default(28102) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_ingest_internal']|length >0) %}
   - job_name: vitam-ingest-internal
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_ingest_internal'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestinternal.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestinternal.port_admin | default(28100) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_ingest_external']|length >0) %}
   - job_name: vitam-ingest-external
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_ingest_external'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestexternal.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestexternal.port_admin | default(28001) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_metadata']|length >0) %}
   - job_name: vitam-metadata
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_metadata'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin | default(28200) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_ihm_demo']|length >0) %}
   - job_name: vitam-ihm-demo
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_ihm_demo'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ihm_demo.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ihm_demo.port_admin | default(28002) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_ihm_recette']|length >0) %}
   - job_name: vitam-ihm-recette
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_ihm_recette'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ihm_recette.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.ihm_recette.port_admin | default(28204) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_logbook']|length >0) %}
   - job_name: vitam-logbook
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_logbook'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.logbook.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.logbook.port_admin | default(29002) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_workspace']|length >0) %}
   - job_name: vitam-workspace
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_workspace'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.workspace.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.workspace.port_admin | default(28201) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_processing']|length >0) %}
   - job_name: vitam-processing
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_processing'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin | default(28203) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_worker']|length >0) %}
   - job_name: vitam-worker
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_worker'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.worker.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.worker.port_admin | default(29104) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_storage_engine']|length >0) %}
   - job_name: vitam-storage-engine
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_storage_engine'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin | default(29102) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_storage_offer_default']|length >0) %}
   - job_name: vitam-storage-offer-default
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_storage_offer_default'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin | default(29900) }}
 {% endfor %}
 {% endif %}
 
 {% if (groups['hosts_functional_administration']|length >0) %}
   - job_name: vitam-functional-administration
-    metrics_path: {{ prometheus.metrics_path }}
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     - targets:
 {% for host in groups['hosts_functional_administration'] %}
-      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.functional_administration.port_admin | default(18004) }}
 {% endfor %}
 {% endif %}

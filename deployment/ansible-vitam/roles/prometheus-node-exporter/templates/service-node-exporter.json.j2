@@ -1,15 +1,15 @@
 {
   "service": {
     "name": "node_exporter",
-    "port": {{ prometheus.node_exporter.port }},
+    "port": {{ prometheus.node_exporter.port | default(9101) }},
     "address": "{{ ip_admin }}",
     "tags": ["monitor", "node_exporter","vitam-node-exporter"],
     "checks": [
         {
-          "name": "Prometheus node exporter : TCP check",
+          "name": "Prometheus node_exporter : TCP check",
           "notes": "Status node_exporter",
-          "tcp": "{{ ip_admin }}:{{ prometheus.node_exporter.port }}",
-          "interval": "{{ prometheus.check_consul }}s"
+          "tcp": "{{ ip_admin }}:{{ prometheus.node_exporter.port | default(9101) }}",
+          "interval": "{{ prometheus.check_consul | default(10) }}s"
         }
     ]
   }

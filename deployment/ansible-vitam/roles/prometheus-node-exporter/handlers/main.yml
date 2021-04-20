@@ -1,6 +1,6 @@
 ---
 
-# handlers file for common
+# handlers for prometheus node_exporter
 - name: reload consul configuration
   service:
     name: vitam-consul
