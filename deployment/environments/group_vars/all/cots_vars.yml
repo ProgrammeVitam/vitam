@@ -177,8 +177,8 @@ prometheus:
         cluster_port: 19094
 grafana:
     check_consul: 10 # in seconds
-    host: "{% if groups['grafana']|length > 0 %} {{ groups['grafana']|first }} {% endif %}"
-    http_port: 13000
+    host: "{% if groups['hosts_grafana']|length > 0 %} {{ groups['hosts_grafana']|first }} {% endif %}"
+    http_port: 3000
     grafana_datasources:
       - name: "Prometheus"
         type: "prometheus"

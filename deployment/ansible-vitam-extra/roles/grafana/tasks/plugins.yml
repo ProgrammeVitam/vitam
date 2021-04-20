@@ -20,6 +20,5 @@
   environment:
       http_proxy: "{{ http_proxy_environnement }}"
       https_proxy: "{{ http_proxy_environnement }}"
-  notify:
-    - restart grafana
+  notify: restart grafana
   ignore_errors: true

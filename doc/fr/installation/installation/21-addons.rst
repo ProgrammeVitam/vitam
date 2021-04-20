@@ -566,32 +566,16 @@ Veuillez vous référer à la documentation d'exploitation pour plus d'informati
 ..
 
 
-Installation de grafana
+Installation de Grafana
 =======================
 
-.. note:: Si vous disposez déjà d'un Grafana server, vous pouvez l'utiliser pour l'interconnecter au serveur prometheus.
+.. note:: Si vous disposez déjà d'un Grafana, vous pouvez l'utiliser pour l'interconnecter au serveur Prometheus.
 
-Grafana server est un addon dans la solution :term:`VITAM`. Il possible de l'installer/désinstaller via la configuration dans le fichier ``cots_var.yml``.
-Voici à quoi correspond une configuration qui permettra d'installer ce serveur.
+Grafana est un addon dans la solution :term:`VITAM`.
 
-.. code-block:: yaml
+Grafana sera déployé sur l'ensemble des machines renseignées dans le groupe ``[hosts_grafana]`` de votre fichier d'inventaire.
 
-    grafana:
-        enabled: true
-        check_consul: 10 # in seconds
-        http_port: 13000
-..
-
-- L'adresse d'écoute de ces composants est celle de la patte d'administration.
-- Vous pouvez surcharger le numéro de port d'écoute.
-- Pour désinstaller ou désactiver un composant il suffit de mettre la valeur de ``enabled`` à ``false``
-
-Playbook ansible
-----------------
-
-Veuillez vous référer à la documentation d'exploitation pour plus d'informations.
-
-* Installer Grafana
+Pour se faire, il suffit d'exécuter le playbook associée :
 
 .. code-block:: bash
 
@@ -601,18 +585,24 @@ Veuillez vous référer à la documentation d'exploitation pour plus d'informati
 Configuration
 -------------
 
-Dans le cas ou le serveur grafana est dernière un serveur proxy, vous devez apporter des modification au fichier de configuration ``grafana.conf.j2``
+Les paramères de configuration de ce composant se trouvent dans le fichier ``environments/group_vars/all/cots_var.yml``. Vous pouvez adapter la configuration en fonction de vos besoins.
 
-Voici les variables modifiées par la solution :term:`VITAM` pour que ça marche derrière le proxy apache.
+Configuration spécifique derrière un proxy
+------------------------------------------
+
+Si Grafana est déployé derrière un proxy, vous devez apporter des modification au fichier de configuration ``ansible-vitam-extra/roles/grafana/templates/grafana.ini.j2``
+
+Voici les variables modifiées par la solution :term:`VITAM` pour permettre le fonctionnement de Grafana derrière un proxy apache.
 
 .. code-block:: text
 
     [server]
-    root_url = http://{{ ip_admin }}:{{grafana.http_port}}/grafana
+    root_url = http://{{ ip_admin }}:{{ grafana.http_port | default(3000) }}/grafana
     serve_from_sub_path = true
 
     [auth.basic]
     enabled = false
+
 ..
 
-.. warning:: Lors de la première connexion, vous devrez changer le mot de passe par défaut (login: admin; password: admin) et configurer le datasource et créer/importer les dashboards manuellement.
+.. warning:: Lors de la première connexion, vous devrez changer le mot de passe par défaut (login: admin; password: aadmin1234), configurer le datasource et créer/importer les dashboards manuellement.

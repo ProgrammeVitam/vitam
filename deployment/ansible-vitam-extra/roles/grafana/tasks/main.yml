@@ -1,7 +1,7 @@
 ---
 
-- include_tasks: "{{ item }}"
-  loop:
-    - grafana_server_enabled.yml
-    - plugins.yml
-    - provisioning.yml
+- include_tasks: install.yml
+
+- include_tasks: plugins.yml
+
+- include_tasks: provisioning.yml
