@@ -514,12 +514,13 @@ La mise en oeuvre de SELinux est prise en charge par le processus de déploiemen
 * Procéder à l'installation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d’installation classique décrite dans le DIN
 
 
-Installation de la stack prometheus
+Installation de la stack Prometheus
 ===================================
 
-.. note:: Si vous disposez d'un prometheus server et alertmanager déjà existant, vous pouvez juste installer ``node_exporter``
+.. note:: Si vous disposez d'un serveur Prometheus et alertmanager, vous pouvez installer uniquement ``node_exporter``.
 
-Prometheus server et alertmanager sont des addons dans la solution :term:`VITAM`. Il possible de les installer ou désinstaller via la configuration dans le fichier ``cots_var.yml``.
+Prometheus server et alertmanager sont des addons dans la solution :term:`VITAM`.
+
 Voici à quoi correspond une configuration qui permettra d'installer toute la stack prometheus.
 
 .. code-block:: yaml
@@ -529,25 +530,23 @@ Voici à quoi correspond une configuration qui permettra d'installer toute la st
         check_consul: 10 # in seconds
         prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
         server:
-            enabled: true
-            port: 19090
+            port: 9090
         node_exporter:
             enabled: true
-            port: 19100
+            port: 9101
             metrics_path: /metrics
         alertmanager:
-            enabled: true
-            api_port: 19093
-            cluster_port: 19094
+            api_port: 9093
+            cluster_port: 9094
 ..
 
 - L'adresse d'écoute de ces composants est celle de la patte d'administration.
 - Vous pouvez surcharger la valeur de certaines de ces variables (Par exemple le port d'écoute, le path de l'API).
-- Pour désinstaller ou désactiver un composant de la stack prometheus il suffit de mettre la valeur de ``enabled`` de ce composant à ``false``
 - Pour générer uniquement le fichier de configuration prometheus.yml à partir du fichier d'inventaire de l'environnement en question, il suffit de spécifier le répertoire destination dans la variable ``prometheus_config_file_target_directory``
 
 Playbooks ansible
 -----------------
+
 Veuillez vous référer à la documentation d'exploitation pour plus d'information.
 
 * Installer prometheus et alertmanager

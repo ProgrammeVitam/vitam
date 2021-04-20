@@ -1,15 +1,15 @@
 {
   "service": {
-    "name": "Prometheus server",
-    "port": {{ prometheus.server.port }},
+    "name": "prometheus-server",
+    "port": {{ prometheus.server.port | default(9090) }},
     "enable_tag_override": false,
     "tags": ["prometheus"],
     "checks": [
       {
-        "name": "Prometheus server : TCP check",
-        "notes": "Status prometheus server",
-        "tcp": "{{ ip_admin }}:{{ prometheus.server.port }}",
-        "interval": "{{ prometheus.check_consul }}s"
+        "name": "prometheus-server : TCP check",
+        "notes": "Status prometheus-server",
+        "tcp": "{{ ip_admin }}:{{ prometheus.server.port | default(9090) }}",
+        "interval": "{{ prometheus.check_consul | default(10) }}s"
       }
     ]
   }
