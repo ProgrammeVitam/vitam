@@ -4,18 +4,18 @@
   template:
     src: datasources.yml.j2
     dest: "{{ grafana_path_provisioning }}/datasources/datasources.yml"
-    owner: "root"
+    owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: 0640
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
   notify: restart grafana
 
 - name: Copy vitam dashboard json file to provisioning dashboard folder
   copy:
     src: vitam_standard_dashboard.json
     dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
-    owner: "root"
+    owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: 0640
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
 
 - name: Set the correct data source name in the dashboard for prometheus
   replace:
@@ -37,7 +37,7 @@
   template:
     src: dashboards.yml.j2
     dest: "{{ grafana_path_provisioning }}/dashboards/dashboards.yml"
-    owner: "root"
+    owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: 0640
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
   notify: restart grafana

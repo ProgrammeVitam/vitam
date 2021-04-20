@@ -1,4 +1,4 @@
-##################### Grafana Configuration Example #####################
+######################### Grafana Configuration ################################
 #
 # Everything has defaults so you only need to uncomment things you want to
 # change
@@ -9,7 +9,7 @@
 # instance name, defaults to HOSTNAME environment variable value or hostname if HOSTNAME var is empty
 ;instance_name = ${HOSTNAME}
 
-#################################### Paths ####################################
+#################################### Paths #####################################
 [paths]
 # Path to where grafana can store temp files, sessions, and the sqlite3 db (if that is used)
 ;data = /var/lib/grafana
@@ -18,7 +18,7 @@
 ;temp_data_lifetime = 24h
 
 # Directory where grafana can store logs
-;logs = /var/log/grafana
+logs = {{ vitam_defaults.folder.root_path | default('/vitam') }}/log/grafana
 
 # Directory where grafana will automatically scan and look for plugins
 ;plugins = /var/lib/grafana/plugins
@@ -34,8 +34,8 @@
 # The ip address to bind to, empty will bind to all interfaces
 ;http_addr =
 
-# The http port  to use
-http_port = {{ grafana.http_port }}
+# The http port to use
+http_port = {{ grafana.http_port | default(3000) }}
 
 # The public facing domain name used to access grafana from a browser
 ;domain = localhost
@@ -50,10 +50,11 @@ http_port = {{ grafana.http_port }}
 
 # Serve Grafana from subpath specified in `root_url` setting. By default it is set to `false` for compatibility reasons.
 ;serve_from_sub_path = false
-############################## VITAM added this, if you dont use reverse proxy, remove following two lines ##############################
-root_url = http://{{ ip_admin }}:{{grafana.http_port}}/grafana
+################################################################################
+# VITAM added this, if you dont use reverse proxy, remove following two lines  #
+root_url = http://{{ ip_admin }}:{{ grafana.http_port | default(3000) }}/grafana
 serve_from_sub_path = true
-############################## VITAM END ##############################
+################################## VITAM END ###################################
 # Log web requests
 ;router_logging = false
 
@@ -70,7 +71,7 @@ serve_from_sub_path = true
 # Unix socket path
 ;socket =
 
-#################################### Database ####################################
+#################################### Database ##################################
 [database]
 # You can configure the database connection by specifying type, host, name, user and password
 # as separate properties or as on string using the url properties.
@@ -113,7 +114,7 @@ serve_from_sub_path = true
 # For "sqlite3" only. cache mode setting used for connecting to the database. (private, shared)
 ;cache_mode = private
 
-#################################### Cache server #############################
+################################# Cache server #################################
 [remote_cache]
 # Either "redis", "memcached" or "database" default is "database"
 ;type = database
@@ -124,7 +125,7 @@ serve_from_sub_path = true
 # memcache: 127.0.0.1:11211
 ;connstr =
 
-#################################### Data proxy ###########################
+################################## Data proxy ##################################
 [dataproxy]
 
 # This enables data proxy logging, default is false
@@ -136,20 +137,20 @@ serve_from_sub_path = true
 # If enabled and user is not anonymous, data proxy will add X-Grafana-User header with username into the request, default is false.
 ;send_user_header = false
 
-#################################### Analytics ####################################
+################################### Analytics ##################################
 [analytics]
 # Server reporting, sends usage counters to stats.grafana.org every 24 hours.
 # No ip addresses are being tracked, only simple counters to track
 # running instances, dashboard and error counts. It is very helpful to us.
 # Change this option to false to disable reporting.
-;reporting_enabled = true
+reporting_enabled = false
 
 # Set to false to disable all checks to https://grafana.net
 # for new vesions (grafana itself and plugins), check is used
 # in some UI views to notify that grafana or plugin update exists
 # This option does not cause any auto updates, nor send any information
 # only a GET request to http://grafana.com to get latest versions
-;check_for_updates = true
+check_for_updates = false
 
 # Google Analytics universal tracking code, only enabled if you specify an id here
 ;google_analytics_ua_id =
@@ -157,7 +158,7 @@ serve_from_sub_path = true
 # Google Tag Manager ID, only enabled if you specify an id here
 ;google_tag_manager_id =
 
-#################################### Security ####################################
+################################### Security ###################################
 [security]
 # disable creation of admin user on first start of grafana
 ;disable_initial_admin_creation = false
@@ -165,7 +166,7 @@ serve_from_sub_path = true
 # default admin user, created on startup
 admin_user = {{ grafana.admin_user }}
 
-# default admin password, can be changed before first start of grafana,  or in profile settings
+# default admin password, can be changed before first start of grafana, or in profile settings
 admin_password = {{ grafana.admin_password }}
 
 # used for signing
@@ -213,7 +214,7 @@ admin_password = {{ grafana.admin_password }}
 # when they detect reflected cross-site scripting (XSS) attacks. The default will change to true in the next minor release, 6.3.
 ;x_xss_protection = false
 
-#################################### Snapshots ###########################
+#################################### Snapshots #################################
 [snapshots]
 # snapshot sharing options
 ;external_enabled = true
@@ -227,7 +228,7 @@ admin_password = {{ grafana.admin_password }}
 # remove expired snapshot
 ;snapshot_remove_expired = true
 
-#################################### Dashboards History ##################
+############################## Dashboards History ##############################
 [dashboards]
 # Number dashboard versions to keep (per dashboard). Default: 20, Minimum: 1
 ;versions_to_keep = 20
@@ -236,7 +237,7 @@ admin_password = {{ grafana.admin_password }}
 # The interval string is a possibly signed sequence of decimal numbers, followed by a unit suffix (ms, s, m, h, d), e.g. 30s or 1m.
 ;min_refresh_interval = 5s
 
-#################################### Users ###############################
+#################################### Users #####################################
 [users]
 # disable user signup / registration
 ;allow_sign_up = true
@@ -306,7 +307,7 @@ admin_password = {{ grafana.admin_password }}
 # limit of api_key seconds to live before expiration
 ;api_key_max_seconds_to_live = -1
 
-#################################### Anonymous Auth ######################
+################################## Anonymous Auth ##############################
 [auth.anonymous]
 # enable anonymous access
 ;enabled = false
@@ -317,7 +318,7 @@ admin_password = {{ grafana.admin_password }}
 # specify role for unauthenticated users
 ;org_role = Viewer
 
-#################################### Github Auth ##########################
+#################################### Github Auth ###############################
 [auth.github]
 ;enabled = false
 ;allow_sign_up = true
@@ -331,7 +332,7 @@ admin_password = {{ grafana.admin_password }}
 ;team_ids =
 ;allowed_organizations =
 
-#################################### GitLab Auth #########################
+#################################### GitLab Auth ###############################
 [auth.gitlab]
 ;enabled = false
 ;allow_sign_up = true
@@ -344,7 +345,7 @@ admin_password = {{ grafana.admin_password }}
 ;allowed_domains =
 ;allowed_groups =
 
-#################################### Google Auth ##########################
+#################################### Google Auth ###############################
 [auth.google]
 ;enabled = false
 ;allow_sign_up = true
@@ -357,7 +358,7 @@ admin_password = {{ grafana.admin_password }}
 ;allowed_domains =
 ;hosted_domain =
 
-#################################### Grafana.com Auth ####################
+#################################### Grafana.com Auth ##########################
 [auth.grafana_com]
 ;enabled = false
 ;allow_sign_up = true
@@ -366,7 +367,7 @@ admin_password = {{ grafana.admin_password }}
 ;scopes = user:email
 ;allowed_organizations =
 
-#################################### Azure AD OAuth #######################
+#################################### Azure AD OAuth ############################
 [auth.azuread]
 ;name = Azure AD
 ;enabled = false
@@ -379,7 +380,7 @@ admin_password = {{ grafana.admin_password }}
 ;allowed_domains =
 ;allowed_groups =
 
-#################################### Okta OAuth #######################
+#################################### Okta OAuth ################################
 [auth.okta]
 ;name = Okta
 ;enabled = false
@@ -394,7 +395,7 @@ admin_password = {{ grafana.admin_password }}
 ;allowed_groups =
 ;role_attribute_path =
 
-#################################### Generic OAuth ##########################
+#################################### Generic OAuth #############################
 [auth.generic_oauth]
 ;enabled = false
 ;name = OAuth
@@ -416,13 +417,11 @@ admin_password = {{ grafana.admin_password }}
 ;tls_client_key =
 ;tls_client_ca =
 
-#################################### Basic Auth ##########################
+#################################### Basic Auth ################################
 [auth.basic]
-############################## VITAM START ##############################
 enabled = false
-############################## VITAM END ##############################
 
-#################################### Auth Proxy ##########################
+#################################### Auth Proxy ################################
 [auth.proxy]
 ;enabled = false
 ;header_name = X-WEBAUTH-USER
@@ -434,7 +433,7 @@ enabled = false
 # Read the auth proxy docs for details on what the setting below enables
 ;enable_login_token = false
 
-#################################### Auth LDAP ##########################
+################################## Auth LDAP ###################################
 [auth.ldap]
 ;enabled = false
 ;config_file = /etc/grafana/ldap.toml
@@ -445,7 +444,7 @@ enabled = false
 ;sync_cron = "0 0 1 * * *"
 ;active_sync_enabled = true
 
-#################################### SMTP / Emailing ##########################
+################################## SMTP / Emailing #############################
 [smtp]
 ;enabled = false
 ;host = localhost:25
@@ -464,9 +463,9 @@ enabled = false
 ;welcome_email_on_sign_up = false
 ;templates_pattern = emails/*.html
 
-#################################### Logging ##########################
+#################################### Logging ###################################
 [log]
-# Either "console", "file", "syslog". Default is console and  file
+# Either "console", "file", "syslog". Default is console and file
 # Use space to separate multiple modes, e.g. "console file"
 ;mode = console file
 
@@ -521,7 +520,7 @@ enabled = false
 # Syslog tag. By default, the process' argv[0] is used.
 ;tag =
 
-#################################### Usage Quotas ########################
+#################################### Usage Quotas ##############################
 [quota]
 ; enabled = false
 
@@ -556,7 +555,7 @@ enabled = false
 # global limit on number of logged in users.
 ; global_session = -1
 
-#################################### Alerting ############################
+#################################### Alerting ##################################
 [alerting]
 # Disable alerting engine & UI features
 ;enabled = true
@@ -586,12 +585,12 @@ enabled = false
 # Makes it possible to enforce a minimal interval between evaluations, to reduce load on the backend
 ;min_interval_seconds = 1
 
-#################################### Explore #############################
+#################################### Explore ###################################
 [explore]
 # Enable the Explore section
 ;enabled = true
 
-#################################### Internal Grafana Metrics ##########################
+############################ Internal Grafana Metrics ##########################
 # Metrics available at HTTP API Url /metrics
 [metrics]
 # Disable / Enable internal metrics
@@ -611,12 +610,12 @@ enabled = false
 ;address =
 ;prefix = prod.grafana.%(instance_name)s.
 
-#################################### Grafana.com integration  ##########################
+############################# Grafana.com integration ##########################
 # Url used to import dashboards directly from Grafana.com
 [grafana_com]
 ;url = https://grafana.com
 
-#################################### Distributed tracing ############
+############################## Distributed tracing #############################
 [tracing.jaeger]
 # Enable by setting the address sending traces to jaeger (ex localhost:6831)
 ;address = localhost:6831
@@ -638,7 +637,7 @@ enabled = false
 # Not disabling is the most common setting when using Zipkin elsewhere in your infrastructure.
 ;disable_shared_zipkin_spans = false
 
-#################################### External image storage ##########################
+############################## External image storage ##########################
 [external_image_storage]
 # Used for uploading images to public servers so they can be included in slack/email messages.
 # you can choose between (s3, webdav, gcs, azure_blob, local)
@@ -692,7 +691,7 @@ enabled = false
 # Enter a comma-separated list of plugin identifiers to identify plugins that are allowed to be loaded even if they lack a valid signature.
 ;allow_loading_unsigned_plugins =
 
-#################################### Grafana Image Renderer Plugin ##########################
+######################## Grafana Image Renderer Plugin #########################
 [plugin.grafana-image-renderer]
 # Instruct headless browser instance to use a default timezone when not provided by Grafana, e.g. when rendering panel image of alert.
 # See ICU’s metaZones.txt (https://cs.chromium.org/chromium/src/third_party/icu/source/data/misc/metaZones.txt) for a list of supported

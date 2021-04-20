@@ -1,0 +1,74 @@
+---
+
+#### Grafana installation ####
+
+- name: Install vitam-grafana package
+  package:
+    name: vitam-grafana
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"
+  notify: restart grafana
+
+- name: Ensure grafana directories are present
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/grafana/"
+    state: directory
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+  loop:
+    - lib
+    - log
+
+# When upgrade the Grafana version, get the corresponding grafana.ini file and replace templates/grafana.ini.j2 with corresponding changes
+- name: Apply grafana custom configuration
+  template:
+    src: "grafana.ini.j2"
+    dest: /etc/grafana/grafana.ini
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default ('0640') }}"
+  tags: update_grafana_configuration
+  notify: restart grafana
+
+- name: flush_handlers
+  meta: flush_handlers
+
+- name: Make sure grafana-server is started and enabled at boot
+  systemd:
+    name: grafana-server
+    enabled: true
+    state: started
+
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{ consul_folder_conf }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-grafana.json.j2"
+    dest: "{{ consul_folder_conf }}/service-grafana.json"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  tags:
+    - consul_conf
+    - update_grafana_configuration
+  notify:
+    - reload consul configuration
+
+- name: Wait for grafana-server port {{ grafana.http_port | default(3000) }} to be open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ grafana.http_port | default(3000) }}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout | default(300) }}"

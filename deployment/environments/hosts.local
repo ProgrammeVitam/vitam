@@ -164,7 +164,7 @@ hosts_kibana_data
 log_servers
 hosts_elasticsearch_log
 prometheus
-grafana
+hosts_grafana
 
 [hosts_cerebro]
 localhost
@@ -196,7 +196,7 @@ localhost
 [hosts_alertmanager]
 localhost
 
-[grafana]
+[hosts_grafana]
 localhost
 
 ########### Global vars ###########
