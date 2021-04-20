@@ -6,3 +6,7 @@ cerebro:
 #  basicauth:
 #    username: aadmin
 #    password: change_it_uW8N5wjAX2mJ8g6G
+
+grafana:
+  admin_user: admin
+  admin_password: aadmin1234

@@ -1,5 +1,6 @@
 ---
-# handlers file for grafana
+
+# handlers for grafana
 - name: restart grafana
   service:
     name: grafana-server
@@ -9,4 +10,3 @@
   service:
     name: vitam-consul
     state: reloaded
-

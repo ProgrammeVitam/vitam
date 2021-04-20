@@ -177,7 +177,7 @@ prometheus:
         cluster_port: 19094
 grafana:
     check_consul: 10 # in seconds
-    http_port: 13000
+    http_port: 3000
 
 # Curator units: days
 curator:

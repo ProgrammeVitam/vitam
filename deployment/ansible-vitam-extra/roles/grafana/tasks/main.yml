@@ -1,4 +1,4 @@
 ---
 
-- include_tasks: grafana_server_enabled.yml
+- include_tasks: install.yml
 

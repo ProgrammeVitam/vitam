@@ -174,9 +174,6 @@ Cas des extras
      :language: ini
      :linenos:
 
-.. note:: Il est possible, depuis le fichier ``cots_var.yml`` d'activer ou désactiver l'installation de la stack prometheus et grafana. La co-localisation de la stack prometheus et grafana est fortement recommandable.
-
-
 .. note:: Le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
 
 
