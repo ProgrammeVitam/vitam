@@ -1,11 +1,6 @@
 ---
 
-- include_tasks: prometheus_server_enabled.yml
-  when: prometheus.server.enabled == true
-
-- include_tasks: prometheus_server_disabled.yml
-  when: prometheus.server.enabled != true
-
+- include_tasks: install.yml
 
 - name: list prometheus rules files
   find:
@@ -17,7 +12,7 @@
   register: rules_files
   tags:
     - gen_prometheus_config
-  when: prometheus.prometheus_config_file_target_directory is  search("/")
+  when: prometheus.prometheus_config_file_target_directory is search("/")
 
 - name: Generate local prometheus config file from inventory
   template:
@@ -26,4 +21,4 @@
   delegate_to: localhost
   tags:
     - gen_prometheus_config
-  when: prometheus.prometheus_config_file_target_directory is  search("/")
+  when: prometheus.prometheus_config_file_target_directory is search("/")

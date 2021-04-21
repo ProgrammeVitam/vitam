@@ -1,0 +1,124 @@
+---
+
+- name: Install vitam-prometheus package
+  package:
+    name: vitam-prometheus
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"
+  notify: restart prometheus server
+
+#### Configuration ####
+- name: Check that the prometheus directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/prometheus"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - lib
+    - log
+    - data
+    - tmp
+  tags:
+    - update_prometheus_configuration
+    - generate_prometheus_conf
+  notify: restart prometheus server
+
+- name: Apply prometheus server sysconfig default
+  template:
+    src: "prometheus.j2"
+    dest: "{{ prometheus_server_config_path }}/sysconfig/prometheus"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  notify: restart prometheus server
+
+- name: Check that the prometheus rules directorie exist
+  file:
+    path: "{{ prometheus_server_config_path }}/rules"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+  notify: restart prometheus server
+
+- name: Copy prometheus rules files
+  copy:
+    src: '{{ item.src }}'
+    dest: "{{ prometheus_server_config_path }}/rules/{{ item.path | regex_replace('\\.j2$') }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  with_filetree: "{{ role_path }}/rules/"
+  when: item.state == 'file'
+  notify: restart prometheus server
+
+- name: list prometheus rules files
+  find:
+    paths: "{{ prometheus_server_config_path }}/rules"
+    patterns: '*.yml'
+    recurse: no # no subdir
+    file_type: file
+  register: rules_files
+
+- name: Create the prometheus server configuration file
+  template:
+    src: "prometheus.yml.j2"
+    dest: "{{ prometheus_server_config_path }}/prometheus.yml"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  tags:
+    - update_prometheus_configuration
+    - generate_prometheus_conf
+  notify: restart prometheus server
+
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{ consul_folder_conf }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-componentid.json.j2"
+    dest: "{{ consul_folder_conf }}/service-prometheus.json"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  tags:
+    - consul_conf
+    - update_prometheus_configuration
+  notify:
+    - reload consul configuration
+
+# Ensure that the installation is complete and consul up
+- meta: flush_handlers
+  tags:
+    - update_prometheus_configuration
+
+- name: Make sure vitam-prometheus is started and enabled at boot
+  service:
+    name: vitam-prometheus
+    state: started
+    enabled: true
+  tags:
+    - update_prometheus_configuration
+
+- name: Wait for prometheus server port {{ prometheus.server.port | default(9090) }} to be open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ prometheus.server.port | default(9090) }}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout | default(300) }}"

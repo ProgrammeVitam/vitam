@@ -1,0 +1,1 @@
+NODE_EXPORTER_OPTS='--web.listen-address={{ ip_admin }}:{{ prometheus.node_exporter.port | default(9101) }} --web.telemetry-path={{ prometheus.node_exporter.metrics_path | default('/metrics') }} --collector.textfile.directory /vitam/data/node_exporter/textfile_collector'

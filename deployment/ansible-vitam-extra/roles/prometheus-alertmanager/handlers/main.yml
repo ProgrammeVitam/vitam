@@ -1,5 +1,5 @@
 ---
-# handlers file for common
+# handlers for alertmanager
 - name: reload consul configuration
   service:
     name: vitam-consul
