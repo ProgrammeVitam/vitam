@@ -112,13 +112,13 @@
     owner: root
     group: root
     mode: 0644
-  when: kibana.logrotate == 'enabled'
+  when: kibana.logrotate | default('enabled') | lower == 'enabled'
 
 - name: Disable logrotate for Kibana
   file:
     path: /etc/logrotate.d/kibana
     state: absent
-  when: kibana.logrotate == 'disabled'
+  when: kibana.logrotate | default('enabled') | lower == 'disabled'
 
 - name: flush_handlers
   meta: flush_handlers
