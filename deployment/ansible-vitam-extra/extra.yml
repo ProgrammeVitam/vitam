@@ -10,16 +10,13 @@
 
 - import_playbook: browser.yml
 
-# Vitam solution deployment
 - import_playbook: metricbeat.yml
+
+- import_playbook: packetbeat.yml
 
 - import_playbook: prometheus.yml
 
 - import_playbook: grafana.yml
-
-# - hosts: vitam
-#   roles:
-#    - {role: packetbeat, when: "inventory_hostname not in single_vm_hostnames"}
 
 - import_playbook: curator_jobs.yml
   when: external_siem is undefined
