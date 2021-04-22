@@ -71,13 +71,13 @@
     owner: root
     group: root
     mode: 0644
-  when: mongodb.logrotate == 'enabled'
+  when: mongodb.logrotate | default('enabled') | lower == 'enabled'
 
 - name: Disable logrotate for vitam-mongoc
   file:
     path: /etc/logrotate.d/vitam-mongoc
     state: absent
-  when: mongodb.logrotate == 'disabled'
+  when: mongodb.logrotate | default('enabled') | lower == 'disabled'
 
 #### Consul configuration ####
 
