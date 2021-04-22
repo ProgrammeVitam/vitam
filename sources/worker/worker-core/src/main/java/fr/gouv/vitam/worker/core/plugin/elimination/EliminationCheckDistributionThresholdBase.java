@@ -75,6 +75,9 @@ public abstract class EliminationCheckDistributionThresholdBase extends ActionHa
             SelectMultiQuery request = selectParser.getRequest();
 
             request.setLimitFilter(0, 1);
+            // Enable trackTotalHits flag to compute total result set count
+            request.trackTotalHits(true);
+
             // Update projection
             request.resetUsageProjection();
             request.addUsedProjection(VitamFieldsHelper.id());

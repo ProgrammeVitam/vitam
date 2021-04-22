@@ -509,14 +509,15 @@ public class ElasticsearchAccess implements DatabaseConnection {
         final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
         int offset, Integer limit)
         throws DatabaseException, BadRequestException {
-        return search(collectionName, tenantId, query, filter, esProjection, sorts, offset, limit, null, null, null);
+        return search(collectionName, tenantId, query, filter, esProjection, sorts, offset, limit, null, null, null, false);
     }
 
 
     public final SearchResponse search(final String collectionName, final Integer tenantId,
         final QueryBuilder query, final QueryBuilder filter, String[] esProjection, final List<SortBuilder> sorts,
         int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        boolean trackTotalHits)
         throws DatabaseException, BadRequestException {
 
         SearchResponse response;
@@ -524,6 +525,13 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .explain(false)
             .query(query)
             .size(VitamConfiguration.getElasticSearchScrollLimit());
+
+
+        if (trackTotalHits) {
+            // Enable trackTotalHits flag to compute total result set count (not 10000 since ES 7.0)
+            // Warning, only call trackTotalHits setter only for "true". Setting "false" causes $hits to not be computed
+            searchSourceBuilder.trackTotalHits(true);
+        }
 
         if (null != filter) {
             searchSourceBuilder.postFilter(filter);

@@ -123,7 +123,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
                 .search(collection.getName().toLowerCase(), tenantId, query, filter, VitamDocument.ES_FILTER_OUT,
                     sorts,
                     offset,
-                    size, null, null, null);
+                    size, null, null, null, false);
         } catch (DatabaseException | BadRequestException e) {
             throw new LogbookExecutionException(e);
         }
