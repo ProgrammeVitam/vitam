@@ -52,10 +52,6 @@ import org.elasticsearch.search.sort.SortBuilder;
 import java.util.Collection;
 import java.util.List;
 
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.IMPORT_ONTOLOGY;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFERENTIAL_FORMAT_IMPORT;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFRENTIAL_FORMAT_DELETE;
-
 /**
  * ElasticSearch model with MongoDB as main database with management of index and index entries
  */
@@ -176,7 +172,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
                 .search(indexAlias, finalQuery, filter, VitamDocument.ES_FILTER_OUT,
                     sorts,
                     offset,
-                    size, null, null, null);
+                    size, null, null, null, false);
         } catch (DatabaseException | BadRequestException e) {
             throw new LogbookExecutionException(e);
         }
@@ -200,7 +196,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
                     .search(indexAlias, finalQuery, filter, VitamDocument.ES_FILTER_OUT,
                         sorts,
                         offset,
-                        size, null, null, null);
+                        size, null, null, null, false);
             } else {
                 ElasticsearchIndexAlias adminTenantIndex = this.indexManager.getElasticsearchIndexAliasResolver(collection)
                     .resolveIndexName(VitamConfiguration.getAdminTenant());
@@ -214,7 +210,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
                 return super
                     .searchCrossIndices(ImmutableSet.of(indexAlias, adminTenantIndex),
                         finalQuery, filter, VitamDocument.ES_FILTER_OUT,
-                        sorts, offset, size, null, null, null);
+                        sorts, offset, size, null, null, null, false);
             }
         } catch (DatabaseException | BadRequestException e) {
             throw new LogbookExecutionException(e);

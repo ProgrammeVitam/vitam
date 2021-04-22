@@ -368,7 +368,11 @@ public abstract class BuilderToken {
          * Allows to specify some hints to the request server: cache/nocache<br>
          * $hint : [ cache/nocache, ... ]
          */
-        HINT("hint");
+        HINT("hint"),
+        /**
+         * Allow computing total hits.
+         */
+        TRACK_TOTAL_HITS("track_total_hits");
 
         private final String exactToken;
 
@@ -790,6 +794,10 @@ public abstract class BuilderToken {
          * Query should not have a timeout (scrolling)
          */
         NOTIMEOUT("notimeout"),
+        /**
+         * Query should chou
+         */
+        TRACK_TOTAL_HITS("track_total_hits"),
 
         /**
          * Query concerns Others

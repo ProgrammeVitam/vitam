@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultip
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -126,6 +127,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -1199,43 +1202,50 @@ public class DbRequestTest {
 
 
         SearchResponse response = esClientWithoutVitamBehavior
-            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb1, null, null, null, 0, 1000, null,
-                null, null);
+            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb1, null,
+                null, null, 0, 1000, null,
+                null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
         response = esClientWithoutVitamBehavior
-            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb2, null, null, null, 0, 1000, null,
-                null, null);
+            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb2, null,
+                null, null, 0, 1000, null,
+                null, null, false);
         assertEquals(2, response.getHits().getTotalHits().value);
 
         response = esClientWithoutVitamBehavior
-            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb3, null, null, null, 0, 1000, null,
-                null, null);
+            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb3, null,
+                null, null, 0, 1000, null,
+                null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
-            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb4, null, null, null, 0, 1000, null,
-                null, null);
+            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb4, null,
+                null, null, 0, 1000, null,
+                null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
-            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb5, null, null, null, 0, 1000, null,
-                null, null);
+            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb5, null,
+                null, null, 0, 1000, null,
+                null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
 
         response = esClientWithoutVitamBehavior
-            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb6, null, null, null, 0, 1000, null,
-                null, null);
+            .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb6, null,
+                null, null, 0, 1000, null,
+                null, null, false);
         assertEquals(1, response.getHits().getTotalHits().value);
 
         try {
             response = esClientWithoutVitamBehavior
-                .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb7, null, null, null, 0, 1000,
+                .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb7, null,
+                    null, null, 0, 1000,
                     null,
-                    null, null);
+                    null, null, false);
             fail("should throws exception as matchPhrasePrefixQuery is no allowed for numbers");
         } catch (BadRequestException e) {
             //
@@ -1243,9 +1253,10 @@ public class DbRequestTest {
 
         try {
             response = esClientWithoutVitamBehavior
-                .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb8, null, null, null, 0, 1000,
+                .search(indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0), qb8, null,
+                    null, null, 0, 1000,
                     null,
-                    null, null);
+                    null, null, false);
             fail("should throws exception as matchPhrasePrefixQuery is no allowed for keyWords");
         } catch (BadRequestException e) {
             //
@@ -1518,10 +1529,11 @@ public class DbRequestTest {
         final QueryBuilder qb = QueryBuilders.termQuery("_id", uuid2.toString());
 
         SearchResponse response = esClientWithoutVitamBehavior
-            .search(indexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP).resolveIndexName(TENANT_ID_0), qb, null, null, null, 0,
+            .search(indexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP).resolveIndexName(TENANT_ID_0), qb,
+                null, null, null, 0,
                 GlobalDatas.LIMIT_LOAD,
                 null,
-                null, null);
+                null, null, false);
 
         assertTrue(response != null);
         checkElasticResponseField(response, uuid.getId());
@@ -2076,7 +2088,7 @@ public class DbRequestTest {
         assertEquals(UUID1,
             resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testUpdateUnitSameUpdateTwiceForceUpdateFalse_onlyUpdateFirstTime() throws Exception {
@@ -2112,8 +2124,9 @@ public class DbRequestTest {
         OntologyValidator dummyOntologyValidator = mock(OntologyValidator.class);
         doAnswer((args) -> args.getArgument(0)).when(dummyOntologyValidator).verifyAndReplaceFields(any());
 
-        UpdatedDocument updatedDocument1 = dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class), Collections.emptyList(), false);
+        UpdatedDocument updatedDocument1 =
+            dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
+                mock(UnitValidator.class), Collections.emptyList(), false);
         UNIT.getEsClient()
             .refreshIndex(UNIT, TENANT_ID_0);
         assertNotEquals(updatedDocument1.getBeforeUpdate(), updatedDocument1.getAfterUpdate());
@@ -2123,7 +2136,7 @@ public class DbRequestTest {
         SelectMultiQuery selectUnit = new SelectMultiQuery();
         selectUnit.addQueries(eq("#id", UUID1));
         selectParserUnit.parse(selectUnit.getFinalSelect());
-        
+
         // select the unit and check the modification
         Result resultSelectUnit = dbRequest.execRequest(selectParserUnit, Collections.emptyList());
         assertEquals(1, resultSelectUnit.nbResult);
@@ -2134,13 +2147,14 @@ public class DbRequestTest {
         // update title Archive 3 to Archive 2
         doAnswer((args) -> args.getArgument(0)).when(dummyOntologyValidator).verifyAndReplaceFields(any());
 
-        UpdatedDocument updatedDocument2 = dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class), Collections.emptyList(), false);
+        UpdatedDocument updatedDocument2 =
+            dbRequest.execUpdateRequest(updateParser, unitId, UNIT, dummyOntologyValidator,
+                mock(UnitValidator.class), Collections.emptyList(), false);
         UNIT.getEsClient()
             .refreshIndex(UNIT, TENANT_ID_0);
         assertEquals(updatedDocument2.getBeforeUpdate(), updatedDocument2.getAfterUpdate());
         assertFalse(updatedDocument2.isUpdated());
-        
+
         // select the unit and check the non modification
         resultSelectUnit = dbRequest.execRequest(selectParserUnit, Collections.emptyList());
         assertEquals(1, resultSelectUnit.nbResult);
@@ -3036,5 +3050,39 @@ public class DbRequestTest {
             .getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
                 JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
         assertThat(diff).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldSelectTotalHitsWhenTrackTotalHitsEnabled() throws Exception {
+
+        // Given: More than 10K documents
+        int totalDocuments = 10010;
+        List<Unit> units = IntStream.range(0, totalDocuments)
+            .mapToObj(i -> new Unit(
+                JsonHandler.createObjectNode()
+                    .put(VitamDocument.ID, GUIDFactory.newGUID().toString())
+                    .put(VitamDocument.TENANT_ID, TENANT_ID_0)
+                    .put("MyCustomField", "MyCustomValue"))
+            ).collect(Collectors.toList());
+
+        UNIT.getCollection().insertMany(units);
+        UNIT.getEsClient().insertFullDocuments(UNIT, 0, units);
+
+        ElasticsearchIndexAlias indexAlias =
+            indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0);
+
+        // When
+        final QueryBuilder query = QueryBuilders.matchPhrasePrefixQuery("MyCustomField", "MyCustomValue");
+
+        SearchResponse responseWithoutTrackTotalSizeFlag = esClientWithoutVitamBehavior.search(indexAlias, query, null,
+            null, null, 0, 10, null, null, null, false);
+
+        SearchResponse responseWithTrackTotalSizeFlag = esClientWithoutVitamBehavior.search(indexAlias, query, null,
+            null, null, 0, 10, null, null, null, true);
+
+        // Then
+        assertThat(responseWithoutTrackTotalSizeFlag.getHits().getTotalHits().value).isLessThan(totalDocuments);
+        assertThat(responseWithTrackTotalSizeFlag.getHits().getTotalHits().value).isEqualTo(totalDocuments);
     }
 }

@@ -232,7 +232,7 @@ public class ElasticsearchAccessTest {
         QueryBuilder query = QueryBuilders.matchQuery("Name", "Lorem ipsum");
 
         SearchResponse searchResponse1 = elasticsearchAccess.search(myalias,
-            query, null, null, sorts, 0, 10, null, "START", 5000);
+            query, null, null, sorts, 0, 10, null, "START", 5000, false);
 
         assertThat(searchResponse1.getHits().getTotalHits().value).isEqualTo(documents.size());
         String scrollId1 = searchResponse1.getScrollId();
@@ -242,7 +242,7 @@ public class ElasticsearchAccessTest {
             .containsExactly(14, 13, 12, 11, 10, 9, 8, 7, 6, 5);
 
         SearchResponse searchResponse2 = elasticsearchAccess.search(myalias,
-            query, null, null, sorts, 0, 10, null, scrollId1, 5000);
+            query, null, null, sorts, 0, 10, null, scrollId1, 5000, false);
 
         assertThat(searchResponse2.getHits().getTotalHits().value).isEqualTo(documents.size());
         String scrollId2 = searchResponse2.getScrollId();
