@@ -59,6 +59,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbNa
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
@@ -294,7 +295,7 @@ public class LogbookLFCAdministration {
 
     private boolean startTraceabilityWorkflow(GUID traceabilityOperationGUID, Contexts workflowContext,
         LogbookOperation lastLfcTraceabilityOperationWithZip)
-        throws VitamClientException, InternalServerException, BadRequestException {
+        throws VitamClientException, InternalServerException, BadRequestException, LogbookException {
         createContainer(traceabilityOperationGUID.getId());
 
         persistLastLfcTraceability(traceabilityOperationGUID.getId(), lastLfcTraceabilityOperationWithZip);
@@ -309,7 +310,7 @@ public class LogbookLFCAdministration {
                     VitamLogbookMessages.getCodeOp(workflowContext.getEventType(), StatusCode.STARTED),
                     traceabilityOperationGUID);
             LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersStart);
-            createLogBookEntry(logbookUpdateParametersStart);
+            logbookOperations.create(logbookUpdateParametersStart);
             try {
 
                 ProcessingEntry processingEntry =
@@ -349,7 +350,7 @@ public class LogbookLFCAdministration {
                                 StatusCode.KO),
                             traceabilityOperationGUID);
                 LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersEnd);
-                updateLogBookEntry(logbookUpdateParametersEnd);
+                logbookOperations.update(logbookUpdateParametersEnd);
                 throw e;
             }
         }
@@ -370,32 +371,6 @@ public class LogbookLFCAdministration {
         throws InvalidParseOperationException {
         final String evDetDataStr = (String) traceabilityOperation.get(eventDetailData.getDbname());
         return evDetDataStr == null ? null : JsonHandler.getFromString(evDetDataStr, TraceabilityEvent.class);
-    }
-
-    /**
-     * Create a LogBook Entry related to object's creation
-     *
-     * @param logbookParametersStart
-     */
-    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
-        try {
-            logbookOperations.create(logbookParametersStart);
-        } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
-            LOGGER.error(e.getMessage());
-        }
-    }
-
-    /**
-     * Create a LogBook Entry related to object's update
-     *
-     * @param logbookParametersEnd
-     */
-    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
-        try {
-            logbookOperations.update(logbookParametersEnd);
-        } catch (LogbookNotFoundException | LogbookDatabaseException e) {
-            LOGGER.error(e.getMessage());
-        }
     }
 
     /**
