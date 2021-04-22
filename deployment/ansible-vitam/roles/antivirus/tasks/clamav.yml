@@ -59,13 +59,13 @@
     owner: root
     group: root
     mode: 0644
-  when: clamav.logrotate == 'enabled'
+  when: clamav.logrotate | default('enabled') | lower == 'enabled'
 
 - name: Disable logrotate for clamAV
   file:
     path: /etc/logrotate.d/clamav
     state: absent
-  when: clamav.logrotate == 'disabled'
+  when: clamav.logrotate | default('enabled') | lower == 'disabled'
 
 - block:
 
