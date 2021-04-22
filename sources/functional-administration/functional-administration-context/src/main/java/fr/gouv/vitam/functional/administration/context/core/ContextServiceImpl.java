@@ -440,7 +440,7 @@ public class ContextServiceImpl implements ContextService {
                     if (!manager.checkIdentifierOfAccessContract(accessContractId, tenantId)) {
                         error.addToErrors(
                             new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                .setDescription(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + accessContractId)
+                                .setDescription(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + accessContractId)
                                 .setMessage(UPDATE_UNKNOWN_VALUE)
                         );
                     }
@@ -450,7 +450,7 @@ public class ContextServiceImpl implements ContextService {
                     if (!manager.checkIdentifierOfIngestContract(ingestContractId, tenantId)) {
                         error.addToErrors(
                             new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                .setDescription(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + ingestContractId)
+                                .setDescription(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + ingestContractId)
                                 .setMessage(UPDATE_UNKNOWN_VALUE)
                         );
                     }
