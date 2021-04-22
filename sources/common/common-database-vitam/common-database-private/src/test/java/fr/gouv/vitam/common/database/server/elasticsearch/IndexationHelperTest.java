@@ -87,12 +87,12 @@ public class IndexationHelperTest {
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(ALIAS + "_0", ALIAS + "_1", ALIAS + "_2");
 
     private static ElasticsearchAccess elasticsearchAccess;
-    private IndexationHelper indexationHelper = IndexationHelper.getInstance();
+    private final IndexationHelper indexationHelper = IndexationHelper.getInstance();
 
     @BeforeClass
     public static void setUp() throws Exception {
         ArrayList<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         elasticsearchAccess = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
 
         elasticsearchRule.createIndex(ALIAS, INDEX, "{}");
@@ -237,7 +237,6 @@ public class IndexationHelperTest {
     public void should_reindex_and_switch_index_for_multiple_documents_without_tenant()
         throws IOException, DatabaseException {
         // Given
-        List<Integer> tenants = Arrays.asList(0, 1, 2);
         ElasticsearchIndexAliasResolver indexAliasResolver =
             (tenantId) -> ElasticsearchIndexAlias.ofCrossTenantCollection(ALIAS);
         String mapping = FileUtils.readFileToString(
