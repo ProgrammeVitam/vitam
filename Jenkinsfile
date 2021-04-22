@@ -473,21 +473,21 @@ pipeline {
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                 }
             }
-            steps {
-                sh 'mkdir -p ${PWD}/target'
-                sh 'mkdir -p ${PWD}/logs'
-                sh 'touch ${PWD}/logs/cx_console.log'
+//            steps {
+//                sh 'mkdir -p ${PWD}/target'
+//                sh 'mkdir -p ${PWD}/logs'
+//                sh 'touch ${PWD}/logs/cx_console.log'
                 // KWA : Visibly, backslash escape hell. \\ => \ in groovy string.
-                sh '/opt/CxConsole/runCxConsole.sh scan --verbose -Log "${PWD}/logs/cx_console.log" -CxServer "$SERVICE_CHECKMARX_URL" -CxUser "VITAM openLDAP\\\\$CI_USR" -CxPassword \\"$CI_PSW\\" -ProjectName "CxServer\\SP\\Vitam\\Users\\vitam-parent $GIT_BRANCH" -LocationType folder -locationPath "${PWD}/sources"  -Preset "Default 2014" -LocationPathExclude test target bower_components node_modules dist -forcescan -PDF "${PWD}/target/checkmarx-report.pdf"'
+//                sh '/opt/CxConsole/runCxConsole.sh scan --verbose -Log "${PWD}/logs/cx_console.log" -CxServer "$SERVICE_CHECKMARX_URL" -CxUser "VITAM openLDAP\\\\$CI_USR" -CxPassword \\"$CI_PSW\\" -ProjectName "CxServer\\SP\\Vitam\\Users\\vitam-parent $GIT_BRANCH" -LocationType folder -locationPath "${PWD}/sources"  -Preset "Default 2014" -LocationPathExclude test target bower_components node_modules dist -forcescan -PDF "${PWD}/target/checkmarx-report.pdf"'
                 //TDE commenté pour voir si plus efficace: sh '[ ! -f ${PWD}/target/checkmarx-report.pdf ] && touch ${PWD}/target/checkmarx-report.pdf'
-                sh '[ -f ${PWD}/target/checkmarx-report.pdf ]'
-            }
+//                sh '[ -f ${PWD}/target/checkmarx-report.pdf ]'
+//            }
             post {
                 success {
-                    archiveArtifacts (
-                        artifacts: '${PWD}/target/checkmarx-report.pdf',
-                        fingerprint: true
-                    )
+//                    archiveArtifacts (
+//                        artifacts: '${PWD}/target/checkmarx-report.pdf',
+//                        fingerprint: true
+//                    )
                     slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
                 }
                 unstable {
