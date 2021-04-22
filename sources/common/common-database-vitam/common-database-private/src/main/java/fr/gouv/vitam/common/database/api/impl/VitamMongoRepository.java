@@ -278,4 +278,14 @@ public class VitamMongoRepository implements VitamRepository {
                 Filters.eq(VitamDocument.TENANT_ID, tenant)
             ));
     }
+
+    @Override
+    public long count() {
+        return collection.countDocuments();
+    }
+
+    @Override
+    public long count(Bson filter) {
+        return collection.countDocuments(filter);
+    }
 }

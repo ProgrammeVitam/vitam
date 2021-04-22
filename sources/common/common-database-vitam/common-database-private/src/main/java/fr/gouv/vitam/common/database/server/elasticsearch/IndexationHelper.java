@@ -84,17 +84,22 @@ public class IndexationHelper {
     ) throws DatabaseException {
 
         MongoCursor<Document> cursor = null;
+        long numberOfDocumentsToIndex;
         try {
             // Select data from mongo
             VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
 
             if (CollectionUtils.isNotEmpty(tenantIds)) {
+                LOGGER.warn("Reindexation started on index {} in tenants {}", indexAlias.getName(), tenantIds);
                 cursor = vitamMongoRepository.findDocuments(
                     Filters.in(VitamDocument.TENANT_ID, tenantIds),
                     VitamConfiguration.getMaxElasticsearchBulk()).iterator();
+                numberOfDocumentsToIndex = vitamMongoRepository.count(Filters.in(VitamDocument.TENANT_ID, tenantIds));
             } else {
+                LOGGER.warn("Reindexation started on index {} in all tenants", indexAlias.getName());
                 cursor = vitamMongoRepository.findDocuments(
                     VitamConfiguration.getMaxElasticsearchBulk()).iterator();
+                numberOfDocumentsToIndex = vitamMongoRepository.count();
             }
 
             // Create ElasticSearch new index for a given collection
@@ -105,6 +110,9 @@ public class IndexationHelper {
                 new VitamElasticsearchRepository(esClient.getClient(),
                     (tenant) -> newIndexWithoutAlias);
 
+
+            LOGGER.warn("number of documents to index = {}", numberOfDocumentsToIndex);
+            long numberOfDocumentsIndexed = 0;
             // Reindex document with bulk
             Iterator<List<Document>> bulkDocumentIterator =
                 Iterators.partition(cursor, VitamConfiguration.getMaxElasticsearchBulk());
@@ -115,10 +123,18 @@ public class IndexationHelper {
                 } else {
                     vitamElasticsearchRepository.save(documents);
                 }
+                numberOfDocumentsIndexed += documents.size();
+                LOGGER.warn("Reindexation in progress {}%",
+                    0.01 * ((int) ((float) numberOfDocumentsIndexed / numberOfDocumentsToIndex * 10000)));
+                LOGGER.warn("number of indexed documents = {}\t number of remaining documents = {}",
+                    numberOfDocumentsIndexed, numberOfDocumentsToIndex - numberOfDocumentsIndexed);
             }
-
+            LOGGER.warn("Reindexation ended successfully");
             return new ReindexationOK(indexAlias.getName(), newIndexWithoutAlias.getName(), tenantIds, tenantGroupName);
 
+        } catch (DatabaseException | RuntimeException e) {
+            LOGGER.error("Reindexation failed", e);
+            throw e;
         } finally {
             if (cursor != null) {
                 cursor.close();
