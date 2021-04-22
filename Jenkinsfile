@@ -464,15 +464,15 @@ pipeline {
                 }
             }
         }
-        stage("Checkmarx analysis") {
-            when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                }
-            }
+//        stage("Checkmarx analysis") {
+//            when {
+//                anyOf {
+//                    branch "develop*"
+//                    branch "master_*"
+//                    branch "master"
+//                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+//                }
+//            }
 //            steps {
 //                sh 'mkdir -p ${PWD}/target'
 //                sh 'mkdir -p ${PWD}/logs'
@@ -482,26 +482,26 @@ pipeline {
                 //TDE commenté pour voir si plus efficace: sh '[ ! -f ${PWD}/target/checkmarx-report.pdf ] && touch ${PWD}/target/checkmarx-report.pdf'
 //                sh '[ -f ${PWD}/target/checkmarx-report.pdf ]'
 //            }
-            post {
-                success {
+//            post {
+//                success {
 //                    archiveArtifacts (
 //                        artifacts: '${PWD}/target/checkmarx-report.pdf',
 //                        fingerprint: true
 //                    )
-                    slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-                }
-                unstable {
-                    slackSend (color: '#ffaa00', message: "Build Unstable de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-                }
-                failure {
-                    archiveArtifacts (
-                        artifacts: '${PWD}/logs/cx_console.log',
-                        fingerprint: true
-                    )
-                    slackSend (color: '#a30000', message: "Build KO de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-                }
-            }
-        }
+//                    slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+//                }
+//                unstable {
+//                    slackSend (color: '#ffaa00', message: "Build Unstable de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+//                }
+//                failure {
+//                    archiveArtifacts (
+//                        artifacts: '${PWD}/logs/cx_console.log',
+//                        fingerprint: true
+//                    )
+//                    slackSend (color: '#a30000', message: "Build KO de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+//                }
+//            }
+//        }
 
         stage("Information") {
             steps {
