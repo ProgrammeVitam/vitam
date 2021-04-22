@@ -200,7 +200,20 @@ public interface VitamRepository {
      */
     FindIterable<Document> findDocuments(int mongoBatchSize);
 
+    /**
+     * Count occurence of documents
+     *
+     * @return the number of documents
+     */
+    long count();
 
+    /**
+     * Count occurence of documents
+     *
+     * @param filter filtre
+     * @return the number of documents
+     */
+    long count(Bson filter);
 
     /**
      * Return iterable over document for the given collection
