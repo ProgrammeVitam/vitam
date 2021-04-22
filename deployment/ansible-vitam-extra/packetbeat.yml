@@ -2,4 +2,4 @@
 
 - hosts: vitam
   roles:
-    - {role: packetbeat, when: "{{groups['hosts_elasticsearch_log'] | length > 0}}" }
+    - { role: packetbeat, when: "groups['hosts_elasticsearch_log'] | length > 0 and inventory_hostname not in single_vm_hostnames packetbeat.enabled | default(false) | bool == true" }
