@@ -13,16 +13,28 @@
   package:
     name: "openjdk-8-jdk-headless"
     state: absent
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"
   when: ansible_os_family == "Debian"
 
 - name: force java-1.8.0-openjdk is absent
   package:
     name: "java-1.8.0-openjdk"
     state: absent
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"
   when: ansible_os_family == "RedHat"
 
 - name: force java-1.8.0-openjdk-headless is absent
   package:
     name: "java-1.8.0-openjdk-headless"
     state: absent
+  register: result
+  retries: "{{ packages_install_retries_number | default(1) }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay | default(10) }}"
   when: ansible_os_family == "RedHat"
