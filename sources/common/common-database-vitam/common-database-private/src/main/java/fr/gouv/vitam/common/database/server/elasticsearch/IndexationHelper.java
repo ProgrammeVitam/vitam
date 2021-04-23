@@ -29,16 +29,17 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.index.model.IndexKO;
 import fr.gouv.vitam.common.database.index.model.IndexOK;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -81,12 +82,12 @@ public class IndexationHelper {
         String collectionMapping = ElasticsearchUtil.transferJsonToMapping(mapping);
         String currentIndexWithoutAlias = null;
         Integer currentTenant = null;
+        long numberOfDocumentsToIndex;
+        long numberOfDocumentsIndexed = 0;
         List<IndexOK> indexesOk = new ArrayList<>();
         try {
             if (tenants != null && !tenants.isEmpty()) {
-                LOGGER
-                    .debug("reindex collectionName : %s for Tenant : %s", collectionName,
-                        String.join(",", tenants.toString()));
+                LOGGER.warn("Reindexation started on collection {} for tenants {}", collectionName, tenants);
                 for (Integer tenant : tenants) {
                     currentTenant = tenant;
                     // Create ElasticSearch new index for a given collection
@@ -96,6 +97,7 @@ public class IndexationHelper {
                     MongoCursor<Document> cursor =
                         vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk(), tenant)
                             .iterator();
+                    numberOfDocumentsToIndex = vitamMongoRepository.count(Filters.eq(VitamDocument.TENANT_ID, tenant));
                     // Create repository for the given indexName
                     VitamElasticsearchRepository vitamElasticsearchRepository =
                         new VitamElasticsearchRepository(esClient.getClient(), currentIndexWithoutAlias,
@@ -109,18 +111,21 @@ public class IndexationHelper {
                         } else {
                             vitamElasticsearchRepository.save(documents);
                         }
-
+                        numberOfDocumentsIndexed =
+                            logProgression(numberOfDocumentsToIndex, numberOfDocumentsIndexed, documents);
                         documents = getDocuments(cursor);
                     }
                     createIndexationResult(collectionName, indexationResult, currentIndexWithoutAlias, currentTenant,
                         indexesOk);
                 }
             } else {
+                LOGGER.warn("Reindexation started on collection {} for all tenants {}", collectionName);
                 currentIndexWithoutAlias = esClient
                     .createIndexWithoutAlias(collectionName, collectionMapping, null);
 
                 FindIterable<Document> iterable =
                     vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk());
+                numberOfDocumentsToIndex = vitamMongoRepository.count();
                 // Create repository for the given indexName
                 VitamElasticsearchRepository vitamElasticsearchRepository =
                     new VitamElasticsearchRepository(esClient.getClient(), currentIndexWithoutAlias,
@@ -132,12 +137,15 @@ public class IndexationHelper {
                 while (!documents.isEmpty()) {
                     vitamElasticsearchRepository.save(documents);
                     documents = getDocuments(cursor);
+                    numberOfDocumentsIndexed =
+                        logProgression(numberOfDocumentsToIndex, numberOfDocumentsIndexed, documents);
                 }
                 createIndexationResult(collectionName, indexationResult, currentIndexWithoutAlias, null,
                     indexesOk);
             }
+            LOGGER.warn("Reindexation ended successfully");
         } catch (DatabaseException e) {
-            LOGGER.error("DatabaseException ", e);
+            LOGGER.error("Reindexation failed", e);
             final String message = e.getMessage();
             List<IndexKO> indexesKo = new ArrayList<>();
             if (currentTenant != null) {
@@ -150,6 +158,16 @@ public class IndexationHelper {
             indexationResult.setCollectionName(collectionName);
         }
         return indexationResult;
+    }
+
+    private long logProgression(long numberOfDocumentsToIndex, long numberOfDocumentsIndexed,
+        List<Document> documents) {
+        numberOfDocumentsIndexed += documents.size();
+        LOGGER.warn("Reindexation in progress {}%",
+            0.01 * ((int) ((float) numberOfDocumentsIndexed / numberOfDocumentsToIndex * 10000)));
+        LOGGER.warn("number of indexed documents = {}\t number of remaining documents = {}",
+            numberOfDocumentsIndexed, numberOfDocumentsToIndex - numberOfDocumentsIndexed);
+        return numberOfDocumentsIndexed;
     }
 
     /**

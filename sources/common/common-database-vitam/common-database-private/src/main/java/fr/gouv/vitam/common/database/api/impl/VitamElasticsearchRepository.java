@@ -612,6 +612,16 @@ public class VitamElasticsearchRepository implements VitamRepository {
     }
 
     @Override
+    public long count() {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
+    }
+
+    @Override
+    public long count(Bson filter) {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
+    }
+
+    @Override
     public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
         // Not implement yet
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
