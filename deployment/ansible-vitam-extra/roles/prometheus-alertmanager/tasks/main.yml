@@ -15,8 +15,8 @@
   file:
     path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/alertmanager"
     state: directory
-    owner: "{{ vitam_defaults.users.vitam | default('vitam }}"
-    group: "{{ vitam_defaults.users.group | default('vitam }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
   with_items:
     - app
@@ -32,8 +32,8 @@
   template:
     src: "alertmanager.j2"
     dest: "{{ prometheus_alertmanager_config_path }}/sysconfig/alertmanager"
-    owner: "{{ vitam_defaults.users.vitam | default('vitam }}"
-    group: "{{ vitam_defaults.users.group | default('vitam }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   tags:
     - update_alertmanager_configuration
@@ -43,8 +43,8 @@
   template:
     src: "alertmanager.yml.j2"
     dest: "{{ prometheus_alertmanager_config_path }}/alertmanager.yml"
-    owner: "{{ vitam_defaults.users.vitam | default('vitam }}"
-    group: "{{ vitam_defaults.users.group | default('vitam }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   tags:
     - update_alertmanager_configuration
@@ -56,16 +56,16 @@
   file:
     path: "{{ consul_folder_conf }}"
     state: directory
-    owner: "{{ vitam_defaults.users.vitam | default('vitam }}"
-    group: "{{ vitam_defaults.users.group | default('vitam }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
 
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
     dest: "{{ consul_folder_conf }}/service-alertmanager.json"
-    owner: "{{ vitam_defaults.users.vitam | default('vitam }}"
-    group: "{{ vitam_defaults.users.group | default('vitam }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
   tags:
     - consul_conf
