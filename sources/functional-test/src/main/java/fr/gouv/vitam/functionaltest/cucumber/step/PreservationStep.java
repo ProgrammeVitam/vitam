@@ -32,6 +32,9 @@ import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -56,6 +59,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
@@ -69,6 +74,8 @@ public class PreservationStep {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationStep.class);
 
     private World world;
+
+    public static final String EMPTY_JSON_FILE = "empty.json";
 
     public PreservationStep(World world) {
         this.world = world;
@@ -173,18 +180,26 @@ public class PreservationStep {
 
     @When("^je supprime les griffons et les scénarios de préservation sur tous les tenants")
     public void deleteAllPreservationBaseData() throws Exception {
-        String filName = "empty.json";
+        //inject empty preservation scenario to tenant all tenant if contain scenario preservation
         for (Integer tenant : VitamConfiguration.getTenants()) {
-            InputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
             VitamContext vitamContext = new VitamContext(tenant);
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+            //search all preservation scenario in the tenant
+            Select select = new Select();
+            select.setQuery(and().add(QueryHelper.exists("Name")).add(eq(VitamFieldsHelper.tenant(), tenant)));
+            JsonNode queryDsl = select.getFinalSelect();
 
-            world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, filName);
+            RequestResponse<PreservationScenarioModel> scenarioList = world.getAdminClient().findPreservationScenario(vitamContext, queryDsl);
+            List resultsAsJsonNodes = ((RequestResponseOK) scenarioList).getResultsAsJsonNodes();
+            if (!resultsAsJsonNodes.isEmpty()){
+                InputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
+                world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, EMPTY_JSON_FILE);
+            }
         }
         VitamContext vitamContext = new VitamContext(VitamConfiguration.getAdminTenant());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         InputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
-        world.getAdminClient().importGriffin(vitamContext, emptyJson, filName);
+        world.getAdminClient().importGriffin(vitamContext, emptyJson, EMPTY_JSON_FILE);
     }
 
     @When("^je lance la preservation avec le scénario (.*) et pour l'usage (.*)$")
