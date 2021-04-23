@@ -1,15 +1,15 @@
 {
   "service": {
-    "name": "Prometheus alertmanager",
-    "port": {{ prometheus.alertmanager.api_port }},
+    "name": "prometheus-alertmanager",
+    "port": {{ prometheus.alertmanager.api_port | default(9093) }},
     "enable_tag_override": false,
     "tags": ["alertmanager"],
     "checks": [
       {
-        "name": "Prometheus alertmanager : TCP check",
-        "notes": "Status prometheus alertmanager",
-        "tcp": "{{ ip_admin }}:{{ prometheus.alertmanager.api_port }}",
-        "interval": "{{ prometheus.check_consul }}s"
+        "name": "prometheus-alertmanager : TCP check",
+        "notes": "Status prometheus-alertmanager",
+        "tcp": "{{ ip_admin }}:{{ prometheus.alertmanager.api_port | default(9093) }}",
+        "interval": "{{ prometheus.check_consul | default(10) }}s"
       }
     ]
   }
