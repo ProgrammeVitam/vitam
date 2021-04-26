@@ -353,6 +353,9 @@ public class CreateManifest extends ActionHandler {
 
             manifestBuilder.closeManifest();
 
+            exportSize += manifestFile.length();
+            checkSize(itemStatus, exportSize, threshold, tenant);
+
             handlerIO.addOutputResult(MANIFEST_XML_RANK, manifestFile, true, false);
 
             itemStatus.increment(StatusCode.OK);
