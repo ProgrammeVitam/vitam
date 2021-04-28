@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.export.ExportRequest;
@@ -605,7 +606,74 @@ public class CreateManifestTest {
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
         ExportRequest exportRequest = getExportRequest(queryUnit);
-        exportRequest.setMaxSizeThreshold(10L);
+        exportRequest.setMaxSizeThreshold(2480000L);
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+
+        WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
+
+        // When
+        ItemStatus itemStatus = createManifest.execute(wp, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_exceed_threshold_when_export_only_manifest() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryDataObjectVersion(true);
+        accessContractModel.setEveryOriginatingAgency(true);
+
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        JsonNode queryUnit =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
+
+        JsonNode queryUnitWithTree = JsonHandler
+            .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+
+        JsonNode queryObjectGroup =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
+
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
+
+        given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")));
+
+        given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
+
+        given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
+          JsonHandler.createObjectNode().set(RequestResponseOK.TAG_RESULTS, JsonHandler.createArrayNode()));
+
+        File manifestFile = tempFolder.newFile();
+        given(handlerIO.getOutput(MANIFEST_XML_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
+
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
+        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
+
+        File guidToPathFile = tempFolder.newFile();
+        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
+        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
+
+        File binaryFile = tempFolder.newFile();
+        given(handlerIO.getOutput(BINARIES_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
+
+        ExportRequest exportRequest = getExportRequest(queryUnit);
+        exportRequest.setMaxSizeThreshold(7000L);
         given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
