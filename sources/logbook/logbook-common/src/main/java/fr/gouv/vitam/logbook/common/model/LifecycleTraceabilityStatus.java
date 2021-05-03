@@ -33,6 +33,9 @@ public class LifecycleTraceabilityStatus {
     @JsonProperty("completed")
     private boolean completed;
 
+    @JsonProperty("paused")
+    private boolean paused;
+
     @JsonProperty("outcome")
     private String outcome;
 
@@ -45,8 +48,9 @@ public class LifecycleTraceabilityStatus {
     public LifecycleTraceabilityStatus() {
     }
 
-    public LifecycleTraceabilityStatus(boolean completed, String outcome, boolean maxEntriesReached) {
+    public LifecycleTraceabilityStatus(boolean completed, boolean paused, String outcome, boolean maxEntriesReached) {
         this.completed = completed;
+        this.paused = paused;
         this.outcome = outcome;
         this.maxEntriesReached = maxEntriesReached;
     }
@@ -57,6 +61,14 @@ public class LifecycleTraceabilityStatus {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
     }
 
     public String getOutcome() {

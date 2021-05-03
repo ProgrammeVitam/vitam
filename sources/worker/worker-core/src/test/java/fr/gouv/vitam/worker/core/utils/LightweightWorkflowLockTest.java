@@ -24,7 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.reclassification.utils;
+
+package fr.gouv.vitam.worker.core.utils;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -33,7 +34,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.worker.core.utils.LightweightWorkflowLock;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,7 +50,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class LightweightWorkflowLockTest {
@@ -59,14 +58,18 @@ public class LightweightWorkflowLockTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
-    ProcessingManagementClientFactory processingManagementClientFactory;
+    private ProcessingManagementClientFactory processingManagementClientFactory;
 
     @Mock
-    ProcessingManagementClient processingManagementClient;
+    private ProcessingManagementClient processingManagementClient;
+
+    private LightweightWorkflowLock lightweightWorkflowLock;
+
 
     @Before
     public void init() {
         doReturn(processingManagementClient).when(processingManagementClientFactory).getClient();
+        lightweightWorkflowLock = new LightweightWorkflowLock(processingManagementClientFactory);
     }
 
     @Test
@@ -75,12 +78,6 @@ public class LightweightWorkflowLockTest {
         // Given
         String workflowId = "workflow";
         String currentProcessId = "1234";
-
-        ProcessingManagementClientFactory processingManagementClientFactory =
-            mock(ProcessingManagementClientFactory.class);
-        ProcessingManagementClient processingManagementClient =
-            mock(ProcessingManagementClient.class);
-        doReturn(processingManagementClient).when(processingManagementClientFactory).getClient();
 
         ProcessDetail processDetail1 = new ProcessDetail();
         processDetail1.setOperationId("SomeOtherProcessId");
@@ -94,9 +91,6 @@ public class LightweightWorkflowLockTest {
 
         doReturn(new RequestResponseOK<>().addAllResults(Arrays.asList(processDetail1, processDetail2)))
             .when(processingManagementClient).listOperationsDetails(any());
-
-        LightweightWorkflowLock lightweightWorkflowLock =
-            new LightweightWorkflowLock(processingManagementClientFactory);
 
         // When
         List<ProcessDetail> processDetails =
@@ -116,8 +110,6 @@ public class LightweightWorkflowLockTest {
         doReturn(new VitamError("KO"))
             .when(processingManagementClient).listOperationsDetails(any());
 
-        LightweightWorkflowLock lightweightWorkflowLock =
-            new LightweightWorkflowLock(processingManagementClientFactory);
 
         // When / Then
         assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any"))

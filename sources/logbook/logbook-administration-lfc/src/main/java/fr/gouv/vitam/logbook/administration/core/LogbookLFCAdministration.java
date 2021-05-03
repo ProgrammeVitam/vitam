@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -44,9 +45,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
@@ -57,8 +61,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
@@ -76,7 +78,9 @@ import javax.ws.rs.core.Response.Status;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDateTime;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
@@ -162,6 +166,11 @@ public class LogbookLFCAdministration {
 
         Contexts workflowContext = getWorkflowContext(lfcTraceabilityType);
 
+        if(isTraceabilityInProgress(workflowContext)) {
+            LOGGER.error("There is another traceability operation in progress...");
+            return false;
+        }
+
         LogbookOperation lastLfcTraceabilityOperation =
             getLastTraceability(lfcTraceabilityType);
         LogbookOperation lastLfcTraceabilityOperationWithZip =
@@ -174,8 +183,34 @@ public class LogbookLFCAdministration {
         }
 
         // Start traceability workflow
-        return startTraceabilityWorkflow(traceabilityOperationGUID, workflowContext,
+        startTraceabilityWorkflow(traceabilityOperationGUID, workflowContext,
             lastLfcTraceabilityOperationWithZip);
+        return true;
+    }
+
+    private boolean isTraceabilityInProgress(Contexts workflowContext) throws VitamClientException{
+        try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
+
+            ProcessQuery query = new ProcessQuery();
+            // Non completed processes
+            query.setStates(
+                Arrays.stream(ProcessState.values())
+                    .filter(state -> state.compareTo(ProcessState.COMPLETED) < 0)
+                    .map(Enum::name)
+                    .collect(Collectors.toList())
+            );
+            // Workflow id
+            query.setWorkflows(List.of(workflowContext.name()));
+
+            RequestResponse<ProcessDetail> processDetailRequestResponse = processManagementClient.listOperationsDetails(query);
+            if (!processDetailRequestResponse.isOk()) {
+
+                VitamError error = (VitamError) processDetailRequestResponse;
+                throw new VitamClientException("Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
+            }
+
+            return !((RequestResponseOK<ProcessDetail>) processDetailRequestResponse).getResults().isEmpty();
+        }
     }
 
     private LogbookOperation getLastTraceability(LfcTraceabilityType lfcTraceabilityType) throws VitamException {
@@ -293,7 +328,7 @@ public class LogbookLFCAdministration {
         return traceabilityStartDate;
     }
 
-    private boolean startTraceabilityWorkflow(GUID traceabilityOperationGUID, Contexts workflowContext,
+    private void startTraceabilityWorkflow(GUID traceabilityOperationGUID, Contexts workflowContext,
         LogbookOperation lastLfcTraceabilityOperationWithZip)
         throws VitamClientException, InternalServerException, BadRequestException, LogbookException {
         createContainer(traceabilityOperationGUID.getId());
@@ -334,8 +369,6 @@ public class LogbookLFCAdministration {
                 if (Status.ACCEPTED.getStatusCode() != ret.getStatus()) {
                     throw new VitamClientException("Process could not be executed");
                 }
-
-                return true;
 
             } catch (InternalServerException | VitamClientException | BadRequestException e) {
                 LOGGER.error(e);
@@ -421,10 +454,12 @@ public class LogbookLFCAdministration {
             ItemStatus processStatus = processManagementClient.getOperationProcessStatus(operationId);
 
             boolean isCompleted = (processStatus.getGlobalState() == ProcessState.COMPLETED);
+            boolean isPaused = (processStatus.getGlobalState() == ProcessState.PAUSE);
             boolean isOK = processStatus.getGlobalStatus() == StatusCode.OK;
 
             LifecycleTraceabilityStatus lifecycleTraceabilityStatus = new LifecycleTraceabilityStatus();
             lifecycleTraceabilityStatus.setCompleted(isCompleted);
+            lifecycleTraceabilityStatus.setPaused(isPaused);
             lifecycleTraceabilityStatus
                 .setOutcome(processStatus.getGlobalState().name() + "." + processStatus.getGlobalStatus().name());
 

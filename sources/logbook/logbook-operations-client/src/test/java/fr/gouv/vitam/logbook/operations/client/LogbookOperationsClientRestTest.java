@@ -640,7 +640,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(
                 new RequestResponseOK<LifecycleTraceabilityStatus>().addResult(
-                    new LifecycleTraceabilityStatus(true, "MY_STATUS", true)
+                    new LifecycleTraceabilityStatus(true, false, "MY_STATUS", true)
                 )).build());
         LifecycleTraceabilityStatus lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus("id");
         assertTrue(lifecycleTraceabilityStatus.isCompleted());
