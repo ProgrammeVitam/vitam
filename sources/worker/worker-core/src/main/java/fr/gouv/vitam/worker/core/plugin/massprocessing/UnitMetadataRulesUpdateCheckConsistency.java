@@ -627,7 +627,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             }
 
             JsonNode ruleInReferential = ruleResponseInReferential.get("$results").get(0);
-            if (!categoryName.equals(ruleInReferential.get(FileRulesModel.TAG_RULE_TYPE).asText())) {
+            if (!categoryName.equals(ruleInReferential.get(FileRulesModel.RULE_TYPE).asText())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());

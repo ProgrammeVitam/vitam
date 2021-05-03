@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.common.exception;
 
+
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 
 import java.util.List;

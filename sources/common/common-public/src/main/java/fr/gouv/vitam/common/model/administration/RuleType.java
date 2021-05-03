@@ -47,6 +47,6 @@ public enum RuleType {
     }
 
     public boolean isNameEquals(String name) {
-        return this.name().equalsIgnoreCase(name);
+        return this.name().equals(name);
     }
 }

@@ -7,7 +7,7 @@
     "RuleValue": "Communicabilit\u00e9 des documents relatifs aux enqu\u00eates r\u00e9alis\u00e9es par les services de la police judiciaire, aux affaires port\u00e9es devant les juridictions, sous r\u00e9serve des dispositions particuli\u00e8res relatives aux jugements, et \u00e0 l'ex\u00e9cution des d\u00e9cisions de justice dont la communication porte atteinte \u00e0 l'intimit\u00e9 de la vie sexuelle des personnes (date du document)",
     "RuleDescription": "Dur\u00e9e de communicabilit\u00e9 applicable aux documents relatifs aux enqu\u00eates r\u00e9alis\u00e9es par les services de la police judiciaire, aux affaires port\u00e9es devant les juridictions, sous r\u00e9serve des dispositions particuli\u00e8res relatives aux jugements, et \u00e0 l'ex\u00e9cution des d\u00e9cisions de justice dont la communication porte atteinte \u00e0 l'intimit\u00e9 de la vie sexuelle des personnes\nL\u2019\u00e9ch\u00e9ance est calcul\u00e9e \u00e0 partir de la date du document ou du document le plus r\u00e9cent inclus dans le dossier",
     "RuleDuration": "100",
-    "RuleMeasurement": "Year",
+    "RuleMeasurement": "YEAR",
     "CreationDate": "2017-07-21",
     "UpdateDate": "2017-07-21",
     "_v": 1
@@ -20,7 +20,7 @@
     "RuleValue": "Actes de d\u00e9c\u00e8s",
     "RuleDescription": "D\u00e9lai de diffusion en ligne des actes de d\u00e9c\u00e8s\nL\u2019\u00e9ch\u00e9ance est calcul\u00e9e \u00e0 partir de la date d\u2019enregistrement du d\u00e9c\u00e8s",
     "RuleDuration": "50",
-    "RuleMeasurement": "Year",
+    "RuleMeasurement": "YEAR",
     "CreationDate": "2017-07-21",
     "UpdateDate": "2017-07-21",
     "_v": 1
@@ -33,7 +33,7 @@
     "RuleValue": "Communicabilit\u00e9 des informations portant atteinte \u00e0 la conduite des relations ext\u00e9rieures (date du document)",
     "RuleDescription": "Dur\u00e9e de communicabilit\u00e9 applicable aux informations portant atteinte \u00e0 la conduite des relations ext\u00e9rieures\nL\u2019\u00e9ch\u00e9ance est calcul\u00e9e \u00e0 partir de la date du document ou du document le plus r\u00e9cent inclus dans le dossier",
     "RuleDuration": "25",
-    "RuleMeasurement": "Year",
+    "RuleMeasurement": "YEAR",
     "CreationDate": "2017-07-21",
     "UpdateDate": "2017-07-21",
     "_v": 1

@@ -57,6 +57,8 @@ import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.administration.StorageDetailModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -277,12 +279,12 @@ public class ClientMockResultHelper {
         rule.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
         rule.setTenant(0);
         rule.setRuleId("APP-00005");
-        rule.setRuleType("AppraisalRule");
+        rule.setRuleType(RuleType.AppraisalRule);
         rule.setRuleValue("Pièces comptables (comptable)");
         rule.setRuleDescription(
             "Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable");
         rule.setRuleDuration("6");
-        rule.setRuleMeasurement("year");
+        rule.setRuleMeasurement(RuleMeasurementEnum.YEAR);
         rule.setCreationDate("2016-11-02");
         rule.setUpdateDate("2016-11-03");
         return rule;
