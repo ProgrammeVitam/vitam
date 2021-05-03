@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.logbook.administration.main;
 
+import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
@@ -49,6 +50,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -59,6 +61,11 @@ public class CallTraceabilityLFC {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallTraceabilityLFC.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_SECURISATION_NAME = "securisationDaemon.conf";
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    public CallTraceabilityLFC(LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+    }
 
 
     enum TraceabilityType {
@@ -87,37 +94,37 @@ public class CallTraceabilityLFC {
         }
 
         try {
-            File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-            final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
-
-            while (true) {
-                boolean atLeastOneTenantReachedMaxCapacity = secureAllTenants(traceabilityType, conf);
-
-                if (!atLeastOneTenantReachedMaxCapacity) {
-                    LOGGER.info("Done !");
-                    break;
-                }
-
-                LOGGER.warn("At least one traceability operation reached max capacity. Re-run traceability...");
-            }
-
-        } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
+            CallTraceabilityLFC callTraceability = new CallTraceabilityLFC(LogbookOperationsClientFactory.getInstance());
+            callTraceability.run(traceabilityType);
         } catch (Exception e) {
             LOGGER.error(e);
-            throw e;
+            throw new IllegalStateException("Logbook LFC operation traceability failed", e);
         }
     }
 
-    private static boolean secureAllTenants(TraceabilityType traceabilityType,
+    void run(TraceabilityType traceabilityType) throws IOException{
+        File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
+        final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
+        while (true) {
+            boolean atLeastOneTenantReachedMaxCapacity = secureAllTenants(traceabilityType, conf);
+
+            if (!atLeastOneTenantReachedMaxCapacity) {
+                LOGGER.info("Done !");
+                break;
+            }
+
+            LOGGER.warn("At least one traceability operation reached max capacity. Re-run traceability...");
+        }
+    }
+
+    private boolean secureAllTenants(TraceabilityType traceabilityType,
         SecureConfiguration conf) {
         List<Integer> tenants = new ArrayList<>();
         conf.getTenants().forEach((v) -> tenants.add(Integer.parseInt(v)));
 
         VitamThreadPoolExecutor defaultExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
 
-        List<CompletableFuture> completableFutures = new ArrayList<>();
+        List<CompletableFuture<?>> completableFutures = new ArrayList<>();
         AtomicBoolean atLeastOneTenantReachedMaxCapacity = new AtomicBoolean();
         for (Integer tenant : tenants) {
             completableFutures.add(
@@ -142,14 +149,13 @@ public class CallTraceabilityLFC {
      * @param traceabilityType - Unit or ObjectGroup
      * @return true if the tenant need another run to be fully secured
      */
-    private static boolean secureByTenantId(int tenantId,
+    private boolean secureByTenantId(int tenantId,
         TraceabilityType traceabilityType) {
         String operationId = null;
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-
+            try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
                 operationId = runLfcTraceability(tenantId, traceabilityType, client);
 
                 if(operationId == null) {
@@ -160,6 +166,7 @@ public class CallTraceabilityLFC {
                 // Await for termination (polling the logbook server)
                 LifecycleTraceabilityStatus lifecycleTraceabilityStatus;
                 int timeSleep = 1000;
+                Stopwatch stopwatch = Stopwatch.createStarted();
                 do {
 
                     Thread.sleep(timeSleep);
@@ -167,10 +174,16 @@ public class CallTraceabilityLFC {
 
                     lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus(operationId);
 
+                    if (lifecycleTraceabilityStatus.isPaused()) {
+                        LOGGER.error("LFC traceability operation on tenant {} for operationId {} is in PAUSE state", tenantId,
+                            operationId);
+                        break;
+                    }
+
                     LOGGER.info("Traceability operation status for tenant {}, operationId {}, status {})",
                         tenantId, operationId, lifecycleTraceabilityStatus.toString());
 
-                } while (!lifecycleTraceabilityStatus.isCompleted());
+                } while (!lifecycleTraceabilityStatus.isCompleted() && stopwatch.elapsed(TimeUnit.MINUTES) < 30);
 
                 return lifecycleTraceabilityStatus.isMaxEntriesReached();
             }
@@ -186,11 +199,11 @@ public class CallTraceabilityLFC {
         }
     }
 
-    private static String runLfcTraceability(int tenantId, TraceabilityType traceabilityType,
+    private String runLfcTraceability(int tenantId, TraceabilityType traceabilityType,
         LogbookOperationsClient client)
 
         throws LogbookClientServerException, InvalidParseOperationException {
-        RequestResponseOK response;
+        RequestResponseOK<String> response;
         switch (traceabilityType) {
             case ObjectGroup:
                 response = client.traceabilityLfcObjectGroup();
@@ -202,7 +215,7 @@ public class CallTraceabilityLFC {
                 throw new IllegalStateException("Unknown traceability type " + traceabilityType);
         }
 
-        String operationId = getOperationId(response, tenantId);
+        String operationId = getOperationId(response);
         if(operationId == null) {
             LOGGER.info("Traceability operation not required for tenant {}", tenantId);
         } else {
@@ -226,8 +239,7 @@ public class CallTraceabilityLFC {
         }
     }
 
-    private static String getOperationId(RequestResponseOK response, int tenant) {
-        return (String)response.getFirstResult();
+    private static String getOperationId(RequestResponseOK<String> response) {
+        return response.getFirstResult();
     }
-
 }

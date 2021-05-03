@@ -604,7 +604,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         for (ProcessWorkflow processWorkflow : listWorkflow) {
             ProcessDetail workflow = new ProcessDetail();
-            workflow = getNextAndPreviousSteps(processWorkflow, workflow);
+            getNextAndPreviousSteps(processWorkflow, workflow);
             if (query.getId() != null && !query.getId().equals(processWorkflow.getOperationId())) {
                 continue;
             }
@@ -662,11 +662,11 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     // TODO: 03/04/2020 double check if this method return the correct result
-    private ProcessDetail getNextAndPreviousSteps(ProcessWorkflow processWorkflow, ProcessDetail workflow) {
+    private void getNextAndPreviousSteps(ProcessWorkflow processWorkflow, ProcessDetail workflow) {
         String previousStep = "";
         String nextStep = "";
         String temporaryPreviousTask = "";
-        Boolean currentStepFound = false;
+        boolean currentStepFound = false;
 
         Iterator<ProcessStep> pwIterator = processWorkflow.getSteps().iterator();
         while (pwIterator.hasNext() && !currentStepFound) {
@@ -711,7 +711,6 @@ public class ProcessManagementImpl implements ProcessManagement {
             workflow.setPreviousStep(previousStep);
             workflow.setNextStep(nextStep);
         }
-        return workflow;
     }
 
     @Override
