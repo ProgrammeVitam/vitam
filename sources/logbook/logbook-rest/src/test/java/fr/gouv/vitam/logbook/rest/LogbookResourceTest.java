@@ -249,6 +249,10 @@ public class LogbookResourceTest {
                 .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         workspaceInstanceRule.stubFor(WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
             (WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        processingInstanceRule.stubFor(WireMock.get(WireMock.urlMatching("/processing/v1/operations")).willReturn
+            (WireMock.aResponse().withStatus(200).withBody(JsonHandler.unprettyPrint(new RequestResponseOK<>()))
+                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID)).withHeader(HttpHeaders
+                    .CONTENT_TYPE, MediaType.APPLICATION_JSON)));
         processingInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
             (WireMock.aResponse().withStatus(200)));
         processingInstanceRule.stubFor(WireMock.put(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
