@@ -189,6 +189,7 @@ import java.util.zip.ZipOutputStream;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -273,6 +274,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 AccessInternalMain.class,
                 IngestInternalMain.class));
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
+    private static String SIP_TREE_WITHOUT_INGEST_CONTRACT = "integration-ingest-internal/SIP_arbre_without_ingest_contract.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_FILE_KO_FORMAT = "integration-ingest-internal/SIP_mauvais_format.pdf";
     private static String SIP_CONTENT_KO_FORMAT = "integration-ingest-internal/SIP-ingest-internal-Content-KO.zip";
@@ -1035,7 +1037,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+            awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -1081,7 +1083,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+            awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -1127,7 +1129,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+            awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -1172,7 +1174,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1184,7 +1186,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname())
                     .equals("CHECK_UNIT_SCHEMA")) {
@@ -1227,7 +1229,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1240,7 +1242,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                 checkUnitSuccess = false;
@@ -1281,7 +1283,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
@@ -1294,7 +1296,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                 checkUnitSuccess = false;
@@ -1305,6 +1307,45 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertTrue(!checkUnitSuccess);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestTreeWhenIngestContractTagNotFound() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_TREE_WITHOUT_INGEST_CONTRACT);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            operationGuid, HOLDING_SCHEME, operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid.toString(),
+            operationGuid);
+        params.add(initParameters);
+        LOGGER.error(initParameters.toString());
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+
+
+        JsonNode logbook = logbookClient.selectOperationById(operationGuid.getId());
+        assertThat(logbook).isNotNull();
+        assertThat(logbook.toString()).contains("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_MANIFEST.KO");
+    }
 
     @RunWithCustomExecutor
     @Test
@@ -1336,7 +1377,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
     }
 
@@ -1529,7 +1570,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         client.initWorkflow(ingestSip);
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -1541,7 +1582,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.eventType.getDbname())
                     .equals("CHECK_UNIT_SCHEMA")) {
@@ -1977,16 +2018,16 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertThat(requestResponse.getHttpCode()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
         responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
         assertThat(responseOK.getResults().iterator().hasNext()).isTrue();
-        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(KO);
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        assertEquals(KO, processWorkflow.getStatus());
 
     }
 
@@ -2744,7 +2785,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
@@ -2905,7 +2946,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
     }
 
     @RunWithCustomExecutor
@@ -3038,7 +3079,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         _client.initWorkflow(ingestSip);
         _client
             .upload(zipInputStreamSipObjectLinking, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-        awaitForWorkflowTerminationWithStatus(operationGuidAttachement, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuidAttachement, KO);
 
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
@@ -3051,7 +3092,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
-            if (StatusCode.KO.toString()
+            if (KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
                 event.get(LogbookMongoDbName.outcomeDetail.getDbname())
                     .equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_BAD_SP.KO")) {
@@ -3110,7 +3151,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+        awaitForWorkflowTerminationWithStatus(operationGuid, KO);
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
