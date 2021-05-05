@@ -150,7 +150,7 @@ vitam_timers:
         - name: vitam-metadata-purge-dip
           frequency: "*-*-* *:00:00"
         - name: vitam-metadata-purge-transfers-SIP
-          frequency: "*-*-* *:05:00"
+          frequency: "*-*-* 02:25:00"
         - name: vitam-metadata-audit-mongodb-es
           frequency: "2020-01-01 00:00:00"
     offer:
