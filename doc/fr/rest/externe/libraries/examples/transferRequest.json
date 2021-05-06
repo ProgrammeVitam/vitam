@@ -43,5 +43,6 @@
         "#object": 1
       }
     }
-  }
+  },
+  "maxSizeThreshold": 1024
 }

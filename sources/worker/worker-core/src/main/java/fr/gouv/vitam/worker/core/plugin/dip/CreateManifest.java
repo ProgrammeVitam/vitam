@@ -261,12 +261,6 @@ public class CreateManifest extends ActionHandler {
                 }
             }
 
-            int tenant = VitamThreadUtils.getVitamSession().getTenantId();
-            long threshold = retriveRelevantThreshold(exportRequest.getMaxSizeThreshold(), tenant);
-            checkSize(itemStatus, exportSize, threshold, tenant);
-
-            storeBinaryInformationOnWorkspace(handlerIO, idBinaryWithFileName);
-
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
             initialQueryParser.parse(exportRequest.getDslRequest());
 
@@ -354,7 +348,11 @@ public class CreateManifest extends ActionHandler {
             manifestBuilder.closeManifest();
 
             exportSize += manifestFile.length();
+            int tenant = VitamThreadUtils.getVitamSession().getTenantId();
+            long threshold = retrieveRelevantThreshold(exportRequest.getMaxSizeThreshold(), tenant);
             checkSize(itemStatus, exportSize, threshold, tenant);
+
+            storeBinaryInformationOnWorkspace(handlerIO, idBinaryWithFileName);
 
             handlerIO.addOutputResult(MANIFEST_XML_RANK, manifestFile, true, false);
 
@@ -413,7 +411,7 @@ public class CreateManifest extends ActionHandler {
         itemStatus.setEvDetailData(evDetData);
     }
 
-    private long retriveRelevantThreshold(Long threshold, int tenant) {
+    private long retrieveRelevantThreshold(Long threshold, int tenant) {
         if (threshold != null) {
             return threshold;
         }

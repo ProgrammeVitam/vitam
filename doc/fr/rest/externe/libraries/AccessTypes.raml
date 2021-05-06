@@ -303,6 +303,10 @@ types:
           description: Contient la requête de recherche
           type: DslTypes.DslMultipleQuery
           required: true
+        maxSizeThreshold:
+          description: Le seuil du poids binaire max autorisé pour un DIP ou un SIP de transfert
+          type: integer
+          required: false
         dataObjectVersionToExport:
           description: L'identifiant du scénario de préservation
           type: object

@@ -92,6 +92,7 @@ public class ExportRequest {
         exportRequest.setExportType(ExportType.ArchiveTransfer);
         exportRequest
             .setExportRequestParameters(ExportRequestParameters.from(transferRequest.getTransferRequestParameters()));
+        exportRequest.setMaxSizeThreshold(transferRequest.getMaxSizeThreshold());
 
         return exportRequest;
     }

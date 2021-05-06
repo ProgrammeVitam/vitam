@@ -40,6 +40,9 @@ public class TransferRequest {
     @JsonProperty("transferWithLogBookLFC")
     private boolean transferWithLogBookLFC;
 
+    @JsonProperty("maxSizeThreshold")
+    private Long maxSizeThreshold;
+
     @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
@@ -88,5 +91,13 @@ public class TransferRequest {
 
     public void setDslRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
+    }
+
+    public Long getMaxSizeThreshold() {
+        return maxSizeThreshold;
+    }
+
+    public void setMaxSizeThreshold(Long maxSizeThreshold) {
+        this.maxSizeThreshold = maxSizeThreshold;
     }
 }
