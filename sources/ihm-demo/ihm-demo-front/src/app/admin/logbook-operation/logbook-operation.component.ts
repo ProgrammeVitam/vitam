@@ -36,8 +36,8 @@ export class LogbookOperationComponent extends PageComponent {
     {label: 'Sauvegarde écritures', value: 'storage_backup'},
     {label: 'Sécurisation', value: 'traceability'},
     {label: 'Vérification', value: 'check'},
-    {label: 'Journalisation externe', value: 'external_logbook'}
-
+    {label: 'Journalisation externe', value: 'external_logbook'},
+    {label: 'Suppression des versions des groupes d\'objets', value: 'delete_got_versions'}
   ];
   public logbookData = [
     FieldDefinition.createIdField('evId', 'Identifiant', 6, 8),
@@ -129,7 +129,7 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (['AUDIT', 'EXPORT_DIP', 'ARCHIVE_TRANSFER', 'TRANSFER_REPLY', 'INGEST', 'MASS_UPDATE', 'BULK_UPDATE'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
+    if (['AUDIT', 'EXPORT_DIP', 'ARCHIVE_TRANSFER', 'TRANSFER_REPLY', 'INGEST', 'MASS_UPDATE', 'BULK_UPDATE', 'DELETE_GOT_VERSIONS'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
       || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME'
       || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
       || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION'
@@ -222,6 +222,9 @@ export class LogbookOperationComponent extends PageComponent {
     }
 
     switch (item.evTypeProc.toUpperCase()) {
+      case 'DELETE_GOT_VERSIONS':
+          logbookService.downloadBatchReport(item.evIdProc);
+          break;
       case 'AUDIT':
         if(item.evType === "EXPORT_PROBATIVE_VALUE") {
           logbookService.downloadReport(item.evIdProc);

@@ -78,6 +78,7 @@ public final class BackgroundLogbookTypeProcessHelper {
             case TRANSFER_REPLY:
             case COMPUTE_INHERITED_RULES_DELETE:
             case INTERNAL_OPERATING_OP:
+            case DELETE_GOT_VERSIONS:
                 return false;
             default:
                 // /:\ Please ensure that any new LogbookTypeProcess is identified properly configured

@@ -1,0 +1,143 @@
+{
+  "httpCode": 0,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "ObjectSize": {
+        "ingested": 77256,
+        "deleted": 64460,
+        "remained": 12796
+      },
+      "#id": "aehaaaaaaafzhvpkabpjaalwkjvhu2aaaaaq",
+      "#tenant": 0,
+      "#version": 7,
+      "OriginatingAgency": "Identifier4",
+      "SubmissionAgency": "Identifier4",
+      "ArchivalAgreement": "IC-000001",
+      "EndDate": "2020-12-11T15:27:58.568",
+      "StartDate": "2020-12-11T15:27:58.568",
+      "LastUpdate": "2021-04-20T14:49:08.180",
+      "Status": "STORED_AND_COMPLETED",
+      "TotalObjectGroups": {
+        "ingested": 16,
+        "deleted": 0,
+        "remained": 16
+      },
+      "TotalUnits": {
+        "ingested": 24,
+        "deleted": 0,
+        "remained": 24
+      },
+      "TotalObjects": {
+        "ingested": 2,
+        "deleted": 10,
+        "remained": -8
+      },
+      "Opc": "aeeaaaaaacgqyd36aa4p2aly57azbdiaaaaq",
+      "Opi": "aeeaaaaaacfzhvpkabyv4alwkjvbxgqaaaaq",
+      "OpType": "INGEST",
+      "Events": [
+        {
+          "Opc": "aeeaaaaaacfzhvpkabyv4alwkjvbxgqaaaaq",
+          "OpType": "INGEST",
+          "Gots": 2,
+          "Units": 3,
+          "Objects": 2,
+          "ObjSize": 77256,
+          "CreationDate": "2020-12-11T15:27:58.568"
+        },
+        {
+          "Opc": "aeeaaaaaacf3sq6labezgaly3lxvy2qaaaaq",
+          "OpType": "DELETE_GOT_VERSIONS",
+          "Gots": 2,
+          "Units": 3,
+          "Objects": -2,
+          "ObjSize": -12892,
+          "CreationDate": "2021-04-16T13:48:06.016"
+        },
+        {
+          "Opc": "aeeaaaaaacf3sq6labezgaly3lyu5iiaaaaq",
+          "OpType": "DELETE_GOT_VERSIONS",
+          "Gots": 4,
+          "Units": 6,
+          "Objects": -2,
+          "ObjSize": -12892,
+          "CreationDate": "2021-04-16T13:51:30.852"
+        },
+        {
+          "Opc": "aeeaaaaaacf3sq6labezgaly3l6cshqaaaaq",
+          "OpType": "DELETE_GOT_VERSIONS",
+          "Gots": 8,
+          "Units": 12,
+          "Objects": -1,
+          "ObjSize": -6446,
+          "CreationDate": "2021-04-16T14:07:45.067"
+        },
+        {
+          "Opc": "aeeaaaaaacf3sq6labezgaly3m5uowyaaaaq",
+          "OpType": "DELETE_GOT_VERSIONS",
+          "Gots": 0,
+          "Units": 0,
+          "Objects": -1,
+          "ObjSize": -6446,
+          "CreationDate": "2021-04-16T15:15:17.786"
+        },
+        {
+          "Opc": "aeeaaaaaacf3sq6lab4akaly5iy3ymyaaaaq",
+          "OpType": "DELETE_GOT_VERSIONS",
+          "Gots": 0,
+          "Units": 0,
+          "Objects": -1,
+          "ObjSize": -6446,
+          "CreationDate": "2021-04-19T12:55:25.154"
+        },
+        {
+          "Opc": "aeeaaaaaacgqyd36aa4p2aly564jp6iaaaaq",
+          "OpType": "DELETE_GOT_VERSIONS",
+          "Gots": 0,
+          "Units": 0,
+          "Objects": -2,
+          "ObjSize": -12892,
+          "CreationDate": "2021-04-20T14:39:20.658"
+        },
+        {
+          "Opc": "aeeaaaaaacgqyd36aa4p2aly57azbdiaaaaq",
+          "OpType": "DELETE_GOT_VERSIONS",
+          "Gots": 0,
+          "Units": 0,
+          "Objects": -1,
+          "ObjSize": -6446,
+          "CreationDate": "2021-04-20T14:49:08.180"
+        }
+      ],
+      "OperationIds": [
+        "aeeaaaaaacfzhvpkabyv4alwkjvbxgqaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lxvy2qaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lyu5iiaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3l6cshqaaaaq"
+      ]
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": {
+      "$and": [
+        {
+          "$eq": {
+            "Opi": "aeeaaaaaacfzhvpkabyv4alwkjvbxgqaaaaq"
+          }
+        },
+        {
+          "$exists": "#id"
+        }
+      ]
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

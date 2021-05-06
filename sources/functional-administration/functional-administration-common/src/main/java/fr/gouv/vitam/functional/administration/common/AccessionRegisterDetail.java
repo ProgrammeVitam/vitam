@@ -348,6 +348,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
+    public String getOpi() {
+        return getString(OPI);
+    }
+
     public AccessionRegisterDetail setOperationIds(List<String> operationIds) {
         if (!operationIds.isEmpty()) {
             final List<String> ids = new ArrayList<>();

@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.batch.report.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.exception.BatchReportException;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
@@ -36,7 +38,9 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
@@ -109,7 +113,8 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void exportUnitsToInvalidate(String processId, ReportExportRequest reportExportRequest) throws VitamClientInternalException {
+    public void exportUnitsToInvalidate(String processId, ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException {
         ParametersChecker.checkParameter("processId parameter should be filled", processId);
 
         VitamRequestBuilder request = post()
@@ -153,12 +158,13 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata) throws VitamClientInternalException {
+    public void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata)
+        throws VitamClientInternalException {
         VitamRequestBuilder request = post()
-                .withPath(STORE_EXTRACTED_METADATA_FOR_AU)
-                .withBody(extractedMetadata)
-                .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
-                .withJson();
+            .withPath(STORE_EXTRACTED_METADATA_FOR_AU)
+            .withBody(extractedMetadata)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
         try (Response response = make(request)) {
             check(response);
         }
@@ -174,6 +180,23 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
             check(response);
         }
     }
+
+    @Override
+    public JsonNode readDeletedGotVersionsReport(ReportType reportType, String processId) {
+        VitamRequestBuilder request = get()
+            .withPath("/readReport")
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withBody(new ReportBody(processId, reportType, null))
+            .withJson();
+        try {
+            Response response = make(request);
+            check(response);
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException | InvalidParseOperationException e) {
+            throw new BatchReportException(e);
+        }
+    }
+
 
     private void check(Response response) throws VitamClientInternalException {
         Response.Status status = response.getStatusInfo().toEnum();

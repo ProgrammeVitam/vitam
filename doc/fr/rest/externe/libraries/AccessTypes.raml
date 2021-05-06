@@ -353,3 +353,49 @@ types:
               items:
                 type: string
       example: !include examples/transferRequest.json
+
+  DeleteGotVersionsRequest:
+      displayName: Requête DSL multiple pour la suppression des versions des groupes d'objects
+      description: Requête DSL multiple pour la suppression des versions des groupes d'objects
+      type: object
+      properties:
+        DslQuery:
+          description: Contient la requête de recherche
+          type: DslTypes.DslBatchProcessionQuery
+        UsageName:
+          description: Le nom d'usage pour le groupe d'objet
+          type: string
+        SpecificVersions:
+          description: Liste des versions des groupes d'objets à supprimer
+          type: array
+          items:
+           type: integer
+      example:
+        {
+          "dslQuery" : {
+            "$roots": [],
+            "$query": [
+              {
+                "$eq": {
+                  "#id": "aeaqaaaaaaezyoa6abacealifcom6xyaaaaq"
+                }
+              }
+            ],
+            "$threshold": 40
+           },
+          "UsageName" : "BinaryMaster",
+          "SpecificVersions": [2,3,4]
+        }
+
+  DeleteGotVersionsResponse:
+      displayName: Requête DSL multiple pour la suppression des versions des groupes d'objects
+      description: Requête DSL multiple pour la suppression des versions des groupes d'objects
+      type: object
+      properties:
+        httpCode:
+          description: Http status code la reponse
+          type: integer
+      example:
+        {
+        "httpCode" : 202
+        }

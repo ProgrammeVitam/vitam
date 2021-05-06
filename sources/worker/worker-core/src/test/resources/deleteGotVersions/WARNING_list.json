@@ -1,0 +1,12 @@
+[
+  [
+    {
+      "status": "WARNING",
+      "outCome": "Qualifier with forbidden version 1 has been detected!"
+    },
+    {
+      "status": "WARNING",
+      "outCome": "The last version of BinaryMaster usage cannot be deleted."
+    }
+  ]
+]

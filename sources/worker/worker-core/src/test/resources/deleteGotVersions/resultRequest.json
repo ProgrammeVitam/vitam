@@ -1,0 +1,48 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 8,
+    "offset": 0,
+    "limit": 10000,
+    "size": 8,
+    "scrollId": "DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAEAFndTaFc3MmswU19tQ0hjZ3VDMUJJNmcAAAAAAAABARZ3U2hXNzJrMFNfbUNIY2d1QzFCSTZnAAAAAAAAAQIWd1NoVzcyazBTX21DSGNndUMxQkk2ZwAAAAAAAAEDFndTaFc3MmswU19tQ0hjZ3VDMUJJNmcAAAAAAAABBBZ3U2hXNzJrMFNfbUNIY2d1QzFCSTZn"
+  },
+  "$results": [
+    {
+      "#id": "aeaqaaaaaaepjubnaasdualyqi65jsiaaaba",
+      "#object": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"
+    },
+    {
+      "#id": "aeaqaaaaaafzhvpkabpjaalwkjvgeyqaaaaq",
+      "#object": "aebaaaaaaafzhvpkabpjaalwkjvgedqaaaaq"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$exists": "#id",
+        "$depth": 1000
+      },
+      {
+        "$exists": "#object"
+      }
+    ],
+    "$filter": {
+      "$orderby": {
+        "#object": 1
+      },
+      "$scrollId": "START",
+      "$limit": 10000,
+      "$scrollTimeout": 60000
+    },
+    "$projection": {
+      "$fields": {
+        "#id": 1,
+        "#object": 1
+      }
+    },
+    "$facets": []
+  }
+}

@@ -60,7 +60,8 @@ public enum Contexts {
     IMPORT_ONTOLOGY(LogbookTypeProcess.MASTERDATA, "IMPORT_ONTOLOGY"),
     REFERENTIAL_FORMAT_IMPORT(LogbookTypeProcess.MASTERDATA, "STP_REFERENTIAL_FORMAT_IMPORT"),
     REFRENTIAL_FORMAT_DELETE(LogbookTypeProcess.MASTERDATA, "STP_DELETE_FORMAT"),
-    INGEST_CLEANUP(LogbookTypeProcess.INTERNAL_OPERATING_OP, "INGEST_CLEANUP");
+    INGEST_CLEANUP(LogbookTypeProcess.INTERNAL_OPERATING_OP, "INGEST_CLEANUP"),
+    DELETE_GOT_VERSIONS(LogbookTypeProcess.DELETE_GOT_VERSIONS, "DELETE_GOT_VERSIONS");
 
     private final LogbookTypeProcess logbookTypeProcess;
     private final String eventType;

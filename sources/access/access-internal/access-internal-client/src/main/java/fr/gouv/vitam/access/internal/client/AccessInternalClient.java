@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -391,6 +392,14 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException AccessInternalClientServerException
      */
     RequestResponse<JsonNode> startPreservation(PreservationRequest request) throws AccessInternalClientServerException;
+
+    /**
+     * Perform deleteGotVersions workflow
+     * @param request
+     * @return
+     * @throws AccessInternalClientServerException
+     */
+    RequestResponse<JsonNode> deleteGotVersions(DeleteGotVersionsRequest request) throws AccessInternalClientServerException;
 
     /**
      * Perform a computedInheritedRules workflow

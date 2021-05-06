@@ -398,5 +398,23 @@
   },
   "REVERT_UPDATE_FINALIZE": {
     "className": "fr.gouv.vitam.worker.core.plugin.revertupdate.RevertUpdateUnitFinalizePlugin"
+  },
+  "DELETE_GOT_VERSIONS_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsPreparationPlugin"
+  },
+  "DELETE_GOT_VERSIONS_ACTION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsActionPlugin"
+  },
+  "STORE_METADATA_AND_LFC_WORKSPACE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsStoreMetadataAndLfcPlugin"
+  },
+  "DELETE_GOT_VERSIONS_STORAGE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsStoragePlugin"
+  },
+  "DELETE_GOT_VERSIONS_ACCESSION_REGISTER_UPDATE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsAccessionRegisterUpdatePlugin"
+  },
+  "DELETE_GOT_VERSIONS_FINALIZATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsFinalizationPlugin"
   }
 }

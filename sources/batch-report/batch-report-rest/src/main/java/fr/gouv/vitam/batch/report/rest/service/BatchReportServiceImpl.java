@@ -47,6 +47,7 @@ import fr.gouv.vitam.batch.report.model.TransferReplyUnitModel;
 import fr.gouv.vitam.batch.report.model.UnitComputedInheritedRulesInvalidationModel;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalida
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.BulkUpdateUnitMetadataReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
@@ -71,6 +73,7 @@ import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -97,6 +100,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +134,7 @@ public class BatchReportServiceImpl {
     private final EvidenceAuditReportRepository evidenceAuditReportRepository;
     private final TraceabilityReportRepository traceabilityReportRepository;
     private final ExtractedMetadataRepository extractedMetadataRepository;
+    private final DeleteGotVersionsReportRepository deleteGotVersionsReportRepository;
 
     public BatchReportServiceImpl(
         WorkspaceClientFactory workspaceClientFactory,
@@ -144,7 +149,8 @@ public class BatchReportServiceImpl {
         UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository,
         EvidenceAuditReportRepository evidenceAuditReportRepository,
         TraceabilityReportRepository traceabilityReportRepository,
-        ExtractedMetadataRepository extractedMetadataRepository) {
+        ExtractedMetadataRepository extractedMetadataRepository,
+        DeleteGotVersionsReportRepository deleteGotVersionsReportRepository) {
         this.eliminationActionUnitRepository = eliminationActionUnitRepository;
         this.purgeUnitRepository = purgeUnitRepository;
         this.purgeObjectGroupRepository = purgeObjectGroupRepository;
@@ -158,6 +164,7 @@ public class BatchReportServiceImpl {
         this.evidenceAuditReportRepository = evidenceAuditReportRepository;
         this.traceabilityReportRepository = traceabilityReportRepository;
         this.extractedMetadataRepository = extractedMetadataRepository;
+        this.deleteGotVersionsReportRepository = deleteGotVersionsReportRepository;
     }
 
     public void appendEliminationActionUnitReport(String processId, List<EliminationActionUnitReportEntry> entries,
@@ -233,6 +240,10 @@ public class BatchReportServiceImpl {
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), entry))
             .collect(Collectors.toList());
         unitComputedInheritedRulesInvalidationRepository.bulkAppendReport(documents);
+    }
+
+    public void appendDeleteGotVersionsReport(List<DeleteGotVersionsReportEntry> unitEntries) {
+        deleteGotVersionsReportRepository.bulkAppendReport(unitEntries);
     }
 
     public void deleteUnitComputedInheritedRulesInvalidationReport(String processId, int tenantId) {
@@ -488,6 +499,11 @@ public class BatchReportServiceImpl {
                         bulkUpdateUnitMetadataReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
                     writeDocumentsInFile(reportWriter, bulkUpdates);
                     break;
+                case DELETE_GOT_VERSIONS:
+                    MongoCursor<Document> deleteGotVersionsIterator =
+                        deleteGotVersionsReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
+                    writeDocumentsInFile(reportWriter, deleteGotVersionsIterator);
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                         String.format("Unsupported report type : '%s'.", reportSummary.getReportType()));
@@ -499,6 +515,18 @@ public class BatchReportServiceImpl {
         } finally {
             deleteQuietly(tempReport.getParentFile());
         }
+    }
+
+    public List<DeleteGotVersionsReportEntry> readDeleteGotVersionsReport(String processId, int tenantId)
+        throws InvalidParseOperationException {
+        List<DeleteGotVersionsReportEntry> deleteGotVersionsReportEntries = new ArrayList<>();
+        MongoCursor<Document> deleteGotVersionsIterator =
+            deleteGotVersionsReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
+        while (deleteGotVersionsIterator.hasNext()) {
+            Document opi = deleteGotVersionsIterator.next();
+            deleteGotVersionsReportEntries.add((  BsonHelper.fromDocumentToObject(opi, DeleteGotVersionsReportEntry.class)));
+        }
+        return deleteGotVersionsReportEntries;
     }
 
     private void createFileFromTwoMongoCursorWithDocument(File tempFile, MongoCursor<Document> unitCursor,
@@ -651,6 +679,10 @@ public class BatchReportServiceImpl {
 
     public void deleteEvidenceAuditByIdAndTenant(String processId, int tenantId) {
         evidenceAuditReportRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+    public void deleteGotVersionsByIdAndTenant(String processId, int tenantId) {
+        deleteGotVersionsReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
     private void deleteQuietly(File directory) {

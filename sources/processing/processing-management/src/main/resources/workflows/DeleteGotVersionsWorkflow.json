@@ -1,0 +1,116 @@
+{
+  "id": "DELETE_GOT_VERSIONS",
+  "name": "Delete got versions workflow",
+  "identifier": "DELETE_GOT_VERSIONS",
+  "typeProc": "DELETE_GOT_VERSIONS",
+  "comment": "Delete got versions action workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_DELETE_GOT_VERSIONS_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "DELETE_GOT_VERSIONS_PREPARATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED",
+            "out": [
+              {
+                "name": "distributionFileOG",
+                "uri": "WORKSPACE:distributionFileOG.jsonl"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_DELETE_GOT_VERSIONS_ACTION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "distributionFileOG.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "DELETE_GOT_VERSIONS_ACTION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "FLUSH_LFC"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "STORE_METADATA_AND_LFC_WORKSPACE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "DELETE_GOT_VERSIONS_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_DELETE_GOT_VERSIONS_ACCESSION_REGISTER_UPDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "DELETE_GOT_VERSIONS_ACCESSION_REGISTER_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_DELETE_GOT_VERSIONS_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "DELETE_GOT_VERSIONS_FINALIZATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    }
+  ]
+}

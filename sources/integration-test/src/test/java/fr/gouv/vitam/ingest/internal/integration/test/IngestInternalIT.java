@@ -238,8 +238,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String LOGBOOK_PATH = "/logbook/v1";
     private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
-    private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
-    private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
     private static final String FILE_RULES_OK = "functional-admin/file-rules/jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_AGENCIES_OK = "functional-admin/agencies/agencies.csv";
     private static final String FILE_AGENCIES_AU_update = "functional-admin/agencies/agencies_update.csv";

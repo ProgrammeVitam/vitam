@@ -1,0 +1,45 @@
+[
+  {
+    "id": "aeaaaaaaaagqyd36abxxcaly7crrixyaaaaq",
+    "processId": "aeeaaaaaacgqyd36abmc4aly7crq7syaaaaq",
+    "_tenant": 0,
+    "creationDateTime": "2021-04-22T08:12:20.447",
+    "objectGroupId": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq",
+    "unitIds": [
+      "aeaqaaaaaaepjubnaasdualyqi65jsiaaaba"
+    ],
+    "objectGroupGlobal": [
+      {
+        "status": "WARNING",
+        "outCome": "Qualifier with this specific version 53 is inexistant!"
+      }
+    ],
+    "detailType": "DELETE_GOT_VERSIONS"
+  },
+  {
+    "id": "aeaaaaaaaagqyd36abxxcaly7crrixyaaaba",
+    "processId": "aeeaaaaaacgqyd36abmc4aly7crq7syaaaaq",
+    "_tenant": 0,
+    "creationDateTime": "2021-04-22T08:12:20.447",
+    "objectGroupId": "aebaaaaaaafzhvpkabpjaalwkjvgedqaaaaq",
+    "unitIds": [
+      "aeaqaaaaaafzhvpkabpjaalwkjvgeyqaaaaq"
+    ],
+    "objectGroupGlobal": [
+      {
+        "status": "OK",
+        "deletedVersions": [
+          {
+            "id": "aeaaaaaaaagqyd36abxxcaly6tjwmtaaaaba",
+            "DataObjectVersion": "BinaryMaster_53",
+            "Size": 6446,
+            "strategyId": "default",
+            "opi": "aeeaaaaaacfzhvpkabyv4alwkjvbxgqaaaaq",
+            "opc": "aeeaaaaaacgqyd36abmc4aly6tjvs4yaaaaq"
+          }
+        ]
+      }
+    ],
+    "detailType": "DELETE_GOT_VERSIONS"
+  }
+]

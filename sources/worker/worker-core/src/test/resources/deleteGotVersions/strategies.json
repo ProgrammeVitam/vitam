@@ -1,0 +1,46 @@
+[
+    {
+      "id": "default",
+      "offers": [
+        {
+          "id": "offer-one",
+          "referent": true
+        },
+        {
+          "id": "offer-two"
+        }
+      ]
+    },
+    {
+      "id": "fake-md",
+      "offers": [
+        {
+          "id": "offer-one",
+          "referent": true
+        },
+        {
+          "id": "offer-two"
+        }
+      ]
+    },
+    {
+      "id": "fake-invalid-md",
+      "offers": [
+        {
+          "id": "offer-one"
+        },
+        {
+          "id": "offer-two"
+        }
+      ]
+    },
+    {
+      "id": "fake-object",
+      "offers": [
+        {
+          "id": "offer-three",
+          "referent": false
+        }
+      ]
+    }
+]

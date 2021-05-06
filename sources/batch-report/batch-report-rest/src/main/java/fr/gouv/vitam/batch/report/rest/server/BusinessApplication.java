@@ -31,6 +31,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.BulkUpdateUnitMetadataReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.DeleteGotVersionsReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.ExtractedMetadataRepository;
@@ -101,12 +102,13 @@ public class BusinessApplication extends ConfigurationApplication {
             EvidenceAuditReportRepository evidenceAuditReportRepository = new EvidenceAuditReportRepository(mongoDbAccess);
             TraceabilityReportRepository traceabilityReportRepository = new TraceabilityReportRepository(mongoDbAccess);
             ExtractedMetadataRepository extractedMetadataRepository = new ExtractedMetadataRepository(mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME));
+            DeleteGotVersionsReportRepository deleteGotVersionsReportRepository  = new DeleteGotVersionsReportRepository(mongoDbAccess);
             BatchReportServiceImpl batchReportServiceImpl =
                 new BatchReportServiceImpl(workspaceClientFactory, eliminationActionUnitRepository, purgeUnitRepository,
                     purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitReportRepository,
                     bulkUpdateUnitMetadataReportRepository, preservationReportRepository, auditReportRepository,
                     unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository,
-                    traceabilityReportRepository, extractedMetadataRepository);
+                    traceabilityReportRepository, extractedMetadataRepository, deleteGotVersionsReportRepository);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());
