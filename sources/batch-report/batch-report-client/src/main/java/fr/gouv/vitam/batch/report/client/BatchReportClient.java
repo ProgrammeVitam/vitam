@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.batch.report.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
@@ -92,4 +92,6 @@ public interface BatchReportClient extends BasicClient {
     void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata) throws VitamClientInternalException;
 
     void createExtractedMetadataDistributionFileForAu(String processId) throws Exception;
+
+    JsonNode readDeletedGotVersionsReport(ReportType deleteGotVersions, String processId);
 }

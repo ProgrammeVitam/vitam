@@ -226,6 +226,8 @@ export class AccessionRegisterComponent extends PageComponent {
         return `l'opération d'élimination (id : ${event.Opc}) a supprimé ${event.Units} unités archivistiques, ${event.Gots} groupes d'objets techniques et ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`;
       case 'TRANSFER_REPLY':
         return `l'opération d'acquittement de transfert (id : ${event.Opc}) a supprimé ${event.Units} unités archivistiques, ${event.Gots} groupes d'objets techniques et ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`;
+      case 'DELETE_GOT_VERSIONS':
+        return `l'opération de suppression des versions des binaires (id : ${event.Opc}) a supprimé ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`;
     }
   }
 }

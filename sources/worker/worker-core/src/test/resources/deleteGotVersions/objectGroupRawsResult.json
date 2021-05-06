@@ -1,0 +1,121 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
+  },
+  "$results": [
+    {
+      "_id": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq",
+      "_tenant": 0,
+      "_profil": "",
+      "FileInfo": {
+        "Filename": "Lake.jpeg",
+        "LastModified": "2017-04-04T08:07:06.487"
+      },
+      "_qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "_nbc": 6,
+          "versions": [
+            {
+              "_id": "aeaaaaaaaaepjubnaasdualyqi65jkaaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "DataObjectGroupId": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq",
+              "FormatIdentification": {
+                "FormatLitteral": "JPEG File Interchange Format",
+                "MimeType": "image/jpeg",
+                "FormatId": "fmt/43"
+              },
+              "FileInfo": {
+                "Filename": "Lake.jpeg",
+                "LastModified": "2017-04-04T08:07:06.487"
+              },
+              "Size": 38628,
+              "Uri": "Content/Lake.jpeg",
+              "MessageDigest": "a7c15313969583c478b2d66ad1a4b34e250d6751ee4b39e546a77f9c0d71ccefee55e2661b457f9e848a4e2d45d831058d3f61c1914b7fd45a168bace27f1d6f",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "strategyId": "default",
+                "_nbc": 0
+              },
+              "_opi": "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq"
+            },
+            {
+              "_id": "aeaaaaaaaaepjubnaasdualyqjtcxhaaaaaq",
+              "DataObjectVersion": "BinaryMaster_2",
+              "DataObjectGroupId": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq",
+              "FormatIdentification": {
+                "FormatLitteral": "Graphics Interchange Format",
+                "MimeType": "image/gif",
+                "FormatId": "fmt/4"
+              },
+              "FileInfo": {
+                "Filename": "GENERATE-aeaaaaaaaaepjubnaasdualyqi65jkaaaaaq.GIF",
+                "LastModified": "2021-03-30T09:10:37.346"
+              },
+              "Size": 6446,
+              "MessageDigest": "b83188e5990d7518af2f6597fedfcd408e097801257f99dcd2cef0fdc670dc0a3a78d852004b1d416e060b4375a32b9ce27380e41fc2ecb07e7e8a0f1906b32f",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "strategyId": "default",
+                "_nbc": 0
+              },
+              "_opi": "aeeaaaaaacepjubnaaujealyqjtcayaaaaaq"
+            },
+            {
+              "_id": "aeaaaaaaaaf3sq6labakwaly3l42ksqaaaaq",
+              "DataObjectVersion": "BinaryMaster_3",
+              "DataObjectGroupId": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq",
+              "FormatIdentification": {
+                "FormatLitteral": "Graphics Interchange Format",
+                "MimeType": "image/gif",
+                "FormatId": "fmt/4"
+              },
+              "FileInfo": {
+                "Filename": "GENERATE-aeaaaaaaaaepjubnaasdualyqi65jkaaaaaq.GIF",
+                "LastModified": "2021-04-16T13:58:17.363"
+              },
+              "Size": 6446,
+              "MessageDigest": "b83188e5990d7518af2f6597fedfcd408e097801257f99dcd2cef0fdc670dc0a3a78d852004b1d416e060b4375a32b9ce27380e41fc2ecb07e7e8a0f1906b32f",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "strategyId": "default",
+                "_nbc": 0
+              },
+              "_opi": "aeeaaaaaacf3sq6labezgaly3l4x6rqaaaaq"
+            }
+          ]
+        }
+      ],
+      "_up": [
+        "aeaqaaaaaaepjubnaasdualyqi65jsiaaaba"
+      ],
+      "_nbc": 6,
+      "_ops": [
+        "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq",
+        "aeeaaaaaacepjubnaaujealyqjtcayaaaaaq",
+        "aeeaaaaaacgqyd36aaefkaly52aaehyaaaaq"
+      ],
+      "_opi": "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq",
+      "_sp": "Identifier4",
+      "_sps": [
+        "Identifier4"
+      ],
+      "_storage": {
+        "strategyId": "default"
+      },
+      "_v": 38,
+      "_av": 38,
+      "_glpd": "2021-03-30T08:26:44.902",
+      "_us": [
+        "aeaqaaaaaaepjubnaasdualyqi65jnqaaabq",
+        "aeaqaaaaaaepjubnaasdualyqi65jsiaaaba"
+      ]
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

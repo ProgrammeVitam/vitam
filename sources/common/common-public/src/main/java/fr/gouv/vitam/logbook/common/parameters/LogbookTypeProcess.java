@@ -144,7 +144,11 @@ public enum LogbookTypeProcess {
      * Compute inherited rules process delete
      */
     COMPUTE_INHERITED_RULES_DELETE,
-    INTERNAL_OPERATING_OP;
+    INTERNAL_OPERATING_OP,
+    /**
+     * Delete GOT versions
+     */
+    DELETE_GOT_VERSIONS;
 
     /**
      * Get the LogbookTypeProcess matching the given type

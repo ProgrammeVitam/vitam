@@ -393,6 +393,9 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
             actions.add(new PushAction(AccessionRegisterDetail.EVENTS, JsonHandler.toJsonNode(registerValueEvent)));
+            // TODO : to check if update is needed after resolving US#8038
+            // actions.add(new PushAction(AccessionRegisterDetail.OPERATION_IDS, registerValueEvent.getOperation()));
+            actions.add(new SetAction(AccessionRegisterDetail.OPC, registerDetail.getOpc()));
 
             Update update = new Update();
             update.setQuery(
@@ -446,7 +449,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     private VitamDocument<AccessionRegisterDetail> findAccessionRegisterDetail(String originatingAgency, String opi) {
         Bson filterQuery = and(eq(AccessionRegisterDetail.ORIGINATING_AGENCY, originatingAgency),
             eq(AccessionRegisterDetail.OPI, opi));
-        return FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.<VitamDocument<AccessionRegisterDetail>>getCollection()
+        return FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL
+            .<VitamDocument<AccessionRegisterDetail>>getCollection()
             .find(filterQuery).iterator().next();
     }
 

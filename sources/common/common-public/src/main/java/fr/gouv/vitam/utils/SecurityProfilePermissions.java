@@ -123,6 +123,7 @@ public enum SecurityProfilePermissions {
     RECLASSIFICATION_UPDATE("reclassification:update"),
     RECTIFICATIONAUDIT_CHECK("rectificationaudit:check"),
     OBJECTS_READ("objects:read"),
+    DELETE_GOT_VERSIONS("objects:deleteGotVersions"),
     ELIMINATION_ANALYSIS("elimination:analysis"),
     ELIMINATION_ACTION("elimination:action"),
     FORCEPAUSE_CHECK("forcepause:check"),

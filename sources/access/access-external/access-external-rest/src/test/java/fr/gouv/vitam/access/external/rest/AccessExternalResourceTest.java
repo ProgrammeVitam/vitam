@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -81,11 +82,13 @@ import javax.ws.rs.core.Response.Status;
 
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -122,18 +125,20 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$filter\": {} }";
     private static final String ELIMINATION_QUERY =
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
-    
-    
-    
+    private static final String DELETE_GOT_VERSIONS_QUERY =
+        "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
+
+
+
     private static final String BULK_ATOMIC_UPDATE_VALID = "{ \"queries\" : [ { "
-            + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
-            + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
-    
+        + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
+        + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
+
     private static final String BULK_ATOMIC_UPDATE_INVALID = "{ \"queries\" : [ { "
-            + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
-            + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
-            + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
-    
+        + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
+        + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
+        + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
+
     private static String good_id = "goodId";
     private static String bad_id = "badId";
 
@@ -177,6 +182,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     private static final String ACCESS_UNITS_URI = "/units";
     private static final String ACCESS_UNITS_WITH_INHERITED_RULES_URI = "/unitsWithInheritedRules";
     private static final String ELIMINATION_ANALYSIS_URI = "/elimination/analysis";
+    private static final String DELETE_GOT_VERSIONS_URI = "/deleteGotVersions";
 
     private static final String ID_UNIT = "identifier5";
     private static final String TENANT_ID = "0";
@@ -258,7 +264,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         junitHelper.releasePort(port);
-        if(application != null) {
+        if (application != null) {
             application.stop();
         }
         VitamClientFactory.resetConnections();
@@ -440,8 +446,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void given_pathWithId_when_get_SelectByID()
-            throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, InvalidCreateOperationException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException,
+        InvalidCreateOperationException {
 
 
         SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
@@ -1218,7 +1225,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .thenReturn(new RequestResponseOK().addResult(result));
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
         when(accessInternalClient.selectUnits(any()))
-                .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
+            .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
@@ -1587,8 +1594,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testErrorsGetObjects()
-            throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-            InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
         JsonNode objectGroup = JsonHandler.getFromString(
             "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
 
@@ -2024,10 +2031,10 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_OK() throws Exception {
-             
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenReturn(new RequestResponseOK().setHttpCode(202));
         given()
@@ -2040,26 +2047,26 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_Unauthorized() throws Exception {
-        
-       when(accessInternalClient.bulkAtomicUpdateUnits(any()))
-           .thenThrow(AccessUnauthorizedException.class);
-       given()
-           .contentType(ContentType.JSON)
-           .accept(ContentType.JSON)
-           .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
-           .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-           .when()
-           .post("/units/bulk")
-           .then()
-           .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        when(accessInternalClient.bulkAtomicUpdateUnits(any()))
+            .thenThrow(AccessUnauthorizedException.class);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_InternalServerError() throws Exception {
-             
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenThrow(AccessInternalClientServerException.class);
         given()
@@ -2097,17 +2104,36 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .post("/units/bulk")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenThrow(InvalidParseOperationException.class);
-       given()
-           .contentType(ContentType.JSON)
-           .accept(ContentType.JSON)
-           .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
-           .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-           .when()
-           .post("/units/bulk")
-           .then()
-           .statusCode(Status.BAD_REQUEST.getStatusCode());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BULK_ATOMIC_UPDATE_VALID))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post("/units/bulk")
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void startDeleteGotVersions_OK() throws Exception {
+        when(accessInternalClient.deleteGotVersions(any()))
+            .thenReturn(new RequestResponseOK().setHttpCode(200));
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(
+                new DeleteGotVersionsRequest(JsonHandler.getFromString(DELETE_GOT_VERSIONS_QUERY),
+                    BINARY_MASTER.getName(),
+                    List.of(18, 19))))
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(DELETE_GOT_VERSIONS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 }

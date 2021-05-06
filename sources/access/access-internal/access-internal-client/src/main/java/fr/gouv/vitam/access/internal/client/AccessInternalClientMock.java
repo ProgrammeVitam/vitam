@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -256,6 +257,11 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     @Override
     public RequestResponse<JsonNode> revertUnits(JsonNode queryJson) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse<JsonNode> deleteGotVersions(DeleteGotVersionsRequest request){
         throw new IllegalStateException("Stop using mocks in production");
     }
 }

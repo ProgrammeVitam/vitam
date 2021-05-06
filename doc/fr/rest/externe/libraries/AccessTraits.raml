@@ -424,3 +424,29 @@ traits:
           application/json:
             description: Operation de Transfer acceptée
             type: StandardTypes.AsyncStatus
+
+  DeleteGotVersionsResponseAsync:
+      description: Requête de suppression des versions des groupes d'objets
+      is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.StandardHeader202 ]
+      body:
+        application/json:
+          description: |
+            Body contient la requête DSL au format JSON.
+            Le nom d'usage du groupe d'objets et
+            la liste des versions à supprimer.
+          type: AccessTypes.DeleteGotVersionsRequest
+          example: !include examples/deleteGotVersionsRequest.json
+      responses:
+        202:
+          description: |
+            Renvoie le statut de l'opération de suppression des versions des groupes d'objets
+          body:
+            application/json:
+              description: Operation de suppression des versions des groupes d'objets acceptée
+              type: AccessTypes.DeleteGotVersionsResponse
+              example: !include examples/deleteGotVersionsResponse.json
+        500:
+          description: Renvoie le statut final de l'opération de suppression des groupes d'objets en KO
+          body:
+            application/json:
+              description: Rapport final de l'opération de suppression des groupes d'objets

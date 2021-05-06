@@ -1,0 +1,21 @@
+[
+  [
+    {
+      "status": "WARNING",
+      "outCome": "Qualifier with forbidden version 1 has been detected!"
+    },
+    {
+      "status": "OK",
+      "deletedVersions": [
+        {
+          "id": "aeaaaaaaaaf3sq6labakwaly3l52wqiaaaaq",
+          "DataObjectVersion": "BinaryMaster_33",
+          "Size": 6446,
+          "strategyId": "default",
+          "opi": "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq",
+          "opc": "aeeaaaaaacf3sq6labezgaly3l5ywfyaaaaq"
+        }
+      ]
+    }
+  ]
+]

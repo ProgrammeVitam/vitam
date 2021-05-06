@@ -73,6 +73,7 @@ import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
 import fr.gouv.vitam.common.mapping.dip.DipService;
 import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
+import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -153,6 +154,7 @@ import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES_DELETE;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DELETE_GOT_VERSIONS;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.TRANSFER_REPLY;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -208,8 +210,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this(new AccessInternalModuleImpl(), LogbookOperationsClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance());
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
-        ProcessingManagementClientFactory
-            .changeConfigurationUrl(configuration.getUrlProcessing());
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
 
     @VisibleForTesting
@@ -1775,6 +1776,79 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
                     String.format("An error occurred during %s workflow", PRESERVATION.getEventType())))
+                .build();
+        }
+    }
+
+    @Path("/deleteGotVersions")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteGotVersions(DeleteGotVersionsRequest deleteGotVersionsRequest) {
+
+        try {
+            ParametersChecker.checkParameter("Missing request", deleteGotVersionsRequest);
+
+            String operationId = getVitamSession().getRequestId();
+            AccessContractModel contract = getVitamSession().getContract();
+
+            JsonNode dslQuery = deleteGotVersionsRequest.getDslQuery().deepCopy();
+            JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
+
+            DeleteGotVersionsRequest restrictedRequest =
+                new DeleteGotVersionsRequest(restrictedQuery, deleteGotVersionsRequest.getUsageName(),
+                    deleteGotVersionsRequest.getSpecificVersions());
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                String message = VitamLogbookMessages.getLabelOp(DELETE_GOT_VERSIONS.getEventType() + ".STARTED") + " : " +
+                    GUIDReader.getGUID(operationId);
+
+                LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                    GUIDReader.getGUID(operationId),
+                    DELETE_GOT_VERSIONS.getEventType(),
+                    GUIDReader.getGUID(operationId),
+                    LogbookTypeProcess.DELETE_GOT_VERSIONS,
+                    STARTED,
+                    message,
+                    GUIDReader.getGUID(operationId)
+                );
+                addRightsStatementIdentifier(initParameters);
+                logbookOperationsClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+                workspaceClient.putObject(operationId, "deleteGotVersionsRequest", writeToInpustream(restrictedRequest));
+
+                //for CheckThresholdHandler
+                workspaceClient
+                    .putObject(operationId, QUERY_FILE, writeToInpustream(restrictedRequest.getDslQuery()));
+
+                // store original query in workspace
+                workspaceClient
+                    .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                        OperationContextModel.get(deleteGotVersionsRequest)));
+
+
+                // compress file to backup
+                OperationContextMonitor
+                    .compressInWorkspace(workspaceClientFactory, operationId, DELETE_GOT_VERSIONS.getLogbookTypeProcess(),
+                        OperationContextMonitor.OperationContextFileName);
+
+                processingClient.initVitamProcess(new ProcessingEntry(operationId, DELETE_GOT_VERSIONS.name()));
+
+                return processingClient
+                    .executeOperationProcess(operationId, DELETE_GOT_VERSIONS.name(), RESUME.getValue())
+                    .toResponse();
+            }
+        } catch (BadRequestException e) {
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        } catch (Exception e) {
+            LOGGER.error("Error on delete got versions request", e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
+                    String.format("An error occurred during %s workflow", DELETE_GOT_VERSIONS.getEventType())))
                 .build();
         }
     }

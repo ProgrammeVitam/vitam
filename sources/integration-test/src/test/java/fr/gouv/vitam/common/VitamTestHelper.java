@@ -98,6 +98,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
+import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -228,7 +229,7 @@ public class VitamTestHelper {
     }
 
     public static String doIngest(int tenantId, String zip, Contexts context,
-                                  ProcessAction processAction,StatusCode logbookStatus) throws VitamException{
+        ProcessAction processAction, StatusCode logbookStatus) throws VitamException {
         final InputStream zipStream;
         try {
             zipStream = PropertiesUtils.getResourceAsStream(zip);
@@ -240,11 +241,11 @@ public class VitamTestHelper {
     }
 
     public static String doIngest(int tenantId, InputStream zipStream, Contexts context,
-                                  ProcessAction processAction, StatusCode logbookStatus)
-            throws VitamException {
+        ProcessAction processAction, StatusCode logbookStatus)
+        throws VitamException {
         final WorkFlow workflow =
-                WorkFlow.of(context.name(), context.getEventType(),
-                        context.getLogbookTypeProcess().name());
+            WorkFlow.of(context.name(), context.getEventType(),
+                context.getLogbookTypeProcess().name());
         final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
@@ -252,8 +253,8 @@ public class VitamTestHelper {
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                ingestOperationGuid, context.getEventType(), ingestOperationGuid, LogbookTypeProcess.INGEST,
-                logbookStatus, ingestOperationGuid.toString(), ingestOperationGuid);
+            ingestOperationGuid, context.getEventType(), ingestOperationGuid, LogbookTypeProcess.INGEST,
+            logbookStatus, ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -263,8 +264,8 @@ public class VitamTestHelper {
         // init workflow before execution
         client.initWorkflow(workflow);
 
-        try(final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()){
-            InputStream sanityCheckStream = PropertiesUtils.getResourceAsStream(SANITY_CHECK_RESULT_FILE) ;
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            InputStream sanityCheckStream = PropertiesUtils.getResourceAsStream(SANITY_CHECK_RESULT_FILE);
             workspaceClient.putObject(ingestOperationGuid.getId(), SANITY_CHECK_RESULT_FILE, sanityCheckStream);
         } catch (FileNotFoundException e) {
             fail("SanityCheck File not found", e);
@@ -278,16 +279,17 @@ public class VitamTestHelper {
         return ingestOperationGuid.toString();
     }
 
-    public static String doIngestWithLogbookStatus(int tenantId, String zip, StatusCode logbokStatus) throws VitamException {
-        return doIngest(tenantId,zip, DEFAULT_WORKFLOW, ProcessAction.RESUME, logbokStatus);
+    public static String doIngestWithLogbookStatus(int tenantId, String zip, StatusCode logbokStatus)
+        throws VitamException {
+        return doIngest(tenantId, zip, DEFAULT_WORKFLOW, ProcessAction.RESUME, logbokStatus);
     }
 
     public static String doIngest(int tenantId, String zip) throws VitamException {
-       return doIngest(tenantId,zip, DEFAULT_WORKFLOW, ProcessAction.RESUME,StatusCode.STARTED);
+        return doIngest(tenantId, zip, DEFAULT_WORKFLOW, ProcessAction.RESUME, StatusCode.STARTED);
     }
 
     public static String doIngestNext(int tenantId, String zip) throws VitamException {
-       return doIngest(tenantId,zip, DEFAULT_WORKFLOW, ProcessAction.NEXT, StatusCode.STARTED);
+        return doIngest(tenantId, zip, DEFAULT_WORKFLOW, ProcessAction.NEXT, StatusCode.STARTED);
     }
 
     public static void verifyOperation(String opId, StatusCode statusCode) {
@@ -302,15 +304,17 @@ public class VitamTestHelper {
         }
     }
 
-    public static void verifyProcessState(String operationId, Integer tenantId, ProcessState processState){
-        ProcessWorkflow processWorkflow =  ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, tenantId);
+    public static void verifyProcessState(String operationId, Integer tenantId, ProcessState processState) {
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, tenantId);
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getState()).isEqualTo(processState);
     }
 
     public static void waitOperation(long nbTry, long timeToSleep, String operationId, ProcessState processState) {
         ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        for (int nbtimes = 0; (nbtimes <= nbTry && !processingClient.isNotRunning(operationId,processState)); nbtimes++) {
+        for (int nbtimes = 0; (nbtimes <= nbTry &&
+            !processingClient.isNotRunning(operationId, processState)); nbtimes++) {
             try {
                 TimeUnit.MILLISECONDS.sleep(timeToSleep);
             } catch (InterruptedException e) {
@@ -331,8 +335,8 @@ public class VitamTestHelper {
         waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, operationId);
     }
 
-    public static void insertWaitForStepEssentialFiles(String containerName){
-        try(final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()){
+    public static void insertWaitForStepEssentialFiles(String containerName) {
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             InputStream sanityCheckStream = PropertiesUtils.getResourceAsStream(SANITY_CHECK_RESULT_FILE);
             workspaceClient.putObject(containerName, SANITY_CHECK_RESULT_FILE, sanityCheckStream);
 
@@ -341,6 +345,24 @@ public class VitamTestHelper {
         } catch (FileNotFoundException | ContentAddressableStorageServerException e) {
             fail("File not found", e);
         }
+    }
+
+    public static void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {
+        awaitForWorkflowTerminationWithStatus(operationGuid, status, COMPLETED);
+    }
+
+    private static void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status,
+        ProcessState processState) {
+
+        waitOperation(operationGuid.toString());
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance()
+                .findOneProcessWorkflow(operationGuid.toString(), VitamThreadUtils.getVitamSession().getTenantId());
+
+        assertNotNull(processWorkflow);
+        assertEquals(processState, processWorkflow.getState());
+        assertEquals(status, processWorkflow.getStatus());
     }
 
 }

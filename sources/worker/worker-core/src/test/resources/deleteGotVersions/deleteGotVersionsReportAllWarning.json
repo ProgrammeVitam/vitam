@@ -1,0 +1,22 @@
+{
+  "_id": "aeaaaaaaaagqyd36aa4wealy56walxyaaaaq",
+  "id": "aeaaaaaaaagqyd36aa64ealy56waljqaaaaq",
+  "processId": "aeeaaaaaacgqyd36aa4p2aly56wacsyaaaaq",
+  "_tenant": 0,
+  "creationDateTime": "2021-04-20T14:25:31.558",
+  "detailType": "DELETE_GOT_VERSIONS",
+  "objectGroupGlobal": [
+    {
+      "status": "WARNING",
+      "outCome": "Qualifier with forbidden version 1 has been detected!"
+    },
+    {
+      "status": "WARNING",
+      "outCome": "Qualifier with this specific version 49 is inexistant!"
+    }
+  ],
+  "objectGroupId": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq",
+  "unitIds": [
+    "aeaqaaaaaaepjubnaasdualyqi65jsiaaaba"
+  ]
+}

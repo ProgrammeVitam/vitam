@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -546,6 +547,23 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             throw new AccessInternalClientServerException(e);
         }
     }
+
+    @Override
+    public RequestResponse<JsonNode> deleteGotVersions(DeleteGotVersionsRequest deleteGotVersionsRequest) throws AccessInternalClientServerException{
+        VitamRequestBuilder request = post()
+            .withBefore(CHECK_REQUEST_ID)
+            .withPath("/deleteGotVersions")
+            .withBody(deleteGotVersionsRequest, "Missing request")
+            .withJson()
+            .withHeader(X_ACCESS_CONTRAT_ID, getVitamSession().getContractId());
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
+            throw new AccessInternalClientServerException(e);
+        }
+    }
+
 
     @Override
     public RequestResponse<JsonNode> startComputeInheritedRules(JsonNode dslQuery)

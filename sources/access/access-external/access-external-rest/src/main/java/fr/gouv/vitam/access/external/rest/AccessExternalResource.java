@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
@@ -1296,6 +1297,27 @@ public class AccessExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(requestResponse).build();
         } catch (AccessInternalClientServerException e) {
             LOGGER.error("Error on preservation request", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
+
+    @Path("/deleteGotVersions")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = DELETE_GOT_VERSIONS, description = "Suppression des version de GOTs")
+    public Response deleteGotVersions(DeleteGotVersionsRequest deleteGotVersionsRequest) {
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            RequestResponse<JsonNode> requestResponse = client.deleteGotVersions(deleteGotVersionsRequest);
+            int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+            return Response.status(st).entity(requestResponse).build();
+        } catch (AccessInternalClientServerException e) {
+            LOGGER.error("Error on deleting got versions request", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,

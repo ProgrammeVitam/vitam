@@ -219,3 +219,10 @@ documentation:
   get:
     is: [ StandardTraits.Status, StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
+
+/readReport
+  displayName: Récupération du contenu d'un report
+  description: Récupération du contenu d'un report
+  get:
+    description: Récupération du contenu d'un report.
+    is: [CollectionTraits.collection-get]

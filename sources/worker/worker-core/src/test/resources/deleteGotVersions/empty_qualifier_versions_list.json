@@ -1,0 +1,89 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
+  },
+  "$results": [
+    {
+      "_id": "aebaaaaaaaepjubnaasdualyqi65jkyaaaaq",
+      "_tenant": 0,
+      "_profil": "",
+      "FileInfo": {
+        "Filename": "Lake.jpeg",
+        "LastModified": "2017-04-04T08:07:06.487"
+      },
+      "_qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "_nbc": 6,
+          "versions": [
+          ]
+        }
+      ],
+      "_up": [
+        "aeaqaaaaaaepjubnaasdualyqi65jsiaaaba"
+      ],
+      "_nbc": 6,
+      "_ops": [
+        "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq",
+        "aeeaaaaaacepjubnaaujealyqjtcayaaaaaq",
+        "aeeaaaaaacepjubnaaujealyqjv3etiaaaaq",
+        "aeeaaaaaacepjubnaaujealyqjwbhdiaaaaq",
+        "aeeaaaaaacepjubnaaujealyqjwdlcqaaaaq",
+        "aeeaaaaaacepjubnaaujealyqjwhfnqaaaaq",
+        "aeeaaaaaacepjubnaaujealyqjwkeoiaaaaq",
+        "aeeaaaaaacepjubnaaujealyqltqvjyaaaaq",
+        "aeeaaaaaacepjubnaaujealyql3rduiaaaaq",
+        "aeeaaaaaacepjubnaajfsalyrcg3ndaaaaaq",
+        "aeeaaaaaacepjubnaajfsalyrdchsdyaaaaq",
+        "aeeaaaaaacfkp2qoabargalyw4hw47iaaaaq",
+        "aeeaaaaaacfkp2qoabargalyw4h6ulqaaaaq",
+        "aeeaaaaaacfkp2qoaao6malyznk7vtyaaaaq",
+        "aeeaaaaaacfkp2qoaao6malyznm4xeqaaaaq",
+        "aeeaaaaaacfkp2qoaao6malyznppqtaaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3ilzffqaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3imagraaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3inirwaaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lcc4xiaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lcfu6aaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lcjhdiaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3llv3piaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3llx2ayaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3ll4chqaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lmanqyaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lmta6aaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lxvy2qaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3lyu5iiaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3l4x6rqaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3l5v3jqaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3l5ywfyaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3l6cshqaaaaq",
+        "aeeaaaaaacf3sq6labezgaly3m5uowyaaaaq",
+        "aeeaaaaaacf3sq6labezgaly5gtgataaaaaq",
+        "aeeaaaaaacf3sq6lab4akaly5iypkayaaaaq",
+        "aeeaaaaaacf3sq6lab4akaly5iy3ymyaaaaq",
+        "aeeaaaaaacgqyd36aaefkaly52aaehyaaaaq"
+      ],
+      "_opi": "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq",
+      "_sp": "Identifier4",
+      "_sps": [
+        "Identifier4"
+      ],
+      "_storage": {
+        "strategyId": "default"
+      },
+      "_v": 38,
+      "_av": 38,
+      "_glpd": "2021-03-30T08:26:44.902",
+      "_us": [
+        "aeaqaaaaaaepjubnaasdualyqi65jnqaaabq",
+        "aeaqaaaaaaepjubnaasdualyqi65jsiaaaba"
+      ]
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}

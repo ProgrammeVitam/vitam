@@ -1,0 +1,30 @@
+[
+  [
+    {
+      "status": "OK",
+      "deletedVersions": [
+        {
+          "id": "aeaaaaaaaaf3sq6labakwaly3l41pqiaaaaq",
+          "DataObjectVersion": "BinaryMaster_32",
+          "Size": 6446,
+          "strategyId": "default",
+          "opi": "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq",
+          "opc": "aeeaaaaaacf3sq6labezgaly185ywfyaaaaq"
+        }
+      ]
+    },
+    {
+      "status": "OK",
+      "deletedVersions": [
+        {
+          "id": "aeaaaaaaaaf3sq6labakwaly3l52wqiaaaaq",
+          "DataObjectVersion": "BinaryMaster_33",
+          "Size": 6446,
+          "strategyId": "default",
+          "opi": "aeeaaaaaacepjubnaatpialyqi64dtaaaaaq",
+          "opc": "aeeaaaaaacf3sq6labezgaly3l5ywfyaaaaq"
+        }
+      ]
+    }
+  ]
+]
