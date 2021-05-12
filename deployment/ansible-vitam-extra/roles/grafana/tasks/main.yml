@@ -5,3 +5,4 @@
 - include_tasks: plugins.yml
 
 - include_tasks: provisioning.yml
+  when: grafana.proxy | d(false)

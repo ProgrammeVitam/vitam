@@ -1,0 +1,29 @@
+  - debug: msg="in loop={{ dir_plugin.path }}"
+    
+  - block:
+      # - name: display directory
+      #   command: ls {{ dir_plugin.path }}/*/dist/plugin.json
+      #   register: std_txt
+
+      # - name: debug error 
+      #   debug: msg="{{ std_txt.stdout }}"  
+
+      - name: read json
+        shell: cat {{ dir_plugin.path }}/*/dist/plugin.json
+        register: _plugin_json_data
+        delegate_to: localhost
+  
+    rescue:
+      - name: read json
+        shell: cat {{ dir_plugin.path }}/*/plugin.json
+        register: _plugin_json_data
+        delegate_to: localhost
+
+  - name: parse json data
+    set_fact:
+      plugin_json_data: "{{ _plugin_json_data.stdout | from_json }}"   
+      
+  - name: create list plugin id
+    set_fact: 
+      map_plugins: "{{ map_plugins + [{'zip_directory': (dir_plugin.path).split('/') | last  , 'plugin_id': plugin_json_data.id }] }}" 
+      list_plugins_id_git: "{{ list_plugins_id_git + [plugin_json_data.id] }}"

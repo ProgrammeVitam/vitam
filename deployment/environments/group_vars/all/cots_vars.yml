@@ -177,6 +177,7 @@ grafana:
     check_consul: 10 # in seconds
     host: "{% if groups['hosts_grafana']|length > 0 %} {{ groups['hosts_grafana']|first }} {% endif %}"
     http_port: 3000
+    proxy: false
     grafana_datasources:
       - name: "Prometheus"
         type: "prometheus"
@@ -207,8 +208,8 @@ grafana:
         allowUiUpdates: true
         options:
           path: "/etc/grafana/provisioning/dashboards"
-    grafana_plugins:
-      - "camptocamp-prometheus-alertmanager-datasource"
+    grafana_plugins_offline:
+      - camptocamp-prometheus-alertmanager-datasource
 
 # Curator units: days
 curator:
