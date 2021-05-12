@@ -80,6 +80,7 @@
 						<div class="col-md-3">VITAM</div>
 						<div class="col-md-2"><a href="/{{ vitam.ihm_demo.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM demo</a> </div>
 						<div class="col-md-2"><a href="/{{ vitam.ihm_recette.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM recette</a> </div>
+						
 					</p>
 {% if groups['hosts_kibana_data']|length >0 %}
 					<p class="row" style="vertical-align: middle">
@@ -122,21 +123,21 @@
 {% if groups['library']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Documentation</div>
-						<div class="col-md-2"><a href="/{{ vitam.library.baseuri }}/index.html" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
+						<div class="col-md-5"><a href="/{{ vitam.library.baseuri }}/index.html" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
 					</p>
 {% endif %}
 
 {% if groups['hosts_consul_server']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Consul</div>
-						<div class="col-md-2"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a>&nbsp;<a href="/v1/health/state/any?pretty" class="btn btn-primary btn-xs" target="_blank">Services health</a></div>
+						<div class="col-md-5"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a>&nbsp;<a href="/v1/health/state/any?pretty" class="btn btn-primary btn-xs" target="_blank">Services health</a></div>
 					</p>
 {% endif %}
 
 {% if groups['hosts_dev_tools']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">MongoDB</div>
-						<div class="col-md-9">
+						<div class="col-md-5">
 						{% for host in mongo_express_hosts %}
 						<a href="/{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }}" class="btn btn-primary btn-xs" target="_blank">Mongo express {{ hostvars[host]['mongo_cluster_name'] }}</a>
 					    {% endfor %}
