@@ -26,18 +26,8 @@
  */
 package fr.gouv.vitam.common.model.objectgroup;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.lang.Integer.parseInt;
-import static java.util.Arrays.asList;
 
 /**
  * Object mapping VersionsResponse
@@ -61,10 +51,10 @@ public class VersionsModelCustomized {
     private String strategyId;
 
     @JsonProperty("opi")
-    private String opi;
+    private String opIngest;
 
     @JsonProperty("opc")
-    private String opc;
+    private String opCurrent;
 
     public String getId() {
         return id;
@@ -106,20 +96,20 @@ public class VersionsModelCustomized {
         this.strategyId = strategyId;
     }
 
-    public String getOpi() {
-        return opi;
+    public String getOpIngest() {
+        return opIngest;
     }
 
-    public void setOpi(String opi) {
-        this.opi = opi;
+    public void setOpIngest(String opIngest) {
+        this.opIngest = opIngest;
     }
 
-    public String getOpc() {
-        return opc;
+    public String getOpCurrent() {
+        return opCurrent;
     }
 
-    public void setOpc(String opc) {
-        this.opc = opc;
+    public void setOpCurrent(String opCurrent) {
+        this.opCurrent = opCurrent;
     }
 
     @Override
@@ -130,8 +120,8 @@ public class VersionsModelCustomized {
             ", dataObjectGroupId='" + dataObjectGroupId + '\'' +
             ", size=" + size +
             ", strategyId=" + strategyId +
-            ", opi='" + opi + '\'' +
-            ", opc='" + opc + '\'' +
+            ", opi='" + opIngest + '\'' +
+            ", opc='" + opCurrent + '\'' +
             '}';
     }
 }

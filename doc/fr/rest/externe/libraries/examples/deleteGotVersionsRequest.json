@@ -2,8 +2,6 @@
   "UsageName" : "BinaryMaster",
   "SpecificVersions":  [2,3],
   "DslQuery": {
-    "$query":[{"$or":[{"$in":{"#id":["aeaqaaaaaaepjubnaasdualyqi65jsiaaaba"]}},{"$in":{"#allunitups":[]}}]}],
-    "$filter":{},
-    "$projection":{}
+    "$query":[{"$in":{"#id":["aeaqaaaaaafzhvpkabpjaalwkjvgeyqaaaaq"]}}]
   }
 }

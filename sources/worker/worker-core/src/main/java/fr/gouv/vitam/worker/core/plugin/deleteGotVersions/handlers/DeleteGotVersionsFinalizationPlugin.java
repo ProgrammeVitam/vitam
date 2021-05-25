@@ -27,19 +27,14 @@
 
 package fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
-import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.ObjectGroupToDeleteReportEntry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -72,7 +67,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -87,20 +81,17 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
 
     private final DeleteGotVersionsReportService deleteGotVersionsReportService;
     private final LogbookOperationsClient logbookOperationsClient;
-    private final BatchReportClientFactory batchReportClientFactory;
 
     public DeleteGotVersionsFinalizationPlugin() {
-        this(new DeleteGotVersionsReportService(), LogbookOperationsClientFactory.getInstance().getClient(),
-            BatchReportClientFactory.getInstance());
+        this(new DeleteGotVersionsReportService(), LogbookOperationsClientFactory.getInstance().getClient());
     }
 
     @VisibleForTesting
     public DeleteGotVersionsFinalizationPlugin(
         DeleteGotVersionsReportService deleteGotVersionsReportService,
-        LogbookOperationsClient logbookOperationsClient, BatchReportClientFactory batchReportClientFactory) {
+        LogbookOperationsClient logbookOperationsClient) {
         this.deleteGotVersionsReportService = deleteGotVersionsReportService;
         this.logbookOperationsClient = logbookOperationsClient;
-        this.batchReportClientFactory = batchReportClientFactory;
     }
 
     @Override
@@ -146,30 +137,6 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
             String endDate = LocalDateUtil.getString(LocalDateUtil.now());
             ReportType reportType = ReportType.DELETE_GOT_VERSIONS;
             ReportResults vitamResults = new ReportResults();
-            List<DeleteGotVersionsReportEntry> deleteGotVersionsReportEntries =
-                getDeletedObjectGroups(param.getContainerName());
-
-            if (deleteGotVersionsReportEntries.isEmpty()) {
-                vitamResults.setNbKo(1);
-                vitamResults.setNbOk(0);
-                vitamResults.setNbWarning(0);
-            } else {
-                List<ObjectGroupToDeleteReportEntry> reportEntries = deleteGotVersionsReportEntries.stream()
-                    .map(DeleteGotVersionsReportEntry::getObjectGroupGlobal)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
-
-                List<StatusCode> statusList = reportEntries.stream()
-                    .map(ObjectGroupToDeleteReportEntry::getStatus)
-                    .collect(Collectors.toList());
-
-                if (!statusList.isEmpty()) {
-                    vitamResults.setNbOk(computeNbrOkOperations(reportEntries));
-                    vitamResults.setNbKo(Collections.frequency(statusList, KO));
-                    vitamResults.setNbWarning(Collections.frequency(statusList, WARNING));
-                }
-            }
-
             ObjectNode extendedInfo = JsonHandler.createObjectNode();
             ReportSummary reportSummary =
                 new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
@@ -219,27 +186,11 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
         );
     }
 
-    private int computeNbrOkOperations(List<ObjectGroupToDeleteReportEntry> reportEntries) {
-        return (int) reportEntries.stream().filter(elmt -> elmt.getStatus().equals(OK))
-            .map(ObjectGroupToDeleteReportEntry::getDeletedVersions).mapToLong(List::size).sum();
-    }
-
     private void storeReportToOffers(String processId) throws ProcessingStatusException {
         deleteGotVersionsReportService.storeReportToOffers(processId);
     }
 
     private void cleanupReport(String processId) throws ProcessingStatusException {
         deleteGotVersionsReportService.cleanupReport(processId);
-    }
-
-    private List<DeleteGotVersionsReportEntry> getDeletedObjectGroups(String operationId)
-        throws ProcessingStatusException {
-        try (BatchReportClient client = batchReportClientFactory.getClient()) {
-            JsonNode resultsNode = client.readDeletedGotVersionsReport(ReportType.DELETE_GOT_VERSIONS, operationId);
-            return getFromJsonNode(resultsNode, new TypeReference<>() {
-            });
-        } catch (Exception e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not find entries from report!", e);
-        }
     }
 }

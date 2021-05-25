@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
@@ -70,8 +69,9 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNodeList;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -99,16 +99,27 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
         List<ItemStatus> itemStatuses = new ArrayList<>();
         List<String> gotIds = params.getObjectNameList();
         List<JsonNode> objectGroupToDeleteReportEntriesNodes = params.getObjectMetadataList();
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()){
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             DeleteGotVersionsRequest deleteGotVersionsRequest = loadRequest(handler);
             RequestResponse<JsonNode> objectGroupByIdsResponse = metaDataClient.getObjectGroupsByIdsRaw(gotIds);
             if (!objectGroupByIdsResponse.isOk()) {
-                final String errorMsg ="A problem occured when getting ObjectGroup by ids ";
-                ObjectNode error = createObjectNode().put("error", errorMsg);
-                itemStatuses.add(buildItemStatus(PLUGIN_NAME, KO, error));
+                final String errorMsg = "A problem occured when getting ObjectGroup by ids ";
+                final ObjectNode error = createObjectNode().put("error", errorMsg);
+                gotIds.forEach(gotId -> itemStatuses.add(buildItemStatus(PLUGIN_NAME, FATAL, error)));
                 return itemStatuses;
             }
-            List<JsonNode> results = ((RequestResponseOK<JsonNode>) objectGroupByIdsResponse).getResults();
+            List<DbObjectGroupModel> results =
+                getFromJsonNodeList(((RequestResponseOK<JsonNode>) objectGroupByIdsResponse).getResults(),
+                    new TypeReference<>() {
+                    });
+
+            if (results.size() != gotIds.size()) {
+                final String errorMsg =
+                    "The size of Object Groups readed from database is not coherant with object Groups in distribution file";
+                final ObjectNode error = createObjectNode().put("error", errorMsg);
+                gotIds.forEach(gotId -> itemStatuses.add(buildItemStatus(PLUGIN_NAME, FATAL, error)));
+                return itemStatuses;
+            }
 
             for (int i = 0; i < gotIds.size(); i++) {
                 String objectId = gotIds.get(i);
@@ -117,36 +128,33 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
                         getFromJsonNode(objectGroupToDeleteReportEntriesNodes.get(i), new TypeReference<>() {
                         }) : null;
                 if (objectGroupToDeleteReportEntries == null || objectGroupToDeleteReportEntries.isEmpty()) {
-                    final String errorMsg =
-                        String.format("No objectGroupToDelete entries found for Object group %s in distirubution file.",
-                            objectId);
-                    ObjectNode error = createObjectNode().put("error", errorMsg);
-                    itemStatuses.add(buildItemStatus(PLUGIN_NAME, KO, error));
-                    continue;
+                    throw new IllegalStateException(
+                        String.format("No objectGroup entries found for Object group %s in distribution file.",
+                            objectId));
                 }
-                ItemStatus itemStatus =
-                    processDeleteGotVersions(objectId, results.get(i), objectGroupToDeleteReportEntries,
-                        deleteGotVersionsRequest, handler.getContainerName());
-                itemStatuses.add(itemStatus);
+                DbObjectGroupModel objectGroupToUpdate =
+                    results.stream().filter(elmt -> elmt.getId().equals(objectId)).findFirst()
+                        .orElseThrow(() -> new IllegalStateException("No objectGroup to update found in Database."));
+
+                itemStatuses
+                    .add(processDeleteGotVersions(objectId, objectGroupToUpdate, objectGroupToDeleteReportEntries,
+                        deleteGotVersionsRequest, handler.getContainerName()));
             }
         } catch (ProcessingException | InvalidParseOperationException | VitamClientException e) {
             final String errorMsg = "A problem occured while processing the got versions delete.";
             ObjectNode error = createObjectNode().put("error", errorMsg);
-            itemStatuses.add(buildItemStatus(PLUGIN_NAME, KO, error));
+            itemStatuses.add(buildItemStatus(PLUGIN_NAME, FATAL, error));
         }
         return itemStatuses;
     }
 
-    private ItemStatus processDeleteGotVersions(String objectGroupId, JsonNode objectGroupResponse,
+    private ItemStatus processDeleteGotVersions(String objectGroupId, DbObjectGroupModel dbObjectGroupModel,
         List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries,
         DeleteGotVersionsRequest deleteGotVersionsRequest, String containerName) {
         StatusCode status = OK;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
-            List<ObjectGroupToDeleteReportEntry> warningEntries =
-                objectGroupToDeleteReportEntries.stream().filter(elmt -> elmt.getStatus().equals(WARNING)).collect(
-                    Collectors.toList());
-            if (!warningEntries.isEmpty()) {
+            if (objectGroupToDeleteReportEntries.stream().anyMatch(elmt -> elmt.getStatus().equals(WARNING))) {
                 status = WARNING;
             }
 
@@ -154,27 +162,23 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
                 objectGroupToDeleteReportEntries.stream().filter(elmt -> elmt.getStatus().equals(OK)).collect(
                     Collectors.toList());
             if (!okEntries.isEmpty()) {
-                DbObjectGroupModel dbObjectGroupModel =
-                    JsonHandler.getFromJsonNode(objectGroupResponse, DbObjectGroupModel.class);
                 List<DbQualifiersModel> qualifiers = dbObjectGroupModel.getQualifiers();
 
                 Optional<DbQualifiersModel> optionalQualifierToUpdate = qualifiers.stream()
                     .filter(elmt -> elmt.getQualifier().equals(deleteGotVersionsRequest.getUsageName()))
                     .findFirst();
                 if (optionalQualifierToUpdate.isEmpty()) {
-                    ObjectNode errorNode = createObjectNode()
-                        .put("error", String.format("No qualifier of Object group matches with %s usage",
-                            deleteGotVersionsRequest.getUsageName()));
-                    return buildItemStatus(PLUGIN_NAME, KO, errorNode);
+                    LOGGER.warn(String.format("No qualifier of Object group matches with %s usage. Already deleted ?",
+                        deleteGotVersionsRequest.getUsageName()));
+                    return buildItemStatus(PLUGIN_NAME, OK);
                 }
 
                 DbQualifiersModel qualifierToUpdate = optionalQualifierToUpdate.get();
                 if (qualifierToUpdate.getVersions() == null || qualifierToUpdate.getVersions().isEmpty()) {
-                    ObjectNode errorNode = createObjectNode()
-                        .put("error",
-                            String.format("No versions associated to the qualifier of Object group for the %s usage",
-                                deleteGotVersionsRequest.getUsageName()));
-                    return buildItemStatus(PLUGIN_NAME, KO, errorNode);
+                    LOGGER
+                        .warn(String.format("No versions associated to the qualifier of Object group for the %s usage",
+                            deleteGotVersionsRequest.getUsageName()));
+                    return buildItemStatus(PLUGIN_NAME, OK);
                 }
 
                 List<VersionsModelCustomized> versionsToDelete =
@@ -191,9 +195,9 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
                                 Collectors.toList()));
                     qualifierToUpdate.setNbc(qualifierToUpdate.getVersions().size());
 
-                    final Optional<Integer> totalBinarySize = qualifiers.stream()
-                        .map(DbQualifiersModel::getNbc)
-                        .reduce(Integer::sum);
+                    final int totalNbc = qualifiers.stream()
+                        .mapToInt(DbQualifiersModel::getNbc)
+                        .sum();
 
                     Map<String, JsonNode> action = new HashMap<>();
                     action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
@@ -203,7 +207,7 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
                     query.addHintFilter(OBJECTGROUPS.exactToken());
                     query.addActions(
                         UpdateActionHelper.push(VitamFieldsHelper.operations(), containerName),
-                        UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), totalBinarySize.get()),
+                        UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), totalNbc),
                         setQualifier
                     );
 
@@ -213,9 +217,9 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
             return buildItemStatus(PLUGIN_NAME, status);
         } catch (InvalidParseOperationException | InvalidCreateOperationException |
             MetaDataClientServerException | MetaDataExecutionException e) {
-            LOGGER.error(String.format("Delete got versions action failed with status [%s]", KO), e);
+            LOGGER.error(String.format("Delete got versions action failed with status [%s]", FATAL), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
-            return buildItemStatus(PLUGIN_NAME, KO, error);
+            return buildItemStatus(PLUGIN_NAME, FATAL, error);
         }
     }
 

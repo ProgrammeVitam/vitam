@@ -36,15 +36,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModelCustomized;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
@@ -55,7 +52,7 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -87,14 +84,13 @@ public class DeleteGotVersionsStoragePlugin extends ActionHandler {
                 List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries =
                     getFromJsonNode(objectGroupToDeleteReportEntriesNodes.get(i), new TypeReference<>() {
                     });
-                ItemStatus itemStatus = processDeleteGotVersionsStorage(objectGroupToDeleteReportEntries);
-                itemStatuses.add(itemStatus);
+                itemStatuses.add(processDeleteGotVersionsStorage(objectGroupToDeleteReportEntries));
             } catch (InvalidParseOperationException e) {
                 final String errorMsg =
                     String.format("No objectGroupToDelete entries found for Object group %s in distirubution file.",
                         gotIds.get(i));
                 ObjectNode error = createObjectNode().put("error", errorMsg);
-                itemStatuses.add(buildItemStatus(PLUGIN_NAME, KO, error));
+                itemStatuses.add(buildItemStatus(PLUGIN_NAME, FATAL, error));
             }
         }
         return itemStatuses;
@@ -119,19 +115,14 @@ public class DeleteGotVersionsStoragePlugin extends ActionHandler {
             }
 
             for (VersionsModelCustomized versionToDelete : versionsToDelete) {
-                String strategyId = versionToDelete.getStrategyId();
-                RequestResponse<StorageStrategy> storageStrategiesResponse = storageClient.getStorageStrategies();
-                if (!storageStrategiesResponse.isOk()) {
-                    throw new StorageServerClientException("Exception while retrieving storage strategies");
-                }
-                storageClient.delete(strategyId, DataCategory.OBJECT, versionToDelete.getId());
+                storageClient.delete(versionToDelete.getStrategyId(), DataCategory.OBJECT, versionToDelete.getId());
             }
 
             return buildItemStatus(PLUGIN_NAME, statusCode);
         } catch (Exception e) {
-            LOGGER.error(String.format("Delete got versions from Offer failed with status [%s]", KO), e);
+            LOGGER.error(String.format("Delete got versions from Offer failed with status [%s]", FATAL), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
-            return buildItemStatus(PLUGIN_NAME, KO, error);
+            return buildItemStatus(PLUGIN_NAME, FATAL, error);
         }
     }
 }

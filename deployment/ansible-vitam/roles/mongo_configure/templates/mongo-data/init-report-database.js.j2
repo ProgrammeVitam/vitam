@@ -53,3 +53,6 @@ db.ExtractedMetadata.createIndex( { "processId" : 1, "tenant" : 1, "id" : 1 } )
 // Create indexes BulkUpdateUnitMetadataReport
 db.BulkUpdateUnitMetadataReport.createIndex( { "processId" : 1, "_tenant" : 1, "id" : 1 } )
 db.BulkUpdateUnitMetadataReport.createIndex( { "processId" : 1, "_tenant" : 1, "statusId" : 1 } )
+
+// Create indexes DeleteGotVersionsReport
+db.DeleteGotVersionsReport.createIndex( { "processId" : 1, "_tenant" : 1 } )

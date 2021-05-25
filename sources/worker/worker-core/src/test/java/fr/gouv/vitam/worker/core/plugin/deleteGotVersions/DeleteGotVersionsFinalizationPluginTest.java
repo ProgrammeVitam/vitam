@@ -66,6 +66,8 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DeleteGotVersionsFinalizationPluginTest {
@@ -111,15 +113,14 @@ public class DeleteGotVersionsFinalizationPluginTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(batchReportClientFactory.getClient()).thenReturn(batchReportClient);
         deleteGotVersionsFinalizationPlugin =
-            new DeleteGotVersionsFinalizationPlugin(deleteGotVersionsReportService, logbookOperationsClient,
-                batchReportClientFactory);
+            new DeleteGotVersionsFinalizationPlugin(deleteGotVersionsReportService, logbookOperationsClient);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenReportsThenDeleteGotVersionsFinalizationOk() throws Exception {
         File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_OK_FILE);
-        when(batchReportClient.readDeletedGotVersionsReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
         JsonNode logbookOperation =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
                 new TypeReference<>() {
@@ -134,12 +135,13 @@ public class DeleteGotVersionsFinalizationPluginTest {
         ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);
 
         assertEquals(OK, itemStatus.getGlobalStatus());
+        verify(deleteGotVersionsReportService, times(1)).storeReportToWorkspace(any());
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenInexistantReportThenDeleteGotVersionsFinalizationOk() throws Exception {
-        when(batchReportClient.readDeletedGotVersionsReport(any(), any())).thenReturn(createArrayNode());
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(createArrayNode());
         JsonNode logbookOperation =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
                 new TypeReference<>() {
@@ -153,12 +155,13 @@ public class DeleteGotVersionsFinalizationPluginTest {
         ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);
 
         assertEquals(OK, itemStatus.getGlobalStatus());
+        verify(deleteGotVersionsReportService, times(1)).storeReportToWorkspace(any());
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenUnavailableReportThenDeleteGotVersionsFinalizationFATAL() throws Exception {
-        when(batchReportClient.readDeletedGotVersionsReport(any(), any())).thenReturn(null);
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(null);
         JsonNode logbookOperation =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
                 new TypeReference<>() {
@@ -168,5 +171,23 @@ public class DeleteGotVersionsFinalizationPluginTest {
         ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);
 
         assertEquals(FATAL, itemStatus.getGlobalStatus());
+        verify(deleteGotVersionsReportService, times(0)).storeReportToWorkspace(any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExistReportThenIdempotencyOk() throws Exception {
+        when(deleteGotVersionsReportService.isReportWrittenInWorkspace(any())).thenReturn(true);
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(null);
+        JsonNode logbookOperation =
+            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
+                new TypeReference<>() {
+                });
+        when(logbookOperationsClient.selectOperationById(any())).thenReturn(logbookOperation);
+
+        ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);
+
+        assertEquals(OK, itemStatus.getGlobalStatus());
+        verify(deleteGotVersionsReportService, times(0)).storeReportToWorkspace(any());
     }
 }

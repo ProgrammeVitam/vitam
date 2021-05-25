@@ -35,6 +35,7 @@ import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsComputedDetails;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
@@ -391,11 +392,11 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("/readReport")
+    @Path("/readComputedDetailsFromReport")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response readReport(JsonNode body) {
+    public Response readComputedDetailsFromReport(JsonNode body) {
         try {
             ReportBody reportBody = JsonHandler.getFromJsonNode(body, ReportBody.class);
             if(reportBody == null) {
@@ -403,9 +404,9 @@ public class BatchReportResource extends ApplicationStatusResource {
             }
             switch (reportBody.getReportType()) {
                 case DELETE_GOT_VERSIONS:
-                    List<DeleteGotVersionsReportEntry> results =
+                    List<DeleteGotVersionsComputedDetails> results =
                         batchReportServiceImpl
-                            .readDeleteGotVersionsReport(reportBody.getProcessId(), VitamThreadUtils.getVitamSession().getTenantId());
+                            .readDeletedGotVersionsComputedDetailsFromReport(reportBody.getProcessId(), VitamThreadUtils.getVitamSession().getTenantId());
                     return Response.ok().entity(results).build();
                 default:
                     throw new IllegalStateException("Unsupported report type " + reportBody.getReportType());

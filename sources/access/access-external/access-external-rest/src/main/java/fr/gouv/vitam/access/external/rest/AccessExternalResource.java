@@ -457,8 +457,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     *
-     *
      * @param id operationId correponding to the current dip
      * @return Response
      */
@@ -488,7 +486,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit    the id of archive unit to get
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -903,7 +901,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .build();
         }
     }
-    
+
 
     /**
      * Bulk atomic update of archive units with json queries.
@@ -1313,9 +1311,19 @@ public class AccessExternalResource extends ApplicationStatusResource {
     public Response deleteGotVersions(DeleteGotVersionsRequest deleteGotVersionsRequest) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            ParametersChecker.checkParameter("Missing request", deleteGotVersionsRequest);
+            ParametersChecker.checkParameter("Missing dslQuery in request", deleteGotVersionsRequest.getDslQuery());
+            // Validate DSL Query
+            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
+            validator.validate(deleteGotVersionsRequest.getDslQuery());
+
             RequestResponse<JsonNode> requestResponse = client.deleteGotVersions(deleteGotVersionsRequest);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(st).entity(requestResponse).build();
+        } catch (IllegalArgumentException | IOException | ValidationException e) {
+            LOGGER.warn(COULD_NOT_VALIDATE_REQUEST, e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (AccessInternalClientServerException e) {
             LOGGER.error("Error on deleting got versions request", e);
             status = Status.INTERNAL_SERVER_ERROR;

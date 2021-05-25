@@ -47,6 +47,7 @@ import fr.gouv.vitam.batch.report.model.TransferReplyUnitModel;
 import fr.gouv.vitam.batch.report.model.UnitComputedInheritedRulesInvalidationModel;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.BulkUpdateUnitMetadataReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsComputedDetails;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
@@ -403,6 +404,9 @@ public class BatchReportServiceImpl {
             case TRACEABILITY:
                 return traceabilityReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(),
                     reportInfo.getOperationSummary().getTenant());
+            case DELETE_GOT_VERSIONS:
+                return deleteGotVersionsReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(),
+                    reportInfo.getOperationSummary().getTenant());
             default:
                 return reportInfo.getReportSummary().getVitamResults();
         }
@@ -517,16 +521,17 @@ public class BatchReportServiceImpl {
         }
     }
 
-    public List<DeleteGotVersionsReportEntry> readDeleteGotVersionsReport(String processId, int tenantId)
+    public List<DeleteGotVersionsComputedDetails> readDeletedGotVersionsComputedDetailsFromReport(String processId, int tenantId)
         throws InvalidParseOperationException {
-        List<DeleteGotVersionsReportEntry> deleteGotVersionsReportEntries = new ArrayList<>();
-        MongoCursor<Document> deleteGotVersionsIterator =
-            deleteGotVersionsReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
-        while (deleteGotVersionsIterator.hasNext()) {
-            Document opi = deleteGotVersionsIterator.next();
-            deleteGotVersionsReportEntries.add((  BsonHelper.fromDocumentToObject(opi, DeleteGotVersionsReportEntry.class)));
+        List<DeleteGotVersionsComputedDetails> deleteGotVersionsComputedDetails = new ArrayList<>();
+        MongoCursor<Document> deleteGotVersionsIteratorComputed =
+            deleteGotVersionsReportRepository.computeDeleteGotVersionsEntriesByProcessIdTenant(processId, tenantId);
+        while (deleteGotVersionsIteratorComputed.hasNext()) {
+            deleteGotVersionsComputedDetails
+                .add((BsonHelper.fromDocumentToObject(deleteGotVersionsIteratorComputed.next(),
+                    DeleteGotVersionsComputedDetails.class)));
         }
-        return deleteGotVersionsReportEntries;
+        return deleteGotVersionsComputedDetails;
     }
 
     private void createFileFromTwoMongoCursorWithDocument(File tempFile, MongoCursor<Document> unitCursor,

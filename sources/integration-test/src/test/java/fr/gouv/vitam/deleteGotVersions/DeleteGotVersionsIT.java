@@ -91,6 +91,11 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
@@ -147,6 +152,7 @@ import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareV
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -297,12 +303,19 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterThirdPreservation =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeBeforeThirdPreservation =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeBeforeThirdPreservation.size());
-            assertTrue(gotsQualifiersSizeBeforeThirdPreservation.contains(4));
+            List<VersionsModel> qualifersBeforeDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsBeforeDelete =
+                qualifersBeforeDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+            String idToDelete =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().get().getId();
+
+            assertEquals(4, dataObjectVersionsBeforeDelete.size());
+            assertTrue(dataObjectVersionsBeforeDelete.contains("BinaryMaster_2"));
+            checkObjectExistence(idToDelete, true);
 
             // Prepare Request for delete got versions
             SelectMultiQuery searchDslQuery = new SelectMultiQuery();
@@ -327,12 +340,19 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterDelete =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeAfterDelete =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterDelete).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeAfterDelete.size());
-            assertTrue(gotsQualifiersSizeAfterDelete.contains(3));
+            List<VersionsModel> qualifersAfterDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterDelete).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsAfterDelete =
+                qualifersAfterDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+
+            assertEquals(3, dataObjectVersionsAfterDelete.size());
+            assertFalse(dataObjectVersionsAfterDelete.contains("BinaryMaster_2"));
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().isEmpty());
+            checkObjectExistence(idToDelete, false);
 
             // Check report
             JsonNode reportsNode =
@@ -388,12 +408,24 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterThirdPreservation =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeBeforeThirdPreservation =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeBeforeThirdPreservation.size());
-            assertTrue(gotsQualifiersSizeBeforeThirdPreservation.contains(4));
+            List<VersionsModel> qualifersBeforeDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsBeforeDelete =
+                qualifersBeforeDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+            String idForbiddenToDelete =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_1"))
+                    .findFirst().get().getId();
+            String idToDelete =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().get().getId();
+
+            assertEquals(4, dataObjectVersionsBeforeDelete.size());
+            assertTrue(dataObjectVersionsBeforeDelete.contains("BinaryMaster_1"));
+            assertTrue(dataObjectVersionsBeforeDelete.contains("BinaryMaster_2"));
+            checkObjectExistence(idForbiddenToDelete, true);
+            checkObjectExistence(idToDelete, true);
 
             // Prepare Request
             SelectMultiQuery searchDslQuery = new SelectMultiQuery();
@@ -421,12 +453,20 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterDelete =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeAfterDelete =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterDelete).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeAfterDelete.size());
-            assertTrue(gotsQualifiersSizeAfterDelete.contains(3));
+            List<VersionsModel> qualifersAfterDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterDelete).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsAfterDelete =
+                qualifersAfterDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+
+            assertEquals(3, dataObjectVersionsAfterDelete.size());
+            assertFalse(dataObjectVersionsAfterDelete.contains("BinaryMaster_2"));
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().isEmpty());
+            checkObjectExistence(idForbiddenToDelete, true);
+            checkObjectExistence(idToDelete, false);
 
             // Check report
             JsonNode reportsNode =
@@ -486,12 +526,25 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterThirdPreservation =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeBeforeThirdPreservation =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeBeforeThirdPreservation.size());
-            assertTrue(gotsQualifiersSizeBeforeThirdPreservation.contains(4));
+            List<VersionsModel> qualifersBeforeDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsBeforeDelete =
+                qualifersBeforeDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+            String idForbiddenToDelete =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_1"))
+                    .findFirst().get().getId();
+            String idToDelete =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().get().getId();
+
+            assertEquals(4, dataObjectVersionsBeforeDelete.size());
+            assertTrue(dataObjectVersionsBeforeDelete.contains("BinaryMaster_1"));
+            assertTrue(dataObjectVersionsBeforeDelete.contains("BinaryMaster_2"));
+            assertFalse(dataObjectVersionsBeforeDelete.contains("BinaryMaster_5000"));
+            checkObjectExistence(idForbiddenToDelete, true);
+            checkObjectExistence(idToDelete, true);
 
             // Prepare Request
             SelectMultiQuery searchDslQuery = new SelectMultiQuery();
@@ -519,12 +572,20 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterDelete =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeAfterDelete =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterDelete).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeAfterDelete.size());
-            assertTrue(gotsQualifiersSizeAfterDelete.contains(3));
+            List<VersionsModel> qualifersAfterDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterDelete).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsAfterDelete =
+                qualifersAfterDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+
+            assertEquals(3, dataObjectVersionsAfterDelete.size());
+            assertFalse(dataObjectVersionsAfterDelete.contains("BinaryMaster_2"));
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().isEmpty());
+            checkObjectExistence(idForbiddenToDelete, true);
+            checkObjectExistence(idToDelete, false);
 
             // Check report
             JsonNode reportsNode =
@@ -646,6 +707,8 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsBeforePreservation =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
+
+
             Set<Integer> gotsQualifiersSizeBeforePreservation =
                 (Set<Integer>) ((RequestResponseOK) gotsBeforePreservation).getResults().stream()
                     .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
@@ -660,15 +723,24 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterThirdPreservation =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            assertEquals(2,
-                ((ObjectNode) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().get(0)).get("#qualifiers")
-                    .size());
-            Set<Integer> gotsQualifiersSizeBeforeThirdPreservation =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(1).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeBeforeThirdPreservation.size());
-            assertTrue(gotsQualifiersSizeBeforeThirdPreservation.contains(3));
+            List<VersionsModel> qualifersBeforeDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().get(0)).get("#qualifiers")
+                    .get(1).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsBeforeDelete =
+                qualifersBeforeDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+            Set<String> idsToDelete =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_1"))
+                    .map(VersionsModel::getId).collect(
+                    Collectors.toSet());
+
+            assertEquals(3, dataObjectVersionsBeforeDelete.size());
+            assertTrue(dataObjectVersionsBeforeDelete.contains("Dissemination_1"));
+            assertTrue(dataObjectVersionsBeforeDelete.contains("Dissemination_2"));
+            assertTrue(dataObjectVersionsBeforeDelete.contains("Dissemination_3"));
+            for (String idToDelete : idsToDelete) {
+                checkObjectExistence(idToDelete, true);
+            }
 
             // Prepare Request for delete got versions
             SelectMultiQuery searchDslQuery = new SelectMultiQuery();
@@ -693,12 +765,24 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterDelete =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeAfterDelete =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterDelete).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeAfterDelete.size());
-            assertTrue(gotsQualifiersSizeAfterDelete.contains(1));
+            List<VersionsModel> qualifersAfterDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterDelete).getResults().get(0)).get("#qualifiers")
+                    .get(1).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsAfterDelete =
+                qualifersAfterDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+
+            assertEquals(1, dataObjectVersionsAfterDelete.size());
+            assertTrue(dataObjectVersionsAfterDelete.contains("Dissemination_3"));
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_1"))
+                    .findFirst().isEmpty());
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_2"))
+                    .findFirst().isEmpty());
+            for (String idToDelete : idsToDelete) {
+                checkObjectExistence(idToDelete, false);
+            }
 
             // Check report
             JsonNode reportsNode =
@@ -753,15 +837,24 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterThirdPreservation =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            assertEquals(2,
-                ((ObjectNode) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().get(0)).get("#qualifiers")
-                    .size());
-            Set<Integer> gotsQualifiersSizeBeforeThirdPreservation =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(1).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeBeforeThirdPreservation.size());
-            assertTrue(gotsQualifiersSizeBeforeThirdPreservation.contains(3));
+            List<VersionsModel> qualifersBeforeDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterThirdPreservation).getResults().get(0)).get("#qualifiers")
+                    .get(1).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsBeforeDelete =
+                qualifersBeforeDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+            Set<String> idsToDelete =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_1"))
+                    .map(VersionsModel::getId).collect(
+                    Collectors.toSet());
+
+            assertEquals(3, dataObjectVersionsBeforeDelete.size());
+            assertTrue(dataObjectVersionsBeforeDelete.contains("Dissemination_1"));
+            assertTrue(dataObjectVersionsBeforeDelete.contains("Dissemination_2"));
+            assertFalse(dataObjectVersionsBeforeDelete.contains("Dissemination_1818"));
+            for (String idToDelete : idsToDelete) {
+                checkObjectExistence(idToDelete, true);
+            }
 
             // Prepare Request for delete got versions
             SelectMultiQuery searchDslQuery = new SelectMultiQuery();
@@ -786,12 +879,25 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
 
             RequestResponse<JsonNode> gotsAfterDelete =
                 accessClient.selectObjects(getGotsRequest.getFinalSelect());
-            Set<Integer> gotsQualifiersSizeAfterDelete =
-                (Set<Integer>) ((RequestResponseOK) gotsAfterDelete).getResults().stream()
-                    .map(elmt -> ((ObjectNode) elmt).get("#qualifiers").get(0).get("#nbc").asInt())
-                    .collect(Collectors.toSet());
-            assertEquals(1, gotsQualifiersSizeAfterDelete.size());
-            assertTrue(gotsQualifiersSizeAfterDelete.contains(1));
+            List<VersionsModel> qualifersAfterDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterDelete).getResults().get(0)).get("#qualifiers")
+                    .get(1).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsAfterDelete =
+                qualifersAfterDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+
+            assertEquals(1, dataObjectVersionsAfterDelete.size());
+            assertTrue(dataObjectVersionsAfterDelete.contains("Dissemination_3"));
+            assertFalse(dataObjectVersionsBeforeDelete.contains("Dissemination_1818"));
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_1"))
+                    .findFirst().isEmpty());
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_2"))
+                    .findFirst().isEmpty());
+            for (String idToDelete : idsToDelete) {
+                checkObjectExistence(idToDelete, false);
+            }
 
             // Check report
             JsonNode reportsNode =
@@ -956,6 +1062,24 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 RequestResponseOK.getFromJsonNode(logbookOperationVersionModelResult);
             return JsonHandler
                 .getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
+        }
+    }
+
+    private void checkObjectExistence(String objectId, boolean shouldExist)
+        throws StorageNotFoundClientException, StorageServerClientException {
+        checkFileInStorage(DataCategory.OBJECT, objectId, shouldExist);
+    }
+
+    private void checkFileInStorage(DataCategory dataCategory, String filename, boolean shouldExist)
+        throws StorageNotFoundClientException, StorageServerClientException {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+
+            List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
+            JsonNode information =
+                storageClient
+                    .getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
+            boolean fileFound = information.size() > 0;
+            assertThat(fileFound).isEqualTo(shouldExist);
         }
     }
 }

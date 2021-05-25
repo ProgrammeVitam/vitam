@@ -42,7 +42,7 @@ public class ReportResults {
     private Integer nbWarning;
 
     public ReportResults() {
-        this(0,0,0);
+        this(0, 0, 0);
     }
 
     public ReportResults(Integer nbOk, Integer nbKo, Integer nbWarning) {
@@ -90,6 +90,22 @@ public class ReportResults {
                 break;
             case "KO":
                 this.nbKo = count;
+                break;
+            default:
+                throw new IllegalArgumentException("Status invalid " + status);
+        }
+    }
+
+    public void incrementStatus(String status, Integer count) {
+        switch (status) {
+            case "OK":
+                this.nbOk = this.nbOk + count;
+                break;
+            case "WARNING":
+                this.nbWarning = this.nbWarning + count;
+                break;
+            case "KO":
+                this.nbKo = this.nbKo + count;
                 break;
             default:
                 throw new IllegalArgumentException("Status invalid " + status);
