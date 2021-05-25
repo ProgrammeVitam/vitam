@@ -208,8 +208,9 @@ grafana:
         allowUiUpdates: true
         options:
           path: "/etc/grafana/provisioning/dashboards"
-    grafana_plugins_offline:
+    grafana_plugins:
       - camptocamp-prometheus-alertmanager-datasource
+      - Vonage-Grafana_Status_panel
 
 # Curator units: days
 curator:
