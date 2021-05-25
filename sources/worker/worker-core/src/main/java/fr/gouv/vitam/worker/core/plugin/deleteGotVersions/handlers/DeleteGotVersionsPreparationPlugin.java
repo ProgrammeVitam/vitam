@@ -27,9 +27,9 @@
 
 package fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -37,17 +37,8 @@ import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.ObjectGroupToDeleteReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.iterables.SpliteratorIterator;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
@@ -59,9 +50,6 @@ import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModelCustomized;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -73,16 +61,14 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.deleteGotVersions.services.DeleteGotVersionsReportService;
-import fr.gouv.vitam.worker.core.utils.GroupByObjectIterator;
-import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import fr.gouv.vitam.worker.core.utils.PluginHelper;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -96,21 +82,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNodeList;
+import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.PHYSICAL_MASTER;
-import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUnitScrollSplitIterator;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
@@ -119,7 +100,6 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
 
     private static final String PLUGIN_NAME = "DELETE_GOT_VERSIONS_PREPARATION";
     public static final String FIRST_BINARY_MASTER = BINARY_MASTER.getName() + "_1";
-    public static final String UNITS_BY_GOT_FILE = "unitsByGot.jsonl";
     public static final String DISTRIBUTION_FILE_OG = "distributionFileOG.jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;
@@ -150,190 +130,162 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                 return buildItemStatus(PLUGIN_NAME, requestValidation.getLeft(), errorNode);
             }
 
-            // Create UnitsByOBjectGroup jsonl file
-            createUnitsByGotFile(handler, metaDataClient, deleteGotVersionsRequest);
+            // Get generated unitsByGot InputStream
+            InputStream unitsByGotInputStream =
+                PluginHelper.createUnitsByGotFile(metaDataClient, deleteGotVersionsRequest, handler);
 
             // Create objectGroupWithDetails distribution file
-            createObjectGroupDistributionFile(handler, deleteGotVersionsRequest, param);
+            createObjectGroupDistributionFile(handler, deleteGotVersionsRequest, param, unitsByGotInputStream,
+                metaDataClient);
 
-            return buildItemStatus(PLUGIN_NAME, OK,
-                createObjectNode().put("query", deleteGotVersionsRequest.getDslQuery().toString()));
+            return buildItemStatus(PLUGIN_NAME, OK);
 
         } catch (Exception e) {
-            LOGGER.error(String.format("Delete got versions preparation failed with status [%s]", KO), e);
+            LOGGER.error(String.format("Delete got versions preparation failed with status [%s]", FATAL), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
-            return buildItemStatus(PLUGIN_NAME, KO, error);
+            return buildItemStatus(PLUGIN_NAME, FATAL, error);
         }
     }
 
-    private List<Pair<String, List<String>>> getJsonLinesEntries(File unitsByObjectGroupeFile) {
-        List<Pair<String, List<String>>> reportEntries = new ArrayList<>();
-        try (InputStream inputStream = new FileInputStream(unitsByObjectGroupeFile);
-            JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-                new JsonLineGenericIterator<>(inputStream, new TypeReference<>() {
-                })) {
-            while (jsonLineIterator.hasNext()) {
-                JsonLineModel entry = jsonLineIterator.next();
-                reportEntries.add(Pair.of(entry.getId(), JsonHandler.getFromJsonNode(entry.getParams(), List.class)));
+    private void createObjectGroupDistributionFile(HandlerIO handler, DeleteGotVersionsRequest deleteGotVersionsRequest,
+        WorkerParameters param, InputStream unitsByGotInputStream, MetaDataClient metaDataClient)
+        throws VitamException, ProcessingStatusException, IOException {
+        File objectGroupsIdsFile = handler.getNewLocalFile("object_groups_to_update.jsonl");
+        try (OutputStream outputStream = new FileOutputStream(objectGroupsIdsFile);
+            JsonLineGenericIterator<JsonNode> jsonLineIterator =
+                new JsonLineGenericIterator<>(unitsByGotInputStream, new TypeReference<>() {
+                });
+            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
+            Iterator<List<JsonNode>> jsonLineIteratorPartition =
+                Iterators.partition(jsonLineIterator, VitamConfiguration.getBatchSize());
+            while (jsonLineIteratorPartition.hasNext()) {
+                List<UnitsByGotModel> unitsByGot =
+                    getFromJsonNodeList(jsonLineIteratorPartition.next(), new TypeReference<>() {
+                    });
+                Map<String, Set<String>> unitsByGotConvertedMap =
+                    unitsByGot.stream()
+                        .collect(Collectors.toMap(UnitsByGotModel::getGotId, UnitsByGotModel::getUnitIds));
+                String[] gotIds = unitsByGot.stream().map(UnitsByGotModel::getGotId).toArray(String[]::new);
+                Map<String, ObjectGroupResponse> objectGroupRowsPartition =
+                    PluginHelper.getObjectGroups(gotIds, metaDataClient);
+                if (objectGroupRowsPartition == null || objectGroupRowsPartition.isEmpty()) {
+                    throw new IllegalStateException("No objects Group found in database!");
+                }
+                Map<Pair<String, Set<String>>, List<ObjectGroupToDeleteReportEntry>> objectGroupRowsForReport =
+                    new HashMap<>();
+                objectGroupRowsPartition.forEach((gotId, objectGroupResponse) -> {
+                    List<ObjectGroupToDeleteReportEntry> gotWIthDetailsForDistribution =
+                        generateGotWithDetails(objectGroupResponse, deleteGotVersionsRequest);
+                    objectGroupRowsForReport
+                        .put(Pair.of(gotId, unitsByGotConvertedMap.get(gotId)),
+                            gotWIthDetailsForDistribution);
+                    try {
+                        JsonLineModel jsonLineModel =
+                            new JsonLineModel(gotId, null, toJsonNode(gotWIthDetailsForDistribution));
+                        writer.addEntry(jsonLineModel);
+                    } catch (IOException | InvalidParseOperationException e) {
+                        throw new RuntimeException("Problem occured when writing data to distribution file", e);
+                    }
+                });
+                // create report entries per partition
+                createReport(param, objectGroupRowsForReport);
             }
-        } catch (IOException | InvalidParseOperationException e) {
-            e.printStackTrace();
         }
-        return reportEntries;
-    }
 
-    private void createObjectGroupDistributionFile(HandlerIO handler,
-        DeleteGotVersionsRequest deleteGotVersionsRequest, WorkerParameters param)
-        throws VitamException, IOException, ProcessingStatusException {
-        File unitsByObjectGroupeFile = handler.getFileFromWorkspace(UNITS_BY_GOT_FILE);
-        List<Pair<String, List<String>>> jsonLineEntries = getJsonLinesEntries(unitsByObjectGroupeFile);
-        Iterator<List<Pair<String, List<String>>>> unitsByGotPartition =
-            Iterators.partition(jsonLineEntries.iterator(), VitamConfiguration.getBatchSize());
-        Map<Pair<String, Set<String>>, JsonNode> objectGroupRawsGlobal = new HashMap<>();
-        while (unitsByGotPartition.hasNext()) {
-            List<Pair<String, List<String>>> unitsByGot = unitsByGotPartition.next();
-            Map<String, ObjectGroupResponse> objectGroupRawsPartition = getObjectGroups(unitsByGot);
-            objectGroupRawsPartition
-                .forEach((gotId, objectGroupResponse) -> objectGroupRawsGlobal
-                    .put(Pair.of(gotId, extractUnitsIds(gotId, unitsByGot)),
-                        generateGotWithDetails(objectGroupResponse, deleteGotVersionsRequest)));
-        }
         // write distribution file
-        generateDistributionFile(objectGroupRawsGlobal, handler);
-
-        // create report entries
-        createReport(param, objectGroupRawsGlobal);
+        handler.transferFileToWorkspace(DISTRIBUTION_FILE_OG, objectGroupsIdsFile, true, false);
     }
 
-    private void createReport(WorkerParameters param, Map<Pair<String, Set<String>>, JsonNode> objectGroupRawsGlobal)
-        throws ProcessingStatusException, InvalidParseOperationException {
+    private void createReport(WorkerParameters param,
+        Map<Pair<String, Set<String>>, List<ObjectGroupToDeleteReportEntry>> objectGroupRawsGlobal)
+        throws ProcessingStatusException {
         final Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         List<Object> deleteGotVersionsReportEntries = new ArrayList<>();
-        for (Entry<Pair<String, Set<String>>, JsonNode> entry : objectGroupRawsGlobal.entrySet()) {
-            List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries = JsonHandler.getFromJsonNode(
-                entry.getValue(), new TypeReference<>() {
-                });
+        for (Entry<Pair<String, Set<String>>, List<ObjectGroupToDeleteReportEntry>> entry : objectGroupRawsGlobal
+            .entrySet()) {
             deleteGotVersionsReportEntries.add(
-                new DeleteGotVersionsReportEntry(GUIDFactory.newGUID().toString(), param.getRequestId(), tenantId,
+                new DeleteGotVersionsReportEntry(entry.getKey().getLeft(), param.getRequestId(), tenantId,
                     now().toString(), entry.getKey().getLeft(), entry.getKey().getRight(),
-                    objectGroupToDeleteReportEntries, null));
+                    entry.getValue(), null));
         }
         if (!deleteGotVersionsReportEntries.isEmpty()) {
             reportService.appendEntries(param.getContainerName(), deleteGotVersionsReportEntries);
         }
     }
 
-    private Set<String> extractUnitsIds(String gotId, List<Pair<String, List<String>>> unitsByGot) {
-        return unitsByGot.stream().filter(elmt -> elmt.getLeft().equals(gotId)).map(Pair::getRight)
-            .flatMap(List::stream)
-            .collect(Collectors.toSet());
-    }
-
-    private Map<String, ObjectGroupResponse> getObjectGroups(List<Pair<String, List<String>>> unitsByGot)
-        throws ProcessingException {
-
-        try {
-            Select select = new Select();
-            String[] ids = unitsByGot.stream().map(Pair::getLeft).toArray(String[]::new);
-            select.setQuery(in("#id", ids));
-
-            ObjectNode finalSelect = select.getFinalSelect();
-            JsonNode response = metaDataClientFactory.getClient().selectObjectGroups(finalSelect);
-
-            JsonNode results = response.get("$results");
-            List<ObjectGroupResponse> resultsResponse =
-                getFromStringAsTypeReference(results.toString(), new TypeReference<>() {
-                });
-            return resultsResponse.stream().collect(Collectors
-                .toMap(ObjectGroupResponse::getId, objectGroup -> objectGroup));
-        } catch (InvalidParseOperationException | InvalidFormatException | MetaDataExecutionException |
-            MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException e) {
-            e.printStackTrace();
-            throw new ProcessingException("A problem occured when retrieving ObjectGroups :  " + e.getMessage());
-        }
-    }
-
-    private JsonNode generateGotWithDetails(ObjectGroupResponse objectGroup,
+    private List<ObjectGroupToDeleteReportEntry> generateGotWithDetails(ObjectGroupResponse objectGroup,
         DeleteGotVersionsRequest deleteGotVersionsRequest) {
-
         List<ObjectGroupToDeleteReportEntry> objectGroupReportEntries = new ArrayList<>();
-        try {
-            List<QualifiersModel> qualifiers = objectGroup.getQualifiers();
-            Optional<QualifiersModel> optionalQualifierToUpdate = qualifiers.stream()
-                .filter(elmt -> elmt.getQualifier().equals(deleteGotVersionsRequest.getUsageName()))
-                .findFirst();
+        List<QualifiersModel> qualifiers = objectGroup.getQualifiers();
+        Optional<QualifiersModel> optionalQualifierToUpdate = qualifiers.stream()
+            .filter(elmt -> elmt.getQualifier().equals(deleteGotVersionsRequest.getUsageName()))
+            .findFirst();
 
-            if (optionalQualifierToUpdate.isEmpty()) {
-                final String errorMsg = String.format("No qualifier of Object group matches with %s usage",
-                    deleteGotVersionsRequest.getUsageName());
-                objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
-                return JsonHandler.toJsonNode(objectGroupReportEntries);
-            }
-
-            QualifiersModel qualifierToUpdate = optionalQualifierToUpdate.get();
-            if (qualifierToUpdate.getVersions() == null || qualifierToUpdate.getVersions().isEmpty()) {
-                final String errorMsg =
-                    String.format("No versions associated to the qualifier of Object group for the %s usage",
-                        deleteGotVersionsRequest.getUsageName());
-                objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
-                return JsonHandler.toJsonNode(objectGroupReportEntries);
-            }
-
-            List<VersionsModelCustomized> deletedVersions = new ArrayList<>();
-            for (Integer version : deleteGotVersionsRequest.getSpecificVersions()) {
-                Optional<VersionsModel> specificVersionModel =
-                    qualifierToUpdate.getVersions().stream().filter(elmt -> elmt.getDataObjectVersion().equals(
-                        deleteGotVersionsRequest.getUsageName() + "_" + version)).findFirst();
-
-                if (specificVersionModel.isEmpty()) {
-                    ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                        new ObjectGroupToDeleteReportEntry(WARNING,
-                            String.format("Qualifier with this specific version %s is inexistant!", version), null);
-                    objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
-                    continue;
-                }
-
-                VersionsModel versionModelToDelete = specificVersionModel.get();
-
-                if (checkForbiddenVersion(versionModelToDelete)) {
-                    ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                        new ObjectGroupToDeleteReportEntry(WARNING,
-                            String.format("Qualifier with forbidden version %s has been detected!", version), null);
-                    objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
-                    continue;
-                }
-
-                // Check if last version
-                if (checkLastUsageVersion(deleteGotVersionsRequest.getUsageName(), qualifierToUpdate, version)) {
-                    ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                        new ObjectGroupToDeleteReportEntry(WARNING,
-                            String.format("The last version of %s usage cannot be deleted.",
-                                deleteGotVersionsRequest.getUsageName()), null);
-                    objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
-                    continue;
-                }
-
-                deletedVersions.add(customizeVersionModel(versionModelToDelete, objectGroup.getOpi()));
-            }
-
-            if (!deletedVersions.isEmpty()) {
-                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                    new ObjectGroupToDeleteReportEntry(OK, null, deletedVersions);
-                objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
-            }
-
-            return JsonHandler.toJsonNode(objectGroupReportEntries);
-        } catch (InvalidParseOperationException e) {
-            e.printStackTrace();
+        if (optionalQualifierToUpdate.isEmpty()) {
+            final String errorMsg = String.format("No qualifier of Object group matches with %s usage",
+                deleteGotVersionsRequest.getUsageName());
+            objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
+            return objectGroupReportEntries;
         }
-        return null;
+
+        QualifiersModel qualifierToUpdate = optionalQualifierToUpdate.get();
+        if (qualifierToUpdate.getVersions() == null || qualifierToUpdate.getVersions().isEmpty()) {
+            final String errorMsg =
+                String.format("No versions associated to the qualifier of Object group for the %s usage",
+                    deleteGotVersionsRequest.getUsageName());
+            objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
+            return objectGroupReportEntries;
+        }
+
+        List<VersionsModelCustomized> deletedVersions = new ArrayList<>();
+        for (Integer version : deleteGotVersionsRequest.getSpecificVersions()) {
+            Optional<VersionsModel> specificVersionModel =
+                qualifierToUpdate.getVersions().stream().filter(elmt -> elmt.getDataObjectVersion().equals(
+                    deleteGotVersionsRequest.getUsageName() + "_" + version)).findFirst();
+
+            if (specificVersionModel.isEmpty()) {
+                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
+                    new ObjectGroupToDeleteReportEntry(WARNING,
+                        String.format("Qualifier with this specific version %s is inexistant!", version), null);
+                objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
+                continue;
+            }
+
+            VersionsModel versionModelToDelete = specificVersionModel.get();
+            if (checkForbiddenVersion(versionModelToDelete)) {
+                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
+                    new ObjectGroupToDeleteReportEntry(WARNING,
+                        String.format("Qualifier with forbidden version %s has been detected!", version), null);
+                objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
+                continue;
+            }
+
+            if (checkLastUsageVersion(deleteGotVersionsRequest.getUsageName(), qualifierToUpdate, version)) {
+                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
+                    new ObjectGroupToDeleteReportEntry(WARNING,
+                        String.format("The last version of %s usage cannot be deleted.",
+                            deleteGotVersionsRequest.getUsageName()), null);
+                objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
+                continue;
+            }
+
+            deletedVersions.add(customizeVersionModel(versionModelToDelete, objectGroup.getOpi()));
+        }
+
+        if (!deletedVersions.isEmpty()) {
+            ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
+                new ObjectGroupToDeleteReportEntry(OK, null, deletedVersions);
+            objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
+        }
+
+        return objectGroupReportEntries;
     }
 
     private VersionsModelCustomized customizeVersionModel(VersionsModel versionModelToDelete, String opIngest) {
         VersionsModelCustomized versionsModelCustomized = new VersionsModelCustomized();
         versionsModelCustomized.setId(versionModelToDelete.getId());
-        versionsModelCustomized.setOpi(opIngest);
-        versionsModelCustomized.setOpc(versionModelToDelete.getOpi());
+        versionsModelCustomized.setOpIngest(opIngest);
+        versionsModelCustomized.setOpCurrent(versionModelToDelete.getOpi());
         versionsModelCustomized.setSize(versionModelToDelete.getSize());
         versionsModelCustomized.setDataObjectVersion(versionModelToDelete.getDataObjectVersion());
         if (versionModelToDelete.getStorage() != null) {
@@ -369,26 +321,15 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
             return Pair.of(KO, "Specific versions list is empty.");
         }
 
-        if (isVersionsDupliated(deleteGotVersionsRequest)) {
+        if (isVersionsDuplicated(deleteGotVersionsRequest)) {
             return Pair.of(KO, "Duplicated versions are detected.");
         }
         return Pair.of(OK, null);
     }
 
-    private boolean isVersionsDupliated(DeleteGotVersionsRequest deleteGotVersionsRequest) {
+    private boolean isVersionsDuplicated(DeleteGotVersionsRequest deleteGotVersionsRequest) {
         return deleteGotVersionsRequest.getSpecificVersions().stream().distinct().count() !=
             deleteGotVersionsRequest.getSpecificVersions().size();
-    }
-
-    private void createUnitsByGotFile(HandlerIO handler, MetaDataClient metaDataClient,
-        DeleteGotVersionsRequest deleteGotVersionsRequest) throws VitamException {
-        SelectMultiQuery selectMultiQuery = prepareUnitsWithObjectGroupsQuery(deleteGotVersionsRequest.getDslQuery());
-        ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
-        Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
-        Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
-        Iterator<List<Pair<String, List<String>>>> bulksUnitsByObjectGroup =
-            Iterators.partition(new GroupByObjectIterator(gotIdUnitIdIterator), VitamConfiguration.getBatchSize());
-        generateUnitsByGotFile(bulksUnitsByObjectGroup, handler);
     }
 
     private DeleteGotVersionsRequest loadRequest(HandlerIO handler)
@@ -396,87 +337,37 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         JsonNode inputRequest = handler.getJsonFromWorkspace("deleteGotVersionsRequest");
         return getFromJsonNode(inputRequest, DeleteGotVersionsRequest.class);
     }
+}
 
-    private SelectMultiQuery prepareUnitsWithObjectGroupsQuery(JsonNode initialQuery) {
-        try {
-            SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(initialQuery);
-            SelectMultiQuery selectMultiQuery = parser.getRequest();
-            ObjectNode projectionNode = getQueryProjectionToApply();
-            selectMultiQuery.setProjection(projectionNode);
-            selectMultiQuery.addOrderByAscFilter(OBJECT.exactToken());
-            List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
 
-            if (queryList.isEmpty()) {
-                selectMultiQuery.addQueries(and().add(exists(OBJECT.exactToken())).setDepthLimit(0));
-                return selectMultiQuery;
-            }
+class UnitsByGotModel {
+    @JsonProperty("id")
+    public String gotId;
 
-            for (int i = 0; i < queryList.size(); i++) {
-                final Query query = queryList.get(i);
-                Query restrictedQuery = and().add(exists(OBJECT.exactToken()), query);
-                parser.getRequest().getQueries().set(i, restrictedQuery);
-            }
-            return selectMultiQuery;
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new IllegalStateException(e);
-        }
+    @JsonProperty("params")
+    public Set<String> unitIds;
+
+    public UnitsByGotModel(String gotId, Set<String> unitIds) {
+        this.gotId = gotId;
+        this.unitIds = unitIds;
     }
 
-    private ObjectNode getQueryProjectionToApply() {
-        ObjectNode projectionNode = JsonHandler.createObjectNode();
-        ObjectNode fields = JsonHandler.createObjectNode();
-
-        fields.put(ID.exactToken(), 1);
-        fields.put(OBJECT.exactToken(), 1);
-        projectionNode.set(FIELDS.exactToken(), fields);
-
-        return projectionNode;
+    public UnitsByGotModel() {
     }
 
-    private Iterator<Pair<String, String>> getGotIdUnitIdIterator(Iterator<JsonNode> iterator) {
-        return IteratorUtils.transformedIterator(
-            iterator,
-            item -> new ImmutablePair<>(
-                item.get(OBJECT.exactToken()).asText(),
-                item.get(ID.exactToken()).asText()
-            )
-        );
+    public String getGotId() {
+        return gotId;
     }
 
-    private void generateUnitsByGotFile(Iterator<List<Pair<String, List<String>>>> unitsByObjectGroup,
-        HandlerIO handler)
-        throws VitamException {
-        File objectGroupsIdsFile = handler.getNewLocalFile("units_by_object_groups.jsonl");
-        try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsIdsFile);
-            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
-            while (unitsByObjectGroup.hasNext()) {
-                List<Pair<String, List<String>>> unitsByObjectGroupByRange = unitsByObjectGroup.next();
-                for (Pair<String, List<String>> unitsByGot : unitsByObjectGroupByRange) {
-                    writer.addEntry(
-                        new JsonLineModel(unitsByGot.getLeft(), null, JsonHandler.toJsonNode(unitsByGot.getRight())));
-                }
-            }
-        } catch (IOException e) {
-            throw new VitamException("Could not save distribution file", e);
-        }
-        handler.transferFileToWorkspace(UNITS_BY_GOT_FILE, objectGroupsIdsFile, true, false);
+    public void setGotId(String gotId) {
+        this.gotId = gotId;
     }
 
-    private void generateDistributionFile(Map<Pair<String, Set<String>>, JsonNode> objectGroupRawsGlobal,
-        HandlerIO handler)
-        throws VitamException {
-        File objectGroupsIdsFile = handler.getNewLocalFile("object_groups_to_update.jsonl");
-        try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsIdsFile);
-            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
+    public Set<String> getUnitIds() {
+        return unitIds;
+    }
 
-            for (Entry<Pair<String, Set<String>>, JsonNode> objectGroupEntry : objectGroupRawsGlobal.entrySet()) {
-                writer.addEntry(
-                    new JsonLineModel(objectGroupEntry.getKey().getLeft(), null, objectGroupEntry.getValue()));
-            }
-        } catch (IOException e) {
-            throw new VitamException("Could not save distribution file", e);
-        }
-        handler.transferFileToWorkspace(DISTRIBUTION_FILE_OG, objectGroupsIdsFile, true, false);
+    public void setUnitIds(Set<String> unitIds) {
+        this.unitIds = unitIds;
     }
 }

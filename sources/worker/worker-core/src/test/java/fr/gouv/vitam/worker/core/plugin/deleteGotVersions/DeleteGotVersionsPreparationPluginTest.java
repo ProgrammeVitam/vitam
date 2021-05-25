@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.worker.core.plugin.deleteGotVersions;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -42,7 +41,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsPreparationPlugin;
 import fr.gouv.vitam.worker.core.plugin.deleteGotVersions.services.DeleteGotVersionsReportService;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,20 +50,18 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DeleteGotVersionsPreparationPluginTest {
@@ -98,7 +94,6 @@ public class DeleteGotVersionsPreparationPluginTest {
     @Mock
     private WorkerParameters params;
 
-    public static final String UNITS_BY_GOT_FILE = "deleteGotVersions/unitsByGot.jsonl";
     public static final String DELETE_GOT_VERSIONS_OBJECT_GROUP_RESULT_JSON =
         "/deleteGotVersions/objectGroupResult.json";
     public static final String DELETE_GOT_VERSIONS_RESULT_REQUEST_JSON = "/deleteGotVersions/resultRequest.json";
@@ -133,6 +128,8 @@ public class DeleteGotVersionsPreparationPluginTest {
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(itemStatus.getData("eventDetailData").toString()).contains("Usage name is unknown.");
+        verify(reportService, times(0)).appendEntries(any(), any());
+        verify(handlerIO, times(0)).transferFileToWorkspace(any(), any(), anyBoolean(), anyBoolean());
     }
 
     @Test
@@ -147,6 +144,8 @@ public class DeleteGotVersionsPreparationPluginTest {
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(itemStatus.getData("eventDetailData").toString()).contains("Specific versions list is empty.");
+        verify(reportService, times(0)).appendEntries(any(), any());
+        verify(handlerIO, times(0)).transferFileToWorkspace(any(), any(), anyBoolean(), anyBoolean());
     }
 
     @Test
@@ -161,28 +160,26 @@ public class DeleteGotVersionsPreparationPluginTest {
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(itemStatus.getData("eventDetailData").toString()).contains("Duplicated versions are detected.");
+        verify(reportService, times(0)).appendEntries(any(), any());
+        verify(handlerIO, times(0)).transferFileToWorkspace(any(), any(), anyBoolean(), anyBoolean());
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenValidRequestThenReturnOK() throws Exception {
+        // GIVEN
         DeleteGotVersionsRequest deleteGotVersionsRequest =
             new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(5));
         when(handlerIO.getJsonFromWorkspace(DELETE_GOT_VERSIONS_REQUEST))
             .thenReturn(toJsonNode(deleteGotVersionsRequest));
+        doAnswer((args) -> temporaryFolder.newFile()).when(handlerIO).getNewLocalFile(anyString());
 
-        final File unitsByGotFile = PropertiesUtils.getResourceFile(UNITS_BY_GOT_FILE);
-        when(handlerIO.getFileFromWorkspace("unitsByGot.jsonl")).thenReturn(unitsByGotFile);
-
-        Map<String, File> files = new HashMap<>();
-        doAnswer((args) -> {
-            File file = temporaryFolder.newFile();
-            files.put(args.getArgument(0), file);
-            return file;
-        }).when(handlerIO).getNewLocalFile(anyString());
-
+        // WHEN
         ItemStatus itemStatus = deleteGotVersionsPreparationPlugin.execute(params, handlerIO);
 
+        // THEN
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        verify(reportService, times(1)).appendEntries(any(), any());
+        verify(handlerIO, times(1)).transferFileToWorkspace(any(), any(), anyBoolean(), anyBoolean());
     }
 }

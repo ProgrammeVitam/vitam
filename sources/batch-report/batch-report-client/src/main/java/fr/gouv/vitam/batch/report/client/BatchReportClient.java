@@ -93,5 +93,5 @@ public interface BatchReportClient extends BasicClient {
 
     void createExtractedMetadataDistributionFileForAu(String processId) throws Exception;
 
-    JsonNode readDeletedGotVersionsReport(ReportType deleteGotVersions, String processId);
+    JsonNode readComputedDetailsFromReport(ReportType deleteGotVersions, String processId);
 }

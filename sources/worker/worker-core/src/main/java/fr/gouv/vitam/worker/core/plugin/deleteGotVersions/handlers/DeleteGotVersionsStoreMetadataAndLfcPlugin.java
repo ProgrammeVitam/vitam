@@ -43,12 +43,11 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.StoreMetaDataObjectGroupActionPlugin;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -78,9 +77,10 @@ public class DeleteGotVersionsStoreMetadataAndLfcPlugin extends ActionHandler {
         List<ItemStatus> itemStatuses = new ArrayList<>();
         List<String> gotIds = params.getObjectNameList();
         List<JsonNode> objectGroupToDeleteReportEntriesNodes = params.getObjectMetadataList();
-        for (int i = 0; i < objectGroupToDeleteReportEntriesNodes.size(); i++) {
-            StatusCode statusCode = OK;
-            try {
+        List<String> gotsToStore = new ArrayList<>();
+        try {
+            for (int i = 0; i < objectGroupToDeleteReportEntriesNodes.size(); i++) {
+                StatusCode statusCode = OK;
                 List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries =
                     getFromJsonNode(objectGroupToDeleteReportEntriesNodes.get(i), new TypeReference<>() {
                     });
@@ -89,17 +89,17 @@ public class DeleteGotVersionsStoreMetadataAndLfcPlugin extends ActionHandler {
                     statusCode = WARNING;
                 }
                 if (objectGroupToDeleteReportEntries.stream().anyMatch(elmt -> elmt.getStatus().equals(OK))) {
-                    storeMetaDataObjectGroupActionPlugin
-                        .storeDocumentsWithLfc(params, handler, Collections.singletonList(gotIds.get(i)));
+                    gotsToStore.add(gotIds.get(i));
                 }
                 itemStatuses.add(buildItemStatus(PLUGIN_NAME, statusCode));
-            } catch (VitamException e) {
-                final String errorMsg =
-                    String.format("No objectGroupToDelete entries found for Object group %s in distirubution file.",
-                        gotIds.get(i));
-                ObjectNode error = createObjectNode().put("error", errorMsg);
-                itemStatuses.add(buildItemStatus(PLUGIN_NAME, KO, error));
             }
+
+            storeMetaDataObjectGroupActionPlugin.storeDocumentsWithLfc(params, handler, gotsToStore);
+        } catch (VitamException e) {
+            final String errorMsg =
+                "No objectGroupToDelete entries found for Object group in distribution file.";
+            ObjectNode error = createObjectNode().put("error", errorMsg);
+            itemStatuses.add(buildItemStatus(PLUGIN_NAME, FATAL, error));
         }
         return itemStatuses;
     }

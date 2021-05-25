@@ -1,10 +1,10 @@
 {
   "httpCode": 302,
   "$hits": {
-    "total": 8,
+    "total": 2,
     "offset": 0,
     "limit": 10000,
-    "size": 8,
+    "size": 2,
     "scrollId": "DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAEAFndTaFc3MmswU19tQ0hjZ3VDMUJJNmcAAAAAAAABARZ3U2hXNzJrMFNfbUNIY2d1QzFCSTZnAAAAAAAAAQIWd1NoVzcyazBTX21DSGNndUMxQkk2ZwAAAAAAAAEDFndTaFc3MmswU19tQ0hjZ3VDMUJJNmcAAAAAAAABBBZ3U2hXNzJrMFNfbUNIY2d1QzFCSTZn"
   },
   "$results": [

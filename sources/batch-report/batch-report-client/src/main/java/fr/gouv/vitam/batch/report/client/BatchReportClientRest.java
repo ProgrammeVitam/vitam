@@ -182,9 +182,9 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public JsonNode readDeletedGotVersionsReport(ReportType reportType, String processId) {
+    public JsonNode readComputedDetailsFromReport(ReportType reportType, String processId) {
         VitamRequestBuilder request = get()
-            .withPath("/readReport")
+            .withPath("/readComputedDetailsFromReport")
             .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .withBody(new ReportBody(processId, reportType, null))
             .withJson();

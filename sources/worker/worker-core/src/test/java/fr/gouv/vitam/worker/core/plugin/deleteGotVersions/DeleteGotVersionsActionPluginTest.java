@@ -58,13 +58,13 @@ import java.util.List;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DeleteGotVersionsActionPluginTest {
@@ -131,6 +131,7 @@ public class DeleteGotVersionsActionPluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(OK, itemStatusList.get(0).getGlobalStatus());
+        verify(metaDataClient, times(1)).updateObjectGroupById(any(),any());
     }
 
     @Test
@@ -157,6 +158,7 @@ public class DeleteGotVersionsActionPluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(WARNING, itemStatusList.get(0).getGlobalStatus());
+        verify(metaDataClient, times(1)).updateObjectGroupById(any(),any());
     }
 
     @Test
@@ -183,11 +185,12 @@ public class DeleteGotVersionsActionPluginTest {
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
         assertEquals(WARNING, itemStatusList.get(0).getGlobalStatus());
+        verify(metaDataClient, times(0)).updateObjectGroupById(any(),any());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenEmptyQualifierVersionsThenReturnKO() throws Exception {
+    public void givenEmptyQualifierVersionsToCheckIdempotencyThenReturnOk() throws Exception {
         DeleteGotVersionsRequest deleteGotVersionsRequest =
             new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(2));
 
@@ -207,8 +210,7 @@ public class DeleteGotVersionsActionPluginTest {
 
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
         assertEquals(1, itemStatusList.size());
-        assertEquals(KO, itemStatusList.get(0).getGlobalStatus());
-        assertTrue(itemStatusList.get(0).getData("eventDetailData").toString()
-            .contains("No versions associated to the qualifier of Object group for the BinaryMaster usage"));
+        assertEquals(OK, itemStatusList.get(0).getGlobalStatus());
+        verify(metaDataClient, times(0)).updateObjectGroupById(any(),any());
     }
 }

@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -53,15 +54,20 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 
+import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.server.application.junit.ResponseHelper.getOutboundResponse;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
@@ -78,7 +84,6 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
-    ;
 
     @Mock
     private AdminManagementClient adminManagementClient;
@@ -97,8 +102,6 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
 
     private static final String DELETE_GOT_VERSIONS_REPORTS_OK_FILE =
         "deleteGotVersions/deleteGotVersionsReportOk.json";
-    private static final String DELETE_GOT_VERSIONS_REPORTS_ALL_WARNING_FILE =
-        "deleteGotVersions/deleteGotVersionsReportAllWarning.json";
     private static final String ACCESSION_REGISTER_RESPONSE = "deleteGotVersions/accessionRegisterModel.json";
 
     @Before
@@ -114,7 +117,7 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
     @RunWithCustomExecutor
     public void givenOkResultsThenDeleteGotVersionsStorageOk() throws Exception {
         File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_OK_FILE);
-        when(batchReportClient.readDeletedGotVersionsReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
         RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterResponse =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(ACCESSION_REGISTER_RESPONSE),
                 new TypeReference<>() {
@@ -124,13 +127,13 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
         ItemStatus itemStatus = deleteGotVersionsAccessionRegisterUpdatePlugin.execute(params, handlerIO);
 
         assertEquals(OK, itemStatus.getGlobalStatus());
+        verify(adminManagementClient, times(1)).createOrUpdateAccessionRegister(any());
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenOkAndWarningResultsThenDeleteGotVersionsStorageWarning() throws Exception {
-        File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_ALL_WARNING_FILE);
-        when(batchReportClient.readDeletedGotVersionsReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(createObjectNode());
         RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterResponse =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(ACCESSION_REGISTER_RESPONSE),
                 new TypeReference<>() {
@@ -140,18 +143,22 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
         ItemStatus itemStatus = deleteGotVersionsAccessionRegisterUpdatePlugin.execute(params, handlerIO);
 
         assertEquals(WARNING, itemStatus.getGlobalStatus());
+        verify(adminManagementClient, times(0)).createOrUpdateAccessionRegister(any());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenInexistantAcessionRegisterThenThrowException() throws Exception {
+    public void givenErrorWhileRetreivingAcessionRegisterThenThrowException() throws Exception {
         File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_OK_FILE);
-        when(batchReportClient.readDeletedGotVersionsReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
-        RequestResponse response = new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
-        when(adminManagementClient.getAccessionRegisterDetail(any())).thenReturn(response);
+        when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(getFromFile(deleteGotVersionsFile));
+        final VitamError error = new VitamError("0");
+        Response response =  getOutboundResponse(Response.Status.BAD_REQUEST, error.toString(), MediaType.APPLICATION_JSON, null);
+        RequestResponse requestResponse = RequestResponse.parseVitamError(response);
+        when(adminManagementClient.getAccessionRegisterDetail(any())).thenReturn(requestResponse);
 
         ItemStatus itemStatus = deleteGotVersionsAccessionRegisterUpdatePlugin.execute(params, handlerIO);
 
         assertEquals(FATAL, itemStatus.getGlobalStatus());
+        verify(adminManagementClient, times(0)).createOrUpdateAccessionRegister(any());
     }
 }
