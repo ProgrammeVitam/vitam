@@ -139,7 +139,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      */
 
     boolean isExistingObject(String containerName, String objectName)
-        throws ContentAddressableStorageServerException;
+        throws ContentAddressableStorageException;
 
     /**
      * compute Object Digest using a defined algorithm
@@ -189,5 +189,5 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     void listContainer(String containerName, ObjectListingListener objectListingListener)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException;
+        throws ContentAddressableStorageException, IOException;
 }
