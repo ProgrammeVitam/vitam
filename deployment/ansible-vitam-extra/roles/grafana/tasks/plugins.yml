@@ -136,7 +136,7 @@
     with_items: "{{ map_plugins }}"  
     when: grafana.grafana_plugins is search ( item.zip_directory)
    
-  - name: convert list plugins grafana has to be installed in zip name
+  - name: compute list plugins alreay installed
     set_fact: installed_plugins_name={{ installed_plugins_name + [item.zip_directory] }}
     with_items: "{{ map_plugins }}"  
     when: installed_plugins is search ( item.plugin_id ) 
@@ -144,10 +144,12 @@
   - name: convert list plugins grafana has to be installed in zip name
     set_fact: grafana_plugins_to_be_installed="{{grafana.grafana_plugins | difference(installed_plugins_name)}}"
 
-  - debug: msg="already installed plugins name={{ installed_plugins_name }}"
-  
-  - debug: msg="list_plugin_name_git={{ list_plugin_name_git }}"
+  - debug: msg="already installed plugins name on the system={{ installed_plugins_name }}"
 
+  - debug: msg="list plugin present in the repository ( in the ansible controller )={{ list_plugin_name_git }}"
+
+  - debug: msg="list plugin will be installed={{ grafana_plugins_to_be_installed }}" 
+  
   - name: create liste fact
     set_fact:
       liste_calc: "{{ ((grafana.grafana_plugins)) | difference(installed_plugins_name) }}" 
