@@ -98,7 +98,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadExc
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
@@ -129,7 +128,6 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -493,7 +491,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(CONFLICT).entity(e.getMessage())
                 .build();
-        } catch (final IOException | InvalidParseOperationException | StorageException | InvalidGuidOperationException e) {
+        } catch (final IOException | VitamException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR).entity(INTERNAL_SERVER_ERROR.getReasonPhrase()).build();
         } finally {
