@@ -38,8 +38,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -65,10 +65,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckHeaderActionHandler.class);
     private static final String HANDLER_ID = "CHECK_HEADER";
-    private static final int CHECK_CONTRACT_RANK = 0;
-    private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
+    private static final int CHECK_ORIGINATING_AGENCY_RANK = 0;
     private static final String EV_DETAIL_REQ = "EvDetailReq";
-    private static final int CHECK_PROFILE_RANK = 2;
+    private static final int CHECK_PROFILE_RANK = 1;
     private static final int GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK = 0;
     public static final String INGEST_CONTRACT = "ingestContract";
     public static final String MANAGEMENT_CONTRACT = "managementContract";
@@ -94,7 +93,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static String getId() {
         return HANDLER_ID;
     }
 
@@ -103,13 +102,11 @@ public class CheckHeaderActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
-        Map<String, Object> mandatoryValueMap;
+        Map<String, String> mandatoryValueMap;
         ObjectNode infoNode = JsonHandler.createObjectNode();
-        final boolean shouldCheckContract = Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK));
         final boolean shouldCheckOriginatingAgency =
-            Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
-        final boolean shouldCheckProfile =
-            Boolean.valueOf((String) handlerIO.getInput(CHECK_PROFILE_RANK));
+            Boolean.parseBoolean((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
+        final boolean shouldCheckProfile = Boolean.parseBoolean((String) handlerIO.getInput(CHECK_PROFILE_RANK));
 
         try {
             mandatoryValueMap = sedaUtils.getMandatoryValues(params);
@@ -149,20 +146,20 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
-        if (shouldCheckContract) {
-            handlerIO.getInput().clear();
-            handlerIO.getInput().add(mandatoryValueMap);
-            CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler(adminManagementClientFactory, storageClientFactory);
-            final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
-            itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
-            checkIngestContractActionHandler.close();
-            if (checkContratItemStatus.shallStop(true)) {
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            }
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(mandatoryValueMap);
+        CheckIngestContractActionHandler checkIngestContractActionHandler =
+            new CheckIngestContractActionHandler(adminManagementClientFactory, storageClientFactory);
+        final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
+        itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
+        checkIngestContractActionHandler.close();
+        if (checkContratItemStatus.shallStop(true)) {
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
-        String contractIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
-        String profileIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+
+        String contractIdentifier = mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+        String profileIdentifier = mandatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
 
         ContractsDetailsModel contractsDetailsModel = new ContractsDetailsModel();
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
@@ -242,23 +239,13 @@ public class CheckHeaderActionHandler extends ActionHandler {
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
-        boolean doNotCheckProfile = (null == contractIdentifier && null == profileIdentifier);
-        if (shouldCheckProfile && !doNotCheckProfile) {
-            handlerIO.getInput().clear();
-            handlerIO.getInput().add(profileIdentifier);
-            handlerIO.getInput().add(contractIdentifier);
+        if (shouldCheckProfile) {
+            if (!contractsDetailsModel.getIngestContractModel().getArchiveProfiles().isEmpty()) {
 
-            boolean checkRelationBetweenProfileAndContract = true;
-            if (null == profileIdentifier) {
-                // Verify if contract have archive profiles, else do nothing
-                if (contractsDetailsModel.getIngestContractModel().getArchiveProfiles().isEmpty()) {
-                    checkRelationBetweenProfileAndContract = false;
-                } else {
-                    handlerIO.getInput().add(contractsDetailsModel.getIngestContractModel());
-                }
-            }
+                handlerIO.getInput().clear();
+                handlerIO.getInput().add(profileIdentifier);
+                handlerIO.getInput().add(contractIdentifier);
 
-            if (checkRelationBetweenProfileAndContract) {
                 CheckArchiveProfileRelationActionHandler checkProfileRelation =
                     new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
                 final ItemStatus checkProfilRelationItemStatus = checkProfileRelation.execute(params, handlerIO);
@@ -298,26 +285,25 @@ public class CheckHeaderActionHandler extends ActionHandler {
         handlerIO.addOutputResult(GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK, tempFile, true, false);
     }
 
-    private void updateSedaInfo(Map<String, Object> madatoryValueMap, ObjectNode infoNode) {
+    private void updateSedaInfo(Map<String, String> madatoryValueMap, ObjectNode infoNode) {
 
         if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
-            infoNode.put(EV_DETAIL_REQ, (String) madatoryValueMap.get(SedaConstants.TAG_COMMENT));
+            infoNode.put(EV_DETAIL_REQ, madatoryValueMap.get(SedaConstants.TAG_COMMENT));
         }
         if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null) {
-            final String contractName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+            final String contractName = madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
             infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractName);
         }
         if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
-            final String profileName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
+            final String profileName = madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
             infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileName);
         }
         if (madatoryValueMap.get(SedaConstants.TAG_ACQUISITIONINFORMATION) != null) {
-            final String acquisitionInformation =
-                (String) madatoryValueMap.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+            final String acquisitionInformation = madatoryValueMap.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
             infoNode.put(SedaConstants.TAG_ACQUISITIONINFORMATION, acquisitionInformation);
         }
         if (madatoryValueMap.get(SedaConstants.TAG_LEGALSTATUS) != null) {
-            final String legalStatus = (String) madatoryValueMap.get(SedaConstants.TAG_LEGALSTATUS);
+            final String legalStatus = madatoryValueMap.get(SedaConstants.TAG_LEGALSTATUS);
             infoNode.put(SedaConstants.TAG_LEGALSTATUS, legalStatus);
         }
 
