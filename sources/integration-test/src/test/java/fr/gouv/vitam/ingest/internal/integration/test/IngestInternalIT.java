@@ -194,6 +194,7 @@ import java.util.zip.ZipOutputStream;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
 import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
+import static fr.gouv.vitam.common.VitamTestHelper.findLogbook;
 import static fr.gouv.vitam.common.VitamTestHelper.prepareVitamSession;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
@@ -291,6 +292,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 AccessInternalMain.class,
                 IngestInternalMain.class));
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
+    private static String SIP_TREE_WITHOUT_INGEST_CONTRACT = "integration-ingest-internal/SIP_arbre_without_ingest_contract.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_FILE_KO_FORMAT = "integration-ingest-internal/SIP_mauvais_format.pdf";
     private static String SIP_CONTENT_KO_FORMAT = "integration-ingest-internal/SIP-ingest-internal-Content-KO.zip";
@@ -1021,6 +1023,18 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertFalse(checkUnitSuccess);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestTreeWhenIngestContractTagNotFound() throws Exception {
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
+        final String operationGuid = doIngest(tenantId, SIP_TREE_WITHOUT_INGEST_CONTRACT, HOLDING_SCHEME,
+            ProcessAction.RESUME, StatusCode.STARTED);
+        waitOperation(operationGuid);
+        verifyOperation(operationGuid, KO);
+        JsonNode logbook = findLogbook(operationGuid);
+        assertThat(logbook).isNotNull();
+        assertThat(logbook.toString()).contains("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_MANIFEST.KO");
+    }
 
     @RunWithCustomExecutor
     @Test

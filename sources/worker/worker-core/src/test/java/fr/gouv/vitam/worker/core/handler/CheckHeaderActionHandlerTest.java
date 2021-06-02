@@ -175,7 +175,6 @@ public class CheckHeaderActionHandlerTest {
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
-        action.getInput().add("true");
         action.getInput().add("false");
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
 
@@ -231,7 +230,6 @@ public class CheckHeaderActionHandlerTest {
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
-        action.getInput().add("true");
         action.getInput().add("false");
 
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
@@ -273,7 +271,6 @@ public class CheckHeaderActionHandlerTest {
                 .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
                 .setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
-        action.getInput().add("true");
         action.getInput().add("false");
 
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
@@ -314,7 +311,6 @@ public class CheckHeaderActionHandlerTest {
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
                 com.google.common.collect.Lists.newArrayList());
 
-        action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
