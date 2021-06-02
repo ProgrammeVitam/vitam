@@ -394,7 +394,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     actionLogBookParameters
                         .putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));
                 }
-                if (itemStatus.getEvDetailData() != null && !handlerId.equals("AUDIT_CHECK_OBJECT")) {
+                if (itemStatus.getEvDetailData() != null) {
                     final String eventDetailData = itemStatus.getEvDetailData();
                     actionLogBookParameters.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
                 }
