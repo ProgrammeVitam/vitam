@@ -231,7 +231,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             new ThreadPoolExecutor(configuration.getMinBatchThreadPoolSize(), configuration.getMaxBatchThreadPoolSize(),
                 1L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), VitamThreadFactory.getInstance());
         batchDigestComputationTimeout = configuration.getBatchDigestComputationTimeout();
-        this.transfertTimeoutHelper = new TransfertTimeoutHelper(configuration.getTimeoutMsPerKB());
+        this.transfertTimeoutHelper = new TransfertTimeoutHelper(configuration.getTimeoutMsPerKB(),
+            configuration.getMinWriteTimeoutMs(), configuration.getMinBulkWriteTimeoutMsPerObject());
         this.bulkStorageDistribution = new BulkStorageDistribution(3, this.workspaceClientFactory,
             this.storageLogService, this.transfertTimeoutHelper);
     }
@@ -242,7 +243,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         ExecutorService batchExecutorService, int batchDigestComputationTimeout,
         BulkStorageDistribution bulkStorageDistribution) {
         urlWorkspace = null;
-        this.transfertTimeoutHelper = new TransfertTimeoutHelper(100L);
+        this.transfertTimeoutHelper = new TransfertTimeoutHelper(100L, 60_000, 10_000);
         this.workspaceClientFactory = workspaceClientFactory;
         this.digestType = digestType;
         this.storageLogService = storageLogService;

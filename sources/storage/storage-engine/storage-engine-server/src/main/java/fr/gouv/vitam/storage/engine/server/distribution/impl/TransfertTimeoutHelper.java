@@ -28,17 +28,30 @@ package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 public class TransfertTimeoutHelper {
 
-    private static final int DEFAULT_MINIMUM_TIMEOUT = 60000;
     private final long millisecondsPerKB;
+    private final int minObjectWriteTimeoutMs;
+    private final int minBulkWriteTimeoutMsPerObject;
 
-    public TransfertTimeoutHelper(long millisecondsPerKB) {
+    public TransfertTimeoutHelper(long millisecondsPerKB, int minObjectWriteTimeoutMs,
+        int minBulkWriteTimeoutMsPerObject) {
         this.millisecondsPerKB = millisecondsPerKB;
+        this.minObjectWriteTimeoutMs = minObjectWriteTimeoutMs;
+        this.minBulkWriteTimeoutMsPerObject = minBulkWriteTimeoutMsPerObject;
     }
 
     public long getTransferTimeout(long sizeToTransfer) {
         long timeout = (sizeToTransfer / 1024) * millisecondsPerKB;
-        if (timeout < DEFAULT_MINIMUM_TIMEOUT) {
-            return DEFAULT_MINIMUM_TIMEOUT;
+        if (timeout < minObjectWriteTimeoutMs) {
+            return minObjectWriteTimeoutMs;
+        }
+        return timeout;
+    }
+
+    public long getBulkTransferTimeout(long sizeToTransfer, int nbObjects) {
+        long timeout = (sizeToTransfer / 1024) * millisecondsPerKB +
+            (long) nbObjects * minBulkWriteTimeoutMsPerObject;
+        if (timeout < minObjectWriteTimeoutMs) {
+            return minObjectWriteTimeoutMs;
         }
         return timeout;
     }

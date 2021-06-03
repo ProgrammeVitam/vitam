@@ -79,11 +79,13 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class BulkPutTransferManagerTest {
 
@@ -136,7 +138,7 @@ public class BulkPutTransferManagerTest {
 
         executor = Executors.newFixedThreadPool(5, VitamThreadFactory.getInstance());
 
-        doReturn(60000L).when(transfertTimeoutHelper).getTransferTimeout(anyLong());
+        doReturn(60000L).when(transfertTimeoutHelper).getBulkTransferTimeout(anyLong(), anyInt());
 
         bulkPutTransferManager = new BulkPutTransferManager(workspaceClientFactory, digestType,
             alertService, executor, transfertTimeoutHelper);
@@ -201,6 +203,8 @@ public class BulkPutTransferManagerTest {
             "offer1", OfferBulkPutStatus.OK,
             "offer2", OfferBulkPutStatus.OK
         ));
+
+        verify(transfertTimeoutHelper).getBulkTransferTimeout(106L, 3);
     }
 
     @Test
@@ -444,7 +448,7 @@ public class BulkPutTransferManagerTest {
             return storageBulkPutResult;
         }).when(connection2).bulkPutObjects(any());
 
-        doReturn(2000L).when(transfertTimeoutHelper).getTransferTimeout(anyLong());
+        doReturn(2000L).when(transfertTimeoutHelper).getBulkTransferTimeout(anyLong(), anyInt());
 
         // When
         BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
@@ -461,6 +465,8 @@ public class BulkPutTransferManagerTest {
             "offer1", OfferBulkPutStatus.OK,
             "offer2", OfferBulkPutStatus.KO
         ));
+
+        verify(transfertTimeoutHelper).getBulkTransferTimeout(106L, 3);
     }
 
     @Test

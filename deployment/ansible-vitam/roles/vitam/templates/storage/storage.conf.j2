@@ -1,5 +1,7 @@
 urlWorkspace: {{ vitam.workspace | client_url }}
 timeoutMsPerKB: {{ vitam.storageengine.timeoutMsPerKB }}
+minWriteTimeoutMs: {{ vitam.storageengine.minWriteTimeoutMs }}
+minBulkWriteTimeoutMsPerObject: {{ vitam.storageengine.minBulkWriteTimeoutMsPerObject }}
 jettyConfig: jetty-config.xml
 zippingDirecorty: {{ vitam_folder_data }}/storage_archives
 loggingDirectory: {{ vitam_folder_log }}
