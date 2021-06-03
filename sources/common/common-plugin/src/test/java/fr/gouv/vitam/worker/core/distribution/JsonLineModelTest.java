@@ -26,89 +26,46 @@
  */
 package fr.gouv.vitam.worker.core.distribution;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * JsonLine Model.
- */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class JsonLineModel {
+import java.util.Collections;
 
-    /**
-     * identifier.
-     */
-    @JsonProperty("id")
-    private String id;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-    /**
-     * distribGroup.
-     */
-    @JsonProperty("distribGroup")
-    private Integer distribGroup;
+public class JsonLineModelTest {
 
-    /**
-     * params
-     */
-    @JsonProperty("params")
-    private JsonNode params;
-
-    public JsonLineModel() {
-        // Empty constructor for deserialization
+    @Test
+    public void test_jsonlinemodel_serialization_when_params_null() {
+        JsonLineModel line = new JsonLineModel("id", null, null);
+        String json = JsonHandler.unprettyPrint(line);
+        Assert.assertEquals("{\"id\":\"id\"}", json);
     }
 
-    public JsonLineModel(String id) {
-        this(id, null, null);
+    @Test
+    public void test_jsonlinemodel_serialization_when_params_null_node() {
+        JsonLineModel line = new JsonLineModel("id", null, NullNode.getInstance());
+        String json = JsonHandler.unprettyPrint(line);
+        Assert.assertEquals("{\"id\":\"id\",\"params\":null}", json);
     }
 
-    public JsonLineModel(String id, Integer distribGroup, JsonNode params) {
-        this.id = id;
-        this.distribGroup = distribGroup;
-        this.params = params;
+    @Test
+    public void test_jsonlinemodel_serialization_when_params_is_empty_list() throws Exception {
+        JsonLineModel line = new JsonLineModel("id", null, JsonHandler.toJsonNode(Collections.emptyList()));
+        String json = JsonHandler.unprettyPrint(line);
+        Assert.assertEquals("{\"id\":\"id\",\"params\":[]}", json);
     }
 
-    /**
-     * getId
-     *
-     * @return
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * setId
-     *
-     * @param id
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * getDistribGroup
-     *
-     * @return
-     */
-    public Integer getDistribGroup() {
-        return distribGroup;
-    }
-
-    /**
-     * setDistribGroup
-     *
-     * @param distribGroup
-     */
-    public void setDistribGroup(Integer distribGroup) {
-        this.distribGroup = distribGroup;
-    }
-
-    public JsonNode getParams() {
-        return params;
-    }
-
-    public void setParams(JsonNode params) {
-        this.params = params;
+    @Test
+    public void test_jsonlinemodel_deserialization_when_params_is_empty_list() throws Exception {
+        String json = "{\"id\":\"id\",\"params\":[]}";
+        JsonLineModel jsonLineModel = JsonHandler.getFromString(json, JsonLineModel.class);
+        assertNotNull(jsonLineModel);
+        assertTrue(jsonLineModel.getParams() instanceof ArrayNode);
+        assertTrue(jsonLineModel.getParams().isEmpty());
     }
 }
