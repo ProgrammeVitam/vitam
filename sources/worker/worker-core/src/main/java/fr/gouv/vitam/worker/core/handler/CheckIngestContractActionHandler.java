@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -89,7 +88,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static String getId() {
         return HANDLER_ID;
     }
 
@@ -101,13 +100,12 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         try {
             ObjectNode infoNode = JsonHandler.createObjectNode();
             checkMandatoryIOParameter(ioParam);
-            final Map<String, Object> mandatoryValueMap =
-                (Map<String, Object>) ioParam.getInput(SEDA_PARAMETERS_RANK);
+            final Map<String, String> mandatoryValueMap = (Map<String, String>) ioParam.getInput(SEDA_PARAMETERS_RANK);
             String contractIdentifier = null;
 
             if (null != mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) &&
-                !((String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT)).isEmpty()) {
-                contractIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+                !mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).isEmpty()) {
+                contractIdentifier = mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
                 infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractIdentifier);
             }
 
@@ -266,7 +264,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     LOGGER.error("CheckContract : The context " + contextId + "  not found in database");
                     return CheckIngestContractStatus.CONTEXT_UNKNOWN;
                 } else {
-                    final ContextModel context = Iterables.getFirst(results, null);
+                    final ContextModel context = results.get(0);
 
                     // Do not validate contract by the context if enable control is False
                     if (Boolean.FALSE.equals(context.isEnablecontrol())) {
