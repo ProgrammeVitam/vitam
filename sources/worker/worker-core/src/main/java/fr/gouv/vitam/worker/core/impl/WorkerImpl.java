@@ -66,9 +66,9 @@ import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareStorageInfoActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
-import fr.gouv.vitam.worker.core.handler.UploadSIPActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
+import fr.gouv.vitam.worker.core.handler.UploadSIPActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
@@ -101,8 +101,8 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_ANTIVIRUS;
 import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_DIGEST_MANIFEST;
-import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_FORMAT;
 import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_FILENAME_MANIFEST;
+import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_FORMAT;
 import static fr.gouv.vitam.common.model.processing.LifecycleState.FLUSH_LFC;
 
 
@@ -114,6 +114,7 @@ import static fr.gouv.vitam.common.model.processing.LifecycleState.FLUSH_LFC;
 public class WorkerImpl implements Worker {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
+    private static final String EMPTY_EV_DET_DATA = "{}";
 
     private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
@@ -181,7 +182,7 @@ public class WorkerImpl implements Worker {
         actions.put(IngestAccessionRegisterActionHandler.getId(),
             IngestAccessionRegisterActionHandler::new);
         actions.put(PreservationAccessionRegisterActionHandler.getId(),
-                PreservationAccessionRegisterActionHandler::new);
+            PreservationAccessionRegisterActionHandler::new);
         actions.put(TransferNotificationActionHandler.getId(),
             TransferNotificationActionHandler::new);
         actions.put(DummyHandler.getId(), DummyHandler::new);
@@ -244,7 +245,8 @@ public class WorkerImpl implements Worker {
             TransferReplyAccessionRegisterPreparationHandler::new);
         actions.put(TransferReplyReportGenerationHandler.getId(), TransferReplyReportGenerationHandler::new);
 
-        actions.put(ComputedInheritedRulesCheckDistributionThreshold.getId(),ComputedInheritedRulesCheckDistributionThreshold::new);
+        actions.put(ComputedInheritedRulesCheckDistributionThreshold.getId(),
+            ComputedInheritedRulesCheckDistributionThreshold::new);
     }
 
     @Override
@@ -306,7 +308,8 @@ public class WorkerImpl implements Worker {
                             action.getActionDefinition().getStatusAggregationBehavior());
                         aggregateItemStatus.setItemId(handlerName);
                         if (action.getActionDefinition().lifecycleEnabled()) {
-                            lifecycleFromWorker.generateLifeCycle(pluginResponse, workParams, action, step.getDistribution().getType());
+                            lifecycleFromWorker.generateLifeCycle(pluginResponse, workParams, action,
+                                step.getDistribution().getType());
                         }
 
                         responses.setItemsStatus(aggregateItemStatus);
@@ -349,6 +352,8 @@ public class WorkerImpl implements Worker {
 
             lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
 
+            clearEvDetDataForDistributedSteps(step, responses);
+
         } catch (Exception e) {
             throw new ProcessingException(e);
         }
@@ -356,7 +361,19 @@ public class WorkerImpl implements Worker {
         return responses;
     }
 
-    private static ItemStatus getActionResponse(String handlerName, List<ItemStatus> pluginResponse, StatusAggregationBehavior statusBehavior) {
+    private void clearEvDetDataForDistributedSteps(Step step, ItemStatus responses) {
+        // EvDetData for distributed steps should not be returned to process engine, and should not be set for
+        // logbook operation.
+        if (step.getDistribution().getKind().isDistributed()) {
+            for (ItemStatus item : responses.getItemsStatus().values()) {
+                item.setEvDetailData(EMPTY_EV_DET_DATA);
+            }
+            responses.setEvDetailData(EMPTY_EV_DET_DATA);
+        }
+    }
+
+    private static ItemStatus getActionResponse(String handlerName, List<ItemStatus> pluginResponse,
+        StatusAggregationBehavior statusBehavior) {
         ItemStatus status = new ItemStatus(handlerName);
 
         for (ItemStatus subItemStatus : pluginResponse) {
