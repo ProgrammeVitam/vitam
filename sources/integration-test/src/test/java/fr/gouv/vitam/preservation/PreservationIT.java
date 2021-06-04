@@ -562,6 +562,10 @@ public class PreservationIT extends VitamRuleRunner {
             JsonNode objectGroup = JsonHandler.toJsonNode(Lists.newArrayList(MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId())).sort(Sorts.ascending(ObjectGroup.NBCHILD))));
             assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo("Dissemination");
             assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("versions").get(0).get("_storage").get("strategyId").asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
+
+            // Ensure evDetData in not set in logbook operation for distributed step STP_PRESERVATION_ACTION / action PRESERVATION_BINARY_HASH
+            assertThat(jsonNode.get(8).get("outDetail").asText()).isEqualTo("PRESERVATION_BINARY_HASH.OK");
+            assertThat(jsonNode.get(8).get("evDetData").asText()).isEqualTo("{}");
         }
     }
 

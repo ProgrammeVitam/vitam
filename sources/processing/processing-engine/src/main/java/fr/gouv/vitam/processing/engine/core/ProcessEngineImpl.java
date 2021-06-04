@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Action;
+import fr.gouv.vitam.common.model.processing.DistributionKind;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
@@ -426,7 +427,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     actionLogBookParameters
                         .putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));
                 }
-                if (itemStatus.getEvDetailData() != null && !handlerId.equals("AUDIT_CHECK_OBJECT")) {
+                if (itemStatus.getEvDetailData() != null) {
                     final String eventDetailData = itemStatus.getEvDetailData();
                     actionLogBookParameters.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
                 }
