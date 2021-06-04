@@ -70,6 +70,7 @@ public class LogBookEventIterator implements Iterator<LogbookEvent>, Iterable<Lo
         logbookEvent.setEvTypeProc(tryTake("EventTypeCode"));
         logbookEvent.setEvType(tryTake("EventType"));
         logbookEvent.setEvDateTime(take("EventDateTime"));
+        skipIfExist("EventDetail");
         logbookEvent.setOutcome(tryTake("Outcome"));
         logbookEvent.setOutDetail(tryTake("OutcomeDetail"));
         logbookEvent.setOutMessg(tryTake("OutcomeDetailMessage"));
@@ -111,6 +112,17 @@ public class LogBookEventIterator implements Iterator<LogbookEvent>, Iterable<Lo
             }
             if (element.isEndElement() && !element.asEndElement().getName().getLocalPart().equals(expectedName)) {
                 throw new VitamRuntimeException(String.format("Cannot skip element with name '%s' it should be '%s'.", element.asEndElement().getName().getLocalPart(), expectedName));
+            }
+        } catch (XMLStreamException e) {
+            throw new VitamRuntimeException(e);
+        }
+    }
+
+    private void skipIfExist(String expectedName) {
+        try {
+            XMLEvent element = reader.peek();
+            if (element.isStartElement() && element.asStartElement().getName().getLocalPart().equals(expectedName)) {
+                reader.nextEvent();
             }
         } catch (XMLStreamException e) {
             throw new VitamRuntimeException(e);
