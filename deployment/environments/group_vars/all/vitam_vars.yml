@@ -617,8 +617,12 @@ vitam:
             history_days: 10
             totalsize: "5GB"
         jvm_log: false
-        # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer (if the calculated result is less than 60s, this time is used)
+        # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer.
         timeoutMsPerKB: 100
+        # minimum timeout (in ms) for writing objects to offers
+        minWriteTimeoutMs: 60000
+        # minimum timeout per object (in ms) for bulk writing objects to offers
+        minBulkWriteTimeoutMsPerObject: 10000
         performance_logger: "false"
         reconstruction:
         consul_check_business: 10 # value in seconds
