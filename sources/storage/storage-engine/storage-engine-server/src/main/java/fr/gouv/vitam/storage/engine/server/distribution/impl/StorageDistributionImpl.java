@@ -230,7 +230,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         this.storageLogService = storageLogService;
         digestType = VitamConfiguration.getDefaultDigestType();
-        this.transfertTimeoutHelper = new TransfertTimeoutHelper(configuration.getTimeoutMsPerKB());
+        this.transfertTimeoutHelper = new TransfertTimeoutHelper(configuration.getTimeoutMsPerKB(),
+            configuration.getMinWriteTimeoutMs(), configuration.getMinBulkWriteTimeoutMsPerObject());
         this.bulkStorageDistribution = new BulkStorageDistribution(3, this.workspaceClientFactory,
             this.storageLogService, this.transfertTimeoutHelper);
     }
@@ -240,7 +241,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         StorageLog storageLogService,
         BulkStorageDistribution bulkStorageDistribution) {
         urlWorkspace = null;
-        this.transfertTimeoutHelper = new TransfertTimeoutHelper(100L);
+        this.transfertTimeoutHelper = new TransfertTimeoutHelper(100L, 60_000, 10_000);
         this.workspaceClientFactory = workspaceClientFactory;
         this.digestType = digestType;
         this.storageLogService = storageLogService;

@@ -32,6 +32,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     private String urlWorkspace;
     private Integer timeoutMsPerKB;
+    private int minWriteTimeoutMs = 60_000;
+    private int minBulkWriteTimeoutMsPerObject = 10_000;
     private String loggingDirectory ;
     private String  zippingDirecorty;
     private String p12LogbookPassword;
@@ -243,5 +245,23 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     public void setStorageLogTraceabilityThreadPoolSize(int storageLogTraceabilityThreadPoolSize) {
         this.storageLogTraceabilityThreadPoolSize = storageLogTraceabilityThreadPoolSize;
+    }
+
+    public int getMinWriteTimeoutMs() {
+        return minWriteTimeoutMs;
+    }
+
+    public StorageConfiguration setMinWriteTimeoutMs(int minWriteTimeoutMs) {
+        this.minWriteTimeoutMs = minWriteTimeoutMs;
+        return this;
+    }
+
+    public int getMinBulkWriteTimeoutMsPerObject() {
+        return minBulkWriteTimeoutMsPerObject;
+    }
+
+    public StorageConfiguration setMinBulkWriteTimeoutMsPerObject(int minBulkWriteTimeoutMsPerObject) {
+        this.minBulkWriteTimeoutMsPerObject = minBulkWriteTimeoutMsPerObject;
+        return this;
     }
 }
