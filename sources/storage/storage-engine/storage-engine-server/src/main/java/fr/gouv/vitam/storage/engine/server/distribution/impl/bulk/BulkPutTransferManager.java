@@ -145,8 +145,8 @@ class BulkPutTransferManager {
             digestListenerFuture = startDigestComputeThread(offerIds, streams, objectIds);
 
             // Await termination with timeout
-            long finalTimeout = transfertTimeoutHelper.getTransferTimeout(
-                prependedStreamWithInfo.getResult().getSize());
+            long finalTimeout = transfertTimeoutHelper.getBulkTransferTimeout(
+                prependedStreamWithInfo.getResult().getSize(), objectIds.size());
             TimeoutStopwatch timeoutStopwatch = new TimeoutStopwatch(finalTimeout);
 
             ResultOrError<List<ObjectInfo>, BulkPutResult> objectInfo = awaitDigestListenerThread(digestListenerFuture,

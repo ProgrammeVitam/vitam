@@ -412,8 +412,12 @@ vitam:
           offerdiff:
             history_days: 30
             totalsize: "5GB"
-        # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer (if the calculated result is less than 60s, this time is used)
+        # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer.
         timeoutMsPerKB: 100
+        # minimum timeout (in ms) for writing objects to offers
+        minWriteTimeoutMs: 60000
+        # minimum timeout per object (in ms) for bulk writing objects to offers
+        minBulkWriteTimeoutMsPerObject: 10000
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
