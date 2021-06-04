@@ -30,15 +30,19 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Test;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -114,11 +118,9 @@ public class LogBookEventIteratorTest {
         assertThatThrownBy(createIterator).isInstanceOf(VitamRuntimeException.class);
     }
 
-    private XMLEventReader createXmlEventReader(InputStream xmlFile) throws XMLStreamException {
+    private XMLEventReader createXmlEventReader(InputStream xmlFile) throws XMLStreamException, IOException {
         XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-        XMLStreamReader rawReader = xmlInputFactory.createXMLStreamReader(xmlFile);
-        XMLStreamReader filteredReader = xmlInputFactory.createFilteredReader(rawReader, r -> !r.isWhiteSpace());
-        XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(filteredReader);
+        XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(unprettyXML(xmlFile));
         if (xmlEventReader.hasNext()) {
             xmlEventReader.nextEvent();
         }
@@ -126,5 +128,12 @@ public class LogBookEventIteratorTest {
             xmlEventReader.nextEvent();
         }
         return xmlEventReader;
+    }
+
+    private Reader unprettyXML(InputStream xmlFile) throws IOException {
+        String xml = IOUtils.toString(xmlFile, StandardCharsets.UTF_8.name());
+        xml = xml.replaceAll("(?s)<!--.*?-->", ""); // remove comments
+        xml = xml.replaceAll(">\\s+<", "><"); // remove whitespaces
+        return new StringReader(xml);
     }
 }

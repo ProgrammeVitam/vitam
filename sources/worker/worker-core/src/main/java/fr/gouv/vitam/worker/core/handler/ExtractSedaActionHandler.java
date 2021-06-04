@@ -42,6 +42,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReference
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -144,6 +145,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -161,7 +163,14 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -235,6 +244,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int UNIT_TYPE_INPUT_RANK = 1;
     private static final int STORAGE_INFO_INPUT_RANK = 2;
     private static final int CONTRACTS_INPUT_RANK = 3;
+
+    private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
@@ -361,6 +372,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final AdminManagementClientFactory adminManagementClientFactory;
+    private final TransformerFactory transformerFactory;
 
     private ObjectNode archiveUnitTree;
     private Map<String, JsonNode> existingGOTs;
@@ -426,6 +438,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.transformerFactory = TransformerFactory.newInstance();
     }
 
     /**
@@ -804,12 +817,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final QName unitName = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT);
         final QName idQName = new QName(SedaConstants.ATTRIBUTE_ID);
 
-        try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(SEDA_FOLDER + "/" + SEDA_FILE)) {
-            XMLStreamReader rawReader = xmlInputFactory.createXMLStreamReader(xmlFile);
-            XMLStreamReader filteredReader = xmlInputFactory.createFilteredReader(rawReader,
-                r -> !r.isWhiteSpace());
-
-            reader = xmlInputFactory.createXMLEventReader(filteredReader);
+        try (InputStream xmlFile = getTransformedXmlAsInputStream(handlerIO)) {
+            reader = xmlInputFactory.createXMLEventReader(xmlFile);
             final JsonXMLConfig config =
                 new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
                     .namespaceDeclarations(false).build();
@@ -1195,7 +1204,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             handlerIO.addOutputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false, asyncIO);
 
             return evDetData;
-        } catch (final XMLStreamException | InvalidParseOperationException e) {
+        } catch (final XMLStreamException | InvalidParseOperationException | TransformerException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);
         } catch (final LogbookClientBadRequestException e) {
@@ -1231,6 +1240,28 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
         }
+    }
+
+    /**
+     * Transform xml file to a clean xml file (whithout comments and indent)
+     * @param handlerIO used to get xml file
+     * @return xml file as InputStream
+     * @throws TransformerException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException
+     */
+    @Nonnull
+    private InputStream getTransformedXmlAsInputStream(HandlerIO handlerIO)
+        throws TransformerException, IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
+
+        File xmlFile = handlerIO.getFileFromWorkspace(SEDA_FOLDER + "/" + SEDA_FILE);
+        File cleanManifest = handlerIO.getNewLocalFile("_" + SEDA_FILE);
+        Source xsl = new StreamSource(PropertiesUtils.getResourceAsStream(TRANSFORM_XSLT_PATH));
+
+        Transformer transformer = transformerFactory.newTransformer(xsl);
+        transformer.transform(new StreamSource(xmlFile), new StreamResult(cleanManifest));
+
+        return new FileInputStream(cleanManifest);
+
     }
 
     private ObjectNode handleJaxbUnmarshalRuntimeException(String containerId,
