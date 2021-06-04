@@ -107,8 +107,9 @@ import static fr.gouv.vitam.common.model.processing.LifecycleState.FLUSH_LFC;
 public class WorkerImpl implements Worker {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
+    private static final String EMPTY_EV_DET_DATA = "{}";
 
-    private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
+    private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
@@ -169,7 +170,7 @@ public class WorkerImpl implements Worker {
         actions.put(IngestAccessionRegisterActionHandler.getId(),
             IngestAccessionRegisterActionHandler::new);
         actions.put(PreservationAccessionRegisterActionHandler.getId(),
-                PreservationAccessionRegisterActionHandler::new);
+            PreservationAccessionRegisterActionHandler::new);
         actions.put(TransferNotificationActionHandler.getId(),
             TransferNotificationActionHandler::new);
         actions.put(DummyHandler.getId(), DummyHandler::new);
@@ -232,7 +233,8 @@ public class WorkerImpl implements Worker {
             TransferReplyAccessionRegisterPreparationHandler::new);
         actions.put(TransferReplyReportGenerationHandler.getId(), TransferReplyReportGenerationHandler::new);
 
-        actions.put(ComputedInheritedRulesCheckDistributionThreshold.getId(),ComputedInheritedRulesCheckDistributionThreshold::new);
+        actions.put(ComputedInheritedRulesCheckDistributionThreshold.getId(),
+            ComputedInheritedRulesCheckDistributionThreshold::new);
     }
 
     @Override
@@ -345,11 +347,24 @@ public class WorkerImpl implements Worker {
 
             lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
 
+            clearEvDetDataForDistributedSteps(step, responses);
+
         } catch (Exception e) {
             throw new ProcessingException(e);
         }
         LOGGER.debug("step name :" + step.getStepName());
         return responses;
+    }
+
+    private void clearEvDetDataForDistributedSteps(Step step, ItemStatus responses) {
+        // EvDetData for distributed steps should not be returned to process engine, and should not be set for
+        // logbook operation.
+        if (step.getDistribution().getKind().isDistributed()) {
+            for (ItemStatus item : responses.getItemsStatus().values()) {
+                item.setEvDetailData(EMPTY_EV_DET_DATA);
+            }
+            responses.setEvDetailData(EMPTY_EV_DET_DATA);
+        }
     }
 
     private static ItemStatus getActionResponse(String handlerName, ItemStatus pluginResponse) {

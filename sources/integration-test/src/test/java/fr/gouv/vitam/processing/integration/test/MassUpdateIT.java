@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -51,9 +52,12 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -62,6 +66,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -188,7 +193,8 @@ public class MassUpdateIT extends VitamRuleRunner {
 
     private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000;
-    private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<List<Document>>() {};
+    private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<>() {
+    };
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -443,6 +449,13 @@ public class MassUpdateIT extends VitamRuleRunner {
 
             assertThat(jsoned.get("diff").textValue()).contains(expected);
 
+            // Ensure logbook operation does not contain evDetData for distributed step STP_UPDATE / action MASS_UPDATE_UNITS
+            LogbookOperation logbookOperation = getLogbookInformation(containerName);
+            List<LogbookEventOperation> updateEvents = logbookOperation.getEvents().stream()
+                .filter(ev -> ev.getOutDetail().equals("MASS_UPDATE_UNITS.OK"))
+                .collect(Collectors.toList());
+            assertThat(updateEvents).hasSize(1);
+            assertThat(updateEvents.get(0).getEvDetData()).isEqualTo("{}");
         }
     }
 
@@ -952,6 +965,15 @@ public class MassUpdateIT extends VitamRuleRunner {
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             JsonNode events = logbookResult.get(RESULTS).get(0).get(EVENTS);
             verifyEvent(events, "MASS_UPDATE_FINALIZE.OK");
+        }
+    }
+
+    private LogbookOperation getLogbookInformation(String operationId)
+        throws InvalidParseOperationException, LogbookClientException {
+        try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+            JsonNode response = logbookClient.selectOperationById(operationId);
+            RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
+            return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
         }
     }
 }
