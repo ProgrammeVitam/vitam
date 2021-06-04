@@ -160,7 +160,8 @@ pipeline {
                                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
                                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
                                                 //openstack swift+keystone
-                                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift --health-cmd ="curl -v http://127.0.0.1:35357/v3 || exit 1" --health-start-period 30s  --health-interval 10s'){ s ->
+                                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
+                                                    sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
                                                     sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
                                                 }
@@ -219,7 +220,8 @@ pipeline {
                                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
                                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
                                                 //openstack swift+keystone
-                                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift --health-cmd ="curl -v http://127.0.0.1:35357/v3 || exit 1" --health-start-period 30s  --health-interval 10s'){ s ->
+                                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
+                                                    sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
                                                     sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
                                                 }
@@ -284,7 +286,8 @@ pipeline {
                                         docker.image("${env.SERVICE_DOCKER_PULL_URL}/minio/minio:${env.MINIO_VERSION}").withRun("--user \$(id -u):\$(id -g) -p 127.0.0.1:9999:9000 -v ${pwd}/dataminio:/data -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\"",'server /data') { l ->
                                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/openio/sds:${env.OPENIO_VERSION}").withRun("-p 127.0.0.1:6007:6007 -e \"REGION=us-west-1\"") { e ->
                                                 //openstack swift+keystone
-                                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift --health-cmd ="curl -v http://127.0.0.1:35357/v3 || exit 1" --health-start-period 30s  --health-interval 10s'){ s ->
+                                                docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
+                                                    sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
                                                     sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
                                                     sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
                                                 }
