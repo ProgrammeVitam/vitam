@@ -26,13 +26,16 @@
  */
 package fr.gouv.vitam.common.storage.swift;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -47,10 +50,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SwiftTest {
 
@@ -69,6 +72,8 @@ public class SwiftTest {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
     private static final String ETAG = "Etag";
+    public static final String DIGEST =
+        "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418";
 
     private StorageConfiguration configuration;
 
@@ -92,7 +97,6 @@ public class SwiftTest {
     public WireMockClassRule keystoneInstanceRule = keystoneWireMockRule;
 
     private Swift swift;
-
 
 
     @Before
@@ -124,7 +128,7 @@ public class SwiftTest {
                 .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT"))
         );
 
-        swiftInstanceRule.stubFor(put(urlMatching("/swift/v1(.*)")).willReturn(aResponse().withStatus(201)));
+        swiftInstanceRule.stubFor(WireMock.put(urlMatching("/swift/v1(.*)")).willReturn(aResponse().withStatus(201)));
     }
 
     @Test
@@ -143,7 +147,7 @@ public class SwiftTest {
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
         assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream,
-                VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
+            VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
     }
 
     @Test
@@ -187,7 +191,8 @@ public class SwiftTest {
         File file = PropertiesUtils.getResourceFile(OBJECT_NAME);
         // When / Then
         assertThatThrownBy(() ->
-            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(), file.length())
+            swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream, VitamConfiguration.getDefaultDigestType(),
+                file.length())
         ).hasMessage("Cannot put object " + OBJECT_NAME + " on container " + CONTAINER_NAME);
     }
 
@@ -206,8 +211,48 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
         InputStream stream = PropertiesUtils.getResourceAsStream(OBJECT_NAME);
         // When / Then
-        
+
         assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, stream,
-                VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
+            VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_getObjectMetadata_when_getObjectMetadata_nominal_case() throws Exception {
+        //GIVEN
+        String containerName = "0" + "_" + "object";
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+        swiftInstanceRule.stubFor(head(urlMatching("/swift/v1/0_object/3500.txt"))
+            .willReturn(aResponse().withStatus(201).withHeader("Content-Length", "1300")
+                .withHeader(CONTENT_TYPE, APPLICATION_JSON)
+                .withHeader(ETAG, "4804428b3615ee40120eeef15169d71b")
+                .withHeader("X-Object-Meta-Digest", DIGEST)
+                .withHeader(ETAG, "4804428b3615ee40120eeef15169d71b")
+                .withHeader(ETAG, "4804428b3615ee40120eeef15169d71b")
+                .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT"))
+        );
+
+        // WHEN
+        MetadatasObject objectMetadata = swift.getObjectMetadata(containerName, OBJECT_NAME, false);
+
+        //THEN
+        assertThat(objectMetadata.getObjectName()).isEqualTo(OBJECT_NAME);
+        assertThat(objectMetadata.getDigest()).isEqualTo(DIGEST);
+        assertThat(objectMetadata.getType()).isEqualTo("object");
+
+    }
+
+    @Test
+    public void should_throw_exception_when_getObjectMetadata_object_not_exist() throws Exception {
+        // Given
+        String containerName = "0" + "_" + "object";
+
+        swiftInstanceRule.stubFor(head(urlMatching("/swift/v1/0_object/3500.txt"))
+            .willReturn(aResponse().withStatus(404)));
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
+
+        // When && Then
+        assertThatThrownBy(() -> swift.getObjectMetadata(containerName, OBJECT_NAME, false)
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 }

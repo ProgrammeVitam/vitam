@@ -424,7 +424,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public StorageMetadataResult getMetadata(String containerName, String objectId, boolean noCache)
-        throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             return new StorageMetadataResult(defaultStorage.getObjectMetadata(containerName, objectId, noCache));
@@ -454,7 +454,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                             } catch (ContentAddressableStorageNotFoundException e) {
                                 LOGGER.info("Object " + objectId + " not found in container " + containerName, e);
                                 return new StorageBulkMetadataResultEntry(objectId, null, null);
-                            } catch (ContentAddressableStorageException | IOException e) {
+                            } catch (ContentAddressableStorageException e) {
                                 throw new RuntimeException("Could not get object metadata for "
                                     + containerName + "/" + objectId + " (noCache=" + noCache + ")", e);
                             }

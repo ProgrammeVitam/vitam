@@ -179,7 +179,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws IllegalArgumentException thrown when containerName or objectId is null
      */
     MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
-        throws ContentAddressableStorageException, IOException;
+        throws ContentAddressableStorageException;
 
     /**
      * List container objects
