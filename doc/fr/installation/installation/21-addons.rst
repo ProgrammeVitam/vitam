@@ -82,7 +82,9 @@ L'antivirus utilisé par ingest-external est modifiable (par défaut, ClamAV) ; 
 
 .. caution:: En cas de remplacement de clamAV par un autre antivirus, l'installation de celui-ci devient dès lors un prérequis de l'installation et le script doit être testé.
 
-.. warning:: Sur plate-forme Debian, ClamAV est installé sans base de données. Pour que l'antivirus soit fonctionnel, il est nécessaire, durant l'installation, de le télécharger ; il est donc nécessaire de renseigner dans l'inventaire la directive ``http_proxy_environnement``.
+.. warning:: Il subsiste une limitation avec l'antivirus ClamAV qui n'est actuellement pas capable de scanner des fichiers > 4Go. Ainsi, il n'est pas recommandé de conserver cet antivirus en environnement de production.
+
+.. warning:: Sur plate-forme Debian, ClamAV est installé sans base de données. Pour que l'antivirus soit fonctionnel, il est nécessaire, durant l'installation, de le télécharger ; il est donc nécessaire de renseigner dans l'inventaire la directive ``http_proxy_environnement`` ou de renseigner un `miroir local privé <https://www.clamav.net/documents/private-local-mirrors>`_).
 
 
 Extra: Avast Business Antivirus for Linux
