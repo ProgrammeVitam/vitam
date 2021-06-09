@@ -101,16 +101,12 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
@@ -294,7 +290,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     @Override
     public void importFile(InputStream rulesFileStream, String filename)
         throws IOException, InvalidParseOperationException, ReferentialException, StorageException,
-        InvalidGuidOperationException {
+        InvalidGuidOperationException, LogbookClientException {
         ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
         File file = convertInputStreamToFile(rulesFileStream, CSV);
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
@@ -370,7 +366,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private void handleIOException(String filename, Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRulesForReport, List<FileRulesModel> usedUpdateRulesForReport, GUID eip,
-        GUID eip1, IOException e) throws StorageException, InvalidParseOperationException {
+        GUID eip1, IOException e)
+        throws StorageException, InvalidParseOperationException, LogbookClientException {
         updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(STP_IMPORT_RULES_ENCODING_NOT_UTF_EIGHT, eip);
         final String jsonReportFile = eip + ".json";
         InputStream stream = generateReportKO(errors, usedDeletedRulesForReport, usedUpdateRulesForReport, eip);
@@ -388,7 +385,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToDelete, List<FileRulesModel> fileRulesModelToUpdate,
         List<FileRulesModel> fileRulesModelToUpdateThenUpdateUnit,
         ArrayNode validatedRules, Map<Integer, List<ErrorReport>> errors, String filename)
-        throws IOException, ReferentialException, InvalidParseOperationException {
+        throws IOException, ReferentialException, InvalidParseOperationException, LogbookClientException {
         List<FileRulesModel> fileRulesModelsToImport;
         List<FileRules> fileRulesInDb = findAllFileRulesQueryBuilder();
         List<FileRulesModel> fileRulesModelsInDb = transformFileRulesToFileRulesModel(fileRulesInDb);
@@ -456,7 +453,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToInsert, List<FileRulesModel> fileRulesModelToDelete,
         List<FileRulesModel> fileRulesModelsToImport, List<FileRulesModel> usedUpdateRulesForUpdateUnit,
         ArrayNode validatedRules, String filename)
-        throws IOException, ReferentialException, InvalidParseOperationException {
+        throws IOException, ReferentialException, InvalidParseOperationException, LogbookClientException {
         InputStream fileInputStream = null;
         try {
             usedUpdateRulesForReport.addAll(usedUpdateRulesForUpdateUnit);
@@ -515,7 +512,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToInsert, List<FileRulesModel> fileRulesModelToDelete,
         List<FileRulesModel> fileRulesModelToUpdate, List<FileRulesModel> fileRulesModelsToImport,
         ArrayNode validatedRules, String filename)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException, LogbookClientException {
         try {
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
             Set<String> fileRulesIdLinkedToUnitForDelete = new HashSet<>();
@@ -602,8 +599,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param status Logbook status
      */
     private void updateStpImportRulesLogbookOperation(final GUID eip, final GUID eip1, StatusCode status,
-        String filename)
-        throws InvalidParseOperationException {
+        String filename) throws InvalidParseOperationException, LogbookClientException {
         final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
             .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                 status, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, status),
@@ -617,7 +613,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      *
      * @param eip GUID master
      */
-    private void initStpImportRulesLogbookOperation(final GUID eip) {
+    private void initStpImportRulesLogbookOperation(final GUID eip) throws LogbookClientException {
         final LogbookOperationParameters logbookParametersStart = LogbookParameterHelper
             .newLogbookOperationParameters(eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.STARTED,
@@ -631,7 +627,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param usedUpdateRulesForReport file rules used to a unit
      */
     private void launchWorkflow(List<FileRulesModel> usedUpdateRulesForReport)
-        throws InvalidParseOperationException, InvalidGuidOperationException {
+        throws InvalidParseOperationException, InvalidGuidOperationException, LogbookClientException {
 
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             ArrayNode arrayNode = JsonHandler.createArrayNode();
@@ -715,7 +711,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToDelete,
         ArrayNode validatedRules, List<FileRulesModel> fileRulesModelToInsert,
         List<FileRulesModel> fileRulesModelsToImport, GUID eipMaster)
-        throws FileRulesException {
+        throws FileRulesException, LogbookClientException {
         boolean secureRules = false;
         try {
             Integer sequence = vitamCounterService
@@ -774,7 +770,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private void updateCommitFileRulesLogbookOperationOkOrKo(String operationFileRules, StatusCode statusCode,
         GUID evIdentifierProcess, List<FileRulesModel> fileRulesModelToUpdate,
         List<FileRulesModel> fileRulesModelToDelete,
-        List<FileRulesModel> fileRulesModelToInsert) {
+        List<FileRulesModel> fileRulesModelToInsert)
+        throws LogbookClientException {
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         evDetData.put(NB_DELETED, fileRulesModelToDelete.size());
         evDetData.put(NB_UPDATED, fileRulesModelToUpdate.size());
@@ -795,7 +792,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     }
 
     private void updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(String subEvenType,
-        GUID evIdentifierProcess) {
+        GUID evIdentifierProcess)
+        throws LogbookClientException {
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -818,7 +816,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param evIdentifierProcess evIdentifierProcess
      */
     private void updateCheckFileRulesLogbookOperationOk(String operationFileRules, StatusCode statusCode,
-        Set<String> fileRulesIdsLinkedToUnit, GUID evIdentifierProcess) {
+        Set<String> fileRulesIdsLinkedToUnit, GUID evIdentifierProcess)
+        throws LogbookClientException {
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
             LogbookParameterHelper
@@ -853,7 +852,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param evIdentifierProcess evIdentifierProcess
      */
     private void updateCheckFileRulesLogbookOperationForDelete(String operationFileRules, StatusCode statusCode,
-        Set<String> fileRulesIdsLinkedToUnit, GUID evIdentifierProcess) {
+        Set<String> fileRulesIdsLinkedToUnit, GUID evIdentifierProcess)
+        throws LogbookClientException {
         final ObjectNode usedDeleteRuleIds = JsonHandler.createObjectNode();
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         for (String fileRulesId : fileRulesIdsLinkedToUnit) {
@@ -883,7 +883,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param evIdentifierProcess evIdentifierProcess
      */
     private void updateCheckFileRulesLogbookOperationForUpdate(
-        Set<String> fileRulesIdsLinkedToUnit, Set<String> deleteRulesIds, GUID evIdentifierProcess) {
+        Set<String> fileRulesIdsLinkedToUnit, Set<String> deleteRulesIds, GUID evIdentifierProcess)
+        throws LogbookClientException {
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         final ArrayNode updatedArrayNode = JsonHandler.createArrayNode();
         if (deleteRulesIds.size() > 0) {
@@ -917,11 +918,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      *
      * @param logbookParametersEnd logbookParametersEnd
      */
-    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
+    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.update(logbookParametersEnd);
-        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException | LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
         }
     }
 
@@ -930,12 +929,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      *
      * @param logbookParametersStart logbookParametersStart
      */
-    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
+    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.create(logbookParametersStart);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
         }
     }
 
