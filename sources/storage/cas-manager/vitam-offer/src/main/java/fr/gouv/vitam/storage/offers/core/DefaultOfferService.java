@@ -167,7 +167,7 @@ public interface DefaultOfferService {
      * @throws IOException
      */
     StorageMetadataResult getMetadata(String containerName, String objectId, boolean noCache)
-        throws ContentAddressableStorageException, IOException;
+        throws ContentAddressableStorageException;
 
     /**
      * Get the offer log of objects created in offer container

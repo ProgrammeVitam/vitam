@@ -410,7 +410,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public StorageMetadataResult getMetadata(String containerName, String objectId, boolean noCache)
-        throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             return new StorageMetadataResult(defaultStorage.getObjectMetadata(containerName, objectId, noCache));
