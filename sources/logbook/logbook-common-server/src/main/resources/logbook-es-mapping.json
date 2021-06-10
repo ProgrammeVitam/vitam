@@ -5,6 +5,7 @@
       "properties": {
         "evDetData": {
           "type": "object",
+          "dynamic": false,
           "properties": {
             "errors": {
               "type": "object",
