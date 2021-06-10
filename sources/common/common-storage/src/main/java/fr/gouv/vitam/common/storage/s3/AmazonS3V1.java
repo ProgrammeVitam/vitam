@@ -457,7 +457,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
     @Override
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
-        throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Get metadatas of object %s in container %s", objectId, containerName));
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);

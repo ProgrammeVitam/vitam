@@ -35,13 +35,13 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -161,7 +161,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         String streamDigest = digest.digestHex();
 
-        if (size != sis.getSize()) {
+        if (size != null && size != sis.getSize()) {
             throw new ContentAddressableStorageException(
                 "Illegal state. Stream size " + sis.getSize() + " did not match expected size " + size);
         }
@@ -342,17 +342,22 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache) {
+    public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
+        throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectId);
-        // ugly
+        if (object == null) {
+            throw new ContentAddressableStorageNotFoundException("The Object" + objectId +
+                " can not be found for container " + containerName);
+        }
         result.setType(containerName.split("_")[1]);
         result.setObjectName(objectId);
         result.setDigest(object.getMetadata().get(X_OBJECT_META_DIGEST));
         result.setFileSize(object.getSizeInBytes());
         result.setLastModifiedDate(object.getLastModified().toString());
+
         return result;
     }
 
@@ -364,6 +369,8 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         String nextMarker = null;
         do {
+            //TODO #8205 bug  pour récupérer la liste des objet dans le container
+            // supprimer le path dans ObjectListOptions pour récupérer la liste des objets dans le container
             ObjectListOptions objectListOptions = ObjectListOptions.create()
                 .path(containerName)
                 .limit(LISTING_MAX_RESULTS);

@@ -132,7 +132,12 @@ pipeline {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
                                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                         sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                        //openstack swift+keystone
+                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
+                                            sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
+                                            sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
+                                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                        }
                                     }
                         		}
                             }
@@ -181,7 +186,12 @@ pipeline {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
                                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                         sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                        //openstack swift+keystone
+                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
+                                            sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
+                                            sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
+                                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                        }
                                     }
                         		}
                             }
@@ -236,7 +246,12 @@ pipeline {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
                                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                         sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
-                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                        //openstack swift+keystone
+                                        docker.image("${env.SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike").withRun('-d -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift'){ s ->
+                                            sh 'while ! curl -f http://127.0.0.1:35357/v3; do sleep 2; done'
+                                            sh 'docker exec swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080'
+                                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                        }
                                     }
                         		}
                             }
