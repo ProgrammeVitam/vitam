@@ -44,11 +44,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
@@ -88,7 +84,8 @@ public class LogbookRuleImportManager {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    public void initStpImportRulesLogbookOperation(final GUID eip) {
+    public void initStpImportRulesLogbookOperation(final GUID eip)
+        throws LogbookClientException {
         final LogbookOperationParameters logbookParametersStart = LogbookParameterHelper
             .newLogbookOperationParameters(eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.STARTED,
@@ -98,7 +95,8 @@ public class LogbookRuleImportManager {
 
     public void updateCommitFileRulesLogbookOperationOkOrKo(StatusCode statusCode,
         GUID evIdentifierProcess,
-        int nbDeleted, int nbUpdated, int nbInserted) {
+        int nbDeleted, int nbUpdated, int nbInserted)
+        throws LogbookClientException {
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         evDetData.put(NB_DELETED, nbDeleted);
         evDetData.put(NB_UPDATED, nbUpdated);
@@ -119,7 +117,8 @@ public class LogbookRuleImportManager {
 
     public void updateCheckFileRulesLogbookOperation(StatusCode statusCode,
         Set<String> usedUpdatedRuleIds, Set<String> notUsedDeletedRuleIds,
-        Set<String> nonDeletableUsedRuleIds, Set<String> usedRuleIdsWithDurationModeUpdate, GUID evIdentifierProcess) {
+        Set<String> nonDeletableUsedRuleIds, Set<String> usedRuleIdsWithDurationModeUpdate, GUID evIdentifierProcess)
+        throws LogbookClientException {
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         if (!notUsedDeletedRuleIds.isEmpty()) {
             evDetData.set(DELETED_RULE_IDS, serializeRuleIds(notUsedDeletedRuleIds));
@@ -157,7 +156,8 @@ public class LogbookRuleImportManager {
     }
 
     public void updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(String subEvenType,
-        GUID evIdentifierProcess) {
+        GUID evIdentifierProcess)
+        throws LogbookClientException {
         final GUID eventId = GUIDFactory.newOperationLogbookGUID(getTenantParameter());
         final LogbookOperationParameters logbookOperationParameters =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -173,7 +173,7 @@ public class LogbookRuleImportManager {
 
     public void updateStpImportRulesLogbookOperation(final GUID eip, StatusCode status,
         String filename)
-        throws InvalidParseOperationException {
+        throws InvalidParseOperationException, LogbookClientException {
         final GUID eip1 = GUIDFactory.newEventGUID(eip);
         final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
             .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
@@ -183,7 +183,8 @@ public class LogbookRuleImportManager {
         updateLogBookEntry(logbookParametersEnd);
     }
 
-    public void initializeUnitRuleUpdateWorkflowLogbook(GUID updateOperationGUID, GUID reqId) {
+    public void initializeUnitRuleUpdateWorkflowLogbook(GUID updateOperationGUID, GUID reqId)
+        throws LogbookClientException {
         final LogbookOperationParameters logbookUpdateParametersStart = LogbookParameterHelper
             .newLogbookOperationParameters(updateOperationGUID, UPDATE_RULES_ARCHIVE_UNITS,
                 updateOperationGUID,
@@ -194,7 +195,8 @@ public class LogbookRuleImportManager {
         createLogBookEntry(logbookUpdateParametersStart);
     }
 
-    public void updateUnitRuleUpdateWorkflowLogbook(GUID updateOperationGUID, GUID reqId) {
+    public void updateUnitRuleUpdateWorkflowLogbook(GUID updateOperationGUID, GUID reqId)
+        throws LogbookClientException {
         final LogbookOperationParameters logbookUpdateParametersEnd =
             LogbookParameterHelper
                 .newLogbookOperationParameters(updateOperationGUID,
@@ -208,20 +210,17 @@ public class LogbookRuleImportManager {
         updateLogBookEntry(logbookUpdateParametersEnd);
     }
 
-    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
+    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart)
+        throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.create(logbookParametersStart);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
         }
     }
 
-    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
+    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd)
+        throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.update(logbookParametersEnd);
-        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException | LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
         }
     }
 

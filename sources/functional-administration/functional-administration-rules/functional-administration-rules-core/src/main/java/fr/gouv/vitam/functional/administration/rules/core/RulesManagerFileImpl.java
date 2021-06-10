@@ -74,7 +74,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
-import fr.gouv.vitam.functional.administration.common.FileRulesCSV;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
@@ -82,12 +83,11 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.FileRulesCSV;
 import fr.gouv.vitam.functional.administration.common.FileRulesErrorCode;
-import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
-import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -101,6 +101,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadExc
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -136,7 +137,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -237,7 +237,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     @Override
     public void importFile(InputStream rulesFileStream, String filename)
         throws IOException, InvalidParseOperationException, ReferentialException, StorageException,
-        InvalidGuidOperationException {
+        InvalidGuidOperationException, LogbookClientException {
         ParametersChecker.checkParameter(RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER, rulesFileStream);
 
         final GUID eip = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
@@ -263,7 +263,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     }
 
     public Map<String, FileRulesModel> processRuleParsing(File file, String filename, GUID eip)
-        throws FileRulesReadException, StorageException, InvalidParseOperationException, IOException {
+        throws FileRulesReadException, StorageException, InvalidParseOperationException, IOException,
+        LogbookClientException {
         Map<String, FileRulesModel> rulesFromFile;
 
         try {
@@ -292,7 +293,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private RuleImportResultSet processRuleValidation(GUID eip, Map<String, FileRulesModel> rulesFromFile,
         String filename)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException, LogbookClientException {
         try {
             return checkFile(rulesFromFile);
         } catch (FileRulesDeleteException e) {
@@ -306,7 +307,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     }
 
     private void checkConcurrentImportOperation(String filename, GUID eip)
-        throws FileRulesException, InvalidParseOperationException, FileRulesImportInProgressException {
+        throws FileRulesException, InvalidParseOperationException, FileRulesImportInProgressException,
+        LogbookClientException {
         if (logbookRuleImportManager.isImportOperationInProgress()) {
             this.logbookRuleImportManager
                 .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_IMPORT_IN_PROCESS, eip);
@@ -315,10 +317,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
     }
 
-    private void handleIOException(String filename,
-        GUID eip,
-        IOException e)
-        throws StorageException, InvalidParseOperationException {
+    private void handleIOException(String filename, GUID eip, IOException e)
+        throws StorageException, InvalidParseOperationException, LogbookClientException {
         this.logbookRuleImportManager
             .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(STP_IMPORT_RULES_ENCODING_NOT_UTF_EIGHT,
                 eip);
@@ -328,9 +328,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             "Error Encoding File : " + filename + " : " + e.getMessage());
     }
 
-    private void processCommitToDb(String filename, RuleImportResultSet ruleImportResultSet,
-        GUID eip, File file)
-        throws IOException, ReferentialException, InvalidParseOperationException {
+    private void processCommitToDb(String filename, RuleImportResultSet ruleImportResultSet, GUID eip, File file)
+        throws IOException, ReferentialException, InvalidParseOperationException, LogbookClientException {
 
         InputStream fileInputStream = null;
         try {
@@ -381,7 +380,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private void generateReportWhenFileRulesDeletedExceptionAppend(
         final GUID eip, List<FileRulesModel> usedDeletedRulesForReport, String filename)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException, LogbookClientException {
         try {
             generateReport(StatusCode.KO, Collections.emptyMap(), eip, usedDeletedRulesForReport,
                 Collections.emptyList(), Collections.emptyList(),
@@ -406,7 +405,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private void generateReportWhenFileRulesIllegalDurationModeUpdateException(GUID eip,
         List<FileRulesModel> usedRulesWithDurationModeUpdate, String filename)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException, LogbookClientException {
         try {
             generateReport(StatusCode.KO, Collections.emptyMap(), eip, Collections.emptyList(),
                 usedRulesWithDurationModeUpdate, Collections.emptyList(),
@@ -431,7 +430,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     }
 
     private void launchWorkflow(List<FileRulesModel> usedUpdateRulesForReport)
-        throws InvalidParseOperationException, InvalidGuidOperationException {
+        throws InvalidParseOperationException, InvalidGuidOperationException, LogbookClientException {
 
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             ArrayNode arrayNode = JsonHandler.createArrayNode();
@@ -489,7 +488,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToDelete,
         List<FileRulesModel> fileRulesModelToInsert,
         GUID eipMaster)
-        throws FileRulesException {
+        throws FileRulesException, LogbookClientException {
         try {
             Integer sequence = vitamCounterService
                 .getSequence(getTenantParameter(), SequenceType.RULES_SEQUENCE);
