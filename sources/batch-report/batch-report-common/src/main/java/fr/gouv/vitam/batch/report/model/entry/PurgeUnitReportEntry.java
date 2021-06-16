@@ -35,12 +35,14 @@ public class PurgeUnitReportEntry {
     private final static String OPI = "opi";
     private final static String OBJECT_GROUP = "objectGroupId";
     private final static String STATUS = "status";
+    private final static String TYPE = "type";
 
     private final String id;
     private final String originatingAgency;
     private final String initialOperation;
     private final String objectGroupId;
     private final String status;
+    private final String type;
 
     @JsonCreator
     public PurgeUnitReportEntry(
@@ -48,12 +50,14 @@ public class PurgeUnitReportEntry {
         @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
         @JsonProperty(OPI) String initialOperation,
         @JsonProperty(OBJECT_GROUP) String objectGroupId,
-        @JsonProperty(STATUS) String status) {
+        @JsonProperty(STATUS) String status,
+        @JsonProperty(TYPE) String type) {
         this.id = id;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;
         this.objectGroupId = objectGroupId;
         this.status = status;
+        this.type = type;
     }
 
     @JsonProperty(ID)
@@ -79,5 +83,10 @@ public class PurgeUnitReportEntry {
     @JsonProperty(STATUS)
     public String getStatus() {
         return status;
+    }
+
+    @JsonProperty(TYPE)
+    public String getType() {
+        return type;
     }
 }

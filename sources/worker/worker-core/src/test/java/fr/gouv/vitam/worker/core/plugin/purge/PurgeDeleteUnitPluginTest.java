@@ -47,7 +47,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -126,10 +125,6 @@ public class PurgeDeleteUnitPluginTest {
         instance = new PurgeUnitPlugin("PLUGIN_ACTION", purgeDeleteService, metaDataClientFactory, purgeReportService, lfcClientFactory);
     }
 
-    @After
-    public void tearDown() {
-    }
-
     @Test
     @RunWithCustomExecutor
     public void testExecuteList_OK() throws Exception {
@@ -173,6 +168,7 @@ public class PurgeDeleteUnitPluginTest {
             .put(VitamFieldsHelper.object(), "id_got_" + index)
             .put(VitamFieldsHelper.originatingAgency(), "sp_" + index)
             .put(VitamFieldsHelper.initialOperation(), "opi_" + index)
+            .put(VitamFieldsHelper.unitType(), "INGEST")
             .set(VitamFieldsHelper.storage(), storage);
     }
 

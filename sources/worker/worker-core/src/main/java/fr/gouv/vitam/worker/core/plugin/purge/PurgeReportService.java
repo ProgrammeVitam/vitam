@@ -130,7 +130,6 @@ public class PurgeReportService {
     public void exportAccessionRegisters(String processId) throws ProcessingStatusException {
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
             batchReportClient.generatePurgeAccessionRegisterReport(
                 processId,
                 new ReportExportRequest(ACCESSION_REGISTER_REPORT_JSONL));

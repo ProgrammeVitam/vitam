@@ -198,9 +198,11 @@ public class PurgeUnitPlugin extends ActionHandler {
                 unit.has(VitamFieldsHelper.object()) ? unit.get(VitamFieldsHelper.object()).asText() : null;
             String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
                 unit.get(VitamFieldsHelper.originatingAgency()).asText() : null;
+            String unitType =
+                unit.has(VitamFieldsHelper.unitType()) ? unit.get(VitamFieldsHelper.unitType()).asText() : null;
 
             purgeUnitReportEntries.add(new PurgeUnitReportEntry(
-                unitId, originatingAgency, initialOperation, objectGroupId, purgeUnitStatus.name()));
+                unitId, originatingAgency, initialOperation, objectGroupId, purgeUnitStatus.name(), unitType));
         }
 
         purgeReportService.appendUnitEntries(processId, purgeUnitReportEntries);

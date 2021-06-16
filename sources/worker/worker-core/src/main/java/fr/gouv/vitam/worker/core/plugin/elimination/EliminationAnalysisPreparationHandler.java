@@ -197,7 +197,8 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
             request.resetUsageProjection();
             request.addUsedProjection(
                 VitamFieldsHelper.id(),
-                VitamFieldsHelper.originatingAgency());
+                VitamFieldsHelper.originatingAgency(),
+                VitamFieldsHelper.unitType());
 
             return request;
 

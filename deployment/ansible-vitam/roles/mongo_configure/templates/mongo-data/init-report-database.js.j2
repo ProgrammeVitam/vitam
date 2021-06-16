@@ -8,8 +8,9 @@ db = db.getSiblingDB('report')
 
 // Create indexes EliminationActionUnit
 db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1 } )
-db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1, "_metadata.type": 1 } )
 db.EliminationActionUnit.dropIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
+db.EliminationActionUnit.dropIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
 
 // Drop obsolete EliminationActionObjectGroup
 db.EliminationActionObjectGroup.drop();

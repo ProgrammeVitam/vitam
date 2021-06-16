@@ -67,7 +67,7 @@ public class PurgeUnitRepositoryTest {
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
     private static final TypeReference<ReportBody<PurgeUnitReportEntry>>
-        TYPE_REFERENCE = new TypeReference<ReportBody<PurgeUnitReportEntry>>() {
+        TYPE_REFERENCE = new TypeReference<>() {
     };
 
     @Rule
@@ -102,7 +102,7 @@ public class PurgeUnitRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\"}");
+            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\",\"type\":\"INGEST\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         repository.bulkAppendReport(purgeUnitModels);
         assertThat(purgeUnitCollection.countDocuments()).isEqualTo(4);
@@ -157,6 +157,27 @@ public class PurgeUnitRepositoryTest {
                 tuple("opi1", "sp1", 1),
                 tuple("opi0", "sp1", 3)
             );
+    }
+
+    @Test
+    public void should_not_compute_holding_tree_accession_register()
+        throws Exception {
+        // Given
+        List<PurgeUnitModel> purgeUnitModels =
+            getDocuments("/purgeUnitHoldingTree.json");
+        // When
+        repository.bulkAppendReport(purgeUnitModels);
+
+        PurgeUnitModel first = purgeUnitModels.iterator().next();
+        // When
+        MongoCursor<Document> iterator = repository.computeOwnAccessionRegisterDetails(first.getProcessId(), TENANT_ID);
+        List<Document> documents = new ArrayList<>();
+        while (iterator.hasNext()) {
+            documents.add(iterator.next());
+        }
+
+        // Then
+        Assertions.assertThat(documents.size()).isEqualTo(0);
     }
 
     private List<PurgeUnitModel> getDocuments(String filename)
@@ -226,7 +247,6 @@ public class PurgeUnitRepositoryTest {
             documents.add(iterator.next());
         }
         assertThat(documents).isEmpty();
-        assertThat(documents.size()).isEqualTo(0);
     }
 
 }

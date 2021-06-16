@@ -83,7 +83,7 @@ import static org.mockito.Mockito.when;
 
 public class EliminationActionUnitPreparationHandlerTest {
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
     };
 
     @Rule
@@ -161,7 +161,7 @@ public class EliminationActionUnitPreparationHandlerTest {
                 "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
             .when(metaDataClient).selectUnitsWithInheritedRules(any());
 
-        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any()))
+        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),     // id_unit_1
                 createAnalysisResponse(EliminationGlobalStatus.KEEP),        // id_unit_2
@@ -226,7 +226,7 @@ public class EliminationActionUnitPreparationHandlerTest {
                 "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
             .when(metaDataClient).selectUnitsWithInheritedRules(any());
 
-        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any()))
+        when(eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_1
                 createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_2
