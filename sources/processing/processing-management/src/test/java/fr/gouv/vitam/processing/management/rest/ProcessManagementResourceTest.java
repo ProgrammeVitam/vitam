@@ -113,11 +113,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         return VitamApplicationInitializr.get().getSingletons();
     }
 
-    @Override
-    public Set<Class<?>> getClasses() {
-        return VitamApplicationInitializr.get().getCommonBusinessApplication().getClasses();
-    }
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         LogbookOperationsClientFactory.changeMode(null);

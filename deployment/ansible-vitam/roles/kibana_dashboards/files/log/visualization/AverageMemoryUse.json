@@ -1,9 +1,0 @@
-{
-    "visState": "{\"title\":\"AverageMemoryUse\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":false,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"Memory (B)\"}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"type\":\"filters\",\"schema\":\"group\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"name:total.used\",\"analyze_wildcard\":true}}},\"label\":\"Total used\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"name:heap.used\",\"analyze_wildcard\":true}}},\"label\":\"Heap used\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"name:non-heap.used\",\"analyze_wildcard\":true}}},\"label\":\"Non-heap used\"}]}}],\"listeners\":{}}",
-    "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"index\":\"metrics-vitam-jvm*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
-    },
-    "uiStateJSON": "{\"vis\":{\"colors\":{\"Heap used\":\"#0A50A1\",\"Non-heap used\":\"#7EB26D\",\"Total used\":\"#6D1F62\"}}}",
-    "description": "",
-    "title": "Consommation moyenne de la memoire"
-}

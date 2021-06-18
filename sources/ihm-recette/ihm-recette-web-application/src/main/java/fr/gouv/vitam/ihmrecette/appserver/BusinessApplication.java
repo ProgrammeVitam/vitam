@@ -132,12 +132,6 @@ public class BusinessApplication extends Application {
         }
     }
 
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return commonBusinessApplication.getClasses();
-    }
-
     @Override
     public Set<Object> getSingletons() {
         return singletons;

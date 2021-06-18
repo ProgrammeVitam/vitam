@@ -1,9 +1,0 @@
-{
-    "visState": "{\"title\":\"PSScavengeTime\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-MarkSweep count\"}}],\"listeners\":{}}",
-    "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"index\":\"metrics-vitam-jvm*\",\"query\":{\"query_string\":{\"query\":\"name:PS-MarkSweep.count\",\"analyze_wildcard\":true}},\"filter\":[]}"
-    },
-    "uiStateJSON": "{}",
-    "description": "",
-    "title": "Nombre d'appels au GC PSMarkSweep"
-}
