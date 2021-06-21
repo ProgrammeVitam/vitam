@@ -167,9 +167,10 @@ hosts_mongod_offer
 [hosts_mongos_offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongos_data]
 # TODO: put here servers where this service will be deployed : mongos cluster for storage offers
-# Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
+# Mandatory params
+#  - mongo_cluster_name=<offer_name> ; name of the cluster (should exist on vitam_strategy configuration in offer_opts.yml)
 # The recommended practice is to install the mongos instance on the same servers as the mongoc instances
-# Example (for a more complete one, see the one in the group hosts_mongos_data) :
+# Example
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1
 # vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1
@@ -180,41 +181,46 @@ hosts_mongod_offer
 [hosts_mongoc_offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongoc_data]
 # TODO: put here servers where this service will be deployed : mongoc cluster for storage offers
-# Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
-# Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
-# Optional param : mongo_arbiter=true : the node will be only an arbiter ; do not add this paramter on a mongo_rs_bootstrap node
+# Mandatory params
+#  - mongo_cluster_name=<offer_name> ; name of the cluster (should exist on vitam_strategy configuration in offer_opts.yml)
+# Optional params
+#  - mongo_rs_bootstrap=true ; mandatory for 1 node, some init commands will be executed on it
+#  - mongo_arbiter=true ; the node will be only an arbiter, do not add this parameter on a mongo_rs_bootstrap node
+# The recommended practice is to install the mongoc instance on the same servers as the mongos instances
 # Recommended practice in production: use 3 instances
 # Example :
-# vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1                       mongo_rs_bootstrap=true
+# vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1   mongo_rs_bootstrap=true
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1
-# vitam-swift-offer            mongo_cluster_name=offer-swift-1                       mongo_arbiter=true
-# vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1                          mongo_rs_bootstrap=true
+# vitam-swift-offer            mongo_cluster_name=offer-swift-1   mongo_arbiter=true
+# vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1      mongo_rs_bootstrap=true
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1
-# vitam-fs-offer               mongo_cluster_name=offer-fs-1                          mongo_arbiter=true
-# vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1                       mongo_rs_bootstrap=true
+# vitam-fs-offer               mongo_cluster_name=offer-fs-1      mongo_arbiter=true
+# vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1      mongo_rs_bootstrap=true
 # vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1
-# vitam-s3-offer               mongo_cluster_name=offer-s3-1                       mongo_arbiter=true
+# vitam-s3-offer               mongo_cluster_name=offer-s3-1      mongo_arbiter=true
 
 [hosts_mongod_offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongod_data]
 # TODO: put here servers where this service will be deployed : mongod cluster for storage offers
-# Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
-# Mandatory param : id of the current shard, increment by 1 from 0 to n
-# Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
-# Optional param : mongo_arbiter=true : the node will be only an arbiter ; do not add this paramter on a mongo_rs_bootstrap node
-# Optional param : mongod_memory=x ; this will force the wiredtiger cache size to x (unit is GB) ; can be usefull when colocalization with elasticsearch
-# Optional param : is_small=true ; this will force the priority for this server to be lower when electing master ; hardware can be downgraded for this machine
+# Mandatory params
+#  - mongo_cluster_name=<offer_name> ; name of the cluster (should exist on vitam_strategy configuration in offer_opts.yml)
+#  - mongo_shard_id=x ; increment by 1 from 0 to n
+# Optional params
+#  - mongo_rs_bootstrap=true ; mandatory for 1 node of the shard, some init commands will be executed on it
+#  - mongo_arbiter=true ; the node will be only an arbiter, do not add this parameter on a mongo_rs_bootstrap node
+#  - mongod_memory=x ; this will force the wiredtiger cache size to x (unit is GB)
+#  - is_small=true ; this will force the priority for this server to be lower when electing master ; hardware can be downgraded for this machine
 # Recommended practice in production: use 3 instances per shard
 # Example :
-# vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1    mongo_shard_id=0                   mongo_rs_bootstrap=true
-# vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1    mongo_shard_id=0
-# vitam-swift-offer            mongo_cluster_name=offer-swift-1    mongo_shard_id=0                   mongo_arbiter=true
-# vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1       mongo_shard_id=0                   mongo_rs_bootstrap=true
-# vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1       mongo_shard_id=0
-# vitam-fs-offer               mongo_cluster_name=offer-fs-1       mongo_shard_id=0                   mongo_arbiter=true
-# vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   mongo_rs_bootstrap=true
-# vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   is_small=true # PSsmin, this machine needs less hardware
-# vitam-s3-offer               mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   mongo_arbiter=true
+# vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1   mongo_shard_id=0   mongo_rs_bootstrap=true
+# vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1   mongo_shard_id=0
+# vitam-swift-offer            mongo_cluster_name=offer-swift-1   mongo_shard_id=0   mongo_arbiter=true
+# vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1      mongo_shard_id=0   mongo_rs_bootstrap=true
+# vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1      mongo_shard_id=0
+# vitam-fs-offer               mongo_cluster_name=offer-fs-1      mongo_shard_id=0   mongo_arbiter=true
+# vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1      mongo_shard_id=0   mongo_rs_bootstrap=true
+# vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1      mongo_shard_id=0   is_small=true # PSsmin, this machine needs less hardware
+# vitam-s3-offer               mongo_cluster_name=offer-s3-1      mongo_shard_id=0   mongo_arbiter=true
 
 ##### Zone data
 
@@ -245,8 +251,9 @@ hosts_mongod_data
 
 [hosts_mongos_data]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongos_offer]
-# TODO: Put here servers where this service will be deployed : mongos cluster
-# Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
+# TODO: Put here servers where this service will be deployed : mongos_data cluster
+# Mandatory params
+#  - mongo_cluster_name=mongo-data ; "mongo-data" is mandatory
 # The recommended practice is to install the mongos instance on the same servers as the mongoc instances
 # Example :
 # vitam-mdbs-01   mongo_cluster_name=mongo-data
@@ -255,30 +262,37 @@ hosts_mongod_data
 
 [hosts_mongoc_data]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongoc_offer]
-# TODO: Put here servers where this service will be deployed : mongoc cluster
-# Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
-# Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
+# TODO: Put here servers where this service will be deployed : mongoc_data cluster
+# Mandatory params
+#  - mongo_cluster_name=mongo-data ; "mongo-data" is mandatory
+# Optional params
+#  - mongo_rs_bootstrap=true ; mandatory for 1 node, some init commands will be executed on it
+# The recommended practice is to install the mongoc instance on the same servers as the mongos instances
 # Recommended practice in production: use 3 instances
 # Example :
-# vitam-mdbc-01   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
-# vitam-mdbc-02   mongo_cluster_name=mongo-data
-# vitam-mdbc-03   mongo_cluster_name=mongo-data
+# vitam-mdbs-01   mongo_cluster_name=mongo-data   mongo_rs_bootstrap=true
+# vitam-mdbs-02   mongo_cluster_name=mongo-data
+# vitam-mdbs-03   mongo_cluster_name=mongo-data
 
 [hosts_mongod_data]
 # WARNING : DO NOT COLLOCATE WITH [hosts_mongod_offer]
-# TODO: Put here servers where this service will be deployed : mongod cluster
+# TODO: Put here servers where this service will be deployed : mongod_data cluster
 # Each replica_set should have an odd number of members (2n + 1)
 # Reminder: For Vitam, one mongodb shard is using one replica_set
-# Mandatory param : mongo_cluster_name=mongo-data ("mongo-data" is mandatory)
-# Mandatory param : id of the current shard, increment by 1 from 0 to n
-# Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
-# Optional param : mongod_memory=x ; this will force the wiredtiger cache size to x (unit is GB) ; can be usefull when colocalization with elasticsearch
+# Mandatory params
+#  - mongo_cluster_name=mongo-data ; "mongo-data" is mandatory
+#  - mongo_shard_id=x ; increment by 1 from 0 to n
+# Optional params
+#  - mongo_rs_bootstrap=true ; mandatory for 1 node of the shard, some init commands will be executed on it
+#  - mongo_arbiter=true ; the node will be only an arbiter, do not add this parameter on a mongo_rs_bootstrap node
+#  - mongod_memory=x ; this will force the wiredtiger cache size to x (unit is GB) ; can be usefull when colocalization with elasticsearch
+#  - is_small=true ; this will force the priority for this server to be lower when electing master ; hardware can be downgraded for this machine
 # Recommended practice in production: use 3 instances per shard
 # Example:
-# vitam-mdbd-01  mongo_cluster_name=mongo-data   mongo_shard_id=0  mongo_rs_bootstrap=true
+# vitam-mdbd-01  mongo_cluster_name=mongo-data   mongo_shard_id=0   mongo_rs_bootstrap=true
 # vitam-mdbd-02  mongo_cluster_name=mongo-data   mongo_shard_id=0
 # vitam-mdbd-03  mongo_cluster_name=mongo-data   mongo_shard_id=0
-# vitam-mdbd-04  mongo_cluster_name=mongo-data   mongo_shard_id=1  mongo_rs_bootstrap=true
+# vitam-mdbd-04  mongo_cluster_name=mongo-data   mongo_shard_id=1   mongo_rs_bootstrap=true
 # vitam-mdbd-05  mongo_cluster_name=mongo-data   mongo_shard_id=1
 # vitam-mdbd-06  mongo_cluster_name=mongo-data   mongo_shard_id=1
 
