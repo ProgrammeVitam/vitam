@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
@@ -74,9 +75,11 @@ public final class EliminationUtils {
             null;
 
         String unitId = unit.get(VitamFieldsHelper.id()).asText();
+        UnitType unitType = UnitType.valueOf(unit.get(VitamFieldsHelper.unitType()).asText());
 
         return eliminationAnalysisService.analyzeElimination(
             unitId,
+            unitType,
             param.getRequestId(),
             inheritedEliminatedRuleCategory.getRules(),
             inheritedEliminatedRuleCategory.getProperties(),

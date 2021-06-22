@@ -279,7 +279,8 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                 VitamFieldsHelper.initialOperation(),
                 VitamFieldsHelper.originatingAgency(),
                 VitamFieldsHelper.max(),
-                VitamFieldsHelper.storage());
+                VitamFieldsHelper.storage(),
+                VitamFieldsHelper.unitType());
 
             return request;
 

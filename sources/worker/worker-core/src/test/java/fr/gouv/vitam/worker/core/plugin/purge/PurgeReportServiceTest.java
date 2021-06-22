@@ -55,6 +55,7 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -110,16 +111,16 @@ public class PurgeReportServiceTest {
 
         // Given
         List<PurgeUnitReportEntry> entries = Arrays.asList(
-            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name()),
+            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), "INGEST"),
             new PurgeUnitReportEntry("unit2", "sp2", "opi2", "got2",
-                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name())
+                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), "INGEST")
         );
 
         // When
         instance.appendUnitEntries(PROC_ID, entries);
 
         // Then
-        ArgumentCaptor<ReportBody> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<PurgeUnitReportEntry>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
         ReportBody<PurgeUnitReportEntry> reportBody = reportBodyArgumentCaptor.getValue();
@@ -145,7 +146,7 @@ public class PurgeReportServiceTest {
                     new PurgeObjectGroupObjectVersion("opi_o_1", 10L),
                     new PurgeObjectGroupObjectVersion("opi_o_2", 100L))),
             new PurgeObjectGroupReportEntry("got2", "sp2", "opi2",
-                new HashSet<>(Arrays.asList("unit3")), null, PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),
+                new HashSet<>(Collections.singletonList("unit3")), null, PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),
                 null)
         );
 
@@ -153,7 +154,7 @@ public class PurgeReportServiceTest {
         instance.appendObjectGroupEntries(PROC_ID, entries);
 
         // Then
-        ArgumentCaptor<ReportBody> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<PurgeObjectGroupReportEntry>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
         ReportBody<PurgeObjectGroupReportEntry> reportBody = reportBodyArgumentCaptor.getValue();

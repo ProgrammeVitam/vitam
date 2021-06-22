@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
@@ -64,7 +65,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -89,7 +90,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -116,7 +117,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -143,7 +144,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -170,7 +171,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -198,7 +199,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -229,7 +230,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -258,7 +259,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -286,7 +287,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -316,7 +317,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -345,7 +346,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -378,7 +379,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -417,7 +418,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -453,7 +454,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -489,7 +490,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -514,7 +515,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -557,7 +558,7 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", OPERATION_ID,
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
             appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
 
         // Then
@@ -587,6 +588,29 @@ public class EliminationAnalysisServiceTest {
                 .getDetails();
         assertThat(holdExtendedInfoHoldRuleDetails.getHoldRuleIds())
             .containsExactlyInAnyOrder("H1");
+    }
+
+    @Test
+    public void analyzeElimination_HoldingTreeUnit() {
+
+        // Given : No appraisal rules & properties & no hold rules
+        List<InheritedRuleResponseModel> appraisalRules = Collections.emptyList();
+        List<InheritedPropertyResponseModel> appraisalProperties = Collections.emptyList();
+        List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
+        LocalDate expirationDate = LocalDate.parse("2018-01-01");
+        String sp1 = "sp1";
+
+        // When
+        EliminationAnalysisService instance = new EliminationAnalysisService();
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination("unit1", UnitType.HOLDING_UNIT, OPERATION_ID,
+            appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+
+        // Then
+        assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
+        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).isEmpty();
+        assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).isEmpty();
+        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.DESTROY);
+        assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
     }
 
     private List<List<String>> paths(String... ids) {

@@ -29,6 +29,7 @@ package fr.gouv.vitam.purge;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
@@ -100,6 +101,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -133,6 +135,7 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.IngestCleanupObjectGroupReportEntry;
 import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.IngestCleanupUnitReportEntry;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeObjectGroupStatus;
@@ -192,6 +195,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -219,6 +223,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER =
@@ -273,7 +278,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 DefaultOfferMain.class,
                 BatchReportMain.class
             ));
-    private static String CONFIG_SIEGFRIED_PATH = "";
+    private static final String TREE_SIP =
+        "elimination/SIP_TREE.zip";
     private static final String TEST_ELIMINATION_V2_SIP =
         "elimination/TEST_ELIMINATION_V2.zip";
     private static final String ELIMINATION_ACCESSION_REGISTER_DETAIL =
@@ -298,10 +304,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        CONFIG_SIEGFRIED_PATH =
+        String configSiegfriedPath =
             PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
 
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
+        FormatIdentifierFactory.getInstance().changeConfigurationFile(configSiegfriedPath);
 
 
         new DataLoader("integration-ingest-internal").prepareData();
@@ -1405,6 +1411,142 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
+    public void testEliminationAnalyseOnParentUnitTree() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TREE_SIP, Contexts.HOLDING_SCHEME, RESUME, STARTED);
+        verifyOperation(ingestOperationGuid, OK);
+
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+
+        // elimination action on a parent unit
+        String eliminationActionOperationGuid = newOperationLogbookGUID(tenantId).toString();
+        VitamThreadUtils.getVitamSession().setRequestId(eliminationActionOperationGuid);
+
+        final SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
+        analysisDslRequest.addQueries(QueryHelper.eq("Title", "Unit 4"));
+
+        EliminationRequestBody eliminationRequestBody =
+            new EliminationRequestBody("2018-01-01", analysisDslRequest.getFinalSelect());
+
+        RequestResponse<JsonNode> actionResult =
+            accessInternalClient.startEliminationAnalysis(eliminationRequestBody);
+        assertThat(actionResult.isOk()).isTrue();
+
+        awaitForWorkflowTerminationWithStatus(eliminationActionOperationGuid, StatusCode.OK);
+
+        RequestResponse<JsonNode> results =
+            accessInternalClient.selectUnits(analysisDslRequest.getFinalSelect());
+        JsonNode unit = ((RequestResponseOK<JsonNode>) results).getResults().get(0);
+        assertTrue(unit.has(VitamFieldsHelper.elimination()));
+        ArrayNode eliminations = (ArrayNode) unit.get(VitamFieldsHelper.elimination());
+        assertEquals(1, eliminations.size());
+        assertEquals(EliminationGlobalStatus.DESTROY.name(), eliminations.get(0).get("GlobalStatus").textValue());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testEliminationActionOnParentUnitTree() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TREE_SIP, Contexts.HOLDING_SCHEME, RESUME, STARTED);
+        verifyOperation(ingestOperationGuid, OK);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(8);
+
+        // elimination action on a parent unit
+        String eliminationActionOperationGuid = newOperationLogbookGUID(tenantId).toString();
+        VitamThreadUtils.getVitamSession().setRequestId(eliminationActionOperationGuid);
+
+        final SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
+        analysisDslRequest.addQueries(QueryHelper.eq("Title", "Unit 4"));
+
+        EliminationRequestBody eliminationRequestBody =
+            new EliminationRequestBody("2018-01-01", analysisDslRequest.getFinalSelect());
+
+        RequestResponse<JsonNode> actionResult =
+            accessInternalClient.startEliminationAction(eliminationRequestBody);
+        assertThat(actionResult.isOk()).isTrue();
+
+        awaitForWorkflowTerminationWithStatus(eliminationActionOperationGuid, StatusCode.WARNING);
+
+        // DSL check
+        RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(remainingUnits.getResults()).hasSize(8);
+
+        for (String id : getIds(ingestedUnits)) {
+            checkUnitExistence(id, true);
+        }
+
+        checkFirstReportItem(eliminationActionOperationGuid, "NON_DESTROYABLE_HAS_CHILD_UNITS");
+
+        // Check Accession Register Detail
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testEliminationActionOnChildUnitTree() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TREE_SIP, Contexts.HOLDING_SCHEME, RESUME, STARTED);
+        verifyOperation(ingestOperationGuid, OK);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(8);
+
+        assertThat(ingestedUnits.getResults()).hasSize(8);
+
+        // elimination action on a child unit
+        String eliminationActionOperationGuid = newOperationLogbookGUID(tenantId).toString();
+        VitamThreadUtils.getVitamSession().setRequestId(eliminationActionOperationGuid);
+
+        final SelectMultiQuery multiQuery = new SelectMultiQuery();
+        multiQuery.addQueries(QueryHelper.eq("Title", "Unit 5"));
+
+        EliminationRequestBody requestBody = new EliminationRequestBody("2018-01-01", multiQuery.getFinalSelect());
+        RequestResponse<JsonNode> actionResult = accessInternalClient.startEliminationAction(requestBody);
+        assertThat(actionResult.isOk()).isTrue();
+
+        awaitForWorkflowTerminationWithStatus(eliminationActionOperationGuid, StatusCode.OK);
+
+        // DSL check
+        RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(remainingUnits.getResults()).hasSize(7);
+
+        Optional<JsonNode> optionalUnit =
+            ingestedUnits.getResults().stream().filter(e -> e.get("Title").asText().equals("Unit 5")).findFirst();
+
+        assertTrue(optionalUnit.isPresent());
+
+        JsonNode deletedUnit = optionalUnit.get();
+        ingestedUnits.getResults().remove(deletedUnit);
+
+        checkUnitExistence(deletedUnit.get("#id").asText(), false);
+
+        for (String id : getIds(ingestedUnits)) {
+            checkUnitExistence(id, true);
+        }
+
+        checkFirstReportItem(eliminationActionOperationGuid, "DELETED");
+
+        // Check Accession Register Detail
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
+    }
+
+    @RunWithCustomExecutor
+    @Test
     public void testCleanupIngestKilledIngestBeforeAccessionRegistersThenOK() throws Exception {
 
         // Given
@@ -1457,6 +1599,26 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check Accession Register Detail
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
+    }
+
+
+    private void checkFirstReportItem(String eliminationActionOperationGuid, String expectedStatus)
+        throws IOException, InvalidParseOperationException {
+        // Check report
+        try (InputStream reportInputStream = readStoredReport(eliminationActionOperationGuid + JSONL)) {
+
+            try (JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(reportInputStream,
+                JSON_NODE_TYPE_REFERENCE)) {
+                // ignore headers
+                reportIterator.skip();
+                reportIterator.skip();
+                reportIterator.skip();
+                UnitReportEntry unit = JsonHandler.getFromJsonNode(reportIterator.next(), UnitReportEntry.class);
+                assertEquals(expectedStatus,unit.params.status);
+            }
+        } catch (StorageServerClientException | StorageNotFoundException e) {
+            fail("Cannot read report");
+        }
     }
 
     private void checkIngestCleanupReport(String ingestCleanupOperationId, String opi,

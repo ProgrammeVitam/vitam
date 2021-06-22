@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.rules.BaseInheritedResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
@@ -49,6 +50,7 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +67,16 @@ import static fr.gouv.vitam.common.model.unit.RuleCategoryModel.FINAL_ACTION;
 public class EliminationAnalysisService {
 
     public EliminationAnalysisResult analyzeElimination(
-        String unitId, String operationId, List<InheritedRuleResponseModel> appraisalRules,
+        String unitId, UnitType unitType, String operationId, List<InheritedRuleResponseModel> appraisalRules,
         List<InheritedPropertyResponseModel> appraisalProperties,
         List<InheritedRuleResponseModel> holdRules,
         LocalDate expirationDate, String sp) {
+
+        if (unitType.equals(UnitType.HOLDING_UNIT)) {
+            // Holding Units have no rules and are always destroyable
+            return new EliminationAnalysisResult(operationId, EliminationGlobalStatus.DESTROY, Collections.emptySet(),
+                Collections.emptySet(), Collections.emptyList());
+        }
 
         Set<String> activeHoldRules = listActiveHoldRuleIds(unitId, holdRules, expirationDate);
 
@@ -171,6 +179,7 @@ public class EliminationAnalysisService {
         Set<String> originatingAgencies =
             Stream.concat(appraisalRules.stream(), appraisalProperties.stream())
                 .map(BaseInheritedResponseModel::getOriginatingAgency)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         Map<String, EliminationAnalysisStatusForOriginatingAgency> statusForOriginatingAgency = new HashMap<>();

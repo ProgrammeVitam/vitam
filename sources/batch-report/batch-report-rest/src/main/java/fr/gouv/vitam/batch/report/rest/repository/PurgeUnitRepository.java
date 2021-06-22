@@ -47,9 +47,11 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.ne;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_UNITS;
+import static fr.gouv.vitam.common.model.UnitType.HOLDING_UNIT;
 
 /**
  * ReportRepository
@@ -133,7 +135,8 @@ public class PurgeUnitRepository extends ReportCommonRepository {
                 Aggregates.match(and(
                     eq(PurgeObjectGroupModel.PROCESS_ID, processId),
                     eq(PurgeObjectGroupModel.TENANT, tenantId),
-                    eq("_metadata.status", "DELETED")
+                    eq("_metadata.status", "DELETED"),
+                    ne("_metadata.type", HOLDING_UNIT.name()) // skip holding unit when computing Accession Register Details
                 )),
                 // Group By
                 Aggregates.group("$_metadata." + OPI,

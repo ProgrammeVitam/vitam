@@ -151,7 +151,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
-        "element": "accession_register.jsonl"
+        "element": "accession_register.jsonl",
+        "statusOnEmptyDistribution": "OK"
       },
       "actions": [
         {

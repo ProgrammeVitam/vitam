@@ -9,6 +9,7 @@
   "$results": [
     {
       "#id": "id_unit_1",
+      "#unitType": "INGEST",
       "#object": "id_got_1",
       "#originating_agency": "sp_1",
       "#opi": "opi1",
@@ -53,6 +54,7 @@
     },
     {
       "#id": "id_unit_2",
+      "#unitType": "INGEST",
       "#object": "id_got_2",
       "#originating_agency": "sp_2",
       "#opi": "opi2",
@@ -97,6 +99,7 @@
     },
     {
       "#id": "id_unit_3",
+      "#unitType": "INGEST",
       "#originating_agency": "sp_3",
       "#opi": "opi3",
       "#max": 1,
@@ -140,6 +143,7 @@
     },
     {
       "#id": "id_unit_4",
+      "#unitType": "INGEST",
       "#object": "id_got_4",
       "#originating_agency": "sp_4",
       "#opi": "opi4",

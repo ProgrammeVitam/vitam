@@ -10,7 +10,7 @@
       "unitId": "unitId1",
       "detailType": "Unit",
       "id": "unitId1",
-      "type": "INGEST"
+      "type": "HOLDING_UNIT"
     },
     {
       "opi": "opi1",
@@ -20,7 +20,7 @@
       "unitId": "unitId2",
       "detailType": "Unit",
       "id": "unitId2",
-      "type": "INGEST"
+      "type": "HOLDING_UNIT"
     },
     {
       "opi": "opi2",
@@ -30,7 +30,7 @@
       "unitId": "unitId3",
       "detailType": "Unit",
       "id": "unitId3",
-      "type": "INGEST"
+      "type": "HOLDING_UNIT"
     },
     {
       "opi": "opi3",
@@ -40,7 +40,7 @@
       "unitId": "unitId4",
       "detailType": "Unit",
       "id": "unitId4",
-      "type": "INGEST"
+      "type": "HOLDING_UNIT"
     }
   ]
 }
