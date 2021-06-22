@@ -171,6 +171,7 @@ public class EliminationAnalysisService {
         Set<String> originatingAgencies =
             Stream.concat(appraisalRules.stream(), appraisalProperties.stream())
                 .map(BaseInheritedResponseModel::getOriginatingAgency)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         Map<String, EliminationAnalysisStatusForOriginatingAgency> statusForOriginatingAgency = new HashMap<>();
