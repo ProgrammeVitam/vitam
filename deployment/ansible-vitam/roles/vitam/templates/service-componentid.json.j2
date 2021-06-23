@@ -2,26 +2,24 @@
   "service": {
 {% if vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component %}
     "name": "{{ offer_conf }}",
+    "address": "{{ ip_wan | default(ip_service) }}",
 {% else %}
     "name": "{{ vitam_struct.vitam_component }}",
-{% endif %}
     "address": "{{ ip_service }}",
-{% if ip_wan is defined %}
-    "advertise_addr_wan": "{{ ip_wan }}",
 {% endif %}
     "port": {{ vitam_struct.port_service }},
     "enable_tag_override": false,
     "tags": ["vitam","{{ vitam_struct.vitam_component }}"],
+
     "checks": [
       {
-         "name": "{{ vitam_struct.vitam_component }}: business service check",
+        "name": "{{ vitam_struct.vitam_component }} : business service check",
 {% if vitam_struct.https_enabled==true %}
         "notes": "HTTPS port opened",
-        "tcp": "{{ ip_service }}:{{ vitam_struct.port_service }}",
 {% else %}
         "notes": "HTTP port opened",
-        "tcp": "{{ ip_service }}:{{ vitam_struct.port_service }}",
 {% endif %}
+        "tcp": "{{ ip_service }}:{{ vitam_struct.port_service }}",
         "interval": "{{ vitam_struct.consul_business_check | default(consul_business_check) }}s"
       },
       {
@@ -30,23 +28,23 @@
         "http": "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/admin/v1/status",
         "interval": "{{ vitam_struct.consul_admin_check | default(consul_admin_check) }}s"
       }
-      {% if (vitam_struct.https_enabled != true) and (vitam_struct.vitam_component != vitam.elastickibanainterceptor.vitam_component) and (vitam_struct.vitam_component != vitam.security_internal.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_demo.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_recette.vitam_component) and (vitam_struct.vitam_component != vitam.library.vitam_component) %}
+{% if (vitam_struct.https_enabled != true) and (vitam_struct.vitam_component != vitam.elastickibanainterceptor.vitam_component) and (vitam_struct.vitam_component != vitam.security_internal.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_demo.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_recette.vitam_component) and (vitam_struct.vitam_component != vitam.library.vitam_component) %}
       ,{
         "name": "{{ vitam_struct.vitam_component }} : http business service check",
         "notes": "Status business : /{{ vitam_struct.baseuri }}/v1/status",
         "http": "http://{{ ip_service }}:{{ vitam_struct.port_service }}/{{ vitam_struct.baseuri }}/v1/status",
         "interval": "{{ vitam_struct.consul_admin_check | default(consul_admin_check) }}s"
       }
-      {% endif %}
-      {% if (vitam_struct.vitam_component == vitam.security_internal.vitam_component) %}
+{% endif %}
+{% if (vitam_struct.vitam_component == vitam.security_internal.vitam_component) %}
       ,{
         "name": "{{ vitam_struct.vitam_component }} : http business service check",
         "notes": "Status business : /status",
         "http": "http://{{ ip_service }}:{{ vitam_struct.port_service }}/status",
         "interval": "{{ vitam_struct.consul_business_check | default(consul_business_check) }}s"
       }
-      {% endif %}
-      {% if (vitam_struct.vitam_component == vitam.worker.vitam_component) or (vitam_struct.vitam_component == vitam.ingestexternal.vitam_component) %}
+{% endif %}
+{% if (vitam_struct.vitam_component == vitam.worker.vitam_component) or (vitam_struct.vitam_component == vitam.ingestexternal.vitam_component) %}
       ,{
         "name": "Siegfried check",
         "notes": "Is siegfried running ?",
@@ -64,5 +62,6 @@
       }
 {% endif %}
     ]
+
   }
 }
