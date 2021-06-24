@@ -132,6 +132,35 @@ public class OntologyValidatorTest {
     }
 
     @Test
+    public void ontologyWhenDateWithFourDigitsSecondsThenOK() throws Exception {
+
+        // Given
+        JsonNode data = JsonHandler.createObjectNode()
+            .put("text", "1992-01-20T08:07:06.0492");
+
+        // When
+        ObjectNode updatedData = ontologyValidator.verifyAndReplaceFields(data);
+
+        // Then
+        assertThat(updatedData).isEqualTo(data);
+    }
+
+    @Test
+    public void ontologyWhenDateWithFiveDigitsSecondsThenOK() throws Exception {
+
+        // Given
+        JsonNode data = JsonHandler.createObjectNode()
+            .put("text", "1992-01-20T08:07:06.04928");
+
+        // When
+        ObjectNode updatedData = ontologyValidator.verifyAndReplaceFields(data);
+
+        // Then
+        assertThat(updatedData).isEqualTo(data);
+    }
+
+
+    @Test
     public void ontologyWhenDateTimeAsTextConversionThenOK() throws Exception {
 
         // Given
