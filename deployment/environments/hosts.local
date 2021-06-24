@@ -227,8 +227,8 @@ primary_site=true
 ### vitam-itest repository ###
 vitam_tests_branch=master
 vitam_tests_gitrepo_protocol=https
-vitam_tests_gitrepo_baseurl=gitlab.dev.programmevitam.fr
-vitam_tests_gitrepo_url={{ vitam_tests_gitrepo_protocol }}://{{ vitam_tests_gitrepo_baseurl }}/vitam/vitam-itests.git
+vitam_tests_gitrepo_baseurl=github.com
+vitam_tests_gitrepo_url={{ vitam_tests_gitrepo_protocol }}://{{ vitam_tests_gitrepo_baseurl }}/ProgrammeVitam/vitam-itests.git
 
 ### reverse proxy ###
 reverse_proxy_port=80
