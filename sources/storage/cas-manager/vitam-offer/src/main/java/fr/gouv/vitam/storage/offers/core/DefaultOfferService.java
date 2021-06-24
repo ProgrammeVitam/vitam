@@ -129,7 +129,7 @@ public interface DefaultOfferService {
      * @return true if object exists, false otherwise
      * @throws ContentAddressableStorageServerException
      */
-    boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException;
+    boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageException;
 
     /**
      * Get container capacity
@@ -192,7 +192,7 @@ public interface DefaultOfferService {
      * @throws IOException
      */
     void listObjects(String containerName, ObjectListingListener objectListingListener)
-        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+        throws IOException, ContentAddressableStorageException;
 
     void compactOfferLogs() throws Exception;
 

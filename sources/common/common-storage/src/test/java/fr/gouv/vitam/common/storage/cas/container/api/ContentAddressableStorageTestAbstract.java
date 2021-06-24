@@ -102,7 +102,7 @@ public abstract class ContentAddressableStorageTestAbstract {
     // Object
     @Test
     public void givenObjectNotFoundWhenCheckObjectExistenceThenRetunFalse()
-            throws ContentAddressableStorageServerException {
+            throws ContentAddressableStorageException {
         assertFalse(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
