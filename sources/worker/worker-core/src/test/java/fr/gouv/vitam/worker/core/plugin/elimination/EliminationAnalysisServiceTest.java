@@ -80,6 +80,29 @@ public class EliminationAnalysisServiceTest {
     }
 
     @Test
+    public void analyzeElimination_NullAgency() {
+
+        // Given : No rules & a Destroy property
+        List<InheritedRuleResponseModel> rules = Collections.emptyList();
+        List<InheritedPropertyResponseModel> properties = Collections.singletonList(
+            new InheritedPropertyResponseModel("unit1", null, paths(), "FinalAction",
+                "Keep"));
+        LocalDate expirationDate = LocalDate.parse("2018-01-01");
+
+        // When
+        EliminationAnalysisService instance = new EliminationAnalysisService();
+        EliminationAnalysisResult eliminationAnalysisResult = instance
+            .analyzeElimination(OPERATION_ID, rules, properties, expirationDate, null);
+
+        // Then
+        assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
+        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).isEmpty();
+        assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).isEmpty();
+        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.KEEP);
+        assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
+    }
+
+    @Test
     public void analyzeElimination_EmptyRules() {
 
         // Given : No rules & a Destroy property
