@@ -1,19 +1,23 @@
 {
-  "data_dir": "{{ consul_folder_data }}",
   "node_name": "{{ ansible_hostname }}",
-  "log_level": "{{ consul.log_level | default('INFO') }}",
-  "log_file": "{{ consul_folder_log }}/consul.log",
-  "enable_syslog": true,
-  "advertise_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
-  "enable_script_checks": true,
+  "domain": "{{ consul_domain }}",
+  "datacenter": "{{ vitam_site_name }}",
 
-{% if inventory_hostname in groups['hosts_consul_server'] %}
-  {% if consul_remote_sites is defined %}
-    {% if consul_remote_sites is sequence %}
-      {% if consul_remote_sites|length > 0 %}
-      "retry_join_wan": [ {% for item in consul_remote_sites %}{% for address_wan in item.wan %}"{{ address_wan }}"{% if not loop.last %},{% endif %}{% endfor %}{% if not loop.last %},{% endif %}{% endfor %} ],
+  "bind_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
+  "advertise_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
+{% if ip_wan is defined %}
+  "advertise_addr_wan": "{{ ip_wan }}",
   "translate_wan_addrs": true,
-  {% endif %}{% endif %}{% endif %}
+{% endif %}
+{% if (dns_servers|length > 0) and ("" not in dns_servers) %}
+  "recursors": [ "{{ dns_servers|join('", "') }}" ],
+{% endif %}
+  "retry_join": [ {% for item in groups['hosts_consul_server'] %}"{{ hostvars[item][consul.network] }}"{% if not loop.last %},{% endif %}{% endfor %} ],
+  "retry_interval": "{{ consul.retry_interval | default(10) }}s",
+{% if inventory_hostname in groups['hosts_consul_server'] %}
+{% if consul_remote_sites is defined and consul_remote_sites is sequence and consul_remote_sites|length > 0 %}
+  "retry_join_wan": [ {% for item in consul_remote_sites %}{% for address_wan in item.wan %}"{{ address_wan }}"{% if not loop.last %},{% endif %}{% endfor %}{% if not loop.last %},{% endif %}{% endfor %} ],
+{% endif %}
 
   "bootstrap_expect": {{ groups['hosts_consul_server']|length }},
   "server": true,
@@ -22,20 +26,20 @@
       "http": "{{ ip_admin }}"
   },
 {% endif %}
-  "bind_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
-{% if (dns_servers|length > 0) and ("" not in dns_servers) %}
-  "recursors": [ "{{ dns_servers|join('", "') }}" ],
-{% endif %}
-  "domain": "{{ consul_domain }}",
-  "datacenter": "{{ vitam_site_name }}",
-  "retry_join": [ {% for item in groups['hosts_consul_server'] %}"{{ hostvars[item][consul.network] }}"{% if not loop.last %},{% endif %}{% endfor %} ],
-  "retry_interval": "{{ consul.retry_interval | default(10) }}s",
+
+  "enable_script_checks": true,
   "disable_remote_exec": true,
   "disable_update_check": true,
   "encrypt": "{{ consul_encrypt }}",
   "ports": {
     "dns" : 53
   },
+
+  "data_dir": "{{ consul_folder_data }}",
+  "log_level": "{{ consul.log_level | default('INFO') }}",
+  "log_file": "{{ consul_folder_log }}/consul.log",
+  "enable_syslog": true,
+
   "checks" : [
     {
         "name": "Check Consul DNS resolution for node",
@@ -44,4 +48,5 @@
         "timeout": "{{ consul.check_timeout | default(10) }}s"
       }
   ]
+
 }
