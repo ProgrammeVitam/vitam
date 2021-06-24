@@ -372,7 +372,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public boolean isObjectExist(String containerName, String objectId)
-        throws ContentAddressableStorageServerException {
+        throws ContentAddressableStorageException {
         return defaultStorage.isExistingObject(containerName, objectId);
     }
 
@@ -392,14 +392,22 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     private void trySilentlyDeleteWormObject(String containerName, String objectId, DataCategory type) {
+
         if (type.canUpdate()) {
+            LOGGER.error("Write file failed for " + containerName + "/" + objectId + ". No need to cleanup (object is rewritable)");
             return;
         }
+
         try {
+            LOGGER
+                .warn("Cleanup partially written object: " + containerName + "/" + objectId + ". Try deleting it...");
             defaultStorage.deleteObject(containerName, objectId);
+        }catch (ContentAddressableStorageNotFoundException e) {
+            // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
+            LOGGER.warn("Delete object after upload failure " + containerName + "/" + objectId + ". Object not found", e);
         } catch (Exception e) {
-            // Just warn, as if we have a write exception we can presumably got a delete exception (Ex. Network exception)
-            LOGGER.warn("Cannot silently delete object of warm container after write exception occurs", e);
+            // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
+            LOGGER.error("Cannot delete object " + containerName + "/" + objectId + ". Potentially partially written object on WORM container", e);
         }
     }
 
@@ -492,7 +500,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public void listObjects(String containerName, ObjectListingListener objectListingListener)
-        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        throws IOException, ContentAddressableStorageException {
         ensureContainerExists(containerName);
         defaultStorage.listContainer(containerName, objectListingListener);
     }

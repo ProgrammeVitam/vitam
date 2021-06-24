@@ -65,6 +65,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -178,7 +179,8 @@ public class Swift extends ContentAddressableStorageAbstract {
         return streamDigest;
     }
 
-    private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
+    private void bigFile(String containerName, String objectName, InputStream stream, Long size)
+        throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             CountingInputStream segmentInputStream;
@@ -198,7 +200,7 @@ public class Swift extends ContentAddressableStorageAbstract {
                 // for get the number of byte read to the stream
                 segmentInputStream = new CountingInputStream(autoCloseInputStream);
                 segmentTime.start();
-                osClient.get().objectStorage().objects()
+                getObjectStorageService()
                     .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
                 PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
                     "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
@@ -211,7 +213,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             String dloManifest = "";
             ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
             objectPutOptions.getOptions().put("X-Object-Manifest", containerName + "/" + objectName + "/");
-            osClient.get().objectStorage().objects().put(
+            getObjectStorageService().put(
                 containerName,
                 objectName,
                 Payloads.create(new VitamAutoCloseInputStream(new ByteArrayInputStream(dloManifest.getBytes()))),
@@ -224,10 +226,12 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     }
 
-    private void smallFile(String containerName, String objectName, InputStream stream) {
+    private void smallFile(String containerName, String objectName, InputStream stream)
+        throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
-            osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+            getObjectStorageService()
+                .put(containerName, objectName, Payloads.create(stream));
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
@@ -242,12 +246,8 @@ public class Swift extends ContentAddressableStorageAbstract {
         // Not necessary to put the "X-Object-Meta-"
         metadataToUpdate.put(X_OBJECT_META_DIGEST, digest);
         metadataToUpdate.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
-        if (!osClient.get().objectStorage().objects().updateMetadata(ObjectLocation.create(containerName, objectName),
-            metadataToUpdate)) {
-            LOGGER.error("Failed to update object metadata -> try remove object");
-            throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
-                containerName);
-        }
+        getObjectStorageService()
+            .updateMetadata(ObjectLocation.create(containerName, objectName), metadataToUpdate);
         PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
             containerName, "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
@@ -259,7 +259,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         if (!noCache) {
 
             Stopwatch stopwatch = Stopwatch.createStarted();
-            Map<String, String> metadata = osClient.get().objectStorage().objects()
+            Map<String, String> metadata = getObjectStorageService()
                 .getMetadata(ObjectLocation.create(containerName, objectName));
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
@@ -283,17 +283,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
-        if (object == null) {
-            LOGGER.error(
-                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
-            throw new ContentAddressableStorageNotFoundException(
-                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-        }
-
-        long size = object.getSizeInBytes();
-        InputStream inputStream = object.download().getInputStream();
-        return new ObjectContent(inputStream, size);
+        return getObjectStorageService().download(containerName, objectName);
     }
 
     @Override
@@ -308,23 +298,15 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public void deleteObject(String containerName, String objectName) throws
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        ActionResponse response = osClient.get().objectStorage().objects().delete(containerName, objectName);
-        if (!response.isSuccess()) {
-            if (response.getCode() == 404) {
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName);
-            } else {
-                throw new ContentAddressableStorageServerException("Error on deleting object " + objectName);
-            }
-        }
+        getObjectStorageService().delete(containerName, objectName);
     }
 
     @Override
-    public boolean isExistingObject(String containerName, String objectName) {
-        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
-        return object != null;
+    public boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageException {
+        return getObjectStorageService().getObjectInformation(containerName, objectName).isPresent();
     }
 
     @Override
@@ -347,23 +329,24 @@ public class Swift extends ContentAddressableStorageAbstract {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
-        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectId);
-        if (object == null) {
+        Optional<SwiftObject> object =
+            getObjectStorageService().getObjectInformation(containerName, objectId);
+        if (object.isEmpty()) {
             throw new ContentAddressableStorageNotFoundException("The Object" + objectId +
                 " can not be found for container " + containerName);
         }
         result.setType(containerName.split("_")[1]);
         result.setObjectName(objectId);
-        result.setDigest(object.getMetadata().get(X_OBJECT_META_DIGEST));
-        result.setFileSize(object.getSizeInBytes());
-        result.setLastModifiedDate(object.getLastModified().toString());
+        result.setDigest(object.get().getMetadata().get(X_OBJECT_META_DIGEST));
+        result.setFileSize(object.get().getSizeInBytes());
+        result.setLastModifiedDate(object.get().getLastModified().toString());
 
         return result;
     }
 
     @Override
     public void listContainer(String containerName, ObjectListingListener objectListingListener)
-        throws ContentAddressableStorageNotFoundException, IOException {
+        throws ContentAddressableStorageException, IOException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
@@ -380,11 +363,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             }
 
             List<? extends SwiftObject> swiftObjects =
-                osClient.get().objectStorage().objects().list(containerName, objectListOptions);
-
-            if (swiftObjects == null) {
-                throw new ContentAddressableStorageNotFoundException(containerName + " not found");
-            }
+                getObjectStorageService().list(containerName, objectListOptions);
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -405,5 +384,9 @@ public class Swift extends ContentAddressableStorageAbstract {
     @Override
     public void close() {
         // nothing ? have to do something ?
+    }
+
+    private VitamSwiftObjectStorageService getObjectStorageService() {
+        return new VitamSwiftObjectStorageService(this.osClient);
     }
 }
