@@ -5,15 +5,16 @@
   "log_file": "{{ consul_folder_log }}/consul.log",
   "enable_syslog": true,
   "advertise_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
+{% if ip_wan is defined %}
+  "advertise_addr_wan": "{{ ip_wan }}",
+  "translate_wan_addrs": true,
+{% endif %}
   "enable_script_checks": true,
 
 {% if inventory_hostname in groups['hosts_consul_server'] %}
-  {% if consul_remote_sites is defined %}
-    {% if consul_remote_sites is sequence %}
-      {% if consul_remote_sites|length > 0 %}
-      "retry_join_wan": [ {% for item in consul_remote_sites %}{% for address_wan in item.wan %}"{{ address_wan }}"{% if not loop.last %},{% endif %}{% endfor %}{% if not loop.last %},{% endif %}{% endfor %} ],
-  "translate_wan_addrs": true,
-  {% endif %}{% endif %}{% endif %}
+{% if consul_remote_sites is defined and consul_remote_sites is sequence and consul_remote_sites|length > 0 %}
+  "retry_join_wan": [ {% for item in consul_remote_sites %}{% for address_wan in item.wan %}"{{ address_wan }}"{% if not loop.last %},{% endif %}{% endfor %}{% if not loop.last %},{% endif %}{% endfor %} ],
+{% endif %}
 
   "bootstrap_expect": {{ groups['hosts_consul_server']|length }},
   "server": true,
@@ -36,6 +37,7 @@
   "ports": {
     "dns" : 53
   },
+
   "checks" : [
     {
         "name": "Check Consul DNS resolution for node",
@@ -44,4 +46,5 @@
         "timeout": "{{ consul.check_timeout | default(10) }}s"
       }
   ]
+
 }
