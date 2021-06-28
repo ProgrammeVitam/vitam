@@ -87,7 +87,8 @@ public class SedaUtils {
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.1";
     public static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
 
-    private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.1-main.xsd";
+    public static final String SEDA_VITAM_XSD_FILE = "seda-vitam/seda-vitam-2.1-main.xsd";
+    public static final String SEDA_XSD_VERSION = "seda/seda-2.1-main.xsd";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
 
@@ -105,7 +106,6 @@ public class SedaUtils {
     public static final String NB_AU_EXISTING = "nbAUExisting";
     public static final String INVALID_DATAOBJECT_VERSION = "INVALID_DATAOBJECT_VERSION";
     public static final String VALID_DATAOBJECT_VERSION = "VALID_DATAOBJECT_VERSION";
-    public static final String SEDA_XSD_VERSION = "seda-vitam-2.1-main.xsd";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -282,7 +282,7 @@ public class SedaUtils {
             if (!checkFolderContentNumber()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
             }
-            ValidationXsdUtils.getInstance().checkWithXSD(input, SEDA_VALIDATION_FILE);
+            ValidationXsdUtils.getInstance().checkWithXSD(input, SEDA_VITAM_XSD_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
             LOGGER.error("Manifest xml file is not valid with the XSD", e);

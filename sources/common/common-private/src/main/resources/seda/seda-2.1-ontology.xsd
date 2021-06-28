@@ -2,7 +2,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-2.1-types.xsd"/>
     
     <xsd:group name="ObjectGroup">
         <xsd:annotation>
@@ -14,9 +14,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="BaseObjectGroup"/>
-            <!-- Redefined by VITAM -->
-            <!--<xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>-->
-            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:group>
     
@@ -652,7 +650,11 @@
                     <xsd:documentation>Message technique détaillant l'erreur.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element ref="EventAbstract" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Permet d'étendre de nouveaux types d'évenéments.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <!-- Signature description -->
