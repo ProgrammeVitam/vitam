@@ -54,8 +54,8 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
 
     private final StorageConfiguration configuration;
     private final Config configOS4J;
-    private static AtomicReference<Access> atomicAccess = new AtomicReference<>(null);
-    private static AtomicBoolean oneThread = new AtomicBoolean(true);
+    private final AtomicReference<Access> atomicAccess = new AtomicReference<>(null);
+    private final AtomicBoolean oneThread = new AtomicBoolean(true);
     private final Object monitor = new Object();
 
 

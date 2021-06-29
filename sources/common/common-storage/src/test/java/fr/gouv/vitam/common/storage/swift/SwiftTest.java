@@ -66,6 +66,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static fr.gouv.vitam.common.storage.swift.Swift.X_OBJECT_MANIFEST;
+import static fr.gouv.vitam.common.storage.swift.Swift.X_OBJECT_META_DIGEST;
+import static fr.gouv.vitam.common.storage.swift.Swift.X_OBJECT_META_DIGEST_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -163,19 +166,20 @@ public class SwiftTest {
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader("X-Object-Meta-Digest", WireMock.equalTo(sha512sum(data)))
-            .withHeader("X-Object-Meta-Digest-Type", WireMock.equalTo("SHA-512")));
+            .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
+            .withHeader(X_OBJECT_META_DIGEST_TYPE, WireMock.equalTo("SHA-512")));
 
         // Expected PUT (upload) + GET (read to check digest) + POST (update metadata)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
             .withRequestBody(WireMock.binaryEqualTo(data))
-            .withoutHeader("X-Object-Manifest"));
+            .withoutHeader(X_OBJECT_MANIFEST));
 
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader("x-object-meta-digest-type", WireMock.equalTo("SHA-512"))
-            .withHeader("x-object-meta-digest", WireMock.equalTo(sha512sum(data))));
+            .withHeader(X_OBJECT_META_DIGEST_TYPE, WireMock.equalTo("SHA-512"))
+            .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
+            .withoutHeader(X_OBJECT_MANIFEST));
 
         assertSwiftRequestCountEqualsTo(3);
     }
@@ -195,7 +199,8 @@ public class SwiftTest {
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Expected PUT (upload) only
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+            .withoutHeader(X_OBJECT_MANIFEST));
 
         assertSwiftRequestCountEqualsTo(1);
     }
@@ -215,7 +220,8 @@ public class SwiftTest {
             .isInstanceOf(ContentAddressableStorageException.class);
 
         // Expected PUT (upload) only
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+            .withoutHeader(X_OBJECT_MANIFEST));
 
         assertSwiftRequestCountEqualsTo(1);
     }
@@ -238,6 +244,7 @@ public class SwiftTest {
 
         // Expected PUT (upload) + GET (read to recompute digest)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+            .withoutHeader(X_OBJECT_MANIFEST)
             .withRequestBody(WireMock.binaryEqualTo(data)));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
@@ -264,6 +271,7 @@ public class SwiftTest {
 
         // Expected PUT (upload) + GET (read to recompute digest)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+            .withoutHeader(X_OBJECT_MANIFEST)
             .withRequestBody(WireMock.binaryEqualTo(data)));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
@@ -299,13 +307,14 @@ public class SwiftTest {
             .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_000, 3_500))));
 
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader("X-Object-Manifest", WireMock.equalTo("0_object/3500.txt/")));
+            .withHeader(X_OBJECT_MANIFEST, WireMock.equalTo("0_object/3500.txt/")));
 
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader("x-object-meta-digest-type", WireMock.equalTo("SHA-512"))
-            .withHeader("x-object-meta-digest", WireMock.equalTo(sha512sum(data))));
+            .withHeader(X_OBJECT_META_DIGEST_TYPE, WireMock.equalTo("SHA-512"))
+            .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
+            .withHeader(X_OBJECT_MANIFEST, WireMock.equalTo("0_object/3500.txt/")));
 
         assertSwiftRequestCountEqualsTo(6);
     }
@@ -667,8 +676,8 @@ public class SwiftTest {
                 .withStatus(201)
                 .withBody(data)
                 .withHeader(ETAG, "etag")
-                .withHeader("X-Object-Meta-Digest", sha512sum(data))
-                .withHeader("X-Object-Meta-Digest-Type", "SHA-512")
+                .withHeader(X_OBJECT_META_DIGEST, sha512sum(data))
+                .withHeader(X_OBJECT_META_DIGEST_TYPE, "SHA-512")
                 .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
     }
 
