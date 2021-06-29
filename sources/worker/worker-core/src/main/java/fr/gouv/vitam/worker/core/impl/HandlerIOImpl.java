@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.model.processing.LazyFile;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -163,29 +165,15 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             ProcessingUri uri = in.getUri();
             switch (uri.getPrefix()) {
                 case WORKSPACE:
-                    try {
-                        // TODO P1 : remove optional when lazy file loading is implemented
-                        for (String objectId : objectIds) {
-                            input.put(objectId, findFileFromWorkspace(uri.getPath(),
-                                in.getOptional()));
-                        }
-
-                        break;
-                    } catch (final FileNotFoundException e) {
-                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri.getPath(), e);
+                    for (String objectId : objectIds) {
+                        input.put(objectId, new LazyFile(uri.getPath(), in.getOptional()));
                     }
+                    break;
                 case WORKSPACE_OBJECT:
-                    try {
-                        // TODO P1 : remove optional when lazy file loading is implemented
-                        for (String objectId : objectIds) {
-                            input.put(objectId, findFileFromWorkspace(objectId + File.separator + uri.getPath(),
-                                in.getOptional()));
-                        }
-
-                        break;
-                    } catch (final FileNotFoundException e) {
-                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri.getPath(), e);
+                    for (String objectId : objectIds) {
+                        input.put(objectId, new LazyFile(objectId + File.separator + uri.getPath(), in.getOptional()));
                     }
+                    break;
                 case MEMORY:
                     for (String objectId : objectIds) {
                         input.put(objectId, memoryMap.get(String.format("%s.%s", uri.getPath(), objectId)));
@@ -259,12 +247,38 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public Object getInput(int rank) {
-        return input.get(currentObjectId).get(rank);
+        if(input.get(currentObjectId).get(rank) instanceof LazyFile) {
+            return getFile(rank);
+        }else {
+            return input.get(currentObjectId).get(rank);
+        }
     }
 
     @Override
     public <T> T getInput(int rank, Class<T> type) {
-        return type.cast(input.get(currentObjectId).get(rank));
+        if (type == File.class) {
+            return type.cast(getFile(rank));
+        } else {
+            return type.cast(input.get(currentObjectId).get(rank));
+        }
+    }
+
+    @Override
+    public File getFile(int rank) {
+        if (input.get(currentObjectId).get(rank) instanceof LazyFile) {
+            LazyFile lazyFile = (LazyFile) input.get(currentObjectId).get(rank);
+            try {
+                input.get(currentObjectId).set(rank, findFileFromWorkspace(lazyFile.getPath()));
+            } catch (FileNotFoundException e) {
+                if (lazyFile.isOptional()) {
+                    LOGGER.debug("Optinal file not found", e);
+                    return null;
+                } else {
+                    throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + lazyFile.getPath(), e);
+                }
+            }
+        }
+        return (File) input.get(currentObjectId).get(rank);
     }
 
     @Override
@@ -445,37 +459,20 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Resources file
      *
      * @param objectName object name
-     * @param optional if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional
      */
-    private final File findFileFromWorkspace(String objectName, boolean optional) throws FileNotFoundException {
+        private File findFileFromWorkspace(String objectName) throws FileNotFoundException {
         // First try as full path
-        File file = null;
-        // TODO P1 : this optional situation would be treated later when lazy file loading is implemented
-        if (optional) {
-            try {
-                file = getFileFromWorkspace(objectName);
-            } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                IOException e) {
-                LOGGER.debug(e);
-                file = null;
-            }
-            if (file != null && !file.exists()) {
-                file = null;
-            }
-        } else {
-            try {
-                file = getFileFromWorkspace(objectName);
-            } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                IOException e) {
-                // need to rewrite the exception
-                LOGGER.error(e);
-                throw new FileNotFoundException("File not found: " + objectName);
-            }
-            if (!file.exists()) {
-                throw new FileNotFoundException("File not found: " + objectName);
-            }
+        File file;
+        try {
+            file = getFileFromWorkspace(objectName);
+        } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+            IOException e) {
+            throw new FileNotFoundException("File not found: " + objectName + ExceptionUtils.getStackTrace(e));
+        }
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found: " + objectName);
         }
         return file;
     }

@@ -98,6 +98,11 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
+    public File getFile(int rank) {
+        return (File) inputs.get(rank);
+    }
+
+    @Override
     public List<ProcessingUri> getOutput() {
         throw new RuntimeException("Not implemented");
     }
