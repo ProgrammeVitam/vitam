@@ -151,7 +151,6 @@ public class SwiftTest {
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
         givenPutObjectReturns20x();
-        givenHeadObjectReturns20x(data);
         givenGetObjectReturns20x(data);
         givenPostObjetReturns20x();
 
@@ -170,12 +169,10 @@ public class SwiftTest {
             .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
             .withHeader(X_OBJECT_META_DIGEST_TYPE, WireMock.equalTo("SHA-512")));
 
-        // Expected PUT (upload) + HEAD & GET (read to check digest) + POST (update metadata)
+        // Expected PUT (upload) + GET (read to check digest) + POST (update metadata)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
             .withRequestBody(WireMock.binaryEqualTo(data))
             .withoutHeader(X_OBJECT_MANIFEST));
-
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
@@ -184,7 +181,7 @@ public class SwiftTest {
             .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
             .withoutHeader(X_OBJECT_MANIFEST));
 
-        assertSwiftRequestCountEqualsTo(4);
+        assertSwiftRequestCountEqualsTo(3);
     }
 
     @Test
@@ -236,7 +233,7 @@ public class SwiftTest {
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
         givenPutObjectReturns20x();
-        givenHeadObjectReturns404();
+        givenGetObjectReturns404();
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -245,11 +242,11 @@ public class SwiftTest {
             VitamConfiguration.getDefaultDigestType(), 3_500L))
             .isInstanceOf(ContentAddressableStorageException.class);
 
-        // Expected PUT (upload) + HEAD (read to recompute digest)
+        // Expected PUT (upload) + GET (read to recompute digest)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
             .withoutHeader(X_OBJECT_MANIFEST)
             .withRequestBody(WireMock.binaryEqualTo(data)));
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         assertSwiftRequestCountEqualsTo(2);
     }
@@ -262,7 +259,6 @@ public class SwiftTest {
         byte[] bad_data = "BAD_DATA_DIGEST".getBytes(StandardCharsets.UTF_8);
 
         givenPutObjectReturns20x();
-        givenHeadObjectReturns20x(bad_data);
         givenGetObjectReturns20x(bad_data);
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
@@ -273,14 +269,13 @@ public class SwiftTest {
             .isInstanceOf(ContentAddressableStorageException.class)
             .hasMessageContaining(" is not equal to computed digest ");
 
-        // Expected PUT (upload) + HEAD & GET (read to recompute digest)
+        // Expected PUT (upload) + GET (read to recompute digest)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
             .withoutHeader(X_OBJECT_MANIFEST)
             .withRequestBody(WireMock.binaryEqualTo(data)));
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(3);
+        assertSwiftRequestCountEqualsTo(2);
     }
 
     @Test
@@ -292,7 +287,6 @@ public class SwiftTest {
         givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/2");
         givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/3");
         givenPutObjectReturns20x();
-        givenHeadObjectReturns20x(data);
         givenGetObjectReturns20x(data);
         givenPostObjetReturns20x();
 
@@ -302,7 +296,7 @@ public class SwiftTest {
         assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
             VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
 
-        // Expected 4x PUT (3x parts + 1x manifest) + HEAD & GET (read to recompute digest) + POST (update metadata)
+        // Expected 4x PUT (3x parts + 1x manifest) + GET (read to recompute digest) + POST (update metadata)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/1"))
             .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 0, 1_500))));
 
@@ -322,7 +316,7 @@ public class SwiftTest {
             .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
             .withHeader(X_OBJECT_MANIFEST, WireMock.equalTo("0_object/3500.txt/")));
 
-        assertSwiftRequestCountEqualsTo(7);
+        assertSwiftRequestCountEqualsTo(6);
     }
 
     @Test
@@ -408,8 +402,6 @@ public class SwiftTest {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
-        givenHeadObjectReturns20x(data);
-
         givenGetObjectReturns20x(data);
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
@@ -421,17 +413,16 @@ public class SwiftTest {
         assertThat(swiftObject.getInputStream()).hasSameContentAs(new ByteArrayInputStream(data));
         assertThat(swiftObject.getSize()).isEqualTo(3_500L);
 
-        // Expected HEAD & GET
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected GET
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(2);
+        assertSwiftRequestCountEqualsTo(1);
     }
 
     @Test
     public void when_get_file_not_found_then_throw_not_found_exception() throws Exception {
         // Given
-        givenHeadObjectReturns404();
+        givenGetObjectReturns404();
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -439,8 +430,8 @@ public class SwiftTest {
         assertThatThrownBy(() -> swift.getObject(CONTAINER_NAME, OBJECT_NAME))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // Expected HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected GET
+        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         assertSwiftRequestCountEqualsTo(1);
     }
@@ -448,7 +439,7 @@ public class SwiftTest {
     @Test
     public void when_get_file_with_server_error_then_throw_exception() throws Exception {
         // Given
-        givenHeadObjectReturns50x();
+        givenGetObjectReturns50x();
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -456,8 +447,8 @@ public class SwiftTest {
         assertThatThrownBy(() -> swift.getObject(CONTAINER_NAME, OBJECT_NAME))
             .isInstanceOf(ContentAddressableStorageException.class);
 
-        // Expected HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected GET
+        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         assertSwiftRequestCountEqualsTo(1);
     }
@@ -506,11 +497,11 @@ public class SwiftTest {
         // Then
         assertThat(objectDigest).isEqualTo(digest);
 
-        // Expected HEAD + HEAD & GET
-        verifySwiftRequests(2, headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected HEAD + GET
+        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(3);
+        assertSwiftRequestCountEqualsTo(2);
     }
 
     @Test
@@ -518,8 +509,6 @@ public class SwiftTest {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
         String digest = sha512sum(data);
-
-        givenHeadObjectReturns20x(data);
 
         givenGetObjectReturns20x(data);
 
@@ -531,11 +520,10 @@ public class SwiftTest {
         // Then
         assertThat(objectDigest).isEqualTo(digest);
 
-        // Expected HEAD & GET
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected GET
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(2);
+        assertSwiftRequestCountEqualsTo(1);
     }
 
     @Test
@@ -575,7 +563,7 @@ public class SwiftTest {
     @Test
     public void when_get_object_digest_without_cache_not_found_then_throw_not_found_exception() throws Exception {
         // Given
-        givenHeadObjectReturns404();
+        givenGetObjectReturns404();
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -583,8 +571,8 @@ public class SwiftTest {
         assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // Expected HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected GET
+        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         assertSwiftRequestCountEqualsTo(1);
     }
@@ -592,7 +580,7 @@ public class SwiftTest {
     @Test
     public void when_get_object_digest_without_cache_with_server_error_then_throw_exception() throws Exception {
         // Given
-        givenHeadObjectReturns50x();
+        givenGetObjectReturns50x();
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -600,8 +588,8 @@ public class SwiftTest {
         assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
             .isInstanceOf(ContentAddressableStorageException.class);
 
-        // Expected HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected GET
+        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         assertSwiftRequestCountEqualsTo(1);
     }
@@ -712,6 +700,18 @@ public class SwiftTest {
                     .withBody(data)));
     }
 
+    private void givenGetObjectReturns404() {
+        swiftInstanceRule.stubFor(
+            get(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
+                aResponse().withStatus(404)));
+    }
+
+    private void givenGetObjectReturns50x() {
+        swiftInstanceRule.stubFor(
+            get(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
+                aResponse().withStatus(502)));
+    }
+
     private void givenPostObjetReturns20x() {
         swiftInstanceRule.stubFor(post(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
             aResponse().withStatus(202)));
@@ -735,11 +735,6 @@ public class SwiftTest {
     private void verifySwiftRequest(RequestPatternBuilder requestPatternBuilder) {
         assertThat(swiftInstanceRule.findRequestsMatching(
             requestPatternBuilder.build()).getRequests()).hasSize(1);
-    }
-
-    private void verifySwiftRequests(int times, RequestPatternBuilder requestPatternBuilder) {
-        assertThat(swiftInstanceRule.findRequestsMatching(
-            requestPatternBuilder.build()).getRequests()).hasSize(times);
     }
 
     private void assertSwiftRequestCountEqualsTo(int expectedCount) {
