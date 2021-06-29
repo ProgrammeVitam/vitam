@@ -26,24 +26,34 @@
  */
 package fr.gouv.vitam.cas.container.swift;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import fr.gouv.vitam.common.digest.DigestType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import org.jclouds.openstack.swift.v1.SwiftApi;
+import org.jclouds.openstack.swift.v1.features.AccountApi;
+import org.jclouds.openstack.swift.v1.features.ContainerApi;
+import org.jclouds.openstack.swift.v1.features.ObjectApi;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
 public class OpenstackSwiftTest {
 
     private ContentAddressableStorageJcloudsAbstract storage;
@@ -53,6 +63,11 @@ public class OpenstackSwiftTest {
     private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
     private static final String OBJECT_ID2 = "aeaaaaaaaaaam7mxaa2pkak2bnhxy4aaaaaq";
 
+    SwiftApi swiftApi = mock(SwiftApi.class);
+    ContainerApi containerApi = mock(ContainerApi.class);
+    AccountApi accountApi = mock(AccountApi.class);
+
+
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
     }
@@ -61,8 +76,10 @@ public class OpenstackSwiftTest {
     public void setup() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
         configuration.setProvider("openstack-swift").setSwiftPassword("vitam-cdh_password")
-                .setSwiftDomain("vitam-cdh").setSwiftUser("swift").setSwiftKeystoneAuthUrl("http://143.126.93.21:8080/auth/v1.0");
-        storage = new OpenstackSwift(configuration);
+            .setSwiftDomain("vitam-cdh").setSwiftUser("swift")
+            .setSwiftKeystoneAuthUrl("http://143.126.93.21:8080/auth/v1.0");
+
+        storage = new OpenstackSwift(configuration, swiftApi, containerApi, accountApi);
     }
 
     @After
@@ -73,11 +90,8 @@ public class OpenstackSwiftTest {
     @Ignore
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectMetadataThenReturnMetadatasObjectResult()
-            throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException, IOException {
         String containerName = TENANT_ID + "_" + TYPE;
-        // if (storage.isExistingContainer(containerName)){
-        // storage.deleteContainer(containerName, true);
-        // }
         storage.createContainer(containerName);
 
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512, null);
@@ -89,8 +103,8 @@ public class OpenstackSwiftTest {
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals(
-                "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
-                result.getDigest());
+            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
+            result.getDigest());
         assertEquals(6906, result.getFileSize());
         assertNotNull(result.getLastModifiedDate());
 
@@ -101,6 +115,25 @@ public class OpenstackSwiftTest {
         assertEquals(TYPE, result.getType());
         assertEquals(null, result.getDigest());
         assertEquals(13843, result.getFileSize());
+    }
+
+    @Test
+    public void when_getObjectMetadata_not_found_should_throw_exception() {
+        //GIVEN
+        String containerName = TENANT_ID + "_" + TYPE;
+
+        HashSet<String> conf = new HashSet<>();
+        conf.add("conf");
+        when(swiftApi.getConfiguredRegions()).thenReturn(conf);
+
+        ObjectApi objectApi = mock(ObjectApi.class);
+        when(swiftApi.getObjectApi("conf", containerName)).thenReturn(objectApi);
+        when(objectApi.get(OBJECT_ID)).thenReturn(null);
+
+        //WHEN and THEN
+        assertThatThrownBy(() -> storage.getObjectMetadata(containerName, OBJECT_ID, false))
+            .isInstanceOf(ContentAddressableStorageException.class);
+
     }
 
 }

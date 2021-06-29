@@ -654,7 +654,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
             return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (ContentAddressableStorageException | IOException | InvalidParseOperationException e) {
+        } catch (ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
