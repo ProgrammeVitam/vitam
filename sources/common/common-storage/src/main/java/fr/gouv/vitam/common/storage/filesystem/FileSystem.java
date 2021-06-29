@@ -45,8 +45,10 @@ import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.providers.ProviderMetadata;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
@@ -168,7 +170,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
 
     @Override
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
-        throws IOException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
@@ -186,6 +188,12 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             result.setType(containerName.split("_")[1]);
             result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
             result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
+        } catch (FileNotFoundException | NoSuchFileException fe) {
+            throw new ContentAddressableStorageNotFoundException(
+                "The file for object " + objectId + " for container " + containerName + " is not found", fe);
+        } catch (IOException io) {
+            throw new ContentAddressableStorageException(
+                "The file for object " + objectId + "for container " + containerName + " is not accessible", io);
         } finally {
             closeContext();
         }

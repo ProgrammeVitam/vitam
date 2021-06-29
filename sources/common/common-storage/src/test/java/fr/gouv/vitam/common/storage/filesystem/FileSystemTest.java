@@ -27,21 +27,28 @@
 package fr.gouv.vitam.common.storage.filesystem;
 
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
 
-public class FileSystemTest extends ContentAddressableStorageTestAbstract{
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+public class FileSystemTest extends ContentAddressableStorageTestAbstract {
     /*                                         ⬆
      *                                  Tests are there
      */
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    public FileSystem fileSystem;
+    public static final boolean NO_CACHE = true;
 
     @Before
     public void setup() throws IOException {
@@ -49,7 +56,21 @@ public class FileSystemTest extends ContentAddressableStorageTestAbstract{
         tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         storage = new FileSystem(configuration);
+        fileSystem = new FileSystem(configuration);
         ContentAddressableStorageAbstract.disableContainerCaching();
+    }
+
+    @Test
+    public void getObjectMetadata_cas_file_not_found() {
+        //GIVEN
+        String containerName = TENANT_ID + "_" + TYPE;
+
+        File container = new File(tempDir, CONTAINER_NAME);
+        container.mkdir();
+
+        //WHEN && THEN
+        assertThatThrownBy(() -> fileSystem.getObjectMetadata(containerName, OBJECT_ID, NO_CACHE))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
 }

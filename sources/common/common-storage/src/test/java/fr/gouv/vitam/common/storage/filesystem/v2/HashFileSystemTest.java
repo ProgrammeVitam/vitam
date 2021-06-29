@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,6 +46,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -56,9 +58,9 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
     private static final String FILE = "test1";
     private static final String DIGEST_EXTENDED_ATTRIBUTE =
         "SHA-512:a7c976db1723adb41274178dc82e9b777941ab201c69de61d0f2bc6d27a3598f594fa748e50d88d3c2bf1e2c2e72c3cfef78c3c6d4afa90391f7e33ababca48e";
-    private static final String HASH = 
+    private static final String HASH =
         "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418";
-    
+
     @Before
     public void setup() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
@@ -92,11 +94,12 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         String hash = storage.getObjectDigest(CONTAINER_NAME, FILE, DigestType.SHA512, true);
 
         // When
-        String hashExtendedAttribute = ((HashFileSystem) storage).readExtendedMetadata(file, ExtendedAttributes.DIGEST.getKey());
+        String hashExtendedAttribute =
+            ((HashFileSystem) storage).readExtendedMetadata(file, ExtendedAttributes.DIGEST.getKey());
 
         // Then
         assertThat("SHA-512:" + hash).isEqualTo(DIGEST_EXTENDED_ATTRIBUTE);
-        if (! ("SHA-512:" + hash).equalsIgnoreCase(hashExtendedAttribute)) {
+        if (!("SHA-512:" + hash).equalsIgnoreCase(hashExtendedAttribute)) {
             LOGGER.error("EXTENDED ATTRIBUTE not SUPPORTED! You should consider to use XFS filesystem");
         }
     }
@@ -115,9 +118,10 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.MD5, null);
 
         // get current SH512 saved Hash in metadata of file
-        String currentDigest = ((HashFileSystem) storage).getObjectDigestFromMD(containerName, OBJECT_ID, DigestType.SHA512);
+        String currentDigest =
+            ((HashFileSystem) storage).getObjectDigestFromMD(containerName, OBJECT_ID, DigestType.SHA512);
         // should be null as we write an MD5 Hash and not a SH521
-        assertNull(currentDigest); 
+        assertNull(currentDigest);
 
         // check if digest has been updated when call getMetadatas
         MetadatasObject result = storage.getObjectMetadata(containerName, OBJECT_ID, true);
@@ -127,8 +131,20 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         assertEquals(HASH, result.getDigest());
     }
 
+    @Test
+    public void should_throw_no_content_exception_when_file_not_found() throws Exception {
+        String containerName = TENANT_ID + "_" + TYPE;
+
+        storage.createContainer(containerName);
+
+        // check if digest has been updated when call getMetadatas
+        assertThatThrownBy(() -> storage.getObjectMetadata(containerName, OBJECT_ID, true))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+
+    }
+
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
     }
-    
+
 }
