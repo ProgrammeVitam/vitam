@@ -70,6 +70,8 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
     private static final VitamLogger LOGGER
         = VitamLoggerFactory.getInstance(VitamSwiftObjectStorageService.class);
 
+    private static final String CONTENT_LENGTH = "Content-Length";
+
     public VitamSwiftObjectStorageService(Supplier<OSClient> osClientFactory) {
         initializeClient(osClientFactory);
     }
@@ -145,13 +147,6 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         checkNotNull(containerName);
         checkNotNull(objectName);
 
-        // TODO #8320 : No need to HEAD. Use Content-Length from GET response
-        Optional<SwiftObject> objectInformation = getObjectInformation(containerName, objectName);
-        if (objectInformation.isEmpty()) {
-            throw new ContentAddressableStorageNotFoundException(
-                "Object not found " + containerName + "/" + objectName);
-        }
-
         ObjectLocation location = ObjectLocation.create(containerName, objectName);
 
         LOGGER.debug("Getting object {}/{}", location.getContainerName(), location.getObjectName());
@@ -166,7 +161,14 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
                 keepResponseOpen = true;
 
-                long contentLength = objectInformation.get().getSizeInBytes();
+                String contentLengthStr = resp.header(CONTENT_LENGTH);
+                if (contentLengthStr == null) {
+                    // Content-Length is mandatory according to Swift Object Store API specification
+                    // https://docs.openstack.org/api-ref/object-store/index.html?expanded=get-object-content-and-metadata-detail
+                    throw new ContentAddressableStorageException("Could not read object length for " +
+                        location.getContainerName() + "/" + location.getObjectName());
+                }
+                long contentLength = Long.parseLong(contentLengthStr);
 
                 // Wrapper around response input stream to ensure response is not closed / garbage collected.
                 InputStream inputStream = new AutoCloseResponseInputStream(resp);
