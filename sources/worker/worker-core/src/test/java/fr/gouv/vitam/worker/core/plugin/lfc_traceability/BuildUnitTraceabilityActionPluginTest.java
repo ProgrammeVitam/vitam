@@ -26,28 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -70,6 +48,27 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class BuildUnitTraceabilityActionPluginTest {
 
@@ -80,6 +79,8 @@ public class BuildUnitTraceabilityActionPluginTest {
     private static final String BATCH_DIGESTS_PART2_FILE = "BuildUnitTraceabilityActionPlugin/batchDigestsPart2.json";
     private static final String BATCH_DIGESTS_BAD_DIGEST_FILE =
         "BuildUnitTraceabilityActionPlugin/batchDigestsBadDigest.json";
+    private static final String BATCH_DIGESTS_ALL_BAD_DIGEST_FILE =
+        "BuildUnitTraceabilityActionPlugin/batchDigestsAllBadDigest.json";
     private static final String TRACEABILITY_DATA_FILE = "BuildUnitTraceabilityActionPlugin/traceabilityData.jsonl";
     private static final String TRACEABILITY_STATS_FILE = "BuildUnitTraceabilityActionPlugin/traceabilityStats.json";
     private static final String TRACEABILITY_DATA_BAD_HASH_FILE =
@@ -250,6 +251,49 @@ public class BuildUnitTraceabilityActionPluginTest {
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_BAD_HASH_FILE)));
         // 2 alerts (WARN for missing digest and ERROR for digest mismatch)
         verify(alertService, times(1)).createAlert(eq(VitamLogLevel.WARN), anyString());
+        verify(alertService, times(1)).createAlert(eq(VitamLogLevel.ERROR), anyString());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenLfcAndMetadataWithAllBadStorageDigestWhenExecuteThenReturnResponseOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
+            .when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
+            .when(handler).getOutput(1);
+        File traceabilityDataFile = folder.newFile();
+        File traceabilityStatsFile = folder.newFile();
+        doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
+        doReturn(traceabilityStatsFile).when(handler).getNewLocalFile("traceabilityStats.json");
+
+        List<String> offerIds = Arrays.asList("vitam-iaas-app-02.int", "vitam-iaas-app-03.int");
+        doReturn(offerIds).when(storageClient).getOffers(anyString());
+
+        RequestResponseOK<BatchObjectInformationResponse> MetadataDigest = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_ALL_BAD_DIGEST_FILE), RequestResponseOK.class,
+            BatchObjectInformationResponse.class);
+        doReturn(MetadataDigest).when(storageClient)
+            .getBatchObjectInformation(anyString(), eq(DataCategory.UNIT), eq(offerIds), eq(Arrays.asList(
+                "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
+                "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
+                "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json")));
+
+        // When
+        BuildUnitTraceabilityActionPlugin plugin =
+            new BuildUnitTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        ItemStatus statusCode = plugin.execute(params, handler);
+
+        // Then
+        assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(statusCode.getData("eventDetailData")).isEqualTo(
+            "{\"error\":\"There are at least1 metadata with inconsistent digest between database and offers\",\"idObjectKo\":[\"aeaqaaaaaaesicexaasycalg6wczgwyaaaba\"]}");
+
+        // 2 alerts (WARN for missing digest and ERROR for digest mismatch)
+        verify(alertService, times(2)).createAlert(eq(VitamLogLevel.WARN), anyString());
         verify(alertService, times(1)).createAlert(eq(VitamLogLevel.ERROR), anyString());
     }
 }

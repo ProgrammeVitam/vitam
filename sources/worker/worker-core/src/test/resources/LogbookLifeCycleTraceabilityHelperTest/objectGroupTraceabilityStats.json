@@ -1,12 +1,10 @@
 {
   "objectGroups": {
     "nbOK": 1,
-    "nbWarnings": 2,
-    "nbErrors": 3
+    "nbWarnings": 2
   },
   "objects": {
     "nbOK": 4,
-    "nbWarnings": 5,
-    "nbErrors": 6
+    "nbWarnings": 5
   }
 }

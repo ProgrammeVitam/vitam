@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -57,7 +59,7 @@ public class DigestValidatorTest {
     @Mock private AlertService alertService;
 
     @Test
-    public void validateMetadataValidSingleOffer() {
+    public void validateMetadataValidSingleOffer() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -76,12 +78,12 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 1, 0, 0, 0, 0, 0);
+        checkStats(instance, 1, 0, 0, 0);
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
-    public void validateMetadataValidMultipleOffers() {
+    public void validateMetadataValidMultipleOffers() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -101,12 +103,12 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 1, 0, 0, 0, 0, 0);
+        checkStats(instance, 1, 0, 0, 0);
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
-    public void validateMetadataMissingOfferDigest() {
+    public void validateMetadataMissingOfferDigest() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -122,18 +124,46 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
         assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
-        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
+        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 1, 0, 0, 0, 0);
+        checkStats(instance, 0, 1, 0, 0);
 
         verify(alertService).createAlert(eq(VitamLogLevel.WARN), anyString());
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
-    public void validateMetadataInvalidOfferDigest() {
+    public void validateMetadataAllOfferDigestKO() throws ProcessingStatusException {
+
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put(OFFER_1, null);
+        offerDigests.put(OFFER_2, DIGEST_2);
+        DigestValidator instance = new DigestValidator(alertService);
+
+        // When
+        DigestValidationDetails digestValidationDetails =
+            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+
+
+        //Then
+        assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
+        assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
+        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
+        assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
+        assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
+        checkStats(instance, 0, 0, 0, 1);
+
+        checkStats(instance, 0, 0, 0, 1);
+
+        verify(alertService).createAlert(eq(VitamLogLevel.WARN), anyString());
+    }
+
+    @Test
+    public void validateMetadataInvalidOfferDigest() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -153,7 +183,7 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 1, 0, 0, 0);
+        checkStats(instance, 0, 1, 0, 0);
 
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
         verifyNoMoreInteractions(alertService);
@@ -161,7 +191,7 @@ public class DigestValidatorTest {
 
 
     @Test
-    public void validateObjectValidSingleOffer() {
+    public void validateObjectValidSingleOffer() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -180,12 +210,12 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 0, 1, 0, 0);
+        checkStats(instance, 0, 0, 1, 0);
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
-    public void validateObjectValidMultipleOffers() {
+    public void validateObjectValidMultipleOffers() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -205,12 +235,12 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 0, 1, 0, 0);
+        checkStats(instance, 0, 0, 1, 0);
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
-    public void validateObjectMissingOfferDigest() {
+    public void validateObjectMissingOfferDigest() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -226,18 +256,43 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
         assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
-        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
+        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 0, 0, 1, 0);
+        checkStats(instance, 0, 0, 0, 1);
 
         verify(alertService).createAlert(eq(VitamLogLevel.WARN), anyString());
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
-    public void validateObjectInvalidOfferDigest() {
+    public void validateObjectAllOfferDigestKO() throws ProcessingStatusException {
+        // Given
+        Map<String, String> offerDigests = new HashMap<>();
+        offerDigests.put(OFFER_1, null);
+        offerDigests.put(OFFER_2, DIGEST_2);
+        DigestValidator instance = new DigestValidator(alertService);
+
+        // When
+        DigestValidationDetails digestValidationDetails =
+            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+
+
+        //Then
+        assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
+        assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
+        assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
+        assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
+        assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
+        checkStats(instance, 0, 0, 0, 1);
+
+        verify(alertService).createAlert(eq(VitamLogLevel.WARN), anyString());
+    }
+
+    @Test
+    public void validateObjectInvalidOfferDigest() throws ProcessingStatusException {
 
         // Given
         Map<String, String> offerDigests = new HashMap<>();
@@ -257,21 +312,19 @@ public class DigestValidatorTest {
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
 
-        checkStats(instance, 0, 0, 0, 0, 0, 1);
+        checkStats(instance, 0, 0, 0, 1);
 
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
         verifyNoMoreInteractions(alertService);
     }
 
-    private void checkStats(DigestValidator instance, int nbMetadataOK, int nbMetadataWarnings, int nbMetadataErrors,
-        int nbObjectOK, int nbObjectWarnings, int nbObjectErrors) {
+    private void checkStats(DigestValidator instance, int nbMetadataOK, int nbMetadataWarnings,
+        int nbObjectOK, int nbObjectWarnings) {
 
         assertThat(instance.getMetadataValidationStatistics().getNbOK()).isEqualTo(nbMetadataOK);
         assertThat(instance.getMetadataValidationStatistics().getNbWarnings()).isEqualTo(nbMetadataWarnings);
-        assertThat(instance.getMetadataValidationStatistics().getNbErrors()).isEqualTo(nbMetadataErrors);
 
         assertThat(instance.getObjectValidationStatistics().getNbOK()).isEqualTo(nbObjectOK);
         assertThat(instance.getObjectValidationStatistics().getNbWarnings()).isEqualTo(nbObjectWarnings);
-        assertThat(instance.getObjectValidationStatistics().getNbErrors()).isEqualTo(nbObjectErrors);
     }
 }

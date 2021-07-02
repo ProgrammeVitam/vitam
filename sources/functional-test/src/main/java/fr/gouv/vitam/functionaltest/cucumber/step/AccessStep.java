@@ -38,6 +38,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -60,6 +61,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.PermissionModel;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -79,6 +81,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -150,8 +153,8 @@ public class AccessStep {
      * Check facet bucket value count
      *
      * @param facetName facet name
-     * @param count     bucket count
-     * @param value     bucket value
+     * @param count bucket count
+     * @param value bucket value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) contient (\\d+) valeurs (.*)$")
@@ -170,7 +173,7 @@ public class AccessStep {
      * Check facet does not contains bucket for value
      *
      * @param facetName facet name
-     * @param value     value
+     * @param value value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) ne contient pas la valeur (.*)$")
@@ -198,7 +201,7 @@ public class AccessStep {
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable    dataTable
+     * @param dataTable dataTable
      * @param resultNumber resultNumber
      * @throws Throwable
      */
@@ -355,7 +358,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field     field name
+     * @param field field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -455,7 +458,7 @@ public class AccessStep {
      * replace in the loaded query the given parameter by the given value
      *
      * @param parameter parameter name in the query
-     * @param value     the valeur to replace the parameter
+     * @param value the valeur to replace the parameter
      * @throws Throwable
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
@@ -960,8 +963,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename   name of the file to import or check
+     * @param action the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -1102,7 +1105,7 @@ public class AccessStep {
                     queryJSON);
                 break;
             case AGENCIES:
-            requestResponse = world.getAdminClient().findAgencies(
+                requestResponse = world.getAdminClient().findAgencies(
                     new VitamContext(world.getTenantId()).setAccessContract(null)
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     queryJSON);
@@ -1231,6 +1234,7 @@ public class AccessStep {
         assertThat(response.isOk()).isTrue();
         auditStatus = Status.ACCEPTED;
     }
+
     @When("^je veux faire un audit sur (.*) des objets liés aux unités archivistiques de la requête$")
     public void je_veux_faire_l_audit_des_objets_par_requete(String action) throws Throwable {
         auditStatus = null;
@@ -1300,6 +1304,35 @@ public class AccessStep {
         });
     }
 
+    @When("^que l'ingest date d'au moins (\\d+) secondes$")
+    public void wait_old_ingest_for_lfc_traceability(int duration) {
+        runInVitamThread(() -> {
+            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+
+            RequestResponse requestResponse =
+                world.getLogbookService().getLogbookOperation(world.getAccessClient(), world.getTenantId(),
+                    world.getContractId(), world.getApplicationSessionId(), world.getOperationId());
+
+            if (!(requestResponse instanceof RequestResponseOK)) {
+                fail("could not retrieve logbook operation for " + world.getOperationId());
+            }
+            RequestResponseOK<LogbookOperation> logbookResponseOK =
+                (RequestResponseOK<LogbookOperation>) requestResponse;
+            LogbookOperation master = logbookResponseOK.getFirstResult();
+            LogbookEventOperation lastEvent = Iterables.getLast(master.getEvents());
+            int elapsed = (int) Duration.between(
+                LocalDateUtil.parseMongoFormattedDate(lastEvent.getEvDateTime()),
+                LocalDateUtil.now()).getSeconds();
+
+            int remainingDurationToSleep = duration - elapsed + 1;
+            if (remainingDurationToSleep > 0) {
+                LOGGER.warn("Logbook is not old enough... Waiting " + remainingDurationToSleep + " seconds");
+                TimeUnit.SECONDS.sleep(remainingDurationToSleep);
+                LOGGER.warn("Tt should be old enough for traceability");
+            }
+        });
+    }
+
     private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK requestResponseOK) throws VitamException {
         assertThat(requestResponseOK.isOk()).isTrue();
 
@@ -1362,7 +1395,7 @@ public class AccessStep {
     }
 
     @When("^je lance l'opération de reclassification$")
-    public  void reclassification() throws Exception {
+    public void reclassification() throws Exception {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());

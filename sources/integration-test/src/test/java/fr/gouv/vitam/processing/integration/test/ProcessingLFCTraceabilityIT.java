@@ -165,7 +165,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        String CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+        String CONFIG_SIEGFRIED_PATH =
+            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
         new DataLoader("integration-processing").prepareData();
@@ -492,7 +493,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowUnitLfcTraceability_shouldGetWarnOnCorruptedDb() throws Exception {
+    public void testWorkflowUnitLfcTraceability_shouldGetKoOnCorruptedDb() throws Exception {
 
         // Given
         launchIngest(SIP_3_UNITS_2_GOTS);
@@ -501,24 +502,10 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
         // When
-        LocalDateTime beforeTraceability = LocalDateUtil.now();
         String traceabilityOperation = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
-        LocalDateTime afterTraceability = LocalDateUtil.now();
 
         // Then
-        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
-
-        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
-        assertThat(traceabilityEvent).isNotNull();
-        assertThat(traceabilityEvent.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
-        assertThatDateIsBetween(traceabilityEvent.getEndDate(),
-            beforeTraceability.minusSeconds(TEMPORIZATION_IN_SECONDS),
-            afterTraceability.minusSeconds(TEMPORIZATION_IN_SECONDS));
-        assertThat(traceabilityEvent.getStatistics().getUnits().getNbOK()).isEqualTo(2);
-        assertThat(traceabilityEvent.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent.getStatistics().getUnits().getNbErrors()).isEqualTo(1);
-        assertThat(traceabilityEvent.getStatistics().getObjectGroups()).isNull();
-        assertThat(traceabilityEvent.getStatistics().getObjects()).isNull();
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.KO);
     }
 
     @RunWithCustomExecutor
@@ -565,7 +552,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent1.getNumberOfElements()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getUnits().getNbOK()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups()).isNull();
         assertThat(traceabilityEvent1.getStatistics().getObjects()).isNull();
 
@@ -581,14 +567,13 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent2.getNumberOfElements()).isEqualTo(15);
         assertThat(traceabilityEvent2.getStatistics().getUnits().getNbOK()).isEqualTo(15);
         assertThat(traceabilityEvent2.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent2.getStatistics().getUnits().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent2.getStatistics().getObjectGroups()).isNull();
         assertThat(traceabilityEvent2.getStatistics().getObjects()).isNull();
     }
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowUnitLfcTraceability_multipleChainingTraceabilityOperations() throws Exception {
+    public void testWorkflowUnitLfcTraceability_when_corrupted_data_then_all_subsequent_traceabilities_are_ko() throws Exception {
 
         // Given / When
 
@@ -636,15 +621,90 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             afterTraceability1.minusSeconds(TEMPORIZATION_IN_SECONDS));
         assertThat(traceabilityEvent1.getStatistics().getUnits().getNbOK()).isEqualTo(3);
         assertThat(traceabilityEvent1.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups()).isNull();
         assertThat(traceabilityEvent1.getStatistics().getObjects()).isNull();
 
         // Traceability 2 : Skipped
         assertThat(traceabilityOperation2).isNull();
 
-        // Traceability 3 : Warning (inconsistencies) + zip (chained to traceability 1)
-        assertCompletedWithStatus(traceabilityOperation3, StatusCode.WARNING);
+        // Traceability 3 : KO
+        assertCompletedWithStatus(traceabilityOperation3, StatusCode.KO);
+
+        TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperation3);
+        assertThat(traceabilityEvent3).isNull();
+
+
+        // Traceability 4 KO
+        assertCompletedWithStatus(traceabilityOperation4, StatusCode.KO);
+
+        TraceabilityEvent traceabilityEvent4 = getTraceabilityEvent(traceabilityOperation4);
+        assertThat(traceabilityEvent4).isNull();
+
+        // Traceability 5 : KO
+        assertCompletedWithStatus(traceabilityOperation5, StatusCode.KO);
+
+        TraceabilityEvent traceabilityEvent5 = getTraceabilityEvent(traceabilityOperation5);
+        assertThat(traceabilityEvent5).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_multipleChainingTraceabilityOperations() throws Exception {
+
+        // Given / When
+
+        // Traceability 1 : Empty DB + ingest + traceability
+        launchIngest(SIP_3_UNITS_2_GOTS);
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
+        String traceabilityOperation1 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability1 = LocalDateUtil.now();
+
+        // Traceability 2 : No new entries to secure
+        logicalClock.logicalSleep(1, ChronoUnit.MINUTES);
+        String traceabilityOperation2 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
+
+        // Traceability 3 :ingest + traceability
+        launchIngest(SIP_3_UNITS_2_GOTS);
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        LocalDateTime beforeTraceability3 = LocalDateUtil.now();
+        String traceabilityOperation3 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability3 = LocalDateUtil.now();
+
+        // Traceability 4 : No new data for 12h + empty traceability
+        logicalClock.logicalSleep(12, ChronoUnit.HOURS);
+        String traceabilityOperation4 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
+
+        // Traceability 5 : ingest + traceability
+        launchIngest(SIP_3_UNITS_2_GOTS);
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        LocalDateTime beforeTraceability5 = LocalDateUtil.now();
+        String traceabilityOperation5 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability5 = LocalDateUtil.now();
+
+        // Then
+
+        // Traceability 1 : OK + Zip
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
+        assertThat(traceabilityEvent1).isNotNull();
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
+            beforeTraceability1.minusSeconds(TEMPORIZATION_IN_SECONDS),
+            afterTraceability1.minusSeconds(TEMPORIZATION_IN_SECONDS));
+        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbOK()).isEqualTo(3);
+        assertThat(traceabilityEvent1.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups()).isNull();
+        assertThat(traceabilityEvent1.getStatistics().getObjects()).isNull();
+
+        // Traceability 2 : Skipped
+        assertThat(traceabilityOperation2).isNull();
+
+        // Traceability 3 : OK + zip (chained to traceability 1)
+        assertCompletedWithStatus(traceabilityOperation3, StatusCode.OK);
 
         TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperation3);
         assertThat(traceabilityEvent3).isNotNull();
@@ -652,9 +712,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThatDateIsBetween(traceabilityEvent3.getEndDate(),
             beforeTraceability3.minusSeconds(TEMPORIZATION_IN_SECONDS),
             afterTraceability3.minusSeconds(TEMPORIZATION_IN_SECONDS));
-        assertThat(traceabilityEvent3.getStatistics().getUnits().getNbOK()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getUnits().getNbOK()).isEqualTo(3);
         assertThat(traceabilityEvent3.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent3.getStatistics().getUnits().getNbErrors()).isEqualTo(1);
         assertThat(traceabilityEvent3.getStatistics().getObjectGroups()).isNull();
         assertThat(traceabilityEvent3.getStatistics().getObjects()).isNull();
 
@@ -675,7 +734,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             afterTraceability5.minusSeconds(TEMPORIZATION_IN_SECONDS));
         assertThat(traceabilityEvent5.getStatistics().getUnits().getNbOK()).isEqualTo(3);
         assertThat(traceabilityEvent5.getStatistics().getUnits().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent5.getStatistics().getUnits().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent5.getStatistics().getObjectGroups()).isNull();
         assertThat(traceabilityEvent5.getStatistics().getObjects()).isNull();
     }
@@ -955,7 +1013,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowObjectGroupLfcTraceability_shouldGetWarnOnCorruptedDb() throws Exception {
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetKoOnCorruptedDb() throws Exception {
 
         // Given
         launchIngest(SIP_3_UNITS_2_GOTS);
@@ -964,26 +1022,10 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
         // When
-        LocalDateTime beforeTraceability = LocalDateUtil.now();
         String traceabilityOperation = launchLogbookLFC(Contexts.OBJECTGROUP_LFC_TRACEABILITY);
-        LocalDateTime afterTraceability = LocalDateUtil.now();
 
         // Then
-        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
-
-        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
-        assertThat(traceabilityEvent).isNotNull();
-        assertThat(traceabilityEvent.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
-        assertThatDateIsBetween(traceabilityEvent.getEndDate(),
-            beforeTraceability.minusSeconds(TEMPORIZATION_IN_SECONDS),
-            afterTraceability.minusSeconds(TEMPORIZATION_IN_SECONDS));
-        assertThat(traceabilityEvent.getStatistics().getUnits()).isNull();
-        assertThat(traceabilityEvent.getStatistics().getObjectGroups().getNbOK()).isEqualTo(1);
-        assertThat(traceabilityEvent.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(1);
-        assertThat(traceabilityEvent.getStatistics().getObjects().getNbOK()).isEqualTo(2);
-        assertThat(traceabilityEvent.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.KO);
     }
 
     @RunWithCustomExecutor
@@ -1030,10 +1072,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent1.getStatistics().getUnits()).isNull();
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbOK()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getObjects().getNbOK()).isEqualTo(24);
         assertThat(traceabilityEvent1.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
 
 
         TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
@@ -1048,10 +1088,80 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent2.getStatistics().getUnits()).isNull();
         assertThat(traceabilityEvent2.getStatistics().getObjectGroups().getNbOK()).isEqualTo(14);
         assertThat(traceabilityEvent2.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent2.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent2.getStatistics().getObjects().getNbOK()).isEqualTo(14);
         assertThat(traceabilityEvent2.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent2.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_when_corrupted_data_then_subsequent_TraceabilityOperations_are_ko() throws Exception {
+
+        // Given / When
+
+        // Traceability 1 : Empty DB + ingest + traceability
+        launchIngest(SIP_3_UNITS_2_GOTS);
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
+        String traceabilityOperation1 = launchLogbookLFC(Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability1 = LocalDateUtil.now();
+
+        // Traceability 2 : No new entries to secure
+        logicalClock.logicalSleep(1, ChronoUnit.MINUTES);
+        String traceabilityOperation2 = launchLogbookLFC(Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Traceability 3 : Corrupt one object group in DB + traceability
+        corruptOneObjectGroupLfcInDb();
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        String traceabilityOperation3 = launchLogbookLFC(Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Traceability 4 : No new data for 12h + empty traceability
+        logicalClock.logicalSleep(12, ChronoUnit.HOURS);
+        String traceabilityOperation4 = launchLogbookLFC(Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Traceability 5 : ingest + traceability
+        launchIngest(SIP_3_UNITS_2_GOTS);
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        String traceabilityOperation5 = launchLogbookLFC(Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Then
+
+        // Traceability 1 : OK + Zip
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
+        assertThat(traceabilityEvent1).isNotNull();
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
+            beforeTraceability1.minusSeconds(TEMPORIZATION_IN_SECONDS),
+            afterTraceability1.minusSeconds(TEMPORIZATION_IN_SECONDS));
+        assertThat(traceabilityEvent1.getStatistics().getUnits()).isNull();
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
+        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbOK()).isEqualTo(2);
+        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
+
+        // Traceability 2 : Skipped
+        assertThat(traceabilityOperation2).isNull();
+
+        // Traceability 3 : KO
+        assertCompletedWithStatus(traceabilityOperation3, StatusCode.KO);
+        TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperation3);
+        assertThat(traceabilityEvent3).isNull();
+
+        // Traceability 4 : KO
+        assertCompletedWithStatus(traceabilityOperation4, StatusCode.KO);
+
+        TraceabilityEvent traceabilityEvent4 = getTraceabilityEvent(traceabilityOperation4);
+        assertThat(traceabilityEvent4).isNull();
+
+        // Traceability 5 : KO
+        assertCompletedWithStatus(traceabilityOperation5, StatusCode.KO);
+
+        TraceabilityEvent traceabilityEvent5 = getTraceabilityEvent(traceabilityOperation5);
+        assertThat(traceabilityEvent5).isNull();
+
     }
 
     @RunWithCustomExecutor
@@ -1072,8 +1182,8 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         logicalClock.logicalSleep(1, ChronoUnit.MINUTES);
         String traceabilityOperation2 = launchLogbookLFC(Contexts.OBJECTGROUP_LFC_TRACEABILITY);
 
-        // Traceability 3 : Corrupt one object group in DB + traceability
-        corruptOneObjectGroupLfcInDb();
+        // Traceability 3 : ingest + traceability
+        launchIngest(SIP_3_UNITS_2_GOTS);
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
         LocalDateTime beforeTraceability3 = LocalDateUtil.now();
@@ -1105,16 +1215,14 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent1.getStatistics().getUnits()).isNull();
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbOK()).isEqualTo(2);
         assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent1.getStatistics().getObjects().getNbOK()).isEqualTo(2);
         assertThat(traceabilityEvent1.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent1.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
 
         // Traceability 2 : Skipped
         assertThat(traceabilityOperation2).isNull();
 
-        // Traceability 3 : Warning (inconsistencies) + zip (chained to traceability 1)
-        assertCompletedWithStatus(traceabilityOperation3, StatusCode.WARNING);
+        // Traceability 3 : OK + zip (chained to traceability 1)
+        assertCompletedWithStatus(traceabilityOperation3, StatusCode.OK);
 
         TraceabilityEvent traceabilityEvent3 = getTraceabilityEvent(traceabilityOperation3);
         assertThat(traceabilityEvent3).isNotNull();
@@ -1123,14 +1231,12 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             beforeTraceability3.minusSeconds(TEMPORIZATION_IN_SECONDS),
             afterTraceability3.minusSeconds(TEMPORIZATION_IN_SECONDS));
         assertThat(traceabilityEvent3.getStatistics().getUnits()).isNull();
-        assertThat(traceabilityEvent3.getStatistics().getObjectGroups().getNbOK()).isEqualTo(0);
+        assertThat(traceabilityEvent3.getStatistics().getObjectGroups().getNbOK()).isEqualTo(2);
         assertThat(traceabilityEvent3.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent3.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(1);
-        assertThat(traceabilityEvent3.getStatistics().getObjects().getNbOK()).isEqualTo(1);
+        assertThat(traceabilityEvent3.getStatistics().getObjects().getNbOK()).isEqualTo(2);
         assertThat(traceabilityEvent3.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent3.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
 
-        // Traceability 4 : WARNING without Zip
+        // Traceability 4 : warning + empty ZIP
         assertCompletedWithStatus(traceabilityOperation4, StatusCode.WARNING);
 
         TraceabilityEvent traceabilityEvent4 = getTraceabilityEvent(traceabilityOperation4);
@@ -1148,10 +1254,9 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent5.getStatistics().getUnits()).isNull();
         assertThat(traceabilityEvent5.getStatistics().getObjectGroups().getNbOK()).isEqualTo(2);
         assertThat(traceabilityEvent5.getStatistics().getObjectGroups().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent5.getStatistics().getObjectGroups().getNbErrors()).isEqualTo(0);
         assertThat(traceabilityEvent5.getStatistics().getObjects().getNbOK()).isEqualTo(2);
         assertThat(traceabilityEvent5.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
-        assertThat(traceabilityEvent5.getStatistics().getObjects().getNbErrors()).isEqualTo(0);
+
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
