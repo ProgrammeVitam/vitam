@@ -250,10 +250,8 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         assertThat(helper.getTraceabilityStatistics().getUnits()).isNull();
         assertThat(helper.getTraceabilityStatistics().getObjectGroups().getNbOK()).isEqualTo(1);
         assertThat(helper.getTraceabilityStatistics().getObjectGroups().getNbWarnings()).isEqualTo(2);
-        assertThat(helper.getTraceabilityStatistics().getObjectGroups().getNbErrors()).isEqualTo(3);
         assertThat(helper.getTraceabilityStatistics().getObjects().getNbOK()).isEqualTo(4);
         assertThat(helper.getTraceabilityStatistics().getObjects().getNbWarnings()).isEqualTo(5);
-        assertThat(helper.getTraceabilityStatistics().getObjects().getNbErrors()).isEqualTo(6);
     }
 
     @Test

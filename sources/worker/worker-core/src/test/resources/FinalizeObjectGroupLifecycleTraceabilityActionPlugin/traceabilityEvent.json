@@ -15,13 +15,11 @@
   "Statistics" : {
     "objectGroups" : {
       "nbOK" : 50002,
-      "nbWarnings" : 0,
-      "nbErrors" : 0
+      "nbWarnings" : 0
     },
     "objects" : {
       "nbOK" : 50002,
-      "nbWarnings" : 0,
-      "nbErrors" : 0
+      "nbWarnings" : 0
     }
   }
 }

@@ -28,14 +28,21 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.model.EntryTraceabilityStatistics;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class DigestValidator {
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(DigestValidator.class);
+
 
     public static final String INVALID_HASH = "INVALID_HASH";
 
@@ -59,9 +66,8 @@ public class DigestValidator {
         DigestValidationDetails digestValidationDetails =
             validateDigest(id, strategyId, digestInDb, digestByOfferId, alertService, "metadata");
 
-        if (digestValidationDetails.isHasErrors()) {
-            nbMetadataErrors++;
-        } else if (digestValidationDetails.isHasWarnings()) {
+
+        if (digestValidationDetails.hasInconsistencies()) {
             nbMetadataWarnings++;
         } else {
             nbMetadataOK++;
@@ -76,9 +82,7 @@ public class DigestValidator {
         DigestValidationDetails digestValidationDetails =
             validateDigest(id, strategyId, digestInDb, digestByOfferId, alertService, "binary object");
 
-        if (digestValidationDetails.isHasErrors()) {
-            nbObjectErrors++;
-        } else if (digestValidationDetails.isHasWarnings()) {
+        if (digestValidationDetails.hasInconsistencies()) {
             nbObjectWarnings++;
         } else {
             nbObjectOK++;
@@ -90,7 +94,6 @@ public class DigestValidator {
     private DigestValidationDetails validateDigest(String id, String strategyId, String digestInDb,
         Map<String, String> digestByOfferId, AlertService alertService, String objectType) {
 
-        // Ensure all offers have digest information
         List<String> offersWithoutDigest = digestByOfferId.entrySet()
             .stream()
             .filter(entry -> entry.getValue() == null)
@@ -99,8 +102,8 @@ public class DigestValidator {
 
         if (!offersWithoutDigest.isEmpty()) {
             alertService.createAlert(VitamLogLevel.WARN,
-                String.format("Missing digest for %s with id=%s in offers %s",
-                    objectType, id, String.join(", ", offersWithoutDigest)));
+                String.format("Missing digest for %s with id=%s in offers %s. Digest in db : %s",
+                    objectType, id, String.join(", ", offersWithoutDigest), digestInDb));
         }
 
         // Ensure that all digests match db
@@ -111,23 +114,27 @@ public class DigestValidator {
 
         if (!offersWithInconsistentDigest.isEmpty()) {
             alertService.createAlert(VitamLogLevel.ERROR,
-                String.format("Digest mismatch for %s (%s). %s", objectType, id,
+                String.format("Digest mismatch for %s (%s). %s. Digest in db : %s", objectType, id,
                     offersWithInconsistentDigest.entrySet().stream()
                         .map(entry -> entry.getKey() + ":" + entry.getValue())
-                        .collect(Collectors.joining(", ", "{", "}"))));
+                        .collect(Collectors.joining(", ", "{", "}")), digestInDb));
         }
 
-        boolean hasOneOrMoreConsistentOffers = digestByOfferId.values()
+        Predicate<String> notEqual = x -> !digestInDb.equals(x);
+        boolean atLeastOneOfferKO = digestByOfferId.values()
             .stream()
-            .anyMatch(digestInDb::equals);
+            .anyMatch(notEqual);
 
-        boolean hasErrors = !offersWithInconsistentDigest.isEmpty() || !hasOneOrMoreConsistentOffers;
-        boolean hasWarnings = !offersWithoutDigest.isEmpty();
+        //all offers are KO
+        boolean allOffersKO = digestByOfferId.values()
+            .stream()
+            .allMatch(notEqual);
 
-        String globalDigest = hasErrors ? INVALID_HASH : digestInDb;
+
+        String globalDigest = atLeastOneOfferKO ? INVALID_HASH : digestInDb;
         Set<String> offerIds = digestByOfferId.keySet();
-        return new DigestValidationDetails(strategyId, offerIds, globalDigest, digestInDb, digestByOfferId, hasErrors,
-            hasWarnings);
+        return new DigestValidationDetails(strategyId, offerIds, globalDigest, digestInDb, digestByOfferId,
+            atLeastOneOfferKO, allOffersKO);
     }
 
     public EntryTraceabilityStatistics getMetadataValidationStatistics() {
