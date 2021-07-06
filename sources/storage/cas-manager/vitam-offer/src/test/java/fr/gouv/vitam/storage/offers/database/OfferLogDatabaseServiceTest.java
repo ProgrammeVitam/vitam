@@ -230,12 +230,12 @@ public class OfferLogDatabaseServiceTest {
     public void should_get_expired_offer_logs()
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException, InterruptedException {
         // Given
-        OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(2, SECONDS, 10);
+        OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(3, SECONDS, 10);
 
         String firstFileName = "MY_FIRST_FILE";
         service.save("Container1", firstFileName, WRITE, 1L);
 
-        TimeUnit.SECONDS.sleep(2);
+        TimeUnit.SECONDS.sleep(3);
 
         service.bulkSave("Container1", Arrays.asList("file1", "file2", "file3"), WRITE, 2L);
 
@@ -245,6 +245,22 @@ public class OfferLogDatabaseServiceTest {
 
         // Then
         assertThat(logs).extracting(OfferLog::getFileName).containsOnly(firstFileName);
+    }
+
+    @Test
+    public void should_get_expired_offer_logs_return_empty_logs_when_saved_in_expiration_range()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException, InterruptedException {
+        // Given
+        OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(3, SECONDS, 10);
+
+        service.bulkSave("Container1", Arrays.asList("file1", "file2", "file3"), WRITE, 2L);
+
+        // When
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request.getExpirationValue(),
+            request.getExpirationUnit());
+
+        // Then
+        assertThat(logs).isEmpty();
     }
 
     @Test

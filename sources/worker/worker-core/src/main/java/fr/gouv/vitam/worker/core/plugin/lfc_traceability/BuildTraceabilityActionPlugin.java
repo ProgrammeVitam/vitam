@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.TraceabilityHashDetails;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -72,6 +74,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformation
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -112,7 +115,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private static final String STORAGE_FIELD = "_storage";
     public static final TypeReference<LfcMetadataPair>
         TYPE_REFERENCE = new TypeReference<>() {
-        };
+    };
 
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
     private final StorageClientFactory storageClientFactory;
@@ -161,9 +164,16 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 List<LfcMetadataPair> lfcMetadataPairList = bulkIterator.next();
                 nbEntries += lfcMetadataPairList.size();
 
-                processBulk(lfcMetadataPairList, jsonLineWriter, lifecycleType, digestValidator, strategyIdOfferIdLoader);
+                processBulk(lfcMetadataPairList, jsonLineWriter, lifecycleType, digestValidator,
+                    strategyIdOfferIdLoader);
             }
 
+        } catch (ProcessingStatusException e) {
+            LOGGER.error(e);
+            itemStatus.increment(e.getStatusCode());
+            String evDetailData = JsonHandler.unprettyPrint(e.getEventDetails());
+            itemStatus.setEvDetailData(evDetailData);
+            return;
         } catch (IOException e) {
             throw new ProcessingException("Could not load storage information", e);
         }
@@ -204,7 +214,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private void processBulk(List<LfcMetadataPair> lfcMetadataPairList, JsonLineWriter jsonLineWriter,
         String lifecycleType, DigestValidator digestValidator,
         StrategyIdOfferIdLoader strategyIdOfferIdLoader)
-        throws ProcessingException {
+        throws ProcessingException, ProcessingStatusException {
 
         LOGGER.debug("Processing " + lfcMetadataPairList.size() + " traceability data entries");
 
@@ -242,7 +252,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         StorageClient storageClient, DataCategory dataCategory,
         DigestValidator digestValidator,
         StrategyIdOfferIdLoader strategyIdOfferIdLoader)
-        throws IOException, StorageServerClientException, ProcessingException {
+        throws IOException, StorageServerClientException, ProcessingException, ProcessingStatusException {
 
         Map<String, String> metadataDigestsInDb = computeMetadataDigestsInDb(lfcMetadataPairList, lifecycleType);
 
@@ -257,6 +267,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         }
 
         Map<String, DigestValidationDetails> result = new HashMap<>();
+        List<String> listMetadataIdKo = new ArrayList<>();
         for (String strategyId : metadataIdsByStrategyId.keySet()) {
 
             Collection<String> metadataIds = metadataIdsByStrategyId.get(strategyId);
@@ -268,13 +279,32 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
             Map<String, Map<String, String>> offerDigestsByMetadataFilenames =
                 getOfferDigests(storageClient, dataCategory, strategyId, offerIds, metadataFilenames);
-
             for (String id : metadataIds) {
+                Map<String, String> digestByOfferId = offerDigestsByMetadataFilenames.get(id + JSON_EXTENSION);
+                String digestInDb = metadataDigestsInDb.get(id);
                 DigestValidationDetails digestValidationDetails = digestValidator
-                    .validateMetadataDigest(id, strategyId, metadataDigestsInDb.get(id),
-                        offerDigestsByMetadataFilenames.get(id + JSON_EXTENSION));
-                result.put(id, digestValidationDetails);
+                    .validateMetadataDigest(id, strategyId, digestInDb,
+                        digestByOfferId);
+                if (digestValidationDetails.hasError()) {
+                    String errorMessage = String
+                        .format("All digests are inconsistent for metadata with id=%s in offers %s. Digest in db : %s",
+                            id, digestByOfferId.toString(), digestInDb);
+                    LOGGER.error(errorMessage);
+                    listMetadataIdKo.add(id);
+                } else {
+                    result.put(id, digestValidationDetails);
+                }
             }
+        }
+
+        if (!listMetadataIdKo.isEmpty()) {
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+            String message =
+                "There are at least" + listMetadataIdKo.size() +
+                    " metadata with inconsistent digest between database and offers";
+            evDetData.put("error", message);
+            evDetData.putPOJO("idObjectKo", listMetadataIdKo);
+            throw new ProcessingStatusException(StatusCode.KO, evDetData, message);
         }
 
         return result;
@@ -317,7 +347,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private Map<String, Map<String, DigestValidationDetails>> computeObjectDigests(
         List<LfcMetadataPair> lfcMetadataPairList, String lifecycleType,
         StorageClient storageClient, DigestValidator digestValidator, StrategyIdOfferIdLoader strategyIdOfferIdLoader)
-        throws StorageServerClientException, ProcessingException {
+        throws StorageServerClientException, ProcessingException, ProcessingStatusException {
 
         if (lifecycleType.equals(LogbookLifeCycleUnit.class.getName())) {
             return Collections.emptyMap();
@@ -353,6 +383,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
             }
         }
 
+        List<String> listObjectIdKo = new ArrayList<>();
         Map<String, Map<String, DigestValidationDetails>> result = new HashMap<>();
         for (String strategyId : objectIdsByStrategyId.keySet()) {
 
@@ -371,10 +402,30 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
                 Map<String, DigestValidationDetails> digestValidationDetailsByObjectId =
                     result.computeIfAbsent(objectGroupId, (unused) -> new HashMap<>());
 
-                digestValidationDetailsByObjectId.put(
-                    objectId, digestValidator.validateObjectDigest(objectId, strategyId, dbDigest, offerDigest));
+                DigestValidationDetails digestValidationDetails =
+                    digestValidator.validateObjectDigest(objectId, strategyId, dbDigest, offerDigest);
+                if (digestValidationDetails.hasError()) {
+                    String errorMessage = String
+                        .format("All digests are inconsistent for object with id=%s in offers %s. Digest in db : %s",
+                            objectId, offerDigest.toString(), dbDigest);
+                    LOGGER.error(errorMessage);
+                    listObjectIdKo.add(objectId);
+                } else {
+                    digestValidationDetailsByObjectId.put(objectId, digestValidationDetails);
+                }
             }
 
+        }
+
+        if (!listObjectIdKo.isEmpty()) {
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+            String message =
+                "There are at least" + listObjectIdKo.size() +
+                    " objects with inconsistent digest between database and offers";
+            evDetData.put("error", message);
+
+            evDetData.putPOJO("idObjectKo", listObjectIdKo);
+            throw new ProcessingStatusException(StatusCode.KO, evDetData, message);
         }
 
         return result;

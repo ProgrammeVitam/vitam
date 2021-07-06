@@ -36,9 +36,6 @@ public class EntryTraceabilityStatistics {
     @JsonProperty("nbWarnings")
     private int nbWarnings = 0;
 
-    @JsonProperty("nbErrors")
-    private int nbErrors = 0;
-
     public EntryTraceabilityStatistics() {
         // Empty constructor for deserialization
     }
@@ -46,7 +43,6 @@ public class EntryTraceabilityStatistics {
     public EntryTraceabilityStatistics(int nbOK, int nbWarnings, int nbErrors) {
         this.nbOK = nbOK;
         this.nbWarnings = nbWarnings;
-        this.nbErrors = nbErrors;
     }
 
     public int getNbOK() {
@@ -57,7 +53,5 @@ public class EntryTraceabilityStatistics {
         return nbWarnings;
     }
 
-    public int getNbErrors() {
-        return nbErrors;
-    }
+
 }

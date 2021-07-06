@@ -188,7 +188,6 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         // Then
         assertThat(helper.getTraceabilityStatistics().getUnits().getNbOK()).isEqualTo(1);
         assertThat(helper.getTraceabilityStatistics().getUnits().getNbWarnings()).isEqualTo(2);
-        assertThat(helper.getTraceabilityStatistics().getUnits().getNbErrors()).isEqualTo(3);
         assertThat(helper.getTraceabilityStatistics().getObjectGroups()).isNull();
         assertThat(helper.getTraceabilityStatistics().getObjects()).isNull();
     }
