@@ -36,18 +36,18 @@ public class DigestValidationDetails {
     private final String globalDigest;
     private final String digestInDb;
     private final Map<String, String> digestByOfferId;
-    private final boolean hasErrors;
-    private final boolean hasWarnings;
+    private final boolean hasInconsistencies;
+    private final boolean hasError;
 
     public DigestValidationDetails(String strategyId, Set<String> offerIds, String globalDigest,
-        String digestInDb, Map<String, String> digestByOfferId, boolean hasErrors, boolean hasWarnings) {
+        String digestInDb, Map<String, String> digestByOfferId, boolean hasInconsistencies, boolean hasError) {
         this.strategyId = strategyId;
         this.offerIds = offerIds;
         this.globalDigest = globalDigest;
         this.digestInDb = digestInDb;
         this.digestByOfferId = digestByOfferId;
-        this.hasErrors = hasErrors;
-        this.hasWarnings = hasWarnings;
+        this.hasInconsistencies = hasInconsistencies;
+        this.hasError = hasError;
     }
 
     String getStrategyId() {
@@ -71,14 +71,10 @@ public class DigestValidationDetails {
     }
 
     public boolean hasInconsistencies() {
-        return hasErrors || hasWarnings;
+        return hasInconsistencies;
     }
 
-    public boolean isHasErrors() {
-        return hasErrors;
-    }
-
-    public boolean isHasWarnings() {
-        return hasWarnings;
+    public boolean hasError() {
+        return hasError;
     }
 }
