@@ -1,10 +1,10 @@
-Notes et procédures spécifiques R13
+Notes et procédures spécifiques R16
 ###################################
 
 Migrations offres Swift V2 & V3 en cas de présence d'objets très volumineux (4Go+)
 ----------------------------------------------------------------------------------
 
-Si vous disposez d'une instance R13.16 ou inférieur (3.0.16-), vers une version R13.17+ (3.0.17+), et que vous utilisez des offres Swift V2/V3 (providers openstack-swift-v2 et/ou openstack-swift-v3), il est nécessaire de procéder à une migration des données :
+Si vous disposez d'une instance R16.3 ou inférieur (4.0.3-), vers une version R16.4+ (4.0.4+), et que vous utilisez des offres Swift V2/V3 (providers openstack-swift-v2 et/ou openstack-swift-v3), il est nécessaire de procéder à une migration des données :
 
 .. code-block:: bash
 

@@ -412,4 +412,8 @@ public class Swift extends ContentAddressableStorageAbstract {
     private VitamSwiftObjectStorageService getObjectStorageService() {
         return new VitamSwiftObjectStorageService(this.osClient);
     }
+
+    public Supplier<OSClient> getOsClient() {
+        return osClient;
+    }
 }
