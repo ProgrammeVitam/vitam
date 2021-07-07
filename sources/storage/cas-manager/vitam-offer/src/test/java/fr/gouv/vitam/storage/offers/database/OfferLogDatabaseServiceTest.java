@@ -29,12 +29,14 @@ package fr.gouv.vitam.storage.offers.database;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoIterable;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
@@ -50,6 +52,7 @@ import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +61,7 @@ import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OF
 import static fr.gouv.vitam.storage.engine.common.model.OfferLogAction.DELETE;
 import static fr.gouv.vitam.storage.engine.common.model.OfferLogAction.WRITE;
 import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -74,6 +78,9 @@ public class OfferLogDatabaseServiceTest {
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     private OfferLogDatabaseService service;
 
@@ -228,14 +235,14 @@ public class OfferLogDatabaseServiceTest {
 
     @Test
     public void should_get_expired_offer_logs()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException, InterruptedException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Given
-        OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(3, SECONDS, 10);
+        OfferLogCompactionConfiguration request = new OfferLogCompactionConfiguration(3, MINUTES, 10);
 
         String firstFileName = "MY_FIRST_FILE";
         service.save("Container1", firstFileName, WRITE, 1L);
 
-        TimeUnit.SECONDS.sleep(3);
+        logicalClock.logicalSleep(3, ChronoUnit.MINUTES);
 
         service.bulkSave("Container1", Arrays.asList("file1", "file2", "file3"), WRITE, 2L);
 
