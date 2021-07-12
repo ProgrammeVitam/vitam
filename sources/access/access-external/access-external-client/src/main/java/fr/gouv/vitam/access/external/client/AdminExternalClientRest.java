@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
@@ -182,6 +183,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.ACCESSION_REGISTERS, select,
             AccessionRegisterSummaryModel.class);
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterDetailModel> findAccessionRegisterDetails(
+        VitamContext vitamContext, JsonNode select)
+        throws VitamClientException {
+        return internalFindDocuments(vitamContext, AdminCollections.ACCESSION_REGISTER_DETAILS, select,
+            AccessionRegisterDetailModel.class);
     }
 
     @Override

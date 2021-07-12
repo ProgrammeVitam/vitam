@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
@@ -231,6 +232,12 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
+        throw new IllegalStateException("Do not use this; please");
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterDetailModel> findAccessionRegisterDetails(
+        VitamContext vitamContext, JsonNode select) {
         throw new IllegalStateException("Do not use this; please");
     }
 

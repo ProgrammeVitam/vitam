@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
@@ -186,6 +187,18 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      */
     RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(
+        VitamContext vitamContext, JsonNode select)
+        throws VitamClientException;
+
+    /**
+     * Find accession register details.
+     *
+     * @param vitamContext the vitam context
+     * @param select select query
+     * @return list of accession register details
+     * @throws VitamClientException
+     */
+    RequestResponse<AccessionRegisterDetailModel> findAccessionRegisterDetails(
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 

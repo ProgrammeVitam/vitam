@@ -1023,6 +1023,14 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.post();
         }
 
+        @GET
+        @Path(AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAccessionRegisterDetails(JsonNode queryDsl) {
+            return expectedResponse.get();
+        }
+
         @POST
         @Path(AccessExtAPI.TRACEABILITY_API + "/check")
         @Consumes(MediaType.APPLICATION_JSON)

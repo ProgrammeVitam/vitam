@@ -1,0 +1,51 @@
+[
+    {
+      "ObjectSize": {
+        "ingested": 12,
+        "deleted": 0,
+        "remained": 12
+      },
+      "#id": "aehaaaaaaaeaaaabab3n6al2qf4olxqaaaaq",
+      "#tenant": 0,
+      "#version": 0,
+      "OriginatingAgency": "FRAN_NP_009913",
+      "SubmissionAgency": "FRAN_NP_009913",
+      "ArchivalAgreement": "ArchivalAgreement0",
+      "EndDate": "2021-07-07T14:57:01.918",
+      "StartDate": "2021-07-07T14:57:01.918",
+      "LastUpdate": "2021-07-07T14:57:01.918",
+      "Status": "STORED_AND_COMPLETED",
+      "TotalObjectGroups": {
+        "ingested": 2,
+        "deleted": 0,
+        "remained": 2
+      },
+      "TotalUnits": {
+        "ingested": 4,
+        "deleted": 0,
+        "remained": 4
+      },
+      "TotalObjects": {
+        "ingested": 2,
+        "deleted": 0,
+        "remained": 2
+      },
+      "Opc": "aeeaaaaaaceaaaabab3n6al2qf4lkayaaaaq",
+      "Opi": "aeeaaaaaaceaaaabab3n6al2qf4lkayaaaaq",
+      "OpType": "INGEST",
+      "Events": [
+        {
+          "Opc": "aeeaaaaaaceaaaabab3n6al2qf4lkayaaaaq",
+          "OpType": "INGEST",
+          "Gots": 2,
+          "Units": 4,
+          "Objects": 2,
+          "ObjSize": 12,
+          "CreationDate": "2021-07-07T14:57:01.919"
+        }
+      ],
+      "OperationIds": [
+        "aeeaaaaaaceaaaabab3n6al2qf4lkayaaaaq"
+      ]
+    }
+  ]

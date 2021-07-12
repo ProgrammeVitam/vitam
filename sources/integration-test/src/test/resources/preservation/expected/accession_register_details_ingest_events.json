@@ -1,0 +1,96 @@
+[
+    {
+      "ObjectSize": {
+        "ingested": 18,
+        "deleted": 0,
+        "remained": 18
+      },
+      "#id": "aehaaaaaaaeaaaababdr2al2qka4r2qaaaaq",
+      "#tenant": 0,
+      "#version": 0,
+      "OriginatingAgency": "RATP",
+      "EndDate": "2021-07-07T19:46:21.546",
+      "StartDate": "2021-07-07T19:46:21.546",
+      "LastUpdate": "2021-07-07T19:46:21.546",
+      "Status": "STORED_AND_COMPLETED",
+      "TotalObjectGroups": {
+        "ingested": 0,
+        "deleted": 0,
+        "remained": 0
+      },
+      "TotalUnits": {
+        "ingested": 0,
+        "deleted": 0,
+        "remained": 0
+      },
+      "TotalObjects": {
+        "ingested": 3,
+        "deleted": 0,
+        "remained": 3
+      },
+      "Opc": "aecaaaaaaceaaaababdr2al2qka32naaaaaq",
+      "Opi": "aecaaaaaaceaaaababdr2al2qka32naaaaaq",
+      "OpType": "PRESERVATION",
+      "Events": [
+        {
+          "Opc": "aecaaaaaaceaaaababdr2al2qka32naaaaaq",
+          "OpType": "PRESERVATION",
+          "Gots": 0,
+          "Units": 0,
+          "Objects": 3,
+          "ObjSize": 18,
+          "CreationDate": "2021-07-07T19:46:21.546"
+        }
+      ],
+      "OperationIds": [
+        "aecaaaaaaceaaaababdr2al2qka32naaaaaq"
+      ]
+    },
+    {
+      "ObjectSize": {
+        "ingested": 156647,
+        "deleted": 0,
+        "remained": 156647
+      },
+      "#id": "aehaaaaaaaeaaaababdr2al2qka4s7yaaaaq",
+      "#tenant": 0,
+      "#version": 0,
+      "OriginatingAgency": "FRAN_NP_009913",
+      "EndDate": "2021-07-07T19:46:21.695",
+      "StartDate": "2021-07-07T19:46:21.695",
+      "LastUpdate": "2021-07-07T19:46:21.695",
+      "Status": "STORED_AND_COMPLETED",
+      "TotalObjectGroups": {
+        "ingested": 0,
+        "deleted": 0,
+        "remained": 0
+      },
+      "TotalUnits": {
+        "ingested": 0,
+        "deleted": 0,
+        "remained": 0
+      },
+      "TotalObjects": {
+        "ingested": 4,
+        "deleted": 0,
+        "remained": 4
+      },
+      "Opc": "aecaaaaaaceaaaababdr2al2qka32naaaaaq",
+      "Opi": "aecaaaaaaceaaaababdr2al2qka32naaaaaq",
+      "OpType": "PRESERVATION",
+      "Events": [
+        {
+          "Opc": "aecaaaaaaceaaaababdr2al2qka32naaaaaq",
+          "OpType": "PRESERVATION",
+          "Gots": 0,
+          "Units": 0,
+          "Objects": 4,
+          "ObjSize": 156647,
+          "CreationDate": "2021-07-07T19:46:21.695"
+        }
+      ],
+      "OperationIds": [
+        "aecaaaaaaceaaaababdr2al2qka32naaaaaq"
+      ]
+    }
+  ]
