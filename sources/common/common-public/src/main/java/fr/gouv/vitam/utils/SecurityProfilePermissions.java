@@ -149,7 +149,8 @@ public enum SecurityProfilePermissions {
     MANAGEMENTCONTRACTS_ID_UPDATE("managementcontracts:id:update"),
     TRANSFERS_REPLY("transfers:reply"),
     STORAGEACCESSLOG_READ_BINARY("storageaccesslog:read:binary"),
-    AUDIT_DATA_CONSISTENCY("audit:data:consistency");
+    AUDIT_DATA_CONSISTENCY("audit:data:consistency"),
+    ACCESSIONREGISTER_DETAILS_READ("accessionregisterdetails:read");
 
 
     private final String permission;

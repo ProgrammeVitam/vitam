@@ -1364,13 +1364,50 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
+     * getAccessionRegisterDetails using get method
+     *
+     * @param select the DSL select query to find documents
+     * @return Response
+     */
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = ACCESSIONREGISTER_DETAILS_READ,
+        description = "Lister le contenu du référentiel détails des registres des fonds")
+    public Response getAccessionRegisterDetails(@Dsl(value = SELECT_SINGLE) JsonNode select) {
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            SanityChecker.checkJsonAll(select);
+            final RequestResponse result = client.getAccessionRegisterDetail(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
+                .toResponse();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
+                .toResponse();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
+                .toResponse();
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
+                .toResponse();
+        }
+    }
+
+    /**
      * Retrieve accession register symbolic
      *
      * @param select the select query to find document
      * @return an accession register symbolic
      */
     @GET
-    @Path("accessionregisterssymbolic")
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_SYMBOLIC)
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = ACCESSIONREGISTERSSYMBOLIC_READ, description = "Get accession register symbolic")

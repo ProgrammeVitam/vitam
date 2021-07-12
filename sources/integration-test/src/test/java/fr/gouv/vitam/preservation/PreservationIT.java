@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
@@ -74,6 +76,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.griffin.GriffinReport;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -423,7 +426,7 @@ public class PreservationIT extends VitamRuleRunner {
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText()).allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
-            validateAccessionRegisterDetails(excludeFields);
+            validateAccessionRegisterDetails(excludeFields, operationGuid.toString());
         }
     }
 
@@ -573,23 +576,59 @@ public class PreservationIT extends VitamRuleRunner {
         client.importGriffins(Collections.emptyList());
     }
 
-    private void validateAccessionRegisterDetails(List<String> excludeFields)
-        throws FileNotFoundException, InvalidParseOperationException {
+    private void validateAccessionRegisterDetails(List<String> excludeFields, String operationId)
+        throws FileNotFoundException, InvalidParseOperationException, ReferentialException,
+        InvalidCreateOperationException {
         long countDetails;
         // Get accession register details after start preservation
         countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments();
         assertThat(countDetails).isEqualTo(6);
 
+        JsonNode query = getQueryDslByOpiType(operationId);
+
+        // when check after preservation, the list of accession register details is not empty
+        try (AdminManagementClient mgtClient = AdminManagementClientFactory.getInstance().getClient()) {
+
+            RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailsIngestOpiType =
+                (RequestResponseOK<AccessionRegisterDetailModel>) mgtClient
+                    .getAccessionRegisterDetail(query);
+
+            assertThat(accessionRegisterDetailsIngestOpiType.getResults().size()).isEqualTo(2);
+
+            // advanced additionnal checks
+            verifyExpectedAccessionRegisterDetails(accessionRegisterDetailsIngestOpiType, excludeFields);
+        }
+
         // Assert AccessionRegisterSummary
         assertJsonEquals("preservation/expected/accession_register_ratp_after.json",
-            JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .find(new Document("OriginatingAgency", "RATP")))),
+            JsonHandler
+                .toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
             excludeFields);
 
         assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_after.json",
-            JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .find(new Document("OriginatingAgency", "FRAN_NP_009913")))),
+            JsonHandler
+                .toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "FRAN_NP_009913")))),
             excludeFields);
+    }
+
+    private void verifyExpectedAccessionRegisterDetails(
+        RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailsIngestOpType,
+        List<String> excludeFields)
+        throws InvalidParseOperationException, FileNotFoundException {
+        excludeFields.add("#id");
+        // Assert AccessionRegisterDetails of ingest events
+        assertJsonEquals("preservation/expected/accession_register_details_ingest_events.json",
+            JsonHandler.toJsonNode(accessionRegisterDetailsIngestOpType.getResultsAsJsonNodes()),
+            excludeFields);
+    }
+
+    private static JsonNode getQueryDslByOpiType(String operationId) throws InvalidCreateOperationException {
+        Select select = new Select();
+        Query query = QueryHelper.eq(AccessionRegisterDetailModel.OPI, operationId);
+        select.setQuery(query);
+        return select.getFinalSelect();
     }
 
     private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)

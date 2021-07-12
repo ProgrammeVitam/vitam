@@ -72,14 +72,19 @@ public enum AdminCollections {
     CONTEXTS(AccessExtAPI.CONTEXTS, null),
 
     /**
-     * Accession register collection
+     * Accession register summarry collection
      */
     ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS, null),
 
     /**
-     * Accession register collection
+     * Accession register symbolic collection
      */
     ACCESSION_REGISTERS_SYMBOLIC(AccessExtAPI.ACCESSION_REGISTERS_SYMBOLIC, null),
+
+    /**
+     * Accession register detail collection
+     */
+    ACCESSION_REGISTER_DETAILS(AccessExtAPI.ACCESSION_REGISTERS_DETAIL, null),
 
     /**
      * Archive unit profile collection

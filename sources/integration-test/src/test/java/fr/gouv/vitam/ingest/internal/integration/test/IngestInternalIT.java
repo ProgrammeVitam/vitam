@@ -94,6 +94,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
@@ -603,6 +604,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             } catch (AccessInternalClientNotFoundException ex) {
                 LOGGER.error(ex + " | " + response.toString());
             }
+
+            // when ingest then the list of accession register details is not empty
+            try (AdminManagementClient mgtClient = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailModelRequestResponseOK =
+                    (RequestResponseOK<AccessionRegisterDetailModel>) mgtClient
+                        .getAccessionRegisterDetail(new Select().getFinalSelect());
+                assertThat(accessionRegisterDetailModelRequestResponseOK.getResults().size()).isNotZero();
+            }
+
         } catch (final Exception e) {
             LOGGER.error(e);
             SearchResponse elasticSearchResponse =

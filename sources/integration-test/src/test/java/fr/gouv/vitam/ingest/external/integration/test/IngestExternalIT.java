@@ -45,6 +45,9 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,6 +59,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -75,21 +79,23 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -194,6 +200,25 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
                 .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
                 .isEqualTo(StatusCode.OK);
+
+
+            JsonNode queryDslByOpi = getQueryDslByOpi(operationId);
+
+            RequestResponse<AccessionRegisterDetailModel> accessionRegisterDetailsResponse = adminExternalClient
+                .findAccessionRegisterDetails(new VitamContext(tenantId), queryDslByOpi);
+
+            List<AccessionRegisterDetailModel> accessionRegisterDetailsResults = ((RequestResponseOK<AccessionRegisterDetailModel>)
+                accessionRegisterDetailsResponse).getResults();
+
+            assertThat(accessionRegisterDetailsResults.size()).isEqualTo(1);
+
+            // Assert AccessionRegisterDetails result list
+            assertJsonEquals("integration-ingest-external/expected_accession_register_details.json",
+                JsonHandler.toJsonNode(((RequestResponseOK<AccessionRegisterDetailModel>) accessionRegisterDetailsResponse).getResultsAsJsonNodes()),
+                Lists
+                    .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate",
+                        "OperationIds", "#id"));
+
         }
     }
 
@@ -645,5 +670,36 @@ public class IngestExternalIT extends VitamRuleRunner {
             assertTrue(operationResponse.isOk());
             return operationId;
         }
+    }
+
+    private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)
+        throws FileNotFoundException, InvalidParseOperationException {
+        JsonNode expected = getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile));
+        if (excludeFields != null) {
+            expected.forEach(e -> {
+                ObjectNode ee = (ObjectNode) e;
+                ee.remove(excludeFields);
+                if (ee.has("Events")) {
+                    ee.get("Events").forEach(a -> ((ObjectNode) a).remove(excludeFields));
+                }
+            });
+            actual.forEach(e -> {
+                ObjectNode ee = (ObjectNode) e;
+                ee.remove(excludeFields);
+                if (ee.has("Events")) {
+                    ee.get("Events").forEach(a -> ((ObjectNode) a).remove(excludeFields));
+                }
+            });
+        }
+
+        JsonAssert
+            .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
+    }
+
+    private static JsonNode getQueryDslByOpi(String Opi) throws InvalidCreateOperationException {
+        Select select = new Select();
+        Query query = QueryHelper.eq(AccessionRegisterDetailModel.OPI, Opi);
+        select.setQuery(query);
+        return select.getFinalSelect();
     }
 }

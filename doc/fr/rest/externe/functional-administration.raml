@@ -220,6 +220,29 @@ documentation:
           - accessionregisters:id:accessionregisterdetails:read
       is: [AdminTraits.AdminListingResponse]
 
+/accessionregisterdetails:
+  displayName: Détails de Registres des fonds
+  description: API sur les détails de registres des fonds (AccessionRegisterDetail).
+  is: [ StandardTraits.StandardOptionalHeader ]
+  get:
+    description: |
+      Recherche sur les détails de registres de fonds grâce à la requête donnée en entrée
+
+      Permissions requises:
+        - accessionregisterdetails:read
+    is: [AdminTraits.AdminListingResponse]
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    body:
+      application/json:
+        description: Requête DSL de type **recherche simple (SELECT SINGLE)** de VITAM.
+        example: !include libraries/examples/dslQuery.json
+
 /accesscontracts:
   displayName: Access contracts
   description: |

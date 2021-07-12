@@ -26,12 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -40,7 +35,11 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import org.assertj.core.api.Fail;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Step defining Accession register behavior
@@ -68,6 +67,22 @@ public class AccessionRegisterStep {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<AccessionRegisterSummaryModel> requestResponse =
             world.getAdminClient().findAccessionRegister(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON);
+        this.requestResponse = requestResponse;
+    }
+
+    /**
+     * Search accession register details by query
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche les détails des registres de fonds$")
+    public void search_accession_register_details() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<AccessionRegisterDetailModel> requestResponse =
+            world.getAdminClient().findAccessionRegisterDetails(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
                 queryJSON);
