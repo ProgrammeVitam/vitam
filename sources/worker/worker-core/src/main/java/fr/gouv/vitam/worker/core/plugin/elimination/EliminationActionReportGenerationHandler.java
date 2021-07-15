@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.Report;
@@ -34,20 +36,27 @@ import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.GenericReportGenerationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-
-import java.time.LocalDateTime;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -55,20 +64,23 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 /**
  * Elimination action finalization handler.
  */
-public class EliminationActionReportGenerationHandler extends ActionHandler {
+public class EliminationActionReportGenerationHandler extends GenericReportGenerationHandler {
 
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(EliminationActionReportGenerationHandler.class);
 
     private static final String ELIMINATION_ACTION_REPORT_GENERATION = "ELIMINATION_ACTION_REPORT_GENERATION";
+    private static final String LOGBOOK_ACTION_KEY = "ELIMINATION_ACTION_DELETE_UNIT";
 
     private final EliminationActionReportService eliminationActionReportService;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+
 
     /**
      * Default constructor
      */
     public EliminationActionReportGenerationHandler() {
-        this(new EliminationActionReportService());
+        this(new EliminationActionReportService(), LogbookOperationsClientFactory.getInstance());
     }
 
     /***
@@ -76,8 +88,10 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
      */
     @VisibleForTesting
     EliminationActionReportGenerationHandler(
-        EliminationActionReportService eliminationActionReportService) {
+        EliminationActionReportService eliminationActionReportService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.eliminationActionReportService = eliminationActionReportService;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     @Override
@@ -86,9 +100,11 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
 
         try {
 
-            generateEliminationReportToWorkspace(param);
+            storeReportToWorkspace(param);
 
             storeReportToOffers(param.getContainerName());
+
+            cleanupReport(param.getContainerName());
 
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, StatusCode.OK, null);
@@ -99,44 +115,38 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         }
     }
 
-    private void generateEliminationReportToWorkspace(WorkerParameters param) throws ProcessingStatusException {
+    private void storeReportToWorkspace(WorkerParameters param)
+        throws ProcessingStatusException, ProcessingException {
+        try {
+            if (eliminationActionReportService.isReportWrittenInWorkspace(param.getContainerName())) {
+                // Already stored in workspace (idempotency)
+                return;
+            }
 
-        if (eliminationActionReportService.isReportWrittenInWorkspace(param.getContainerName())) {
-            // Report already generated to workspace (idempotency)
-            return;
+            Report reportInfo = generateReport(param, getLogbookInformation(param));
+            eliminationActionReportService.storeReportToWorkspace(reportInfo);
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingException(e);
         }
-
-        Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
-        String evId = param.getContainerName();
-        String evType = ""; // FIXME To be Fill in a post commit
-        String outcome = ""; // FIXME To be Fill in a post commit
-        String outDetail = ""; // FIXME To be Fill in a post commit
-        String outMsg = ""; // FIXME To be Fill in a post commit
-        // VitamThreadUtils.getVitamSession().getContractId();
-        // VitamThreadUtils.getVitamSession().getContextId();
-        // rSI = {AccessContract: contractId, Context: contextId }
-        // FIXME: What should we put in rightsStatementIdentifier for Elimination ?
-        JsonNode rSI = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        JsonNode evDetData = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        OperationSummary operationSummary =
-            new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
-
-        String startDate = null; // FIXME To be Fill in a post commit
-        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
-        ReportType reportType = ReportType.ELIMINATION_ACTION;
-        ReportResults vitamResults = new ReportResults(); // FIXME To be Fill in a post commit
-        JsonNode extendedInfo = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
-
-        JsonNode context = JsonHandler.createObjectNode();
-
-        Report reportInfo = new Report(operationSummary, reportSummary, context);
-
-        eliminationActionReportService.storeReportToWorkspace(reportInfo);
     }
+
+    private LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException {
+        try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
+            JsonNode response = logbookClient.selectOperationById(param.getContainerName());
+            RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
+            return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
+        } catch (InvalidParseOperationException | LogbookClientException e) {
+             throw new ProcessingException(e);
+        }
+    }
+
 
     private void storeReportToOffers(String containerName) throws ProcessingStatusException {
         eliminationActionReportService.storeReportToOffers(containerName);
+    }
+
+    private void cleanupReport(String containerName) throws ProcessingStatusException {
+        eliminationActionReportService.cleanupReport(containerName);
     }
 
     @Override
@@ -146,5 +156,15 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
 
     public static String getId() {
         return ELIMINATION_ACTION_REPORT_GENERATION;
+    }
+
+    @Override
+    public ReportType getReportType() {
+        return ReportType.ELIMINATION_ACTION;
+    }
+
+    @Override
+    public String getLogbookActionKey() {
+        return LOGBOOK_ACTION_KEY;
     }
 }
