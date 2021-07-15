@@ -375,10 +375,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         String nextMarker = null;
         do {
-            //TODO #8205 bug  pour récupérer la liste des objet dans le container
-            // supprimer le path dans ObjectListOptions pour récupérer la liste des objets dans le container
             ObjectListOptions objectListOptions = ObjectListOptions.create()
-                .path(containerName)
                 .limit(LISTING_MAX_RESULTS);
 
             if (nextMarker != null) {
@@ -393,6 +390,9 @@ public class Swift extends ContentAddressableStorageAbstract {
             }
 
             for (SwiftObject swiftObject : swiftObjects) {
+
+                // FIXME : Skip large object segments #8324
+
                 objectListingListener.handleObjectEntry(new ObjectEntry(
                     swiftObject.getName(),
                     swiftObject.getSizeInBytes()
