@@ -65,8 +65,8 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
     private final Identifier domainIdentifier;
     private final Identifier projectIdentifier;
 
-    private static AtomicReference<Token> atomicToken = new AtomicReference<>(null);
-    private static AtomicBoolean oneThread = new AtomicBoolean(true);
+    private final AtomicReference<Token> atomicToken = new AtomicReference<>(null);
+    private final AtomicBoolean oneThread = new AtomicBoolean(true);
 
 
     public SwiftKeystoneFactoryV3(StorageConfiguration configuration)

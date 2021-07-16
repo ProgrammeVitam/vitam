@@ -1,0 +1,43 @@
+---
+
+- name: "Wait until offer service is up"
+  wait_for:
+    host: "{{ hostvars[inventory_hostname]['ip_admin'] }}"
+    port: "{{ vitam.storageofferdefault.port_admin }}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+  run_once: true
+
+- name: "Start Swift migration"
+  uri:
+    method: POST
+    status_code: 202
+    force_basic_auth: yes
+    user: "{{ admin_basic_auth_user }}"
+    password: "{{ admin_basic_auth_password }}"
+    timeout: "{{ vitam_defaults.services.api_call_timeout }}"
+    body: "{ \"swiftMigrationMode\" : \"{{ swiftMigrationMode }}\" }"
+    url: "http://{{ hostvars[inventory_hostname]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin }}/offer/v1/swift-migration"
+    body_format: "json"
+  run_once: true
+
+- name: Wait until Swift migration is finished
+  command: "curl -I --silent -u {{ admin_basic_auth_user }}:{{ admin_basic_auth_password }} -k -H \"Host: {{ ip_service }}\" http://{{ hostvars[inventory_hostname]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin }}/offer/v1/swift-migration"
+  register: result
+  until: result.stdout.find("200 OK") != -1
+  retries: "{{ nb_retries }}"
+  delay: 10
+
+- name: Check Swift migration status
+  uri:
+    method: GET
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ admin_basic_auth_user }}"
+    password: "{{ admin_basic_auth_password }}"
+    url: "http://{{ hostvars[inventory_hostname]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin }}/offer/v1/swift-migration"
+    body_format: "json"
+    return_content: true
+    headers:
+      Accept: application/json
+  run_once: true

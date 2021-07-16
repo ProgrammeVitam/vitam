@@ -1,0 +1,94 @@
+---
+# Confirm launching this playbook
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "Are you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+
+# Select/validate migration mode
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars:
+    - swiftMigrationModes: {
+      '0': 'MODE_0_ANALYSIS_ONLY',
+      '1': 'MODE_1_FIX_INCONSISTENCIES',
+      '2': 'MODE_2_FIX_INCONSISTENCIES_AND_PURGE_DELETED'
+    }
+  vars_prompt:
+    name: "migration_mode"
+    prompt: |
+      Please select migration mode.
+      > Enter '0' for analysis only mode : This mode will only log anomalies (in offer technical logs), no update will be proceeded
+      > Enter '1' to fix inconsistencies : This mode will update swift objects to fix inconsistencies. However, this does not prune objects (delete partially written or eliminated objects segments to free space).
+      > Enter '2' to fix inconsistencies and purge all deleted objects segments to free storage space.
+    default: ""
+    private: no
+  tasks:
+    - name: Check migration mode
+      fail: msg="Invalid migration mode"
+      when: migration_mode not in ["0", "1", "2"]
+    - name:
+      set_fact:
+        swiftMigrationMode: "{{ swiftMigrationModes[migration_mode] }}"
+# Select/validate offerId
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  run_once: true
+  vars_prompt:
+    - name: "offerId"
+      prompt: "Please select Swift offer to migrate"
+      private: no
+  tasks:
+    - name: "Check offerId format"
+      assert:
+        that:
+          - offerId is defined and offerId != ''
+    - name: "Check offer is defined"
+      assert:
+        that:
+          - vitam_offers[offerId] is defined
+    - name: "Check offer type is a valid openstack-swift-v2 or openstack-swift-v3 instance"
+      assert:
+        that:
+          - vitam_offers[offerId]["provider"] in ["openstack-swift-v2","openstack-swift-v3"]
+    - name: "Select corresponding offer_hosts"
+      set_fact:
+        offer_hosts: "{{ offer_hosts|default([]) + [item] }}"
+      with_items: "{{ groups['hosts_storage_offer_default'] }}"
+      when: hostvars[item].offer_conf == offerId
+    - name: "Check non empty offer_hosts"
+      assert:
+        that:
+          - (offer_hosts|default([])) | length > 0
+    - debug:
+        msg: 'Target host name {{ (offer_hosts|last) }}'
+
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "double_confirmation"
+    prompt: "Are you sure you want to run swift migration ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Double confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: double_confirmation|upper != "YES"
+
+- hosts: hosts_storage_offer_default
+  any_errors_fatal: yes
+  gather_facts: no
+  run_once: true
+  roles:
+    - { role: migration_swift_v2_and_v3, when: "inventory_hostname == (offer_hosts|last)" }

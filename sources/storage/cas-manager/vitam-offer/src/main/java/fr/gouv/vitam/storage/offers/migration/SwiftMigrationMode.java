@@ -24,39 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.rest;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
-import io.swagger.v3.oas.annotations.tags.Tag;
+package fr.gouv.vitam.storage.offers.migration;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+public enum SwiftMigrationMode {
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+    MODE_0_ANALYSIS_ONLY(false, false, "Analysis-only mode"),
+    MODE_1_FIX_INCONSISTENCIES(true, false, "Fix inconsistencies mode"),
+    MODE_2_FIX_INCONSISTENCIES_AND_PURGE_DELETED(true, true, "Fix inconsistencies and purge deleted mode");
 
-@Path("/offer/v1")
-@ApplicationPath("webresources")
-@Tag(name = "Admin-Offer")
-public class AdminOfferResource extends ApplicationStatusResource {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOfferResource.class);
+    private final boolean fixInconsistencies;
+    private final boolean deleteOrphanSegments;
+    private final String label;
 
-    private final DefaultOfferService defaultOfferService;
-
-    public AdminOfferResource(DefaultOfferService defaultOfferService) {
-        this.defaultOfferService = defaultOfferService;
+    SwiftMigrationMode(boolean fixInconsistencies, boolean deleteOrphanSegments, String label) {
+        this.fixInconsistencies = fixInconsistencies;
+        this.deleteOrphanSegments = deleteOrphanSegments;
+        this.label = label;
     }
 
-    @POST
-    @Path("/compaction")
-    @Consumes(APPLICATION_JSON)
-    public void launchOfferLogCompaction() throws Exception {
-        LOGGER.info("Starting offer compaction.");
-        defaultOfferService.compactOfferLogs();
-        LOGGER.info("End offer compaction.");
+    public boolean isFixInconsistencies() {
+        return fixInconsistencies;
+    }
+
+    public boolean isDeleteOrphanSegments() {
+        return deleteOrphanSegments;
+    }
+
+    @Override
+    public String toString() {
+        return label;
     }
 }
