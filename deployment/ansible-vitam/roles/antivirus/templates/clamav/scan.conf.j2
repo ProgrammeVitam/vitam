@@ -101,7 +101,7 @@ ExtendedDetectionInfo yes
 
 # TCP port address.
 # Default: no
-TCPSocket {{ clamav.port }}
+TCPSocket {{ clamav.port | default(3310) }}
 
 # TCP address.
 # By default we bind to INADDR_ANY, probably not wise.
@@ -123,6 +123,7 @@ TCPAddr 127.0.0.1
 # The value should match your MTA's limit for a maximum attachment size.
 # Default: 25M
 #StreamMaxLength 10M
+StreamMaxLength {{ clamav.conf.StreamMaxLength | default('4095M') }}
 
 # Limit port range.
 # Default: 1024
@@ -195,7 +196,7 @@ TCPAddr 127.0.0.1
 
 # Run as another user (clamd must be started by root for this option to work)
 # Default: don't drop privileges
-User {{ vitam_defaults.users.vitam }}
+User {{ vitam_defaults.users.vitam | default('vitam') }}
 
 # Initialize supplementary group access (clamd must be started by root).
 # Default: no
@@ -464,6 +465,7 @@ AlertEncrypted yes
 # to the system.
 # Default: 100M
 #MaxScanSize 150M
+MaxScanSize {{ clamav.conf.MaxScanSize | default(0) }}
 
 # Files larger than this limit won't be scanned. Affects the input file itself
 # as well as files contained inside it (when the input file is an archive, a
@@ -473,6 +475,7 @@ AlertEncrypted yes
 # to the system.
 # Default: 25M
 #MaxFileSize 30M
+MaxFileSize {{ clamav.conf.MaxFileSize | default(0) }}
 
 # Nested archives are scanned recursively, e.g. if a Zip archive contains a RAR
 # file, all files within it will also be scanned. This options specifies how
@@ -488,6 +491,7 @@ AlertEncrypted yes
 # to the system.
 # Default: 10000
 #MaxFiles 15000
+MaxFiles {{ clamav.conf.MaxFiles | default(0) }}
 
 # Maximum size of a file to check for embedded PE. Files larger than this value
 # will skip the additional analysis step.
