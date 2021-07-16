@@ -283,28 +283,25 @@ public class SwiftTest {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
-        givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/1");
-        givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/2");
-        givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/3");
+        givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/\\d{8}");
         givenPutObjectReturns20x();
         givenGetObjectReturns20x(data);
         givenPostObjetReturns20x();
 
-        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 300L);
 
         // When / Then
         assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
             VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
 
-        // Expected 4x PUT (3x parts + 1x manifest) + GET (read to recompute digest) + POST (update metadata)
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/1"))
-            .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 0, 1_500))));
+        // Expected 13x PUT (12x parts + 1x manifest) + GET (read to recompute digest) + POST (update metadata)
+        for (int i = 0; i < 11; i++) {
+            verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1)))
+                .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300))));
+        }
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/2"))
-            .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 1_500, 3_000))));
-
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/3"))
-            .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_000, 3_500))));
+        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012"))
+            .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500))));
 
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
             .withHeader(X_OBJECT_MANIFEST, WireMock.equalTo("0_object/3500.txt/")));
@@ -316,7 +313,7 @@ public class SwiftTest {
             .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
             .withHeader(X_OBJECT_MANIFEST, WireMock.equalTo("0_object/3500.txt/")));
 
-        assertSwiftRequestCountEqualsTo(6);
+        assertSwiftRequestCountEqualsTo(15);
     }
 
     @Test
@@ -324,8 +321,8 @@ public class SwiftTest {
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
-        givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/1");
-        givenPutLargeObjectPartReturns50x("/swift/v1/0_object/3500.txt/2");
+        givenPutLargeObjectPartReturns20x("/swift/v1/0_object/3500.txt/00000001");
+        givenPutLargeObjectPartReturns50x("/swift/v1/0_object/3500.txt/00000002");
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
 
@@ -335,8 +332,8 @@ public class SwiftTest {
             isInstanceOf(ContentAddressableStorageException.class);
 
         // Expected 2x PUT
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/1")));
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/2")));
+        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000001")));
+        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000002")));
 
         assertSwiftRequestCountEqualsTo(2);
     }
