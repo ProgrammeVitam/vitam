@@ -37,9 +37,9 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -49,7 +49,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
@@ -65,14 +65,14 @@ import static org.mockito.Mockito.verify;
 
 
 /**
- * Integration tests using docker instances with storage swift/keystone API V2
+ * Integration tests using docker instances with storage swift/keystone API V2 & V3
  */
 // docker run -d --rm  -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift jeantil/openstack-keystone-swift:pike
 // docker exec -it swift /swift/bin/register-swift-endpoint.sh http://127.0.0.1:8080
-public class SwiftV2ITTest {
+public class SwiftV2V3ITTest {
 
-    private static final String PROVIDER = "openstack-swift-v2";
-    private StorageConfiguration configurationSwiftV2;
+    private static final String PROVIDER_V2 = "openstack-swift-v2";
+    private static final String PROVIDER_V3 = "openstack-swift-v3";
     private ContentAddressableStorage swift;
 
 
@@ -84,24 +84,90 @@ public class SwiftV2ITTest {
 
     @Before
     public void setUp() throws Exception {
-        configurationSwiftV2 = new StorageConfiguration();
-        configurationSwiftV2.setProvider(PROVIDER);
-        configurationSwiftV2.setSwiftDomain("test");
-        configurationSwiftV2.setSwiftProjectName("test");
-
-        configurationSwiftV2.setSwiftUser("demo");
-        configurationSwiftV2.setSwiftPassword("demo");
-        configurationSwiftV2.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v2.0");
-
         containerName = RandomStringUtils.randomNumeric(1) + "_" + RandomStringUtils.randomAlphabetic(10);
         objectName = GUIDFactory.newGUID().getId();
+    }
 
+    private StorageConfiguration createConfigurationV2() {
+        StorageConfiguration configurationSwift = new StorageConfiguration();
+        configurationSwift.setProvider(PROVIDER_V2);
+        configurationSwift.setSwiftDomain("test");
+        configurationSwift.setSwiftProjectName("test");
+
+        configurationSwift.setSwiftUser("demo");
+        configurationSwift.setSwiftPassword("demo");
+        configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v2.0");
+
+        return configurationSwift;
+    }
+
+    private StorageConfiguration createConfigurationV3() {
+        StorageConfiguration configurationSwift = new StorageConfiguration();
+        configurationSwift.setProvider(PROVIDER_V3);
+        configurationSwift.setSwiftDomain("Default");
+        configurationSwift.setSwiftProjectName("test");
+
+        configurationSwift.setSwiftUser("demo");
+        configurationSwift.setSwiftPassword("demo");
+        configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v3");
+
+        return configurationSwift;
     }
 
     @Test
     public void swift_api_v2_main_scenario() throws Exception {
-        SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwiftV2);
-        swift = new Swift(swiftKeystoneFactoryV2, configurationSwiftV2);
+        StorageConfiguration configurationSwift = createConfigurationV2();
+        SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV2, configurationSwift);
+
+        mainScenario(swift);
+    }
+
+    @Test
+    public void swift_api_v2_large_objects_scenario() throws Exception {
+        StorageConfiguration configurationSwift = createConfigurationV2();
+        SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV2, configurationSwift, 2000L);
+
+        mainScenario(swift);
+    }
+
+    @Test
+    @Ignore("Known bug 8319")
+    //TODO Fix #8319
+    public void swift_api_v2_very_large_objects_scenario() throws Exception {
+        StorageConfiguration configurationSwift = createConfigurationV2();
+        SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV2, configurationSwift, 500L);
+
+        mainScenario(swift);
+    }
+
+    @Test
+    public void swift_api_v3_main_scenario() throws Exception {
+        StorageConfiguration configurationSwift = createConfigurationV3();
+        SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift);
+
+        mainScenario(swift);
+    }
+
+    @Test
+    public void swift_api_v3_large_objects_scenario() throws Exception {
+        StorageConfiguration configurationSwift = createConfigurationV3();
+        SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 2000L);
+
+        mainScenario(swift);
+    }
+
+    @Test
+    @Ignore("Known bug 8319")
+    //TODO Fix #8319
+    public void swift_api_v3_very_large_objects_scenario() throws Exception {
+        StorageConfiguration configurationSwift = createConfigurationV3();
+        SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 500L);
 
         mainScenario(swift);
     }
@@ -157,11 +223,9 @@ public class SwiftV2ITTest {
         // download an existing file
         ObjectContent response = swift.getObject(containerName, objectName);
         try (InputStream is = response.getInputStream()) {
-            File fileDownloaded = tempFolder.newFile();
-            FileOutputStream fileOutputStream = new FileOutputStream(fileDownloaded);
-            IOUtils.copy(is, fileOutputStream);
             File resourceFile = PropertiesUtils.getResourceFile("file1.pdf");
-            assertThat(fileDownloaded.length()).isEqualTo(resourceFile.length());
+            assertThat(response.getSize()).isEqualTo(resourceFile.length());
+            assertThat(is).hasSameContentAs(new FileInputStream(resourceFile));
         }
 
         assertThatThrownBy(() -> swift.getObjectMetadata(containerName, "nonExistObject", false),
@@ -209,8 +273,25 @@ public class SwiftV2ITTest {
     @Ignore("ignoré a cause d'un bug sur listcontainer")
     //TODO corriger le bug dans le ticket #8205
     public void swift_api_v2_listing_scenario() throws Exception {
-        SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwiftV2);
-        swift = new Swift(swiftKeystoneFactoryV2, configurationSwiftV2);
+        StorageConfiguration configurationSwift = createConfigurationV2();
+        SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwift);
+        Swift swift = new Swift(swiftKeystoneFactoryV2, configurationSwift);
+
+        swift_api_v3_listing_scenario(swift);
+    }
+
+    @Test
+    @Ignore("ignoré a cause d'un bug sur listcontainer")
+    //TODO corriger le bug dans le ticket #8205
+    public void swift_api_v3_listing_scenario() throws Exception {
+        StorageConfiguration configurationSwift = createConfigurationV3();
+        SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
+        Swift swift = new Swift(swiftKeystoneFactoryV3, configurationSwift);
+
+        swift_api_v3_listing_scenario(swift);
+    }
+
+    private void swift_api_v3_listing_scenario(Swift swift) throws Exception {
 
         int nbIter = 2;
         assertThatCode(() -> swift.createContainer(containerName)).doesNotThrowAnyException();

@@ -263,13 +263,13 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public Map<String, String> getMetadata(ObjectLocation location)
+    public Map<String, String> getMetadata(String containerName, String objectName)
         throws ContentAddressableStorageException {
-        checkNotNull(location);
+        checkNotNull(containerName, objectName);
 
-        LOGGER.debug("Getting metadata for object {}/{}",
-            location.getContainerName(), location.getObjectName());
+        LOGGER.debug("Getting metadata for object {}/{}", containerName, objectName);
 
+        ObjectLocation location = ObjectLocation.create(containerName, objectName);
         HttpResponse resp = head(Void.class, location.getURI()).executeWithResponse();
         try {
 
@@ -294,16 +294,16 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public void updateMetadata(ObjectLocation location, Map<String, String> metadata)
+    public void updateMetadata(ObjectLocation location, Map<String, String> headers)
         throws ContentAddressableStorageException {
         checkNotNull(location);
-        checkNotNull(metadata);
+        checkNotNull(headers);
 
-        LOGGER.debug("Updating metadata for object {}/{} with map {}",
-            location.getContainerName(), location.getObjectName(), metadata);
+        LOGGER.debug("Updating metadata for object {}/{} with headers {}",
+            location.getContainerName(), location.getObjectName(), headers);
 
         HttpResponse resp = post(Void.class, location.getURI())
-            .headers(MetadataToHeadersFunction.create(OBJECT_METADATA_PREFIX).apply(metadata))
+            .headers(headers)
             .executeWithResponse();
 
         try {

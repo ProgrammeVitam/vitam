@@ -64,6 +64,7 @@ public class OfferCommonApplication {
 
     private StorageConfiguration storageConfiguration;
     private DefaultOfferService defaultOfferService;
+    private ContentAddressableStorage contentAddressableStorage;
 
     public static OfferCommonApplication getInstance() {
         return instance;
@@ -108,7 +109,7 @@ public class OfferCommonApplication {
                     .setStoragePath(FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath()));
             }
 
-            ContentAddressableStorage defaultStorage =
+            this.contentAddressableStorage =
                 StoreContextBuilder.newStoreContext(this.storageConfiguration, mongoDatabase);
 
             ReadRequestReferentialRepository readRepository =
@@ -120,7 +121,7 @@ public class OfferCommonApplication {
                     null;
 
             this.defaultOfferService = new DefaultOfferServiceImpl(
-                defaultStorage,
+                contentAddressableStorage,
                 readRepository,
                 offerLogCompactionDatabaseService,
                 offerDatabaseService,
@@ -131,6 +132,7 @@ public class OfferCommonApplication {
                 configuration.getMaxBatchThreadPoolSize(),
                 configuration.getBatchMetadataComputationTimeout()
             );
+
         } catch (Exception e) {
             LOGGER.error(e);
             throw new VitamRuntimeException(e);
@@ -139,6 +141,10 @@ public class OfferCommonApplication {
 
     DefaultOfferService getDefaultOfferService() {
         return defaultOfferService;
+    }
+
+    public ContentAddressableStorage getContentAddressableStorage() {
+        return contentAddressableStorage;
     }
 
     StorageConfiguration getStorageConfiguration() {

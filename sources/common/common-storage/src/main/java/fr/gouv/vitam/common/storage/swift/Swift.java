@@ -44,14 +44,15 @@ import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.input.NullInputStream;
 import org.openstack4j.api.OSClient;
+import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
@@ -59,7 +60,6 @@ import org.openstack4j.model.storage.object.options.ObjectListOptions;
 import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -77,12 +77,13 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Swift.class);
 
-    private static final String X_OBJECT_META_DIGEST = "X-Object-Meta-Digest";
-    private static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
+    public static final String X_OBJECT_META_DIGEST = "X-Object-Meta-Digest";
+    public static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
+    public static final String X_OBJECT_MANIFEST = "X-Object-Manifest";
 
     private final Supplier<OSClient> osClient;
 
-    private Long swiftLimit;
+    private final Long swiftLimit;
 
     /**
      * Constructor
@@ -95,7 +96,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @VisibleForTesting
-    Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
+    public Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
         super(configuration);
         this.osClient = osClient;
         this.swiftLimit = swiftLimit;
@@ -149,23 +150,22 @@ public class Swift extends ContentAddressableStorageAbstract {
         // when downloaded, sends all the segments concatenated as a single object.
         // This also offers much greater upload speed with the possibility of parallel uploads of the segments.
 
-        SizedInputStream sis = new SizedInputStream(stream);
         Digest digest = new Digest(digestType);
-        InputStream digestInputStream = digest.getDigestInputStream(sis);
 
-        InputStream autoclose = new VitamAutoCloseInputStream(digestInputStream);
-        if (size != null && size > swiftLimit) {
-            bigFile(containerName, objectName, autoclose, size);
-        } else {
-            smallFile(containerName, objectName, autoclose);
+        String largeObjectPrefix;
+        try (InputStream digestInputStream = digest.getDigestInputStream(stream);
+            ExactSizeInputStream exactSizeInputStream = new ExactSizeInputStream(digestInputStream, size)) {
+            if (size > swiftLimit) {
+                largeObjectPrefix = bigFile(containerName, objectName, exactSizeInputStream, size);
+            } else {
+                smallFile(containerName, objectName, exactSizeInputStream);
+                largeObjectPrefix = null;
+            }
+        } catch (IOException | ConnectionException e) {
+            throw new ContentAddressableStorageException("Could not put object " + containerName + "/" + objectName, e);
         }
 
         String streamDigest = digest.digestHex();
-
-        if (size != null && size != sis.getSize()) {
-            throw new ContentAddressableStorageException(
-                "Illegal state. Stream size " + sis.getSize() + " did not match expected size " + size);
-        }
 
         String computedDigest = computeObjectDigest(containerName, objectName, digestType);
         if (!streamDigest.equals(computedDigest)) {
@@ -175,49 +175,64 @@ public class Swift extends ContentAddressableStorageAbstract {
                     computedDigest);
         }
 
-        storeDigest(containerName, objectName, digestType, streamDigest);
+        storeDigest(containerName, objectName, digestType, streamDigest, largeObjectPrefix);
         return streamDigest;
     }
 
-    private void bigFile(String containerName, String objectName, InputStream stream, Long size)
-        throws ContentAddressableStorageException {
+    private String bigFile(String containerName, String objectName, InputStream stream, Long size)
+        throws ContentAddressableStorageException, IOException {
         Stopwatch times = Stopwatch.createStarted();
+        Stopwatch segmentTime = Stopwatch.createUnstarted();
+
+
         try {
-            CountingInputStream segmentInputStream;
-            int i = 1;
-            long fileSizeRead = 0;
-            Stopwatch segmentTime = Stopwatch.createUnstarted();
-            do {
-                final String objectNameToPut = objectName + "/" + i;
-                BoundedInputStream boundedInputStream =
-                    new BoundedInputStream(stream, swiftLimit);
-                // for prevent closed stream in swift client
-                boundedInputStream.setPropagateClose(false);
+            long remainingSize = size;
+            int segmentIndex = 1;
+            while (remainingSize > 0) {
 
-                VitamAutoCloseInputStream autoCloseInputStream = new VitamAutoCloseInputStream(boundedInputStream);
+                long segmentSize = Math.min(swiftLimit, remainingSize);
+                final String segmentName = objectName + "/" + segmentIndex;
 
-                LOGGER.info("number of segment: " + objectNameToPut);
-                // for get the number of byte read to the stream
-                segmentInputStream = new CountingInputStream(autoCloseInputStream);
-                segmentTime.start();
-                getObjectStorageService()
-                    .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
-                PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                    "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
-                        TimeUnit.MILLISECONDS));
-                segmentTime.stop();
-                i++;
-                fileSizeRead = fileSizeRead + segmentInputStream.getByteCount();
-            } while (fileSizeRead != size);
+                // Get current segment stream
+                BoundedInputStream segmentInputStream =
+                    new BoundedInputStream(stream, segmentSize);
+                // Prevent closing inner stream by swift client
+                segmentInputStream.setPropagateClose(false);
 
-            String dloManifest = "";
+                // Double check segment size
+                try (InputStream exactSizeInputStream = new ExactSizeInputStream(segmentInputStream, segmentSize)) {
+
+                    // Prevent retry uploading stream twice on token expiration
+                    VitamAutoCloseInputStream autoCloseInputStream =
+                        new VitamAutoCloseInputStream(exactSizeInputStream);
+
+                    segmentTime.start();
+                    LOGGER.info("Uploading segment: " + segmentName);
+                    getObjectStorageService().
+                        put(containerName, segmentName, Payloads.create(autoCloseInputStream));
+
+                    PerformanceLogger.getInstance().
+                        log("STP_Offer_" + getConfiguration().getProvider(), containerName,
+                            "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
+                                TimeUnit.MILLISECONDS));
+                    segmentTime.reset();
+                }
+
+
+                segmentIndex++;
+                remainingSize -= segmentSize;
+            }
+
             ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
-            objectPutOptions.getOptions().put("X-Object-Manifest", containerName + "/" + objectName + "/");
+            String largeObjectPrefix = containerName + "/" + objectName + "/";
+            objectPutOptions.getOptions().put(X_OBJECT_MANIFEST, largeObjectPrefix);
             getObjectStorageService().put(
                 containerName,
                 objectName,
-                Payloads.create(new VitamAutoCloseInputStream(new ByteArrayInputStream(dloManifest.getBytes()))),
+                Payloads.create(new NullInputStream(0L)),
                 objectPutOptions);
+            return largeObjectPrefix;
+
         } finally {
             StreamUtils.closeSilently(stream);
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
@@ -230,24 +245,32 @@ public class Swift extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
+            // Prevent retry uploading stream twice on token expiration
+            InputStream autoCloseInputStream = new VitamAutoCloseInputStream(stream);
+
             getObjectStorageService()
-                .put(containerName, objectName, Payloads.create(stream));
+                .put(containerName, objectName, Payloads.create(autoCloseInputStream));
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
-    private void storeDigest(String containerName, String objectName, DigestType digestType, String digest)
+    private void storeDigest(String containerName, String objectName, DigestType digestType, String digest,
+        String largeObjectPrefix)
         throws ContentAddressableStorageException {
 
         Stopwatch stopwatch = Stopwatch.createStarted();
-        Map<String, String> metadataToUpdate = new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
         // Not necessary to put the "X-Object-Meta-"
-        metadataToUpdate.put(X_OBJECT_META_DIGEST, digest);
-        metadataToUpdate.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
+        headers.put(X_OBJECT_META_DIGEST, digest);
+        headers.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
+        if (largeObjectPrefix != null) {
+            headers.put(X_OBJECT_MANIFEST, largeObjectPrefix);
+        }
+
         getObjectStorageService()
-            .updateMetadata(ObjectLocation.create(containerName, objectName), metadataToUpdate);
+            .updateMetadata(ObjectLocation.create(containerName, objectName), headers);
         PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
             containerName, "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
@@ -260,7 +283,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
             Stopwatch stopwatch = Stopwatch.createStarted();
             Map<String, String> metadata = getObjectStorageService()
-                .getMetadata(ObjectLocation.create(containerName, objectName));
+                .getMetadata(containerName, objectName);
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
@@ -388,5 +411,9 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private VitamSwiftObjectStorageService getObjectStorageService() {
         return new VitamSwiftObjectStorageService(this.osClient);
+    }
+
+    public Supplier<OSClient> getOsClient() {
+        return osClient;
     }
 }

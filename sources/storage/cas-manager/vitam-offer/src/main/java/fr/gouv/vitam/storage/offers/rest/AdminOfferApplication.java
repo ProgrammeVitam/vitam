@@ -30,7 +30,9 @@ import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
+import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.tape.rest.AdminTapeResource;
 import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
@@ -44,6 +46,7 @@ public class AdminOfferApplication extends ConfigurationApplication {
     public AdminOfferApplication() {
         OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
         DefaultOfferService service = offerCommonApplication.getDefaultOfferService();
+        ContentAddressableStorage contentAddressableStorage = offerCommonApplication.getContentAddressableStorage();
 
         singletons = new HashSet<>();
         singletons.add(new GenericExceptionMapper());
@@ -54,6 +57,10 @@ public class AdminOfferApplication extends ConfigurationApplication {
             .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())) {
             singletons.add(new AdminTapeResource());
             singletons.add(new TapeCatalogResource());
+        }
+
+        if (contentAddressableStorage instanceof Swift) {
+            singletons.add(new AdminOfferSwiftMigrationResource((Swift) contentAddressableStorage));
         }
     }
 
