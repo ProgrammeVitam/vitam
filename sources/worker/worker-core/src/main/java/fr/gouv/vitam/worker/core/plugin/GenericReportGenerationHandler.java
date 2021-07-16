@@ -36,12 +36,18 @@ import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,10 +62,76 @@ import java.util.stream.Stream;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.VitamConstants.DETAILS;
+import static fr.gouv.vitam.worker.core.plugin.CommonReportService.WORKSPACE_REPORT_URI;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
+/**
+ * Generate the report :<br>
+ * - compute data from batch-report<br>
+ * - store the report file<br>
+ * - clean the batch-report data<br>
+ */
 public abstract class GenericReportGenerationHandler extends ActionHandler {
 
-    private static final String DETAILS = " Detail= ";
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(GenericReportGenerationHandler.class);
+
+    private final CommonReportService<?> reportService;
+
+
+    protected GenericReportGenerationHandler(CommonReportService<?> reportService) {
+        this.reportService = reportService;
+    }
+
+
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException {
+
+        try {
+
+            storeReportToWorkspace(param, handler);
+
+            storeReportToOffers(param.getContainerName());
+
+            cleanupReport(param.getContainerName());
+
+            return buildItemStatus(getPluginId(), StatusCode.OK, null);
+        } catch (ProcessingStatusException e) {
+            LOGGER.error(
+                String.format("Report generation failed with status [%s]", e.getStatusCode()), e);
+            return buildItemStatus(getPluginId(), e.getStatusCode(), e.getEventDetails());
+        }
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    private ReportResults storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
+        throws ProcessingStatusException, ProcessingException {
+        try {
+            if (reportService.isReportWrittenInWorkspace(param.getContainerName())) {
+                // Already stored in workspace (idempotency)
+                JsonNode report = handler.getJsonFromWorkspace(WORKSPACE_REPORT_URI);
+                return JsonHandler.getFromJsonNode(report, Report.class).getReportSummary().getVitamResults();
+            }
+
+            Report reportInfo = generateReport(param, getLogbookInformation(param));
+            reportService.storeReportToWorkspace(reportInfo);
+            return reportInfo.getReportSummary().getVitamResults();
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingException(e);
+        }
+    }
+
+
+    private void storeReportToOffers(String containerName) throws ProcessingStatusException {
+        reportService.storeReportToOffers(containerName);
+    }
+
+    private void cleanupReport(String containerName) throws ProcessingStatusException {
+        reportService.cleanupReport(containerName);
+    }
+
 
     protected OperationSummary getOperationSummary(LogbookOperation logbook, String processId)
         throws InvalidParseOperationException {
@@ -140,7 +212,11 @@ public abstract class GenericReportGenerationHandler extends ActionHandler {
             .orElse(Collections.emptyMap());
     }
 
-    abstract protected ReportType getReportType();
+    protected abstract String getPluginId();
 
-    abstract protected String getLogbookActionKey();
+    protected abstract ReportType getReportType();
+
+    protected abstract String getLogbookActionKey();
+
+    protected abstract LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException;
 }

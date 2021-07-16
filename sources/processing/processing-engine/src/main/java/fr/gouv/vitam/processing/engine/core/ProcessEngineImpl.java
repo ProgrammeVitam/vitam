@@ -78,6 +78,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
+import static fr.gouv.vitam.common.model.VitamConstants.DETAILS;
+
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
@@ -85,7 +87,6 @@ import java.util.concurrent.TimeUnit;
 public class ProcessEngineImpl implements ProcessEngine {
 
     private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
-    public static final String DETAILS = " Detail= ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static final String AGENCY_DETAIL = "agIdExt";

@@ -27,16 +27,9 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.batch.report.model.ReportResults;
-import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -44,9 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -54,7 +45,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.GenericReportGenerationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 
@@ -72,9 +62,7 @@ public class EliminationActionReportGenerationHandler extends GenericReportGener
     private static final String ELIMINATION_ACTION_REPORT_GENERATION = "ELIMINATION_ACTION_REPORT_GENERATION";
     private static final String LOGBOOK_ACTION_KEY = "ELIMINATION_ACTION_DELETE_UNIT";
 
-    private final EliminationActionReportService eliminationActionReportService;
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-
+    LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     /**
      * Default constructor
@@ -87,50 +75,15 @@ public class EliminationActionReportGenerationHandler extends GenericReportGener
      * Test only constructor
      */
     @VisibleForTesting
-    EliminationActionReportGenerationHandler(
-        EliminationActionReportService eliminationActionReportService,
+    EliminationActionReportGenerationHandler(EliminationActionReportService eliminationActionReportService,
         LogbookOperationsClientFactory logbookOperationsClientFactory) {
-        this.eliminationActionReportService = eliminationActionReportService;
+        super(eliminationActionReportService);
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
+
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
-        try {
-
-            storeReportToWorkspace(param);
-
-            storeReportToOffers(param.getContainerName());
-
-            cleanupReport(param.getContainerName());
-
-            LOGGER.info("Elimination action finalization succeeded");
-            return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, StatusCode.OK, null);
-        } catch (ProcessingStatusException e) {
-            LOGGER.error(
-                String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()), e);
-            return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, e.getStatusCode(), e.getEventDetails());
-        }
-    }
-
-    private void storeReportToWorkspace(WorkerParameters param)
-        throws ProcessingStatusException, ProcessingException {
-        try {
-            if (eliminationActionReportService.isReportWrittenInWorkspace(param.getContainerName())) {
-                // Already stored in workspace (idempotency)
-                return;
-            }
-
-            Report reportInfo = generateReport(param, getLogbookInformation(param));
-            eliminationActionReportService.storeReportToWorkspace(reportInfo);
-        } catch (InvalidParseOperationException e) {
-            throw new ProcessingException(e);
-        }
-    }
-
-    private LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException {
+    protected LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException{
         try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
             JsonNode response = logbookClient.selectOperationById(param.getContainerName());
             RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
@@ -140,21 +93,17 @@ public class EliminationActionReportGenerationHandler extends GenericReportGener
         }
     }
 
-
-    private void storeReportToOffers(String containerName) throws ProcessingStatusException {
-        eliminationActionReportService.storeReportToOffers(containerName);
-    }
-
-    private void cleanupReport(String containerName) throws ProcessingStatusException {
-        eliminationActionReportService.cleanupReport(containerName);
-    }
-
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // NOP.
     }
 
     public static String getId() {
+        return ELIMINATION_ACTION_REPORT_GENERATION;
+    }
+
+    @Override
+    public String getPluginId() {
         return ELIMINATION_ACTION_REPORT_GENERATION;
     }
 

@@ -88,6 +88,8 @@ public class VitamConstants {
 
     public static final String JSONL_EXTENSION = ".jsonl";
 
+    public static final String DETAILS = " Detail= ";
+
     static {
         try {
             URL_ENCODED_SEPARATOR = URLEncoder.encode("/", CharsetUtils.UTF_8);
