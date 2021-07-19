@@ -40,23 +40,37 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
@@ -66,12 +80,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static fr.gouv.vitam.common.storage.swift.Swift.X_OBJECT_MANIFEST;
 import static fr.gouv.vitam.common.storage.swift.Swift.X_OBJECT_META_DIGEST;
 import static fr.gouv.vitam.common.storage.swift.Swift.X_OBJECT_META_DIGEST_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class SwiftTest {
 
@@ -166,8 +182,8 @@ public class SwiftTest {
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, WireMock.equalTo("SHA-512")));
+            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
+            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512")));
 
         // Expected PUT (upload) + GET (read to check digest) + POST (update metadata)
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
@@ -177,8 +193,8 @@ public class SwiftTest {
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, WireMock.equalTo("SHA-512"))
-            .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
+            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
+            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
             .withoutHeader(X_OBJECT_MANIFEST));
 
         assertSwiftRequestCountEqualsTo(3);
@@ -296,22 +312,23 @@ public class SwiftTest {
 
         // Expected 13x PUT (12x parts + 1x manifest) + GET (read to recompute digest) + POST (update metadata)
         for (int i = 0; i < 11; i++) {
-            verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1)))
-                .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300))));
+            verifySwiftRequest(
+                putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1)))
+                    .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300))));
         }
 
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012"))
             .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500))));
 
         verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_MANIFEST, WireMock.equalTo("0_object/3500.txt/")));
+            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/")));
 
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
         verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, WireMock.equalTo("SHA-512"))
-            .withHeader(X_OBJECT_META_DIGEST, WireMock.equalTo(sha512sum(data)))
-            .withHeader(X_OBJECT_MANIFEST, WireMock.equalTo("0_object/3500.txt/")));
+            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
+            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
+            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/")));
 
         assertSwiftRequestCountEqualsTo(15);
     }
@@ -642,6 +659,192 @@ public class SwiftTest {
         assertSwiftRequestCountEqualsTo(1);
     }
 
+    @Test
+    public void when_list_container_objects_of_empty_container_then_ok() throws Exception {
+
+        // Given
+
+        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
+            .withQueryParam("format", equalTo("json"))
+            .withQueryParam("limit", equalTo("100"))
+            .withQueryParam("marker", absent())
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+
+        // When
+        List<ObjectEntry> objectEntries = new ArrayList<>();
+        swift.listContainer(CONTAINER_NAME, objectEntries::add);
+
+        // Then
+        assertThat(objectEntries).isEmpty();
+
+        // Expected 1x GET
+        verifySwiftRequest(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")));
+
+        assertSwiftRequestCountEqualsTo(1);
+    }
+
+    @Test
+    public void when_list_container_objects_then_ok() throws Exception {
+
+        // Given
+        List<String> objectNames = IntStream.range(1000, 1250).mapToObj(i -> "obj" + i)
+            .collect(Collectors.toList());
+
+        Map<String, Long> objectSizes = objectNames.stream().collect(Collectors
+            .toMap(objectName -> objectName, objectName -> RandomUtils.nextLong(0L, 4_000_000_000_000L)));
+
+        List<List<String>> objectNameBulks = ListUtils.partition(objectNames, 100);
+        for (int i = 0; i < 4; i++) {
+
+            List<String> bulkObjectNames =
+                i < objectNameBulks.size() ? objectNameBulks.get(i) : Collections.emptyList();
+
+            swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
+                .withQueryParam("format", equalTo("json"))
+                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("marker", i == 0 ? absent() :
+                    equalTo(objectNameBulks.get(i - 1).get(objectNameBulks.get(i - 1).size() - 1)))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody(JsonHandler.fromPojoToBytes(bulkObjectNames
+                        .stream()
+                        .map(objectName -> JsonHandler.createObjectNode()
+                            .put("name", objectName)
+                            .put("bytes", objectSizes.get(objectName)))
+                        .collect(Collectors.toList())))));
+        }
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+
+        // When
+        List<ObjectEntry> objectEntries = new ArrayList<>();
+        swift.listContainer(CONTAINER_NAME, objectEntries::add);
+
+        // Then
+        assertThat(objectEntries).hasSize(250);
+
+        assertThat(objectEntries)
+            .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            .containsExactly(
+                IntStream.range(1000, 1250)
+                    .mapToObj(i -> "obj" + i)
+                    .map(objectName -> tuple(objectName, objectSizes.get(objectName)))
+                    .toArray(Tuple[]::new)
+            );
+
+        // Ensure all object names found
+        assertThat(objectEntries)
+            .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            .containsExactly(
+                IntStream.range(1000, 1250)
+                    .mapToObj(i -> "obj" + i)
+                    .map(objectName -> tuple(objectName, objectSizes.get(objectName)))
+                    .toArray(Tuple[]::new)
+            );
+
+        // Expected 4x GET
+        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")), 4);
+
+        assertSwiftRequestCountEqualsTo(4);
+    }
+
+    @Test
+    @Ignore("Should be fixed in #8324")
+    // FIXME : Skip large object segments #8324
+    public void when_list_container_objects_with_large_object_segments_then_ok() throws Exception {
+
+        // Given
+        List<String> objectNames =
+            Stream.concat(
+                IntStream.range(1000, 1250).mapToObj(i -> "obj" + i),
+                IntStream.range(0, 5).mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
+            ).sorted().collect(Collectors.toList());
+
+        Map<String, Long> objectSizes = objectNames.stream().collect(Collectors
+            .toMap(objectName -> objectName, objectName -> RandomUtils.nextLong(0L, 4_000_000_000_000L)));
+
+        List<List<String>> objectNameBulks = ListUtils.partition(objectNames, 100);
+        for (int i = 0; i < 4; i++) {
+
+            List<String> bulkObjectNames =
+                i < objectNameBulks.size() ? objectNameBulks.get(i) : Collections.emptyList();
+
+            swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
+                .withQueryParam("format", equalTo("json"))
+                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("marker", i == 0 ? absent() :
+                    equalTo(objectNameBulks.get(i - 1).get(objectNameBulks.get(i - 1).size() - 1)))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody(JsonHandler.fromPojoToBytes(bulkObjectNames
+                        .stream()
+                        .map(objectName -> JsonHandler.createObjectNode()
+                            .put("name", objectName)
+                            .put("bytes", objectSizes.get(objectName)))
+                        .collect(Collectors.toList())))));
+        }
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+
+        // When
+        List<ObjectEntry> objectEntries = new ArrayList<>();
+        swift.listContainer(CONTAINER_NAME, objectEntries::add);
+
+        // Then
+        assertThat(objectEntries).hasSize(250);
+
+        // Ensure segment names are ignored
+        assertThat(objectEntries)
+            .extracting(ObjectEntry::getObjectId)
+            .doesNotContainAnyElementsOf(
+                IntStream.range(0, 5).mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
+                    .collect(Collectors.toList())
+            );
+
+        // Ensure all object names found
+        assertThat(objectEntries)
+            .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            .containsExactly(
+                IntStream.range(1000, 1250)
+                    .mapToObj(i -> "obj" + i)
+                    .map(objectName -> tuple(objectName, objectSizes.get(objectName)))
+                    .toArray(Tuple[]::new)
+            );
+
+        // Expected 4x GET
+        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")), 4);
+
+        assertSwiftRequestCountEqualsTo(4);
+    }
+
+    @Test
+    public void when_list_container_objects_and_server_error_then_throw_exception() throws Exception {
+
+        // Given
+        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
+            .willReturn(aResponse()
+                .withStatus(500)));
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+
+        // When / Then
+        List<ObjectEntry> objectEntries = new ArrayList<>();
+
+        assertThatThrownBy(() -> swift.listContainer(CONTAINER_NAME, objectEntries::add))
+            .isInstanceOf(ContentAddressableStorageException.class);
+
+        assertThat(objectEntries).isEmpty();
+
+        // Expected 1x GET
+        verifySwiftRequest(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")));
+
+        assertSwiftRequestCountEqualsTo(1);
+    }
+
     private void givenPutObjectReturns20x() {
         swiftInstanceRule.stubFor(put(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
             aResponse().withStatus(201)));
@@ -732,6 +935,12 @@ public class SwiftTest {
     private void verifySwiftRequest(RequestPatternBuilder requestPatternBuilder) {
         assertThat(swiftInstanceRule.findRequestsMatching(
             requestPatternBuilder.build()).getRequests()).hasSize(1);
+    }
+
+
+    private void verifySwiftRequests(RequestPatternBuilder requestPatternBuilder, int count) {
+        assertThat(swiftInstanceRule.findRequestsMatching(
+            requestPatternBuilder.build()).getRequests()).hasSize(count);
     }
 
     private void assertSwiftRequestCountEqualsTo(int expectedCount) {

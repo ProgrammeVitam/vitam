@@ -42,7 +42,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -266,8 +265,6 @@ public class SwiftV2V3ITTest {
     }
 
     @Test
-    @Ignore("ignoré a cause d'un bug sur listcontainer")
-    //TODO corriger le bug dans le ticket #8205
     public void swift_api_v2_listing_scenario() throws Exception {
         StorageConfiguration configurationSwift = createConfigurationV2();
         SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwift);
@@ -277,8 +274,6 @@ public class SwiftV2V3ITTest {
     }
 
     @Test
-    @Ignore("ignoré a cause d'un bug sur listcontainer")
-    //TODO corriger le bug dans le ticket #8205
     public void swift_api_v3_listing_scenario() throws Exception {
         StorageConfiguration configurationSwift = createConfigurationV3();
         SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
@@ -289,22 +284,37 @@ public class SwiftV2V3ITTest {
 
     private void swift_api_v3_listing_scenario(Swift swift) throws Exception {
 
+        // Given
         int nbIter = 2;
         assertThatCode(() -> swift.createContainer(containerName)).doesNotThrowAnyException();
 
-        assertThat(swift.isExistingContainer(containerName)).isTrue();
+        String anotherContainerName = RandomStringUtils.randomNumeric(1) + "_" + RandomStringUtils.randomAlphabetic(10);
+        assertThatCode(() -> swift.createContainer(anotherContainerName)).doesNotThrowAnyException();
 
-        // upload multiple times the same file1
+        // upload multiple times the same file1 on first container
         for (int i = 0; i < (nbIter * 10 + 5); i++) {
 
-            InputStream file1Stream = getInputStream("file1.pdf");
-            swift.putObject(containerName, objectName + i, file1Stream, DigestType.SHA512, 6_906L);
-            file1Stream.close();
+            try (InputStream file1Stream = getInputStream("file1.pdf")) {
+                swift.putObject(containerName, objectName + i, file1Stream, DigestType.SHA512, 6_906L);
+            }
         }
 
+        // upload other files on another container
+        for (int i = 0; i < 3; i++) {
+            try (InputStream file1Stream = getInputStream("file1.pdf")) {
+                swift.putObject(anotherContainerName, "anotherObject" + i, file1Stream, DigestType.SHA512, 6_906L);
+            }
+        }
+
+        // When
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
         swift.listContainer(containerName, objectListingListener);
+
+        // Then
+
+        assertThat(swift.isExistingContainer(containerName)).isTrue();
+        assertThat(swift.isExistingContainer(anotherContainerName)).isTrue();
 
         ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
         verify(objectListingListener, times(nbIter * 10 + 5)).handleObjectEntry(objectEntryArgumentCaptor.capture());
