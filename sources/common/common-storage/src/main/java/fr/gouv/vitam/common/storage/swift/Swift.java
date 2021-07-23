@@ -373,6 +373,32 @@ public class Swift extends ContentAddressableStorageAbstract {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
+        /*
+         * List container objets.
+         * Swift API reports all objects with their "raw" size :
+         *  - regular objects (<= 4Gb) : {objectName} + {size}
+         *  - large objects :
+         *    - manifest : {objectName} with 0 byte {size}
+         *    - segments : {objectName}/{index} with segment {size}
+         *  Entries are sorted by name according to Swift Object Storage API specifications.
+         *
+         * Example listing :
+         *
+         *   object size   object name
+         *   -------------------------
+         *          1500   smallObject
+         *             0   largeObject
+         *    4000000000   largeObject/00000001
+         *    4000000000   largeObject/00000002
+         *     156035069   largeObject/00000003
+         *       9853320   anotherSmallObject
+         *
+         * To compute large object total size, we need to sum its segments sizes.
+         */
+
+        String lastEntryName = null;
+        long lastEntryTotalSize = 0;
+
         String nextMarker = null;
         do {
             ObjectListOptions objectListOptions = ObjectListOptions.create()
@@ -391,17 +417,39 @@ public class Swift extends ContentAddressableStorageAbstract {
 
             for (SwiftObject swiftObject : swiftObjects) {
 
-                // FIXME : Skip large object segments #8324
+                // process large object segment
+                if (swiftObject.getName().contains("/")) {
+                    if (lastEntryName != null && swiftObject.getName().startsWith(lastEntryName + "/")) {
+                        lastEntryTotalSize += swiftObject.getSizeInBytes();
+                        LOGGER.debug("Found large object segment " + containerName + "/" + swiftObject.getName() +
+                            ". Segment size: " + swiftObject.getSizeInBytes() + " bytes");
+                    } else {
+                        LOGGER.warn("Found orphan large object segment without matching object manifest " +
+                            containerName + "/" + swiftObject.getName());
+                    }
+                    continue;
+                }
 
-                objectListingListener.handleObjectEntry(new ObjectEntry(
-                    swiftObject.getName(),
-                    swiftObject.getSizeInBytes()
-                ));
+                // This is either a regular object (with actual size), or a large object manifest (with 0-byte size).
+
+                // We finished computing previous object total size, if any
+                if (lastEntryName != null) {
+                    objectListingListener.handleObjectEntry(new ObjectEntry(lastEntryName, lastEntryTotalSize));
+                }
+
+                // Mark current object
+                lastEntryName = swiftObject.getName();
+                lastEntryTotalSize = swiftObject.getSizeInBytes();
             }
 
             nextMarker = swiftObjects.get(swiftObjects.size() - 1).getName();
 
         } while (nextMarker != null);
+
+        // Report very last object, if any
+        if (lastEntryName != null) {
+            objectListingListener.handleObjectEntry(new ObjectEntry(lastEntryName, lastEntryTotalSize));
+        }
     }
 
     @Override

@@ -51,7 +51,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -753,8 +752,6 @@ public class SwiftTest {
     }
 
     @Test
-    @Ignore("Should be fixed in #8324")
-    // FIXME : Skip large object segments #8324
     public void when_list_container_objects_with_large_object_segments_then_ok() throws Exception {
 
         // Given
@@ -764,8 +761,11 @@ public class SwiftTest {
                 IntStream.range(0, 5).mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
             ).sorted().collect(Collectors.toList());
 
-        Map<String, Long> objectSizes = objectNames.stream().collect(Collectors
-            .toMap(objectName -> objectName, objectName -> RandomUtils.nextLong(0L, 4_000_000_000_000L)));
+        Map<String, Long> rawObjectSizes = objectNames.stream().collect(Collectors
+            .toMap(
+                objectName -> objectName,
+                objectName -> objectName.equals("obj1050") ? 0L : RandomUtils.nextLong(0L, 4_000_000_000_000L))
+        );
 
         List<List<String>> objectNameBulks = ListUtils.partition(objectNames, 100);
         for (int i = 0; i < 4; i++) {
@@ -784,7 +784,7 @@ public class SwiftTest {
                         .stream()
                         .map(objectName -> JsonHandler.createObjectNode()
                             .put("name", objectName)
-                            .put("bytes", objectSizes.get(objectName)))
+                            .put("bytes", rawObjectSizes.get(objectName)))
                         .collect(Collectors.toList())))));
         }
 
@@ -806,12 +806,25 @@ public class SwiftTest {
             );
 
         // Ensure all object names found
+        long obj1050TotalSize = IntStream.range(0, 5)
+            .mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
+            .mapToLong(rawObjectSizes::get)
+            .sum();
+
+        Map<String, Long> totalObjectSizes =
+            IntStream.range(1000, 1250)
+                .mapToObj(i -> "obj" + i)
+                .collect(Collectors.toMap(
+                    objectName -> objectName,
+                    objectName -> objectName.equals("obj1050") ? obj1050TotalSize : rawObjectSizes.get(objectName)
+                ));
+
         assertThat(objectEntries)
             .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
             .containsExactly(
                 IntStream.range(1000, 1250)
                     .mapToObj(i -> "obj" + i)
-                    .map(objectName -> tuple(objectName, objectSizes.get(objectName)))
+                    .map(objectName -> tuple(objectName, totalObjectSizes.get(objectName)))
                     .toArray(Tuple[]::new)
             );
 

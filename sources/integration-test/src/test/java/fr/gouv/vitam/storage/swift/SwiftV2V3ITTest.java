@@ -282,6 +282,15 @@ public class SwiftV2V3ITTest {
         swift_api_v3_listing_scenario(swift);
     }
 
+    @Test
+    public void swift_api_v3_large_object_listing_scenario() throws Exception {
+        StorageConfiguration configurationSwift = createConfigurationV3();
+        SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
+        Swift swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 3_000L);
+
+        swift_api_v3_listing_scenario(swift);
+    }
+
     private void swift_api_v3_listing_scenario(Swift swift) throws Exception {
 
         // Given
