@@ -125,13 +125,6 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
             return expectedResponse.head();
         }
 
-        @GET
-        @Path("{containerName}/count")
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response countObjects(@PathParam("containerName") String containerName) {
-            return expectedResponse.get();
-        }
-
         @DELETE
         @Path("{containerName}/old_files")
         @Produces(MediaType.APPLICATION_JSON)
@@ -217,29 +210,6 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
         throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingContainer(CONTAINER_NAME));
-    }
-
-    @Test
-    public void givenContainerAlreadyExistsWhenCountObjectsThenReturnOk()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        ObjectNode node = JsonHandler.createObjectNode();
-        node.put("objectNumber", 2L);
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(node).build());
-        assertEquals(2L, client.countObjects(CONTAINER_NAME));
-    }
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenCountObjectsThenThrowException()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.countObjects(CONTAINER_NAME);
-    }
-
-    @Test(expected = ContentAddressableStorageServerException.class)
-    public void givenInternalErrorWhenCountObjectsThenThrowException()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.countObjects(CONTAINER_NAME);
     }
 
     @Test

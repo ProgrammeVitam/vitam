@@ -36,7 +36,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import fr.gouv.vitam.utils.SecurityProfilePermissions;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +58,6 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import fr.gouv.vitam.ingest.external.core.ManifestDigestValidator;
-import org.apache.commons.io.FilenameUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -78,6 +76,8 @@ import fr.gouv.vitam.common.model.LocalFileAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.IllegalPathException;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
@@ -94,9 +94,11 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
-import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_ID_ARCHIVETRANSFERTREPLY_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_ID_MANIFESTS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.INGESTS_LOCAL_CREATE;
 
 @Path("/ingest-external/v1")
 @Tag(name="Ingest")
@@ -203,17 +205,18 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
 
-        String fullNormalizedPath =
-            FilenameUtils.normalize(ingestExternalConfiguration.getBaseUploadPath() + "/" + localFile.getPath());
-
-        if (fullNormalizedPath == null ||
-            !fullNormalizedPath.startsWith(ingestExternalConfiguration.getBaseUploadPath())) {
+        java.nio.file.Path path;
+        try {
+            path = SafeFileChecker.checkSafeFilePath(
+                ingestExternalConfiguration.getBaseUploadPath(), localFile.getPath()).toPath();
+        } catch (IllegalPathException e) {
+            LOGGER.error("Path traversal check failed", e);
             doAsyncResponse(guid, asyncResponse, Status.BAD_REQUEST,
                 VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_SECURITY_ALERT,
                 "Only files in the folder " + ingestExternalConfiguration.getBaseUploadPath() + " could be accessed");
+            return;
         }
 
-        java.nio.file.Path path = Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.getPath());
         boolean exists = Files.exists(path);
 
         if (!exists) {
@@ -224,7 +227,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> {
                 try (InputStream inputStream = new BufferedInputStream(new FileInputStream(path.toString()))) {
-                    uploadAsync(inputStream, asyncResponse, tenantId, contextId, action, manifestDigestValue, manifestDigestAlgo, guid, Optional.of(localFile));
+                    uploadAsync(inputStream, asyncResponse, tenantId, contextId, action, manifestDigestValue, manifestDigestAlgo, guid, Optional.of(path));
 
                 } catch (IOException e) {
                     LOGGER.error(e);
@@ -248,7 +251,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
         Integer tenantId, String contextId, String xAction,
-        String manifestDigestValue, String manifestDigestAlgo, GUID operationId, Optional<LocalFile> localFile) {
+        String manifestDigestValue, String manifestDigestAlgo, GUID operationId, Optional<java.nio.file.Path> localFilePath) {
 
         final IngestExternalImpl ingestExternal =
             new IngestExternalImpl(ingestExternalConfiguration, formatIdentifierFactory, ingestInternalClientFactory,
@@ -271,26 +274,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
             }
             ingestExternal.upload(preUploadResume, xAction, operationId, manifestDigestValue, manifestDigestAlgo);
 
-            if (localFile.isPresent()) {
-
-                String fullNormalizedPath =
-                    FilenameUtils
-                        .normalize(ingestExternalConfiguration.getBaseUploadPath() + "/" + localFile.get().getPath());
-                if (fullNormalizedPath == null ||
-                    !fullNormalizedPath.startsWith(ingestExternalConfiguration.getBaseUploadPath())) {
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.BAD_REQUEST)
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
-                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
-                            .entity(getErrorStream(
-                                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_SECURITY_ALERT,
-                                    "Only files in the folder " + ingestExternalConfiguration.getBaseUploadPath() +
-                                        " could be accessed")))
-                            .build());
-                }
-
-                java.nio.file.Path path =
-                    Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
+            if (localFilePath.isPresent()) {
+                java.nio.file.Path path = localFilePath.get();
 
                 switch (afterUploadAction) {
                     case DELETE:
@@ -300,7 +285,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         if (ingestExternalConfiguration.getSuccessfulUploadDir() != null &&
                             !ingestExternalConfiguration.getSuccessfulUploadDir().isEmpty()) {
                             Files.move(path, Paths
-                                    .get(ingestExternalConfiguration.getSuccessfulUploadDir(), localFile.get().getPath()),
+                                    .get(ingestExternalConfiguration.getSuccessfulUploadDir(), path.toFile().getName()),
                                 StandardCopyOption.REPLACE_EXISTING);
                         }
                         break;
@@ -309,15 +294,14 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 }
             }
         } catch (final Exception exc) {
-            if (localFile.isPresent()) {
+            if (localFilePath.isPresent()) {
                 try {
                     if (afterUploadAction.equals(LocalFileAction.MOVE) &&
                         ingestExternalConfiguration.getFailedUploadDir() != null &&
                         !ingestExternalConfiguration.getFailedUploadDir().isEmpty()) {
-                        java.nio.file.Path path =
-                            Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
+                        java.nio.file.Path path = localFilePath.get();
                         Files.move(path,
-                            Paths.get(ingestExternalConfiguration.getFailedUploadDir(), localFile.get().getPath()),
+                            Paths.get(ingestExternalConfiguration.getFailedUploadDir(), path.toFile().getName()),
                             StandardCopyOption.REPLACE_EXISTING);
                     }
                 } catch (IOException e) {

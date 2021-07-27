@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.common.model.administration.RuleType;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -237,7 +238,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     @Override
     public void importFile(InputStream rulesFileStream, String filename)
         throws IOException, InvalidParseOperationException, ReferentialException, StorageException,
-        InvalidGuidOperationException, LogbookClientException {
+        InvalidGuidOperationException, LogbookClientException, IllegalPathException {
         ParametersChecker.checkParameter(RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER, rulesFileStream);
 
         final GUID eip = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
@@ -904,7 +905,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
     }
 
-    private File convertInputStreamToFile(InputStream rulesStream, String extension) throws IOException {
+    private File convertInputStreamToFile(InputStream rulesStream, String extension)
+        throws IOException, IllegalPathException {
         try {
             final File csvFile = FileUtil.createFileInTempDirectoryWithPathCheck(TMP, extension);
             Files.copy(rulesStream, csvFile.toPath(), StandardCopyOption.REPLACE_EXISTING);

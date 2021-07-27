@@ -93,7 +93,6 @@ import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -811,38 +810,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId)
             .build();
 
-    }
-
-    /**
-     * Once done, clear the Upload operation history
-     *
-     * @param operationId the operation id
-     * @return the Response
-     */
-    @Path("clear/{id_op}")
-    @GET
-    @RequiresPermissions("clear:delete")
-    public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
-        // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope,
-        // dont call VITAM backend) ?
-        final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
-        if (responseDetails != null) {
-            // Clean up uploadRequestsStatus
-            uploadRequestsStatus.remove(operationId);
-            String fileName = "ATR_" + operationId + ".xml";
-            try {
-                SafeFileChecker.checkSafeFilePath(fileName);
-                File file = PropertiesUtils.fileFromTmpFolder(fileName);
-                Files.delete(file.toPath());
-            } catch (IOException e) {
-                LOGGER.error(e);
-            }
-            // Cleaning process succeeded
-            return Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
-        } else {
-            // Cleaning process failed
-            return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
-        }
     }
 
     private LogbookEventOperation getlogBookOperationStatus(String operationId, HttpServletRequest request)

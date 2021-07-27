@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -436,7 +437,7 @@ public class EvidenceService {
                 return file;
             }
 
-        } catch (StorageNotFoundException | StorageServerClientException | IOException e) {
+        } catch (StorageNotFoundException | StorageServerClientException | IOException | IllegalPathException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL,
                 String.format("Could not retrieve traceability zip file '%s'", fileName), e);
         } finally {

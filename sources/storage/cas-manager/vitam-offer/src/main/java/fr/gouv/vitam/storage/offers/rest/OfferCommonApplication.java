@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
+import fr.gouv.vitam.storage.offers.core.SanityCheckOfferServiceDecorator;
 import fr.gouv.vitam.storage.offers.database.OfferLogAndCompactedOfferLogService;
 import fr.gouv.vitam.storage.offers.database.OfferLogCompactionDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
@@ -120,7 +121,7 @@ public class OfferCommonApplication {
                     :
                     null;
 
-            this.defaultOfferService = new DefaultOfferServiceImpl(
+            DefaultOfferServiceImpl defaultOfferServiceImpl = new DefaultOfferServiceImpl(
                 contentAddressableStorage,
                 readRepository,
                 offerLogCompactionDatabaseService,
@@ -132,6 +133,8 @@ public class OfferCommonApplication {
                 configuration.getMaxBatchThreadPoolSize(),
                 configuration.getBatchMetadataComputationTimeout()
             );
+            // Decorate default offer service with a sanity check wrapper
+            this.defaultOfferService = new SanityCheckOfferServiceDecorator(defaultOfferServiceImpl, storageConfiguration);
 
         } catch (Exception e) {
             LOGGER.error(e);
