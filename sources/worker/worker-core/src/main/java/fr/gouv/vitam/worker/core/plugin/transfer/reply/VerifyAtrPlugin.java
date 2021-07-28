@@ -82,7 +82,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class VerifyAtrPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyAtrPlugin.class);
     public static final String PLUGIN_NAME = "VERIFY_ARCHIVAL_TRANSFER_REPLY";
-    private static final URL SEDA_XSD_URL = Objects.requireNonNull(VerifyAtrPlugin.class.getClassLoader().getResource(SEDA_XSD_VERSION));
+    private static final URL SEDA_XSD_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(SEDA_XSD_VERSION));
     private static final URL CATALOG_URL = Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
 
     private final JAXBContext jaxbContext;
