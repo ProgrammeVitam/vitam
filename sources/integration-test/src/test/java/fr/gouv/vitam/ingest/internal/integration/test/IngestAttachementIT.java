@@ -26,25 +26,35 @@
  */
 package fr.gouv.vitam.ingest.internal.integration.test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.MongoIterable;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -53,11 +63,14 @@ import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
@@ -66,7 +79,12 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
@@ -111,13 +129,17 @@ import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SANITY_CHECK_RESULT_FILE;
+import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
 import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -170,7 +192,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
 
-        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
         client = IngestInternalClientFactory.getInstance().getClient();
 
         processingManagementClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -233,12 +255,14 @@ public class IngestAttachementIT extends VitamRuleRunner {
         prepareVitamSession(tenantId, "aName", "Context_IT");
 
         // simulate a corrupted ingest
-        ingestToStepThenKO();
+        String operationId = ingestToStepThenKO();
 
         // prepare 2nd zip to ingest
-        MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
+        MongoIterable<Document> resultUnits =
+            MetadataCollections.UNIT.getCollection().find(Filters.eq("_opi", operationId));
         Document unit = resultUnits.first();
-        String idUnit = (String) unit.get("_id");
+        assertNotNull(unit);
+        String idUnit = unit.getString("_id");
         assertThat(idUnit).isNotNull();
 
         replaceStringInFile(SIP_BASE_WITH_UNIT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
@@ -258,18 +282,20 @@ public class IngestAttachementIT extends VitamRuleRunner {
         prepareVitamSession(tenantId, "aName", "Context_IT");
 
         // simulate a corrupted ingest
-        ingestToStepThenKO();
+        String operationId = ingestToStepThenKO();
 
         // prepare 2nd zip to ingest
-        MongoIterable<Document> resultGots = MetadataCollections.OBJECTGROUP.getCollection().find();
+        MongoIterable<Document> resultGots =
+            MetadataCollections.OBJECTGROUP.getCollection().find(Filters.eq("_opi", operationId));
         Document got = resultGots.first();
-        String idGOT = (String) got.get("_id");
-        assertThat(idGOT).isNotNull();
+        assertNotNull(got);
+        String idGot = got.getString("_id");
+        assertThat(idGot).isNotNull();
 
         replaceStringInFile(SIP_BASE_WITH_GOT + "/manifest.xml",
             "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
         replaceStringInFile(SIP_BASE_WITH_GOT + "/manifest.xml",
-            "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
+            "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGot);
 
         InputStream streamSip = createZipFile(SIP_BASE_WITH_GOT);
         GUID ingestOperationGuid = ingestSip(streamSip);
@@ -283,12 +309,14 @@ public class IngestAttachementIT extends VitamRuleRunner {
         prepareVitamSession(tenantId, "aName", "Context_IT");
 
         // simulate a corrupted ingest
-        ingestToStepThenKO();
+        String operationId = ingestToStepThenKO();
 
         // prepare 2nd zip to ingest
-        MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find().skip(1);
+        MongoIterable<Document> resultUnits =
+            MetadataCollections.UNIT.getCollection().find(Filters.eq("_opi", operationId)).skip(1);
         Document unit = resultUnits.first();
-        String idGot = (String) unit.get("_og");
+        assertNotNull(unit);
+        String idGot = unit.getString("_og");
         assertThat(idGot).isNotNull();
 
 
@@ -302,6 +330,73 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
         awaitForWorkflowTerminationWithStatus(ingestOperationGuid, KO);
         verifyLogbook(ingestOperationGuid.toString());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_og_attachement() throws Exception {
+        prepareVitamSession(tenantId, "aName", "Context_IT");
+
+        // make an ingest
+        String operationId = VitamTestHelper.doIngest(tenantId, SIP_BASE_INIT);
+        verifyOperation(operationId, OK);
+        verifyProcessState(operationId, tenantId, COMPLETED);
+
+        // prepare 2nd zip to ingest
+        MongoIterable<Document> resultUnits =
+            MetadataCollections.UNIT.getCollection().find(Filters.eq("_opi", operationId)).skip(1);
+        Document unit = resultUnits.first();
+        assertNotNull(unit);
+        String idGot = unit.getString("_og");
+        assertThat(idGot).isNotNull();
+
+
+        replaceStringInFile(LINK_AU_TO_EXISTING_GOT + "/manifest.xml",
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            idGot);
+
+        InputStream streamSip = createZipFile(LINK_AU_TO_EXISTING_GOT);
+
+        GUID ingestOperationGuid = ingestSip(streamSip);
+
+        awaitForWorkflowTerminationWithStatus(ingestOperationGuid, WARNING);
+
+        JsonNode lfc = getLFC(idGot);
+
+        JsonNode lfCfromOffer = getLFCfromOffer(idGot);
+
+        assertEquals(lfc, lfCfromOffer);
+    }
+
+    private JsonNode getLFC(String obId)
+        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
+        try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
+            .getClient()) {
+            final Select select = new Select();
+            select.setQuery(QueryHelper.gte("obId", obId));
+            JsonNode ogLFCresponse = logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect());
+            JsonNode results = ogLFCresponse.get(RequestResponseOK.TAG_RESULTS);
+            assertNotNull(results);
+            assertFalse(results.isEmpty());
+            return results.get(0);
+
+        }
+    }
+
+    private JsonNode getLFCfromOffer(String obId)
+        throws StorageNotFoundClientException, StorageServerClientException, StorageNotFoundException,
+        InvalidParseOperationException {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
+            Response object = storageClient
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), offers.get(0), obId + JSON_EXTENSION,
+                    DataCategory.OBJECTGROUP, AccessLogUtils.getNoLogAccessLog());
+            InputStream inputStream = object.readEntity(InputStream.class);
+            JsonNode resultOffer = JsonHandler.getFromInputStream(inputStream);
+            assertNotNull(resultOffer);
+            assertTrue(resultOffer.has("lfc"));
+            return resultOffer.get("lfc");
+        }
     }
 
     private void verifyLogbook(String operationId) {
@@ -372,7 +467,7 @@ public class IngestAttachementIT extends VitamRuleRunner {
     }
 
 
-    private void ingestToStepThenKO() throws Exception {
+    private String ingestToStepThenKO() throws Exception {
         String operationId = VitamTestHelper.doIngestNext(tenantId, SIP_BASE_INIT);
         GUID operationGuid = GUIDReader.getGUID(operationId);
         verifyOperation(operationId, OK);
@@ -380,14 +475,15 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
         for (int i = 0; i <= 7; i++) {
             processingManagementClient
-                    .executeOperationProcess(operationGuid.toString(), Contexts.DEFAULT_WORKFLOW.toString(),
-                            ProcessAction.NEXT.getValue());
+                .executeOperationProcess(operationGuid.toString(), Contexts.DEFAULT_WORKFLOW.toString(),
+                    ProcessAction.NEXT.getValue());
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, PAUSE);
         }
 
         // stop workflow
         processingManagementClient.cancelOperationProcessExecution(operationGuid.toString());
         awaitForWorkflowTerminationWithStatus(operationGuid, KO, ProcessState.COMPLETED);
+        return operationId;
     }
 
     private void initialize(GUID operationGuid) throws Exception {
@@ -396,10 +492,10 @@ public class IngestAttachementIT extends VitamRuleRunner {
         // init default logbook operation
         List<LogbookOperationParameters> params = new ArrayList<>();
         LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -412,8 +508,8 @@ public class IngestAttachementIT extends VitamRuleRunner {
     private GUID ingestSip(InputStream sipStream) throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         initialize(operationGuid);
-        try(final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()){
-            InputStream sanityCheckStream = PropertiesUtils.getResourceAsStream(SANITY_CHECK_RESULT_FILE) ;
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            InputStream sanityCheckStream = PropertiesUtils.getResourceAsStream(SANITY_CHECK_RESULT_FILE);
             workspaceClient.putObject(operationGuid.getId(), SANITY_CHECK_RESULT_FILE, sanityCheckStream);
         } catch (FileNotFoundException e) {
             fail("File not found", e);
