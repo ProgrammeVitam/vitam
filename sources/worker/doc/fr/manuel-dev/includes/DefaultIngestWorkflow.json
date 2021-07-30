@@ -515,7 +515,7 @@
           "action": {
             "actionKey": "OBJECT_GROUP_UPDATE",
             "behavior": "BLOCKING",
-            "lifecycleLog": "FINAL"
+            "lifecycleLog": "FLUSH_LFC"
           }
         },
         {
