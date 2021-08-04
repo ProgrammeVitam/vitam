@@ -100,7 +100,7 @@ Extra: Avast Business Antivirus for Linux
 
 Pour se faire, il suffit d'éditer la variable ``vitam.ingestexternal.antivirus: avast`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``.
 
-Il sera nécessaire de fournir le fichier de licence sous ``deployment/environments/antivirus/license.avastlic`` pour pouvoir deployer et utiliser l'antivirus Avast.
+Il sera nécessaire de fournir le fichier de licence sous ``deployment/environments/antivirus/license.avastlic`` pour pouvoir déployer et utiliser l'antivirus Avast.
 
 De plus, il est possible de paramétrer l'accès aux repositories (Packages & Virus definitions database) dans le fichier ``deployment/environments/group_vars/all/cots_vars.yml``.
 
@@ -111,6 +111,9 @@ Si les paramètres ne sont pas définis, les valeurs suivantes sont appliquées 
   ## Avast Business Antivirus for Linux
   ## if undefined, the following default values are applied.
   avast:
+      # logs configuration
+      logrotate: enabled # or disabled
+      history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
       manage_repository: true
       repository:
           state: present
@@ -127,6 +130,15 @@ Si les paramètres ne sont pas définis, les valeurs suivantes sont appliquées 
 
 ..
 
+.. warning:: Vitam gère en entrée les SIPs aux formats: ZIP ou TAR (tar, tar.gz ou tar.bz2); cependant et d'après les tests effectués, il est fortement recommandé d'utiliser le format .zip pour bénéficier des meilleures performances d'analyses avec le scan-avast.sh.
+
+De plus, il faudra prendre en compte un dimensionnement supplémentaire sur les ingest-external afin de pouvoir traiter le scan des fichiers >500Mo.
+
+Dans le cas d'un SIP au format .zip ou .tar, les fichiers >500Mo contenus dans le SIP seront décompressés et scannés unitairement. Ainsi la taille utilisée ne dépassera pas la taille d'un fichier.
+
+Dans le cas d'un SIP au format .tar.gz ou .tar.bz2, les SIPs >500Mo seront intégralement décompressés et scannés. Ainsi, la taille utilisée correspondra à la taille du SIP décompressé.
+
+..
 
 Paramétrage des certificats externes (\*-externe)
 =================================================

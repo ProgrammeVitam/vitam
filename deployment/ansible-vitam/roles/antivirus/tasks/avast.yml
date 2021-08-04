@@ -1,12 +1,15 @@
 ---
 
-- name: ensure {{ vitam_defaults.folder.root_path }}/conf/avast exists
+- name: ensure {{ vitam_defaults.folder.root_path }}/{{ item }}/avast exists
   file:
-    path: "{{ vitam_defaults.folder.root_path }}/conf/avast"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/avast"
     state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
+  loop:
+    - conf
+    - log
 
 - name: Copy Avast public key for repository
   copy:
@@ -57,14 +60,19 @@
     - ansible_os_family == "Debian"
     - avast.manage_repository | default(true) | bool == true
 
-- name: Install Avast package
+- name: Install Avast and required packages
   package:
-    name: avast
+    name: "{{ item }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  loop:
+    - avast
+    - unzip
+    - gzip
+    - bzip2
 
 - name: Adding {{ vitam_defaults.users.group }} group to avast so it can scan {{ vitam_defaults.users.group }}-based files
   user:
@@ -79,6 +87,15 @@
     owner: avast
     group: avast
     mode: 0600
+  notify: restart avast
+
+- name: Configure avast.conf
+  template:
+    src: avast/avast.conf.j2
+    dest: /etc/avast/avast.conf
+    owner: avast
+    group: avast
+    mode: 0644
   notify: restart avast
 
 - name: Configure VPS repository
@@ -113,3 +130,18 @@
     name: avast
     enabled: yes
     state: started
+
+- name: Enable logrotate for Avast
+  template:
+    src: avast/logrotate.j2
+    dest: /etc/logrotate.d/avast
+    owner: root
+    group: root
+    mode: 0644
+  when: avast.logrotate | default('enabled') | lower == 'enabled'
+
+- name: Disable logrotate for Avast
+  file:
+    path: /etc/logrotate.d/avast
+    state: absent
+  when: avast.logrotate | default('enabled') | lower == 'disabled'
