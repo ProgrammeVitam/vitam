@@ -296,6 +296,9 @@ clamav:
 ## Avast Business Antivirus for Linux
 ## if undefined, the following default values are applied.
 # avast:
+#     # logs configuration
+#     logrotate: enabled # or disabled
+#     history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
 #     manage_repository: true
 #     repository:
 #         state: present

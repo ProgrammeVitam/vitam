@@ -1,0 +1,15 @@
+{{ ansible_managed | comment }}
+
+{{ vitam_defaults.folder.root_path }}/log/avast/scan.log {
+        daily
+        rotate {{ avast.history_days | default(30) }}
+        copytruncate
+        dateext
+        dateformat -%Y-%m-%d
+        dateyesterday
+        extension .log
+        compress
+        delaycompress
+        notifempty
+        missingok
+}

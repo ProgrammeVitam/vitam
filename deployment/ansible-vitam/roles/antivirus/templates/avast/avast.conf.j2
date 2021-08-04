@@ -1,0 +1,19 @@
+;
+; Avast configuration file
+;
+; Below are all available configuration options and their default values. Only
+; the options in the OPTIONS section can be changed at runtime.
+;
+; RUN_DIR = "/var/run/avast"
+; TEMP_DIR = "/tmp"
+; DATA_DIR = "/var/lib/avast"
+; SOCKET = "/var/run/avast/scan.sock"
+; LICENSE = "/etc/avast/license.avastlic"
+; WHITELIST = "/etc/avast/whitelist.txt"
+; SUBMIT = "/var/lib/avast/Setup/submit"
+;
+[OPTIONS]
+CREDENTIALS = {{ avast.conf.options.credentials | default(0) }}
+STATISTICS = {{ avast.conf.options.statistics | default(0) }}
+HEURISTICS = {{ avast.conf.options.heuristics | default(0) }}
+STREAMING_UPDATES = {{ avast.conf.options.streaming_updates | default(0) }}
