@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.model.storage.ObjectEntry;
 
 import java.io.IOException;
 
+@FunctionalInterface
 public interface ObjectListingListener {
     void handleObjectEntry(ObjectEntry objectEntry) throws IOException;
 }
