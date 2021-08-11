@@ -80,16 +80,13 @@ import static org.assertj.core.api.Assertions.fail;
 
 public class SecurityInternalIT extends VitamRuleRunner {
 
-    private static IdentityMain identityMain;
-    private static final String IDENTITY_CONF = "security-internal/security-internal-test.conf";
+    private final static String EMPTY_CRL_FILE = "/security-internal/signing-ca-no-revoked-cert-yet.crl";
 
-    private final static String EMPTY_CRL_FILE = "/security-internal/ca-intermediate.crl";
+    private final static String CRL_SIA_REVOKED_FILE = "/security-internal/signing-ca-with-revoked-cert.crl";
 
-    private final static String CRL_SIA_REVOKED_FILE = "/security-internal/ca-intermediate-sia-revoked.crl";
+    private final static String IDENTITY_CERT_FILE = "/security-internal/my-sia.crt";
 
-    private final static String IDENTITY_CERT_FILE = "/security-internal/sia-client-external.crt";
-
-    private final static String PERSONAL_CERT_FILE = "/security-internal/personal-client-external.crt";
+    private final static String PERSONAL_CERT_FILE = "/security-internal/my-personal-certificate.crt";
 
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";

@@ -77,13 +77,13 @@ public class CRLServiceTest {
 
     private CRLService crlService;
 
-    private final static String EMPTY_CRL_FILE = "/ca-intermediate.crl";
+    private final static String EMPTY_CRL_FILE = "/signing-ca-no-revoked-cert-yet.crl";
 
-    private final static String CRL_SIA_REVOKED_FILE = "/ca-intermediate-sia-revoked.crl";
+    private final static String CRL_SIA_REVOKED_FILE = "/signing-ca-with-revoked-cert.crl";
 
-    private final static String IDENTITY_CERT_FILE = "/sia-client-external.crt";
+    private final static String IDENTITY_CERT_FILE = "/my-sia.crt";
 
-    private final static String PERSONAL_CERT_FILE = "/personal-client-external.crt";
+    private final static String PERSONAL_CERT_FILE = "/my-personal-certificate.crt";
 
     private final static String ISSUER_NAME =
         "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr";
