@@ -102,6 +102,8 @@ public class CRLServiceImpl implements CRLService {
 
             CertificateBaseModel certificateModel = (CertificateBaseModel)certificateModelObj;
 
+            // FIXME : Expired certificates will throw a CertificateExpiredException and CRL update will fail forever.
+            //  Maybe we need another status CertificateStatus.EXPIRED?
             if (crl.isRevoked(X509PKIUtil.parseX509Certificate(certificateModel.getCertificate()))) {
                 crtRevocatedList.add(certificateModel.getId());
                 securityAlertLogService.createAlert(VitamLogLevel.WARN,
