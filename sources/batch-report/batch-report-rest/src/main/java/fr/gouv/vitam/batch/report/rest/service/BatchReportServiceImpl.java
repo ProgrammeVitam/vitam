@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
@@ -99,8 +100,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -252,7 +251,7 @@ public class BatchReportServiceImpl {
     }
 
     public void exportUnitsToInvalidate(String processId, int tenantId, ReportExportRequest reportExportRequest)
-        throws IOException, ContentAddressableStorageServerException {
+        throws IOException, ContentAddressableStorageServerException, IllegalPathException {
 
         File file = createTemporaryFile(processId, reportExportRequest.getFilename());
 
@@ -413,7 +412,8 @@ public class BatchReportServiceImpl {
     }
 
     public void storeFileToWorkspace(Report reportInfo)
-        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
+        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException,
+        IllegalPathException {
 
         OperationSummary operationSummary = reportInfo.getOperationSummary();
         String processId = operationSummary.getEvId();
@@ -619,7 +619,7 @@ public class BatchReportServiceImpl {
 
     public void exportPurgeDistinctObjectGroupOfDeletedUnits(String processId, String filename,
         int tenantId)
-        throws IOException, ContentAddressableStorageServerException {
+        throws IOException, ContentAddressableStorageServerException, IllegalPathException {
 
         File tempFile = createTemporaryFile(processId, filename);
 
@@ -633,7 +633,8 @@ public class BatchReportServiceImpl {
     }
 
     public void exportPurgeAccessionRegister(String processId, String filename, int tenantId)
-        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
+        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException,
+        IllegalPathException {
 
         File tempFile = createTemporaryFile(processId, filename);
 
@@ -704,7 +705,7 @@ public class BatchReportServiceImpl {
     }
 
     public void createExtractedMetadataDistributionFileForAu(String processId, int tenant)
-        throws IOException, ContentAddressableStorageServerException {
+        throws IOException, ContentAddressableStorageServerException, IllegalPathException {
         File tempFile = createTemporaryFile(processId, processId);
         try (MongoCursor<ExtractedMetadata> extractedMetadatas = extractedMetadataRepository
             .getExtractedMetadataByProcessId(processId, tenant)) {
@@ -738,10 +739,10 @@ public class BatchReportServiceImpl {
 
 
     @NotNull
-    private File createTemporaryFile(@NotNull String processId, @NotNull String filename) throws IOException {
-        SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), processId + "/" + filename);
-        Files.createDirectory(Paths.get(VitamConfiguration.getVitamTmpFolder(), processId));
-        return Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), processId + "/" + filename))
-            .toFile();
+    private File createTemporaryFile(@NotNull String processId, @NotNull String filename)
+        throws IOException, IllegalPathException {
+        File file = SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), processId, filename);
+        FileUtils.forceMkdirParent(file);
+        return file;
     }
 }

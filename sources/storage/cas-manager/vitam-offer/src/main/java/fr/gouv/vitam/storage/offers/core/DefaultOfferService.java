@@ -140,7 +140,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageServerException
      */
     ContainerInformation getCapacity(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+        throws ContentAddressableStorageException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName
@@ -181,9 +181,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageServerException Parsing error
      */
     List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
-        throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException;
-
-    void checkOfferPath(String... paths) throws IOException;
+        throws ContentAddressableStorageException;
 
     /**
      * List container objects

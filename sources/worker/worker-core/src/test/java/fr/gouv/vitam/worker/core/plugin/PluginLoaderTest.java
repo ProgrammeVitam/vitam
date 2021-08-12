@@ -29,8 +29,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.io.IOException;
-
+import fr.gouv.vitam.common.security.IllegalPathException;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -67,13 +66,13 @@ public class PluginLoaderTest {
                 "could not find class: fr.gouv.vitam.worker.core.plugin.PluginLoaderTest$FakeMissingPlugin");
     }
 
-    @Test(expected = IOException.class)
+    @Test(expected = IllegalPathException.class)
     public void should_fail_if_path_traversal() throws Exception {
         // Given
         new PluginLoader("/vitam/../etc/passwd");
     }
 
-    @Test(expected = IOException.class)
+    @Test(expected = IllegalPathException.class)
     public void should_fail_if_path_traversal_current_folder() throws Exception {
         // Given
         new PluginLoader("./plugins-fail.json");

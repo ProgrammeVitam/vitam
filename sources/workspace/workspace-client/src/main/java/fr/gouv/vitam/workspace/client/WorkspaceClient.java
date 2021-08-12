@@ -145,20 +145,6 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public long countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        try (Response response = make(get().withPath(CONTAINERS + containerName + "/count").withJsonAccept())) {
-            check(response);
-            return response.readEntity(JsonNode.class)
-                .get("objectNumber")
-                .asLong();
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
-            throw new ContentAddressableStorageServerException(e);
-        }
-    }
-
     public void createFolder(String containerName, String folderName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
         ParametersChecker

@@ -287,19 +287,6 @@ public interface WorkspaceContentAddressableStorage {
      */
     JsonNode getObjectInformation(String containerName, String objectName) throws ContentAddressableStorageException;
 
-    /**
-     * Determines if a container exists
-     *
-     * @param containerName
-     *            name of container
-     * @return long number of binary objects (excluding directory markers)
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException
-     *             Thrown when get action failed due some other failure
-     */
-    long countObjects(String containerName) throws ContentAddressableStorageException;
-
     void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)
         throws ContentAddressableStorageException;
 

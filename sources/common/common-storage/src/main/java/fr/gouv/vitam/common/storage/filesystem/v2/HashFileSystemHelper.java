@@ -32,23 +32,15 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -59,11 +51,10 @@ public class HashFileSystemHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystem.class);
 
-    private String rootPath;
-    private FileSystem fs = FileSystems.getDefault();
+    private final String rootPath;
+    private final FileSystem fs = FileSystems.getDefault();
     private final String SEPARATOR = fs.getSeparator();
     private static final String CONTAINER_SUBDIRECTORY = "container";
-    private static final String PATH_TRAVERSAL_FOUND_ERROR_MESSAGE = "Invalid or infected container/object path";
 
     /**
      * Constructor
@@ -132,22 +123,17 @@ public class HashFileSystemHelper {
         for (String id : splitObjectId(objectId)) {
             subDirectoriesComponentList.add(id);
         }
-        // Add the objectId name at the end 
+        // Add the objectId name at the end
         subDirectoriesComponentList.add(objectId);
         String[] subDirectoriesComponentArray =
-            subDirectoriesComponentList.toArray(new String[subDirectoriesComponentList.size()]);
+            subDirectoriesComponentList.toArray(new String[0]);
 
-        try {
-            SafeFileChecker.checkSafeFilePath(getPathContainer(container).toString(), subDirectoriesComponentArray);
-        } catch (IOException e) {
-            throw new ContentAddressableStorageServerException(PATH_TRAVERSAL_FOUND_ERROR_MESSAGE, e);
-        }
         return fs.getPath(getPathContainer(container).toString(), subDirectoriesComponentArray);
     }
 
 
-    // Manage Container
 
+    // Manage Container
     /**
      * Create a directory recursively in the sub tree
      *
@@ -156,12 +142,7 @@ public class HashFileSystemHelper {
      */
     public void createContainer(String container)
         throws ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter("Subpath can't be null", container);
-        try {
-            SafeFileChecker.checkSafeFilePath(rootPath, CONTAINER_SUBDIRECTORY, container);
-        } catch (IOException e) {
-            throw new ContentAddressableStorageServerException(PATH_TRAVERSAL_FOUND_ERROR_MESSAGE, e);
-        }
+        ParametersChecker.checkParameter("Container can't be null", container);
         createDirectories(getPathContainer(container));
     }
 
@@ -173,7 +154,6 @@ public class HashFileSystemHelper {
         ParametersChecker.checkParameter("Subpath can't be null", subpath);
         return getPathContainer(subpath).toFile().isDirectory();
     }
-
 
     // Low level functions
 
@@ -193,16 +173,7 @@ public class HashFileSystemHelper {
         } catch (FileAlreadyExistsException e) {
             LOGGER.warn("Path " + path.toString() + " already exists", e);
         } catch (IOException e) {
-            throw new ContentAddressableStorageServerException("Can't create the directory " + path.toString(), e);
+            throw new ContentAddressableStorageServerException("Can't create the directory " + path, e);
         }
-    }
-
-    public void checkContainerPathTraversal(String  containerName) throws ContentAddressableStorageServerException {
-        try {
-            SafeFileChecker.checkSafeFilePath(rootPath, CONTAINER_SUBDIRECTORY, containerName);
-        } catch (IOException e) {
-            throw new ContentAddressableStorageServerException(PATH_TRAVERSAL_FOUND_ERROR_MESSAGE, e);
-        }
-
     }
 }

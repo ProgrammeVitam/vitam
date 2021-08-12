@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -60,8 +61,8 @@ public interface ReferentialFile<E> {
      * @throws InvalidCreateOperationException
      */
     void importFile(InputStream file, String filename)
-            throws VitamException, IOException,
-            InvalidCreateOperationException;
+        throws VitamException, IOException,
+        InvalidCreateOperationException, IllegalPathException;
 
     /**
      * find document based on a given Id

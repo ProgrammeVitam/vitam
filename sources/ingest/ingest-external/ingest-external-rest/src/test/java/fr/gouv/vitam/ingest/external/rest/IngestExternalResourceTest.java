@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
@@ -59,6 +60,7 @@ import org.junit.Test;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,6 +103,13 @@ public class IngestExternalResourceTest {
         // TODO: 08/02/19 remove static (no time)
         BusinessApplicationTest.formatIdentifierFactory = formatIdentifierFactory;
         BusinessApplicationTest.ingestInternalClientFactory = ingestInternalClientFactory;
+
+        // Update configuration with full upload folder path
+        File configurationFile = PropertiesUtils.getResourceFile(INGEST_EXTERNAL_CONF);
+        final IngestExternalConfiguration configuration =
+            PropertiesUtils.readYaml(configurationFile, IngestExternalConfiguration.class);
+        configuration.setBaseUploadPath(configurationFile.getParentFile().getCanonicalPath());
+        PropertiesUtils.writeYaml(configurationFile, configuration);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
@@ -202,8 +211,7 @@ public class IngestExternalResourceTest {
     @Test
     public void givenALocalFilePathWhenUploadedThenReturnOK()
         throws Exception {
-        String path = PropertiesUtils.getResourcePath("no-virus.txt").toString();
-        LocalFile localFile = new LocalFile(path);
+        LocalFile localFile = new LocalFile("no-virus.txt");
         when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFile)

@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -228,13 +229,13 @@ public class IngestExternalImpl implements IngestExternal {
             final long timeoutScanDelay = config.getTimeoutScanDelay();
             final String containerNamePath = guid.getId();
             final String objectNamePath = guid.getId();
-            final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
+            final File file;
             try {
-                SafeFileChecker.checkSafeFilePath(filePath);
-            } catch (IOException e) {
+                file = SafeFileChecker.checkSafeFilePath(config.getPath(), containerNamePath, objectNamePath);
+            } catch (IllegalPathException e) {
+                String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
                 throw new IngestExternalException("File path " + filePath + " is invalid", e);
             }
-            final File file = new File(filePath);
             if (!file.canRead()) {
                 LOGGER.error(CAN_NOT_READ_FILE);
                 throw new IngestExternalException(CAN_NOT_READ_FILE);
@@ -248,7 +249,7 @@ public class IngestExternalImpl implements IngestExternal {
                  * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
                  * virus found but not corrected 3: Fatal scan not performed
                  */
-                executionOutput = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
+                executionOutput = JavaExecuteScript.executeCommand(antiVirusScriptName, file.getAbsolutePath(), timeoutScanDelay);
             } catch (final Exception e) {
                 LOGGER.error(CAN_NOT_SCAN_VIRUS, e);
                 throw new IngestExternalException(e);
