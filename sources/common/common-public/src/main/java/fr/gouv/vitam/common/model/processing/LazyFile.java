@@ -24,72 +24,23 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.model.processing;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.ParametersChecker;
-
-/**
- * IOParameter for action or step
- */
-public class IOParameter {
-    @JsonProperty("name")
-    private String name;
-    @JsonProperty("uri")
-    private ProcessingUri uri;
-    @JsonProperty("optional")
+public class LazyFile {
+    private String path;
     private boolean optional;
 
-    /**
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param name the value to set
-     * @return this
-     */
-    public IOParameter setName(String name) {
-        ParametersChecker.checkParameter("Name is a mandatory parameter", name);
-        this.name = name;
-        return this;
-    }
-
-    /**
-     * @return uri
-     */
-    public ProcessingUri getUri() {
-        return uri;
-    }
-
-    /**
-     * @return optional
-     */
-    public boolean getOptional() {
-        return optional;
-    }
-
-    /**
-     * @param uri the value to set
-     * @return this
-     */
-    public IOParameter setUri(ProcessingUri uri) {
-        ParametersChecker.checkParameter("Uri is a mandatory parameter", uri);
-        this.uri = uri;
-        return this;
-    }
-
-    /**
-     * Set the optional.
-     *
-     * @param optional the optional to set
-     * @return this
-     */
-    public IOParameter setOptional(boolean optional) {
+    public LazyFile(String path, boolean optional) {
+        this.path = path;
         this.optional = optional;
-        return this;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public boolean isOptional() {
+        return optional;
     }
 }

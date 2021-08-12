@@ -95,6 +95,8 @@ public interface HandlerIO extends VitamAutoCloseable {
      */
     <T> T getInput(int rank, Class<T> type);
 
+    File getFile(int rank);
+
     /**
      * @return list of output
      */

@@ -1329,11 +1329,7 @@ public class ExtractSedaActionHandlerTest {
         final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
-        
-        
-        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder")+"/ExtractSedaActionHandlerTest_workerId/StorageInfo/storageInfo.json"));
-        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder")+"/ExtractSedaActionHandlerTest_workerId/referential/contracts.json"));
-        
+
         String objectId = "SIP/manifest.xml";
         HandlerIOImpl handlerIO =
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest",
