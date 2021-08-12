@@ -133,8 +133,6 @@ public class SwiftV2V3ITTest {
     }
 
     @Test
-    @Ignore("Known bug 8319")
-    //TODO Fix #8319
     public void swift_api_v2_very_large_objects_scenario() throws Exception {
         StorageConfiguration configurationSwift = createConfigurationV2();
         SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configurationSwift);
@@ -162,8 +160,6 @@ public class SwiftV2V3ITTest {
     }
 
     @Test
-    @Ignore("Known bug 8319")
-    //TODO Fix #8319
     public void swift_api_v3_very_large_objects_scenario() throws Exception {
         StorageConfiguration configurationSwift = createConfigurationV3();
         SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);

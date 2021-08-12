@@ -191,7 +191,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             while (remainingSize > 0) {
 
                 long segmentSize = Math.min(swiftLimit, remainingSize);
-                final String segmentName = objectName + "/" + segmentIndex;
+                final String segmentName = objectName + "/" + String.format("%08d", segmentIndex);
 
                 // Get current segment stream
                 BoundedInputStream segmentInputStream =
