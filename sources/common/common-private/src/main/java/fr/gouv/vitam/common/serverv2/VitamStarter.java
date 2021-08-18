@@ -196,6 +196,7 @@ public class VitamStarter {
             VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
             VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
+            VitamConfiguration.setEnvironmentName(vitamConfigurationParameters.getEnvironmentName());
 
         } catch (final IOException e) {
             LOGGER.error(e);

@@ -49,6 +49,7 @@ public class SafeFileChecker {
     private static final Pattern PATH_COMPONENT_PATTERN = Pattern.compile("^[a-zA-Z0-9\\-_@]+(\\.[a-zA-Z0-9\\-_@]+)*$");
 
     private static final AlertService alertService = new AlertServiceImpl();
+    public static final String LOCAL_ENVIRONMENT = "local";
 
     private SafeFileChecker() {
         // Empty constructor
@@ -139,9 +140,14 @@ public class SafeFileChecker {
             // OWASP ESAPI checks
             File sanityCheckedFile = doSanityCheck(finalPath);
 
+            // Avoid canonical path check for local environment due to symbolic link used for conf files
+            if (VitamConfiguration.getEnvironmentName() != null &&
+                VitamConfiguration.getEnvironmentName().equals(LOCAL_ENVIRONMENT)) {
+                return sanityCheckedFile;
+            }
+
             // Path Traversal check
             doCanonicalPathCheck(sanityCheckedFile);
-
             return sanityCheckedFile;
 
         } catch (Exception e) {
