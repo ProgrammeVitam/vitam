@@ -1,9 +1,0 @@
-{
-    "visState": "{\"title\":\"New Visualization\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-Marksweep time (ms)\"}}],\"listeners\":{}}",
-    "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"index\":\"metrics-vitam-jvm*\",\"query\":{\"query_string\":{\"query\":\"name:PS-MarkSweep.time\",\"analyze_wildcard\":true}},\"filter\":[]}"
-    },
-    "uiStateJSON": "{}",
-    "description": "",
-    "title": "Temps passe dans le GC PSMarksweep"
-}

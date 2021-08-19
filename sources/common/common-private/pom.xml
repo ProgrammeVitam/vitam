@@ -210,14 +210,6 @@
 
         <!-- Metrics dependencies -->
         <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-jvm</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
         </dependency>
@@ -229,11 +221,6 @@
             <groupId>net.javacrumbs.json-unit</groupId>
             <artifactId>json-unit</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>metrics-elasticsearch-reporter</artifactId>
-            <version>${metrics.elastic.version}</version>
         </dependency>
     </dependencies>
 

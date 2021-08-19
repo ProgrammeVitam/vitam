@@ -26,58 +26,26 @@
  */
 package fr.gouv.vitam.common.serverv2.application;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.metrics.VitamMetricRegistry;
-import fr.gouv.vitam.common.metrics.VitamMetrics;
-import fr.gouv.vitam.common.metrics.VitamMetricsType;
 import fr.gouv.vitam.common.server.ExternalHeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.RequestIdGeneratorContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
-import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
-import fr.gouv.vitam.common.serverv2.metrics.ContentLengthCountingMetricsFilter;
-import fr.gouv.vitam.common.serverv2.metrics.MetricsFeature;
-import io.prometheus.client.dropwizard.DropwizardExports;
-import io.prometheus.client.hotspot.DefaultExports;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * list of all business application
  */
 public class CommonBusinessApplication {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CommonBusinessApplication.class);
-
-    private static final String METRICS_CONF_FILE_NAME = "vitam.metrics.conf";
-
-    public static final Map<VitamMetricsType, VitamMetrics> metrics = new ConcurrentHashMap<>();
-
-    private Set<Object> resources;
-
-    private Set<Class<?>> classes;
+    private final Set<Object> resources;
 
     public CommonBusinessApplication() {
         this(false);
     }
 
     public CommonBusinessApplication(boolean externalApi) {
-        VitamMetricsConfiguration metricsConfiguration = new VitamMetricsConfiguration();
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
-            metricsConfiguration =
-                PropertiesUtils.readYaml(yamlIS, VitamMetricsConfiguration.class);
-        } catch (final IOException e) {
-            LOGGER.warn(e.getMessage());
-        }
-
         this.resources = new HashSet<>();
 
         if (externalApi) {
@@ -87,79 +55,11 @@ public class CommonBusinessApplication {
             resources.add(new HeaderIdContainerFilter());
         }
 
-        resources.add(new ContentLengthCountingMetricsFilter(metricsConfiguration.isEnableCountInputBytesMetrics(),
-            metricsConfiguration.isEnableCountOutputBytesMetrics()));
-
         resources.add(new GenericExceptionMapper());
-        clearAndConfigureMetrics(metricsConfiguration);
-
-        startMetrics();
-
-        // Register metrics for resources
-        classes = new HashSet<>();
-        final VitamMetrics vitamMetrics = metrics.get(VitamMetricsType.REST);
-        if (null != vitamMetrics) {
-            classes.add(MetricsFeature.class);
-        }
-    }
-
-    public Set<Class<?>> getClasses() {
-        return classes;
     }
 
     public Set<Object> getResources() {
         return resources;
     }
 
-    /**
-     * Clear the metrics map from any existing {@code VitamMetrics} and reload the configuration from the
-     * {@code #METRICS_CONF_FILE_NAME}
-     */
-    protected static final void clearAndConfigureMetrics(VitamMetricsConfiguration metricsConfiguration) {
-        ParametersChecker.checkParameter("The param metricsConfiguration is required", metricsConfiguration);
-
-        metrics.clear();
-        // Throws a JsonMappingException when the vitam.metrics.conf file is empty
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
-            metricsConfiguration = PropertiesUtils.readYaml(yamlIS, VitamMetricsConfiguration.class);
-        } catch (final IOException e) {
-            LOGGER.warn(e.getMessage());
-        }
-        VitamMetrics vitamMetrics;
-        if (metricsConfiguration.hasMetricsRest()) {
-            vitamMetrics = new VitamMetrics(VitamMetricsType.REST, metricsConfiguration);
-            new DropwizardExports(vitamMetrics.getRegistry()).register();
-            metrics.put(VitamMetricsType.REST, vitamMetrics);
-        }
-        if (metricsConfiguration.hasMetricsJVM()) {
-            vitamMetrics = new VitamMetrics(VitamMetricsType.JVM, metricsConfiguration);
-            new DropwizardExports(vitamMetrics.getRegistry()).register();
-            metrics.put(VitamMetricsType.JVM, vitamMetrics);
-
-            // Initialize JVM prometheus metrics
-            DefaultExports.initialize();
-        }
-
-        vitamMetrics = new VitamMetrics(VitamMetricsType.BUSINESS, metricsConfiguration);
-        new DropwizardExports(vitamMetrics.getRegistry()).register();
-        metrics.put(VitamMetricsType.BUSINESS, vitamMetrics);
-    }
-
-    /**
-     * Start the reporting of every metrics
-     */
-    public final void startMetrics() {
-        for (final Map.Entry<VitamMetricsType, VitamMetrics> entry : metrics.entrySet()) {
-            entry.getValue().start();
-        }
-    }
-
-    public static final VitamMetricRegistry getBusinessMetricsRegistry() {
-        if (metrics.containsKey(VitamMetricsType.BUSINESS)) {
-            return metrics.get(VitamMetricsType.BUSINESS).getRegistry();
-        } else {
-            LOGGER.warn("Empty VitamMetricRegistry.");
-            return new VitamMetricRegistry();
-        }
-    }
 }

@@ -1,9 +1,0 @@
-{
-    "visState": "{\"title\":\"TOP 10 slowest end-points\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false},\"aggs\":[{\"id\":\"1\",\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"mean\",\"customLabel\":\"average response time\"}},{\"id\":\"3\",\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"name.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"uri\"}},{\"id\":\"4\",\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"role.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
-    "description": "",
-    "title": "TOP 10 des URI avec le temps de reponse le plus eleve",
-    "uiStateJSON": "{}",
-    "kibanaSavedObjectMeta": {
-      "searchSourceJSON": "{\"index\":\"metrics-vitam-rest*\",\"filter\":[]}"
-    }
-}

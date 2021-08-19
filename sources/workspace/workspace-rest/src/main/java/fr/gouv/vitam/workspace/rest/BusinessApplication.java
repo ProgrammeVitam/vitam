@@ -73,15 +73,6 @@ public class BusinessApplication extends Application {
     }
 
     /**
-     * Return a set of classes to be used by restEasy
-     * @return
-     */
-    @Override
-    public Set<Class<?>> getClasses() {
-        return commonBusinessApplication.getClasses();
-    }
-
-    /**
      * Return a set of resources for restEasy
      * @return
      */
