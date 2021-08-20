@@ -1,0 +1,19 @@
+---
+
+- name: Check that Ansible version is at least 2.9
+  fail:
+    msg: "Ansible version must be at least 2.9, current version is {{ ansible_version.full }}"
+  when: ansible_version.full < "2.9.0"
+  delegate_to: localhost
+  register: check_ansible
+  ignore_errors: yes
+
+- name: Update report in case of error
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Ansible: [ERROR] Version must be at least 2.9, current version is {{ ansible_version.full }}' ] }}"
+  when: check_ansible is failed
+
+- name: Update report in case of success
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Ansible: [OK] Version is at least 2.9' ] }}"
+  when: check_ansible is success

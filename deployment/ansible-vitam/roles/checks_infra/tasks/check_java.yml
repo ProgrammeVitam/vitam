@@ -1,0 +1,22 @@
+---
+
+- name: Fetch Java version
+  shell: java -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
+  register: java_result
+
+- name: Check that Java is not present
+  fail:
+    msg: "Java {{ java_result.stdout }} is present"
+  when: java_result.stdout|length > 0
+  register: check_java
+  ignore_errors: yes
+
+- name: Update report in case of error
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Java: [ERROR] Java {{ java_result.stdout }} is already installed on host' ] }}"
+  when: check_java is failed
+
+- name: Update report in case of success
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Java: [OK] Java is not present on host' ] }}"
+  when: check_java is success

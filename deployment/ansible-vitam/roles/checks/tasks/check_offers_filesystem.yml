@@ -1,0 +1,24 @@
+---
+
+- name: Get filesystem offers
+  set_fact:
+    fs_offers: "{{ fs_offers | default([]) + [item.key] }}"
+  loop: "{{ lookup('dict', vitam_offers) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: "'filesystem' in item.value.provider"
+
+- name: Get offer_conf list
+  set_fact:
+    offer_conf: "{{ groups['hosts_storage_offer_default'] | map ('extract', hostvars, 'offer_conf') | list }}"
+
+- name: Get offer_conf list of filesystem offers
+  set_fact:
+    offer_conf_fs: "{{ offer_conf_fs | default([]) + [item] }}"
+  with_items: "{{ offer_conf }}"
+  when: item in fs_offers
+
+- name: Check filesystem offers configuration
+  fail:
+    msg: "A same filesystem offer has been configured on more than one host, check the configuration of the inventory group hosts-storage-offer-default"
+  when: offer_conf_fs|length > offer_conf_fs|unique|length

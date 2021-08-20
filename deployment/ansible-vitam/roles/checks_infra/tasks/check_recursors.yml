@@ -1,0 +1,22 @@
+---
+
+- name: Test port 53 on recursors
+  wait_for:
+    host: "{{ item }}"
+    port: 53
+    state: started
+    timeout: 3
+  with_items: "{{ dns_servers }}"
+  when: dns_servers is defined and dns_servers|length > 0 and item != ""
+  register: check_recursors
+  ignore_errors: yes
+
+- name: Update report in case of error
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Recursors: [ERROR] At least one DNS server is not reachable' ] }}"
+  when: check_recursors is failed
+
+- name: Update report in case of success
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Recursors: [OK] All DNS servers, if configured, are reachable' ] }}"
+  when: check_recursors is success
