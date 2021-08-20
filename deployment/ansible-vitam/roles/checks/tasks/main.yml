@@ -23,3 +23,5 @@
 
 - include_tasks: check_offers_mongo.yml
   when:  ( inventory_hostname in groups['hosts_storage_offer_default'] and ansible_virtualization_type != "docker" and inventory_hostname not in single_vm_hostnames )
+
+- include_tasks: check_offers_filesystem.yml

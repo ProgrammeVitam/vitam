@@ -2,21 +2,22 @@
 # Installation order
 #
 #   0. Confirm playbook launch
-#   1. Network check
-#   2. Stop Vitam timers
-#   3. Normalize
-#   4. Check ontology (when upgrade)
-#   5. Consul
-#   6. Prometheus node exporter
-#   7. Elasticsearch Log
-#   8. Log server
-#   9. Syslog
-#  10. Elasticsearch Data
-#  11. Kibana Data
-#  12. Mongo
-#  13. Vitam applications
-#  14. Start Vitam timers
-#  13. IHM Demo
+#   1. Infrastructure checks (optional)
+#   2. Network check
+#   3. Stop Vitam timers
+#   4. Normalize
+#   5. Check ontology (when upgrade)
+#   6. Consul
+#   7. Prometheus node exporter
+#   8. Elasticsearch Log
+#   9. Log server
+#  10. Syslog
+#  11. Elasticsearch Data
+#  12. Kibana Data
+#  13. Mongo
+#  14. Vitam applications
+#  15. Start Vitam timers
+#  16. IHM Demo
 
 ### CONFIRM PLAYBOOK LAUNCH ###
 - hosts: localhost
@@ -31,6 +32,12 @@
     - name: Check Confirmation
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
+
+### INFRASTRUCTURE CHECKS ###
+- hosts: vitam
+  any_errors_fatal: true
+  roles:
+    - { role: checks_infra, when: checks_infra is defined and checks_infra|bool == true }
 
 ### HOSTS NETWORK VARS CHECK ###
 - hosts: vitam

@@ -1,0 +1,19 @@
+---
+
+- name: Test HTTP repositories access
+  uri:
+    url: "{{ item.value }}"
+  with_items: "{{ vitam_repositories }}"
+  when: item.value | regex_search('^http*')
+  register: check_repositories
+  ignore_errors: yes
+
+- name: Update report in case of error
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Repositories: [ERROR] At least one HTTP repository is not reachable' ] }}"
+  when: check_repositories is failed
+
+- name: Update report in case of success
+  set_fact:
+    checks_infra_report: "{{ checks_infra_report + [ 'Repositories: [OK] All HTTP repositories are reachable' ] }}"
+  when: check_repositories is success

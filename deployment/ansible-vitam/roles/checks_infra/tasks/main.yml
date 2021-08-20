@@ -1,0 +1,13 @@
+---
+
+- import_tasks: check_ansible.yml
+
+- import_tasks: check_recursors.yml
+
+- import_tasks: check_java.yml
+
+- import_tasks: check_repositories.yml
+
+- import_tasks: check_offers.yml
+
+- import_tasks: report.yml

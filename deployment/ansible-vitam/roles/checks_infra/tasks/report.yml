@@ -1,0 +1,18 @@
+---
+
+- name: Print report of infrastructure tests
+  debug:
+    msg: "{{ checks_infra_report }}"
+
+- name: Prompt to continue Vitam installation
+  pause:
+    prompt: "Please review the report\nAnswer 'YES' to continue the playbook, 'NO' or anything else to stop it [NO]"
+  register: checks_infra_confirmation
+  delegate_to: localhost
+  when: checks_infra_standalone is not defined
+
+- name: Stop playbook if prompt answer is not 'YES'
+  fail:
+    msg: "Playbook stopped because of user input"
+  delegate_to: localhost
+  when: checks_infra_confirmation.user_input is defined and checks_infra_confirmation.user_input|upper != "YES"

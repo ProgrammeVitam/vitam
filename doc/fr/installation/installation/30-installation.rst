@@ -25,7 +25,7 @@ Pour simplifier l'exécution des commandes ``ansible-playbook``, vous pouvez uti
 
 
 Mise en place des repositories VITAM (optionnel)
--------------------------------------------------
+------------------------------------------------
 
 :term:`VITAM` fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à :term:`VITAM` :
 
@@ -56,7 +56,7 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 .. note:: En environnement CentOS, il est recommandé de créer des noms de *repository* commençant par `vitam-` .
 
 Génération des *hostvars*
---------------------------
+-------------------------
 
 Une fois l'étape de :term:`PKI` effectuée avec succès, il convient de procéder à la génération des *hostvars*, qui permettent de définir quelles interfaces réseau utiliser.
 Actuellement la solution logicielle :term:`VITAM` est capable de gérer 2 interfaces réseau :
@@ -92,10 +92,29 @@ A l'issue, vérifier le contenu des fichiers générés sous |repertoire_invento
 
 .. caution:: Cas d'une installation multi-sites. Sur site secondaire, s'assurer que, pour les machines hébergeant les offres, la directive ``ip_wan`` a bien été déclarée (l'ajouter manuellement, le cas échéant), pour que site le site `primaire` sache les contacter via une IP particulière. Par défaut, c'est l'IP de service qui sera utilisée.
 
+Tests d'infrastructure
+----------------------
 
+Il est possible de lancer une série de tests d'infrastructure en amont du déploiement, ceci afin de se prémunir d'éventuelles erreurs durant l'installation.
+
+Les tests sont basés sur des prérequis de la solution :term:`VITAM` et sont génériques. De ce fait, des "faux-posififs" peuvent être remontés dû à une configuration spécifique de votre environnement. Il est à votre charge d'analyser le rapport à l'issue des tests et de juger de la pertinence des résultats.
+
+Les tests sont les suivants :
+
+    - Version d'Ansible
+    - Accès aux recursors (serveurs DNS)
+    - Présence de Java
+    - Accès aux repositories
+    - Accès aux offres objet
+
+Comme pour le déploiement, les tests s'effectuent depuis la machine `ansible`. La commande pour les effectuer est la suivante :
+
+.. code-block:: console
+
+   ansible-playbook ansible-vitam/checks_infra.yml -i environments/hosts.<environnement> --ask-vault-pass
 
 Déploiement
--------------
+-----------
 
 Une fois les étapes précédentes correctement effectuées (en particulier, la section :ref:`pkistores`), le déploiement s'effectue depuis la machine `ansible` et va distribuer la solution :term:`VITAM` selon l'inventaire correctement renseigné.
 
@@ -107,5 +126,7 @@ Une fois l'étape de la génération des hosts effectuée avec succès, le dépl
 
 
 .. note:: Une confirmation est demandée pour lancer ce script. Il est possible de rajouter le paramètre ``-e confirmation=yes`` pour bypasser cette demande de confirmation (cas d'un déploiement automatisé).
+
+.. note:: Il est possible d'effectuer les tests d'infrastructure décrits dans la partie précédente en ajoutant le paramètre ``-e checks_infra=yes``. Un rapport s'affichera à l'issue des tests et il sera donné la possibilité de poursuivre ou non le déploiement.
 
 .. caution:: Dans le cas où l'installateur souhaite utiliser un `repository` de binaires qu'il gère par lui-même, il est fortement recommandé de rajouter ``--skip-tags "enable_vitam_repo"`` à la commande ``ansible-playbook`` ; dans ce cas, le comportement de ``yum`` n'est pas impacté par la solution de déploiement.
