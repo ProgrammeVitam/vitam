@@ -28,111 +28,61 @@ package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.model.OperationSummary;
-import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.batch.report.model.ReportResults;
-import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-
-import java.time.LocalDateTime;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import fr.gouv.vitam.worker.core.plugin.GenericReportGenerationHandler;
 
 
-public class TransferReplyReportGenerationHandler extends ActionHandler {
+public class TransferReplyReportGenerationHandler extends GenericReportGenerationHandler {
 
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(TransferReplyReportGenerationHandler.class);
 
     private static final String TRANSFER_REPLY_REPORT_GENERATION = "TRANSFER_REPLY_REPORT_GENERATION";
+    private static final String LOGBOOK_ACTION_KEY = "TRANSFER_REPLY_DELETE_UNIT";
 
-    private final TransferReplyReportService transferReplyReportService;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     /**
      * Default constructor
      */
     public TransferReplyReportGenerationHandler() {
-        this(new TransferReplyReportService());
+        this(new TransferReplyReportService(), LogbookOperationsClientFactory.getInstance());
     }
 
     /***
      * Test only constructor
      */
     @VisibleForTesting
-    TransferReplyReportGenerationHandler(TransferReplyReportService TransferReplyReportService) {
-        this.transferReplyReportService = TransferReplyReportService;
+    TransferReplyReportGenerationHandler(TransferReplyReportService transferReplyReportService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        super(transferReplyReportService);
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
+
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
-        try {
-
-            generateTransferReplyReportToWorkspace(param);
-
-            storeReportToOffers(param);
-
-            LOGGER.info("Transfer reply finalization succeeded");
-            return buildItemStatus(TRANSFER_REPLY_REPORT_GENERATION, StatusCode.OK, null);
-        } catch (ProcessingStatusException e) {
-            LOGGER.error(
-                String.format("Transfer reply finalization failed with status [%s]", e.getStatusCode()), e);
-            return buildItemStatus(TRANSFER_REPLY_REPORT_GENERATION, e.getStatusCode(), e.getEventDetails());
+    protected LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException {
+        try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
+            JsonNode response = logbookClient.selectOperationById(param.getContainerName());
+            RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
+            return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
+        } catch (InvalidParseOperationException | LogbookClientException e) {
+            throw new ProcessingException(e);
         }
     }
 
-    private void generateTransferReplyReportToWorkspace(WorkerParameters param) throws ProcessingStatusException {
-
-        if (transferReplyReportService.isReportWrittenInWorkspace(param.getContainerName())) {
-            // Report already generated to workspace (idempotency)
-            return;
-        }
-
-        Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
-        String evId = param.getContainerName();
-        String evType = ""; // FIXME To be Fill in a post commit
-        String outcome = ""; // FIXME To be Fill in a post commit
-        String outDetail = ""; // FIXME To be Fill in a post commit
-        String outMsg = ""; // FIXME To be Fill in a post commit
-        // VitamThreadUtils.getVitamSession().getContractId();
-        // VitamThreadUtils.getVitamSession().getContextId();
-        // rSI = {AccessContract: contractId, Context: contextId }
-        // FIXME: What should we put in rightsStatementIdentifier for Elimination ?
-        JsonNode rSI = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        JsonNode evDetData = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        OperationSummary operationSummary =
-            new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
-
-        String startDate = null; // FIXME To be Fill in a post commit
-        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
-        ReportType reportType = ReportType.TRANSFER_REPLY;
-        ReportResults vitamResults = new ReportResults(); // FIXME To be Fill in a post commit
-        JsonNode extendedInfo = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
-
-        JsonNode context = JsonHandler.createObjectNode();
-
-        Report reportInfo = new Report(operationSummary, reportSummary, context);
-
-        transferReplyReportService.storeReportToWorkspace(reportInfo);
-    }
-
-    private void storeReportToOffers(WorkerParameters param) throws ProcessingStatusException {
-        this.transferReplyReportService.storeReportToOffers(param.getContainerName());
-    }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
@@ -142,4 +92,19 @@ public class TransferReplyReportGenerationHandler extends ActionHandler {
     public static String getId() {
         return TRANSFER_REPLY_REPORT_GENERATION;
     }
+
+    @Override
+    protected String getPluginId() {
+        return TRANSFER_REPLY_REPORT_GENERATION;
+    }
+    @Override
+    public ReportType getReportType() {
+        return ReportType.TRANSFER_REPLY;
+    }
+
+    @Override
+    public String getLogbookActionKey() {
+        return LOGBOOK_ACTION_KEY;
+    }
+
 }
