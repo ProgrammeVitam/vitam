@@ -4,4 +4,4 @@
   roles:
     - checks_infra
   vars:
-    checks_infra_standalone: "YES"
+    checks_infra_standalone: true
