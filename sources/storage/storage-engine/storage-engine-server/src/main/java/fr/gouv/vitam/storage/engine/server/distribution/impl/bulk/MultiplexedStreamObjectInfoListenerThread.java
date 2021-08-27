@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -49,12 +50,16 @@ public class MultiplexedStreamObjectInfoListenerThread implements Callable<List<
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MultiplexedStreamObjectInfoListenerThread.class);
 
+    private final int tenantId;
+    private final String requestId;
     private final InputStream inputStream;
     private final DigestType digestType;
     private final List<String> objectIds;
 
-    public MultiplexedStreamObjectInfoListenerThread(InputStream inputStream, DigestType digestType,
-        List<String> objectIds) {
+    public MultiplexedStreamObjectInfoListenerThread(int tenantId, String requestId, InputStream inputStream,
+        DigestType digestType, List<String> objectIds) {
+        this.tenantId = tenantId;
+        this.requestId = requestId;
         this.inputStream = inputStream;
         this.digestType = digestType;
         this.objectIds = objectIds;
@@ -62,13 +67,18 @@ public class MultiplexedStreamObjectInfoListenerThread implements Callable<List<
 
     @Override
     public List<ObjectInfo> call() throws IOException, InvalidParseOperationException {
+        String initialThreadId = Thread.currentThread().getName();
         try {
+            Thread.currentThread().setName(initialThreadId + "-BulkWriteDigestComputeThread");
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(requestId);
             return computeDigests();
         } catch (Exception ex) {
             LOGGER.error("An error occurred during digestion computation of bulk transfer", ex);
             throw ex;
         } finally {
             IOUtils.closeQuietly(this.inputStream);
+            Thread.currentThread().setName(initialThreadId);
         }
     }
 

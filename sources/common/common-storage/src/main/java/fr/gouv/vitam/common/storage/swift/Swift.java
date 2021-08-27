@@ -32,11 +32,14 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
@@ -84,6 +87,9 @@ public class Swift extends ContentAddressableStorageAbstract {
     private final Supplier<OSClient> osClient;
 
     private final Long swiftLimit;
+    private final int swiftNbRetries;
+    private final int swiftWaitingTimeInMilliseconds;
+    private final int swiftRandomRangeSleepInMilliseconds;
 
     /**
      * Constructor
@@ -100,6 +106,9 @@ public class Swift extends ContentAddressableStorageAbstract {
         super(configuration);
         this.osClient = osClient;
         this.swiftLimit = swiftLimit;
+        this.swiftNbRetries = configuration.getSwiftNbRetries();
+        this.swiftWaitingTimeInMilliseconds = configuration.getSwiftWaitingTimeInMilliseconds();
+        this.swiftRandomRangeSleepInMilliseconds = configuration.getSwiftRandomRangeSleepInMilliseconds();
     }
 
     /**
@@ -167,13 +176,18 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         String streamDigest = digest.digestHex();
 
-        String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-        if (!streamDigest.equals(computedDigest)) {
-            throw new ContentAddressableStorageException(
-                "Illegal state for container " + containerName + " and object " + objectName +
-                    ". Stream digest " + streamDigest + " is not equal to computed digest " +
-                    computedDigest);
-        }
+        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException
+            = new RetryableOnException<>(getRetryableParameters());
+        retryableOnException.exec(() -> {
+            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
+            if (!streamDigest.equals(computedDigest)) {
+                throw new ContentAddressableStorageException(
+                    "Illegal state for container " + containerName + " and object " + objectName +
+                        ". Stream digest " + streamDigest + " is not equal to computed digest " +
+                        computedDigest);
+            }
+            return null;
+        });
 
         storeDigest(containerName, objectName, digestType, streamDigest, largeObjectPrefix);
         return streamDigest;
@@ -269,8 +283,13 @@ public class Swift extends ContentAddressableStorageAbstract {
             headers.put(X_OBJECT_MANIFEST, largeObjectPrefix);
         }
 
-        getObjectStorageService()
-            .updateMetadata(ObjectLocation.create(containerName, objectName), headers);
+        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
+            new RetryableOnException<>(getRetryableParameters());
+        retryableOnException.exec(() -> {
+            getObjectStorageService().updateMetadata(ObjectLocation.create(containerName, objectName), headers);
+            return null;
+        });
+
         PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
             containerName, "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
@@ -282,8 +301,12 @@ public class Swift extends ContentAddressableStorageAbstract {
         if (!noCache) {
 
             Stopwatch stopwatch = Stopwatch.createStarted();
-            Map<String, String> metadata = getObjectStorageService()
-                .getMetadata(containerName, objectName);
+
+            RetryableOnException<Map<String, String>, ContentAddressableStorageException> retryableOnException =
+                new RetryableOnException<>(getRetryableParameters());
+            Map<String, String> metadata = retryableOnException.exec(() ->
+                getObjectStorageService().getMetadata(containerName, objectName));
+
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
@@ -306,7 +329,10 @@ public class Swift extends ContentAddressableStorageAbstract {
     public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        return getObjectStorageService().download(containerName, objectName);
+        RetryableOnException<ObjectContent, ContentAddressableStorageException> retryableOnException =
+            new RetryableOnException<>(getRetryableParameters());
+        return retryableOnException.exec(() ->
+            getObjectStorageService().download(containerName, objectName));
     }
 
     @Override
@@ -324,12 +350,21 @@ public class Swift extends ContentAddressableStorageAbstract {
         ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        getObjectStorageService().delete(containerName, objectName);
+        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
+            new RetryableOnException<>(getRetryableParameters());
+        retryableOnException.exec(() -> {
+            getObjectStorageService().delete(containerName, objectName);
+            return null;
+        });
     }
 
     @Override
     public boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageException {
-        return getObjectStorageService().getObjectInformation(containerName, objectName).isPresent();
+        RetryableOnException<Optional<SwiftObject>, ContentAddressableStorageException> retryableOnException =
+            new RetryableOnException<>(getRetryableParameters());
+        Optional<SwiftObject> object = retryableOnException.exec(() ->
+            getObjectStorageService().getObjectInformation(containerName, objectName));
+        return object.isPresent();
     }
 
     @Override
@@ -352,8 +387,11 @@ public class Swift extends ContentAddressableStorageAbstract {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
-        Optional<SwiftObject> object =
-            getObjectStorageService().getObjectInformation(containerName, objectId);
+        RetryableOnException<Optional<SwiftObject>, ContentAddressableStorageException> retryableOnException =
+            new RetryableOnException<>(getRetryableParameters());
+        Optional<SwiftObject> object = retryableOnException.exec(() ->
+            getObjectStorageService().getObjectInformation(containerName, objectId));
+
         if (object.isEmpty()) {
             throw new ContentAddressableStorageNotFoundException("The Object" + objectId +
                 " can not be found for container " + containerName);
@@ -459,6 +497,12 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private VitamSwiftObjectStorageService getObjectStorageService() {
         return new VitamSwiftObjectStorageService(this.osClient);
+    }
+
+        private RetryableParameters getRetryableParameters() {
+        return new RetryableParameters(this.swiftNbRetries, this.swiftWaitingTimeInMilliseconds,
+            this.swiftWaitingTimeInMilliseconds, this.swiftRandomRangeSleepInMilliseconds,
+            TimeUnit.MILLISECONDS, VitamLogLevel.ERROR);
     }
 
     public Supplier<OSClient> getOsClient() {
