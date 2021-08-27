@@ -1,8 +1,34 @@
 [
   {
-    "id" : "default",
-    "offers" : [
-      {"id" : "offer-fs-1.service.consul", "referent": true}
+    "id": "default",
+    "offers": [
+      {
+        "id": "offer-fs-1.service.consul",
+        "referent": true
+      }
+    ]
+  },
+  {
+    "id": "fs",
+    "offers": [
+      {
+        "id": "offer-fs-2.service.consul",
+        "referent": true
+      }
+    ]
+  },
+  {
+    "id": "tape",
+    "offers": [
+      {
+        "id": "offer-fs-2.service.consul",
+        "referent": true
+
+      },
+      {
+        "id": "offer-tape-1.service.consul",
+        "referent": false
+      }
     ]
   }
 ]

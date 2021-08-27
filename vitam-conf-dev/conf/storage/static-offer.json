@@ -1,8 +1,20 @@
 [
-{
-	"id" : "offer-fs-1.service.consul",
-        "baseUrl" : "http://offer-fs-1.service.consul:9900",
-	"asyncRead": false,
-        "parameters" : {}
-}
+        {
+                "id": "offer-fs-1.service.consul",
+                "baseUrl": "http://offer-fs-1.service.consul:9900",
+                "asyncRead": false,
+                "parameters": {}
+        },
+        {
+                "id": "offer-fs-2.service.consul",
+                "baseUrl": "http://offer-fs-2.service.consul:9901",
+                "asyncRead": false,
+                "parameters": {}
+        },
+        {
+                "id": "offer-tape-1.service.consul",
+                "baseUrl": "http://offer-tape-1.service.consul:9902",
+                "asyncRead": true,
+                "parameters": {}
+        }
 ]

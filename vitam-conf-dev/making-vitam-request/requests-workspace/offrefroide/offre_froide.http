@@ -1,0 +1,231 @@
+# Configuration
+@access-contract = AccessContractOffreFroide
+@tenant = 0
+@tenant-admin = 1
+@sip-size = 4468
+
+### import du contrat d'access offre froide
+POST {{url-access}}/admin-external/v1/accesscontracts/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+	{
+    "Name":"AccessContractOffreFroide",
+    "Identifier": "AccessContractOffreFroide",
+    "Description":"Contrat Acces - OffreFroide",
+    "Status" : "ACTIVE",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016",
+    "ActivationDate":"10/12/2016",
+    "DeactivationDate":"10/12/2116",
+    "EveryOriginatingAgency": true,
+    "WritingPermission": true
+  }
+]
+
+### import du contrat de gestion offre froide
+POST {{url-access}}/admin-external/v1/managementcontracts/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+    {
+		"Name": "MCOffreFroideStorage",
+		"Identifier": "MCOffreFroideStorage",
+		"Description": "Contrat de gestion offre froide",
+		"Status": "ACTIVE",
+		"LastUpdate": "10/12/2016",
+		"CreationDate": "10/12/2016",
+		"ActivationDate": "10/12/2016",
+		"DeactivationDate": "10/12/2116",
+		"Storage": {
+			"UnitStrategy": "tape",
+			"ObjectGroupStrategy": "tape",
+			"ObjectStrategy": "tape"
+		}
+	}
+]
+
+
+### import du contrat d'entrée
+POST {{url-access}}/admin-external/v1/ingestcontracts/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+	{
+		"Name":"ArchivalAgreementOffreFroide",
+        "Identifier":"ArchivalAgreementOffreFroide",
+		"Description":"Contrat Vitam Ingest OffreFroide",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2116",
+        "EveryDataObjectVersion": true,
+        "FormatUnidentifiedAuthorized": true,
+        "ManagementContractId": "MCOffreFroideStorage"
+    }
+]
+
+### update context to add new access contract
+PUT {{url-access}}/admin-external/v1/contexts/CT-000001
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant-admin}}
+
+{
+  "$action": [
+    {
+      "$set": {
+        "Permissions": [
+          {
+            "tenant": 0,
+            "AccessContracts": [
+              "contract_with_field_EveryDataObjectVersion",
+              "ContratTNR",
+              "AccessContractOffreFroide"
+            ],
+            "IngestContracts": [
+              "ArchivalAgreement1",
+              "ArchivalAgreement0",
+              "ArchivalAgreement0Test",
+              "IC-000001",
+              "ArchivalAgreementOffreFroide"
+            ]
+          },
+          {
+            "tenant": 1,
+            "AccessContracts": [
+              "contract_with_field_EveryDataObjectVersion",
+              "ContratTNR"
+            ],
+            "IngestContracts": [
+              "ArchivalAgreement1",
+              "ArchivalAgreement0",
+              "ArchivalAgreement0Test",
+              "IC-000001",
+              "ArchivalAgreementWithProfil"
+            ]
+          },
+          {
+            "tenant": 2,
+            "AccessContracts": [],
+            "IngestContracts": []
+          }
+        ]
+      }
+    }
+  ]
+}
+
+### Ingest
+# @name ingest
+POST {{url-ingest}}/ingest-external/v1/ingests
+Accept: application/json
+Content-Type: application/octet-stream
+X-Action: RESUME
+X-Chunk-Offset: 0
+X-Context-Id: DEFAULT_WORKFLOW
+X-Size-Total: {{sip-size}}
+X-Tenant-Id: {{tenant}}
+
+< ./OK_RATP_offre_froide.zip
+
+@ingest-operation-id = {{ingest.response.headers.X-Request-Id}}
+
+### Vérification de la complétude de l'opération d'ingest en cours grâce au 'X-Request-Id' de la réponse de l'ingest
+GET {{url-access}}/admin-external/v1/operations/{{ingest-operation-id}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+
+### Récupération du résultat de l'opération d'ingest précédente grâce au 'X-Request-Id' de la réponse de l'ingest
+GET {{url-access}}/access-external/v1/logbookoperations
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$query": {
+    "$eq": {
+      "#id": "{{ingest-operation-id}}"
+    }
+  },
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100
+  },
+  "$projection": {}
+}
+
+### Récupération de l'ATR de l'opération d'ingest précédente grâce au 'X-Request-Id' de la réponse de l'ingest
+GET {{url-ingest}}/ingest-external/v1/ingests/{{ingest-operation-id}}/archivetransferreply
+Accept: application/octet-stream
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+### Recherche des unitée archivistique de l'opération ayant des objets
+# @name units
+GET {{url-access}}/access-external/v1/units/
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        { 
+            "$in": {
+                "#operations": ["{{ingest-operation-id}}"]
+            }
+        },
+        {
+          "$exists": "#object"
+        }
+      ]
+    }
+  ],
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100
+  },
+  "$projection": {}
+}
+
+@unit-id = {{units.response.body.$.$results.0.#id}}
+@object-id = {{units.response.body.$.$results.0.#object}}
+
+### Accéder
+# @name objectgroup
+GET {{url-access}}/access-external/v1/units/{{unit-id}}/objects
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$projection": { "$fields": { "#id": 1, "#qualifiers": 1, "#type": 1 } }
+}
+
+@qualifier = {{objectgroup.response.body.$.$results.0.#qualifiers.0.qualifier}}
+@version = 1
+
+### Télécharger (should be "test x")
+# @name binary
+GET {{url-access}}/access-external/v1/units/{{unit-id}}/objects
+Accept: application/octet-stream
+Content-Type: application/json
+X-Qualifier: {{qualifier}}
+X-Version: {{version}}
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
