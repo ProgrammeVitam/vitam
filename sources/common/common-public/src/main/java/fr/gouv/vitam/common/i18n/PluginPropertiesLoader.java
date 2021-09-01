@@ -26,10 +26,9 @@
  */
 package fr.gouv.vitam.common.i18n;
 
-import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -65,9 +64,7 @@ public class PluginPropertiesLoader {
      */
     public static void loadProperties(String handlerID, String propertyFilename) {
 
-        if (Strings.isNullOrEmpty(propertyFilename)) {
-            return;
-        }
+        ParametersChecker.checkParameter("missing property file", propertyFilename);
 
         InputStream inputStream = null;
         try {
@@ -98,10 +95,6 @@ public class PluginPropertiesLoader {
      * @param urlClassLoader
      */
     public static void loadProperties(String handlerID, String propertyFilename, ClassLoader urlClassLoader) {
-
-        if (Strings.isNullOrEmpty(propertyFilename)) {
-            return;
-        }
 
         InputStream inputStream = null;
         try {

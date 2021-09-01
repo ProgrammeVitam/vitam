@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.collection.CloseableIterable;
@@ -40,7 +39,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
-import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
@@ -237,7 +235,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     private String writeObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
         Long size, DigestType digestType) throws ContentAddressableStorageException {
-        if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
+        if (!type.canUpdate() && defaultStorage.isExistingObject(containerName, objectId)) {
             return checkNonRewritableObjects(containerName, objectId, objectPart, digestType);
         }
         return putObject(containerName, objectId, objectPart, size, digestType, type);
@@ -329,7 +327,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                     ExactSizeInputStream inputStream = entryInputStream.get();
 
                     String digest;
-                    if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
+                    if (!type.canUpdate() && defaultStorage.isExistingObject(containerName, objectId)) {
                         digest = checkNonRewritableObjects(containerName, objectId, inputStream, digestType);
                     } else {
                         digest =
@@ -378,7 +376,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public ContainerInformation getCapacity(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         ContainerInformation containerInformation;
         try {
@@ -628,15 +626,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             return logs.get(logs.size() - 1).getSequence() + 1;
         }
         return offset;
-    }
-
-    public void checkOfferPath(String... paths) throws IOException {
-        StorageProvider provider = StorageProvider.getStorageProvider(configuration.getProvider());
-        if (provider.hasStoragePath()) {
-            SafeFileChecker.checkSafeFilePath(configuration.getStoragePath(), paths);
-            return;
-        }
-        SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), paths);
     }
 
     @Override

@@ -152,7 +152,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -491,7 +490,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(CONFLICT).entity(e.getMessage())
                 .build();
-        } catch (final IOException | VitamException e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR).entity(INTERNAL_SERVER_ERROR.getReasonPhrase()).build();
         } finally {

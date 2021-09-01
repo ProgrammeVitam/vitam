@@ -32,7 +32,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.List;
@@ -46,7 +45,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
-import org.apache.commons.io.IOUtils;
 import org.owasp.esapi.Validator;
 import org.owasp.esapi.errors.IntrusionException;
 import org.owasp.esapi.errors.ValidationException;
@@ -56,7 +54,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.json.JsonSanitizer;
 
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -112,10 +109,6 @@ public class SanityChecker {
         return new DefaultValidator();
     }
 
-
-    public static boolean isValidFileName(String value) {
-        return !isStringInfected(value, HTTP_PARAMETER_VALUE);
-    }
     /**
      * checkXMLAll : check xml sanity all aspect : size, tag size, invalid tag
      *

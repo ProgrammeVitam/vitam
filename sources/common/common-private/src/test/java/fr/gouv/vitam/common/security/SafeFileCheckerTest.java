@@ -26,77 +26,200 @@
  */
 package fr.gouv.vitam.common.security;
 
-import org.junit.BeforeClass;
+import org.apache.commons.lang3.ArrayUtils;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Java6Assertions.assertThatCode;
-
-/**
- * Test Class for SafeFileChecker
- *
- * @author afraoucene
- */
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SafeFileCheckerTest {
-    private final String VALID_ROOT_PATH = "/mydir";
-    private final String VALID_SUBPATH = "json_good_sanity";
 
-    private static List<String> validPaths = new ArrayList<>();
-    private static List<String> invalidPaths = new ArrayList<>();
-    private static List<String> invalidFilenames = new ArrayList<>();
+    private static final String VALID_ROOT_PATH = "/mydir";
+    private static final String VALID_SUB_PATH = "json_good_sanity";
+    private static final String VALID_FILENAME = "file.txt";
 
-    @BeforeClass
-    public static void setUpBeforeClass() {
-        validPaths.add("/directory/subdirectory");
-        validPaths.add("/directory");
-        validPaths.add("/dir.ectory/subdirectory");
-        validPaths.add("/dir_ect_ory/sub.dir.ectory");
-        validPaths.add("/dir-ectory/subdirectory");
-        validPaths.add("/dir-ectory");
+    private final List<String> validRootPaths = new ArrayList<>();
+    private final List<String> invalidRootPaths = new ArrayList<>();
 
-        invalidPaths.add("filename\0.json");
-        invalidPaths.add("my&Dir");
-        invalidPaths.add("%2e%2e%2f..\\/etc/password");
-        invalidPaths.add("/mydir/./app-_directory");
-        invalidPaths.add("../../etc/password");
+    private final List<String[]> validSubPaths = new ArrayList<>();
+    private final List<String[]> invalidSubPaths = new ArrayList<>();
 
-        invalidFilenames.add("my|filena?me<.json");
+    private final List<String> invalidFilenames = new ArrayList<>();
+    private final List<String> validFilenames = new ArrayList<>();
+
+    @Before
+    public void setUpBeforeClass() {
+        validRootPaths.add("/directory/subdirectory");
+        validRootPaths.add("/directory");
+        validRootPaths.add("/directory/");
+        validRootPaths.add("/dir.ectory/subdirectory");
+        validRootPaths.add("/dir_ect_ory/sub.dir.ectory/");
+        validRootPaths.add("/dir-ectory/subdirectory");
+        validRootPaths.add("/dir-ectory");
+
+        invalidRootPaths.add(null);
+        invalidRootPaths.add("");
+        invalidRootPaths.add("./");
+        invalidRootPaths.add("/dir/../");
+
+        validSubPaths.add(new String[0]);
+        validSubPaths.add(new String[] {"a"});
+        validSubPaths.add(new String[] {"simpleDir"});
+        validSubPaths.add(new String[] {"simpleDir", "Complex_Dir.Name"});
+        validSubPaths.add(new String[] {"dir@dir"});
+
+        invalidSubPaths.add(new String[] {null});
+        invalidSubPaths.add(new String[] {""});
+        invalidSubPaths.add(new String[] {"."});
+        invalidSubPaths.add(new String[] {".."});
+        invalidSubPaths.add(new String[] {"/"});
+        invalidSubPaths.add(new String[] {"\\"});
+        invalidSubPaths.add(new String[] {"Illégàl"});
+        invalidSubPaths.add(new String[] {"subDir", ""});
+        invalidSubPaths.add(new String[] {"dir&dir"});
+        invalidSubPaths.add(new String[] {"dir#dir"});
+        invalidSubPaths.add(new String[] {"dir$dir"});
+        invalidSubPaths.add(new String[] {"dir!dir"});
+        invalidSubPaths.add(new String[] {"dir?dir"});
+        invalidSubPaths.add(new String[] {"dir<dir"});
+        invalidSubPaths.add(new String[] {"dir\tdir"});
+        invalidSubPaths.add(new String[] {"dir\0dir"});
+        invalidSubPaths.add(new String[] {"%2e%2e%2f"});
+        invalidSubPaths.add(new String[] {".", "PathTraversal"});
+        invalidSubPaths.add(new String[] {"dir", "..", "PathTraversal"});
+
+        invalidFilenames.add(null);
+        invalidFilenames.add("");
+        invalidFilenames.add("my|Filename.json");
+        invalidFilenames.add("myFilena?me.json");
+        invalidFilenames.add("myFilename<.json");
+        invalidFilenames.add("myFïlename.json");
+        invalidFilenames.add("myFilen+me.json");
+        invalidFilenames.add("myFilen$me.json");
+        invalidFilenames.add("myFilen&me.json");
+        invalidFilenames.add("myFilen#me.json");
+        invalidFilenames.add("myFile name.json");
+        invalidFilenames.add("myFile\tname.json");
+        invalidFilenames.add("myFile\0name.json");
+        invalidFilenames.add("myFile%2ename.json");
         invalidFilenames.add(".file");
+
+        validFilenames.add("noextension");
+        validFilenames.add("simpleFile.txt");
+        validFilenames.add("myFilen@me.json");
+        validFilenames.add("org.my-org.modules.my-lib_2.0-1-SNAPSHOT.jar");
     }
 
     @Test
-    public void checkValidSubPaths() {
-        for(String subPath : validPaths) {
-            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, subPath))
+    public void checkSafeDirPathWithValidRootPath() {
+        for (String validRootPath : validRootPaths) {
+
+            assertThatCode(() -> SafeFileChecker.checkSafeDirPath(validRootPath))
+                .doesNotThrowAnyException();
+
+            assertThatCode(() -> SafeFileChecker.checkSafeDirPath(validRootPath, VALID_SUB_PATH))
                 .doesNotThrowAnyException();
         }
     }
 
     @Test
-    public void checkValidRootPaths() {
-        for(String rootPath : validPaths) {
-            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(rootPath, VALID_SUBPATH))
+    public void checkSafeDirPathWithInvalidRootPath() {
+        for (String invalidRootPath : invalidRootPaths) {
+
+            assertThatThrownBy(() -> SafeFileChecker.checkSafeDirPath(invalidRootPath))
+                .isInstanceOf(IllegalPathException.class);
+
+            assertThatThrownBy(() -> SafeFileChecker.checkSafeDirPath(invalidRootPath, VALID_SUB_PATH))
+                .isInstanceOf(IllegalPathException.class);
+        }
+    }
+
+    @Test
+    public void checkSafeDirPathWithValidSubPaths() {
+        for (String[] subPaths : validSubPaths) {
+            assertThatCode(() -> SafeFileChecker.checkSafeDirPath(VALID_ROOT_PATH, subPaths))
                 .doesNotThrowAnyException();
         }
     }
 
     @Test
-    public void checkInvalidRootPaths() {
-        for(String rootPath : invalidPaths) {
-            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(rootPath, VALID_SUBPATH))
-                .isInstanceOf(IOException.class);
+    public void checkSafeDirPathWithInvalidSubPaths() {
+        for (String[] subPaths : invalidSubPaths) {
+            System.out.println(Arrays.asList(subPaths));
+            assertThatThrownBy(() -> SafeFileChecker.checkSafeDirPath(VALID_ROOT_PATH, subPaths))
+                .isInstanceOf(IllegalPathException.class);
         }
     }
 
     @Test
-    public void checkInvalidSubPaths() {
-        for(String subPath : invalidFilenames) {
-            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, subPath))
-                .isInstanceOf(IOException.class);
+    public void checkSafeFilePathWithValidRootPath() {
+        for (String validRootPath : validRootPaths) {
+
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(validRootPath, VALID_FILENAME))
+                .doesNotThrowAnyException();
+
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(validRootPath, VALID_SUB_PATH, VALID_FILENAME))
+                .doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    public void checkSafeFilePathWithInvalidRootPath() {
+        for (String invalidRootPath : invalidRootPaths) {
+
+            assertThatThrownBy(() -> SafeFileChecker.checkSafeFilePath(invalidRootPath, VALID_FILENAME))
+                .isInstanceOf(IllegalPathException.class);
+
+            assertThatThrownBy(() -> SafeFileChecker.checkSafeFilePath(invalidRootPath, VALID_SUB_PATH, VALID_FILENAME))
+                .isInstanceOf(IllegalPathException.class);
+        }
+    }
+
+    @Test
+    public void checkSafeFilePathWithValidSubPaths() {
+        for (String[] subPaths : validSubPaths) {
+            assertThatCode(() -> {
+                String[] subPathsWithFileName = ArrayUtils.add(subPaths, VALID_FILENAME);
+                SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, subPathsWithFileName);
+            }).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    public void checkSafeFilePathWithInvalidSubPaths() {
+        for (String[] subPaths : invalidSubPaths) {
+            assertThatThrownBy(() -> {
+                String[] subPathsWithFileName = ArrayUtils.add(subPaths, VALID_FILENAME);
+                SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, subPathsWithFileName);
+            }).isInstanceOf(IllegalPathException.class);
+        }
+    }
+
+    @Test
+    public void checkSafeFilePathWithInvalidFilenames() {
+        for (String invalidFileName : invalidFilenames) {
+            assertThatThrownBy(() -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, invalidFileName))
+                .isInstanceOf(IllegalPathException.class);
+
+            assertThatThrownBy(
+                () -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, VALID_SUB_PATH, invalidFileName))
+                .isInstanceOf(IllegalPathException.class);
+        }
+    }
+
+    @Test
+    public void checkSafeFilePathWithValidFilenames() {
+        for (String validFileName : validFilenames) {
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, validFileName))
+                .doesNotThrowAnyException();
+
+            assertThatCode(() -> SafeFileChecker.checkSafeFilePath(VALID_ROOT_PATH, VALID_SUB_PATH, validFileName))
+                .doesNotThrowAnyException();
         }
     }
 }

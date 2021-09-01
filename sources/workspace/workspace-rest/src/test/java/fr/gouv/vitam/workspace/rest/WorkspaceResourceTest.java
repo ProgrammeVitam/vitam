@@ -647,19 +647,6 @@ public class WorkspaceResourceTest {
     }
 
     @Test
-    public void givenContainerNotFoundWhenCountThenReturnNotFound() {
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .get("/containers/" + CONTAINER_NAME + "/count");
-    }
-
-    @Test
-    public void givenContainerExistsWhenCountThenReturnOk() {
-        with().then().statusCode(Status.CREATED.getStatusCode()).when()
-            .post("/containers/" + CONTAINER_NAME);
-        given().then().statusCode(Status.OK.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/count");
-    }
-
-    @Test
     public void should_compress_workspace() throws Exception {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 

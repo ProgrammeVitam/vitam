@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
-import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
@@ -82,7 +81,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystem.class);
     private static final String ERROR_MSG_NOT_SUPPORTED =
         "Extended attribute not supported. You should consider to use XFS filesystem.";
-    private HashFileSystemHelper fsHelper;
+    private final HashFileSystemHelper fsHelper;
 
     /**
      * @param configuration
@@ -141,7 +140,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
-        fsHelper.checkContainerPathTraversal(filePath.toString());
 
         Path parentPath = filePath.getParent();
         // Create the chain of directories
@@ -167,10 +165,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             return streamDigest;
 
         } catch (FileAlreadyExistsException e) {
-            throw new ContentAddressableStorageAlreadyExistException("File " + filePath.toString() + " already exists",
+            throw new ContentAddressableStorageAlreadyExistException("File " + filePath + " already exists",
                 e);
         } catch (IOException e) {
-            throw new ContentAddressableStorageServerException("I/O Error on writing file " + filePath.toString(), e);
+            throw new ContentAddressableStorageServerException("I/O Error on writing file " + filePath, e);
         }
     }
 
@@ -179,13 +177,11 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
-        fsHelper.checkContainerPathTraversal(filePath.toString());
         if (!filePath.toFile().isFile()) {
             throw new ContentAddressableStorageNotFoundException(
                 objectName + " in container " + containerName + " not found");
         }
         try {
-            SafeFileChecker.checkSafeFilePath(fsHelper.getPathContainer(containerName).toString(), objectName);
             long size = Files.size(filePath);
             InputStream inputStream = Files.newInputStream(filePath);
             return new ObjectContent(inputStream, size);
@@ -221,15 +217,16 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
         // Delete parent directory if parents directories are empty
         try {
+            Path containerPath = fsHelper.getPathContainer(containerName);
             filePath = filePath.getParent();
-            while (!filePath.equals(fsHelper.getPathContainer(containerName))) {
+            while (!filePath.equals(containerPath)) {
                 Files.delete(filePath);
                 filePath = filePath.getParent();
             }
         } catch (DirectoryNotEmptyException e) {// NOSONAR : Do nothing it is the normal way to exit the loop
 
         } catch (IOException e) {
-            LOGGER.warn("Impossible to remove directory" + filePath.toString(), e);
+            LOGGER.warn("Impossible to remove directory" + filePath, e);
         }
     }
 
@@ -344,7 +341,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }
-        fsHelper.checkContainerPathTraversal(containerName);
         File containerDir = fsHelper.getPathContainer(containerName).toFile();
         final long usableSpace = containerDir.getUsableSpace();
         final ContainerInformation containerInformation = new ContainerInformation();
@@ -356,7 +352,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
-        File file = null;
         try {
             ParametersChecker
                 .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -364,8 +359,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
                     objectId);
             MetadatasStorageObject result = new MetadatasStorageObject();
             Path filePath = fsHelper.getPathObject(containerName, objectId);
-            fsHelper.checkContainerPathTraversal(filePath.toString());
-            file = filePath.toFile();
+            File file = filePath.toFile();
             BasicFileAttributes basicAttribs = getFileAttributes(file);
             long size = Files.size(Paths.get(file.getPath()));
             result.setObjectName(objectId);
@@ -392,7 +386,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        fsHelper.checkContainerPathTraversal(containerName);
         if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }

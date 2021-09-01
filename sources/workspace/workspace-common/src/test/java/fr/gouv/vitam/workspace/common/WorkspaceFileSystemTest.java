@@ -48,11 +48,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
@@ -421,7 +425,112 @@ public class WorkspaceFileSystemTest {
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("KO_FILE_extension_caractere_special.zip"));
     }
 
+    @Test
+    public void givenSIPWithSubFoldersThanUncompressZipSucceeds() throws Exception {
 
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+
+        // When
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+            getInputStream("SIP_OK_SubFolders.zip"));
+
+        // Then
+        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
+            .resolve("Content").resolve("ID").resolve("13.txt")).exists().isRegularFile();
+
+        boolean existingObject = storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID/13.txt");
+        assertThat(existingObject).isTrue();
+
+        Response object = storage.getObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID/13.txt", null, null);
+        assertThat((InputStream) object.getEntity()).hasContent("test 1");
+
+        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER))
+            .containsExactlyInAnyOrder(
+                URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
+                URI.create(URLEncoder.encode("Content/ID/13.txt", StandardCharsets.UTF_8))
+            );
+    }
+
+    @Test
+    public void givenSIPWithPathTraversalThenException() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+
+        // When / Then
+        assertThatThrownBy(() ->
+            storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+                getInputStream("SIP_KO_PathTraversalInFileName.zip"))
+        ).isInstanceOf(ZipFilesNameNotAllowedException.class);
+
+        assertThat(tempDir.toPath().resolve("BadFile.txt"))
+            .doesNotExist();
+
+        boolean existingObject = storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID/13.txt");
+        assertThat(existingObject).isFalse();
+    }
+
+    @Test
+    public void givenSIPWithBackSlashThenException() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+
+        // When / Then
+        assertThatThrownBy(() ->
+            storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+                getInputStream("SIP_KO_BackSlashInFileName.zip"))
+        ).isInstanceOf(ZipFilesNameNotAllowedException.class);
+
+        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
+            .resolve("Content").resolve("ID").resolve("13.txt")).doesNotExist();
+        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
+            .resolve("Content").resolve("ID\\13.txt")).doesNotExist();
+    }
+
+    @Test
+    public void givenSIPWithPlusSignInFileNameThenException() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+
+        // When / Then
+        assertThatThrownBy(() ->
+            storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+                getInputStream("SIP_KO_PlusSignInFileName.zip"))
+        ).isInstanceOf(ZipFilesNameNotAllowedException.class);
+
+        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
+            .resolve("Content").resolve("ID+13.txt")).doesNotExist();
+    }
+
+    @Test
+    public void givenSIPWithAtSignInFileNameThenOK() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+
+        // When
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
+            getInputStream("SIP_OK_AtSignInFileName.zip"));
+
+        // Then
+        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
+            .resolve("Content").resolve("ID@13.txt")).exists().isRegularFile();
+
+        boolean existingObject = storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID@13.txt");
+        assertThat(existingObject).isTrue();
+
+        Response object = storage.getObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID@13.txt", null, null);
+        assertThat((InputStream) object.getEntity()).hasContent("test 1");
+
+        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER))
+            .containsExactlyInAnyOrder(
+                URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
+                URI.create(URLEncoder.encode("Content/ID@13.txt", StandardCharsets.UTF_8))
+            );
+    }
 
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
     public void givenFolderAlreadyExisitsWhenUnzipObjectThenRaiseAnException()
@@ -579,15 +688,6 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
-    public void countObjectsOK() throws Exception {
-        storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.TAR, getInputStream(SIP_TAR));
-        long number = storage.countObjects(CONTAINER_NAME);
-        Assert.assertNotNull(number);
-        Assert.assertEquals(7, number);
-    }
-
-    @Test
     public void purgeOldFilesInContainerShouldNotDeleteNewFiles() throws Exception {
 
         // Given
@@ -644,7 +744,7 @@ public class WorkspaceFileSystemTest {
 
         final String file2Path = new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
         storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
-        
+
         // When
         Map<String, FileParams> filesWithParamsResult = storage.getFilesWithParamsFromFolder(SIP_CONTAINER, contentSubFolder);
 

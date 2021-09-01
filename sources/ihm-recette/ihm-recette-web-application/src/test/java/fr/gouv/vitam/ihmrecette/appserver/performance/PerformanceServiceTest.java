@@ -34,7 +34,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -44,10 +43,8 @@ import java.util.List;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
@@ -102,7 +99,7 @@ public class PerformanceServiceTest {
     }
 
     @Test
-    public void should_read_generated_report() throws IOException {
+    public void should_read_generated_report() throws Exception {
         // Given
         Path reportDirectory = temporaryFolder.newFolder().toPath();
         String reportName = "1.txt";

@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.exception.PluginException;
@@ -94,7 +95,7 @@ public class BusinessApplication extends Application {
                 singletons.add(new WorkerResource(pluginLoader));
             }
 
-        } catch (PluginException | IOException | InvalidParseOperationException e) {
+        } catch (PluginException | IOException | InvalidParseOperationException | IllegalPathException e) {
             throw new VitamRuntimeException(e);
         }
 
