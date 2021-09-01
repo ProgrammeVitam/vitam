@@ -408,6 +408,10 @@ public class StorageDistributionImpl implements StorageDistribution {
     private StorageLogbookParameters startCopyToOffers(DataContext dataContext, OffersToCopyIn data,
         final String origin, int attempt, Long size, Digest globalDigest, MultiplePipedInputStream streams,
         Map<String, Future<ThreadResponseData>> futureMap) {
+
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+
         String offerIdString = null;
         StorageLogbookParameters parameters = null;
         int rank = 0;
@@ -427,7 +431,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                         dataContext.getObjectId(), digestType.getName(),
                         offerInputStream);
                 futureMap.put(offerIdString,
-                    executor.submit(new TransferThread(driver, offerReference, request, globalDigest,
+                    executor.submit(new TransferThread(tenantId, requestId, driver, offerReference, request, globalDigest,
                         size)));
                 rank++;
             }

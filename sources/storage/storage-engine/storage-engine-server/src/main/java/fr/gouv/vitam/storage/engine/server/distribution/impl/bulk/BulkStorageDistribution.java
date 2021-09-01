@@ -46,31 +46,40 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class BulkStorageDistribution {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BulkStorageDistribution.class);
     private static final String ATTEMPT = " attempt ";
+    private static final int MIN_SLEEP_DELAY_BEFORE_RETRY = 10_000;
+    private static final int MAX_SLEEP_DELAY_BEFORE_RETRY = 30_000;
 
     private final int nbReties;
     private final DigestType digestType;
     private final StorageLog storageLogService;
     private final BulkPutTransferManager bulkPutTransferManager;
+    private final int minSleepDelayBeforeRetry;
+    private final int maxSleepDelayBeforeRetry;
 
     public BulkStorageDistribution(int nbReties, WorkspaceClientFactory workspaceClientFactory,
         StorageLog storageLogService, TransfertTimeoutHelper transfertTimeoutHelper) {
         this(nbReties, storageLogService, VitamConfiguration.getDefaultDigestType(),
-            new BulkPutTransferManager(workspaceClientFactory, transfertTimeoutHelper));
+            new BulkPutTransferManager(workspaceClientFactory, transfertTimeoutHelper),
+            MIN_SLEEP_DELAY_BEFORE_RETRY, MAX_SLEEP_DELAY_BEFORE_RETRY);
     }
 
     @VisibleForTesting
     BulkStorageDistribution(int nbReties, StorageLog storageLogService,
-        DigestType digestType, BulkPutTransferManager bulkPutTransferManager) {
+        DigestType digestType, BulkPutTransferManager bulkPutTransferManager, int minSleepDelayBeforeRetry,
+        int maxSleepDelayBeforeRetry) {
         this.nbReties = nbReties;
         this.storageLogService = storageLogService;
         this.digestType = digestType;
         this.bulkPutTransferManager = bulkPutTransferManager;
+        this.minSleepDelayBeforeRetry = minSleepDelayBeforeRetry;
+        this.maxSleepDelayBeforeRetry = maxSleepDelayBeforeRetry;
     }
 
     public Map<String, String> bulkCreateFromWorkspaceWithRetries(String strategyId, int tenantId,
@@ -121,6 +130,8 @@ public class BulkStorageDistribution {
                     return objectInfos.entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getDigest()));
                 }
+
+                sleepBeforeRetry(remainingOfferIds);
             }
 
             throw new StorageException("Could not proceed bulk put operation after " + nbReties + " attempts");
@@ -128,6 +139,17 @@ public class BulkStorageDistribution {
         } finally {
             // Log events to storage log
             logStorageEvents(tenantId, dataCategory, objectIds, requester, remainingOfferIds, objectInfos, events);
+        }
+    }
+
+    private void sleepBeforeRetry(List<String> remainingOfferIds) throws StorageException {
+        int sleepDelay = ThreadLocalRandom.current().nextInt(minSleepDelayBeforeRetry, maxSleepDelayBeforeRetry);
+        LOGGER.warn("Will retry writing to " + remainingOfferIds + " in " + sleepDelay + "ms");
+        try {
+            Thread.sleep(sleepDelay);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new StorageException("Bulk write to offers interrupted", e);
         }
     }
 

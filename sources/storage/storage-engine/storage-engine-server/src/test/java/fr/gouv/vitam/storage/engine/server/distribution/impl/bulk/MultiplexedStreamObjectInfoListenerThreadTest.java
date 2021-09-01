@@ -28,9 +28,14 @@ package fr.gouv.vitam.storage.engine.server.distribution.impl.bulk;
 
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -45,10 +50,16 @@ import static org.mockito.Mockito.verify;
 
 public class MultiplexedStreamObjectInfoListenerThreadTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Test
+    @RunWithCustomExecutor
     public void testExtractObjectInfo() throws Exception {
 
         // Given
+        String requestId = GUIDFactory.newGUID().getId();
         List<String> objectIds = Arrays.asList("ob1", "ob2", "ob3");
 
         byte[][] entries = new byte[][] {
@@ -72,7 +83,8 @@ public class MultiplexedStreamObjectInfoListenerThreadTest {
 
         // When
         MultiplexedStreamObjectInfoListenerThread multiplexedStreamObjectInfoListenerThread =
-            new MultiplexedStreamObjectInfoListenerThread(multiplexedInputStream, DigestType.SHA512, objectIds);
+            new MultiplexedStreamObjectInfoListenerThread(2, requestId, multiplexedInputStream, DigestType.SHA512,
+                objectIds);
         List<ObjectInfo> result = multiplexedStreamObjectInfoListenerThread.call();
 
         // Then

@@ -105,7 +105,7 @@ public class BulkStorageDistributionTest {
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
         instance = new BulkStorageDistribution(
-            3, storageLogService, DIGEST_TYPE, bulkPutTransferManager);
+            3, storageLogService, DIGEST_TYPE, bulkPutTransferManager, 0, 30);
     }
 
     @Test
