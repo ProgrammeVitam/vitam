@@ -116,6 +116,10 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      */
     private TapeLibraryConfiguration tapeLibraryConfiguration;
 
+    private int swiftNbRetries = 1;
+    private int swiftWaitingTimeInMilliseconds = 10_000;
+    private int swiftRandomRangeSleepInMilliseconds = 10_000;
+
     /**
      * @return the swiftUrl
      */
@@ -456,6 +460,33 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public StorageConfiguration setTapeLibraryConfiguration(TapeLibraryConfiguration tapeLibraryConfiguration) {
         this.tapeLibraryConfiguration = tapeLibraryConfiguration;
+        return this;
+    }
+
+    public int getSwiftNbRetries() {
+        return swiftNbRetries;
+    }
+
+    public StorageConfiguration setSwiftNbRetries(int swiftNbRetries) {
+        this.swiftNbRetries = swiftNbRetries;
+        return this;
+    }
+
+    public int getSwiftWaitingTimeInMilliseconds() {
+        return swiftWaitingTimeInMilliseconds;
+    }
+
+    public StorageConfiguration setSwiftWaitingTimeInMilliseconds(int swiftWaitingTimeInMilliseconds) {
+        this.swiftWaitingTimeInMilliseconds = swiftWaitingTimeInMilliseconds;
+        return this;
+    }
+
+    public int getSwiftRandomRangeSleepInMilliseconds() {
+        return swiftRandomRangeSleepInMilliseconds;
+    }
+
+    public StorageConfiguration setSwiftRandomRangeSleepInMilliseconds(int swiftRandomRangeSleepInMilliseconds) {
+        this.swiftRandomRangeSleepInMilliseconds = swiftRandomRangeSleepInMilliseconds;
         return this;
     }
 }

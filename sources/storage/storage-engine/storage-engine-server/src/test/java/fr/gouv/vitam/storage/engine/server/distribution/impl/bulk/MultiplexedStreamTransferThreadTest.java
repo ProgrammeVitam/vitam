@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl.bulk;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -63,6 +64,7 @@ public class MultiplexedStreamTransferThreadTest {
     public void testTransferThread() throws Exception {
 
         // Given
+        String requestId = GUIDFactory.newGUID().getId();
         InputStream is = mock(InputStream.class);
         Driver driver = mock(Driver.class);
         StorageOffer storageOffer = mock(StorageOffer.class);
@@ -73,7 +75,8 @@ public class MultiplexedStreamTransferThreadTest {
         doReturn(result).when(connection).bulkPutObjects(any(StorageBulkPutRequest.class));
 
         MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
-            2, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512);
+            2, requestId, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512
+        );
 
         // When
         StorageBulkPutResult storageBulkPutResult = multiplexedStreamTransferThread.call();
@@ -99,6 +102,7 @@ public class MultiplexedStreamTransferThreadTest {
     public void testTransferThreadWithErrorDuringConnection() throws Exception {
 
         // Given
+        String requestId = GUIDFactory.newGUID().getId();
         InputStream is = mock(InputStream.class);
         Driver driver = mock(Driver.class);
         StorageOffer storageOffer = mock(StorageOffer.class);
@@ -108,7 +112,8 @@ public class MultiplexedStreamTransferThreadTest {
         doThrow(ex).when(driver).connect("OfferId");
 
         MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
-            2, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512);
+            2, requestId, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512
+        );
 
         // When / When
         assertThatThrownBy(multiplexedStreamTransferThread::call)
@@ -122,6 +127,7 @@ public class MultiplexedStreamTransferThreadTest {
     public void testTransferThreadWithErrorDuringTransfer() throws Exception {
 
         // Given
+        String requestId = GUIDFactory.newGUID().getId();
         InputStream is = mock(InputStream.class);
         Driver driver = mock(Driver.class);
         StorageOffer storageOffer = mock(StorageOffer.class);
@@ -133,7 +139,8 @@ public class MultiplexedStreamTransferThreadTest {
         doThrow(ex).when(connection).bulkPutObjects(any(StorageBulkPutRequest.class));
 
         MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
-            2, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512);
+            2, requestId, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512
+        );
 
         // When / When
         assertThatThrownBy(multiplexedStreamTransferThread::call)

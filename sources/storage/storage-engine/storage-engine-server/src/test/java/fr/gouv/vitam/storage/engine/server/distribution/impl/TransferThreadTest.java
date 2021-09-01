@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -65,9 +66,11 @@ public class TransferThreadTest {
     private static final String OFFER_ID = "OfferId";
 
     @Test
+    @RunWithCustomExecutor
     public void testTransferThread() throws Exception {
 
-        // GiventestTransferThreadWhenDigestMismatchThenThrowStorageInconsistentStateException
+        // Given
+        String requestId = GUIDFactory.newGUID().getId();
         byte[] data = "test-date".getBytes();
         Digest globalDigest = new Digest(DigestType.SHA512);
         globalDigest.update(data);
@@ -91,7 +94,7 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(driver, offerReference, storagePutRequest, globalDigest, data.length, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, data.length, offerProvider);
 
         // When
         ThreadResponseData call = transferThread.call();
@@ -110,6 +113,7 @@ public class TransferThreadTest {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
+        String requestId = GUIDFactory.newGUID().getId();
         byte[] data = "test-date".getBytes();
         Digest globalDigest = new Digest(DigestType.SHA512);
         globalDigest.update(data);
@@ -133,7 +137,7 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(driver, offerReference, storagePutRequest, globalDigest, data.length, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, data.length, offerProvider);
 
         // When / Then
         assertThatThrownBy(transferThread::call)
@@ -144,9 +148,11 @@ public class TransferThreadTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testTransferThreadWithErrorDuringConnection() throws Exception {
 
         // Given
+        String requestId = GUIDFactory.newGUID().getId();
         Digest globalDigest = mock(Digest.class);
 
         InputStream is = mock(InputStream.class);
@@ -164,7 +170,7 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(driver, offerReference, storagePutRequest, globalDigest, 200L, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, 200L, offerProvider);
 
         // When / Then
         assertThatThrownBy(transferThread::call)
@@ -174,9 +180,11 @@ public class TransferThreadTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testTransferThreadWithErrorDuringTransfer() throws Exception {
 
         // Given
+        String requestId = GUIDFactory.newGUID().getId();
         Digest globalDigest = mock(Digest.class);
 
         InputStream is = mock(InputStream.class);
@@ -197,7 +205,7 @@ public class TransferThreadTest {
             2, DataCategory.UNIT.getFolder(), "ob1", DigestType.SHA512.getName(), is);
 
         TransferThread transferThread =
-            new TransferThread(driver, offerReference, storagePutRequest, globalDigest, 200L, offerProvider);
+            new TransferThread(2, requestId, driver, offerReference, storagePutRequest, globalDigest, 200L, offerProvider);
 
         // When / When
         assertThatThrownBy(transferThread::call)

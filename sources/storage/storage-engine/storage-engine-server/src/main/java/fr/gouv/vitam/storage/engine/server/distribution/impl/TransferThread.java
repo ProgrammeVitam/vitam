@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -57,6 +58,8 @@ public class TransferThread implements Callable<ThreadResponseData> {
 
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
 
+    private final int tenantId;
+    private final String requestId;
     private final StorageOfferProvider offerProvider;
     private final Driver driver;
     private final OfferReference offerReference;
@@ -68,20 +71,25 @@ public class TransferThread implements Callable<ThreadResponseData> {
 
     /**
      * Default constructor
-     *
+     * @param tenantId
+     * @param requestId
      * @param driver         thre diver
      * @param offerReference the offer reference to put object
      * @param request        the request to put object
      * @param globalDigest   the globalDigest associated with the stream
      */
-    public TransferThread(Driver driver, OfferReference offerReference, StoragePutRequest request, Digest globalDigest,
-        long size) {
-        this(driver, offerReference, request, globalDigest, size, OFFER_PROVIDER);
+    public TransferThread(int tenantId, String requestId, Driver driver, OfferReference offerReference,
+        StoragePutRequest request, Digest globalDigest, long size) {
+        this(tenantId, requestId, driver, offerReference, request, globalDigest, size, OFFER_PROVIDER);
     }
 
     @VisibleForTesting
-    public TransferThread(Driver driver, OfferReference offerReference, StoragePutRequest request, Digest globalDigest,
+    public TransferThread(int tenantId, String requestId, Driver driver, OfferReference offerReference,
+        StoragePutRequest request,
+        Digest globalDigest,
         long size, StorageOfferProvider offerProvider) {
+        this.tenantId = tenantId;
+        this.requestId = requestId;
         ParametersChecker.checkParameter("Driver cannot be null", driver);
         ParametersChecker.checkParameter("OfferReference cannot be null", offerReference);
         ParametersChecker.checkParameter("PutObjectRequest cannot be null", request);
@@ -108,13 +116,18 @@ public class TransferThread implements Callable<ThreadResponseData> {
     public ThreadResponseData call()
         throws StorageException, StorageDriverException, InterruptedException {
 
+        String initialThreadId = Thread.currentThread().getName();
         try {
+            Thread.currentThread().setName(initialThreadId + "-TransferThread-" + offerReference.getId());
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(requestId);
             return storeInOffer();
         } catch (Exception ex) {
             LOGGER.error("An error occurred during transfer to offer " + this.offerReference.getId(), ex);
             throw ex;
         } finally {
             IOUtils.closeQuietly(this.request.getDataStream());
+            Thread.currentThread().setName(initialThreadId);
         }
     }
 

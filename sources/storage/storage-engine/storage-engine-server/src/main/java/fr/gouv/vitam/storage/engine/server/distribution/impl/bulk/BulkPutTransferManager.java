@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.stream.PrependedMultiplexedInputStream;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -139,7 +140,8 @@ class BulkPutTransferManager {
             streams =
                 new MultiplePipedInputStream(prependedStreamWithInfo.getResult().getStream(), offerIds.size() + 1);
 
-            transferThreadFutures = startTransferThreads(strategyId, attempts, tenantId, dataCategory, objectIds, offerIds, storageDrivers,
+            String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+            transferThreadFutures = startTransferThreads(strategyId, attempts, tenantId, requestId, dataCategory, objectIds, offerIds, storageDrivers,
                 storageOffers, streams, prependedStreamWithInfo.getResult().getSize());
 
             digestListenerFuture = startDigestComputeThread(offerIds, streams, objectIds);
@@ -233,10 +235,12 @@ class BulkPutTransferManager {
     private Future<List<ObjectInfo>> startDigestComputeThread(List<String> offerIds, MultiplePipedInputStream
         streams, List<String> objectIds) {
         return executor.submit(new MultiplexedStreamObjectInfoListenerThread(
-            streams.getInputStream(offerIds.size()), digestType, objectIds));
+            VitamThreadUtils.getVitamSession().getTenantId(), VitamThreadUtils.getVitamSession().getRequestId(), streams.getInputStream(offerIds.size()), digestType, objectIds
+        ));
     }
 
-    private List<Future<StorageBulkPutResult>> startTransferThreads(String strategyId, int attempts, int tenantId, DataCategory dataCategory,
+    private List<Future<StorageBulkPutResult>> startTransferThreads(String strategyId, int attempts, int tenantId,
+        String requestId, DataCategory dataCategory,
         List<String> objectIds, List<String> offerIds, Map<String, Driver> storageDrivers, Map<String, StorageOffer>
         storageOffers, MultiplePipedInputStream streams, long size) {
         List<Future<StorageBulkPutResult>> transferThreadFutures = new ArrayList<>();
@@ -251,7 +255,8 @@ class BulkPutTransferManager {
                 new UploadCountingInputStreamMetrics(tenantId, strategyId, offerId, BULK_ORIGIN, dataCategory, attempts , bufferedInputStream);
 
             transferThreadFutures.add(executor.submit(
-                new MultiplexedStreamTransferThread(tenantId, dataCategory, objectIds, offerInputStream, size, driver,
+                new MultiplexedStreamTransferThread(tenantId, requestId,
+                    dataCategory, objectIds, offerInputStream, size, driver,
                     storageOffer, this.digestType)));
         }
         return transferThreadFutures;

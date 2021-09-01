@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -138,6 +139,8 @@ public class BulkPutTransferManagerTest {
     @Before
     public void before() throws Exception {
 
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
         executor = Executors.newFixedThreadPool(5, VitamThreadFactory.getInstance());
 
         doReturn(60000L).when(transfertTimeoutHelper).getBulkTransferTimeout(anyLong(), anyInt());

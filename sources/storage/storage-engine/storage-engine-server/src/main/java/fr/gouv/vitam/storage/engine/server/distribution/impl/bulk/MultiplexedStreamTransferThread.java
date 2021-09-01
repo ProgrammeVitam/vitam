@@ -53,11 +53,13 @@ public class MultiplexedStreamTransferThread implements Callable<StorageBulkPutR
     private final Driver driver;
     private final StorageOffer storageOffer;
     private final DigestType digestType;
+    private final String requestId;
 
     public MultiplexedStreamTransferThread(int tenantId,
-        DataCategory dataCategory, List<String> objectIds, InputStream inputStream,
+        String requestId, DataCategory dataCategory, List<String> objectIds, InputStream inputStream,
         long size, Driver driver, StorageOffer storageOffer, DigestType digestType) {
         this.tenantId = tenantId;
+        this.requestId = requestId;
         this.dataCategory = dataCategory;
         this.objectIds = objectIds;
         this.inputStream = inputStream;
@@ -69,20 +71,22 @@ public class MultiplexedStreamTransferThread implements Callable<StorageBulkPutR
 
     @Override
     public StorageBulkPutResult call() throws Exception {
-
+        String initialThreadId = Thread.currentThread().getName();
         try {
+            Thread.currentThread().setName(initialThreadId + "-BulkTransferThread-" + storageOffer.getId());
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(requestId);
             return storeInOffer();
         } catch (Exception ex) {
             LOGGER.error("An error occurred during bulk transfer to offer " + this.storageOffer.getId(), ex);
             throw ex;
         } finally {
             IOUtils.closeQuietly(this.inputStream);
+            Thread.currentThread().setName(initialThreadId);
         }
     }
 
     private StorageBulkPutResult storeInOffer() throws Exception {
-
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         try (Connection connection = driver.connect(storageOffer.getId())) {
 
