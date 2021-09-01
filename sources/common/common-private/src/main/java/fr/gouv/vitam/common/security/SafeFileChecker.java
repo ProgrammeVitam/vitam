@@ -27,9 +27,12 @@
 package fr.gouv.vitam.common.security;
 
 import com.google.common.base.Joiner;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.owasp.esapi.SafeFile;
 import org.owasp.esapi.errors.ValidationException;
 
@@ -38,92 +41,113 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 /**
- * Checker for Sanity of file manipulation to avoid Path Traversal vulnerability <br>
- *
- * @author afraoucene
+ * Checker for Sanity of file manipulation to avoid Path Traversal vulnerability
  */
 public class SafeFileChecker {
 
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("^[a-zA-Z0-9\\-_]+(\\.[a-zA-Z0-9]+)*$");
-    private static final Pattern PATH_COMPONENT_PATTERN = Pattern.compile("^[a-zA-Z0-9\\-_.@]+$");
+    private static final Pattern FILENAME_PATTERN = Pattern.compile("^[a-zA-Z0-9\\-_@]+(\\.[a-zA-Z0-9\\-_@]+)*$");
+    private static final Pattern PATH_COMPONENT_PATTERN = Pattern.compile("^[a-zA-Z0-9\\-_@]+(\\.[a-zA-Z0-9\\-_@]+)*$");
 
     private static final AlertService alertService = new AlertServiceImpl();
-    private static final String CHECK_PATH_TRAVERSAL_ERROR_MSG = "Check path traversal error";
 
     private SafeFileChecker() {
         // Empty constructor
     }
 
     /**
-     * do an ESAPI path sanityCheck and prevent a path traversal attack
+     * File path sanity checker.
+     * Checks folder & filename authorized patterns, path traversal attacks & ESAPI sanity checks
      *
-     * @param path full path representing a FileSystem resource
-     * @throws IOException thrown when any check fails with UnChecked or Runtime exception
+     * @param safeRootPath first or initial part(s) of a path representing a FileSystem resource
+     * @param subPaths sub path parts. Every part should be a single folder level, except last part which is the actual filename.
+     * @return the resolved {@link File}
+     * @throws IllegalPathException thrown when any check fails with UnChecked or Runtime exception
      */
-    public static void checkSafeFilePath(String path) throws IOException {
-        checkNullParameter(path);
-        try {
-            File sanityCheckedFile = doSanityCheck(path);
-            //do Path Traversal check
-            doCanonicalPathCheck(sanityCheckedFile.getPath());//N.B : the getPath return a normalized pathname string
-            doDirCheck(sanityCheckedFile.getParent());
-            doFilenameCheck(sanityCheckedFile.getName());
-        } catch (Exception ex) {
-            throw new IOException(ex);
-        }
-
-    }
-
-
-    /**
-     * do an ESAPI path sanityCheck and prevent a path traversal attack
-     *
-     * @param path full path representing a FileSystem resource
-     * @throws IOException thrown when any check fails with UnChecked or Runtime exception
-     */
-    public static void checkSafePluginsFilesPath(String path) throws IOException {
-        if (path == null || path.length() == 0 || !path.contains("/")) {
-            // If path do not contains any directory than return
-            return;
-        }
-
-        try {
-            File sanityCheckedFile = doSanityCheck(path);
-            //do Path Traversal check
-            doCanonicalPathCheck(sanityCheckedFile.getPath());//N.B : the getPath return a normalized pathname string
-            doDirCheck(sanityCheckedFile.getParent());
-            doFilenameCheck(sanityCheckedFile.getName());
-        } catch (Exception ex) {
-            throw new IOException(ex);
-        }
-
+    public static File checkSafeFilePath(String safeRootPath, String... subPaths) throws IllegalPathException {
+        return checkSafePath(safeRootPath, subPaths, false);
     }
 
     /**
-     * do an ESAPI path sanityCheck and prevent a path traversal attack
+     * Directory path sanity checker.
+     * Checks folder authorized patterns, path traversal attacks & ESAPI sanity checks
      *
-     * @param rootPath first or initial part(s) of a path representing a FileSystem resource
-     * @param subPaths sub (additional) parts after root part(s) to be joined to rootPath parameter
-     *                 using File.separator FileSystem String
-     * @throws IOException thrown when any check fails with UnChecked or Runtime exception
+     * @param safeRootPath first or initial part(s) of a path representing a FileSystem resource
+     * @param subPaths sub path parts. Every part should be a single folder level.
+     * @return the resolved directory {@link File}
+     * @throws IllegalPathException thrown when any check fails with UnChecked or Runtime exception
      */
-    public static void checkSafeFilePath(String rootPath, String... subPaths) throws IOException {
-        try {
-            checkNullParameter(rootPath);
-            String finalPath = rootPath;
-            if (subPaths != null && subPaths.length > 0) {
-                finalPath = finalPath + File.separator + Joiner.on(File.separator).join(subPaths);
+    public static File checkSafeDirPath(String safeRootPath, String... subPaths) throws IllegalPathException {
+        return checkSafePath(safeRootPath, subPaths, true);
+    }
+
+    /**
+     * Path sanity for class-path resources
+     * Checks filename authorized patterns, path traversal attacks & ESAPI sanity checks
+     *
+     * @param resourceName the resource file name to check
+     * @throws IllegalPathException thrown when any check fails with UnChecked or Runtime exception
+     */
+    public static void checkSafeRessourceFilePath(String resourceName) throws IllegalPathException {
+        // Validate ressource name using dummy root path
+        checkSafePath(VitamConfiguration.getVitamConfigFolder(), new String[] {resourceName}, false);
+    }
+
+    private static File checkSafePath(String safeRootPath, String[] subPaths, boolean isDirectory)
+        throws IllegalPathException {
+
+        if (StringUtils.isEmpty(safeRootPath)) {
+            throw new IllegalPathException("Null or empty root path");
+        }
+        if (subPaths == null) {
+            throw new IllegalPathException("Null sub paths");
+        }
+        for (String subPath : subPaths) {
+            if (subPath == null) {
+                throw new IllegalPathException("Null sub path");
             }
-            checkSafeFilePath(finalPath);
-        } catch (IOException e) {
-            alertService.createAlert(CHECK_PATH_TRAVERSAL_ERROR_MSG);
-            throw e;
         }
-    }
 
-    private static void checkNullParameter(String path) {
-        if (path == null || path.length() == 0) {
-            throw new VitamRuntimeException("Null or empty path submitted");
+        String finalPath = safeRootPath;
+        if (!finalPath.endsWith(File.separator)) {
+            finalPath = finalPath + File.separator;
+        }
+        finalPath = finalPath + Joiner.on(File.separator).join(subPaths);
+
+        try {
+
+            // Check filename
+            if (!isDirectory) {
+                if (ArrayUtils.isEmpty(subPaths)) {
+                    throw new VitamRuntimeException("Missing filename");
+                }
+
+                String fileName = subPaths[subPaths.length - 1];
+                if (!FILENAME_PATTERN.matcher(fileName).matches()) {
+                    throw new VitamRuntimeException("Invalid filename: '" + fileName + "'");
+                }
+            }
+
+            // Check sub-directories
+            int nbDirectorySubPaths = isDirectory ? subPaths.length : subPaths.length - 1;
+            for (int i = 0; i < nbDirectorySubPaths; i++) {
+                String subPath = subPaths[i];
+                if (!PATH_COMPONENT_PATTERN.matcher(subPath).matches()) {
+                    throw new VitamRuntimeException("Invalid sub-path: '" + subPath + "'");
+                }
+            }
+
+            // OWASP ESAPI checks
+            File sanityCheckedFile = doSanityCheck(finalPath);
+
+            // Path Traversal check
+            doCanonicalPathCheck(sanityCheckedFile);
+
+            return sanityCheckedFile;
+
+        } catch (Exception e) {
+            String error = "Check path traversal error: '" + finalPath + "'";
+            alertService.createAlert(error);
+            throw new IllegalPathException(error, e);
         }
     }
 
@@ -137,55 +161,18 @@ public class SafeFileChecker {
     }
 
     /**
-     * check recursive/out of submitted root path to avoid Path Traversal attack
+     * Check path traversal attacks by ensuring canonical path is the same as the file path
      *
-     * @param path
+     * @param file the file to check
      * @throws IOException
      */
-    private static void doCanonicalPathCheck(String path) throws IOException {
-        String canonicalPath = new File(path).getCanonicalPath();
+    private static void doCanonicalPathCheck(File file) throws IOException {
+        String path = file.getPath();
+        String canonicalPath = file.getCanonicalPath();
 
         if (!path.equals(canonicalPath)) {
             throw new IOException(
-                    String.format("Invalid path (%s) did not match canonical : %s", path, canonicalPath));
+                String.format("Invalid path (%s) did not match canonical : %s", path, canonicalPath));
         }
-    }
-
-    /**
-     * Check directory path component against a whitelist of characters
-     *
-     * @param pathParent a parent path obtained from File.getParent()
-     */
-    private static void doDirCheck(String pathParent) {
-
-        String[] dirComponent = pathParent.split(File.separator);
-
-        for (int index = 0; index < dirComponent.length; index++) {
-            String component = dirComponent[index];
-            if (index != 0 && !PATH_COMPONENT_PATTERN.matcher(component).matches()) {
-                throw new VitamRuntimeException(String
-                        .format("Invalid path (%s) (has unauthorized characters in component[%d] : %s", pathParent, index,
-                                component));
-            }
-        }
-
-    }
-
-    /**
-     * Check name path component against a whitelist of characters
-     *
-     * @param pathName a  path name obtained from File.getName()
-     */
-    private static void doFilenameCheck(String pathName) {
-        if (pathName != null) {
-            String[] nameParts = pathName.split(File.separator);
-            for (String part : nameParts) {
-                if (!FILENAME_PATTERN.matcher(part).matches()) {
-                    throw new VitamRuntimeException(String
-                            .format("Invalid filename (%s) (has unauthorized characters in part %s", pathName, part));
-                }
-            }
-        }
-
     }
 }

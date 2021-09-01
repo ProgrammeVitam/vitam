@@ -29,6 +29,7 @@ package fr.gouv.vitam.ihmrecette.appserver.performance;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileVisitResult;
@@ -37,7 +38,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -61,6 +61,8 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.security.IllegalPathException;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
@@ -333,8 +335,10 @@ public class PerformanceService {
      * @return InputStream
      * @throws IOException
      */
-    InputStream readReport(String reportName) throws IOException {
-        return Files.newInputStream(performanceReportDirectory.resolve(reportName));
+    InputStream readReport(String reportName) throws IOException, IllegalPathException {
+        File file = SafeFileChecker.checkSafeFilePath(
+            performanceReportDirectory.toAbsolutePath().toString(), reportName);
+        return Files.newInputStream(file.toPath());
     }
 
     private List<Path> listDirectory(Path directory) throws IOException {

@@ -29,6 +29,7 @@ package fr.gouv.vitam.common;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 
 import javax.xml.stream.XMLStreamException;
@@ -198,9 +199,10 @@ public final class FileUtil {
      * @return An abstract file representation for  a newly-created empty file
      * @throws IOException  If a file could not be created
      */
-    public static  File createFileInTempDirectoryWithPathCheck(String filename, String fileExtension) throws IOException {
+    public static  File createFileInTempDirectoryWithPathCheck(String filename, String fileExtension)
+        throws IOException, IllegalPathException {
 
-        String subPaths = Strings.isNullOrEmpty(fileExtension) ? filename : filename+fileExtension;
+        String subPaths = Strings.isNullOrEmpty(fileExtension) ? filename : filename + fileExtension;
 
         SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), subPaths);
 

@@ -65,7 +65,6 @@ import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.NonUpdatableContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -114,7 +113,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     private static final String MISSING_THE_DATA_TYPE_PARAMETER = "Missing Data Type parameter";
     private static final String MISSING_OBJECTS_IDS_LIST_PARAMETER = "Missing Objects Ids List parameter";
 
-    private DefaultOfferService defaultOfferService;
+    private final DefaultOfferService defaultOfferService;
 
     /**
      * Constructor
@@ -154,7 +153,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, exc);
             return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (final ContentAddressableStorageServerException exc) {
+        } catch (Exception exc) {
             LOGGER.error(exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -462,7 +461,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.info("Writing object '" + objectId + "' of container " + containerName + " (size: " + size + ")");
 
             SanityChecker.checkParameter(objectId);
-            defaultOfferService.checkOfferPath(containerName, objectId);
 
             final String digest =
                 defaultOfferService.createObject(containerName, objectId, sis,
@@ -576,7 +574,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             final String containerName = buildContainerName(type, xTenantId);
             defaultOfferService.deleteObject(containerName, idObject, type);
             return Response.status(Response.Status.OK)
-                .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}")
+                .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Status.OK + "\"}")
                 .build();
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.info(e);

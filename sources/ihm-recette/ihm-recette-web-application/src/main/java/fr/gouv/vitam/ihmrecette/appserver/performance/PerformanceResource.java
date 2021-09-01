@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 
 import javax.ws.rs.Consumes;
@@ -47,7 +46,6 @@ import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -181,10 +179,9 @@ public class PerformanceResource {
     public Response report(@PathParam("fileName") String fileName) {
         InputStream inputStream;
         try {
-            SafeFileChecker.checkSafePluginsFilesPath(fileName);
             inputStream = performanceService.readReport(fileName);
             return Response.ok(inputStream).build();
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.error(format("unable to open file: %s", fileName), e);
             return Response.status(Response.Status.NOT_FOUND).build();
         }

@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
@@ -97,31 +96,14 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     }
 
     private File getBaseDir(String containerName) throws ContentAddressableStorageNotFoundException {
-        try {
-            final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
-            final Properties properties = providerMetadata.getDefaultProperties();
-            final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
-            File baseDirFile = null;
-            try {
-                if (containerName != null) {
-                    SafeFileChecker.checkSafeFilePath(baseDir, containerName);
-                    baseDirFile = new File(baseDir, containerName);
-                } else {
-                    SafeFileChecker.checkSafeFilePath(baseDir);
-                    baseDirFile = new File(baseDir);
-                }
-
-                if (!baseDirFile.exists()) {
-                    LOGGER.warn("container not found: " + containerName + "(BaseDir File: " + baseDirFile + ")");
-                    throw new ContentAddressableStorageNotFoundException("Storage not found");
-                }
-            } catch (IOException e) {
-                throw new ContentAddressableStorageNotFoundException(e);
-            }
-            return baseDirFile;
-        } finally {
-            closeContext();
+        final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
+        final Properties properties = providerMetadata.getDefaultProperties();
+        final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
+        File baseDirFile = new File(baseDir, containerName);
+        if (!baseDirFile.exists()) {
+            throw new ContentAddressableStorageNotFoundException("Storage container " + containerName + " not found");
         }
+        return baseDirFile;
     }
 
     @Override
@@ -134,29 +116,10 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
 
     private File getFileFromJClouds(String containerName, String objectId)
         throws ContentAddressableStorageNotFoundException {
-        final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
-        final Properties properties = providerMetadata.getDefaultProperties();
-        final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
-        File file = null;
-        try {
-            if (containerName != null) {
-                if (objectId != null) {
-                    SafeFileChecker.checkSafeFilePath(baseDir, containerName, objectId);
-                    file = new File(baseDir, containerName + File.separator + objectId);
-                } else {
-                    SafeFileChecker.checkSafeFilePath(baseDir, containerName);
-                    file = new File(baseDir, containerName);
-                }
-            } else {
-                SafeFileChecker.checkSafeFilePath(baseDir);
-                file = new File(baseDir);
-            }
-            if (!file.exists()) {
-                throw new ContentAddressableStorageNotFoundException(
-                    "Storage not found: " + containerName + "(BaseDir File: " + file + ")");
-            }
-        } catch (IOException e) {
-            throw new ContentAddressableStorageNotFoundException(e);
+        File file = new File(getBaseDir(containerName), objectId);
+        if (!file.exists()) {
+            throw new ContentAddressableStorageNotFoundException(
+                "Storage not found: " + containerName + "/" + objectId);
         }
         return file;
     }

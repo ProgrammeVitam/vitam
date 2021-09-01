@@ -28,7 +28,6 @@ package fr.gouv.vitam.workspace.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -41,8 +40,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -59,6 +58,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -85,6 +85,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -113,6 +114,7 @@ import static fr.gouv.vitam.common.stream.StreamUtils.closeSilently;
 public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceFileSystem.class);
+    private static final String LINUX_PATH_SEPARATOR = "/";
 
     private Path root;
 
@@ -132,8 +134,20 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         }
     }
 
-    public void checkWorkspaceFile(String... paths) throws IOException {
-        SafeFileChecker.checkSafeFilePath(root.toString(), paths);
+    public File checkWorkspaceContainerSanity(String container) throws IllegalPathException {
+        return SafeFileChecker.checkSafeDirPath(root.toString(), container);
+    }
+
+    public File checkWorkspaceDirSanity(String container, String directory) throws IllegalPathException {
+        List<String> paths = new ArrayList<>();
+        paths.add(container);
+        Collections.addAll(paths, directory.split(LINUX_PATH_SEPARATOR));
+        return SafeFileChecker.checkSafeDirPath(root.toString(), paths.toArray(new String[0]));
+    }
+
+    public void checkWorkspaceFileSanity(String containerName, String relativeObjectName) throws IllegalPathException {
+        String fullRelativePath = containerName + LINUX_PATH_SEPARATOR + relativeObjectName;
+        SafeFileChecker.checkSafeFilePath(root.toString(), fullRelativePath.split(LINUX_PATH_SEPARATOR));
     }
 
     @Override
@@ -319,14 +333,14 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             Path folderPath = getFolderPath(containerName, folderName);
 
             final List<URI> list = new ArrayList<>();
-            Files.walkFileTree(folderPath, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(folderPath, new SimpleFileVisitor<>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (attrs.isDirectory()) {
                         return FileVisitResult.CONTINUE;
                     }
-                    String pathFile = file.toString().replace(folderPath.toString() + "/", "");
-                    list.add(URI.create(URLEncoder.encode(pathFile, CharsetUtils.UTF_8)));
+                    String pathFile = file.toString().replace(folderPath + "/", "");
+                    list.add(URI.create(URLEncoder.encode(pathFile, StandardCharsets.UTF_8)));
 
                     return FileVisitResult.CONTINUE;
                 }
@@ -539,8 +553,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     @Override
     public boolean isExistingObject(String containerName, String objectName) {
-        Path objectPath = null;
-        objectPath = getObjectPath(containerName, objectName);
+        Path objectPath = getObjectPath(containerName, objectName);
         return objectPath.toFile().exists() && objectPath.toFile().isFile();
     }
 
@@ -605,26 +618,6 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         }
     }
 
-    @Override
-    public long countObjects(String containerName) throws ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
-        if (!isExistingContainer(containerName)) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(
-                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-        }
-        try {
-            Path containerPath = getContainerPath(containerName);
-            try (Stream<Path> streams = Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS)) {
-                return streams.filter(path -> !containerPath.equals(path))
-                    .count();
-            }
-        } catch (IOException ex) {
-            throw new ContentAddressableStorageException(ex);
-        }
-    }
-
     private Path getContainerPath(String containerName) {
         return Paths.get(root.toString(), containerName);
     }
@@ -649,10 +642,10 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
      */
     @Override
     public Map<String, FileParams> getFilesWithParamsFromFolder(String containerName, String folderName) throws ContentAddressableStorageException {
-        
+
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),containerName);
         ParametersChecker.checkParameter(ErrorMessage.FOLDER_NOT_FOUND.getMessage(), folderName);
-        
+
         if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
         }
@@ -664,14 +657,14 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         try {
             Path folderPath = getFolderPath(containerName, folderName);
             final Map<String,FileParams> filesWithParamsMap = new HashMap<>();
-            Files.walkFileTree(folderPath, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(folderPath, new SimpleFileVisitor<>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (attrs.isDirectory()) {
                         return FileVisitResult.CONTINUE;
                     }
                     FileParams fileParams = new FileParams();
-                    String pathFile = file.toString().replace(folderPath.toString() + "/", "");
+                    String pathFile = file.toString().replace(folderPath + "/", "");
                     fileParams.setSize(file.toFile().length());
                     filesWithParamsMap.put(pathFile, fileParams);
                     return FileVisitResult.CONTINUE;
@@ -703,36 +696,38 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
             ArchiveEntry entry;
             boolean isEmpty = true;
-            boolean manifestFileFounded = false;
+            boolean manifestFileFound = false;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
 
-            Path folderPath = getFolderPath(containerName, folderName);
-            checkWorkspaceFile(containerName, folderName);
+            File folder = checkWorkspaceDirSanity(containerName, folderName);
 
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
                     isEmpty = false;
 
                     final String entryName = entry.getName();
 
-                    if (!SanityChecker.isValidFileName(entryName)) {
+                    File file;
+                    try {
+                        String[] subPaths = entryName.split(LINUX_PATH_SEPARATOR);
+                        file = SafeFileChecker.checkSafeFilePath(folder.getPath(), subPaths);
+                    } catch (IllegalPathException e) {
                         throw new ZipFilesNameNotAllowedException(
-                            String.format("%s file or folder not allowed name", entryName));
+                            String.format("%s file or folder not allowed name: '", entryName + "'"), e);
                     }
 
-                    final Path target = Paths.get(folderPath.toString(), entryName);
-                    final Path parent = target.getParent();
+                    FileUtils.forceMkdirParent(file);
 
-                    if (parent != null && !parent.toFile().exists()) {
-                        Files.createDirectories(parent);
-                    }
-                    if (!entry.isDirectory()) {
-                        Files.copy(entryInputStream, target, StandardCopyOption.REPLACE_EXISTING);
-                        if (!manifestFileFounded && isManifestFileName(entry.getName())) {
-                            Files.move(target, target.resolveSibling(IngestWorkflowConstants.SEDA_FILE));
-                            manifestFileFounded = true;
-                        }
+                    final Path target = file.toPath();
+                    Files.copy(entryInputStream, target, StandardCopyOption.REPLACE_EXISTING);
+
+                    if (!manifestFileFound && isManifestFileName(entry.getName())) {
+                        Files.move(target, target.resolveSibling(IngestWorkflowConstants.SEDA_FILE));
+                        manifestFileFound = true;
                     }
                 }
                 entryInputStream.setClosed(false);
@@ -740,8 +735,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             if (isEmpty) {
                 throw new ContentAddressableStorageCompressedFileException("File is empty");
             }
-        } catch (final IOException | ArchiveException e) {
-            LOGGER.error(e);
+        } catch (final IOException | IllegalPathException | ArchiveException e) {
             throw new ContentAddressableStorageException(e);
         }
     }

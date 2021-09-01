@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -206,7 +207,7 @@ public class BatchReportResource extends ApplicationStatusResource {
         try {
             batchReportServiceImpl.storeFileToWorkspace(reportInfo);
             return Response.status(OK).build();
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (InvalidParseOperationException | IllegalArgumentException | IllegalPathException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (ContentAddressableStorageServerException | IOException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
@@ -227,7 +228,7 @@ public class BatchReportResource extends ApplicationStatusResource {
 
             batchReportServiceImpl.exportPurgeDistinctObjectGroupOfDeletedUnits(processId, reportExportRequest.getFilename(), tenantId);
             return Response.status(OK).build();
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalPathException e) {
             throw new BadRequestException(e);
         }
     }
@@ -236,8 +237,8 @@ public class BatchReportResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportUnitsToInvalidate(@PathParam("processId") String processId, ReportExportRequest reportExportRequest)
-        throws IOException, ContentAddressableStorageServerException {
+    public Response exportUnitsToInvalidate(@PathParam("processId") String processId,
+        ReportExportRequest reportExportRequest) throws Exception {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
         batchReportServiceImpl.exportUnitsToInvalidate(processId, tenantId, reportExportRequest);
@@ -260,7 +261,7 @@ public class BatchReportResource extends ApplicationStatusResource {
             batchReportServiceImpl.exportPurgeAccessionRegister(processId, reportExportRequest.getFilename(), tenantId);
 
             return Response.status(OK).build();
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (InvalidParseOperationException | IllegalArgumentException | IllegalPathException e) {
             throw new BadRequestException(e);
         }
     }
@@ -343,7 +344,7 @@ public class BatchReportResource extends ApplicationStatusResource {
         try {
             batchReportServiceImpl.createExtractedMetadataDistributionFileForAu(processId, VitamThreadUtils.getVitamSession().getTenantId());
             return Response.ok().build();
-        } catch (IOException | ContentAddressableStorageServerException e) {
+        } catch (IOException | ContentAddressableStorageServerException | IllegalPathException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
