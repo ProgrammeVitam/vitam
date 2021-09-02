@@ -42,7 +42,6 @@ import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 import org.openstack4j.openstack.storage.object.domain.SwiftObjectImpl;
 import org.openstack4j.openstack.storage.object.functions.MapWithoutMetaPrefixFunction;
-import org.openstack4j.openstack.storage.object.functions.MetadataToHeadersFunction;
 import org.openstack4j.openstack.storage.object.functions.ParseObjectFunction;
 import org.openstack4j.openstack.storage.object.internal.BaseObjectStorageService;
 
@@ -57,7 +56,6 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.openstack4j.core.transport.HttpEntityHandler.closeQuietly;
-import static org.openstack4j.model.storage.object.SwiftHeaders.OBJECT_METADATA_PREFIX;
 
 /**
  * Custom Object Storage service alternative for openstack4j
@@ -232,16 +230,39 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public void delete(String containerName, String objectName) throws ContentAddressableStorageException {
+    public void deleteFullObject(String containerName, String objectName, List<String> objectNameSegments)
+        throws ContentAddressableStorageException {
         checkNotNull(containerName);
         checkNotNull(objectName);
 
-        ObjectLocation location = ObjectLocation.create(containerName, objectName);
+        // DELETE SEGMENTS
+        if (objectNameSegments != null && objectNameSegments.size() > 0) {
+            for (String objectNameSegment : objectNameSegments) {
+                ObjectLocation segmentLocation = ObjectLocation.create(containerName, objectNameSegment);
+                HttpResponse respForDeletedSegment = delete(Void.class, segmentLocation.getURI())
+                    .executeWithResponse();
+                LOGGER.debug("Deleting object segment {}/{}", segmentLocation.getContainerName(),
+                    segmentLocation.getObjectName());
 
+                if (isNotFoundResponse(respForDeletedSegment)) {
+                    LOGGER.debug("Cannot delete object segment. Not found {}/{}",
+                        segmentLocation.getContainerName(), segmentLocation.getObjectName());
+                    throw new ContentAddressableStorageNotFoundException(
+                        "Object segment not found " + segmentLocation.getContainerName() + "/" +
+                            segmentLocation.getObjectName());
+                }
+            }
+            LOGGER.debug("Object segments sized {} for manifest {} were deleted successfully.",
+                objectNameSegments.size(), objectName);
+        }
+
+        // DELETE MANIFEST
+        ObjectLocation location = ObjectLocation.create(containerName, objectName);
         LOGGER.debug("Deleting object {}/{}", location.getContainerName(), location.getObjectName());
 
         HttpResponse resp = delete(Void.class, location.getURI())
             .executeWithResponse();
+
         try {
 
             if (isSuccessResponse(resp)) {

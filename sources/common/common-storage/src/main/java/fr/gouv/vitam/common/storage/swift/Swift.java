@@ -65,12 +65,14 @@ import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Swift abstract implementation
@@ -353,7 +355,10 @@ public class Swift extends ContentAddressableStorageAbstract {
         RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
         retryableOnException.exec(() -> {
-            getObjectStorageService().delete(containerName, objectName);
+            List<ObjectEntry> swiftObjects = new ArrayList<>();
+            listObjectSegments(containerName, swiftObjects::add);
+            getObjectStorageService().deleteFullObject(containerName, objectName, swiftObjects.stream().map(
+                ObjectEntry::getObjectId).collect(Collectors.toList()));
             return null;
         });
     }
@@ -488,6 +493,41 @@ public class Swift extends ContentAddressableStorageAbstract {
         if (lastEntryName != null) {
             objectListingListener.handleObjectEntry(new ObjectEntry(lastEntryName, lastEntryTotalSize));
         }
+    }
+
+    private void listObjectSegments(String containerName, ObjectListingListener objectListingListener)
+        throws ContentAddressableStorageException {
+
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+
+        String nextMarker = null;
+        do {
+            ObjectListOptions objectListOptions = ObjectListOptions.create()
+                .limit(LISTING_MAX_RESULTS);
+
+            if (nextMarker != null) {
+                objectListOptions.marker(nextMarker);
+            }
+
+            List<? extends SwiftObject> swiftObjects =
+                getObjectStorageService().list(containerName, objectListOptions);
+
+            if (swiftObjects.isEmpty()) {
+                break;
+            }
+            for(SwiftObject swiftObject : swiftObjects.stream().filter(obj-> obj.getName().contains("/")).collect(Collectors.toList()) ){
+                try {
+                    objectListingListener.handleObjectEntry(
+                        new ObjectEntry(swiftObject.getName(), swiftObject.getSizeInBytes()));
+                } catch (IOException e) {
+                    throw new ContentAddressableStorageException(
+                        "A problem occured while reading segments in the container : " + containerName);
+                }
+            }
+            nextMarker = swiftObjects.get(swiftObjects.size() - 1).getName();
+
+        } while (nextMarker != null);
     }
 
     @Override

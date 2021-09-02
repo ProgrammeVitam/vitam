@@ -38,8 +38,10 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
+import fr.gouv.vitam.common.storage.swift.VitamSwiftObjectStorageService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -165,6 +167,74 @@ public class SwiftV2V3ITTest {
         swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 500L);
 
         mainScenario(swift);
+    }
+
+    @Test
+    public void delete_big_file_with_manifest_and_segments() throws Exception {
+        // GIVEN
+        StorageConfiguration configurationSwift = createConfigurationV3();
+        SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift,2000L);
+        VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService
+            = new VitamSwiftObjectStorageService(swiftKeystoneFactoryV3);
+
+        swift.createContainer("container");
+        swift.putObject("container", "objName", new NullInputStream(5000), DigestType.SHA512, 5000L);
+        assertThatCode(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            .doesNotThrowAnyException();
+
+        assertThatCode(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001"))
+            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002"))
+            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003"))
+            .doesNotThrowAnyException();
+        // WHEN
+        swift.deleteObject("container", "objName");
+
+
+        // THEN
+        assertThatThrownBy(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001"))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002"))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003"))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+    }
+
+
+    @Test
+    public void delete_small_object() throws Exception {
+        // GIVEN
+        StorageConfiguration configurationSwift = createConfigurationV3();
+        SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
+        swift = new Swift(swiftKeystoneFactoryV3, configurationSwift,2000L);
+        VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService
+            = new VitamSwiftObjectStorageService(swiftKeystoneFactoryV3);
+
+        swift.createContainer("container");
+        swift.putObject("container", "objName", new NullInputStream(1000), DigestType.SHA512, 1000L);
+        assertThatCode(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            .doesNotThrowAnyException();
+
+        // WHEN
+        swift.deleteObject("container", "objName");
+
+        // THEN
+        assertThatThrownBy(
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     private void mainScenario(ContentAddressableStorage swift) throws Exception {
