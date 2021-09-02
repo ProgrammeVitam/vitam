@@ -611,6 +611,13 @@ public class SwiftTest {
     public void when_delete_object_then_ok() throws Exception {
         // Given
         givenDeleteObjectReturns20x();
+        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
+            .withQueryParam("format", equalTo("json"))
+            .withQueryParam("limit", equalTo("100"))
+            .withQueryParam("marker", absent())
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -621,13 +628,21 @@ public class SwiftTest {
         // Expected DELETE
         verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(1);
+        // GET + DELETE
+        assertSwiftRequestCountEqualsTo(2);
     }
 
     @Test
     public void when_delete_object_not_found_then_throw_not_found_exception() throws Exception {
         // Given
         givenDeleteObjectReturns404();
+        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
+            .withQueryParam("format", equalTo("json"))
+            .withQueryParam("limit", equalTo("100"))
+            .withQueryParam("marker", absent())
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -638,13 +653,20 @@ public class SwiftTest {
         // Expected DELETE
         verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(1);
+        assertSwiftRequestCountEqualsTo(2);
     }
 
     @Test
     public void when_delete_object_with_server_error_then_throw_exception() throws Exception {
         // Given
         givenDeleteObjectReturns50x();
+        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
+            .withQueryParam("format", equalTo("json"))
+            .withQueryParam("limit", equalTo("100"))
+            .withQueryParam("marker", absent())
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -655,7 +677,7 @@ public class SwiftTest {
         // Expected DELETE
         verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        assertSwiftRequestCountEqualsTo(1);
+        assertSwiftRequestCountEqualsTo(2);
     }
 
     @Test

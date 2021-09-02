@@ -273,7 +273,7 @@ public class SwiftMigrationService {
         LOGGER.warn("DELETING orphan large object segments (elimination? incomplete write?): " +
             containerName + "/" + objectName + ". Cleaning up its segments " + segments);
         for (String segmentName : segments) {
-            vitamSwiftObjectStorageService.delete(containerName, segmentName);
+            vitamSwiftObjectStorageService.deleteFullObject(containerName, segmentName, null);
         }
     }
 
@@ -346,7 +346,7 @@ public class SwiftMigrationService {
                     containerName, newSegmentName, newSegmentDigest, containerName, oldSegmentName, oldSegmentDigest));
         }
 
-        vitamSwiftObjectStorageService.delete(containerName, oldSegmentName);
+        vitamSwiftObjectStorageService.deleteFullObject(containerName, oldSegmentName, null);
     }
 
     private String computeDigest(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
