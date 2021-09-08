@@ -355,7 +355,7 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     private void initGotsForAccessionRegisterTest(String... files)
-        throws InvalidParseOperationException, DatabaseException {
+            throws DatabaseException {
         List<Document> objectGroups = Arrays.asList(files).stream()
             .map(file -> {
                 try {
