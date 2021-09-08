@@ -31,10 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
@@ -48,18 +45,15 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlia
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -67,12 +61,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -96,11 +85,9 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroups;
 import fr.gouv.vitam.worker.core.plugin.migration.MigrationUnits;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import io.restassured.RestAssured;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.Credentials;
@@ -117,21 +104,23 @@ import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.HEAD;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static io.restassured.RestAssured.get;
@@ -163,19 +152,8 @@ public class DataMigrationIT extends VitamRuleRunner {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000;
     private static final String JSON_EXTENSION = ".json";
-    private static final Integer tenantId = 0;
-    private static final String METADATA_PATH = "/metadata/v1";
-    private static final String PROCESSING_PATH = "/processing/v1";
-    private static final String WORKER_PATH = "/worker/v1";
-    private static final String WORKSPACE_PATH = "/workspace/v1";
-    private static final String LOGBOOK_PATH = "/logbook/v1";
-    private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
-    private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
-    private static final String STORAGE_PATH = "/storage/v1";
-    private static final String OFFER_PATH = "/offer/v1";
+    private static final Integer TENANT_ID = 0;
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
     private static final String ADMIN_MANAGEMENT_URL =
@@ -184,7 +162,7 @@ public class DataMigrationIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
+        handleBeforeClass(Arrays.asList(0, 1, 2), Collections.emptyMap());
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(VitamServerRunner.FORMAT_IDENTIFIERS_CONF);
 
@@ -203,13 +181,13 @@ public class DataMigrationIT extends VitamRuleRunner {
 
 
     public static void prepareVitamSession() {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContractId("aName");
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
@@ -248,68 +226,30 @@ public class DataMigrationIT extends VitamRuleRunner {
         );
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void testServersStatus() {
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_PROCESSING;
-        RestAssured.basePath = PROCESSING_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_METADATA;
-        RestAssured.basePath = METADATA_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_WORKER;
-        RestAssured.basePath = WORKER_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_LOGBOOK;
-        RestAssured.basePath = LOGBOOK_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL;
-        RestAssured.basePath = INGEST_INTERNAL_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
-        RestAssured.basePath = ACCESS_INTERNAL_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_STORAGE;
-        RestAssured.basePath = STORAGE_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_OFFER;
-        RestAssured.basePath = OFFER_PATH;
-        get("/status").then().statusCode(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
-    }
-
     @Test
     @RunWithCustomExecutor
     public void startMetadataDataMigration_failedAuthn() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        Response<Void>
-            response = metadataAdminDataMigrationService.metadataDataMigration("BAD TOKEN", tenantId).execute();
+        Response<Map<Integer, String>>
+            response = metadataAdminDataMigrationService.metadataDataMigration("BAD TOKEN").execute();
         assertThat(response.isSuccessful()).isFalse();
     }
 
     @Test
     @RunWithCustomExecutor
     public void startMetadataDataMigration_emptyDataSet() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        Response<Void>
-            response =
-            metadataAdminDataMigrationService.metadataDataMigration(getBasicAuthnToken(), tenantId).execute();
+        Response<Map<Integer, String>> response =
+            metadataAdminDataMigrationService.metadataDataMigration(getBasicAuthnToken()).execute();
+
         assertThat(response.isSuccessful()).isTrue();
-        String requestId = response.headers().get(GlobalDataRest.X_REQUEST_ID);
+        assertNotNull(response.body());
 
-        awaitForWorkflowTerminationWithStatus(requestId, StatusCode.WARNING);
+        String requestId = response.body().get(TENANT_ID);
+
+        waitMigration();
 
         checkReport(requestId, Collections.emptyList(), Collections.emptyList());
     }
@@ -319,37 +259,33 @@ public class DataMigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_fullDataSet() throws Exception {
         // Given
         prepareVitamSession();
-        String operationId = VitamTestHelper.doIngest(tenantId, "elimination/TEST_ELIMINATION_V2.zip");
+        String operationId = VitamTestHelper.doIngest(TENANT_ID, "elimination/TEST_ELIMINATION_V2.zip");
         verifyOperation(operationId, OK);
 
         List<JsonNode> unitsBefore = getMetadata(MetadataCollections.UNIT);
-        List<JsonNode> objectGroupsBefore = getMetadata(MetadataCollections.OBJECTGROUP);
 
         // When
-        Response<Void> response =
-            metadataAdminDataMigrationService.metadataDataMigration(getBasicAuthnToken(), tenantId).execute();
+        Response<Map<Integer, String>> response =
+            metadataAdminDataMigrationService.metadataDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
+        assertNotNull(response.body());
+
+        String requestId = response.body().get(TENANT_ID);
 
         // Then
-        String requestId = response.headers().get(GlobalDataRest.X_REQUEST_ID);
-        awaitForWorkflowTerminationWithStatus(requestId, OK);
+        waitMigration();
+
 
         List<JsonNode> unitsAfter = getMetadata(MetadataCollections.UNIT);
-        List<JsonNode> objectGroupsAfter = getMetadata(MetadataCollections.OBJECTGROUP);
 
         assertMetadataEquals(unitsBefore, unitsAfter);
-        assertMetadataEquals(objectGroupsBefore, objectGroupsAfter);
 
         List<JsonNode> rawUnitLifeCycles;
-        List<JsonNode> rawObjectGroupLifeCycles;
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
             .getClient()) {
             List<String> unitIds =
                 unitsAfter.stream().map(unit -> unit.get(VitamFieldsHelper.id()).asText()).collect(Collectors.toList());
-            List<String> objectGroupIds = objectGroupsAfter.stream().map(og -> og.get(VitamFieldsHelper.id()).asText())
-                .collect(Collectors.toList());
             rawUnitLifeCycles = logbookLifeCyclesClient.getRawUnitLifeCycleByIds(unitIds);
-            rawObjectGroupLifeCycles = logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(objectGroupIds);
         }
 
         for (JsonNode rawUnitLFC : rawUnitLifeCycles) {
@@ -358,29 +294,27 @@ public class DataMigrationIT extends VitamRuleRunner {
             assertThat(lastEventType).isEqualTo(MigrationUnits.LFC_UPDATE_MIGRATION_UNITS);
         }
 
-        for (JsonNode rawObjectGroupLFC : rawObjectGroupLifeCycles) {
-            String lastEventType =
-                rawObjectGroupLFC.get("events").get(rawObjectGroupLFC.get("events").size() - 1).get("evType").asText();
-            assertThat(lastEventType).isEqualTo(MigrationObjectGroups.LFC_UPDATE_MIGRATION_OBJECT);
-        }
-
         FindIterable<Document> rawUnits = MetadataCollections.UNIT.getCollection().find();
-        FindIterable<Document> rawObjectGroups = MetadataCollections.OBJECTGROUP.getCollection().find();
 
         Map<String, JsonNode> rawUnitsById = mapById(rawUnits);
         Map<String, JsonNode> rawUnitLfcById = mapByField(rawUnitLifeCycles, "_id");
-        Map<String, JsonNode> rawObjectGroupsById = mapById(rawObjectGroups);
-        Map<String, JsonNode> rawObjectGroupLfcById = mapByField(rawObjectGroupLifeCycles, "_id");
 
         for (String unitId : rawUnitsById.keySet()) {
             checkStoredUnit(rawUnitsById.get(unitId), rawUnitLfcById.get(unitId));
         }
 
-        for (String objectGroupId : rawObjectGroupsById.keySet()) {
-            checkStoredObjectGroup(rawObjectGroupsById.get(objectGroupId), rawObjectGroupLfcById.get(objectGroupId));
-        }
+       checkReport(requestId, unitsBefore, Collections.emptyList());
+    }
 
-        checkReport(requestId, unitsBefore, objectGroupsBefore);
+    private void waitMigration() throws IOException {
+        for (int nbtimes = 0; (nbtimes <= VitamServerRunner.NB_TRY &&
+            (metadataAdminDataMigrationService.checkDataMigration(getBasicAuthnToken()).execute().code() != javax.ws.rs.core.Response.Status.OK.getStatusCode())); nbtimes++) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(VitamServerRunner.SLEEP_TIME);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
     }
 
     private void checkStoredUnit(JsonNode unit, JsonNode lfc)
@@ -440,8 +374,6 @@ public class DataMigrationIT extends VitamRuleRunner {
             ObjectNode expectedReport = JsonHandler.createObjectNode();
             expectedReport.set("units", JsonHandler.toJsonNode(
                 units.stream().map(unit -> unit.get(VitamFieldsHelper.id()).asText()).collect(Collectors.toList())));
-            expectedReport.set("objectGroups", JsonHandler.toJsonNode(
-                objectGroups.stream().map(og -> og.get(VitamFieldsHelper.id()).asText()).collect(Collectors.toList())));
 
             JsonAssert.assertJsonEquals(expectedReport, JsonHandler.getFromInputStream(storedInputStream),
                 JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
@@ -471,16 +403,8 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         assertThat(mdByIdAfter.keySet()).isEqualTo(mdByIdBefore.keySet());
         for (String id : mdByIdBefore.keySet()) {
-
-            // FIXME : Bug 6147
-
             JsonAssert.assertJsonEquals(mdByIdAfter.get(id), mdByIdBefore.get(id),
-                JsonAssert.whenIgnoringPaths(
-                    "#qualifiers[*].versions[*].FileInfo.LastModified",
-                    "#qualifiers[*].versions[*].PhysicalDimensions.Height.dValue",
-                    "#qualifiers[*].versions[*].PhysicalDimensions.Weight.dValue",
-                    "#qualifiers[*].versions[*].PhysicalId",
-                    "#qualifiers[*].versions[*].FileInfo.DateCreatedByApplication"));
+                JsonAssert.whenIgnoringPaths("#version", "#operations"));
         }
     }
 
@@ -497,7 +421,7 @@ public class DataMigrationIT extends VitamRuleRunner {
         InvalidParseOperationException, MetaDataClientServerException {
         try (MetaDataClient client = MetaDataClientFactory.getInstance().getClient()) {
             SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
-            selectMultiQuery.addQueries(eq(VitamFieldsHelper.tenant(), tenantId));
+            selectMultiQuery.addQueries(eq(VitamFieldsHelper.tenant(), TENANT_ID));
             JsonNode result;
             if (unit == MetadataCollections.UNIT) {
                 result = client.selectUnits(selectMultiQuery.getFinalSelect());
@@ -515,7 +439,7 @@ public class DataMigrationIT extends VitamRuleRunner {
         waitOperation(operationGuid);
 
         ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid, tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid, TENANT_ID);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -528,10 +452,11 @@ public class DataMigrationIT extends VitamRuleRunner {
 
     public interface MetadataAdminDataMigrationService {
 
-        @POST("/adminmanagement/v1/migrate")
-        Call<Void> metadataDataMigration(
-            @Header("Authorization") String basicAuthnToken,
-            @Header(GlobalDataRest.X_TENANT_ID) int tenant);
+        @POST("/adminmanagement/v1/startMigration")
+        Call<Map<Integer, String>> metadataDataMigration(@Header("Authorization") String basicAuthnToken);
+
+        @HEAD("/adminmanagement/v1/migrationStatus")
+        Call<Void> checkDataMigration(@Header("Authorization") String basicAuthnToken);
 
     }
 }

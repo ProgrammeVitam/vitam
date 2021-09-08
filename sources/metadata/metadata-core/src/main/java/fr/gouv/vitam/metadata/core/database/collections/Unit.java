@@ -77,7 +77,6 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String UNIT_TYPE = "_unitType";
     public static final String GRAPH = "_graph";
-    public static final String PARENT_ORIGINATING_AGENCIES = "_us_sp";
     static final String HISTORY = "_history";
 
     @Override
@@ -200,7 +199,6 @@ public class Unit extends MetadataDocument<Unit> {
         put(UP, unitGraphModel.parents());
         put(UNITUPS, unitGraphModel.ancestors());
         put(GRAPH, unitGraphModel.graph());
-        put(PARENT_ORIGINATING_AGENCIES, unitGraphModel.ancestorByOriginatingAgency());
         put(ORIGINATING_AGENCIES, unitGraphModel.originatingAgencies());
         put(UNITDEPTHS, unitGraphModel.unitDepths());
 

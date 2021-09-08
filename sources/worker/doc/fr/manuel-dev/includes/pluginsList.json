@@ -113,12 +113,6 @@
 	"MIGRATION_UNITS":{
 		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationUnits"
 	},
-	"MIGRATION_OBJECT_GROUPS_LIST":{
-		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroupPrepare"
-	},
-	"MIGRATION_OBJECT_GROUPS":{
-		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroups"
-	},
 	"MIGRATION_FINALIZE":{
 		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationFinalize"
 	},

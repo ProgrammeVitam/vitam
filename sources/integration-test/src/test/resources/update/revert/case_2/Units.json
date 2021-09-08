@@ -160,7 +160,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -271,7 +270,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -307,7 +305,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -416,7 +413,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -523,8 +519,6 @@
     "_sp": "Vitam",
     "_up": [],
     "_us": [],
-    "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -626,7 +620,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -742,7 +735,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -852,7 +844,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -1027,7 +1018,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -1199,7 +1189,6 @@
     "_up": [],
     "_us": [],
     "_graph": [],
-    "_us_sp": {},
     "_uds": {},
     "_min": 1,
     "_max": 1,
@@ -1328,11 +1317,6 @@
     "_graph": [
       "aeaqaaaaaahikhnoab5ywalwd2gtfrqaaaba/aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
     ],
-    "_us_sp": {
-      "Vitam": [
-        "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
-      ]
-    },
     "_uds": {
       "1": [
         "aeaqaaaaaahikhnoab5ywalwd2gtfriaaaca"
@@ -1465,11 +1449,6 @@
     "_graph": [
       "aeaqaaaaaahikhnoab5ywalwd2gtfqaaaaaq/aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"
     ],
-    "_us_sp": {
-      "Vitam": [
-        "aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"
-      ]
-    },
     "_uds": {
       "1": [
         "aeaqaaaaaahikhnoab5ywalwd2gtfliaaabq"

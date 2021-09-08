@@ -39,6 +39,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
@@ -62,7 +63,7 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
     /**
      * VitamAdmin configuration.
      */
-    private DefaultVitamApplicationConfiguration configuration;
+    private final DefaultVitamApplicationConfiguration configuration;
 
     /**
      * Constructor with authentication level. <br/>
@@ -79,27 +80,33 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
      * Filtering and Verifying user authentication based on the Basic authent level.
      *
      * @param containerRequestContext
-     * @throws IOException
      */
-    @Override public void filter(ContainerRequestContext containerRequestContext) throws IOException {
-
-        ParametersChecker
-            .checkParameter("VitamAuthentication failed! The service needs user authentication.",
-                containerRequestContext.getHeaders().get(HttpHeaders.AUTHORIZATION));
-
+    @Override public void filter(ContainerRequestContext containerRequestContext) {
+        Response errorResponse = Response.status(Response.Status.UNAUTHORIZED)
+            .entity("VitamAuthentication failed: VitamAuthentication informations are missing.").build();
+        try {
+            ParametersChecker
+                .checkParameter("VitamAuthentication failed! The service needs user authentication.",
+                    containerRequestContext.getHeaders().get(HttpHeaders.AUTHORIZATION));
+        }catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            containerRequestContext.abortWith(errorResponse);
+            return;
+        }
         // decode the authentication informations
         MultivaluedMap<String, String> headers = containerRequestContext.getHeaders();
         String authorization = headers.get(HttpHeaders.AUTHORIZATION).iterator().next();
+
         if (!authorization.startsWith(BASIC)) {
-            throw new IllegalArgumentException(
-                "VitamAuthentication failed: VitamAuthentication informations are missing.");
+            containerRequestContext.abortWith(errorResponse);
+            return;
         }
         String decodedAuthent = "";
         String[] credentials = authorization.split("\\s");
 
         if (credentials.length != 2) {
-            throw new IllegalArgumentException(
-                "VitamAuthentication failed: VitamAuthentication informations are missing.");
+            containerRequestContext.abortWith(errorResponse);
+            return;
         }
 
         byte[] bytes = Base64.getDecoder().decode(credentials[1]);
@@ -112,8 +119,8 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
             (!basicAuthConfig.get(0).getUserName().equals(decodedAuthentgInfos.get(0)) ||
                 !basicAuthConfig.get(0).getPassword()
                     .equals(decodedAuthentgInfos.get(1))))) {
-            throw new IllegalArgumentException("VitamAuthentication failed: Wrong credentials.");
-
+            //throw new IllegalArgumentException("VitamAuthentication failed: Wrong credentials.");
+            containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).entity("VitamAuthentication failed: Wrong credentials.").build());
         }
     }
 

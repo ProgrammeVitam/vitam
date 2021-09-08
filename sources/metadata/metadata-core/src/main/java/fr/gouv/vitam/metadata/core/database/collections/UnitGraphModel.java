@@ -26,7 +26,8 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -35,31 +36,28 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
+import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
 
 /**
  * unit graph model.
  */
 public class UnitGraphModel {
 
-    private String id;
+    private final String id;
 
-    private Set<String> up = new HashSet<>();
+    private final Set<String> up = new HashSet<>();
 
-    private Set<String> us = new HashSet<>();
+    private final Set<String> us = new HashSet<>();
 
-    private String originatingAgency;
+    private final String originatingAgency;
 
-    private Set<String> originatingAgencies = new HashSet<>();
+    private final Set<String> originatingAgencies = new HashSet<>();
 
-    private SetMultimap<Integer, String> uds = HashMultimap.create();
-
-    private SetMultimap<String, String> parentByOriginatingAgency = HashMultimap.create();
+    private final SetMultimap<Integer, String> uds = HashMultimap.create();
 
     private int maxDepth = 1;
 
-    private Set<String> graph = new HashSet<>();
+    private final Set<String> graph = new HashSet<>();
 
     /**
      *
@@ -102,11 +100,6 @@ public class UnitGraphModel {
 
         graph.add(createGraphRelation(id, parent.id));
         graph.addAll(parent.graph);
-
-        if (parent.originatingAgency != null) {
-            parentByOriginatingAgency.put(parent.originatingAgency, parent.id);
-        }
-        parentByOriginatingAgency.putAll(parent.parentByOriginatingAgency);
 
         maxDepth = uds.keys().stream()
             .max(Comparator.naturalOrder())
@@ -151,10 +144,6 @@ public class UnitGraphModel {
 
     public Set<String> graph() {
         return graph;
-    }
-
-    public Map<String, Collection<String>> ancestorByOriginatingAgency() {
-        return parentByOriginatingAgency.asMap();
     }
 
 }

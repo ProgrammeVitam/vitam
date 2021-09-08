@@ -62,7 +62,7 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
      *
      * @param serviceUrl as String
      */
-    public static final void changeMode(String serviceUrl) {
+    public static void changeMode(String serviceUrl) {
         ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);
         final URI uri = URI.create(serviceUrl);
         final ClientConfiguration configuration = new ClientConfigurationImpl(uri.getHost(), uri.getPort());
@@ -73,7 +73,7 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
      *
      * @param configuration null for MOCK
      */
-    static final void changeMode(ClientConfiguration configuration) {
+    private static void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

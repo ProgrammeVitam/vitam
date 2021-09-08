@@ -2083,7 +2083,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             replaceIds(normalizedMetadata, entry.getKey(), entry.getValue());
         }
 
-        List<String> excludedFields = Arrays.asList("#version", "_graph", "_uds", "_glpd", "#allunitups", "_us_sp",
+        List<String> excludedFields = Arrays.asList("#version", "_graph", "_uds", "_glpd", "#allunitups",
             "Uri", "DateCreatedByApplication");
         for (JsonNode md : normalizedMetadata) {
             purgeIgnoredFields(md, excludedFields);

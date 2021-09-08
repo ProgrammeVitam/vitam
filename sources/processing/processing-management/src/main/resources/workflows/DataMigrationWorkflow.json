@@ -39,40 +39,6 @@
           }
         }
       ]
-    } ,
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_MIGRATION_OBJECT_GROUPS_PREPARE",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "REF",
-        "element": ""
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "MIGRATION_OBJECT_GROUPS_LIST",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_MIGRATION_OBJECT_GROUPS",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "LIST_IN_JSONL_FILE",
-        "element": "ObjectGroups.jsonl"
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "MIGRATION_OBJECT_GROUPS",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
     },
     {
       "workerGroupId": "DefaultWorker",

@@ -28,7 +28,6 @@
     "_us": [],
     "_graph": [],
     "_uds": {},
-    "_us_sp": {},
     "_min": 1,
     "_max": 1,
     "_glpd": "2018-06-26T10:06:38.374",
@@ -75,11 +74,6 @@
       "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq"
     ]
   },
-  "_us_sp": {
-    "Identifier0": [
-      "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq"
-    ]
-  },
   "_min": 1,
   "_max": 2,
   "_glpd": "2018-06-26T10:06:38.573",
@@ -123,11 +117,6 @@
     ],
     "_uds": {
       "1": [
-        "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq"
-      ]
-    },
-    "_us_sp": {
-      "Identifier0": [
         "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq"
       ]
     },
@@ -183,12 +172,6 @@
     ],
     "2": [
       "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq"
-    ]
-  },
-  "_us_sp": {
-    "Identifier0": [
-      "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq",
-      "aedqaaaaacfnrnfpaao4galeht64zeqaaaaq"
     ]
   },
   "_min": 1,
@@ -253,13 +236,6 @@
       "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq"
     ]
   },
-  "_us_sp": {
-    "Identifier0": [
-      "aedqaaaaacfnrnfpaao4galeht65vjiaaaaq",
-      "aedqaaaaacfnrnfpaao4galeht64zeqaaaaq",
-      "aedqaaaaacfnrnfpaao4galeht65zpiaaaaq"
-    ]
-  },
   "_min": 1,
   "_max": 4,
   "_glpd": "2018-06-26T10:06:38.891",
@@ -299,7 +275,6 @@
     "_us": [],
     "_graph": [],
     "_uds": {},
-    "_us_sp": {},
     "_min": 1,
     "_max": 1,
     "_glpd": "2018-06-26T10:06:38.374",
@@ -337,7 +312,6 @@
     "_us": [],
     "_graph": [],
     "_uds": {},
-    "_us_sp": {},
     "_min": 1,
     "_max": 1,
     "_glpd": "2018-06-26T10:06:38.374",
@@ -375,7 +349,6 @@
     "_us": [],
     "_graph": [],
     "_uds": {},
-    "_us_sp": {},
     "_min": 1,
     "_max": 1,
     "_glpd": "2018-06-26T10:06:38.374",
@@ -409,7 +382,6 @@
     "_us": [],
     "_graph": [],
     "_uds": {},
-    "_us_sp": {},
     "_min": 1,
     "_max": 1,
     "_glpd": "2018-06-26T10:06:38.374",

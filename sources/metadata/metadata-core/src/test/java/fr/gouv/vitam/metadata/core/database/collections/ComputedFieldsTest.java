@@ -47,13 +47,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ComputedFieldsTest {
 
-    private static List<String> expectedUnitComputedFields =
+    private static final List<String> expectedUnitComputedFields =
         Arrays.asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
-            Unit.PARENT_ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
+            MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
             MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES);
 
-    private static List<String> expectedUnitMainFields = Arrays
-        .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE, Unit.OPERATION_TRANSFERS,
+    private static final List<String> expectedUnitMainFields = Arrays
+        .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,
+            Unit.OPERATION_TRANSFERS,
             Unit.DISSEMINATIONRULE, Unit.REUSERULE, Unit.CLASSIFICATIONRULE, Unit.RULE, Unit.END, Unit.STORAGERULES,
             Unit.STORAGEEND, Unit.APPRAISALRULES, Unit.APPRAISALEND, Unit.ACCESSRULES, Unit.ACCESSEND,
             Unit.DISSEMINATIONRULES, Unit.DISSEMINATIONEND, Unit.REUSERULES, Unit.REUSEEND, Unit.CLASSIFICATIONRULES,
@@ -64,18 +65,18 @@ public class ComputedFieldsTest {
             Unit.ELIMINATION, MetadataDocument.ATOMIC_VERSION,
             VitamDocument.SCORE, VitamDocument.SEDAVERSION, VitamDocument.IMPLEMENTATIONVERSION);
 
-    private static List<String> expectedGotComputedFields =
+    private static final List<String> expectedGotComputedFields =
         Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE, Unit.UNITUPS);
 
-    private static List<String> expectedGotMainFields = Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE,
-            ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION, ObjectGroup.VERSIONS_STORAGE,
-            ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID, ObjectGroup.OBJECTSIZE,
-            ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
-            ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
-            MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
-            MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
-            VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE, VitamDocument.SEDAVERSION,
-            VitamDocument.IMPLEMENTATIONVERSION, MetadataDocument.ATOMIC_VERSION);
+    private static final List<String> expectedGotMainFields = Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE,
+        ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION, ObjectGroup.VERSIONS_STORAGE,
+        ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID, ObjectGroup.OBJECTSIZE,
+        ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
+        ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,
+        MetadataDocument.NBCHILD, MetadataDocument.TYPE, MetadataDocument.UP, MetadataDocument.OG,
+        MetadataDocument.OPS, MetadataDocument.OPI, MetadataDocument.ORIGINATING_AGENCY, VitamDocument.ID,
+        VitamDocument.VERSION, VitamDocument.TENANT_ID, VitamDocument.SCORE, VitamDocument.SEDAVERSION,
+        VitamDocument.IMPLEMENTATIONVERSION, MetadataDocument.ATOMIC_VERSION);
 
     @Test
     public void testUnitComputedFields() throws Exception {

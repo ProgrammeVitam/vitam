@@ -29,8 +29,6 @@
     "_graph": [],
     "_uds": {
     },
-    "_us_sp": {
-    },
     "_min": 1,
     "_max": 1,
     "_glpd": "2018-04-30T14:33:47.168",
@@ -74,8 +72,6 @@
       "1": [
         "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
       ]
-    },
-    "_us_sp": {
     },
     "_computedInheritedRules" : {
       "StorageRule": {},
@@ -136,8 +132,6 @@
         "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
       ]
     },
-    "_us_sp": {
-    },
     "_computedInheritedRules" : {
       "StorageRule": {},
       "AppraisalRule": {},
@@ -195,8 +189,6 @@
       "1": [
         "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
       ]
-    },
-    "_us_sp": {
     },
     "_computedInheritedRules" : {
       "StorageRule": {},

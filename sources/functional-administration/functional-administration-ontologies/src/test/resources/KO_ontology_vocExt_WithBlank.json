@@ -1186,17 +1186,6 @@
         ]
     },
     {
-        "Identifier": "_us_sp",
-        "ApiField": "#parent_originating_agencies",
-        "Description": "Mapping : unit-es-mapping.json",
-        "Type": "KEYWORD",
-        "Origin": "INTERNAL",
-        "ShortName": "_us_sp",
-        "Collections": [
-            "Unit"
-        ]
-    },
-    {
         "Identifier": "_v",
         "ApiField": "_v",
         "Description": "Mapping : unit-es-mapping.json. Version de l’enregistrement décrit.",

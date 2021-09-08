@@ -39,12 +39,6 @@
       "1": ["aeaqaaaaaahmtusqabktwaldc34sm5iaaabq"],
       "2": ["aeaqaaaaaahmtusqabktwaldc34sm4yaaabq"]
     },
-    "_us_sp": {
-      "Service_producteur": [
-        "aeaqaaaaaahmtusqabktwaldc34sm4yaaabq",
-        "aeaqaaaaaahmtusqabktwaldc34sm5iaaabq"
-      ]
-    },
     "_min": 1,
     "_max": 3,
     "_glpd": "2018-04-30T14:33:47.168",

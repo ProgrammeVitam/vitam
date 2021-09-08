@@ -310,7 +310,6 @@ public class ParserTokens extends BuilderToken {
                         case GRAPH_LAST_PERISTED_DATE:
                         case HISTORY:
                         case ELIMINATION:
-                        case PARENT_ORIGINATING_AGENCIES:
                         case SEDAVERSION:
                         case IMPLEMENTATIONVERSION:
                         case STORAGE:
