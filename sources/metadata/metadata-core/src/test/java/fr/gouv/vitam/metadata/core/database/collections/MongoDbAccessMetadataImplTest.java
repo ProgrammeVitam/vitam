@@ -50,7 +50,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
@@ -355,7 +354,7 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     private void initGotsForAccessionRegisterTest(String... files)
-        throws InvalidParseOperationException, DatabaseException {
+            throws DatabaseException {
         List<Document> objectGroups = Arrays.asList(files).stream()
             .map(file -> {
                 try {

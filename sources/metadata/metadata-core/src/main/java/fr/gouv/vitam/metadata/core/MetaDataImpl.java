@@ -124,7 +124,6 @@ import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.Sum;
 import org.elasticsearch.search.aggregations.metrics.ValueCount;
 
@@ -163,6 +162,7 @@ public class MetaDataImpl {
 
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
+    public static final int MAX_TERMS_SIZE_FOR_AGGREGATION = 1000000;
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
@@ -548,11 +548,11 @@ public class MetaDataImpl {
                 String opi = operationBucket.getKeyAsString();
                 Nested versionResult = operationBucket.getAggregations().get("version");
                 Filter versionOperationResult = versionResult.getAggregations().get("versionOperation");
-                Cardinality gotCountResult = versionOperationResult.getAggregations().get("gotCount");
+                Terms gotCountResult = versionOperationResult.getAggregations().get("gotCount");
                 Sum binaryObjectSizeResult = versionOperationResult.getAggregations().get("binaryObjectSize");
                 ValueCount binaryObjectCountResult = versionOperationResult.getAggregations().get("binaryObjectCount");
 
-                long gotCount = gotCountResult.getValue();
+                long gotCount = gotCountResult.getBuckets().size();
                 long binaryObjectSize = (long) binaryObjectSizeResult.getValue();
                 long binaryObjectCount = binaryObjectCountResult.getValue();
                 if (opi.equals(operationId)) {
@@ -575,8 +575,8 @@ public class MetaDataImpl {
     }
 
     private AggregationBuilder aggregationForObjectGroupAccessionRegisterByOperationId(String operationId) {
-        AggregationBuilder gotCountAgg = AggregationBuilders.cardinality("gotCount")
-            .field("_qualifiers.versions.DataObjectGroupId");
+        AggregationBuilder gotCountAgg = AggregationBuilders.terms("gotCount")
+            .field("_id").size(MAX_TERMS_SIZE_FOR_AGGREGATION);
         AggregationBuilder binaryObjectSizeAgg = AggregationBuilders.sum("binaryObjectSize")
             .field("_qualifiers.versions.Size");
         AggregationBuilder binaryObjectCountAgg = AggregationBuilders.count("binaryObjectCount")
@@ -736,7 +736,7 @@ public class MetaDataImpl {
             .setTotal(updatedUnits.size());
     }
 
-    private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId, 
+    private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId,
             boolean forceUpdate) {
 
         try {
@@ -755,7 +755,7 @@ public class MetaDataImpl {
                     return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_NEW_DATA,
                         "Unit not updated.",
                         "No diff, there are no new changes.");
-                    
+
                 } else {
                     LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
                     return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES,
