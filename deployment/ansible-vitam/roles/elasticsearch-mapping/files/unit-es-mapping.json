@@ -1482,10 +1482,6 @@
     "_us": {
       "type": "keyword"
     },
-    "_us_sp": {
-      "type": "object",
-      "enabled": false
-    },
     "_v": {
       "type": "long"
     },

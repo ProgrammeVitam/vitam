@@ -49,11 +49,16 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,7 +88,7 @@ public class EndpointAuthenticationFilterTest {
     private ContainerRequestContext containerRequestContext;
 
     @Captor
-    private ArgumentCaptor<ContainerRequestContext> contextArgumentCaptor;
+    private ArgumentCaptor<Response> contextArgumentCaptor;
 
     @InjectMocks
     @Spy
@@ -93,10 +98,10 @@ public class EndpointAuthenticationFilterTest {
     public void setup(String user, String password) {
 
         // Instanciate Vitam configuration credentials.
-        List<BasicAuthModel> basicAuthConfig = Arrays.asList(new BasicAuthModel(user, password));
+        List<BasicAuthModel> basicAuthConfig = Collections.singletonList(new BasicAuthModel(user, password));
 
         // mock admin basic authentication informations.
-        when(configuration.getAdminBasicAuth())
+        lenient().when(configuration.getAdminBasicAuth())
             .thenReturn(basicAuthConfig);
     }
 
@@ -116,10 +121,8 @@ public class EndpointAuthenticationFilterTest {
         LOGGER.debug(String.format("headers informations : %s", headers));
         instance.filter(containerRequestContext);
 
-        // verify number of the filter method call and the value of the parameter.
-        verify(instance, times(1))
-            .filter(contextArgumentCaptor.capture());
-        Assert.assertEquals(headers, contextArgumentCaptor.getValue().getHeaders());
+        // verify not calling abortWith
+        verify(containerRequestContext, times(0)).abortWith(any());
     }
 
     @Test
@@ -135,10 +138,14 @@ public class EndpointAuthenticationFilterTest {
         when(containerRequestContext.getHeaders())
             .thenReturn(headers);
 
-        // verify type and message of the thrown Exception.
-        assertThatThrownBy(() -> instance.filter(containerRequestContext))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("VitamAuthentication failed: Wrong credentials");
+        instance.filter(containerRequestContext);
+
+        // verify response type and message
+        verify(containerRequestContext).abortWith(contextArgumentCaptor.capture());
+        Response response = contextArgumentCaptor.getValue();
+
+        assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
+        assertEquals(response.readEntity(String.class), "VitamAuthentication failed: Wrong credentials.");
     }
 
     @Test
@@ -156,10 +163,14 @@ public class EndpointAuthenticationFilterTest {
         when(containerRequestContext.getHeaders())
             .thenReturn(headers);
 
-        // verify type and message of the thrown Exception.
-        assertThatThrownBy(() -> instance.filter(containerRequestContext))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("VitamAuthentication failed: Wrong credentials");
+        instance.filter(containerRequestContext);
+
+        // verify response type and message
+        verify(containerRequestContext).abortWith(contextArgumentCaptor.capture());
+        Response response = contextArgumentCaptor.getValue();
+
+        assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
+        assertEquals(response.readEntity(String.class), "VitamAuthentication failed: Wrong credentials.");
     }
 
     @Test
@@ -176,10 +187,14 @@ public class EndpointAuthenticationFilterTest {
         when(containerRequestContext.getHeaders())
             .thenReturn(headers);
 
-        // verify type and message of the thrown Exception.
-        assertThatThrownBy(() -> instance.filter(containerRequestContext))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("VitamAuthentication failed: VitamAuthentication informations are missing.");
+        instance.filter(containerRequestContext);
+
+        // verify response type and message
+        verify(containerRequestContext).abortWith(contextArgumentCaptor.capture());
+        Response response = contextArgumentCaptor.getValue();
+
+        assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
+        assertEquals(response.readEntity(String.class), "VitamAuthentication failed: VitamAuthentication informations are missing.");
     }
 
 }

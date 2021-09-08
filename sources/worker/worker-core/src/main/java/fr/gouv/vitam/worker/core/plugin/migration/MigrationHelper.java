@@ -73,7 +73,6 @@ class MigrationHelper {
 
         ObjectNode objectNode = createObjectNode();
         objectNode.put(VitamFieldsHelper.id(), 1);
-        objectNode.put(VitamFieldsHelper.object(), 1);
         JsonNode projection = createObjectNode().set(FIELDS_KEY, objectNode);
         selectMultiQuery.setProjection(projection);
         return selectMultiQuery;

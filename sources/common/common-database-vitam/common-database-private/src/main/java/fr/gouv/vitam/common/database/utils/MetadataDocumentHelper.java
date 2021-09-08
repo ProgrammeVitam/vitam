@@ -28,9 +28,7 @@ package fr.gouv.vitam.common.database.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -54,7 +52,6 @@ public class MetadataDocumentHelper {
         SPS("_sps"),
         GRAPH("_graph"),
         GRAPH_LAST_PERSISTED_DATE("_glpd"),
-        US_SP("_us_sp"),
         MIN("_min"),
         MAX("_max"),
         UDS("_uds"),

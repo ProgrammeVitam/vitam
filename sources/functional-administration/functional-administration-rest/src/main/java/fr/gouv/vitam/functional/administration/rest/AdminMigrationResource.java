@@ -27,20 +27,44 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.ApplicationPath;
@@ -57,38 +81,42 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.VitamConfiguration.getTenants;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.status;
 
-@Deprecated
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 @Tag(name="Functional-Administration")
 public class AdminMigrationResource {
-    private HashMap<Integer, String> xrequestIds;
-    private AdminDataMigrationResource adminDataMigrationResource;
-    private ProcessingManagementClientFactory processingManagementClientFactory;
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminMigrationResource.class);
 
-    /**
-     * @param adminDataMigrationResource adminDataMigrationResource
-     */
-    AdminMigrationResource(AdminDataMigrationResource adminDataMigrationResource) {
-        this(adminDataMigrationResource, ProcessingManagementClientFactory.getInstance());
+    private final HashMap<Integer, String> xrequestIds;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
+
+    AdminMigrationResource() {
+        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance());
     }
 
     /**
      * AdminMigrationResource
      *
-     * @param adminDataMigrationResource        adminDataMigrationResource
+     * @param logbookOperationsClientFactory logbookOperationsClientFactory
      * @param processingManagementClientFactory processingManagementClientFactory
+     * @param workspaceClientFactory workspaceClientFactory
      */
     @VisibleForTesting
-    public AdminMigrationResource(AdminDataMigrationResource adminDataMigrationResource,
-        ProcessingManagementClientFactory processingManagementClientFactory) {
-
-        this.adminDataMigrationResource = adminDataMigrationResource;
+    public AdminMigrationResource(LogbookOperationsClientFactory logbookOperationsClientFactory,
+        ProcessingManagementClientFactory processingManagementClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
         xrequestIds = new HashMap<>();
-
     }
 
     /**
@@ -112,10 +140,10 @@ public class AdminMigrationResource {
         for (Map.Entry<Integer, String> entry : xrequestIds.entrySet()) {
             VitamThreadUtils.getVitamSession().setRequestId(entry.getValue());
             VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
-            adminDataMigrationResource.migrateTo(entry.getKey());
+            migrateTo(entry.getKey());
         }
 
-        return Response.status(Response.Status.ACCEPTED).build();
+        return Response.status(Response.Status.ACCEPTED).entity(xrequestIds).build();
     }
 
     /**
@@ -161,5 +189,71 @@ public class AdminMigrationResource {
         }
 
         return Response.status(Response.Status.OK).build();
+    }
+
+    private void migrateTo(Integer tenant) {
+        ParametersChecker.checkParameter("TenantId is mandatory", tenant);
+
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+            GUID guid = GUIDReader.getGUID(requestId);
+
+            VitamThreadUtils.getVitamSession().setRequestId(guid.getId());
+
+            createOperation(guid);
+            workspaceClient.createContainer(guid.getId());
+
+            // No need to backup operation context, this workflow can be re-executed using logbook information
+            processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
+
+            RequestResponse<ItemStatus> jsonNodeRequestResponse =
+                processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
+            jsonNodeRequestResponse.toResponse();
+
+        } catch (LogbookClientBadRequestException | BadRequestException e) {
+            LOGGER.error(e);
+            status(BAD_REQUEST)
+                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                .build();
+
+        } catch (ContentAddressableStorageServerException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
+            LOGGER.error(e);
+            Response.status(INTERNAL_SERVER_ERROR)
+                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        }
+    }
+
+
+    private VitamError getErrorEntity(Response.Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+
+    private void createOperation(GUID guid)
+        throws LogbookClientBadRequestException {
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+            final LogbookOperationParameters initParameter =
+                LogbookParameterHelper.newLogbookOperationParameters(
+                    guid,
+                    Contexts.DATA_MIGRATION.name(),
+                    guid,
+                    LogbookTypeProcess.DATA_MIGRATION,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages
+                        .getLabelOp(String.format("%s.%s", Contexts.DATA_MIGRATION.name(), StatusCode.STARTED.name())) +
+                        " : " + guid,
+                    guid);
+            client.create(initParameter);
+        } catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
+            throw new VitamRuntimeException("Internal server error ", e);
+        }
     }
 }

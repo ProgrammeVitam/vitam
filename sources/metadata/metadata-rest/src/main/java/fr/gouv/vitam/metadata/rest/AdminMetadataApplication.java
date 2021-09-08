@@ -119,7 +119,6 @@ public class AdminMetadataApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
             singletons.add(metadataReconstructionResource);
-            singletons.add(new MetadataMigrationAdminResource());
             singletons.add(new BasicAuthenticationFilter(metaDataConfiguration));
             singletons.add(new AdminRequestIdFilter());
             singletons.add(metadataAuditResource);

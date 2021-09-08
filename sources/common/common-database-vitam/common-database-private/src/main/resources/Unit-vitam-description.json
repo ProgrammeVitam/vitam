@@ -3060,12 +3060,6 @@
     "cardinality": "many"
   },
   {
-    "path": "_us_sp",
-    "type": "object",
-    "indexed": false,
-    "cardinality": "one"
-  },
-  {
     "path": "_v",
     "type": "signed_long",
     "indexed": true,

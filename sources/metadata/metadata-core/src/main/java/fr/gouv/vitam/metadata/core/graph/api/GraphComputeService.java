@@ -235,7 +235,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, up, START_DEPTH);
 
         // Calculate other information
-        // _graph, _us, _uds, _max, _min, _sps, _us_sps
+        // _graph, _us, _uds, _max, _min, _sps
         Set<String> graph = new HashSet<>();
         Set<String> us = new HashSet<>();
         Set<String> sps = new HashSet<>();
@@ -306,7 +306,6 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
             .append(Unit.UNITUPS, us)
             .append(Unit.UNITDEPTHS, parentsDepths)
             .append(Unit.ORIGINATING_AGENCIES, sps)
-            .append(Unit.PARENT_ORIGINATING_AGENCIES, us_sp)
             .append(Unit.MINDEPTH, min)
             .append(Unit.MAXDEPTH, max)
             .append(Unit.GRAPH, graph)

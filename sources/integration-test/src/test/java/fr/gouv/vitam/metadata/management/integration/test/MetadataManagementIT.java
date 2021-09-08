@@ -1105,8 +1105,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
             AccessInternalConfiguration accessInternalConfiguration = new AccessInternalConfiguration();
             accessInternalConfiguration.setUrlMetaData(METADATA_URL);
-            accessInternalConfiguration.setUrlProcessing(runner.PROCESSING_URL);
-            accessInternalConfiguration.setUrlWorkspace(runner.WORKSPACE_URL);
+            accessInternalConfiguration.setUrlProcessing(VitamServerRunner.PROCESSING_URL);
+            accessInternalConfiguration.setUrlWorkspace(VitamServerRunner.WORKSPACE_URL);
             List<String> allowList = new ArrayList<>();
             allowList.add("Secret Défense");
             ClassificationLevel classificationLevel = new ClassificationLevel();
@@ -1286,17 +1286,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // depth 3 > au_f
             assertThat(_uds.get("3")).contains("aedqaaaaacfnrnfpaao4galeht64khqaaaaq");
 
-            // Check parent originating agencies
-            Map<String, List<String>> _us_sp = au.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class);
-            assertThat(_uds).hasSize(3);
-            // au_b, au_c, au_a
-            assertThat(_us_sp.get("Identifier0"))
-                .contains("aedqaaaaacfnrnfpaao4galeht65vjiaaaaq", "aedqaaaaacfnrnfpaao4galeht64zeqaaaaq",
-                    "aedqaaaaacfnrnfpaao4galeht65zpiaaaaq");
-            // au_f
-            assertThat(_us_sp.get("Identifier1")).contains("aedqaaaaacfnrnfpaao4galeht64khqaaaaq");
-            // au_g
-            assertThat(_us_sp.get("Identifier2")).contains("aedqaaaaacfnrnfpaao4galeht64kjaaaaaq");
 
 
             // Check graph
@@ -1332,9 +1321,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
             _uds = au.get(Unit.UNITDEPTHS, Map.class);
             assertThat(_uds).isEmpty();
 
-            // Check parent originating agencies
-            _us_sp = au.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class);
-            assertThat(_uds).isEmpty();
 
             // Check graph
             _graph = au.get(Unit.GRAPH, List.class);
@@ -1351,7 +1337,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
             assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedJson);
 
         } finally {
-            StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", runner.PORT_SERVICE_STORAGE));
+            StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost",
+                VitamServerRunner.PORT_SERVICE_STORAGE));
         }
     }
 

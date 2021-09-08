@@ -1,0 +1,3 @@
+db = db.getSiblingDB('metadata')
+
+db.Unit.updateMany({"_us_sp": { "$exists": true } }, {"$unset": { "_us_sp": ""} });

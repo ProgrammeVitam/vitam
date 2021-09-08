@@ -155,9 +155,6 @@ public class MongoDbMetadataResponseFilter {
                 case GRAPH_LAST_PERISTED_DATE:
                     remove(document, MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
                     break;
-                case PARENT_ORIGINATING_AGENCIES:
-                    remove(document, Unit.PARENT_ORIGINATING_AGENCIES);
-                    break;
                 case HISTORY:
                     replace(document, Unit.HISTORY, VitamFieldsHelper.history());
                     break;

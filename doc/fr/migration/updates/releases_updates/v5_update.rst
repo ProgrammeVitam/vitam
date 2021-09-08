@@ -39,3 +39,17 @@ Si les objets n'existent pas dans les autres offres, il s'agit alors de reliquat
 Dans le cas contraire (cas où l'objet existe dans les autres offres), il faudra envisager la "Procédure de resynchronisation ciblée d’une offre" décrite dans la Documentation d’EXploitation (DEX) de Vitam pour synchroniser l'offre Swift pour les éléments concernés.
 
 .. note:: Cette procédure doit être lancée une seule fois, et pour chaque offre Swift V2/V3, APRES upgrade Vitam.
+
+
+Migrations des unités achivestiques
+----------------------------------------------------------------------------------
+
+La migration des données est réalisée en exécutant la commande suivante (sur le site primaire uniquement, dans le cas d'une installation multi-sites) :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --ask-vault-pass``
+
+.. note:: Durant la migration, il est fortement recommandé de ne pas procéder à des versements de données.

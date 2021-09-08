@@ -107,66 +107,6 @@ public class AdminDataMigrationResource {
         this.workspaceClientFactory = workspaceClientFactory;
     }
 
-
-    /**
-     * Migration Api
-     *
-     * @param headers headers
-     * @return Response
-     */
-
-    @POST
-    @Path("/migrate")
-    @Produces(MediaType.APPLICATION_JSON)
-    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response migrateTo(@Context HttpHeaders headers) {
-        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        ParametersChecker.checkParameter("TenantId is mandatory", xTenantId);
-
-        int tenant = Integer.parseInt(xTenantId);
-
-        VitamThreadUtils.getVitamSession().setTenantId(tenant);
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenant));
-
-        return migrateTo(tenant);
-    }
-
-    Response migrateTo(Integer tenant) {
-        ParametersChecker.checkParameter("TenantId is mandatory", tenant);
-
-        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
-
-        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-            GUID guid = GUIDReader.getGUID(requestId);
-
-            VitamThreadUtils.getVitamSession().setRequestId(guid.getId());
-
-            createOperation(guid);
-            workspaceClient.createContainer(guid.getId());
-
-            // No need to backup operation context, this workflow can be re-executed using logbook information
-            processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
-
-            RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
-            return jsonNodeRequestResponse.toResponse();
-
-        } catch (LogbookClientBadRequestException | BadRequestException e) {
-            LOGGER.error(e);
-            return status(BAD_REQUEST)
-                .header(GlobalDataRest.X_REQUEST_ID, requestId)
-                .build();
-
-        } catch (ContentAddressableStorageServerException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
-            LOGGER.error(e);
-            return Response.status(INTERNAL_SERVER_ERROR)
-                .header(GlobalDataRest.X_REQUEST_ID, requestId)
-                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
-        }
-    }
-
     private VitamError getErrorEntity(Response.Status status, String message) {
         String aMessage =
                 (message != null && !message.trim().isEmpty()) ? message

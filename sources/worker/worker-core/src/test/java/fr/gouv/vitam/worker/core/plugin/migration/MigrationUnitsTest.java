@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.migration;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -39,10 +40,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -62,6 +66,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -116,33 +121,32 @@ public class MigrationUnitsTest {
         String containerName = GUIDFactory.newRequestIdGUID(TENAN_ID).getId();
         VitamThreadUtils.getVitamSession().setRequestId(containerName);
         doReturn(containerName).when(handlerIO).getContainerName();
+        when(defaultWorkerParameters.getLogbookTypeProcess()).thenReturn(LogbookTypeProcess.DATA_MIGRATION);
 
         GUID guid = GUIDFactory.newGUID();
+
+        RequestResponseOK<JsonNode> updateUnitRequestResponseOK = new RequestResponseOK<>();
+        updateUnitRequestResponseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit(guid.getId(), StatusCode.OK,
+            UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA, "","")));
+        when(metaDataClient.updateUnitBulk(any())).thenReturn(updateUnitRequestResponseOK);
+
         MigrationUnits migrationUnits =
             new MigrationUnits(metaDataClientFactory, logbookLifeCyclesClientFactory, storageClientFactory);
-        BDDMockito.given(defaultWorkerParameters.getContainerName()).willReturn(containerName);
-        BDDMockito.given(defaultWorkerParameters.getObjectName()).willReturn(guid.getId());
+        when(defaultWorkerParameters.getContainerName()).thenReturn(containerName);
+        when(defaultWorkerParameters.getObjectName()).thenReturn(guid.getId());
 
-        RequestResponseOK unitResponse = JsonHandler
+        RequestResponseOK<JsonNode> unitResponse = JsonHandler
             .getFromInputStream(getClass().getResourceAsStream("/migration/resultRawMetadata.json"),
                 RequestResponseOK.class);
         when(metaDataClient.getUnitByIdRaw(guid.getId())).thenReturn(unitResponse);
-        JsonNode lfcResponse = JsonHandler
-            .getFromInputStream(getClass().getResourceAsStream("/migration/LFCUnitResponse.json"),
-                JsonNode.class);
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById(guid.getId()))
-            .thenReturn(lfcResponse);
 
         //WHEN
-        ItemStatus execute = migrationUnits.execute(defaultWorkerParameters, handlerIO);
+        List<ItemStatus> itemStatuses = migrationUnits.executeList(defaultWorkerParameters, handlerIO);
 
         //THEN
-        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(metaDataClient).updateUnitById(any(JsonNode.class), eq(guid.getId()));
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).contains(StatusCode.OK);
         verify(storageClient).storeFileFromWorkspace(eq("default-fake"), eq(DataCategory.UNIT),
             eq(guid.getId() + ".json"),
             any(ObjectDescription.class));
-        verify(workspaceClient).deleteObject(eq(containerName),
-            eq(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + guid.getId() + ".json"));
     }
 }

@@ -26,7 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin.migration;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.common.BackupService;
@@ -36,19 +39,13 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.handler.HandlerUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
-import static fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroupPrepare.MIGRATION_OBJECT_LIST_IDS;
+import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare.MIGRATION_UNITS_LIST_IDS;
 
 
@@ -57,7 +54,6 @@ import static fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare.MI
  */
 public class MigrationFinalize extends ActionHandler {
     private static final String MIGRATION_FINALIZE = "MIGRATION_FINALIZE";
-    private static final String JSON_FILE_EXTENSION = ".json";
     private final BackupService backupService;
 
     private static final String REPORTS = "reports";
@@ -77,7 +73,7 @@ public class MigrationFinalize extends ActionHandler {
 
         ItemStatus itemStatus = new ItemStatus(MIGRATION_FINALIZE);
 
-        String reportFileName = handlerIO.getContainerName() + JSON_FILE_EXTENSION;
+        String reportFileName = handlerIO.getContainerName() + JSON_EXTENSION;
 
         saveReportToWorkspace(handlerIO, reportFileName);
 
@@ -96,34 +92,17 @@ public class MigrationFinalize extends ActionHandler {
             return;
         }
 
-        File report = null;
         try {
-
-            File unitsIdentifierFile =
-                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + JSON_FILE_EXTENSION);
-            File objectIdentifierFile =
-                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + JSON_FILE_EXTENSION);
-
-            report = handlerIO.getNewLocalFile("report.json");
-
-            try (FileInputStream unitsReportInputStream = new FileInputStream(unitsIdentifierFile);
-                FileInputStream objectsReportInputStream = new FileInputStream(objectIdentifierFile);
-                OutputStream os = new FileOutputStream(report)) {
-
-                // Sorry for that.. jackson JsonGenerator does not support APIs for raw input streams copy
-                os.write("{\"units\":".getBytes(StandardCharsets.UTF_8));
-                IOUtils.copy(unitsReportInputStream, os);
-                os.write(",\"objectGroups\":".getBytes(StandardCharsets.UTF_8));
-                IOUtils.copy(objectsReportInputStream, os);
-                os.write("}".getBytes(StandardCharsets.UTF_8));
+            ObjectNode reportJson = JsonHandler.createObjectNode();
+            if (handlerIO.isExistingFileInWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + JSON_EXTENSION)) {
+                reportJson.set("units", JsonHandler.getFromInputStream(handlerIO
+                    .getInputStreamFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + JSON_EXTENSION)));
+            } else {
+                reportJson.set("units", JsonHandler.createArrayNode());
             }
-
-            handlerIO.transferAtomicFileToWorkspace(reportFileName, report);
-
-        } catch (IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            HandlerUtils.save(handlerIO, reportJson, reportFileName);
+        } catch (IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | InvalidParseOperationException e) {
             throw new ProcessingException(e);
-        } finally {
-            FileUtils.deleteQuietly(report);
         }
     }
 
