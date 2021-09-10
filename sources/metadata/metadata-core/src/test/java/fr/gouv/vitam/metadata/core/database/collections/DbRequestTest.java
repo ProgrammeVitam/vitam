@@ -1185,14 +1185,14 @@ public class DbRequestTest {
             .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParserMultiple2);
 
-        final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery(TITLE, VALUE_MY_TITLE + 2);
-        final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery(TITLE, VALUE_MY_TITLE);
+        final QueryBuilder qb1 = QueryBuilders.matchPhraseQuery(TITLE, VALUE_MY_TITLE + 2);
+        final QueryBuilder qb2 = QueryBuilders.matchPhraseQuery(TITLE, VALUE_MY_TITLE);
         // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
-        final QueryBuilder qb3 = QueryBuilders.matchPhrasePrefixQuery(MY_INT, 10);
+        final QueryBuilder qb3 = QueryBuilders.matchPhraseQuery(MY_INT, 10);
         // (Test for ES upgrade version): match phrase prefix not supported by vitam for not analysed document
-        final QueryBuilder qb4 = QueryBuilders.matchPhrasePrefixQuery(MY_INT, 20);
-        final QueryBuilder qb5 = QueryBuilders.matchPhrasePrefixQuery("underscore", "undersco");
-        final QueryBuilder qb6 = QueryBuilders.matchPhrasePrefixQuery("_underscore", "undersco");
+        final QueryBuilder qb4 = QueryBuilders.matchPhraseQuery(MY_INT, 20);
+        final QueryBuilder qb5 = QueryBuilders.prefixQuery("underscore", "undersco");
+        final QueryBuilder qb6 = QueryBuilders.prefixQuery("_underscore", "undersco");
 
         // (Test for ES upgrade version): match phrase prefix not supported keywords and field mapped as number
         final QueryBuilder qb7 = QueryBuilders.matchPhrasePrefixQuery("_nbc", 100);
@@ -3073,7 +3073,7 @@ public class DbRequestTest {
             indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0);
 
         // When
-        final QueryBuilder query = QueryBuilders.matchPhrasePrefixQuery("MyCustomField", "MyCustomValue");
+        final QueryBuilder query = QueryBuilders.matchPhraseQuery("MyCustomField", "MyCustomValue");
 
         SearchResponse responseWithoutTrackTotalSizeFlag = esClientWithoutVitamBehavior.search(indexAlias, query, null,
             null, null, 0, 10, null, null, null, false);
