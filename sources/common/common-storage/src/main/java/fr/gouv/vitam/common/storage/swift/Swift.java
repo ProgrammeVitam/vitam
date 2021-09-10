@@ -356,7 +356,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             new RetryableOnException<>(getRetryableParameters());
         retryableOnException.exec(() -> {
             List<ObjectEntry> swiftObjects = new ArrayList<>();
-            listObjectSegments(containerName, swiftObjects::add);
+            listObjectSegments(containerName, objectName, swiftObjects::add);
             getObjectStorageService().deleteFullObject(containerName, objectName, swiftObjects.stream().map(
                 ObjectEntry::getObjectId).collect(Collectors.toList()));
             return null;
@@ -495,7 +495,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         }
     }
 
-    private void listObjectSegments(String containerName, ObjectListingListener objectListingListener)
+    private void listObjectSegments(String containerName, String objectName, ObjectListingListener objectListingListener)
         throws ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -504,6 +504,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         String nextMarker = null;
         do {
             ObjectListOptions objectListOptions = ObjectListOptions.create()
+                .path(objectName + "/")
                 .limit(LISTING_MAX_RESULTS);
 
             if (nextMarker != null) {
@@ -516,7 +517,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             if (swiftObjects.isEmpty()) {
                 break;
             }
-            for(SwiftObject swiftObject : swiftObjects.stream().filter(obj-> obj.getName().contains("/")).collect(Collectors.toList()) ){
+            for (SwiftObject swiftObject : swiftObjects) {
                 try {
                     objectListingListener.handleObjectEntry(
                         new ObjectEntry(swiftObject.getName(), swiftObject.getSizeInBytes()));
