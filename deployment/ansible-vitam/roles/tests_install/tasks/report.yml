@@ -1,0 +1,18 @@
+---
+
+- name: Print report of installation tests
+  debug:
+    msg: "{{ tests_install_report }}"
+  when: tests_install_report != ""
+
+- name: Prompt to continue Vitam installation
+  pause:
+    prompt: "Please review the report\nAnswer 'YES' to continue the playbook, 'NO' or anything else to stop it [NO]"
+  register: tests_install_confirmation
+  delegate_to: localhost
+
+- name: Stop playbook if prompt answer is not 'YES'
+  fail:
+    msg: "Playbook stopped because of user input"
+  delegate_to: localhost
+  when: tests_install_confirmation.user_input is defined and tests_install_confirmation.user_input|upper != "YES"

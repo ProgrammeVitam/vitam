@@ -245,6 +245,18 @@
   any_errors_fatal: true
   roles:
     - vitam
+  vars:
+    vitam_struct: "{{ vitam.security_internal }}"
+
+- hosts: vitam
+  any_errors_fatal: true
+  roles:
+    - { role: tests_install, when: tests_install is defined and tests_install|bool == true }
+
+- hosts: hosts_security_internal
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
     - { role: init_contexts_and_security_profiles, tags: update_vitam_certificates, when: primary_site | lower == "true" }
   vars:
     vitam_struct: "{{ vitam.security_internal }}"
