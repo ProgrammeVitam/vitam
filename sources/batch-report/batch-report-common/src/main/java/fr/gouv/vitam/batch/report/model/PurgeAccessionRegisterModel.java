@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PurgeAccessionRegisterModel {
 
     public static final String OPI = "opi";
+    public static final String OPC = "opc";
     public static final String ORIGINATING_AGENCY = "originatingAgency";
     public static final String TOTAL_UNITS = "totalUnits";
     public static final String TOTAL_OBJECT_GROUPS = "totalObjectGroups";

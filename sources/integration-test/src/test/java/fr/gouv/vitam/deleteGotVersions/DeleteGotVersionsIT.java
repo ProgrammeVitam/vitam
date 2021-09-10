@@ -128,6 +128,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamTestHelper.doIngest;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
@@ -185,6 +186,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
     };
     private static final TypeReference<List<ObjectGroupResponse>> OBJECT_GROUP_RESPONSES_TYPE = new TypeReference<>() {
     };
+    public static final String OPI = "Opi";
 
     String ingestOperationId;
 
@@ -368,17 +370,23 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 VersionsModelCustomized::getDataObjectVersion).collect(Collectors.toList()))
                 .contains("BinaryMaster_2");
 
+            String opcDeletedObjectGroup =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().get().getOpi();
             JsonNode accessRegisterDetailNode = JsonHandler.toJsonNode(
-                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()));
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(eq(
+                    OPI, opcDeletedObjectGroup))));
             assertNotNull(accessRegisterDetailNode);
-            List<AccessionRegisterDetail> accessRegisterDetailList =
+            AccessionRegisterDetail accessRegisterDetailCreatedByPreservation =
                 getFromJsonNode(accessRegisterDetailNode, new TypeReference<>() {
                 });
+            assertNotNull(accessRegisterDetailCreatedByPreservation);
             assertTrue(
-                accessRegisterDetailList.get(0).getEvents().stream().anyMatch(elmt -> elmt.getOperationType().equals(
-                    ReportType.DELETE_GOT_VERSIONS.name())));
-            assertThat(accessRegisterDetailList.get(0).getTotalObjectSize().getDeleted()).isGreaterThan(0);
-            assertThat(accessRegisterDetailList.get(0).getTotalObjects().getDeleted()).isGreaterThan(0);
+                accessRegisterDetailCreatedByPreservation.getEvents().stream()
+                    .anyMatch(elmt -> elmt.getOperationType().equals(
+                        ReportType.DELETE_GOT_VERSIONS.name())));
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjectSize().getDeleted()).isGreaterThan(0);
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjects().getDeleted()).isGreaterThan(0);
         }
     }
 
@@ -486,17 +494,22 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 .contains("BinaryMaster_2");
 
             // Check AccesRegisterDetail
+            String opcDeletedObjectGroup =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().get().getOpi();
             JsonNode accessRegisterDetailNode = JsonHandler.toJsonNode(
-                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()));
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(eq(
+                    OPI, opcDeletedObjectGroup))));
             assertNotNull(accessRegisterDetailNode);
-            List<AccessionRegisterDetail> accessRegisterDetailList =
+            AccessionRegisterDetail accessRegisterDetailCreatedByPreservation =
                 getFromJsonNode(accessRegisterDetailNode, new TypeReference<>() {
                 });
+            assertNotNull(accessRegisterDetailCreatedByPreservation);
             assertTrue(
-                accessRegisterDetailList.get(0).getEvents().stream().anyMatch(elmt -> elmt.getOperationType().equals(
+                accessRegisterDetailCreatedByPreservation.getEvents().stream().anyMatch(elmt -> elmt.getOperationType().equals(
                     ReportType.DELETE_GOT_VERSIONS.name())));
-            assertThat(accessRegisterDetailList.get(0).getTotalObjectSize().getDeleted()).isGreaterThan(0);
-            assertThat(accessRegisterDetailList.get(0).getTotalObjects().getDeleted()).isGreaterThan(0);
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjectSize().getDeleted()).isGreaterThan(0);
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjects().getDeleted()).isGreaterThan(0);
         }
     }
 
@@ -608,17 +621,23 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 .contains("BinaryMaster_2");
 
             // Check AccesRegisterDetail
+            String opcDeletedObjectGroup =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_2"))
+                    .findFirst().get().getOpi();
             JsonNode accessRegisterDetailNode = JsonHandler.toJsonNode(
-                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()));
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(eq(
+                    OPI, opcDeletedObjectGroup))));
             assertNotNull(accessRegisterDetailNode);
-            List<AccessionRegisterDetail> accessRegisterDetailList =
+            AccessionRegisterDetail accessRegisterDetailCreatedByPreservation =
                 getFromJsonNode(accessRegisterDetailNode, new TypeReference<>() {
                 });
+            assertNotNull(accessRegisterDetailCreatedByPreservation);
             assertTrue(
-                accessRegisterDetailList.get(0).getEvents().stream().anyMatch(elmt -> elmt.getOperationType().equals(
-                    ReportType.DELETE_GOT_VERSIONS.name())));
-            assertThat(accessRegisterDetailList.get(0).getTotalObjectSize().getDeleted()).isGreaterThan(0);
-            assertThat(accessRegisterDetailList.get(0).getTotalObjects().getDeleted()).isGreaterThan(0);
+                accessRegisterDetailCreatedByPreservation.getEvents().stream()
+                    .anyMatch(elmt -> elmt.getOperationType().equals(
+                        ReportType.DELETE_GOT_VERSIONS.name())));
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjectSize().getDeleted()).isGreaterThan(0);
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjects().getDeleted()).isGreaterThan(0);
         }
     }
 
@@ -732,7 +751,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
             Set<String> idsToDelete =
                 qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_1"))
                     .map(VersionsModel::getId).collect(
-                    Collectors.toSet());
+                        Collectors.toSet());
 
             assertEquals(3, dataObjectVersionsBeforeDelete.size());
             assertTrue(dataObjectVersionsBeforeDelete.contains("Dissemination_1"));
@@ -798,17 +817,23 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 VersionsModelCustomized::getDataObjectVersion).collect(Collectors.toList()))
                 .contains("Dissemination_1", "Dissemination_2");
 
+            String opcDeletedObjectGroup =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_1"))
+                    .findFirst().get().getOpi();
             JsonNode accessRegisterDetailNode = JsonHandler.toJsonNode(
-                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()));
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(eq(
+                    OPI, opcDeletedObjectGroup))));
             assertNotNull(accessRegisterDetailNode);
-            List<AccessionRegisterDetail> accessRegisterDetailList =
+            AccessionRegisterDetail accessRegisterDetailCreatedByPreservation =
                 getFromJsonNode(accessRegisterDetailNode, new TypeReference<>() {
                 });
+            assertNotNull(accessRegisterDetailCreatedByPreservation);
             assertTrue(
-                accessRegisterDetailList.get(0).getEvents().stream().anyMatch(elmt -> elmt.getOperationType().equals(
-                    ReportType.DELETE_GOT_VERSIONS.name())));
-            assertThat(accessRegisterDetailList.get(0).getTotalObjectSize().getDeleted()).isGreaterThan(0);
-            assertThat(accessRegisterDetailList.get(0).getTotalObjects().getDeleted()).isGreaterThan(0);
+                accessRegisterDetailCreatedByPreservation.getEvents().stream()
+                    .anyMatch(elmt -> elmt.getOperationType().equals(
+                        ReportType.DELETE_GOT_VERSIONS.name())));
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjectSize().getDeleted()).isGreaterThan(0);
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjects().getDeleted()).isGreaterThan(0);
         }
     }
 
@@ -846,7 +871,7 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
             Set<String> idsToDelete =
                 qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_1"))
                     .map(VersionsModel::getId).collect(
-                    Collectors.toSet());
+                        Collectors.toSet());
 
             assertEquals(3, dataObjectVersionsBeforeDelete.size());
             assertTrue(dataObjectVersionsBeforeDelete.contains("Dissemination_1"));
@@ -916,17 +941,23 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
                 VersionsModelCustomized::getDataObjectVersion).collect(Collectors.toList()))
                 .contains("Dissemination_1", "Dissemination_2");
 
+            String opcDeletedObjectGroup =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("Dissemination_2"))
+                    .findFirst().get().getOpi();
             JsonNode accessRegisterDetailNode = JsonHandler.toJsonNode(
-                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()));
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(eq(
+                    OPI, opcDeletedObjectGroup))));
             assertNotNull(accessRegisterDetailNode);
-            List<AccessionRegisterDetail> accessRegisterDetailList =
+            AccessionRegisterDetail accessRegisterDetailCreatedByPreservation =
                 getFromJsonNode(accessRegisterDetailNode, new TypeReference<>() {
                 });
+            assertNotNull(accessRegisterDetailCreatedByPreservation);
             assertTrue(
-                accessRegisterDetailList.get(0).getEvents().stream().anyMatch(elmt -> elmt.getOperationType().equals(
-                    ReportType.DELETE_GOT_VERSIONS.name())));
-            assertThat(accessRegisterDetailList.get(0).getTotalObjectSize().getDeleted()).isGreaterThan(0);
-            assertThat(accessRegisterDetailList.get(0).getTotalObjects().getDeleted()).isGreaterThan(0);
+                accessRegisterDetailCreatedByPreservation.getEvents().stream()
+                    .anyMatch(elmt -> elmt.getOperationType().equals(
+                        ReportType.DELETE_GOT_VERSIONS.name())));
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjectSize().getDeleted()).isGreaterThan(0);
+            assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjects().getDeleted()).isGreaterThan(0);
         }
     }
 

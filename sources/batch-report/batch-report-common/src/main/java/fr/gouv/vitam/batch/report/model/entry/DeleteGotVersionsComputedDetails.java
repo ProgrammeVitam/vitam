@@ -38,23 +38,23 @@ public class DeleteGotVersionsComputedDetails {
     public static final String TOTAL_OBJECTS = "totalObjects";
     public static final String TOTAL_SIZE = "totalSize";
 
-    private final String opi;
+    private final String opc;
     private final long totalSize;
     private final int totalObjects;
 
     @JsonCreator
     public DeleteGotVersionsComputedDetails(
-        @JsonProperty("_id") String opi,
+        @JsonProperty("_id") String opc,
         @JsonProperty(TOTAL_SIZE) long totalSize,
         @JsonProperty(TOTAL_OBJECTS) int totalObjects) {
-        this.opi = opi;
+        this.opc = opc;
         this.totalSize = totalSize;
         this.totalObjects = totalObjects;
     }
 
     @JsonProperty("_id")
-    public String getOpi() {
-        return opi;
+    public String getOpc() {
+        return opc;
     }
 
     @JsonProperty(TOTAL_SIZE)

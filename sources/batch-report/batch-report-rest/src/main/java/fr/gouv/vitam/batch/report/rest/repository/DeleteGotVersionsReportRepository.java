@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPC;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
@@ -125,11 +126,11 @@ public class DeleteGotVersionsReportRepository {
                 Aggregates.unwind("$" + DELETED_VERSIONS),
                 Aggregates.project(Projections.fields(
                     new Document(ID, 0),
-                    new Document(OPI, "$deletedVersions.opi"),
+                    new Document(OPC, "$deletedVersions.opc"),
                     new Document("Size", "$deletedVersions.Size")
                     )
                 ),
-                Aggregates.group("$" + OPI,
+                Aggregates.group("$" + OPC,
                     Accumulators.sum(TOTAL_SIZE, "$Size"),
                     Accumulators.sum(TOTAL_OBJECTS, 1)
                 )
