@@ -114,7 +114,7 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
 
             for (DeleteGotVersionsComputedDetails computedDetail : deleteGotVersionsComputedDetails) {
                 AccessionRegisterDetailModel accessionRegisterDetail =
-                    getAccessionRegisterDetail(computedDetail.getOpi());
+                    getAccessionRegisterDetail(computedDetail.getOpc());
 
                 long sizeDeletedGots = computedDetail.getTotalSize();
                 accessionRegisterDetail.setOperationType(LogbookTypeProcess.DELETE_GOT_VERSIONS.name());
