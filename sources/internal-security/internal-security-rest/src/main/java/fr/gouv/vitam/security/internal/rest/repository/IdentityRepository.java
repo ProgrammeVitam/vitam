@@ -120,15 +120,14 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
      * @return true if the context is used by Identity
      */
     public boolean contextIsUsed(String contextId) {
-        return (identityCollection.count(eq("ContextId", contextId)) == 0) ? false : true;
+        return identityCollection.countDocuments(eq("ContextId", contextId)) != 0;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public FindIterable<Document> findCertificate(String issuerDN, CertificateStatus certificateStatus)
-        throws InvalidParseOperationException {
+    public FindIterable<Document> findCertificate(String issuerDN, CertificateStatus certificateStatus) {
         return crlRepositoryHelper.findCertificate(issuerDN, certificateStatus);
     }
 
@@ -141,12 +140,8 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
             .updateCertificateState(certificatesToUpdate, certificateStatus);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Class<IdentityModel> getEntityModelType() {
         return IdentityModel.class;
     }
-
 }
