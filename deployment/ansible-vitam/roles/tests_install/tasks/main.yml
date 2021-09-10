@@ -1,0 +1,5 @@
+---
+
+- import_tasks: test_elasticsearch.yml
+
+- import_tasks: report.yml

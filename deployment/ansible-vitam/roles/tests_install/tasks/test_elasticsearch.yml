@@ -1,0 +1,27 @@
+---
+
+- name: Ensure Elasticsearch data cluster is in green state
+  uri:
+    method: GET
+    url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/_cluster/health"
+    body_format: "json"
+  register: result
+  until:
+    - result.json is defined
+    - result.json.status == "green"
+  retries: "{{ vitam_defaults.services.api_call_timeout }}"
+  delay: 10
+  delegate_to: "{{ groups['hosts_elasticsearch_data']|first }}"
+  run_once: true
+  register: test_elasticsearch
+  ignore_errors: yes
+
+- name: Update report in case of error
+  set_fact:
+    tests_install_report: "{{ tests_install_report + [ 'Elasticsearch: [ERROR] Data cluster is unstable' ] }}"
+  when: test_elasticsearch is defined and test_elasticsearch is failed
+
+- name: Update report in case of success
+  set_fact:
+    tests_install_report: "{{ tests_install_report + [ 'Elasticsearch: [OK] Data cluster is stable' ] }}"
+  when: test_elasticsearch is defined and test_elasticsearch is success
