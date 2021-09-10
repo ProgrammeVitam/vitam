@@ -5,7 +5,6 @@
   uri:
     method: GET
     url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/_cluster/health"
-    body_format: "json"
   register: result
   until:
     - result.json is defined

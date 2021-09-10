@@ -100,7 +100,7 @@ filter
     else if [vitam_component] =~ "consul" {
         grok {
             break_on_match => false
-            match => [
+            patterns_dir => ["/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version}}/patterns","/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version}}/lib/logstash/patterns"]            match => [
                 "message",
                 "%{CONSUL_TIMESTAMP:timestamp}?%{SPACE}(\[%{LOGLEVEL:log_level}\])?%{SPACE}(?<consul_module>[^:]*)?:?%{SPACE}(?:%{GREEDYDATA:log_message})"
             ]
@@ -118,6 +118,7 @@ filter
     else if [vitam_component] =~ "clamd" {
         grok {
             break_on_match => false
+            patterns_dir => ["/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version}}/patterns","/usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version}}/lib/logstash/patterns"]
             match => [
                 "message",
                 "%{CONSUL_TIMESTAMP:timestamp}?%{SPACE}(\[%{LOGLEVEL:log_level}\])?%{SPACE}(?<clamd_module>[^:]*)?:?%{SPACE}(?:%{GREEDYDATA:log_message})"
