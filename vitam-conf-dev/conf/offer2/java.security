@@ -1,0 +1,6 @@
+# Use Bouncy Castle Provider when it is available
+security.provider.9=org.bouncycastle.jce.provider.BouncyCastleProvider
+
+# Override the default list of Centos 7 that disable Elliptic Curved Based Algorithms
+jdk.tls.disabledAlgorithms="SSLv3, TLSv1, TLSv1.1, RC4, MD5withRSA, DH keySize < 768,RSA keySize < 2048"
+

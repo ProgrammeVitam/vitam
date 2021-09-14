@@ -33,4 +33,5 @@ vitam-griffins
 deployment/environments/backups
 .floo
 .flooignore
+vitam-conf-dev/conf/offer3/default-storage.conf
 

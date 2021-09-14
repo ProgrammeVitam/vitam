@@ -27,7 +27,9 @@
 127.0.0.1       worker.service.consul
 127.0.0.1       security-internal.service.consul
 127.0.0.1       batch-report.service.consul
-127.0.0.1       offer-fs-1.service.consul' > /etc/hosts`
+127.0.0.1       offer-fs-1.service.consul
+127.0.0.1       offer-fs-2.service.consul
+127.0.0.1       offer-tape-1.service.consul' > /etc/hosts`
 
 Should be usefull: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .bashrc before launch run_cots
 
@@ -44,7 +46,7 @@ Should be usefull: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .ba
 
 7. While vitam-build-repo / vitam-deploy-cots is building, configure VITAM module launch from IDE (Example conf are explain for IntelliJ IDE)
 	1. Create '/vitam'
-		a. Create `/vitam/data/storage` folder and init Driver config with `echo 'offer-fs-1.service.consul' > fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl`
+		a. Create `/vitam/data/storage` folder and init Driver config with `echo 'offer-fs-1.service.consul;offer-fs-2.service.consul;offer-tape-1.service.consul' > fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl`
 		b. Change the user permission for `/vitam` with `chown <userName>:<userGroup> -R /vitam`
 	2. Configure vitam serveur application (Example config for access-external)
 		a. Main class: fr.gouv.vitam.access.external.rest.AccessExternalMain
@@ -77,6 +79,32 @@ Should be usefull: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .ba
 12. Launch mongo-express docker container:
 	1. Login to programmevitam docker repo with `docker login https://docker.programmevitam.fr` and your vitam LDAP credentials
 	2. Run mongo express with `docker run -d -p 10081:8081 --name="mongo-express" -e ME_CONFIG_MONGODB_ADMINUSERNAME="vitamdb-admin" -e ME_CONFIG_MONGODB_ADMINPASSWORD="azerty" -e ME_CONFIG_MONGODB_SERVER="172.17.0.2" --link vitam-rpm-cots-dev:mongo docker.programmevitam.fr/mongo-express`
+
+13. Pour utiliser une deuxième offre de type FS:
+    1. Executer le script `init_offer2_database.sh` qui initialisera une base offer2 dans le mongo
+	2. Ajouter un deuxième serveur application offer dans intellij:
+		a. Main class: fr.gouv.vitam.storage.offers.rest.DefaultOfferMain
+		b. VM Options: -Xms256m -Xmx256m -Dlogback.configurationFile=path/to/vitam/vitam-conf-dev/conf/offer2/logback.xml
+		c. Program arguments: path/to/vitam/vitam-conf-dev/conf/offer2/offer.conf
+		d. Working directory: path/to/vitam/vitam-conf-dev/conf/offer2
+		e. module classpath: vitam-offer
+		f. Log (Add new log entry): /vitam/log/offer2/offer.*.log
+		f. AccessLog (Add new log entry): /vitam/log/offer2/accesslog-offer.*.log
+	3. Si nécéssaire créer les dossier `/vitam/data/offer2` et `/vitam/log/offer2`
+
+14. Pour utiliser une troisième offre de type TAPE:
+    1. Récupérer le repository `vtl-utils` et executer les scripts pour lancer le serveur et configurer le client sur la machine locale
+	2. Copier le fichier `conf/offer3/default-storage.conf.sample` vers `conf/offer3/default-storage.conf` et y remplacer les valeurs $SERIAL_NUMBER_ROBOT$, $SERIAL_NUMBER_DRIVE0$ et $SERIAL_NUMBER_DRIVE1$ par les valeurs obtenues en executant `ll /dev/tape/by-id/`
+    2. Executer le script  `init_offer3_database.sh` qui initialisera une base offer3 dans le mongo
+	3. Ajouter un deuxième serveur application offer dans intellij:
+		a. Main class: fr.gouv.vitam.storage.offers.rest.DefaultOfferMain
+		b. VM Options: -Xms256m -Xmx256m -Dlogback.configurationFile=path/to/vitam/vitam-conf-dev/conf/offer3/logback.xml
+		c. Program arguments: path/to/vitam/vitam-conf-dev/conf/offer3/offer.conf
+		d. Working directory: path/to/vitam/vitam-conf-dev/conf/offer3
+		e. module classpath: vitam-offer
+		f. Log (Add new log entry): /vitam/log/offer3/offer.*.log
+		f. AccessLog (Add new log entry): /vitam/log/offer3/accesslog-offer.*.log
+	4. Si nécéssaire créer les dossier `/vitam/data/offer3` et `/vitam/log/offer3`
 
 # Configuration Mac specific
 Redirection of ElastiSearch traffic to docker (loopback) with:
