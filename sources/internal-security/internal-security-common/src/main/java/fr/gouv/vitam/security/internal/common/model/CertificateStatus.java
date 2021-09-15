@@ -32,6 +32,7 @@ package fr.gouv.vitam.security.internal.common.model;
  */
 public enum CertificateStatus {
     VALID,
+    EXPIRED,
     REVOKED;
 
     public  CertificateStatus valueFrom(boolean isRevoked) {
