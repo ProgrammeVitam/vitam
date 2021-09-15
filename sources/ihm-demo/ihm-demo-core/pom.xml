@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ihm-demo</artifactId>
-		<version>5.rc.0</version>
+		<version>5.rc.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>ihm-core</artifactId>
 	<name>ihm-core</name>
