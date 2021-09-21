@@ -129,6 +129,12 @@ function generateHostCertAndStorePassphrase {
 
     # sed "1 d" : remove the first line
     for SERVER in $(ansible -i ${ENVIRONNEMENT_FILE} --list-hosts ${HOSTS_GROUP} ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+        if [ "${COMPONENT}" == "offer" ]; then
+            SERVICE_NAME=$(read_ansible_var "offer_conf" ${SERVER})
+        else
+            SERVICE_NAME=${COMPONENT}
+        fi
+        echo "${SERVICE_NAME}.service.${VITAM_SITE_NAME}.${CONSUL_DOMAIN}"
         # Generate the key
         local CERT_KEY=$(generatePassphrase)
         # Create the certificate
@@ -137,8 +143,8 @@ function generateHostCertAndStorePassphrase {
                                 ${CA_INTERMEDIATE_PASSWORD} \
                                 ${SERVER} \
                                 "server" \
-                                "${COMPONENT}.service.${CONSUL_DOMAIN}" \
-                                "${COMPONENT}.service.${VITAM_SITE_NAME}.${CONSUL_DOMAIN}"
+                                "${SERVICE_NAME}.service.${CONSUL_DOMAIN}" \
+                                "${SERVICE_NAME}.service.${VITAM_SITE_NAME}.${CONSUL_DOMAIN}"
         # Store the key to the vault
         setComponentPassphrase certs "server_${COMPONENT}_key" \
                                      "${CERT_KEY}"
@@ -215,9 +221,9 @@ if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
 fi
 
 # Get consul_domain
-CONSUL_DOMAIN=$(read_ansible_var "consul_domain" "hosts_processing[0]")
+CONSUL_DOMAIN=$(read_ansible_var "consul_domain" "hosts_storage_offer_default[0]")
 # Get vitam_site_name
-VITAM_SITE_NAME=$(read_ansible_var "vitam_site_name" "hosts_processing[0]")
+VITAM_SITE_NAME=$(read_ansible_var "vitam_site_name" "hosts_storage_offer_default[0]")
 
 # Cleaning or creating vault file for certs
 initVault certs
