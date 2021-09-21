@@ -28,14 +28,15 @@ package fr.gouv.vitam.security.internal.rest.service;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.security.internal.common.model.CertificateBaseModel;
 import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.common.service.CRLService;
-import fr.gouv.vitam.security.internal.common.service.X509PKIUtil;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 import org.bson.Document;
@@ -43,26 +44,32 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.stubbing.OngoingStubbing;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CRLServiceTest {
 
@@ -75,6 +82,9 @@ public class CRLServiceTest {
     @Mock
     private PersonalRepository personalRepository;
 
+    @Mock
+    private AlertService alertService;
+
     private CRLService crlService;
 
     private final static String EMPTY_CRL_FILE = "/signing-ca-no-revoked-cert-yet.crl";
@@ -85,13 +95,45 @@ public class CRLServiceTest {
 
     private final static String PERSONAL_CERT_FILE = "/my-personal-certificate.crt";
 
+    private final static String IDENTITY_EXPIRED_CERT_FILE = "/my-expired-sia.crt";
+
+    private final static String PERSONAL_EXPIRED_CERT_FILE = "/my-expired-personal-certificate.crt";
+
     private final static String ISSUER_NAME =
         "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr";
 
 
     @Before
-    public void setUp() throws Exception {
-        crlService = new CRLServiceImpl(identityRepository, personalRepository);
+    public void setUp() {
+        crlService = new CRLServiceImpl(identityRepository, personalRepository, alertService);
+    }
+
+    @Test
+    public void checkCertificatesWhenExpired()
+        throws IOException, CertificateException, CRLException, InvalidParseOperationException {
+        InputStream emptyCRL = getClass().getResourceAsStream(EMPTY_CRL_FILE);
+
+        doReturn(constructList(constructCertificateDocument("01", IDENTITY_EXPIRED_CERT_FILE)))
+            .when(identityRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+        doReturn(IdentityModel.class).when(identityRepository).getEntityModelType();
+
+        doReturn(constructList(constructCertificateDocument("02", PERSONAL_EXPIRED_CERT_FILE)))
+            .when(personalRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+        doReturn(PersonalCertificateModel.class).when(personalRepository).getEntityModelType();
+
+        crlService.checkIdentityWithCRL(toByteArray(emptyCRL));
+
+        verify(identityRepository, times(0)).updateCertificateState(anyList(), eq(CertificateStatus.REVOKED));
+
+        verify(identityRepository).findCertificate(anyString(), eq(CertificateStatus.VALID));
+        verify(identityRepository).getEntityModelType();
+
+        verify(personalRepository).updateCertificateState(anyList(), eq(CertificateStatus.EXPIRED));
+
+        verify(personalRepository).findCertificate(anyString(), eq(CertificateStatus.VALID));
+        verify(personalRepository).getEntityModelType();
+
+        verify(alertService, times(2)).createAlert(eq(VitamLogLevel.WARN), ArgumentMatchers.endsWith("is expired"));
     }
 
     @Test
@@ -99,19 +141,29 @@ public class CRLServiceTest {
         throws IOException, CertificateException, CRLException, InvalidParseOperationException {
         InputStream emptyCRL = getClass().getResourceAsStream(EMPTY_CRL_FILE);
 
-        doReturn(constructCertificateDocumentList("01", CertificateStatus.VALID, IDENTITY_CERT_FILE))
+        doReturn(
+            constructList(constructCertificateDocument("01", IDENTITY_CERT_FILE)))
             .when(identityRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(IdentityModel.class).when(identityRepository).getEntityModelType();
 
-        doReturn(constructCertificateDocumentList("02", CertificateStatus.VALID, PERSONAL_CERT_FILE))
+        doReturn(constructList(constructCertificateDocument("02", PERSONAL_CERT_FILE)))
             .when(personalRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(PersonalCertificateModel.class).when(personalRepository).getEntityModelType();
 
         crlService.checkIdentityWithCRL(toByteArray(emptyCRL));
+
+        verify(identityRepository, times(0)).updateCertificateState(anyList(), eq(CertificateStatus.REVOKED));
+
+        verify(identityRepository).findCertificate(anyString(), eq(CertificateStatus.VALID));
+        verify(identityRepository).getEntityModelType();
+
+        verify(personalRepository).findCertificate(anyString(), eq(CertificateStatus.VALID));
+        verify(personalRepository).getEntityModelType();
     }
 
 
     @Test
+    @SuppressWarnings("unchecked")
     public void checkCertificatesWithNonEmptyCRLTest()
         throws IOException, CertificateException, CRLException, InvalidParseOperationException {
 
@@ -121,55 +173,80 @@ public class CRLServiceTest {
         doNothing().when(identityRepository)
             .updateCertificateState(any(), eq(CertificateStatus.REVOKED));
 
-        doReturn(constructCertificateDocumentList("01", CertificateStatus.VALID, IDENTITY_CERT_FILE))
+        doReturn(constructList(constructCertificateDocument("01", IDENTITY_EXPIRED_CERT_FILE),
+            constructCertificateDocument("02", IDENTITY_CERT_FILE)))
             .when(identityRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(IdentityModel.class).when(identityRepository).getEntityModelType();
 
-        doReturn(constructCertificateDocumentList("02", CertificateStatus.VALID, PERSONAL_CERT_FILE))
+        doReturn(constructList(constructCertificateDocument("03", PERSONAL_EXPIRED_CERT_FILE),
+            constructCertificateDocument("04", PERSONAL_CERT_FILE)))
             .when(personalRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(PersonalCertificateModel.class).when(personalRepository).getEntityModelType();
 
-        ArgumentCaptor<List> identCertificatesToUpdateCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<String>> identCertificatesToRevokeCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<String>> identCertificatesHasExpiredCaptor = ArgumentCaptor.forClass(List.class);
+
 
         crlService.checkIdentityWithCRL(toByteArray(crlRevokingSIA));
 
         verify(identityRepository)
-            .updateCertificateState(identCertificatesToUpdateCaptor.capture(), eq(CertificateStatus.REVOKED));
+            .updateCertificateState(identCertificatesToRevokeCaptor.capture(), eq(CertificateStatus.REVOKED));
+
+        verify(identityRepository)
+            .updateCertificateState(identCertificatesHasExpiredCaptor.capture(), eq(CertificateStatus.EXPIRED));
 
         verify(identityRepository).findCertificate(anyString(), eq(CertificateStatus.VALID));
-        verify(identityRepository).getEntityModelType();
+        verify(identityRepository, times(2)).getEntityModelType();
+
+        // verify that certicate state is updated to REVOKED
+        assertThat(identCertificatesToRevokeCaptor.getValue()).isNotNull().isNotEmpty().contains("02");
+
+        // verify that certicate state is updated to EXPIRED
+        assertThat(identCertificatesHasExpiredCaptor.getValue()).isNotNull().isNotEmpty().contains("01");
 
         verify(personalRepository).findCertificate(anyString(), eq(CertificateStatus.VALID));
-        verify(personalRepository).getEntityModelType();
+        verify(personalRepository, times(2)).getEntityModelType();
 
-        List<String> certificatesToUpdateList = identCertificatesToUpdateCaptor.getValue();
-
-        assertThat(certificatesToUpdateList).isNotNull().isNotEmpty().contains("01");
-
+        verify(alertService).createAlert(eq(VitamLogLevel.WARN), ArgumentMatchers.endsWith("was revoked by CRL"));
+        verify(alertService, times(2)).createAlert(eq(VitamLogLevel.WARN), ArgumentMatchers.endsWith("is expired"));
     }
 
-    private FindIterable<Document> constructCertificateDocumentList(String certId, CertificateStatus isValid,
-        String certFile)
-        throws IOException, CertificateException {
+    private Document constructCertificateDocument(String certId, String certFile)
+        throws CertificateException {
 
         CertificateBaseModel identityModel = new CertificateBaseModel();
-        X509Certificate cert = X509PKIUtil.parseX509Certificate(toByteArray(getClass().getResourceAsStream(certFile)));
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        X509Certificate cert =
+            (X509Certificate) certificateFactory.generateCertificate(getClass().getResourceAsStream(certFile));
+
         identityModel.setId(certId);
         identityModel.setIssuerDN(cert.getIssuerDN().getName());
         identityModel.setCertificate(cert.getEncoded());
         identityModel.setSubjectDN(cert.getSubjectDN().getName());
-        identityModel.setCertificateStatus(isValid);
+        identityModel.setCertificateStatus(CertificateStatus.VALID);
 
-        Document identityModelDoc = Document.parse(JsonHandler.prettyPrint(identityModel));
+        return Document.parse(JsonHandler.prettyPrint(identityModel));
+    }
+
+    @SuppressWarnings("unchecked")
+    private FindIterable<Document> constructList(Document... documents) {
+        FindIterable<Document> iterable = mock(FindIterable.class);
+        MongoCursor<Document> cursor = mock(MongoCursor.class);
+
+        OngoingStubbing<Boolean> whenHasNext = when(cursor.hasNext());
+        for (Document ignored : documents) {
+            whenHasNext = whenHasNext.thenReturn(true);
+        }
+        whenHasNext.thenReturn(false);
 
 
-        FindIterable iterableResult = mock(FindIterable.class);
-        MongoCursor cursor = mock(MongoCursor.class);
+        OngoingStubbing<Document> whenNext = when(cursor.next());
+        for (Document document : documents) {
+            whenNext = whenNext.thenReturn(document);
+        }
+        whenNext.thenReturn(null);
 
-        doReturn(cursor).when(iterableResult).iterator();
-        doReturn(true).doReturn(false).when(cursor).hasNext();
-        doReturn(identityModelDoc).when(cursor).next();
-
-        return iterableResult;
+        when(iterable.iterator()).thenReturn(cursor);
+        return iterable;
     }
 }

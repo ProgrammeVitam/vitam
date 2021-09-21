@@ -49,14 +49,13 @@ import static com.mongodb.client.model.Updates.set;
  */
 public class CertificateCRLCheckRepositoryHelper {
 
-    private MongoCollection<Document> certificateCollection;
+    private final MongoCollection<Document> certificateCollection;
 
     public CertificateCRLCheckRepositoryHelper(MongoCollection<Document> certificateCollection) {
         this.certificateCollection = certificateCollection;
     }
 
-    public FindIterable<Document> findCertificate(String issuerDN, CertificateStatus certificateStatus)
-        throws InvalidParseOperationException {
+    public FindIterable<Document> findCertificate(String issuerDN, CertificateStatus certificateStatus) {
 
         Bson crlCAFilter = and(eq(CertificateBaseModel.ISSUER_DN_TAG, issuerDN),
             eq(CertificateBaseModel.STATUS_TAG, certificateStatus.name()));
