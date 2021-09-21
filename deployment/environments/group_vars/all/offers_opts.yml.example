@@ -104,6 +104,12 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
+    # Enable / Disable use of vitam custom headers for offer requests
+    enableCustomHeaders: false
+    # List of vitam custom headers used by offer requests
+    #customHeaders:
+    #  - key: 'Cookie'
+    #    value: 'Origin=vitam'
 ################################################################################
   offer-s3-1:
     # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
@@ -250,3 +256,7 @@ vitam_offers:
   #    Time (in seconds) to renew a token before expiration occurs
   #    swiftHardRenewTokenDelayBeforeExpireTime: 60
   #    swiftSoftRenewTokenDelayBeforeExpireTime: 300
+  #    enableCustomHeaders: false
+  #    customHeaders:
+  #      - key: 'Cookie'
+  #        value: 'Origin=vitam'

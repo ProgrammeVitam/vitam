@@ -53,6 +53,7 @@ import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +201,7 @@ public class SwiftMigrationService {
                 }
 
                 List<? extends SwiftObject> swiftObjects =
-                    vitamSwiftObjectStorageService.list(containerName, objectListOptions);
+                    vitamSwiftObjectStorageService.list(containerName, objectListOptions, Collections.emptyMap());
 
                 if (swiftObjects.isEmpty()) {
                     break;
@@ -239,7 +240,7 @@ public class SwiftMigrationService {
 
         // Check manifest object existence
         Optional<SwiftObject> manifestObject =
-            vitamSwiftObjectStorageService.getObjectInformation(containerName, objectName);
+            vitamSwiftObjectStorageService.getObjectInformation(containerName, objectName, Collections.emptyMap());
         if (manifestObject.isEmpty()) {
             deleteOrphanObjectSegments(swiftMigrationMode, vitamSwiftObjectStorageService, containerName, objectName,
                 segments);
@@ -273,7 +274,7 @@ public class SwiftMigrationService {
         LOGGER.warn("DELETING orphan large object segments (elimination? incomplete write?): " +
             containerName + "/" + objectName + ". Cleaning up its segments " + segments);
         for (String segmentName : segments) {
-            vitamSwiftObjectStorageService.deleteFullObject(containerName, segmentName, null);
+            vitamSwiftObjectStorageService.deleteFullObject(containerName, segmentName, null, Collections.emptyMap());
         }
     }
 
@@ -346,13 +347,13 @@ public class SwiftMigrationService {
                     containerName, newSegmentName, newSegmentDigest, containerName, oldSegmentName, oldSegmentDigest));
         }
 
-        vitamSwiftObjectStorageService.deleteFullObject(containerName, oldSegmentName, null);
+        vitamSwiftObjectStorageService.deleteFullObject(containerName, oldSegmentName, null, Collections.emptyMap());
     }
 
     private String computeDigest(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
         String containerName, String segmentName) throws ContentAddressableStorageException, IOException {
 
-        ObjectContent segmentContent = vitamSwiftObjectStorageService.download(containerName, segmentName);
+        ObjectContent segmentContent = vitamSwiftObjectStorageService.download(containerName, segmentName, Collections.emptyMap());
         try (InputStream inputStream = segmentContent.getInputStream();
             InputStream exactSizeInputStream = new ExactSizeInputStream(
                 inputStream, segmentContent.getSize())) {
@@ -406,7 +407,7 @@ public class SwiftMigrationService {
 
         for (String segmentName : sortedSegmentNames) {
             ObjectContent segmentContent =
-                vitamSwiftObjectStorageService.download(containerName, segmentName);
+                vitamSwiftObjectStorageService.download(containerName, segmentName, Collections.emptyMap());
 
             try (InputStream inputStream = segmentContent.getInputStream();
                 InputStream exactSizeInputStream = new ExactSizeInputStream(
@@ -467,7 +468,7 @@ public class SwiftMigrationService {
 
         // Check metadata
         Optional<SwiftObject> updatedManifestObject =
-            vitamSwiftObjectStorageService.getObjectInformation(containerName, objectName);
+            vitamSwiftObjectStorageService.getObjectInformation(containerName, objectName, Collections.emptyMap());
         if (updatedManifestObject.isEmpty()) {
             throw new IllegalStateException("Could not read manifest " + containerName + "/" + objectName);
         }
