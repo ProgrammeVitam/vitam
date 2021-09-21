@@ -53,6 +53,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -98,6 +99,7 @@ public class SwiftV2V3ITTest {
         configurationSwift.setSwiftUser("demo");
         configurationSwift.setSwiftPassword("demo");
         configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v2.0");
+        configurationSwift.setEnableCustomHeaders(false);
 
         return configurationSwift;
     }
@@ -111,6 +113,7 @@ public class SwiftV2V3ITTest {
         configurationSwift.setSwiftUser("demo");
         configurationSwift.setSwiftPassword("demo");
         configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v3");
+        configurationSwift.setEnableCustomHeaders(false);
 
         return configurationSwift;
     }
@@ -181,17 +184,17 @@ public class SwiftV2V3ITTest {
         swift.createContainer("container");
         swift.putObject("container", "objName", new NullInputStream(5000), DigestType.SHA512, 5000L);
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
             .doesNotThrowAnyException();
 
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001", Collections.emptyMap()))
             .doesNotThrowAnyException();
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002", Collections.emptyMap()))
             .doesNotThrowAnyException();
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003", Collections.emptyMap()))
             .doesNotThrowAnyException();
         // WHEN
         swift.deleteObject("container", "objName");
@@ -199,16 +202,16 @@ public class SwiftV2V3ITTest {
 
         // THEN
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001", Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002", Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003", Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
@@ -225,7 +228,7 @@ public class SwiftV2V3ITTest {
         swift.createContainer("container");
         swift.putObject("container", "objName", new NullInputStream(1000), DigestType.SHA512, 1000L);
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
             .doesNotThrowAnyException();
 
         // WHEN
@@ -233,7 +236,7 @@ public class SwiftV2V3ITTest {
 
         // THEN
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName"))
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 

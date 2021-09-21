@@ -53,6 +53,7 @@ import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +102,7 @@ public class SwiftMigrationITTest {
         configurationSwift.setSwiftUser("demo");
         configurationSwift.setSwiftPassword("demo");
         configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v3");
+        configurationSwift.setEnableCustomHeaders(false);
 
         swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
 
@@ -337,7 +339,7 @@ public class SwiftMigrationITTest {
             }
 
             List<? extends SwiftObject> swiftObjects =
-                vitamSwiftObjectStorageService.list(containerName, objectListOptions);
+                vitamSwiftObjectStorageService.list(containerName, objectListOptions, Collections.emptyMap());
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -368,7 +370,7 @@ public class SwiftMigrationITTest {
     private void checkLargeObjectHeaders(String containerName, String objectName, boolean hasManifestHeader,
         boolean hasDigestMetadata)
         throws ContentAddressableStorageException {
-        Map<String, String> headers = vitamSwiftObjectStorageService.getMetadata(containerName, objectName);
+        Map<String, String> headers = vitamSwiftObjectStorageService.getMetadata(containerName, objectName, Collections.emptyMap());
         if (hasManifestHeader) {
             assertThat(headers.get(X_OBJECT_MANIFEST)).isEqualTo(containerName + "/" + objectName + "/");
         } else {
