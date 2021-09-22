@@ -563,16 +563,16 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private Map<String, String> enrichHeadersRequestWithVitamCookie(Map<String, String> headers) {
         if (getConfiguration().getEnableCustomHeaders() == null) {
-            LOGGER.warn("The vitam cookie property used by offers is not filled!");
+            LOGGER.debug("The vitam enable custom header property used by offers is not filled!");
         } else if (getConfiguration().getEnableCustomHeaders()) {
-            LOGGER.debug("The vitam cookie property used by offers is enabled!");
+            LOGGER.debug("The vitam enable custom header used by offers is enabled!");
             if(getConfiguration().getCustomHeaders()== null || getConfiguration().getCustomHeaders().isEmpty()){
-                LOGGER.warn("No vitam cookies have been filled!");
+                LOGGER.warn("No vitam custom headers have been filled!");
             } else {
                 getConfiguration().getCustomHeaders().forEach(cookie ->headers.put(cookie.getKey(), cookie.getValue()));
             }
         } else {
-            LOGGER.debug("The vitam cookie property used by offers is disabled!");
+            LOGGER.debug("The vitam enable custom header property used by offers is disabled!");
         }
         return headers;
     }
