@@ -32,9 +32,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -238,97 +236,6 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
             .getClient()) {
             boolean resp = client.isNotRunning("FakeOp");
             Assertions.assertThat(resp).isTrue();
-        }
-    }
-
-
-    @Test
-    public void test_execute_and_check_traceability_workFlow() throws Exception {
-        when(mock.post()).thenReturn(
-            Response.status(Status.ACCEPTED)
-                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE.name())
-                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
-                .entity(new RequestResponseOK<>())
-                .build());
-
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(), "FakeWorkflow",
-                "FakeAction");
-            Assertions.assertThat(resp.isOk()).isTrue();
-            resp = client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction");
-            Assertions.assertThat(resp.isOk()).isTrue();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.ACCEPTED.getStatusCode());
-        }
-
-        VitamError vitamError = new VitamError("status.name()")
-            .setContext("INGEST")
-            .setState("code_vitam")
-            .setMessage("msg")
-            .setDescription("description");
-
-        when(mock.post()).thenReturn(
-            Response.status(Status.CONFLICT)
-                .entity(vitamError)
-                .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
-                "FakeWorkflow", "FakeAction"))
-                .isInstanceOf(VitamClientException.class)
-                .hasMessageContaining("Conflict");
-
-            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction"))
-            .isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Conflict");
-        }
-
-        when(mock.post()).thenReturn(
-            Response.status(Status.PRECONDITION_FAILED)
-                .entity(vitamError)
-                .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
-            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
-                "FakeWorkflow", "FakeAction"))
-                .isInstanceOf(VitamClientException.class)
-                .hasMessageContaining("Precondition Failed");
-            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction"))
-                .isInstanceOf(VitamClientException.class)
-                .hasMessageContaining("Precondition Failed");
-        }
-
-        when(mock.post()).thenReturn(
-            Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(vitamError)
-                .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
-                "FakeWorkflow","FakeAction"))
-            .isInstanceOf(InternalServerException.class)
-            .hasMessageContaining("Internal Server Error");
-            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow",
-                "FakeAction"))
-                .isInstanceOf(InternalServerException.class)
-                .hasMessageContaining("Internal Server Error");
-        }
-    }
-
-    @Test
-    public void test_execute_and_check_traceability_workFlow_parse_error() throws Exception {
-        when(mock.post()).thenReturn(
-            Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(new VitamError("code")) // Uncomplete VitamError response
-                .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
-                "FakeWorkflow","FakeAction"));
-
-            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction"))
-            .isInstanceOf(InternalServerException.class)
-            .hasMessageContaining("Internal Server Error");
         }
     }
 

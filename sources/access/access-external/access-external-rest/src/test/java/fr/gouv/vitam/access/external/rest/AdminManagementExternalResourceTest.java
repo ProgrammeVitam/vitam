@@ -164,8 +164,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     private static final String ACCESSION_REGISTER_DETAIL_URI = AccessExtAPI.ACCESSION_REGISTERS_API +
         "/FR_ORG_AGEC/" +
         AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
-    private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "checks";
-
 
     private static final String GOOD_ID = "goodId";
     private static final String SECURITY_PROFILES_URI = "/securityprofiles";
@@ -1359,68 +1357,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-
-    }
-
-    @Test
-    public void testCheckTraceabilityOperation()
-        throws Exception {
-
-
-        final Select select = new Select();
-        select.setQuery(eq("evType", "TRACEABILITY"));
-        RequestResponse<JsonNode> ok = new RequestResponseOK<>();
-        ok.setHttpCode(Status.OK.getStatusCode());
-
-        when(accessInternalClient.checkTraceabilityOperation(any())).thenReturn(ok);
-        given()
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        final Select emptyQuerySelect = new Select();
-        given()
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(emptyQuerySelect.getFinalSelect())
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
-        selectMultiple.setQuery(eq("evType", "TRACEABILITY"));
-        given()
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .body(selectMultiple.getFinalSelect())
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
-            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
-
-        given()
-            .accept(ContentType.JSON)
-            .contentType(ContentType.JSON)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
 
     }
 

@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
@@ -52,7 +51,6 @@ import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -92,7 +90,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
-    private static final String LOGBOOK_CHECK = "/traceability/check";
     private static final String LOGBOOK_LINKED_CHECK = "/traceability/linkedcheck";
 
     private static final String OBJECTS = "objects/";
@@ -342,27 +339,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             throw new InvalidParseOperationException(e);
         } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new LogbookClientException(e);
-        }
-    }
-
-    @Override
-    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query)
-        throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
-        Response response = null;
-        try {
-            response = make(post().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_CHECK).withBody(query, "QueryDsl cannot be empty or null.").withJson());
-            check(response);
-            return RequestResponse.parseFromResponse(response);
-        } catch (BadRequestException | ForbiddenClientException | ExpectationFailedClientException | AccessInternalClientNotFoundException e) {
-            Status status = response.getStatusInfo().toEnum();
-            LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase() + JsonHandler.prettyPrint(response.getEntity()));
-            return RequestResponse.parseVitamError(response);
-        } catch (AccessInternalClientServerException | NoWritingPermissionException | VitamClientInternalException | PreconditionFailedClientException e) {
-            throw new LogbookClientServerException(e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 

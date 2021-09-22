@@ -126,6 +126,20 @@
         },
         {
           "action": {
+            "actionKey": "VERIFY_TIMESTAMP",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "traceabilityevent.file",
+                "uri": "WORKSPACE_OBJECT:TraceabilityOperationDetails/EVENT_DETAIL_DATA.json",
+                "optional": true
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECKS_SECURE_TRACEABILITY_DATA_STORAGELOG",
             "behavior": "BLOCKING",
             "lifecycleLog": "DISABLED",

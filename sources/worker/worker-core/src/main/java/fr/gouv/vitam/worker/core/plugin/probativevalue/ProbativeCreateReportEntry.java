@@ -156,7 +156,7 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABIL
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.LOGBOOK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.computeMerkleTree;
+import static fr.gouv.vitam.worker.core.plugin.traceability.VerifyMerkleTreeActionHandler.computeMerkleTree;
 import static fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin.CALC_CHECK;
 import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
 import static fr.gouv.vitam.worker.core.plugin.BinaryEventData.MESSAGE_DIGEST;
