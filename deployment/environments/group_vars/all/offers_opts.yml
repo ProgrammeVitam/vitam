@@ -71,8 +71,7 @@ vitam_offers:
     swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
     # swiftDomain : domaine OpenStack dans lequel l'utilisateur est enregistré
     swiftDomain: domaine
-    # swiftUser : identifiant de l'utilisateur
-    swiftUser: utilisateur
+    # swiftUser: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
     # swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
     # swiftProjectName : nom du projet openstack
     swiftProjectName: monTenant
@@ -168,7 +167,7 @@ vitam_offers:
   #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
   #    swiftDomain: domain
-  #    swiftUser: user
+  #    swiftUser: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   # THIS PART IS ONLY FOR CLEANING (and mandatory for this use case)
   #    swiftProjectId: related to OS_PROJECT_ID
@@ -178,7 +177,7 @@ vitam_offers:
   #    provider: openstack-swift-v3
   #    swiftKeystoneAuthUrl: https://keystone/v3
   #    swiftDomain: domaine
-  #    swiftUser: user
+  #    swiftUser: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftProjectName: monTenant
   #    projectName: monTenant

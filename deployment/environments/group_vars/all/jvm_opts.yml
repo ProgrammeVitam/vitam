@@ -1,6 +1,12 @@
 
 ---
 
+# Default values if unset
+# jvm_opts.memory: "-Xms512m -Xmx512m"
+# timer_jvm_opts.memory: "-Xms32m -Xmx128m"
+# gc: "-Xlog:gc*,gc+age=trace,safepoint:file={{ vitam_folder_log }}/gc.log:utctime,pid,tags:filecount=32,filesize=64m"
+# java: ""
+
 vitam:
     accessinternal:
         jvm_opts:
