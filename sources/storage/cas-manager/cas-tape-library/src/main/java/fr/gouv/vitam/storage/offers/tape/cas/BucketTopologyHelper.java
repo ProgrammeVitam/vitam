@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import com.google.common.collect.ImmutableMap;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.storage.tapelibrary.FileBucketConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryBucketConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryTopologyConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -46,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,10 +64,11 @@ public class BucketTopologyHelper {
     private final Map<Pair<Integer, DataCategory>, String> containerToFileBucketMap;
     private final Map<String, String> fileBucketToBucketMap;
     private final Map<String, Integer> tarBufferingTimeoutInMinutesByBucketId;
+    private final Set<String> fileBucketIdsToKeepForeverInCache;
 
     public BucketTopologyHelper(TapeLibraryTopologyConfiguration configuration) {
 
-        Map<String, List<String>> fileBuckets = validateFileBuckets(configuration);
+        Map<String, FileBucketConfiguration> fileBuckets = validateFileBuckets(configuration);
         validateBucketConfiguration(configuration);
 
         Map<String, List<Integer>> buckets = configuration.getBuckets()
@@ -83,7 +86,7 @@ public class BucketTopologyHelper {
                     Collectors.toMap(
                         dataCategory -> dataCategory,
                         dataCategory -> fileBuckets.entrySet().stream()
-                            .filter(entry -> entry.getValue().contains(dataCategory.getFolder()))
+                            .filter(entry -> entry.getValue().getDataCategories().contains(dataCategory.getFolder()))
                             .map(Map.Entry::getKey)
                             .findFirst()
                             .orElse(DEFAULT)
@@ -91,7 +94,7 @@ public class BucketTopologyHelper {
                 );
 
         Map<Pair<Integer, DataCategory>, String> containerToFileBucketMap = new HashMap<>();
-        Map<String, String> fileBucketToBucketMap = new HashMap<>();
+        Map<String, String> fileBucketIdToBucketMap = new HashMap<>();
 
         for (Map.Entry<String, List<Integer>> bucketEntry : buckets.entrySet()) {
             String bucketId = bucketEntry.getKey();
@@ -102,25 +105,41 @@ public class BucketTopologyHelper {
                     String fileBucketId = getFileBucketId(bucketId, dataCategoryToFileBucketMap.get(dataCategory));
 
                     containerToFileBucketMap.put(new ImmutablePair<>(tenant, dataCategory), fileBucketId);
-                    fileBucketToBucketMap.put(fileBucketId, bucketId);
+                    fileBucketIdToBucketMap.put(fileBucketId, bucketId);
                 }
             }
         }
         this.containerToFileBucketMap = MapUtils.unmodifiableMap(containerToFileBucketMap);
-        this.fileBucketToBucketMap = MapUtils.unmodifiableMap(fileBucketToBucketMap);
+        this.fileBucketToBucketMap = MapUtils.unmodifiableMap(fileBucketIdToBucketMap);
 
         this.tarBufferingTimeoutInMinutesByBucketId = configuration.getBuckets().entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> entry.getValue().getTarBufferingTimeoutInMinutes()
             ));
+
+        // fileBucketIds to keep forever in cache
+        Set<String> fileBucketIdToKeepForeverInCache = new HashSet<>();
+        for (Map.Entry<String, List<Integer>> bucketEntry : buckets.entrySet()) {
+            String bucketId = bucketEntry.getKey();
+            for (Map.Entry<String, FileBucketConfiguration> fileBucketEntry : fileBuckets.entrySet()) {
+                String fileBucket = fileBucketEntry.getKey();
+                String fileBucketId = getFileBucketId(bucketId, fileBucket);
+
+                FileBucketConfiguration fileBucketConfiguration = fileBucketEntry.getValue();
+                if (fileBucketConfiguration.getKeepForeverInCache()) {
+                    fileBucketIdToKeepForeverInCache.add(fileBucketId);
+                }
+            }
+        }
+        this.fileBucketIdsToKeepForeverInCache = SetUtils.unmodifiableSet(fileBucketIdToKeepForeverInCache);
     }
 
     public static String getFileBucketId(String bucket, String fileBucket) {
         return bucket + "-" + fileBucket;
     }
 
-    private Map<String, List<String>> validateFileBuckets(TapeLibraryTopologyConfiguration configuration)
+    private Map<String, FileBucketConfiguration> validateFileBuckets(TapeLibraryTopologyConfiguration configuration)
         throws VitamRuntimeException {
 
         if (configuration == null) {
@@ -132,14 +151,21 @@ public class BucketTopologyHelper {
          *   - Named file buckets with distinct & non empty data categories
          *   - Default empty file bucket
          */
-        Map<String, List<String>> fileBuckets = configuration.getFileBuckets();
+        Map<String, FileBucketConfiguration> fileBuckets = configuration.getFileBuckets();
 
         // Default file bucket configuration
         if (fileBuckets == null) {
             fileBuckets = ImmutableMap.of(
-                "metadata", Arrays.asList(DataCategory.UNIT.getFolder(), DataCategory.OBJECTGROUP.getFolder()),
-                "objects", Collections.singletonList(DataCategory.OBJECT.getFolder()),
-                DEFAULT, Collections.emptyList()
+                "metadata", new FileBucketConfiguration()
+                    .setDataCategories(
+                        Arrays.asList(DataCategory.UNIT.getFolder(), DataCategory.OBJECTGROUP.getFolder()))
+                    .setKeepForeverInCache(true),
+                "objects", new FileBucketConfiguration()
+                    .setDataCategories(Collections.singletonList(DataCategory.OBJECT.getFolder()))
+                    .setKeepForeverInCache(false),
+                DEFAULT, new FileBucketConfiguration()
+                    .setDataCategories(Collections.emptyList())
+                    .setKeepForeverInCache(true)
             );
         }
 
@@ -147,29 +173,50 @@ public class BucketTopologyHelper {
             throw new VitamRuntimeException("Invalid conf. File buckets must not be null");
         }
 
-        if (fileBuckets.values().contains(null)) {
-            throw new VitamRuntimeException("Null file bucket");
+        if (fileBuckets.containsValue(null)) {
+            throw new VitamRuntimeException("Null file bucket configuration");
         }
 
-        if (hasDuplicates(fileBuckets.values().stream().flatMap(Collection::stream))) {
+        if (fileBuckets.values().stream()
+            .map(FileBucketConfiguration::getDataCategories)
+            .anyMatch(Objects::isNull)) {
+            throw new VitamRuntimeException("Null file bucket data categories");
+        }
+
+        if (fileBuckets.values().stream()
+            .map(FileBucketConfiguration::getKeepForeverInCache)
+            .anyMatch(Objects::isNull)) {
+            throw new VitamRuntimeException("Missing file bucket cache configuration");
+        }
+
+        if (fileBuckets.values().stream()
+            .map(FileBucketConfiguration::getDataCategories)
+            .anyMatch(dataCategories -> dataCategories.contains(null))) {
+            throw new VitamRuntimeException("Null file bucket data categories");
+        }
+
+        Stream<String> fileBucketDataCategories = fileBuckets.values().stream()
+            .map(FileBucketConfiguration::getDataCategories)
+            .flatMap(Collection::stream);
+        if (hasDuplicates(fileBucketDataCategories)) {
             throw new VitamRuntimeException("Duplicates found in file bucket configuration");
         }
 
-        if (!fileBuckets.containsKey(DEFAULT) || !fileBuckets.get(DEFAULT).isEmpty()) {
+        if (!fileBuckets.containsKey(DEFAULT) || !fileBuckets.get(DEFAULT).getDataCategories().isEmpty()) {
             throw new VitamRuntimeException("Expecting default file bucket with empty set");
         }
 
         Set<String> folderNames =
             Arrays.stream(DataCategory.values()).map(DataCategory::getFolder).collect(Collectors.toSet());
 
-        for (Map.Entry<String, List<String>> entry : fileBuckets.entrySet()) {
+        for (Map.Entry<String, FileBucketConfiguration> entry : fileBuckets.entrySet()) {
 
             boolean isDefault = DEFAULT.equals(entry.getKey());
-            if (!isDefault && entry.getValue().isEmpty()) {
+            if (!isDefault && entry.getValue().getDataCategories().isEmpty()) {
                 throw new VitamRuntimeException("Expected non empty file bucket configuration " + entry.getKey());
             }
 
-            for (String folderName : entry.getValue()) {
+            for (String folderName : entry.getValue().getDataCategories()) {
                 if (!folderNames.contains(folderName)) {
                     throw new VitamRuntimeException("Invalid folder name in bucket configuration '" + folderName + "'");
                 }
@@ -260,6 +307,10 @@ public class BucketTopologyHelper {
 
     public Integer getTarBufferingTimeoutInMinutes(String bucketId) {
         return tarBufferingTimeoutInMinutesByBucketId.get(bucketId);
+    }
+
+    public boolean keepFileBucketIdForeverInCache(String fileBucketId) {
+        return this.fileBucketIdsToKeepForeverInCache.contains(fileBucketId);
     }
 
     private static <T> boolean hasDuplicates(Stream<T> stream) {

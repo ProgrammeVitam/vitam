@@ -69,6 +69,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -281,6 +282,50 @@ public class ArchiveCacheStorageTest {
         verifyFilesState(instance, FILE_BUCKET_2, "tarId2", false, false, false);
         verifyFilesState(instance, FILE_BUCKET_3, "tarId3", false, false, false);
         verifyFilesState(instance, FILE_BUCKET_1, "tarId4", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_2, "tarId5", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_3, "tarId6", true, true, false);
+    }
+
+    public void testInitialization_givenFullCacheFolderAndNonExpirableFileBucketWhenCacheInitializedThenBackgroundCacheEvictionDeletesOldestExpirableArchives()
+        throws Exception {
+
+        // Given
+        createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 200_000);
+        createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
+        createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 200_000);
+        createArchiveFileInCache(FILE_BUCKET_1, "tarId4", 200_000);
+        createArchiveFileInCache(FILE_BUCKET_2, "tarId5", 200_000);
+        createArchiveFileInCache(FILE_BUCKET_3, "tarId6", 200_000);
+        doReturn(true).when(bucketTopologyHelper).keepFileBucketIdForeverInCache(FILE_BUCKET_2);
+
+        // When
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
+            1_000_000L, 800_000L, 700_000L,
+            evictionExecutor, alertService);
+
+        // Then
+        assertThat(instance.getMaxStorageSpace()).isEqualTo(1_000_000L);
+        assertThat(instance.getEvictionStorageSpaceThreshold()).isEqualTo(800_000L);
+        assertThat(instance.getSafeStorageSpaceThreshold()).isEqualTo(700_000L);
+        assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(1_200_000L);
+
+        verifyFilesState(instance, FILE_BUCKET_1, "tarId1", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_2, "tarId2", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_3, "tarId3", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_1, "tarId4", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_2, "tarId5", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_3, "tarId6", true, true, false);
+
+        // When : Eviction process finished
+        awaitBackgroundEvictionTermination();
+
+        // Then
+        assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(600_000L);
+
+        verifyFilesState(instance, FILE_BUCKET_1, "tarId1", false, false, false);
+        verifyFilesState(instance, FILE_BUCKET_2, "tarId2", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_3, "tarId3", false, false, false);
+        verifyFilesState(instance, FILE_BUCKET_1, "tarId4", false, false, false);
         verifyFilesState(instance, FILE_BUCKET_2, "tarId5", true, true, false);
         verifyFilesState(instance, FILE_BUCKET_3, "tarId6", true, true, false);
     }

@@ -124,7 +124,11 @@ public class ArchiveCacheStorage {
             this.lruCache.getCurrentCapacity() / 1_000_000L, this.lruCache.getMaxCapacity() / 1_000_000L);
 
         // FIXME : Implement archive locking later
-        return (archiveFileEntry) -> true;
+        return (archiveFileEntry) -> {
+            boolean keepFileBucketIdForeverInCache =
+                bucketTopologyHelper.keepFileBucketIdForeverInCache(archiveFileEntry.getFileBucketId());
+            return !keepFileBucketIdForeverInCache;
+        };
     }
 
     private LRUCache<ArchiveFileEntry> createLRUCache(long maxCapacity, long evictionCapacity, long safeCapacity,

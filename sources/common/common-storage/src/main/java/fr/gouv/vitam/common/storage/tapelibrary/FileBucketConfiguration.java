@@ -28,37 +28,41 @@ package fr.gouv.vitam.common.storage.tapelibrary;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Map;
+import java.util.List;
 
-public class TapeLibraryTopologyConfiguration {
+public class FileBucketConfiguration {
 
-    @JsonProperty("fileBuckets")
-    private Map<String, FileBucketConfiguration> fileBuckets = null;
+    /**
+     * List of DataCategory folders. Must be empty for default file bucket
+     */
+    @JsonProperty("dataCategories")
+    private List<String> dataCategories;
 
-    @JsonProperty("buckets")
-    private Map<String, TapeLibraryBucketConfiguration> buckets = null;
+    /**
+     * Is file bucket archives should be stored forever in cache (never evicted).
+     */
+    @JsonProperty("keepForeverInCache")
+    private Boolean keepForeverInCache;
 
-    public TapeLibraryTopologyConfiguration() {
+    public FileBucketConfiguration() {
         // Default constructor for serialization
     }
 
-    public Map<String, FileBucketConfiguration> getFileBuckets() {
-        return fileBuckets;
+    public List<String> getDataCategories() {
+        return dataCategories;
     }
 
-    public TapeLibraryTopologyConfiguration setFileBuckets(
-        Map<String, FileBucketConfiguration> fileBuckets) {
-        this.fileBuckets = fileBuckets;
+    public FileBucketConfiguration setDataCategories(List<String> dataCategories) {
+        this.dataCategories = dataCategories;
         return this;
     }
 
-    public Map<String, TapeLibraryBucketConfiguration> getBuckets() {
-        return buckets;
+    public Boolean getKeepForeverInCache() {
+        return keepForeverInCache;
     }
 
-    public TapeLibraryTopologyConfiguration setBuckets(
-        Map<String, TapeLibraryBucketConfiguration> buckets) {
-        this.buckets = buckets;
+    public FileBucketConfiguration setKeepForeverInCache(Boolean keepForeverInCache) {
+        this.keepForeverInCache = keepForeverInCache;
         return this;
     }
 }

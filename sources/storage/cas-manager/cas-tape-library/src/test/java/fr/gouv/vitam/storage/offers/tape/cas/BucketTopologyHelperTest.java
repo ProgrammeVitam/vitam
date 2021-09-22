@@ -73,6 +73,8 @@ public class BucketTopologyHelperTest {
             .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-invalid-folder.conf"))
             .isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-keep-forever-in-cache.conf"))
+            .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-non-empty-default.conf"))
             .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-null-folders.conf"))
@@ -186,5 +188,17 @@ public class BucketTopologyHelperTest {
         assertThat(bucketTopologyHelper.isValidFileBucketId("test-unknown")).isFalse();
         assertThat(bucketTopologyHelper.isValidFileBucketId("")).isFalse();
         assertThat(bucketTopologyHelper.isValidFileBucketId(null)).isFalse();
+    }
+
+    @Test
+    public void keepFileBucketIdForeverInCache() throws Exception {
+
+        // Given
+        BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
+
+        // When / Then
+        assertThat(bucketTopologyHelper.keepFileBucketIdForeverInCache("test-metadata")).isTrue();
+        assertThat(bucketTopologyHelper.keepFileBucketIdForeverInCache("admin-objects")).isFalse();
+        assertThat(bucketTopologyHelper.keepFileBucketIdForeverInCache("prod-default")).isTrue();
     }
 }
