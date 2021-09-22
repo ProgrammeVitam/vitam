@@ -52,4 +52,8 @@ ou, si vault_pass.txt n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --ask-vault-pass``
 
+L'indexation des champs dynamiques, créés au niveau des régles de gestion héritées, et précisément au niveau de la propriété ``endDates`` est rendue inactive. Il faudrait ainsi réindexer toutes les unités archivitiques.
+
 .. note:: Durant la migration, il est fortement recommandé de ne pas procéder à des versements de données.
+
+
