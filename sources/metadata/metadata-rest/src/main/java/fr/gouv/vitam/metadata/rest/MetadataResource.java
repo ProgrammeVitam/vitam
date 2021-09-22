@@ -938,6 +938,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
             return responseOK.toResponse();
         } catch (MetaDataExecutionException e) {
+            LOGGER.error(e);
             VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_INDEXATION_ERROR,
                 e.getMessage());
             return Response.status(INTERNAL_SERVER_ERROR).entity(error).build();
