@@ -23,7 +23,7 @@ function generate_ca_root {
     export OPENSSL_CA_DIR=${REPERTOIRE_SORTIE}
 
     if [ ! -d ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE} ]; then
-        pki_logger "Création du sous-répertoire ${REPERTOIRE_SORTIE}"
+        pki_logger "Création du sous-répertoire ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}"
         mkdir -p ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE};
     fi
 
@@ -35,6 +35,15 @@ function generate_ca_root {
         -keyout ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-root.key \
         -passout pass:${MDP_CAROOT_KEY} \
         -batch
+
+    if [ ! -d ${REPERTOIRE_CONFIG}/${REPERTOIRE_SORTIE} ]; then
+        pki_logger "Création du sous-répertoire ${REPERTOIRE_CONFIG}/${REPERTOIRE_SORTIE}"
+        mkdir -p ${REPERTOIRE_CONFIG}/${REPERTOIRE_SORTIE};
+    fi
+    touch ${REPERTOIRE_CONFIG}/${REPERTOIRE_SORTIE}/index.txt
+    if [ ! -f ${REPERTOIRE_CONFIG}/${REPERTOIRE_SORTIE}/serial ]; then
+        echo '00' > ${REPERTOIRE_CONFIG}/${REPERTOIRE_SORTIE}/serial
+    fi
 
     pki_logger "Create CA certificate..."
     openssl ca \
