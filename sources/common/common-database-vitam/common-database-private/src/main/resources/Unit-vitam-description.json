@@ -410,7 +410,7 @@
   {
     "path": "_computedInheritedRules.StorageRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
@@ -428,7 +428,7 @@
   {
     "path": "_computedInheritedRules.AppraisalRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
@@ -446,7 +446,7 @@
   {
     "path": "_computedInheritedRules.DisseminationRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
@@ -464,7 +464,7 @@
   {
     "path": "_computedInheritedRules.AccessRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
@@ -482,7 +482,7 @@
   {
     "path": "_computedInheritedRules.HoldRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
@@ -500,7 +500,7 @@
   {
     "path": "_computedInheritedRules.ReuseRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
@@ -518,7 +518,7 @@
   {
     "path": "_computedInheritedRules.ClassificationRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
