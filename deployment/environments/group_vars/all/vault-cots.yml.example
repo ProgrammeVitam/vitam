@@ -1,12 +1,12 @@
 ---
 
 cerebro:
-  secret_key: tGz28hJkiW[p@a34G
-  # Uncomment the following lines to activate the basic authentication on Cerebro UI
-#  basicauth:
-#    username: aadmin
-#    password: change_it_uW8N5wjAX2mJ8g6G
+  secret_key: change_it-tGz28hJkiW[p@a34G
+  # Comment the following lines to disable the basic authentication on Cerebro UI
+  basicauth:
+    username: vitam_admin
+    password: change_it-aadmin1234
 
 grafana:
-  admin_user: admin
-  admin_password: aadmin1234
+  admin_user: vitam_admin
+  admin_password: change_it-aadmin1234

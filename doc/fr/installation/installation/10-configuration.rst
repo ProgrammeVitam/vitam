@@ -43,7 +43,7 @@ Pour chaque type de `host`, indiquer le(s) serveur(s) défini(s), pour chaque fo
 
 .. note:: Pour les composants considérés par l'exploitant comme étant "hors :term:`VITAM`" (typiquement, le composant ``ihm-demo``), il est possible de désactiver la création du service Consul associé. Pour cela, après chaque hostname impliqué, il faut rajouter la directive suivante : ``consul_disabled=true``.
 
-.. caution:: Concernant la valeur de ``vitam_site_name``, seuls les caractères alphanumériques et le tiret ("-") sont autorisés.
+.. caution:: Concernant la valeur de ``vitam_site_name``, seuls les caractères alphanumériques et le tiret ("-") sont autorisés (regexp: ``[A-Za-z0-9-]``).
 
 .. note:: Il est possible de multi-instancier le composant "storage-offer-default" dans le cas d'un *provider* de type objet (s3, swift). Il faut ajouter ``offer_conf=<le nom>``.
 

@@ -1,10 +1,12 @@
 ---
 # Vitam platform secret key
-plateforme_secret: vitamsecret
+# Note: It has to be the same on all sites
+plateforme_secret: change_it_vitamsecret
 
 # The consul key must be 16-bytes, Base64 encoded: https://www.consul.io/docs/agent/encryption.html
 # You can generate it with the "consul keygen" command
 # Or you can use this script: deployment/pki/scripts/generate_consul_key.sh
+# Note: It has to be the same on all sites
 consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 
 mongodb:
@@ -144,7 +146,8 @@ admin_basic_auth_password: change_it_5Yn74JgXwbQ9KdP8
 
 vitam_offers:
     offer-swift-1:
-        swiftPassword: change_it_m44j57aYeRPnPXQ2
+        swiftUser: swift_user
+        swiftPassword: password_change_m44j57aYeRPnPXQ2
     offer-s3-1:
         s3AccessKey: accessKey_change_grLS8372Uga5EJSx
         s3SecretKey: secretKey_change_p97es2m2CHXPJA1m
