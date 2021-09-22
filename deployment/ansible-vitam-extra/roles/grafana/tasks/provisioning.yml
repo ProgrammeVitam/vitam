@@ -1,0 +1,43 @@
+---
+
+- name: Create Grafana Datasources provisioning file
+  template:
+    src: datasources.yml.j2
+    dest: "{{ grafana_path_provisioning }}/datasources/datasources.yml"
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+  notify: restart grafana
+
+- name: Copy vitam dashboard json file to provisioning dashboard folder
+  copy:
+    src: vitam_standard_dashboard.json
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+
+- name: Set the correct data source name in the dashboard for prometheus
+  replace:
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    regexp: '"(?:\${)?DS_PROMETHEUS+(?:})?"'
+    replace: '"Prometheus"'
+  changed_when: false
+  when: grafana.grafana_dashboards | length > 0
+
+- name: Set the correct data source name in the dashboard for alertmanager
+  replace:
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
+    regexp: '"(?:\${)?DS_ALERTMANAGER+(?:})?"'
+    replace: '"Prometheus AlertManager"'
+  changed_when: false
+  when: grafana.grafana_dashboards | length > 0
+
+- name: Create Grafana Dashboard provisioning file
+  template:
+    src: dashboards.yml.j2
+    dest: "{{ grafana_path_provisioning }}/dashboards/dashboards.yml"
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+  notify: restart grafana

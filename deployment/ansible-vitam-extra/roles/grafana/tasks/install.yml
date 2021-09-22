@@ -26,7 +26,7 @@
 # When upgrade the Grafana version, get the corresponding grafana.ini file and replace templates/grafana.ini.j2 with corresponding changes
 - name: Apply grafana custom configuration
   template:
-    src: "grafana.conf.j2"
+    src: "grafana.ini.j2"
     dest: /etc/grafana/grafana.ini
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
@@ -55,7 +55,7 @@
 
 - name: Deploy consul agent service declaration
   template:
-    src: "service-componentid.json.j2"
+    src: "service-grafana.json.j2"
     dest: "{{ consul_folder_conf }}/service-grafana.json"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"

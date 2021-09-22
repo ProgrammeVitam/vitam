@@ -1,0 +1,198 @@
+---
+
+- name: Check which plugins are installed (find in plugins dir)
+  find:
+    file_type: directory
+    recurse: false
+    paths: "{{ grafana_data_dir }}/plugins"
+  register: installed_plugins
+
+- name: Check which plugins are installed ( with grafana-cli)
+  become: true
+  command: "grafana-cli plugins ls"
+  register: _installed_plugins
+
+- name: set installed_plugins list
+  set_fact:
+    _installed_plugins: "{{ (_installed_plugins.stdout_lines)[1:-2] }}"
+
+
+  
+### install plugin from internet if proxy is true ##
+- block:
+  - name: Install plugins
+    become: true
+    command: "grafana-cli --pluginsDir {{ grafana_data_dir }}/plugins plugins install {{ item }}"
+    args:
+      creates: "{{ grafana_data_dir }}/plugins/{{ item }}"
+    with_items: "{{ grafana.grafana_plugins | difference(installed_plugins) }}"
+    register: _plugin_install
+    until: _plugin_install is succeeded
+    retries: 5
+    delay: 2
+    environment:
+        http_proxy: "{{ http_proxy_environnement }}"
+        https_proxy: "{{ http_proxy_environnement }}"
+    notify:
+      - restart grafana
+    ignore_errors: true
+  when: grafana.proxy | d(false)
+
+
+### install plugin from local directory if proxy is false ## 
+- block:
+ ## installed_plugins: provide the list of plugin ID installed in grafana
+ ## installed_plugins_name: provide the list of plugin zip_name installed in grafana
+ ## list_plugins_id_git: provide the list of plugin ID in the git repository
+ ## list_plugin_name_git: provide the list of plugin zip_name in the git repository
+ ## grafana_plugins_offline_with_id: provide the list of plugin ID converted from  the zip_name in cots_vars.yml
+
+
+
+
+  
+  - name: initialise void list
+    set_fact:
+      installed_plugins: []
+      installed_plugins_name: []
+      list_plugins_id_git: []
+      list_plugin_name_git: []
+      map_plugins: []
+      grafana_plugins_to_be_installed: []
+      grafana_plugins_offline_with_id: []
+      mismatch_flag: []
+
+  
+  - name: delete version in plugins list text
+    set_fact:
+      installed_plugins: "{{ installed_plugins + [item.split(' ')|first] }}"
+    loop: "{{ _installed_plugins }}"  
+  
+  - debug: msg="installed plugins found={{ installed_plugins }}" 
+  
+  
+### unzip plugin zip files from git
+
+  - name: create temp directory
+    file:
+      state: directory
+      path: "{{ role_path }}/files/plugins/temp"
+    delegate_to: localhost
+  
+  - name: find zip _plugins
+    find:
+      patterns: "*.zip"
+      paths: "{{ role_path }}/files/plugins"
+    register: liste_zip
+    delegate_to: localhost
+  
+  - name: set the plugin list of git
+    set_fact:
+      list_plugin_name_git: "{{ list_plugin_name_git + [item.path | basename  | splitext | first ]}}"
+    loop: "{{ liste_zip.files }} "
+     
+
+  - name: create extract dir
+    file:
+      state: directory
+      path: "{{ role_path }}/files/plugins/temp/{{ item.path | basename  | splitext | first }}"
+    with_items: "{{ liste_zip.files }}"
+    delegate_to: localhost
+
+  - name: dezippe
+    unarchive:
+      src: "{{ item.path }}"
+      dest: "{{ role_path }}/files/plugins/temp/{{ item.path | basename | splitext | first }}"
+      copy: no
+    with_items: "{{ liste_zip.files }}"
+    delegate_to: localhost  
+
+  
+  - name: retrive plugin id(1)
+    find:
+      file_type: directory
+      patterns: "*"
+      recurse: false
+      paths: "{{ role_path }}/files/plugins/temp"
+    register: name_zip_directory
+    delegate_to: localhost
+  
+  # - debug: msg="{{ name_zip_directory.files }}"
+
+  - name: include tasks
+    include_tasks: loop_plugin.yml
+    loop: "{{ name_zip_directory.files }}"
+    loop_control:
+      loop_var: dir_plugin
+
+
+#########################################################################
+  - name: display plugins list from git
+    debug: msg="{{ list_plugins_id_git }}"
+
+ 
+  - name: convert grafana_plugins list declare in cots_vars (zip filename) in plugin id list
+    set_fact: grafana_plugins_offline_with_id={{ grafana_plugins_offline_with_id + [item.plugin_id] }}
+    with_items: "{{ map_plugins }}"  
+    when: grafana.grafana_plugins is search ( item.zip_directory)
+   
+  - name: compute list plugins alreay installed
+    set_fact: installed_plugins_name={{ installed_plugins_name + [item.zip_directory] }}
+    with_items: "{{ map_plugins }}"  
+    when: installed_plugins is search ( item.plugin_id ) 
+  
+  - name: convert list plugins grafana has to be installed in zip name
+    set_fact: grafana_plugins_to_be_installed="{{grafana.grafana_plugins | difference(installed_plugins_name)}}"
+
+  - debug: msg="already installed plugins name on the system={{ installed_plugins_name }}"
+
+  - debug: msg="list plugin present in the repository ( in the ansible controller )={{ list_plugin_name_git }}"
+
+  - debug: msg="list plugin will be installed={{ grafana_plugins_to_be_installed }}" 
+  
+  - name: create liste fact
+    set_fact:
+      liste_calc: "{{ ((grafana.grafana_plugins)) | difference(installed_plugins_name) }}" 
+
+  - name: control if plugin is present in the git repository
+    assert:
+      that:
+        - (liste_calc | intersect(list_plugin_name_git) | length)  == (liste_calc | length)
+      fail_msg: >
+         there is a mismatch between grafana plugin in git repository and those defined in cots_vars.yml 
+    
+  - name: display plugins has to be installed
+    debug: msg="{{ (grafana_plugins_offline_with_id | difference(installed_plugins)) }}"
+
+  - name: deploy zip file on remote
+    copy:
+      src: "{{ role_path }}/files/plugins/{{ item }}.zip"
+      dest: "{{ grafana_data_dir }}/plugins/{{ item }}.zip"
+      owner: grafana
+      group: grafana
+    with_items: "{{ grafana_plugins_to_be_installed }}"
+
+
+  - name: ensure unzip package is installed on remote
+    package:
+      name: unzip
+      state: present
+
+  - name: unzip grafan plugin
+    command: unzip "{{ item }}.zip"
+    args:
+      chdir: "{{ grafana_data_dir }}/plugins"
+    with_items: "{{ grafana_plugins_to_be_installed }}"
+    notify:
+    - restart grafana
+    when: not grafana.proxy | d(false)
+
+  - name: set owner and group grafana
+    file:
+      path: "{{ grafana_data_dir }}/plugins"
+      recurse: yes
+      owner: grafana
+      group: grafana
+ 
+
+  
