@@ -1632,7 +1632,8 @@
         "AccessRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
@@ -1643,7 +1644,8 @@
         "AppraisalRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
@@ -1654,7 +1656,8 @@
         "DisseminationRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
@@ -1665,7 +1668,8 @@
         "ReuseRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
@@ -1676,7 +1680,8 @@
         "StorageRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
@@ -1687,7 +1692,8 @@
         "ClassificationRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
@@ -1698,7 +1704,8 @@
         "HoldRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",

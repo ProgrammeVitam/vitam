@@ -273,7 +273,7 @@
     "path": "events.evDetData",
     "type": "object",
     "cardinality": "one",
-    "indexed": true
+    "indexed": false
   },
   {
     "path": "events.evDetData.NumberOfElements",
