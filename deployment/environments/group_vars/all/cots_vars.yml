@@ -243,6 +243,9 @@ kibana:
         port: 5601
         default_index_pattern: "logstash-vitam*"
         check_consul: 10 # in seconds
+        # default shards & replica
+        shards: 1
+        replica: 1
         # pour index logstash-*
         metrics:
             shards: 1
