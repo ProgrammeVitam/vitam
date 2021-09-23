@@ -27,19 +27,15 @@
 package fr.gouv.vitam.access.internal.rest;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -69,12 +65,10 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response.Status;
-
 import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -204,34 +198,6 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
         VitamClientFactory.resetConnections();
     }
 
-    /**
-     * Test the check traceability method
-     *
-     * @throws Exception
-     */
-    @RunWithCustomExecutor
-    @Test
-    public void givenStartedServerWhenCheckTraceabilityThenOK() throws Exception {
-        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
-        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
-        doNothing().when(processingManagementClient).initVitamProcess(any(), any());
-        when(logbookOperationsClient.selectOperationById(any()))
-            .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
-            any(), any())).thenReturn(new RequestResponseOK<>());
-        when(processingManagementClient.isNotRunning(any(), any())).thenReturn(true);
-        when(workspaceClient.isExistingContainer(any())).thenReturn(true);
-        doNothing().when(workspaceClient).deleteContainer(any(), anyBoolean());
-        LOGGER.warn("Start Check");
-        given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post("/traceability/check").then().statusCode(Status.OK.getStatusCode());
-        LOGGER.warn("End Check");
-
-    }
-
     @RunWithCustomExecutor
     @Test
     public void givenStartedServerWhenSearchLogbookThenOK() throws Exception {
@@ -247,79 +213,6 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
             .when().get("/operations").then().statusCode(Status.OK.getStatusCode());
 
     }
-
-    /**
-     * Test the check traceability method
-     *
-     * @throws Exception
-     */
-    @RunWithCustomExecutor
-    @Test
-    public void givenStartedServerWhenCheckTraceabilityWithInvalidQueryThenBadRequest() throws Exception {
-        reset(logbookOperationsClient);
-        reset(processingManagementClient);
-        reset(workspaceClient);
-        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
-        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
-        Mockito.doThrow(new BadRequestException("Bad Request")).when(processingManagementClient)
-            .initVitamProcess(any(), any());
-        given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post("/traceability/check").then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-
-    /**
-     * Test the check traceability method
-     *
-     * @throws Exception
-     */
-    @RunWithCustomExecutor
-    @Test
-    public void givenStartedServerWhenCheckTraceabilityWithInternalServerErrorThenInternalServerError()
-        throws Exception {
-        reset(logbookOperationsClient);
-        reset(processingManagementClient);
-        reset(workspaceClient);
-        doNothing().when(logbookOperationsClient).create(any());
-        doNothing().when(processingManagementClient).initVitamProcess(any(), any());
-        when(logbookOperationsClient.selectOperationById(any()))
-            .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
-            any(), any())).thenThrow(new InternalServerException("InternalServerException"));
-        given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post("/traceability/check").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
-    }
-
-    /**
-     * Test the check traceability method
-     *
-     * @throws Exception
-     */
-    @RunWithCustomExecutor
-    @Test
-    public void givenStartedServerWhenCheckTraceabilityWithContainerNotFoundThenNotFound() throws Exception {
-        reset(logbookOperationsClient);
-        reset(processingManagementClient);
-        reset(workspaceClient);
-        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
-        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
-        doNothing().when(processingManagementClient).initVitamProcess(any(), any());
-        when(logbookOperationsClient.selectOperationById(any()))
-            .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
-            any(), any())).thenThrow(new WorkflowNotFoundException("Workflow not found"));
-
-        given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post("/traceability/check").then().statusCode(Status.NOT_FOUND.getStatusCode());
-    }
-
 }
 
 

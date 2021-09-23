@@ -444,6 +444,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
      */
+    @Deprecated
     RequestResponse checkTraceabilityOperation(VitamContext vitamContext, JsonNode query)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
 
