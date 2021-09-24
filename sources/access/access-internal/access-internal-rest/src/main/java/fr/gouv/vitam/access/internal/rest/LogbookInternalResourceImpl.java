@@ -50,16 +50,12 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -83,7 +79,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -115,11 +110,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.CHECK;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.LINKED_CHECK;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -140,9 +133,6 @@ public class LogbookInternalResourceImpl {
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND =
         "DSL Query to start traceability check was not found.";
-
-    private static final long SLEEP_TIME = 20l;
-    private static final long NB_TRY = 18000;
 
     private final AccessInternalModule accessModule;
 
@@ -398,117 +388,6 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
                 .build();
-        }
-    }
-
-    /**
-     * Checks a traceability operation based on a given DSLQuery
-     *
-     * @param query the DSLQuery used to find the traceability operation to validate
-     * @return The verification report == the logbookOperation
-     */
-    @POST
-    @Path("/traceability/check")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response checkOperationTraceability(JsonNode query) {
-        ParametersChecker.checkParameter(DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND, query);
-
-        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
-
-        LOGGER.debug("Start Check in Resource");
-        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-            ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-            final LogbookOperationParameters parameters =
-                LogbookParameterHelper.newLogbookOperationParameters(
-                    GUIDReader.getGUID(operationId),
-                    CHECK.getEventType(),
-                    GUIDReader.getGUID(operationId),
-                    LogbookTypeProcess.CHECK, StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(CHECK.getEventType(), StatusCode.STARTED),
-                    GUIDReader.getGUID(operationId));
-
-            logbookOperationsClient.create(parameters);
-
-            workspaceClient.createContainer(operationId);
-
-            // store original query in workspace
-            workspaceClient
-                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
-                    OperationContextModel.get(query)));
-
-
-            // compress file to backup
-            OperationContextMonitor
-                .compressInWorkspace(workspaceClientFactory, operationId, LogbookTypeProcess.CHECK,
-                    OperationContextMonitor.OperationContextFileName);
-
-            processingClient.initVitamProcess(operationId, LogbookTypeProcess.CHECK.name());
-
-
-            LOGGER.debug("Started Check in Resource");
-            // Run the WORKFLOW query
-            // TODO: 01/01/2020 change this to use classical workflow execution and modify workflow to get request from workspace instead of using extra params
-            RequestResponse<ItemStatus> response =
-                processingClient.executeCheckTraceabilityWorkFlow(operationId, query,
-                    LogbookTypeProcess.CHECK.name(), ProcessAction.RESUME.getValue());
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Check in Resource launched" + response.toString());
-            }
-
-            if (!response.isOk()) {
-                return response.toResponse();
-            }
-
-            int nbTry = 0;
-            boolean done = processingClient.isNotRunning(operationId, ProcessState.COMPLETED);
-
-            while (!done) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(SLEEP_TIME);
-                } catch (InterruptedException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                    Thread.currentThread().interrupt();
-                }
-                if (nbTry == NB_TRY)
-                    break;
-                nbTry++;
-                done = processingClient.isNotRunning(operationId, ProcessState.COMPLETED);
-            }
-            LOGGER.debug("End of Check in Resource: {} nbTry {}", done, nbTry);
-            if (done) {
-                // Get the created logbookOperation and return the response
-                final JsonNode result = logbookOperationsClient.selectOperationById(operationId);
-                return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();
-            } else {
-                ItemStatus itemStatus = processingClient.getOperationProcessStatus(operationId);
-                Status status = Status.EXPECTATION_FAILED;
-                if (itemStatus == null) {
-                    itemStatus =
-                        new ItemStatus(operationId).setMessage("Unknown status of the workflow");
-                    status = INTERNAL_SERVER_ERROR;
-                }
-                return Response.status(status).entity(getErrorEntity(status, JsonHandler.unprettyPrint(itemStatus)))
-                    .build();
-            }
-        } catch (BadRequestException | LogbookClientBadRequestException e) {
-            LOGGER.error(e);
-            final Status status = BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-
-        } catch (InternalServerException | VitamClientException | LogbookClientException |
-            InvalidParseOperationException | ContentAddressableStorageServerException |
-            InvalidGuidOperationException | OperationContextException e) {
-            LOGGER.error(e);
-            final Status status = INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-
-        } catch (WorkflowNotFoundException e) {
-            LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 

@@ -589,21 +589,6 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void givenCorrectDslQueryWhenCheckTraceabilityOperationThenOK() throws Exception {
-
-        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.ok().entity(ClientMockResultHelper.checkOperationTraceability()).build());
-
-        final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        @SuppressWarnings("rawtypes")
-        final RequestResponse requestResponse =
-            client.checkTraceabilityOperation(queryJson);
-        assertNotNull(requestResponse);
-        assertTrue(requestResponse.toJsonNode().has("$results"));
-    }
-
-    @RunWithCustomExecutor
-    @Test
     public void givenOperationIdWhenDownloadTraceabilityOperationThenOK() throws Exception {
 
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);

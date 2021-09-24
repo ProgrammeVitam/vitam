@@ -110,7 +110,6 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFou
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -2022,27 +2021,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRACEABILITYCHECKS_CREATE, description = "Tester l'intégrité d'un journal sécurisé")
+    @Deprecated
     public Response checkOperationTraceability(@Dsl(value = SELECT_SINGLE) JsonNode query) {
-
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            checkParameter("checks operation Logbook traceability parameters", query);
-            SanityChecker.checkJsonAll(query);
-            RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
-        } catch (LogbookClientServerException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED, e.getMessage())
-                .toResponse();
-        }
+        return linkedCheckOperationTraceability(query);
     }
 
     /**
@@ -2056,7 +2037,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRACEABILITYLINKEDCHECKS_CREATE, description = "Tester l'intégrité d'un journal sécurisé")
-    public Response linkedCheckOperationTraceability(JsonNode query) {
+    public Response linkedCheckOperationTraceability(@Dsl(value = SELECT_SINGLE)  JsonNode query) {
 
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             checkParameter("checks operation Logbook traceability parameters", query);

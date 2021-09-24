@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -55,12 +53,9 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
@@ -144,36 +139,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
         } catch (DatabaseConflictException | ReferentialNotFoundException | PreconditionFailedClientException | BadRequestException | ForbiddenClientException e) {
             throw new VitamClientInternalException(e);
-        }
-    }
-
-
-    @Override
-    public RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId,
-        JsonNode query, String workflowId, String actionId)
-        throws InternalServerException, VitamClientException {
-
-        ParametersChecker.checkParameter(BLANK_OPERATION_ID, checkOperationId);
-        ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
-
-        // Add extra parameters to start correctly the check process
-        Map<String, String> checkExtraParams = new HashMap<>();
-        checkExtraParams.put(WorkerParameterName.logbookRequest.toString(), JsonHandler.unprettyPrint(query));
-        ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflowId);
-        processingEntry.setExtraParams(checkExtraParams);
-
-        VitamRequestBuilder request = post()
-            .withPath(OPERATION_URI + "/" + checkOperationId)
-            .withHeader(GlobalDataRest.X_ACTION, actionId)
-            .withHeader(GlobalDataRest.X_CONTEXT_ID, workflowId)
-            .withBody(processingEntry)
-            .withJson();
-        try (Response response = make(request)) {
-            checkWithSpecificException(response);
-            return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ForbiddenClientException | ReferentialNotFoundException | BadRequestException | DatabaseConflictException | PreconditionFailedClientException e) {
-            throw new VitamClientInternalException(e.getMessage(), e);
         }
     }
 

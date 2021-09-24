@@ -431,9 +431,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
+    @Deprecated
     public RequestResponse checkTraceabilityOperation(VitamContext vitamContext,
         JsonNode query)
-        throws AccessExternalClientServerException, AccessUnauthorizedException {
+        throws AccessExternalClientServerException {
         VitamRequestBuilder request = post()
             .withPath(TRACEABILITY.getCheckURI())
             .withHeaders(vitamContext.getHeaders())

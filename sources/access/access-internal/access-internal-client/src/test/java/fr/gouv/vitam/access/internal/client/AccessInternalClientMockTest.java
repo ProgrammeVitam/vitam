@@ -44,7 +44,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
 
 /**
  * Test for access operation client
@@ -130,18 +129,6 @@ public class AccessInternalClientMockTest {
         final InputStream stream2 = StreamUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
-    }
-
-    @Test
-    public void givenMockExistsWhenCheckTraceabilityThenReturnOK() throws Exception {
-        AccessInternalClientFactory.changeMode(null);
-
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
-        assertNotNull(client);
-        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
-        final RequestResponse requestResponse = client.checkTraceabilityOperation(queryJson);
-        assertNotNull(requestResponse);
     }
 
     @Test
