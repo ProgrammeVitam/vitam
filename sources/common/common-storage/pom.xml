@@ -34,20 +34,16 @@
             <artifactId>openstack-swift</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jclouds.driver</groupId>
-            <artifactId>jclouds-slf4j</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.pacesys</groupId>
+            <groupId>com.github.openstack4j.core</groupId>
             <artifactId>openstack4j-core</artifactId>
         </dependency>
         <!-- httpclient connector for openstack4j -->
         <dependency>
-            <groupId>org.pacesys.openstack4j.connectors</groupId>
+            <groupId>com.github.openstack4j.core.connectors</groupId>
             <artifactId>openstack4j-httpclient</artifactId>
         </dependency>
         <dependency>

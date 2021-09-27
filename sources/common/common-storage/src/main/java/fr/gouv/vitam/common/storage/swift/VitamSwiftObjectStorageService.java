@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -309,11 +310,12 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
             .headers(headers)
             .executeWithResponse();
         try {
-
             if (isSuccessResponse(resp)) {
                 LOGGER.debug("Metadata retrieved successfully for object {}/{}",
                     location.getContainerName(), location.getObjectName());
-                return MapWithoutMetaPrefixFunction.INSTANCE.apply(resp.headers());
+                TreeMap<String, String> metadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+                metadata.putAll(MapWithoutMetaPrefixFunction.INSTANCE.apply(resp.headers()));
+                return metadata;
             }
 
             if (isNotFoundResponse(resp)) {
