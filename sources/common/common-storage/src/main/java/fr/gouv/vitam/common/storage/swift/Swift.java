@@ -412,7 +412,9 @@ public class Swift extends ContentAddressableStorageAbstract {
         }
         result.setType(containerName.split("_")[1]);
         result.setObjectName(objectId);
-        result.setDigest(object.get().getMetadata().get(X_OBJECT_META_DIGEST));
+        result.setDigest(object.get().getMetadata().entrySet().stream()
+            .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST)).map(Map.Entry::getValue).findFirst()
+            .orElse(null));
         result.setFileSize(object.get().getSizeInBytes());
         result.setLastModifiedDate(object.get().getLastModified().toString());
 
