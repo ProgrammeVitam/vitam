@@ -38,7 +38,7 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
@@ -69,7 +69,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     private final Map<Integer, OptimisticDriveResourceStatus> optimisticDriveResourceStatusMap =
         new ConcurrentHashMap<>();
-    private final ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+    private final ArchiveCacheStorage archiveCacheStorage;
 
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
@@ -77,13 +77,13 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         ReadRequestReferentialRepository readRequestReferentialRepository,
         TapeLibraryPool tapeLibraryPool,
         Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges,
-        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy) {
+        ArchiveCacheStorage archiveCacheStorage) {
 
         ParametersChecker
             .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
                 archiveReferentialRepository, readRequestReferentialRepository, driveTape,
-                archiveOutputRetentionPolicy);
-        this.archiveOutputRetentionPolicy = archiveOutputRetentionPolicy;
+                archiveCacheStorage);
+        this.archiveCacheStorage = archiveCacheStorage;
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
@@ -92,7 +92,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
                     this, archiveReferentialRepository, readRequestReferentialRepository,
                     driveTape.get(driveEntry.getKey()), inputTarPath,
-                    forceOverrideNonEmptyCartridges, this.archiveOutputRetentionPolicy);
+                    forceOverrideNonEmptyCartridges, this.archiveCacheStorage);
             workers.add(tapeDriveWorker);
         }
     }

@@ -3,12 +3,15 @@ provider: tape-library
 tapeLibraryConfiguration:
   inputFileStorageFolder: "/vitam/data/offer3/inputFiles"
   inputTarStorageFolder: "/vitam/data/offer3/inputTars"
-  outputTarStorageFolder: "/vitam/data/offer3/outputTars"
+  tmpTarOutputStorageFolder: "/vitam/data/offer3/tmpTarOutput"
+  cachedTarStorageFolder: "/vitam/data/offer3/cachedTars"
   maxTarEntrySize: 100000
   maxTarFileSize: 1000000
   useSudo: False
   forceOverrideNonEmptyCartridges: False
-  archiveRetentionCacheTimeoutInMinutes: 30
+  cachedTarMaxStorageSpaceInMB: 1000
+  cachedTarEvictionStorageSpaceThresholdInMB: 800
+  cachedTarSafeStorageSpaceThresholdInMB: 700
 
   topology:
     buckets:

@@ -32,6 +32,7 @@ import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public final class TarTestHelper {
 
     public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-            throws IOException {
+        throws IOException {
 
         Digest digest = new Digest(DigestType.SHA512);
         OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
@@ -51,11 +52,11 @@ public final class TarTestHelper {
         assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
     }
 
-    // FIXME : usefull?
     public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-            throws IOException {
+        throws IOException {
 
-        try (InputStream is = TarHelper.readEntryAtPos(tarFilePath, entryDescription)) {
+        try (FileInputStream tarFileInputStream = new FileInputStream(tarFilePath.toFile());
+            InputStream is = TarHelper.readEntryAtPos(tarFileInputStream, entryDescription)) {
             IOUtils.copy(is, outputStream);
         }
     }

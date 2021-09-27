@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.offers.tape.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Uninterruptibles;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
@@ -44,7 +45,8 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarLocation;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
+import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialCleaner;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
@@ -65,7 +67,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadTask;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadWriteResult;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -85,6 +87,14 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/**
+ * To be able to run test :
+ * - Setup local scsi tape devices (mapped to VTL or a physical tape library) with at least 10 slots & 4 drives
+ * - Configure offer-tape-test.conf with robot & drive devices (use ls -l  /dev/tape/by-id/ to list devices)
+ * - Ensure user belongs to "tape" group to be able to invoke mt & mtx commands
+ * - Remove @Ignore annotation locally
+ * - Hint, to set up locally a VTL, the vitam/vtl-utils repository can be used.
+ */
 @Ignore("Will not work if no tape library connected with a good configuration file")
 public class TapeLibraryIT {
     public static final String OFFER_TAPE_TEST_CONF = "offer-tape-test.conf";
@@ -114,7 +124,8 @@ public class TapeLibraryIT {
         String inputFileStorageFolder = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
         configuration.setInputFileStorageFolder(inputFileStorageFolder);
         configuration.setInputTarStorageFolder(inputFileStorageFolder);
-        configuration.setOutputTarStorageFolder(tempFolderRule.newFolder().getAbsolutePath());
+        configuration.setTmpTarOutputStorageFolder(tempFolderRule.newFolder().getAbsolutePath());
+        configuration.setCachedTarStorageFolder(tempFolderRule.newFolder().getAbsolutePath());
         tapeLibraryFactory = TapeLibraryFactory.getInstance();
         tapeLibraryFactory.initialize(configuration, mongoRule.getMongoDatabase());
 
@@ -545,8 +556,11 @@ public class TapeLibraryIT {
             ReadRequestReferentialCleaner readRequestReferentialCleaner = mock(ReadRequestReferentialCleaner.class);
             when(readRequestReferentialCleaner.cleanUp()).thenReturn(1L);
 
-            ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy =
-                new ArchiveOutputRetentionPolicy(5, readRequestReferentialCleaner);
+            BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
+            ArchiveCacheStorage archiveCacheStorage = new ArchiveCacheStorage(configuration.getCachedTarStorageFolder(),
+                bucketTopologyHelper, configuration.getCachedTarMaxStorageSpaceInMB() * 1_000_000L,
+                configuration.getCachedTarEvictionStorageSpaceThresholdInMB() * 1_000_000L,
+                configuration.getCachedTarSafeStorageSpaceThresholdInMB() * 1_000_000L);
 
             ReadTask readTask1 =
                 new ReadTask(
@@ -554,7 +568,7 @@ public class TapeLibraryIT {
                     workerCurrentTape,
                     new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
                     readRequestReferentialRepository,
-                    archiveOutputRetentionPolicy);
+                    archiveCacheStorage);
 
             ReadTask readTask2 =
                 new ReadTask(
@@ -562,54 +576,73 @@ public class TapeLibraryIT {
                     workerCurrentTape,
                     new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
                     readRequestReferentialRepository,
-                    archiveOutputRetentionPolicy);
+                    archiveCacheStorage);
 
             // Classical read
             ReadWriteResult result1 = readTask1.get();
             assertThat(result1).isNotNull();
             assertThat(result1.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
-            String outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
+            String outputFile = configuration.getCachedTarStorageFolder() + "/test-objects/testtar.tar";
             File outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
-            Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240);
-            archiveOutputRetentionPolicy.invalidate("testtar.tar");
-            FileUtils.forceDelete(outputTarFile);
+            Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240L);
+
+            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar.tar").orElseThrow())
+                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar.tar"));
 
             ReadWriteResult result2 = readTask2.get();
             assertThat(result2).isNotNull();
             assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
-            outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
+            outputFile = configuration.getCachedTarStorageFolder() + "/test-objects/testtar_2.tar";
             outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
             Assertions.assertThat(outputTarFile.length()).isEqualTo(6_144L);
-            archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
-            FileUtils.forceDelete(outputTarFile);
+
+            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar_2.tar").orElseThrow())
+                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar_2.tar"));
+
+            // Make entries expire
+            archiveCacheStorage.reserveArchiveStorageSpace("test-objects", "testtar_3.tar", 999_999);
+            archiveCacheStorage.reserveArchiveStorageSpace("test-objects", "testtar_4.tar", 999_999);
+
+            StopWatch stopWatch = StopWatch.createStarted();
+            while (stopWatch.getTime(TimeUnit.SECONDS) < 5 &&
+                archiveCacheStorage.containsArchive("test-objects", "testtar_2.tar")) {
+                Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+            }
+            assertThat(archiveCacheStorage.containsArchive("test-objects", "testtar.tar")).isFalse();
+            assertThat(archiveCacheStorage.containsArchive("test-objects", "testtar_2.tar")).isFalse();
+
+            archiveCacheStorage.cancelReservedArchive("test-objects", "testtar_3.tar");
+            archiveCacheStorage.cancelReservedArchive("test-objects", "testtar_4.tar");
 
             // Test of move backward (bsfm) : We are in position 2 try to re-read second file
             result2 = readTask2.get();
             assertThat(result2).isNotNull();
             assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
-            outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
+            outputFile = configuration.getCachedTarStorageFolder() + "/test-objects/testtar_2.tar";
             outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
             Assertions.assertThat(outputTarFile.length()).isEqualTo(6_144L);
-            archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
-            FileUtils.forceDelete(outputTarFile);
+
+            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar_2.tar").orElseThrow())
+                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar_2.tar"));
 
             // Test of move backward rewind : We are in position 2 try to re-read first file
             result1 = readTask1.get();
             assertThat(result1).isNotNull();
             assertThat(result1.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
-            outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
+            outputFile = configuration.getCachedTarStorageFolder() + "/test-objects/testtar.tar";
             outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
-            Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240);
-            archiveOutputRetentionPolicy.invalidate("testtar.tar");
-            FileUtils.forceDelete(outputTarFile);
+            Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240L);
+
+            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar.tar").orElseThrow())
+                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar.tar"));
 
             // Assert ReadRequestReferentialRepository
             actual = readRequestReferentialRepository.find(readRequestId);

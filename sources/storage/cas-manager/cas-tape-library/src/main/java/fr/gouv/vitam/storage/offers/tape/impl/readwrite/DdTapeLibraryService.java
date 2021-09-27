@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
-import java.nio.file.Paths;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -40,6 +37,9 @@ import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 
+import java.nio.file.Paths;
+import java.util.List;
+
 public class DdTapeLibraryService implements TapeReadWriteService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DdTapeLibraryService.class);
     public static final String IF = "if=";
@@ -47,18 +47,19 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
     private final String inputDirectory;
-    private final String outputDirectory;
+    private final String tmpOutputStorageFolder;
 
     public DdTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor,
-        String inputDirectory, String outputDirectory) {
+        String inputDirectory, String tmpOutputStorageFolder) {
         ParametersChecker
-            .checkParameter("All params are required", tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
+            .checkParameter("All params are required", tapeDriveConf, processExecutor, inputDirectory,
+                tmpOutputStorageFolder);
 
 
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
         this.inputDirectory = inputDirectory;
-        this.outputDirectory = outputDirectory;
+        this.tmpOutputStorageFolder = tmpOutputStorageFolder;
     }
 
     @Override
@@ -85,7 +86,7 @@ public class DdTapeLibraryService implements TapeReadWriteService {
         ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
 
         List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(),
-            OF + Paths.get(this.getOutputDirectory()).resolve(outputPath).toAbsolutePath());
+            OF + Paths.get(this.getTmpOutputStorageFolder()).resolve(outputPath).toAbsolutePath());
 
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
@@ -117,8 +118,8 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     }
 
     @Override
-    public String getOutputDirectory() {
-        return outputDirectory;
+    public String getTmpOutputStorageFolder() {
+        return tmpOutputStorageFolder;
     }
 
     @Override

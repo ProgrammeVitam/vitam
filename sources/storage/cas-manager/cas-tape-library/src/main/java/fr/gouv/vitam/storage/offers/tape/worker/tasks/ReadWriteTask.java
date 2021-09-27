@@ -30,7 +30,7 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -50,16 +50,15 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
         ArchiveReferentialRepository archiveReferentialRepository,
         ReadRequestReferentialRepository readRequestReferentialRepository, String inputTarPath,
         boolean forceOverrideNonEmptyCartridges,
-        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy) {
+        ArchiveCacheStorage archiveCacheStorage) {
 
         if (order.isWriteOrder()) {
             readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeLibraryService,
                 tapeCatalogService, archiveReferentialRepository, inputTarPath, forceOverrideNonEmptyCartridges
             );
         } else {
-            readWriteTask =
-                new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService, readRequestReferentialRepository,
-                    archiveOutputRetentionPolicy);
+            readWriteTask = new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService,
+                readRequestReferentialRepository, archiveCacheStorage);
         }
     }
 

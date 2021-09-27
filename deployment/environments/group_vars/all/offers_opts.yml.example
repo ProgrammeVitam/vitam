@@ -151,13 +151,15 @@ vitam_offers:
   offer-tape-1:
     provider: tape-library
     tapeLibraryConfiguration:
-      maxTarEntrySize: 100000
-      maxTarFileSize: 1000000
+      maxTarEntrySize: 1_000_000_000
+      maxTarFileSize: 10_000_000_000
       # Enable overriding non empty cartridges
       # WARNING : FOR DEV/TEST ONLY. DO NOT ENABLE IN PRODUCTION.
       forceOverrideNonEmptyCartridges: false
       # Archive (Tar) file expire time for retention in local FS
-      archiveRetentionCacheTimeoutInMinutes: 30
+      cachedTarMaxStorageSpaceInMB: 1_000_000
+      cachedTarEvictionStorageSpaceThresholdInMB: 800_000
+      cachedTarSafeStorageSpaceThresholdInMB: 700_000
       useSudo: false
     topology:
       buckets:

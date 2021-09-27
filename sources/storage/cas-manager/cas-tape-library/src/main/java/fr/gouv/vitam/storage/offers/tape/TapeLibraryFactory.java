@@ -32,13 +32,14 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
@@ -93,9 +94,15 @@ public class TapeLibraryFactory {
     private TapeLibraryFactory() {
     }
 
-    public void initialize(TapeLibraryConfiguration configuration, MongoDatabase mongoDatabase) throws IOException {
+    public void initialize(TapeLibraryConfiguration configuration, MongoDatabase mongoDatabase)
+        throws IOException, IllegalPathException {
 
         ParametersChecker.checkParameter("All params are required", configuration, mongoDatabase);
+        ParametersChecker.checkParameter("Missing cache capacity configuration settings",
+            configuration.getCachedTarMaxStorageSpaceInMB(),
+            configuration.getCachedTarEvictionStorageSpaceThresholdInMB(),
+            configuration.getCachedTarSafeStorageSpaceThresholdInMB());
+
         createWorkingDirectories(configuration);
 
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
@@ -119,6 +126,13 @@ public class TapeLibraryFactory {
         QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDatabase.getCollection(
             OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
 
+        ArchiveCacheStorage archiveCacheStorage = new ArchiveCacheStorage(
+            configuration.getCachedTarStorageFolder(), bucketTopologyHelper,
+            configuration.getCachedTarMaxStorageSpaceInMB() * 1_000_000L,
+            configuration.getCachedTarEvictionStorageSpaceThresholdInMB() * 1_000_000L,
+            configuration.getCachedTarSafeStorageSpaceThresholdInMB() * 1_000_000L
+        );
+
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
             archiveReferentialRepository, readWriteQueue);
 
@@ -141,14 +155,11 @@ public class TapeLibraryFactory {
             new FileBucketTarCreatorManager(configuration, basicFileStorage, bucketTopologyHelper,
                 objectReferentialRepository, archiveReferentialRepository, writeOrderCreator);
 
-        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy =
-            new ArchiveOutputRetentionPolicy(configuration.getArchiveRetentionCacheTimeoutInMinutes(), readRequestReferentialRepository);
-
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
                 archiveReferentialRepository, readRequestReferentialRepository, fileBucketTarCreatorManager,
                 readWriteQueue,
-                tapeCatalogService, configuration.getOutputTarStorageFolder(), archiveOutputRetentionPolicy,
+                tapeCatalogService, archiveCacheStorage,
                 bucketTopologyHelper);
 
         // Change all running orders to ready state
@@ -157,7 +168,7 @@ public class TapeLibraryFactory {
         // Create tar creation orders from inputFiles folder
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
 
-        // Create tar storage orders from inputTars folder
+        // Create tar WriteOrders from inputTars folder
         fileBucketTarCreatorManager.initializeOnBootstrap();
 
         // Initialize & start workers
@@ -178,7 +189,7 @@ public class TapeLibraryFactory {
                 tapeDriveConf.setUseSudo(configuration.isUseSudo());
 
                 final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf,
-                    configuration.getInputTarStorageFolder(), configuration.getOutputTarStorageFolder());
+                    configuration.getInputTarStorageFolder(), configuration.getTmpTarOutputStorageFolder());
                 driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);
             }
 
@@ -225,7 +236,7 @@ public class TapeLibraryFactory {
                     new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository,
                         readRequestReferentialRepository, libraryPool, driveTape,
                         configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges(),
-                        archiveOutputRetentionPolicy));
+                        archiveCacheStorage));
         }
 
         // Everything's alright. Start tar creation listeners
@@ -258,12 +269,14 @@ public class TapeLibraryFactory {
 
         if (Strings.isBlank(configuration.getInputFileStorageFolder()) ||
             Strings.isBlank(configuration.getInputTarStorageFolder()) ||
-            Strings.isBlank(configuration.getOutputTarStorageFolder())) {
+            Strings.isBlank(configuration.getTmpTarOutputStorageFolder()) ||
+            Strings.isBlank(configuration.getCachedTarStorageFolder())) {
             throw new VitamRuntimeException("Tape storage configuration");
         }
         createDirectory(configuration.getInputFileStorageFolder());
         createDirectory(configuration.getInputTarStorageFolder());
-        createDirectory(configuration.getOutputTarStorageFolder());
+        createDirectory(configuration.getTmpTarOutputStorageFolder());
+        createDirectory(configuration.getCachedTarStorageFolder());
     }
 
     private void createDirectory(String pathStr) throws IOException {

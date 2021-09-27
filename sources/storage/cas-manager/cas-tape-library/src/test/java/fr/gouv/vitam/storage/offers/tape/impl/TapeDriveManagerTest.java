@@ -26,22 +26,38 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl;
 
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import org.assertj.core.api.Assertions;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 public class TapeDriveManagerTest {
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private File tmpTarOutputDir;
+    private File inputTarDir;
+
+    @Before
+    public void prepare() throws Exception {
+        inputTarDir = temporaryFolder.newFolder("inputTars");
+        tmpTarOutputDir = temporaryFolder.newFolder("tmpTarOutput");
+    }
 
     @Test
     public void testConstructorOneOK() {
-        TapeDriveManager tapeDriveManager = new TapeDriveManager(mock(TapeDriveConf.class), "", "");
+        TapeDriveManager tapeDriveManager = new TapeDriveManager(mock(TapeDriveConf.class),
+            inputTarDir.getAbsolutePath(), tmpTarOutputDir.getAbsolutePath());
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)).isNotNull();
@@ -73,7 +89,7 @@ public class TapeDriveManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorOneNullTapeDriveConfKO() {
-        new TapeDriveManager(null, "", "");
+        new TapeDriveManager(null, inputTarDir.getAbsolutePath(), tmpTarOutputDir.getAbsolutePath());
     }
 
 

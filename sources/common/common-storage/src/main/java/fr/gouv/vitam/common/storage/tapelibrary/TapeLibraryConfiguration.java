@@ -39,9 +39,29 @@ public class TapeLibraryConfiguration {
      */
     private String inputTarStorageFolder;
     /**
-     * Folder for storing tar file to read from to tape library
+     * Folder for storing temp tar files during read requests from tapes.
      */
-    private String outputTarStorageFolder;
+    private String tmpTarOutputStorageFolder;
+    /**
+     * Folder for storing tar file archived in a tape, and currently stored on disk.
+     * Should be on the same FileSystem partition than {@code tmpTarOutputStorageFolder} and {@code inputTarStorageFolder} so that atomic file moves is possible.
+     */
+    private String cachedTarStorageFolder;
+
+    /**
+     * Max capacity that cannot be exceeded by cached tar files
+     */
+    private Long cachedTarMaxStorageSpaceInMB;
+
+    /**
+     * Triggers background delete of old unused cached tar files
+     */
+    private Long cachedTarEvictionStorageSpaceThresholdInMB;
+
+    /**
+     * Safe cache storage space level. When enough space is available, background cache delete process ends.
+     */
+    private Long cachedTarSafeStorageSpaceThresholdInMB;
 
     /**
      * Max single entry size. Must not exceed TarConstants.MAXSIZE
@@ -61,11 +81,6 @@ public class TapeLibraryConfiguration {
      * Override non empty cartridges before label creation
      */
     private boolean forceOverrideNonEmptyCartridges = false;
-
-    /**
-     * Archive (Tar) file retention in local FS. Used for cache that manage remove file policy
-     */
-    private Integer archiveRetentionCacheTimeoutInMinutes = 30;
 
     /**
      * File bucket & bucket configuration
@@ -112,13 +127,22 @@ public class TapeLibraryConfiguration {
         return this;
     }
 
-    public String getOutputTarStorageFolder() {
-        return outputTarStorageFolder;
+    public String getTmpTarOutputStorageFolder() {
+        return tmpTarOutputStorageFolder;
     }
 
-    public TapeLibraryConfiguration setOutputTarStorageFolder(
-        String outputTarStorageFolder) {
-        this.outputTarStorageFolder = outputTarStorageFolder;
+    public TapeLibraryConfiguration setTmpTarOutputStorageFolder(String tmpTarOutputStorageFolder) {
+        this.tmpTarOutputStorageFolder = tmpTarOutputStorageFolder;
+        return this;
+    }
+
+    public String getCachedTarStorageFolder() {
+        return cachedTarStorageFolder;
+    }
+
+    public TapeLibraryConfiguration setCachedTarStorageFolder(
+        String cachedTarStorageFolder) {
+        this.cachedTarStorageFolder = cachedTarStorageFolder;
         return this;
     }
 
@@ -158,12 +182,32 @@ public class TapeLibraryConfiguration {
         return this;
     }
 
-    public Integer getArchiveRetentionCacheTimeoutInMinutes() {
-        return archiveRetentionCacheTimeoutInMinutes;
+    public Long getCachedTarMaxStorageSpaceInMB() {
+        return cachedTarMaxStorageSpaceInMB;
     }
 
-    public TapeLibraryConfiguration setArchiveRetentionCacheTimeoutInMinutes(Integer archiveRetentionCacheTimeoutInMinutes) {
-        this.archiveRetentionCacheTimeoutInMinutes = archiveRetentionCacheTimeoutInMinutes;
+    public TapeLibraryConfiguration setCachedTarMaxStorageSpaceInMB(Long cachedTarMaxStorageSpaceInMB) {
+        this.cachedTarMaxStorageSpaceInMB = cachedTarMaxStorageSpaceInMB;
+        return this;
+    }
+
+    public Long getCachedTarEvictionStorageSpaceThresholdInMB() {
+        return cachedTarEvictionStorageSpaceThresholdInMB;
+    }
+
+    public TapeLibraryConfiguration setCachedTarEvictionStorageSpaceThresholdInMB(
+        Long cachedTarEvictionStorageSpaceThresholdInMB) {
+        this.cachedTarEvictionStorageSpaceThresholdInMB = cachedTarEvictionStorageSpaceThresholdInMB;
+        return this;
+    }
+
+    public Long getCachedTarSafeStorageSpaceThresholdInMB() {
+        return cachedTarSafeStorageSpaceThresholdInMB;
+    }
+
+    public TapeLibraryConfiguration setCachedTarSafeStorageSpaceThresholdInMB(
+        Long cachedTarSafeStorageSpaceThresholdInMB) {
+        this.cachedTarSafeStorageSpaceThresholdInMB = cachedTarSafeStorageSpaceThresholdInMB;
         return this;
     }
 }

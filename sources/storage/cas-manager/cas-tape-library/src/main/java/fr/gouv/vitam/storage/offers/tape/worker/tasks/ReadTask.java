@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
@@ -41,7 +42,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.engine.common.model.TarLocation;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
@@ -50,7 +51,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 
@@ -58,8 +58,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +87,7 @@ public class ReadTask implements Future<ReadWriteResult> {
     private final ReadOrder readOrder;
     private final String MSG_PREFIX;
 
-    private final ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+    private final ArchiveCacheStorage archiveCacheStorage;
 
     private TapeCatalog workerCurrentTape;
 
@@ -97,20 +95,19 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService,
         TapeCatalogService tapeCatalogService, ReadRequestReferentialRepository readRequestReferentialRepository,
-        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy) {
+        ArchiveCacheStorage archiveCacheStorage) {
         ParametersChecker.checkParameter("WriteOrder param is required.", readOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
         ParametersChecker
             .checkParameter("ReadRequestReferentialRepository param is required.", readRequestReferentialRepository);
-        ParametersChecker
-            .checkParameter("ArchiveOutputRetentionPolicy param is required.", archiveOutputRetentionPolicy);
+        ParametersChecker.checkParameter("archiveCacheStorage param is required.", archiveCacheStorage);
         this.readOrder = readOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeLibraryService = tapeLibraryService;
         this.tapeCatalogService = tapeCatalogService;
         this.readRequestReferentialRepository = readRequestReferentialRepository;
-        this.archiveOutputRetentionPolicy = archiveOutputRetentionPolicy;
+        this.archiveCacheStorage = archiveCacheStorage;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeLibraryService.getLibraryIdentifier(),
             tapeLibraryService.getDriveIndex());
     }
@@ -208,34 +205,19 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     private void readFromTape() throws ReadWriteException {
         try {
-            Path sourcePath =
-                Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT)
-                    .toAbsolutePath();
-            Path targetPath =
-                Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
 
-            Path tarInCache = archiveOutputRetentionPolicy.get(readOrder.getFileName());
-
-
-            if (null == tarInCache || !targetPath.toFile().exists()) {
-                FileUtils.deleteQuietly(sourcePath.toFile());
-
-                tapeLibraryService
-                    .read(workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName() + TEMP_EXT);
-                // Mark file as done (remove .tmp extension)
-                Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
+            if (!archiveCacheStorage.containsArchive(readOrder.getFileBucketId(), readOrder.getFileName())) {
+                copyFileFromTapeToCache();
             }
 
-            // Add file to retention policy
-            archiveOutputRetentionPolicy.put(readOrder.getFileName(), targetPath);
-
+            // Update DB
             String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(readOrder.getFileName(), ".");
             readRequestReferentialRepository
                 .updateReadRequests(
                     tarFileIdWithoutExtension,
                     TarLocation.DISK);
 
-        } catch (IOException e) {
+        } catch (IOException | IllegalPathException | IllegalStateException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                 " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                 e);
@@ -253,6 +235,33 @@ public class ReadTask implements Future<ReadWriteResult> {
         }
     }
 
+    private void copyFileFromTapeToCache() throws IOException, IllegalPathException, ReadWriteException {
+
+        Path tmpArchiveFile = Paths.get(tapeLibraryService.getTmpOutputDirectory())
+            .resolve(readOrder.getFileName() + TEMP_EXT).toAbsolutePath();
+        Files.deleteIfExists(tmpArchiveFile);
+
+        // Ensure enough disk space is available
+        archiveCacheStorage.reserveArchiveStorageSpace(readOrder.getFileBucketId(), readOrder.getFileName(),
+            readOrder.getSize());
+
+        try {
+            // Read file from tape
+            tapeLibraryService.read(
+                workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName() + TEMP_EXT);
+
+            // Move file to cache
+            archiveCacheStorage.moveArchiveToCache(tmpArchiveFile, readOrder.getFileBucketId(),
+                readOrder.getFileName());
+
+        } catch (Exception e) {
+            // Cleanup tmp file & cancel reserved cache space
+            Files.deleteIfExists(tmpArchiveFile);
+            archiveCacheStorage.cancelReservedArchive(readOrder.getFileBucketId(), readOrder.getFileName());
+            throw e;
+        }
+    }
+
     /**
      * Get eligible tape from catalog
      *
@@ -265,8 +274,8 @@ public class ReadTask implements Future<ReadWriteResult> {
         );
         Optional<TapeCatalog> found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
         if (found.isEmpty()) {
-            List<TapeCatalog> tapes = tapeCatalogService.find(Arrays
-                .asList(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
+            List<TapeCatalog> tapes = tapeCatalogService.find(
+                List.of(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
             if (tapes.size() == 0) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG +
                         " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +

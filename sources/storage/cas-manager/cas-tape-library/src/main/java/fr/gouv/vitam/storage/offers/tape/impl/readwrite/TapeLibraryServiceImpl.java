@@ -395,9 +395,9 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
     }
 
     @Override
-    public String getOutputDirectory() {
+    public String getTmpOutputDirectory() {
         return tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD).
-            getOutputDirectory();
+            getTmpOutputStorageFolder();
     }
 
     @Override

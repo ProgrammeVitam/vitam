@@ -55,6 +55,7 @@ import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
@@ -65,7 +66,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,6 +91,9 @@ public class WriteTaskTest {
     public static final String TAPE_CODE = "VIT0001";
     private static final String FAKE_FILE_PATH = "fakeFilePath";
     public static final String FAKE_DIGEST = "digest";
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -119,6 +122,8 @@ public class WriteTaskTest {
     @Mock
     private ArchiveReferentialRepository archiveReferentialRepository;
 
+    private File inputTarDir;
+
     @Before
     public void setUp() throws Exception {
         when(tapeDriveService.getReadWriteService(eq(TapeDriveService.ReadWriteCmd.DD)))
@@ -127,8 +132,11 @@ public class WriteTaskTest {
         when(tapeRobotPool.checkoutRobotService()).thenAnswer(o -> tapeRobotService);
         when(tapeRobotService.getLoadUnloadService()).thenAnswer(o -> tapeLoadUnloadService);
 
-        when(tapeReadWriteService.getOutputDirectory()).thenReturn("/tmp");
-        when(tapeReadWriteService.getInputDirectory()).thenReturn("/tmp");
+        inputTarDir = temporaryFolder.newFolder("inputTars");
+        File tmpTarOutputDir = temporaryFolder.newFolder("tmpTarOutput");
+
+        when(tapeReadWriteService.getTmpOutputStorageFolder()).thenReturn(tmpTarOutputDir.getAbsolutePath());
+        when(tapeReadWriteService.getInputDirectory()).thenReturn(inputTarDir.getAbsolutePath());
     }
 
     @Test
@@ -199,7 +207,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp",
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(),
                 false);
 
         ReadWriteResult result = writeTask.get();
@@ -215,7 +223,8 @@ public class WriteTaskTest {
 
         assertThat(fileName.getAllValues()).hasSize(2);
 
-        assertThat(fileName.getAllValues().get(0)).contains(LocalFileUtils.INPUT_TAR_TMP_FOLDER).contains(WriteTask.TAPE_LABEL);
+        assertThat(fileName.getAllValues().get(0)).contains(LocalFileUtils.INPUT_TAR_TMP_FOLDER)
+            .contains(WriteTask.TAPE_LABEL);
         assertThat(fileName.getAllValues().get(1)).contains(FAKE_FILE_PATH).contains(".tar");
 
         assertThat(result).isNotNull();
@@ -254,7 +263,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp",
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(),
                 false);
 
         ReadWriteResult result = writeTask.get();
@@ -293,7 +302,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService,
-                archiveReferentialRepository, "/tmp", false);
+                archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
@@ -372,7 +381,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService,
-                archiveReferentialRepository, "/tmp", false);
+                archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
@@ -433,7 +442,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService,
-                archiveReferentialRepository, "/tmp", true);
+                archiveReferentialRepository, inputTarDir.getAbsolutePath(), true);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
@@ -513,7 +522,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService,
-                archiveReferentialRepository, "/tmp", false);
+                archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
@@ -575,7 +584,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
                 tapeCatalogService,
-                archiveReferentialRepository, "/tmp", false);
+                archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
@@ -632,7 +641,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
                 new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
@@ -717,7 +726,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
                 new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
@@ -804,7 +813,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, tape,
                 new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
@@ -887,7 +896,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
                 new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
@@ -957,7 +966,7 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
                 new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         when(tapeCatalogService.update(any(), anyMap()))
             .thenThrow(new TapeCatalogException(""))
@@ -1019,7 +1028,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, tape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
+                tapeCatalogService, archiveReferentialRepository, inputTarDir.getAbsolutePath(), false);
 
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.KO));
 
@@ -1033,12 +1042,11 @@ public class WriteTaskTest {
     }
 
     private String getTarFileName() throws IOException {
-        Path resolve = Paths.get("/tmp").resolve(FAKE_FILE_PATH);
-        Files.createDirectories(resolve);
-        Path filePath = Paths.get("/tmp", FAKE_FILE_PATH).resolve(GUIDFactory.newGUID().getId() + ".tar");
-        Path file = Files.createFile(filePath);
-        return file.toFile().getName();
-
+        Path parentDir = inputTarDir.toPath().resolve(FAKE_FILE_PATH);
+        Files.createDirectories(parentDir);
+        String filename = GUIDFactory.newGUID().getId() + ".tar";
+        Files.createFile(parentDir.resolve(filename));
+        return filename;
     }
 
     private TapeCatalog getTapeCatalog(boolean withLabel, boolean isWorm, TapeState tapeState) {
