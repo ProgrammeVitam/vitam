@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
@@ -254,11 +255,13 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         // Schedule tar for copy on tape
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
+            this.fileBucketId,
             LocalFileUtils
                 .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
             this.currentTarAppender.getBytesWritten(),
             this.currentTarAppender.getDigestValue(),
-            this.currentTarAppender.getTarId());
+            this.currentTarAppender.getTarId(),
+            QueueMessageType.WriteOrder);
         this.writeOrderCreator.addToQueue(writeOrder);
 
         this.currentTarAppender = null;

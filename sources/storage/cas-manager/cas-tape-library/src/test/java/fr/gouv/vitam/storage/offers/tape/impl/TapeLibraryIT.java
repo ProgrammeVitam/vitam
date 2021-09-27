@@ -456,8 +456,6 @@ public class TapeLibraryIT {
                 tapeLibraryPool.pushDriveService(tapeDriveService);
                 tapeLibraryPool.pushRobotService(tapeRobotService);
             }
-
-
         }
     }
 
@@ -551,13 +549,17 @@ public class TapeLibraryIT {
                 new ArchiveOutputRetentionPolicy(5, readRequestReferentialCleaner);
 
             ReadTask readTask1 =
-                new ReadTask(new ReadOrder(readRequestId, tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
+                new ReadTask(
+                    new ReadOrder(tapeCode, 0, "testtar.tar", "bucket", "test-objects", 10_240L),
+                    workerCurrentTape,
                     new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
                     readRequestReferentialRepository,
                     archiveOutputRetentionPolicy);
 
             ReadTask readTask2 =
-                new ReadTask(new ReadOrder(readRequestId, tapeCode, 1, "testtar_2.tar", "bucket"), workerCurrentTape,
+                new ReadTask(
+                    new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket", "test-objects", 6_144L),
+                    workerCurrentTape,
                     new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
                     readRequestReferentialRepository,
                     archiveOutputRetentionPolicy);
@@ -626,8 +628,6 @@ public class TapeLibraryIT {
                 tapeLibraryPool.pushDriveService(tapeDriveService);
                 tapeLibraryPool.pushRobotService(tapeRobotService);
             }
-
-
         }
     }
 }

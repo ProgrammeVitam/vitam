@@ -76,14 +76,18 @@ public class QueueRepositoryImplTest {
     @Test
     public void testAddWriteOrder() throws QueueException {
 
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setArchiveId("myFilePath");
+        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L, "digest", "myArchiveId", QueueMessageType.WriteBackupOrder);
         queueRepositoryImpl.add(entity);
 
-        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteBackupOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
-        assertThat(found.get().getBucket()).isEqualTo("mybucket");
-        assertThat(found.get().getArchiveId()).isEqualTo("myFilePath");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket");
+        assertThat(found.get().getFileBucketId()).isEqualTo("myFileBucketId");
+        assertThat(found.get().getFilePath()).isEqualTo("myArchiveId");
+        assertThat(found.get().getDigest()).isEqualTo("digest");
+        assertThat(found.get().getSize()).isEqualTo(1_234_567_890_123L);
+        assertThat(found.get().getMessageType()).isEqualTo(QueueMessageType.WriteBackupOrder);
 
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
@@ -92,22 +96,26 @@ public class QueueRepositoryImplTest {
     @Test
     public void testAddReadOrder() throws QueueException {
 
-        ReadOrder entity = new ReadOrder().setTapeCode("VIT0001").setFilePosition(3);
+        ReadOrder entity = new ReadOrder("VIT0001", 3, "tarId.tar", "myBucket", "myFileBucketId", 1_234_567_890_123L);
+
         queueRepositoryImpl.add(entity);
 
         Optional<ReadOrder> found = queueRepositoryImpl.receive(QueueMessageType.ReadOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getTapeCode()).isEqualTo("VIT0001");
-        assertThat(found.get().getFilePosition()).isEqualTo(3);
+        assertThat(found.get().getFileName()).isEqualTo("tarId.tar");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket");
+        assertThat(found.get().getFileBucketId()).isEqualTo("myFileBucketId");
+        assertThat(found.get().getSize()).isEqualTo(1_234_567_890_123L);
 
-        found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
+        found = queueRepositoryImpl.receive(QueueMessageType.ReadOrder);
         assertThat(found).isNotPresent();
     }
 
     @Test
     public void testRemoveOk() throws QueueException {
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setArchiveId("myFilePath");
+        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L, "digest", "myArchiveId", QueueMessageType.WriteOrder);
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.remove(entity.getId());
@@ -119,8 +127,8 @@ public class QueueRepositoryImplTest {
 
 
     @Test
-    public void testcompleteOk() throws QueueException {
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setArchiveId("myFilePath");
+    public void testCompleteOk() throws QueueException {
+        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L, "digest", "myArchiveId", QueueMessageType.WriteOrder);
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
@@ -132,7 +140,7 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testPutOk() throws QueueException {
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setArchiveId("myFilePath");
+        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L, "digest", "myArchiveId", QueueMessageType.WriteOrder);
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
@@ -158,84 +166,84 @@ public class QueueRepositoryImplTest {
     @Test
     public void testPeekWithPriority() throws QueueException {
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setArchiveId("myFilePath_1");
+        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1", 1_234_567_890_123L, "digest1", "myArchiveId1", QueueMessageType.WriteOrder);
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setArchiveId("myFilePath_2");
+        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L, "digest2", "myArchiveId2", QueueMessageType.WriteOrder);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
         Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
-        assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getArchiveId()).isEqualTo("myFilePath_2");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket2");
+        assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId2");
 
         // Given document with priority 2
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
-        assertThat(found.get().getBucket()).isEqualTo("mybucket_1");
-        assertThat(found.get().getArchiveId()).isEqualTo("myFilePath_1");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket1");
+        assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId1");
     }
 
     @Test
     public void testPeekWithoutPriority() throws QueueException {
 
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setArchiveId("myFilePath_1");
+        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1", 1_234_567_890_123L, "digest1", "myArchiveId1", QueueMessageType.WriteOrder);
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setArchiveId("myFilePath_2");
+        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L, "digest2", "myArchiveId2", QueueMessageType.WriteOrder);
         queueRepositoryImpl.add(entity);
 
         // Then get the first inserted document
         Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
-        assertThat(found.get().getBucket()).isEqualTo("mybucket_1");
-        assertThat(found.get().getArchiveId()).isEqualTo("myFilePath_1");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket1");
+        assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId1");
 
         // Then get the second inserted document
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
-        assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getArchiveId()).isEqualTo("myFilePath_2");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket2");
+        assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId2");
     }
 
     @Test
     public void testPeekWithQueryAndPriority() throws QueueException {
 
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setArchiveId("myFilePath_1");
+        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1", 1_234_567_890_123L, "digest1", "myArchiveId1", QueueMessageType.WriteBackupOrder);
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setArchiveId("myFilePath_2");
+        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L, "digest2", "myArchiveId2", QueueMessageType.WriteOrder);
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setArchiveId("myFilePath_3");
+        entity = new WriteOrder("myBucket2", "myFileBucketId3", "myArchiveId3", 1_234L, "digest3", "myArchiveId3", QueueMessageType.WriteOrder);
         queueRepositoryImpl.add(entity);
 
 
 
-        Bson query = Filters.eq(WriteOrder.BUCKET, "mybucket_2");
+        Bson query = Filters.eq(WriteOrder.BUCKET, "myBucket2");
         Bson update = Updates.set(QueueMessageEntity.PRIORITY, 5);
 
         // Then get the first inserted document
         Optional<WriteOrder> found = queueRepositoryImpl.receive(query, update, QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
-        assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getArchiveId()).isEqualTo("myFilePath_3");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket2");
+        assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId3");
         assertThat(found.get().getPriority()).isEqualTo(5);
 
     }
@@ -244,30 +252,30 @@ public class QueueRepositoryImplTest {
     public void testPeekWithQueryAndWithoutPriority() throws QueueException {
 
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setArchiveId("myFilePath_1");
+        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1", 1_234_567_890_123L, "digest1", "myArchiveId1", QueueMessageType.WriteOrder);
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setArchiveId("myFilePath_2");
+        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L, "digest2", "myArchiveId2", QueueMessageType.WriteOrder);
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setArchiveId("myFilePath_3");
+        entity = new WriteOrder("myBucket2", "myFileBucketId3", "myArchiveId3", 1_234L, "digest3", "myArchiveId3", QueueMessageType.WriteOrder);
         queueRepositoryImpl.add(entity);
 
 
 
-        Bson query = Filters.eq(WriteOrder.BUCKET, "mybucket_2");
+        Bson query = Filters.eq(WriteOrder.BUCKET, "myBucket2");
         Bson update = Updates.set(QueueMessageEntity.PRIORITY, 5);
 
         // Then get the first inserted document
         Optional<WriteOrder> found = queueRepositoryImpl.receive(query, update, QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
-        assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getArchiveId()).isEqualTo("myFilePath_2");
+        assertThat(found.get().getBucket()).isEqualTo("myBucket2");
+        assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId2");
         assertThat(found.get().getPriority()).isEqualTo(5);
 
     }

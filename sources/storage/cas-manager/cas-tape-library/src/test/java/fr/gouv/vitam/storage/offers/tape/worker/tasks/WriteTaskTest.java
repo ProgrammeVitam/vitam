@@ -85,10 +85,13 @@ import static org.mockito.Mockito.when;
 public class WriteTaskTest {
 
     public static final String FAKE_BUCKET = "fakeBucket";
+    public static final String FAKE_FILE_BUCKET_ID = "fakeFileBucketId";
     public static final String FAKE_LIBRARY = "fakeLibrary";
     public static final String LTO_6 = "LTO-6";
     public static final String TAPE_CODE = "VIT0001";
     private static final String FAKE_FILE_PATH = "fakeFilePath";
+    public static final String FAKE_DIGEST = "digest";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -181,8 +184,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // Given WriterOrder and TapeCatalog
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
 
@@ -238,8 +241,8 @@ public class WriteTaskTest {
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         String file = getTarFileName();
 
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.EMPTY);
 
@@ -284,8 +287,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -363,8 +366,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -424,8 +427,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -504,8 +507,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -566,8 +569,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -623,8 +626,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
@@ -708,8 +711,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
@@ -794,8 +797,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
         WriteTask writeTask =
@@ -878,8 +881,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
@@ -948,8 +951,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
@@ -979,12 +982,12 @@ public class WriteTaskTest {
     }
 
     @Test
-    public void test_writeOrder_file_not_found() {
+    public void test_writeOrder_file_not_found() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH)
-                .setArchiveId(GUIDFactory.newGUID().getId()).setSize(10l);
+        String file = getTarFileName();
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         WriteTask writeTask =
             new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
@@ -1008,8 +1011,8 @@ public class WriteTaskTest {
         String file = getTarFileName();
 
         // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH + File.separator + file,
+            10L, FAKE_DIGEST, file, QueueMessageType.WriteOrder);
 
         TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
         tape.setBucket("wrongBucket");

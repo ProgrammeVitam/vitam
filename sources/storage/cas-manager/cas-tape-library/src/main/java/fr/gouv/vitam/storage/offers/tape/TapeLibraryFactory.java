@@ -148,7 +148,8 @@ public class TapeLibraryFactory {
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
                 archiveReferentialRepository, readRequestReferentialRepository, fileBucketTarCreatorManager,
                 readWriteQueue,
-                tapeCatalogService, configuration.getOutputTarStorageFolder(), archiveOutputRetentionPolicy);
+                tapeCatalogService, configuration.getOutputTarStorageFolder(), archiveOutputRetentionPolicy,
+                bucketTopologyHelper);
 
         // Change all running orders to ready state
         readWriteQueue.initializeOnBootstrap();

@@ -145,6 +145,7 @@ public class BackupFileStorage {
         // Schedule tar for copy on tape
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
+            this.fileBucketId,
             LocalFileUtils
                 .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, uniqueFileName),
             size,

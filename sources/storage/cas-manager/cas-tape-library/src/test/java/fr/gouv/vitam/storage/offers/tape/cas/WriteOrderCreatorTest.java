@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import org.junit.Rule;
@@ -64,12 +65,8 @@ public class WriteOrderCreatorTest {
     public void processMessage() throws Exception {
 
         // Given
-        WriteOrder message = new WriteOrder()
-            .setArchiveId("tarId")
-            .setBucket("bucket")
-            .setFilePath("file_bucket")
-            .setSize(1000L)
-            .setDigest("digest");
+        WriteOrder message = new WriteOrder("bucket", "file-bucket-id", "filePath", 1000L, "digest", "tarId",
+            QueueMessageType.WriteOrder);
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         doAnswer((args) -> {

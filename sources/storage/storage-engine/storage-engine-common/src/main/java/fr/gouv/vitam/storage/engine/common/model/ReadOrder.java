@@ -32,14 +32,12 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 
 public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
-    public static final String READ_REQUEST_ID = "ReadRequestId";
     public static final String TAPE_CODE = "tapeCode";
     public static final String FILE_POSITION = "filePosition";
     public static final String FILE_NAME = "fileName";
     public static final String BUCKET = "bucket";
-
-    @JsonProperty(READ_REQUEST_ID)
-    private String readRequestId;
+    public static final String FILE_BUCKET_ID = "fileBucketId";
+    public static final String SIZE = "size";
 
     @JsonProperty(TAPE_CODE)
     private String tapeCode;
@@ -53,22 +51,26 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
     @JsonProperty(FILE_NAME)
     private String fileName;
 
+    @JsonProperty(FILE_BUCKET_ID)
+    private String fileBucketId;
+
+    @JsonProperty(SIZE)
+    private long size;
+
     public ReadOrder() {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.ReadOrder);
     }
 
-    public ReadOrder(String readRequestId, String tapeCode, Integer filePosition, String fileName, String bucket) {
+    public ReadOrder(String tapeCode, Integer filePosition, String fileName, String bucket,
+        String fileBucketId, long size) {
         this();
-        ParametersChecker.checkParameter("All params are required", readRequestId, tapeCode, filePosition);
-        this.readRequestId = readRequestId;
+        ParametersChecker.checkParameter("All params are required", tapeCode, filePosition, fileName, bucket, fileBucketId);
         this.tapeCode = tapeCode;
         this.filePosition = filePosition;
         this.fileName = fileName;
         this.bucket = bucket;
-    }
-
-    public String getReadRequestId() {
-        return readRequestId;
+        this.fileBucketId = fileBucketId;
+        this.size = size;
     }
 
     public String getTapeCode() {
@@ -112,6 +114,24 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
 
     public ReadOrder setBucket(String bucket) {
         this.bucket = bucket;
+        return this;
+    }
+
+    public String getFileBucketId() {
+        return fileBucketId;
+    }
+
+    public ReadOrder setFileBucketId(String fileBucketId) {
+        this.fileBucketId = fileBucketId;
+        return this;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public ReadOrder setSize(long size) {
+        this.size = size;
         return this;
     }
 }

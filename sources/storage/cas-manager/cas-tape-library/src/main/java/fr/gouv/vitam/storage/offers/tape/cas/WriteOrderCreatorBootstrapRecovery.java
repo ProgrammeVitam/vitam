@@ -315,10 +315,12 @@ public class WriteOrderCreatorBootstrapRecovery {
         // Add to queue
         WriteOrder message = new WriteOrder(
             bucket,
+            fileBucket,
             LocalFileUtils.archiveFileNameRelativeToInputArchiveStorageFolder(fileBucket, archiveId),
             size,
             digest,
-            archiveId
+            archiveId,
+            QueueMessageType.WriteOrder
         );
 
         // Write Backup order

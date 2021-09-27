@@ -106,6 +106,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     private final TapeCatalogService tapeCatalogService;
     private final String outputTarStorageFolder;
     private final ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+    private final BucketTopologyHelper bucketTopologyHelper;
 
     public TapeLibraryContentAddressableStorage(
         BasicFileStorage basicFileStorage,
@@ -115,7 +116,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         FileBucketTarCreatorManager fileBucketTarCreatorManager,
         QueueRepository readWriteQueue, TapeCatalogService tapeCatalogService,
         String outputTarStorageFolder,
-        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy) {
+        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy,
+        BucketTopologyHelper bucketTopologyHelper) {
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
         this.archiveReferentialRepository = archiveReferentialRepository;
@@ -125,6 +127,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         this.tapeCatalogService = tapeCatalogService;
         this.outputTarStorageFolder = outputTarStorageFolder;
         this.archiveOutputRetentionPolicy = archiveOutputRetentionPolicy;
+        this.bucketTopologyHelper = bucketTopologyHelper;
     }
 
     @Override
@@ -349,8 +352,10 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                 // Create read orders
                 String tapeCode = ((TapeLibraryOnTapeArchiveStorageLocation) tarLocation).getTapeCode();
                 Integer filePosition = ((TapeLibraryOnTapeArchiveStorageLocation) tarLocation).getFilePosition();
+                long fileSize = tapeLibraryTarReferentialEntity.get().getSize();
                 String bucketId = getBucketByTapeCode(tapeCode);
-                ReadOrder readOrder = new ReadOrder(readRequestId, tapeCode, filePosition, tarId, bucketId);
+                String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
+                ReadOrder readOrder = new ReadOrder(tapeCode, filePosition, tarId, bucketId, fileBucketId, fileSize);
 
                 // add read orders to worker queue
                 readWriteQueue.addIfAbsent(

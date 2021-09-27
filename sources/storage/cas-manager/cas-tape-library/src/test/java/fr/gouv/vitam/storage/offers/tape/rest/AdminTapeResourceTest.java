@@ -33,17 +33,18 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
-import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
-import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -52,11 +53,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AdminTapeResourceTest {
 
@@ -98,7 +99,7 @@ public class AdminTapeResourceTest {
     }
 
     @Test
-    public void testPutObjectOk() throws IOException, InterruptedException, ArchiveReferentialException {
+    public void testPutObjectOk() throws Exception {
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
             archiveReferentialRepository, readWriteQueue);
         BackupFileStorage backupFileStorage =
@@ -116,22 +117,32 @@ public class AdminTapeResourceTest {
         Optional<TapeArchiveReferentialEntity> archiveReference =
             archiveReferentialRepository.find(objectId);
 
-        Assertions.assertThat(archiveReference).isPresent();
-        Assertions.assertThat(archiveReference.get().getLocation()).isInstanceOf(
+        assertThat(archiveReference).isPresent();
+        assertThat(archiveReference.get().getLocation()).isInstanceOf(
             TapeLibraryBuildingOnDiskArchiveStorageLocation.class);
 
         writeOrderCreator.startListener();
 
         // Wait until writeOrder will be processed
-        Thread.sleep(500);
+        Thread.sleep(2000);
 
-        Assertions.assertThat(queueCollection.count()).isEqualTo(1);
+        assertThat(queueCollection.count()).isEqualTo(1);
 
         archiveReference = archiveReferentialRepository.find(objectId);
 
-        Assertions.assertThat(archiveReference).isPresent();
-        Assertions.assertThat(archiveReference.get().getLocation()).isInstanceOf(
+        assertThat(archiveReference).isPresent();
+        assertThat(archiveReference.get().getLocation()).isInstanceOf(
             TapeLibraryReadyOnDiskArchiveStorageLocation.class);
 
+        Optional<ReadWriteOrder> readWriteOrder = readWriteQueue.receive(QueueMessageType.WriteBackupOrder);
+        assertThat(readWriteOrder).isPresent();
+        WriteOrder writeOrder = (WriteOrder) readWriteOrder.get();
+        assertThat(writeOrder.getArchiveId()).isEqualTo(objectId);
+        assertThat(writeOrder.getSize()).isEqualTo(10240L);
+        assertThat(writeOrder.getBucket()).isEqualTo(BucketTopologyHelper.BACKUP_BUCKET);
+        assertThat(writeOrder.getFileBucketId()).isEqualTo(BucketTopologyHelper.BACKUP_FILE_BUCKET);
+        assertThat(writeOrder.getDigest()).isEqualTo(
+            "4f68ecd1a386def8129359761b774e56207875be2da4e2d6b29c75a61b006243a183576111e9d26bdae3666319eb5add714e845bd16dde3a35eab39ae8cf7c9f");
+        assertThat(writeOrder.getFilePath()).isEqualTo(BucketTopologyHelper.BACKUP_FILE_BUCKET + "/" + objectId);
     }
 }

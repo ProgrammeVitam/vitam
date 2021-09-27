@@ -270,18 +270,14 @@ public class FileBucketTarCreatorTest {
             TimeUnit.SECONDS, inputTarStoragePath.toString(),
             maxTarEntrySize, maxTarFileSize);
 
-        doAnswer((args) -> {
-            return null;
-        }).when(basicFileStorage).deleteFile(any(), any());
+        doAnswer((args) -> null).when(basicFileStorage).deleteFile(any(), any());
 
         fileBucketTarCreator.startListener();
 
         List<String> objectDigests = new ArrayList<>();
         List<String> storageIds = new ArrayList<>();
 
-        for (int i = 0; i < objectsToWrite.size(); i++) {
-            ObjectToWrite objectToWrite = objectsToWrite.get(i);
-
+        for (ObjectToWrite objectToWrite : objectsToWrite) {
             Digest digest = new Digest(digestType);
             InputStream digestInputStream = digest.getDigestInputStream(objectToWrite.inputStream);
 
@@ -297,7 +293,7 @@ public class FileBucketTarCreatorTest {
                 objectToWrite.containerName, objectToWrite.objectName, storageId, objectToWrite.size, digestValue,
                 digestType.getName()));
 
-            Thread.sleep(1000 * objectToWrite.sleepDelayInSeconds);
+            Thread.sleep(1000L * objectToWrite.sleepDelayInSeconds);
         }
 
         // Then
@@ -401,6 +397,7 @@ public class FileBucketTarCreatorTest {
 
             Path tarFilePath = tarIdToTarFile.get(tarReferentialEntity.getArchiveId());
             assertThat(writeOrder.getBucket()).isEqualTo(bucketId);
+            assertThat(writeOrder.getFileBucketId()).isEqualTo(fileBucketId);
             assertThat(writeOrder.getDigest())
                 .isEqualTo(new Digest(digestType).update(tarFilePath.toFile()).digestHex());
             assertThat(writeOrder.getSize()).isEqualTo(tarFilePath.toFile().length());
