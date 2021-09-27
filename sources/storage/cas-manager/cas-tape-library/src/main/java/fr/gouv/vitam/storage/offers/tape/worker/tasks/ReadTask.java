@@ -142,9 +142,11 @@ public class ReadTask implements Future<ReadWriteResult> {
             readFromTape();
 
         } catch (TapeCatalogException | QueueException e) {
+            LOGGER.error("Read task failed", e);
             // Drive UP, Order Ready
             return new ReadWriteResult(KO, QueueState.READY, workerCurrentTape);
         } catch (ReadWriteException e) {
+            LOGGER.error("Read task failed", e);
             switch (e.getReadWriteErrorCode()) {
                 // Drive DOWN (FATAL), Order Ready
                 case TAPE_LOCATION_CONFLICT_ON_UNLOAD:
@@ -262,7 +264,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             ne(TapeCatalog.TAPE_STATE, TapeState.CONFLICT.name())
         );
         Optional<TapeCatalog> found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
-        if (!found.isPresent()) {
+        if (found.isEmpty()) {
             List<TapeCatalog> tapes = tapeCatalogService.find(Arrays
                 .asList(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
             if (tapes.size() == 0) {

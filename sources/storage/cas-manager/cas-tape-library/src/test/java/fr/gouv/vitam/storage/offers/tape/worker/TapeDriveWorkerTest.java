@@ -30,8 +30,8 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -52,7 +52,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,13 +89,6 @@ public class TapeDriveWorkerTest {
 
     @Before
     public void setUp() throws Exception {
-        reset(tapeRobotPool);
-        reset(tapeDriveService);
-        reset(tapeCatalogService);
-        reset(tapeDriveOrderConsumer);
-        reset(tapeDriveConf);
-        reset(archiveReferentialRepository);
-        reset(archiveOutputRetentionPolicy);
         when(tapeDriveService.getTapeDriveConf()).thenReturn(tapeDriveConf);
     }
 

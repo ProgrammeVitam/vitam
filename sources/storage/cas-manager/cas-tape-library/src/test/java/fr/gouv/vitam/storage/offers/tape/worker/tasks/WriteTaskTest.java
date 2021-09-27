@@ -78,7 +78,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -119,16 +118,6 @@ public class WriteTaskTest {
 
     @Before
     public void setUp() throws Exception {
-
-        reset(tapeRobotPool);
-        reset(tapeRobotService);
-        reset(tapeDriveService);
-        reset(tapeCatalogService);
-        reset(tapeReadWriteService);
-        reset(tapeDriveCommandService);
-        reset(tapeLoadUnloadService);
-        reset(archiveReferentialRepository);
-
         when(tapeDriveService.getReadWriteService(eq(TapeDriveService.ReadWriteCmd.DD)))
             .thenAnswer(o -> tapeReadWriteService);
         when(tapeDriveService.getDriveCommandService()).thenAnswer(o -> tapeDriveCommandService);

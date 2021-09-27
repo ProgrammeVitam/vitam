@@ -198,20 +198,20 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
             order = selectWriteOrderByBucket(driveWorker.getCurrentTape().getBucket());
 
-            if (!order.isPresent()) {
+            if (order.isEmpty()) {
                 order = selectReadOrderByTapeCode(driveWorker.getCurrentTape().getCode());
             }
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectWriteOrderExcludingActiveBuckets();
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectOrder(QueueMessageType.WriteOrder);
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectReadOrderExcludingTapeCodes();
         }
 
@@ -224,7 +224,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         Optional<? extends ReadWriteOrder> order = selectOrder(QueueMessageType.WriteBackupOrder);
 
         // If no write backup order then we take any other write order
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             return selectReadWriteOrderWithWritePriority(driveWorker);
         }
 
@@ -240,20 +240,20 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
             order = selectReadOrderByTapeCode(driveWorker.getCurrentTape().getCode());
 
-            if (!order.isPresent()) {
+            if (order.isEmpty()) {
                 order = selectWriteOrderByBucket(driveWorker.getCurrentTape().getBucket());
             }
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectReadOrderExcludingTapeCodes();
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectWriteOrderExcludingActiveBuckets();
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectOrder(QueueMessageType.WriteOrder);
         }
 

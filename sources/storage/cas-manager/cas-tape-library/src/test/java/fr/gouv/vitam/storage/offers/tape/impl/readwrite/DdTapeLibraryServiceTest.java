@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.internal.verification.VerificationModeFactory;
@@ -44,7 +43,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,12 +55,6 @@ public class DdTapeLibraryServiceTest {
 
     private TapeDriveConf tapeDriveConf = mock(TapeDriveConf.class);
     private ProcessExecutor processExecutor = mock(ProcessExecutor.class);
-
-    @Before
-    public void setUp() throws Exception {
-        reset(tapeDriveConf);
-        reset(processExecutor);
-    }
 
     @Test
     public void test_constructor() {

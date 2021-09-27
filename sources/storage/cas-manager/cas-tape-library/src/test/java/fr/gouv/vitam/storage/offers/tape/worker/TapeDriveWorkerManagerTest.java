@@ -35,8 +35,8 @@ import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
@@ -59,7 +59,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -91,11 +90,6 @@ public class TapeDriveWorkerManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        reset(queueRepository);
-        reset(tapeLibraryPool);
-        reset(driveTape);
-        reset(archiveOutputRetentionPolicy);
-
         tapeDriveWorkerManager = new TapeDriveWorkerManager(
             queueRepository, archiveReferentialRepository, readRequestReferentialRepository, tapeLibraryPool, driveTape, "", false,
             archiveOutputRetentionPolicy);

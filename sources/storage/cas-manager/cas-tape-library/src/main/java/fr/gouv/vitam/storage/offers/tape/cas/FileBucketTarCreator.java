@@ -137,8 +137,10 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         try {
             inputStream = openInputFile(message);
 
-            if (!inputStream.isPresent()) {
+            if (inputStream.isEmpty()) {
                 // File deleted meanwhile. Skip quietly...
+                LOGGER.info("File {} ({}/{}) not found. Deleted meanwhile?", message.getStorageId(),
+                    message.getContainerName(), message.getObjectName());
                 return;
             }
 

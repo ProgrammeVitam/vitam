@@ -142,7 +142,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             readWriteResult.setOrderState(QueueState.COMPLETED);
 
         } catch (ReadWriteException e) {
-            LOGGER.error(e);
+            LOGGER.error("Write task failed", e);
             readWriteResult.setCode(e.getReadWriteErrorCode());
             switch (e.getReadWriteErrorCode()) {
                 case KO_LABEL_DISCORDING:

@@ -116,14 +116,6 @@ public class ReadTaskTest {
 
     @Before
     public void setUp() throws IOException {
-
-        reset(tapeRobotPool);
-        reset(tapeDriveService);
-        reset(tapeCatalogService);
-        reset(tapeReadWriteService);
-        reset(tapeReadWriteService);
-        reset(archiveOutputRetentionPolicy);
-
         when(tapeDriveService.getReadWriteService(eq(TapeDriveService.ReadWriteCmd.DD)))
             .thenAnswer(o -> tapeReadWriteService);
 

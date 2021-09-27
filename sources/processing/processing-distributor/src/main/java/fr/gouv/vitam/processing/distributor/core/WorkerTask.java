@@ -109,6 +109,11 @@ public class WorkerTask implements Supplier<ItemStatus> {
                 workerBean.getConfiguration().getServerHost(),
                 workerBean.getConfiguration().getServerPort());
 
+            /*
+             * FIXME : Bug #8729 - Updating a static client configuration can cause :
+             *  - Inconsistent state : non synchronized client configuration mutation may cause unexpected behaviour
+             *  - Minor perf degradation (especially if HTTPS is enabled)
+             */
             WorkerClientFactory.changeMode(configuration);
             WorkerClient workerClient;
             if (null == workerClientFactory) {

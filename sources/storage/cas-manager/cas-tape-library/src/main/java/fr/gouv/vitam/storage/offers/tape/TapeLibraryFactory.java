@@ -216,6 +216,8 @@ public class TapeLibraryFactory {
             // force rewind
             forceRewindOnBootstrap(driveServices, driveTape);
 
+            // FIXME #8760 : Check labels of loaded tapes in drives
+
             // Start all workers
             tapeDriveWorkerManagers
                 .put(tapeLibraryIdentifier,

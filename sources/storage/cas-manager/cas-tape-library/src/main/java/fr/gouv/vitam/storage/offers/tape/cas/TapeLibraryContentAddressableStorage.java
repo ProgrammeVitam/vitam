@@ -170,6 +170,10 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                 String.format("Could not index the object %s in container %s in database", objectName, containerName),
                 ex);
         } finally {
+            // Add message to queue even on DB exception :
+            // - If DB insertion succeeded, but got exception due to Network failure ==> This ensures that the object didn't get lost
+            // - If DB insertion failed ==> object will be added to TAR, but will be orphan (that's OK)
+
             // Notify tar file builder queue
             fileBucketTarCreatorManager.addToQueue(
                 new InputFileToProcessMessage(containerName, objectName, storageId, size, digestValue,
@@ -193,7 +197,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             throw new ContentAddressableStorageServerException(e);
         }
 
-        if (!objectReferentialEntity.isPresent()) {
+        if (objectReferentialEntity.isEmpty()) {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
         }
@@ -244,7 +248,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         try {
             Optional<TapeArchiveReferentialEntity> tapeLibraryTarReferentialEntity =
                 archiveReferentialRepository.find(tarEntry.getTarFileId());
-            if (!tapeLibraryTarReferentialEntity.isPresent()) {
+            if (tapeLibraryTarReferentialEntity.isEmpty()) {
                 throw new IllegalStateException(
                     "TAR information not found for tarId : " + tarEntry.getTarFileId() + " object :" + containerName +
                         "/" + objectName);
@@ -283,7 +287,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
                 Optional<TapeObjectReferentialEntity> object =
                     objectReferentialRepository.find(containerName, objectName);
-                if (!object.isPresent()) {
+                if (object.isEmpty()) {
                     throw new ContentAddressableStorageNotFoundException(
                         ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
                 }
@@ -327,7 +331,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             for (String tarId : archiveSet) {
                 Optional<TapeArchiveReferentialEntity> tapeLibraryTarReferentialEntity =
                     archiveReferentialRepository.find(tarId);
-                if (!tapeLibraryTarReferentialEntity.isPresent()) {
+                if (tapeLibraryTarReferentialEntity.isEmpty()) {
                     throw new IllegalStateException("TAR information not found for tarId : " + tarId);
                 }
 
@@ -453,7 +457,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             Optional<TapeObjectReferentialEntity> objectReferentialEntity =
                 objectReferentialRepository.find(containerName, objectName);
 
-            if (!objectReferentialEntity.isPresent()) {
+            if (objectReferentialEntity.isEmpty()) {
                 throw new ContentAddressableStorageNotFoundException(
                     String.format("No such object %s in container %s", objectName, containerName));
             }
@@ -495,7 +499,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             Optional<TapeObjectReferentialEntity> objectReferentialEntity =
                 objectReferentialRepository.find(containerName, objectName);
 
-            if (!objectReferentialEntity.isPresent()) {
+            if (objectReferentialEntity.isEmpty()) {
                 throw new ContentAddressableStorageNotFoundException(
                     String.format("No such object %s in container %s", objectName, containerName));
             }

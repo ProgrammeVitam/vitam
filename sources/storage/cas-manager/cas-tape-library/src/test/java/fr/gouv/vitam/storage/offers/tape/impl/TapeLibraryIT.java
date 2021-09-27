@@ -29,8 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.impl;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -54,8 +52,6 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
-import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
@@ -78,8 +74,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -376,8 +370,7 @@ public class TapeLibraryIT {
     }
 
     @Test
-    public void test_load_rewind_write_read_rewind_then_unload_tape() throws InterruptedException,
-        IOException {
+    public void test_load_rewind_write_read_rewind_then_unload_tape() throws Exception {
 
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
@@ -403,7 +396,7 @@ public class TapeLibraryIT {
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.isOK()).isTrue();
 
-            TapeReadWriteService ddRreadWriteService =
+            TapeReadWriteService ddReadWriteService =
                 tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD);
 
             TapeDriveCommandService driveCommandService = tapeDriveService.getDriveCommandService();
@@ -417,7 +410,7 @@ public class TapeLibraryIT {
 
 
             //3 Write file to tape
-            response = ddRreadWriteService.writeToTape("testtar.tar");
+            response = ddReadWriteService.writeToTape("testtar.tar");
 
             Assertions.assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
@@ -433,7 +426,7 @@ public class TapeLibraryIT {
 
 
             // 5 Read file from tape with dd command
-            response = ddRreadWriteService.readFromTape("testtar.tar");
+            response = ddReadWriteService.readFromTape("testtar.tar");
             assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.isOK()).isTrue();
@@ -469,7 +462,7 @@ public class TapeLibraryIT {
     }
 
     @Test
-    public void test_read_files_from_tape() throws InterruptedException, IOException {
+    public void test_read_files_from_tape() throws Exception {
 
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
@@ -533,7 +526,7 @@ public class TapeLibraryIT {
             TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
             String tapeCode = state.getSlots().get(SLOT_INDEX - 1).getTape().getVolumeTag();
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
-                Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
+                List.of(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 
             String readRequestId = GUIDFactory.newGUID().getId();
 
@@ -577,9 +570,9 @@ public class TapeLibraryIT {
             String outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
             File outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
-            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240);
             archiveOutputRetentionPolicy.invalidate("testtar.tar");
-            FileUtils.forceDeleteOnExit(outputTarFile);
+            FileUtils.forceDelete(outputTarFile);
 
             ReadWriteResult result2 = readTask2.get();
             assertThat(result2).isNotNull();
@@ -588,9 +581,9 @@ public class TapeLibraryIT {
             outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
             outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
-            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            Assertions.assertThat(outputTarFile.length()).isEqualTo(6_144L);
             archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
-            FileUtils.forceDeleteOnExit(outputTarFile);
+            FileUtils.forceDelete(outputTarFile);
 
             // Test of move backward (bsfm) : We are in position 2 try to re-read second file
             result2 = readTask2.get();
@@ -600,9 +593,9 @@ public class TapeLibraryIT {
             outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
             outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
-            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            Assertions.assertThat(outputTarFile.length()).isEqualTo(6_144L);
             archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
-            FileUtils.forceDeleteOnExit(outputTarFile);
+            FileUtils.forceDelete(outputTarFile);
 
             // Test of move backward rewind : We are in position 2 try to re-read first file
             result1 = readTask1.get();
@@ -612,9 +605,9 @@ public class TapeLibraryIT {
             outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
             outputTarFile = new File(outputFile);
             Assertions.assertThat(outputTarFile).exists();
-            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240);
             archiveOutputRetentionPolicy.invalidate("testtar.tar");
-            FileUtils.forceDeleteOnExit(outputTarFile);
+            FileUtils.forceDelete(outputTarFile);
 
             // Assert ReadRequestReferentialRepository
             actual = readRequestReferentialRepository.find(readRequestId);
@@ -626,8 +619,6 @@ public class TapeLibraryIT {
             assertThat(tapeReadRequestReferentialEntity.getTarLocations().get("testtar_2")).isEqualTo(TarLocation.DISK);
             assertThat(tapeReadRequestReferentialEntity.isCompleted()).isTrue();
 
-        } catch (TapeCatalogException | ReadRequestReferentialException e) {
-            e.printStackTrace();
         } finally {
             try {
                 tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX);
