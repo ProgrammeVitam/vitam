@@ -53,8 +53,8 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
         ArchiveCacheStorage archiveCacheStorage) {
 
         if (order.isWriteOrder()) {
-            readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeLibraryService,
-                tapeCatalogService, archiveReferentialRepository, inputTarPath, forceOverrideNonEmptyCartridges
+            readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService,
+                archiveReferentialRepository, archiveCacheStorage, inputTarPath, forceOverrideNonEmptyCartridges
             );
         } else {
             readWriteTask = new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService,

@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
@@ -43,6 +44,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
@@ -56,6 +58,7 @@ import org.apache.commons.io.FileUtils;
 import org.bson.conversions.Bson;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -94,6 +97,7 @@ public class WriteTask implements Future<ReadWriteResult> {
     private final ArchiveReferentialRepository archiveReferentialRepository;
     private final TapeLibraryService tapeLibraryService;
     private final TapeCatalogService tapeCatalogService;
+    private final ArchiveCacheStorage archiveCacheStorage;
     private final WriteOrder writeOrder;
     private int cartridgeRetry = CARTRIDGE_RETRY;
     private final boolean forceOverrideNonEmptyCartridges;
@@ -101,18 +105,22 @@ public class WriteTask implements Future<ReadWriteResult> {
     public WriteTask(
         WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService,
         TapeCatalogService tapeCatalogService,
-        ArchiveReferentialRepository archiveReferentialRepository, String inputTarPath,
+        ArchiveReferentialRepository archiveReferentialRepository,
+        ArchiveCacheStorage archiveCacheStorage, String inputTarPath,
         boolean forceOverrideNonEmptyCartridges) {
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
         ParametersChecker
             .checkParameter("ArchiveReferentialRepository param is required.", archiveReferentialRepository);
+        ParametersChecker.checkParameter("ArchiveCacheStorage param is required.", archiveCacheStorage);
+        ParametersChecker.checkParameter("InputTarPath param is required.", inputTarPath);
         this.writeOrder = writeOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeLibraryService = tapeLibraryService;
         this.tapeCatalogService = tapeCatalogService;
         this.archiveReferentialRepository = archiveReferentialRepository;
+        this.archiveCacheStorage = archiveCacheStorage;
         this.inputTarPath = inputTarPath;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeLibraryService.getLibraryIdentifier(),
             tapeLibraryService.getDriveIndex());
@@ -136,7 +144,9 @@ public class WriteTask implements Future<ReadWriteResult> {
                 loadTapeAndWrite(file);
             }
 
-            retryable().execute(() -> updateTarReferential(file));
+            retryable().execute(this::updateTarReferential);
+
+            moveArchiveToCache(file);
 
             readWriteResult.setStatus(StatusCode.OK);
             readWriteResult.setOrderState(QueueState.COMPLETED);
@@ -215,6 +225,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case FILE_NOT_FOUND:
                     // File delete or not generated
                     // Mark write order as error state
+                case KO_ON_MOVE_TO_CACHE:
                 case INTERNAL_ERROR_SERVER:
                 default:
                     readWriteResult.setStatus(StatusCode.FATAL);
@@ -226,20 +237,36 @@ public class WriteTask implements Future<ReadWriteResult> {
         return readWriteResult;
     }
 
+    private void moveArchiveToCache(File archiveFile) throws ReadWriteException {
+        try {
+            // Reserve cache storage space
+            archiveCacheStorage.reserveArchiveStorageSpace(writeOrder.getFileBucketId(), writeOrder.getArchiveId(),
+                writeOrder.getSize());
 
-    private void updateTarReferential(File file) throws ReadWriteException {
+            try {
+                // Move archive to cache
+                archiveCacheStorage.moveArchiveToCache(archiveFile.toPath(), writeOrder.getFileBucketId(),
+                    writeOrder.getArchiveId());
+            } catch (Exception e) {
+                // On error, cancel reservation
+                archiveCacheStorage.cancelReservedArchive(writeOrder.getFileBucketId(), writeOrder.getArchiveId());
+                throw e;
+            }
+
+        } catch (IllegalPathException | IOException | IllegalStateException e) {
+            throw new ReadWriteException(
+                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while moving archive file '" +
+                    archiveFile + "' to archive cache", e, ReadWriteErrorCode.KO_ON_MOVE_TO_CACHE);
+        }
+    }
+
+    private void updateTarReferential() throws ReadWriteException {
         try {
             TapeLibraryOnTapeArchiveStorageLocation onTapeTarStorageLocation =
                 new TapeLibraryOnTapeArchiveStorageLocation(workerCurrentTape.getCode(),
                     workerCurrentTape.getFileCount() - 1);
 
             archiveReferentialRepository.updateLocationToOnTape(writeOrder.getArchiveId(), onTapeTarStorageLocation);
-
-            FileUtils.deleteQuietly(file);
-
-            // Move file to output directory for later reading ?
-            //  Path targetPath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(file.getName()).toAbsolutePath();
-            //  Files.move(file.toPath(), targetPath, StandardCopyOption.ATOMIC_MOVE);
 
         } catch (ArchiveReferentialException e) {
             throw new ReadWriteException(
@@ -284,7 +311,7 @@ public class WriteTask implements Future<ReadWriteResult> {
     private File getWriteOrderFile() throws ReadWriteException {
         File file = new File(inputTarPath, writeOrder.getFilePath());
 
-        if (!file.exists()) {
+        if (!file.exists() || !file.isFile()) {
             throw new ReadWriteException(
                 MSG_PREFIX + TAPE_MSG + (workerCurrentTape == null ? "null" : workerCurrentTape.getCode()) +
                     " Action : Write, Order: " + JsonHandler.unprettyPrint(writeOrder) + ", Error: File not found",
@@ -482,7 +509,8 @@ public class WriteTask implements Future<ReadWriteResult> {
     }
 
     private RetryableOnException<Void, ReadWriteException> retryable() {
-        RetryableParameters parameters = new RetryableParameters(NB_RETRY, SLEEP_TIME, SLEEP_TIME, RANDOM_RANGE_SLEEP, MILLISECONDS);
+        RetryableParameters parameters =
+            new RetryableParameters(NB_RETRY, SLEEP_TIME, SLEEP_TIME, RANDOM_RANGE_SLEEP, MILLISECONDS);
         return new RetryableOnException<>(parameters);
     }
 
