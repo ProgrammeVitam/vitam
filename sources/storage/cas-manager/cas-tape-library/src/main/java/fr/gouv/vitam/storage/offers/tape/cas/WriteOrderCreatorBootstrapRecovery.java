@@ -32,17 +32,18 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.logging.log4j.util.Strings;
 
@@ -72,17 +73,20 @@ public class WriteOrderCreatorBootstrapRecovery {
     private final BucketTopologyHelper bucketTopologyHelper;
     private final WriteOrderCreator writeOrderCreator;
     private final TarFileRapairer tarFileRapairer;
+    private final ArchiveCacheStorage archiveCacheStorage;
 
     public WriteOrderCreatorBootstrapRecovery(
         String inputTarStorageFolder,
         ArchiveReferentialRepository archiveReferentialRepository,
         BucketTopologyHelper bucketTopologyHelper,
-        WriteOrderCreator writeOrderCreator, TarFileRapairer tarFileRapairer) {
+        WriteOrderCreator writeOrderCreator, TarFileRapairer tarFileRapairer,
+        ArchiveCacheStorage archiveCacheStorage) {
         this.inputTarStorageFolder = inputTarStorageFolder;
         this.archiveReferentialRepository = archiveReferentialRepository;
         this.bucketTopologyHelper = bucketTopologyHelper;
         this.writeOrderCreator = writeOrderCreator;
         this.tarFileRapairer = tarFileRapairer;
+        this.archiveCacheStorage = archiveCacheStorage;
     }
 
     public void initializeOnBootstrap() {
@@ -110,7 +114,8 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void recoverFileBucket(String fileBucket, Path fileBucketArchiveStoragePath)
-        throws IOException, ArchiveReferentialException, ObjectReferentialException, QueueException {
+        throws IOException, ArchiveReferentialException, ObjectReferentialException, QueueException,
+        IllegalPathException {
 
         Map<String, FileGroup> archiveFileGroups = getFileListGroupedByArchiveId(fileBucketArchiveStoragePath);
 
@@ -220,21 +225,36 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void processReadyArchive(String fileBucket, Path fileBucketArchiveStoragePath, String archiveId)
-        throws ArchiveReferentialException, IOException, ObjectReferentialException, QueueException {
+        throws ArchiveReferentialException, IOException, ObjectReferentialException, QueueException,
+        IllegalPathException {
 
         Path archiveFile = fileBucketArchiveStoragePath.resolve(archiveId);
 
         Optional<TapeArchiveReferentialEntity> tarReferentialEntity = archiveReferentialRepository.find(archiveId);
-        if (!tarReferentialEntity.isPresent()) {
+        if (tarReferentialEntity.isEmpty()) {
             throw new IllegalStateException(
-                "Unknown archive file in Archive referential '" + archiveFile.toString() + "'");
+                "Unknown archive file in Archive referential '" + archiveFile + "'");
         }
 
         if (tarReferentialEntity.get()
             .getLocation() instanceof TapeLibraryOnTapeArchiveStorageLocation) {
 
-            LOGGER.warn("Archive file {} already written on tape. Deleting it", archiveFile);
-            Files.delete(archiveFile);
+            if (archiveCacheStorage.containsArchive(fileBucket, archiveId)) {
+                LOGGER.warn("Archive file {}/{} already written on tape, and in cache. Deleting it", fileBucket, archiveFile);
+                Files.delete(archiveFile);
+            } else {
+
+                LOGGER.warn("Archive file {}/{} already written on tape, moving it to cache", fileBucket, archiveFile);
+
+                // Reserve cache space and move archive to cache
+                archiveCacheStorage.reserveArchiveStorageSpace(fileBucket, archiveId, tarReferentialEntity.get().getSize());
+                try {
+                    archiveCacheStorage.moveArchiveToCache(archiveFile, fileBucket, archiveId);
+                } catch (Exception e) {
+                    archiveCacheStorage.cancelReservedArchive(fileBucket, archiveId);
+                    throw e;
+                }
+            }
 
         } else if (tarReferentialEntity.get().getLocation()
             instanceof TapeLibraryReadyOnDiskArchiveStorageLocation) {

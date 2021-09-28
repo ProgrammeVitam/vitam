@@ -140,7 +140,7 @@ public class TapeLibraryFactory {
         WriteOrderCreatorBootstrapRecovery
             writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
             configuration.getInputTarStorageFolder(), archiveReferentialRepository,
-            bucketTopologyHelper, writeOrderCreator, tarFileRapairer);
+            bucketTopologyHelper, writeOrderCreator, tarFileRapairer, archiveCacheStorage);
 
 
         backupFileStorage =
