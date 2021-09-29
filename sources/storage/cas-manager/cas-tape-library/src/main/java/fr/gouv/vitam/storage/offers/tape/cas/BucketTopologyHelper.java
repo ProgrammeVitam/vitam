@@ -173,6 +173,10 @@ public class BucketTopologyHelper {
             throw new VitamRuntimeException("Invalid conf. File buckets must not be null");
         }
 
+        if(fileBuckets.containsKey(BACKUP_FILE_BUCKET)) {
+            throw new VitamRuntimeException("Reserved " + BACKUP_FILE_BUCKET + " file bucket");
+        }
+
         if (fileBuckets.containsValue(null)) {
             throw new VitamRuntimeException("Null file bucket configuration");
         }
@@ -256,6 +260,10 @@ public class BucketTopologyHelper {
             .map(TapeLibraryBucketConfiguration::getTenants)
             .flatMap(Collection::stream))) {
             throw new VitamRuntimeException("Duplicates found in file bucket configuration");
+        }
+
+        if(buckets.containsKey(BACKUP_BUCKET)) {
+            throw new VitamRuntimeException("Reserved " + BACKUP_BUCKET + " bucket");
         }
 
         Set<Integer> fileBucketTenants = buckets.values().stream()

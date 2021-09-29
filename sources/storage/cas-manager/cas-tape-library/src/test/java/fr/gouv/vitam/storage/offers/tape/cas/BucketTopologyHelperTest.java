@@ -59,6 +59,8 @@ public class BucketTopologyHelperTest {
             .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-null-tenant.conf"))
             .isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-reserved-backup-bucket.conf"))
+            .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-empty-buckets.conf"))
             .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-negative-tar-buffering-timeout.conf"))
@@ -78,6 +80,8 @@ public class BucketTopologyHelperTest {
         assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-non-empty-default.conf"))
             .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-null-folders.conf"))
+            .isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-reserved-backup-db-file-bucket.conf"))
             .isInstanceOf(Exception.class);
 
         loadTopology("topology-test.conf");
