@@ -45,6 +45,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
+import fr.gouv.vitam.storage.offers.tape.cas.IncompleteWriteOrderBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
@@ -170,6 +171,11 @@ public class TapeLibraryFactory {
 
         // Create tar WriteOrders from inputTars folder
         fileBucketTarCreatorManager.initializeOnBootstrap();
+
+        // Cleanup incomplete TAR files
+        IncompleteWriteOrderBootstrapRecovery incompleteWriteOrderBootstrapRecovery =
+            new IncompleteWriteOrderBootstrapRecovery(configuration.getTmpTarOutputStorageFolder());
+        incompleteWriteOrderBootstrapRecovery.initializeOnBootstrap();
 
         // Initialize & start workers
         for (String tapeLibraryIdentifier : libraries.keySet()) {
