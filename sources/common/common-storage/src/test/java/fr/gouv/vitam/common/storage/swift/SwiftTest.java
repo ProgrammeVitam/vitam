@@ -409,6 +409,28 @@ public class SwiftTest {
     }
 
     @Test
+    public void when_get_object_metadata_with_lowercase_headers_response_then_return_metadata() throws Exception {
+        // Given
+        byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
+
+        this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
+        givenHeadObjectReturns20xWithLowerCaseHeaders(data);
+
+        // When
+        MetadatasObject objectMetadata = swift.getObjectMetadata(CONTAINER_NAME, OBJECT_NAME, false);
+
+        // Then
+        assertThat(objectMetadata.getObjectName()).isEqualTo(OBJECT_NAME);
+        assertThat(objectMetadata.getDigest()).isEqualTo(sha512sum(data));
+        assertThat(objectMetadata.getType()).isEqualTo("object");
+
+        // Expected 1x HEAD
+        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+
+        assertSwiftRequestCountEqualsTo(1);
+    }
+
+    @Test
     public void when_get_object_metadata_of_not_found_object_then_throw_not_found_exception() throws Exception {
         // Given
         String containerName = "0_object";
@@ -1090,6 +1112,17 @@ public class SwiftTest {
                 .withHeader(X_OBJECT_META_DIGEST, sha512sum(data))
                 .withHeader(X_OBJECT_META_DIGEST_TYPE, "SHA-512")
                 .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
+    }
+
+    private void givenHeadObjectReturns20xWithLowerCaseHeaders(byte[] data) {
+        swiftInstanceRule.stubFor(
+            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse()
+                .withStatus(201)
+                .withBody(data)
+                .withHeader(ETAG.toLowerCase(), "etag")
+                .withHeader(X_OBJECT_META_DIGEST.toLowerCase(), sha512sum(data))
+                .withHeader(X_OBJECT_META_DIGEST_TYPE.toLowerCase(), "SHA-512")
+                .withHeader("Last-Modified".toLowerCase(), "Mon, 26 Feb 2018 11:33:40 GMT")));
     }
 
     private void givenHeadObjectReturns404() {
