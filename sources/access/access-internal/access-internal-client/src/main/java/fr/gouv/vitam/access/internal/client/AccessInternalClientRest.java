@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -593,12 +594,12 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> revertUnits(JsonNode queryJson)
+    public RequestResponse<JsonNode> revertUnits(RevertUpdateOptions revertUpdateOptions)
         throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
         NoWritingPermissionException {
         Response response = null;
         try  {
-            response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/revert/units").withBody(queryJson, BLANK_DSL).withJson());
+            response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/revert/units").withBody(revertUpdateOptions, BLANK_DSL).withJson());
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
