@@ -42,7 +42,7 @@ Dans le cas contraire (cas où l'objet existe dans les autres offres), il faudra
 
 
 Migrations des unités achivestiques
-----------------------------------------------------------------------------------
+-----------------------------------
 
 La migration des données est réalisée en exécutant la commande suivante (sur le site primaire uniquement, dans le cas d'une installation multi-sites) :
 

@@ -420,6 +420,24 @@
     "cardinality": "one"
   },
   {
+    "path": "_computedInheritedRules.StorageRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.StorageRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.StorageRule.Rules.EndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_computedInheritedRules.AppraisalRule",
     "type": "object",
     "indexed": true,
@@ -433,6 +451,24 @@
   },
   {
     "path": "_computedInheritedRules.AppraisalRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AppraisalRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.AppraisalRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AppraisalRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -456,6 +492,24 @@
     "cardinality": "one"
   },
   {
+    "path": "_computedInheritedRules.DisseminationRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.DisseminationRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.DisseminationRule.Rules.EndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_computedInheritedRules.AccessRule",
     "type": "object",
     "indexed": true,
@@ -469,6 +523,24 @@
   },
   {
     "path": "_computedInheritedRules.AccessRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AccessRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.AccessRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AccessRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -492,6 +564,24 @@
     "cardinality": "one"
   },
   {
+    "path": "_computedInheritedRules.HoldRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.HoldRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.HoldRule.Rules.EndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_computedInheritedRules.ReuseRule",
     "type": "object",
     "indexed": true,
@@ -510,6 +600,24 @@
     "cardinality": "one"
   },
   {
+    "path": "_computedInheritedRules.ReuseRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.ReuseRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.ReuseRule.Rules.EndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_computedInheritedRules.ClassificationRule",
     "type": "object",
     "indexed": true,
@@ -523,6 +631,24 @@
   },
   {
     "path": "_computedInheritedRules.ClassificationRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.ClassificationRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.ClassificationRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.ClassificationRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"

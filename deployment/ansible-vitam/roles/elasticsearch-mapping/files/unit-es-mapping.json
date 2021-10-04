@@ -1634,6 +1634,17 @@
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
@@ -1646,6 +1657,17 @@
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
@@ -1658,6 +1680,17 @@
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
@@ -1670,6 +1703,17 @@
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
@@ -1682,6 +1726,17 @@
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
@@ -1694,6 +1749,17 @@
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
@@ -1706,6 +1772,17 @@
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         }
