@@ -62,6 +62,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
@@ -137,6 +138,11 @@ public class ComputeInheritedRulesActionPluginTest {
 
         assertThat(computedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001"))
             .isEqualTo(expectedComputedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001"));
+
+        assertEquals(computedInheritedRules.getDisseminationRule().getRules().size(), 1);
+        assertEquals(computedInheritedRules.getDisseminationRule().getRules().get(0).getRule(), "DIS-00001");
+        assertEquals(computedInheritedRules.getDisseminationRule().getRules().get(0).getEndDate(),
+            expectedComputedInheritedRules.getDisseminationRule().getRules().get(0).getEndDate());
     }
 
     @Test
@@ -164,6 +170,13 @@ public class ComputeInheritedRulesActionPluginTest {
             .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00002"));
         assertThat(computedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003"))
             .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003"));
+
+        assertEquals(computedInheritedRules.getAccessRule().getRules().size(), 2);
+        assertEquals(computedInheritedRules.getAccessRule().getRules().get(0).getRule(), "ACC-00003");
+        assertEquals(computedInheritedRules.getAccessRule().getRules().get(0).getEndDate(),
+            expectedComputedInheritedRules.getAccessRule().getRules().get(0).getEndDate());
+
+
     }
 
     @Test
@@ -189,6 +202,11 @@ public class ComputeInheritedRulesActionPluginTest {
 
         assertThat(computedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001"))
             .isEqualTo(expectedComputedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001"));
+
+        assertEquals(computedInheritedRules.getClassificationRule().getRules().size(), 1);
+        assertEquals(computedInheritedRules.getClassificationRule().getRules().get(0).getRule(), "CLASS-00001");
+        assertEquals(computedInheritedRules.getClassificationRule().getRules().get(0).getEndDate(),
+            expectedComputedInheritedRules.getClassificationRule().getRules().get(0).getEndDate());
     }
 
     @Test
