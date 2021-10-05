@@ -466,6 +466,7 @@ vitam:
         secret_platform: "true"
 
 # for functional-administration, manage master/slave tenant configuration
+# http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#passage-des-identifiants-des-referentiels-en-mode-esclave
 vitam_tenants_usage_external:
   - name: 0
     identifiers:
@@ -482,10 +483,11 @@ vitam_tenants_usage_external:
       - SECURITY_PROFILE
       - CONTEXT
 
+# http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies
 vitam_tenant_rule_duration:
-  - name: 2 # applied tenant
-    rules:
-      - AppraisalRule : "1 year" # rule name : rule value
+  # - name: 2 # applied tenant
+  #   rules:
+  #     - AppraisalRule : "1 year" # rule name : rule value
 
 # If you want to deploy vitam in a single VM, add the vm name in this array
 single_vm_hostnames: ['localhost']

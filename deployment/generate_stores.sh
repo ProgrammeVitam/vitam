@@ -168,7 +168,7 @@ function generateTrustStore {
 
     # Add the server certificates to the truststore
     pki_logger "Ajout des certificats serveur dans le truststore"
-    for CRT_FILE in  $(ls ${REPERTOIRE_CERTIFICAT}/server/ca/*.crt); do
+    for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/server/ca/*.crt); do
         pki_logger "Ajout de ${CRT_FILE} dans le truststore ${CLIENT_TYPE}"
         ALIAS="server-$(basename ${CRT_FILE})"
         addCrtInJks ${JKS_TRUST_STORE} \
@@ -217,6 +217,10 @@ cd $(dirname $0)
 
 TMP_P12_PASSWORD="$(generatePassphrase)"
 REPERTOIRE_KEYSTORES="${REPERTOIRE_ROOT}/environments/keystores"
+
+if [ ! -d ${REPERTOIRE_KEYSTORES}/server ]; then
+    mkdir -p ${REPERTOIRE_KEYSTORES}/server
+fi
 
 # Remove old keystores & servers directories
 find ${REPERTOIRE_KEYSTORES} -type f -name *.jks -exec rm -f {} \;
@@ -304,15 +308,15 @@ for CLIENT_TYPE in external storage; do
                     ${P12_PASSWORD} \
                     ${P12_KEYSTORE}
 
-
-        # Add the public certificate to the grantedstore
-        pki_logger "Ajout du certificat public de ${COMPONENT} dans le grantedstore ${CLIENT_TYPE}"
-        CRT_FILE="${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients/${COMPONENT}/${COMPONENT}.crt"
-
-        addCrtInJks ${JKS_GRANTED_STORE} \
-                    ${GRANTED_STORE_PASSWORD} \
-                    ${CRT_FILE} \
-                    ${COMPONENT}
+        # Add the public certificates to the grantedstore
+        for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients/${COMPONENT}/*.crt); do
+            pki_logger "Ajout du certificat ${CRT_FILE} dans le grantedstore ${CLIENT_TYPE} de ${COMPONENT}"
+            ALIAS="client-$(basename ${CRT_FILE})"
+            addCrtInJks ${JKS_GRANTED_STORE} \
+                        ${GRANTED_STORE_PASSWORD} \
+                        ${CRT_FILE} \
+                        ${ALIAS}
+        done
 
     done
 

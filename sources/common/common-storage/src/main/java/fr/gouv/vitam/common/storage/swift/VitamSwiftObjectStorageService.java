@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -79,7 +80,8 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         osClientFactory.get();
     }
 
-    public List<? extends SwiftObject> list(String containerName, ObjectListOptions options)
+    public List<? extends SwiftObject> list(String containerName, ObjectListOptions options,
+        Map<String, String> headers)
         throws ContentAddressableStorageException {
 
         checkNotNull(containerName);
@@ -88,8 +90,11 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
         LOGGER.debug("Listing container {} with params {}", containerName, params);
 
-        HttpResponse resp = get(Void.class, uri("/%s", containerName)).param("format", "json")
-            .params(params).executeWithResponse();
+        HttpResponse resp = get(Void.class, uri("/%s", containerName))
+            .param("format", "json")
+            .params(params)
+            .headers(headers)
+            .executeWithResponse();
         try {
 
             if (isSuccessResponse(resp)) {
@@ -110,7 +115,8 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public Optional<SwiftObject> getObjectInformation(String containerName, String objectName)
+    public Optional<SwiftObject> getObjectInformation(String containerName, String objectName,
+        Map<String, String> headers)
         throws ContentAddressableStorageException {
         checkNotNull(containerName);
         checkNotNull(objectName);
@@ -119,7 +125,9 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
         LOGGER.debug("Getting object information {}/{}", location.getContainerName(), location.getObjectName());
 
-        HttpResponse resp = head(Void.class, location.getURI()).executeWithResponse();
+        HttpResponse resp = head(Void.class, location.getURI())
+            .headers(headers)
+            .executeWithResponse();
         try {
             if (isNotFoundResponse(resp)) {
                 LOGGER.debug("Object {}/{} Not Found", location.getContainerName(), location.getObjectName());
@@ -140,7 +148,8 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public ObjectContent download(String containerName, String objectName)
+    public ObjectContent download(String containerName, String objectName,
+        Map<String, String> headers)
         throws ContentAddressableStorageException {
         checkNotNull(containerName);
         checkNotNull(objectName);
@@ -149,7 +158,9 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
         LOGGER.debug("Getting object {}/{}", location.getContainerName(), location.getObjectName());
 
-        HttpResponse resp = get(Void.class, location.getURI()).executeWithResponse();
+        HttpResponse resp = get(Void.class, location.getURI())
+            .headers(headers)
+            .executeWithResponse();
 
         boolean keepResponseOpen = false;
 
@@ -230,8 +241,8 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public void deleteFullObject(String containerName, String objectName, List<String> objectNameSegments)
-        throws ContentAddressableStorageException {
+    public void deleteFullObject(String containerName, String objectName, List<String> objectNameSegments,
+        Map<String, String> headers) throws ContentAddressableStorageException {
         checkNotNull(containerName);
         checkNotNull(objectName);
 
@@ -261,6 +272,7 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         LOGGER.debug("Deleting object {}/{}", location.getContainerName(), location.getObjectName());
 
         HttpResponse resp = delete(Void.class, location.getURI())
+            .headers(headers)
             .executeWithResponse();
 
         try {
@@ -286,20 +298,24 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public Map<String, String> getMetadata(String containerName, String objectName)
+    public Map<String, String> getMetadata(String containerName, String objectName,
+        Map<String, String> headers)
         throws ContentAddressableStorageException {
         checkNotNull(containerName, objectName);
 
         LOGGER.debug("Getting metadata for object {}/{}", containerName, objectName);
 
         ObjectLocation location = ObjectLocation.create(containerName, objectName);
-        HttpResponse resp = head(Void.class, location.getURI()).executeWithResponse();
+        HttpResponse resp = head(Void.class, location.getURI())
+            .headers(headers)
+            .executeWithResponse();
         try {
-
             if (isSuccessResponse(resp)) {
                 LOGGER.debug("Metadata retrieved successfully for object {}/{}",
                     location.getContainerName(), location.getObjectName());
-                return MapWithoutMetaPrefixFunction.INSTANCE.apply(resp.headers());
+                TreeMap<String, String> metadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+                metadata.putAll(MapWithoutMetaPrefixFunction.INSTANCE.apply(resp.headers()));
+                return metadata;
             }
 
             if (isNotFoundResponse(resp)) {

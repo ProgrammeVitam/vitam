@@ -1628,77 +1628,161 @@
         "AccessRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
         "AppraisalRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
         "DisseminationRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
         "ReuseRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
         "StorageRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
         "ClassificationRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         },
         "HoldRule": {
           "properties": {
             "EndDates": {
-              "type": "object"
+              "type": "object",
+              "dynamic": false
             },
             "MaxEndDate": {
               "type": "date",
               "format": "strict_date_optional_time"
+            },
+            "Rules": {
+              "properties": {
+                "Rule": {
+                  "type": "keyword"
+                },
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
             }
           }
         }

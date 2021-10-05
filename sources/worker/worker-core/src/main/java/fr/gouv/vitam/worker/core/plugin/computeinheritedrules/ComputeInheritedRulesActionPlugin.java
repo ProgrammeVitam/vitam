@@ -45,11 +45,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.common.model.unit.ComputedInheritedRuleModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -73,6 +73,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,9 +85,9 @@ import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.Compu
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.APPRAISAL_RULE;
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.CLASSIFICATION_RULE;
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.DISSEMINATION_RULE;
+import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.HOLD_RULE;
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.REUSE_RULE;
 import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.STORAGE_RULE;
-import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules.HOLD_RULE;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
 public class ComputeInheritedRulesActionPlugin extends ActionHandler {
@@ -232,18 +233,22 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             ? computedInheritedRules
             : null;
 
+        List<ComputedInheritedRuleModel> rules = ruleIdToRule == null ? Collections.emptyList() : ruleIdToRule.entrySet().stream()
+            .map(entry -> new ComputedInheritedRuleModel(entry.getKey(), entry.getValue().toString()))
+            .collect(Collectors.toList());
+
         switch (category) {
             case CLASSIFICATION_RULE:
-                return new SimpleImmutableEntry<>(category, new ClassificationRule(maxEndDateByCategory, properties, ruleIdToRule));
+                return new SimpleImmutableEntry<>(category, new ClassificationRule(maxEndDateByCategory, properties, ruleIdToRule,rules));
             case STORAGE_RULE:
-                return new SimpleImmutableEntry<>(category, new StorageRule(maxEndDateByCategory, properties, ruleIdToRule));
+                return new SimpleImmutableEntry<>(category, new StorageRule(maxEndDateByCategory, properties, ruleIdToRule,rules));
             case APPRAISAL_RULE:
-                return new SimpleImmutableEntry<>(category, new AppraisalRule(maxEndDateByCategory, properties, ruleIdToRule));
+                return new SimpleImmutableEntry<>(category, new AppraisalRule(maxEndDateByCategory, properties, ruleIdToRule,rules));
             case DISSEMINATION_RULE:
             case ACCESS_RULE:
             case REUSE_RULE:
             case HOLD_RULE:
-                return new SimpleImmutableEntry<>(category, new InheritedRule(maxEndDateByCategory, ruleIdToRule));
+                return new SimpleImmutableEntry<>(category, new InheritedRule(maxEndDateByCategory, ruleIdToRule, rules));
             default:
                 throw new VitamRuntimeException(String.format("Category rule cannot be of type '%s'.", category));
         }

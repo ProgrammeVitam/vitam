@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.unit.ComputedInheritedRuleModel;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -56,8 +57,9 @@ public class ClassificationRule extends InheritedRule {
 
     }
 
-    public ClassificationRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule) {
-        super(maxEndDate, ruleIdToRule);
+    public ClassificationRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule,
+        List<ComputedInheritedRuleModel> rules) {
+        super(maxEndDate, ruleIdToRule, rules);
         parseClassificationProperties(properties);
     }
 

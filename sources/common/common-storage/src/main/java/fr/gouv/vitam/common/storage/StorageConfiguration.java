@@ -27,7 +27,10 @@
 package fr.gouv.vitam.common.storage;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.storage.swift.VitamCustomizedHeader;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
+
+import java.util.List;
 
 /**
  * Storage configuration contains all configuration items for storage offers
@@ -115,6 +118,13 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      * Tape library configuration
      */
     private TapeLibraryConfiguration tapeLibraryConfiguration;
+
+    /**
+     * Enable / Disable use of vitam custom headers for offers requests
+     */
+    private Boolean enableCustomHeaders;
+
+    private List<VitamCustomizedHeader> customHeaders;
 
     private int swiftNbRetries = 1;
     private int swiftWaitingTimeInMilliseconds = 10_000;
@@ -488,5 +498,21 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     public StorageConfiguration setSwiftRandomRangeSleepInMilliseconds(int swiftRandomRangeSleepInMilliseconds) {
         this.swiftRandomRangeSleepInMilliseconds = swiftRandomRangeSleepInMilliseconds;
         return this;
+    }
+
+    public Boolean getEnableCustomHeaders() {
+        return enableCustomHeaders;
+    }
+
+    public void setEnableCustomHeaders(Boolean enableCustomHeaders) {
+        this.enableCustomHeaders = enableCustomHeaders;
+    }
+
+    public List<VitamCustomizedHeader> getCustomHeaders() {
+        return customHeaders;
+    }
+
+    public void setCustomHeaders(List<VitamCustomizedHeader> customHeaders) {
+        this.customHeaders = customHeaders;
     }
 }

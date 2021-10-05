@@ -20,6 +20,15 @@ swiftConnectionTimeout: {{ vitam_offers[offer_conf]["swiftConnectionTimeout"] | 
 swiftReadTimeout: {{ vitam_offers[offer_conf]["swiftReadTimeout"] | default(60000) }}
 swiftHardRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftHardRenewTokenDelayBeforeExpireTime"] | default(60) }}
 swiftSoftRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftSoftRenewTokenDelayBeforeExpireTime"] | default(300) }}
+{% if vitam_offers[offer_conf]["enableCustomHeaders"] is defined and vitam_offers[offer_conf]["enableCustomHeaders"] is sameas true %}
+enableCustomHeaders: true
+customHeaders:
+{% for header in vitam_offers[offer_conf]["customHeaders"] %}
+  - key: {{ header.key }}
+    value: {{ header.value }}
+{% endfor %}
+{% endif %}
+
 {% endif %}
 
 {% if vitam_offers[offer_conf]["provider"] == "amazon-s3-v1" %}

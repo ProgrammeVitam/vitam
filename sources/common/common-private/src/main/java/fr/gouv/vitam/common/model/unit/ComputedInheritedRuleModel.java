@@ -24,42 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
+package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.unit.ComputedInheritedRuleModel;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+public class ComputedInheritedRuleModel {
 
-public class AppraisalRule extends InheritedRule {
+    public static final String RULE = "Rule";
+    public static final String END_DATE = "EndDate";
 
+    /**
+     * rule id
+     */
+    @JsonProperty(RULE)
+    private String rule;
 
-    private static final String FINAL_ACTION = "FinalAction";
+    /**
+     * end date
+     */
+    @JsonProperty(END_DATE)
+    private String endDate;
 
-    @JsonProperty(FINAL_ACTION)
-    private List<String> finalAction;
-
-    public AppraisalRule() {
-
+    public ComputedInheritedRuleModel() {
     }
 
-    public AppraisalRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule,
-        List<ComputedInheritedRuleModel> rules) {
-        super(maxEndDate, ruleIdToRule, rules);
-        parseClassificationProperties(properties);
+    public ComputedInheritedRuleModel(String rule, String endDate) {
+        this.rule = rule;
+        this.endDate = endDate;
     }
 
-    private void parseClassificationProperties(Properties properties) {
-        this.finalAction = parsePropertiesByName(FINAL_ACTION, properties);
+    public String getRule() {
+        return rule;
     }
 
-    public List<String> getFinalAction() {
-        return finalAction;
+    public void setRule(String rule) {
+        this.rule = rule;
     }
 
-    public void setFinalAction(List<String> finalAction) {
-        this.finalAction = finalAction;
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
 }

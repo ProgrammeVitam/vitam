@@ -26,16 +26,18 @@
  */
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.unit.ComputedInheritedRuleModel;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * InheritedRule
@@ -44,22 +46,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class InheritedRule {
     private static final String MAX_END_DATE = "MaxEndDate";
     private static final String END_DATES = "EndDates";
-
+    private static final String RULES ="Rules";
+;
     @JsonProperty(MAX_END_DATE)
     private LocalDate maxEndDate;
     @JsonProperty(END_DATES)
     private Map<String, LocalDate> ruleIdToRule = new HashMap<>();
+    @JsonProperty(RULES)
+    private List<ComputedInheritedRuleModel> rules = new ArrayList<>();
 
     public InheritedRule() {
 
     }
 
-    public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule) {
+    public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule, List<ComputedInheritedRuleModel> rules) {
         this.maxEndDate = maxEndDate;
         if(ruleIdToRule == null) {
             this.ruleIdToRule = Collections.emptyMap();
         } else {
             this.ruleIdToRule = ruleIdToRule;
+        }
+        if (rules == null) {
+            this.rules = Collections.emptyList();
+        } else {
+            this.rules = rules;
         }
     }
 
@@ -94,4 +104,11 @@ public class InheritedRule {
         this.ruleIdToRule.put(ruleId, ruleMaxEndDate);
     }
 
+    public List<ComputedInheritedRuleModel> getRules() {
+        return rules;
+    }
+
+    public void setRules(List<ComputedInheritedRuleModel> rules) {
+        this.rules = rules;
+    }
 }

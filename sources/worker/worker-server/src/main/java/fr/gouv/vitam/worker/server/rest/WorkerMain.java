@@ -74,6 +74,12 @@ public class WorkerMain {
                     PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
             listeners.add(new WorkerRegistrationListener(configuration));
         }
+
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            BouncyCastleProvider provider = new BouncyCastleProvider();
+            Security.addProvider(provider);
+        }
+
         vitamStarter = new VitamStarter(WorkerConfiguration.class, configurationFile,
                 BusinessApplication.class, AdminApplication.class, listeners);
     }
@@ -90,11 +96,6 @@ public class WorkerMain {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
                 throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                         CONF_FILE_NAME));
-            }
-
-            if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-                BouncyCastleProvider provider = new BouncyCastleProvider();
-                Security.addProvider(provider);
             }
 
             WorkerMain main = new WorkerMain(args[0]);

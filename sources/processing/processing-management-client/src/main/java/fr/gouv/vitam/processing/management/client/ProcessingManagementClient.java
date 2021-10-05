@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.management.client;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -93,20 +92,6 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      */
     void unregisterWorker(String familyId, String workerId)
         throws ProcessingBadRequestException;
-
-    /**
-     * Other than INIT process, only operation id and action id are required
-     *
-     * @param query
-     * @param workflowId not required
-     * @param actionId
-     * @return Response
-     * @throws InternalServerException
-     * @throws VitamClientException
-     */
-    RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query,
-        String workflowId, String actionId)
-        throws InternalServerException, VitamClientException;
 
     /**
      * Retrieve all the workflow definitions.

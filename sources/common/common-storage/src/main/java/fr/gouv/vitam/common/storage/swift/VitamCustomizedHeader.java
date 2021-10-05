@@ -24,42 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.unit.ComputedInheritedRuleModel;
+package fr.gouv.vitam.common.storage.swift;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+public class VitamCustomizedHeader {
 
-public class AppraisalRule extends InheritedRule {
+    String key;
+    String value;
 
-
-    private static final String FINAL_ACTION = "FinalAction";
-
-    @JsonProperty(FINAL_ACTION)
-    private List<String> finalAction;
-
-    public AppraisalRule() {
-
+    public VitamCustomizedHeader() {
     }
 
-    public AppraisalRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule,
-        List<ComputedInheritedRuleModel> rules) {
-        super(maxEndDate, ruleIdToRule, rules);
-        parseClassificationProperties(properties);
+    public VitamCustomizedHeader(String key, String value) {
+        this.key = key;
+        this.value = value;
     }
 
-    private void parseClassificationProperties(Properties properties) {
-        this.finalAction = parsePropertiesByName(FINAL_ACTION, properties);
+    public String getKey() {
+        return key;
     }
 
-    public List<String> getFinalAction() {
-        return finalAction;
+    public void setKey(String key) {
+        this.key = key;
     }
 
-    public void setFinalAction(List<String> finalAction) {
-        this.finalAction = finalAction;
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 }

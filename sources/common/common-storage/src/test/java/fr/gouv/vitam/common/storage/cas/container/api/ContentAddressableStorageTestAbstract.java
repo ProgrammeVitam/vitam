@@ -200,10 +200,10 @@ public abstract class ContentAddressableStorageTestAbstract {
         digest.update(getInputStream("file1.pdf"));
         System.out.print(digest);
         System.out.print(messageDigest);
-        assertTrue(messageDigest.equals(digest.toString()));
+        assertEquals(messageDigest, digest.toString());
         // Verify that it works from cache (if there is a cache)
         messageDigest = storage.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO, true);
-        assertTrue(messageDigest.equals(digest.toString()));
+        assertEquals(messageDigest, digest.toString());
     }
 
     // Check Path parameters (containerName,folder, objectName)

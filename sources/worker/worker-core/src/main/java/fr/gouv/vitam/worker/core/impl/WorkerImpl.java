@@ -65,12 +65,9 @@ import fr.gouv.vitam.worker.core.handler.IngestPrepareActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareStorageInfoActionHandler;
-import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.UploadSIPActionHandler;
-import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
-import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputedInheritedRulesCheckDistributionThreshold;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionAccessionRegisterPreparationHandler;
@@ -195,14 +192,6 @@ public class WorkerImpl implements Worker {
         actions.put(RollBackActionHandler.getId(),
             RollBackActionHandler::new);
 
-        actions.put(VerifyMerkleTreeActionHandler.getId(),
-            VerifyMerkleTreeActionHandler::new);
-
-        actions.put(PrepareTraceabilityCheckProcessActionHandler.getId(),
-            PrepareTraceabilityCheckProcessActionHandler::new);
-
-        actions.put(VerifyTimeStampActionHandler.getId(),
-            VerifyTimeStampActionHandler::new);
         actions.put(CheckHeaderActionHandler.getId(),
             CheckHeaderActionHandler::new);
         actions.put(CheckDataObjectPackageActionHandler.getId(),

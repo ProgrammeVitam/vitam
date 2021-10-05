@@ -148,7 +148,7 @@
 
         <!-- object storing-->
         <jclouds.version>2.2.1</jclouds.version>
-        <openstack4j.version>3.2.0</openstack4j.version>
+        <openstack4j.version>3.10</openstack4j.version>
         <awssdk.v1.version>1.11.720</awssdk.v1.version>
 
         <!-- jetty -->
@@ -1121,7 +1121,7 @@
                 <version>${javax.ws.rs.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.pacesys</groupId>
+                <groupId>com.github.openstack4j.core</groupId>
                 <artifactId>openstack4j-core</artifactId>
                 <version>${openstack4j.version}</version>
                 <exclusions>
@@ -1132,7 +1132,7 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.pacesys.openstack4j.connectors</groupId>
+                <groupId>com.github.openstack4j.core.connectors</groupId>
                 <artifactId>openstack4j-httpclient</artifactId>
                 <version>${openstack4j.version}</version>
             </dependency>
@@ -1636,17 +1636,6 @@
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jclouds.driver</groupId>
-                <artifactId>jclouds-slf4j</artifactId>
-                <version>${jclouds-slf4j.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.ws.rs</groupId>
-                        <artifactId>jsr311-api</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.tomakehurst</groupId>

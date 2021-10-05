@@ -26,10 +26,8 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -162,13 +160,6 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         pw.setGlobalState(ProcessState.RUNNING.toString());
         pw.setStepStatus(StatusCode.STARTED.toString());
         return new RequestResponseOK<ProcessDetail>().addResult(pw);
-    }
-
-    @Override
-    public RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query,
-        String workflowId, String actionId)
-        throws WorkflowNotFoundException {
-        return new RequestResponseOK<>();
     }
 
     @Override

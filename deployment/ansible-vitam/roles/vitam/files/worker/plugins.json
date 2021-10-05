@@ -277,6 +277,12 @@
   "EXTRACT_SECURE_TRACEABILITY_DATA_FILE": {
     "className": "fr.gouv.vitam.worker.core.plugin.traceability.ExtractSecureTraceabilityDataFilePlugin"
   },
+  "CHECK_MERKLE_TREE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.VerifyMerkleTreeActionHandler"
+  },
+  "VERIFY_TIMESTAMP": {
+    "className": "fr.gouv.vitam.worker.core.plugin.traceability.VerifyTimeStampActionHandler"
+  },
   "CHECKS_SECURE_TRACEABILITY_DATA_STORAGELOG": {
     "className": "fr.gouv.vitam.worker.core.plugin.traceability.ChecksSecureTraceabilityDataStoragelogPlugin"
   },

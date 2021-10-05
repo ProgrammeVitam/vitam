@@ -139,7 +139,6 @@ public class Swift extends ContentAddressableStorageAbstract {
         if (super.isExistingContainerInCache(containerName)) {
             return true;
         }
-
         // Is this the best way to do that ?
         Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
         // more than 2 metadata then container exists (again, is this the best way ?)
@@ -200,7 +199,6 @@ public class Swift extends ContentAddressableStorageAbstract {
         Stopwatch times = Stopwatch.createStarted();
         Stopwatch segmentTime = Stopwatch.createUnstarted();
 
-
         try {
             long remainingSize = size;
             int segmentIndex = 1;
@@ -223,9 +221,12 @@ public class Swift extends ContentAddressableStorageAbstract {
                         new VitamAutoCloseInputStream(exactSizeInputStream);
 
                     segmentTime.start();
+                    ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
+                    objectPutOptions.getOptions().putAll(enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+
                     LOGGER.info("Uploading segment: " + segmentName);
                     getObjectStorageService().
-                        put(containerName, segmentName, Payloads.create(autoCloseInputStream));
+                        put(containerName, segmentName, Payloads.create(autoCloseInputStream), objectPutOptions);
 
                     PerformanceLogger.getInstance().
                         log("STP_Offer_" + getConfiguration().getProvider(), containerName,
@@ -242,6 +243,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
             String largeObjectPrefix = containerName + "/" + objectName + "/";
             objectPutOptions.getOptions().put(X_OBJECT_MANIFEST, largeObjectPrefix);
+            enrichHeadersRequestWithVitamCookie(objectPutOptions.getOptions());
             getObjectStorageService().put(
                 containerName,
                 objectName,
@@ -263,9 +265,10 @@ public class Swift extends ContentAddressableStorageAbstract {
         try {
             // Prevent retry uploading stream twice on token expiration
             InputStream autoCloseInputStream = new VitamAutoCloseInputStream(stream);
-
+            ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
+            enrichHeadersRequestWithVitamCookie(objectPutOptions.getOptions());
             getObjectStorageService()
-                .put(containerName, objectName, Payloads.create(autoCloseInputStream));
+                .put(containerName, objectName, Payloads.create(autoCloseInputStream), objectPutOptions);
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
@@ -284,6 +287,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         if (largeObjectPrefix != null) {
             headers.put(X_OBJECT_MANIFEST, largeObjectPrefix);
         }
+        enrichHeadersRequestWithVitamCookie(headers);
 
         RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
@@ -307,7 +311,8 @@ public class Swift extends ContentAddressableStorageAbstract {
             RetryableOnException<Map<String, String>, ContentAddressableStorageException> retryableOnException =
                 new RetryableOnException<>(getRetryableParameters());
             Map<String, String> metadata = retryableOnException.exec(() ->
-                getObjectStorageService().getMetadata(containerName, objectName));
+                getObjectStorageService().getMetadata(containerName, objectName,
+                    enrichHeadersRequestWithVitamCookie(new HashMap<>())));
 
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
                 containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
@@ -334,7 +339,8 @@ public class Swift extends ContentAddressableStorageAbstract {
         RetryableOnException<ObjectContent, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
         return retryableOnException.exec(() ->
-            getObjectStorageService().download(containerName, objectName));
+            getObjectStorageService().download(containerName, objectName,
+                enrichHeadersRequestWithVitamCookie(new HashMap<>())));
     }
 
     @Override
@@ -358,7 +364,8 @@ public class Swift extends ContentAddressableStorageAbstract {
             List<ObjectEntry> swiftObjects = new ArrayList<>();
             listObjectSegments(containerName, objectName, swiftObjects::add);
             getObjectStorageService().deleteFullObject(containerName, objectName, swiftObjects.stream().map(
-                ObjectEntry::getObjectId).collect(Collectors.toList()));
+                    ObjectEntry::getObjectId).collect(Collectors.toList()),
+                enrichHeadersRequestWithVitamCookie(new HashMap<>()));
             return null;
         });
     }
@@ -368,7 +375,8 @@ public class Swift extends ContentAddressableStorageAbstract {
         RetryableOnException<Optional<SwiftObject>, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
         Optional<SwiftObject> object = retryableOnException.exec(() ->
-            getObjectStorageService().getObjectInformation(containerName, objectName));
+            getObjectStorageService().getObjectInformation(containerName, objectName,
+                enrichHeadersRequestWithVitamCookie(new HashMap<>())));
         return object.isPresent();
     }
 
@@ -395,7 +403,8 @@ public class Swift extends ContentAddressableStorageAbstract {
         RetryableOnException<Optional<SwiftObject>, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
         Optional<SwiftObject> object = retryableOnException.exec(() ->
-            getObjectStorageService().getObjectInformation(containerName, objectId));
+            getObjectStorageService().getObjectInformation(containerName, objectId,
+                enrichHeadersRequestWithVitamCookie(new HashMap<>())));
 
         if (object.isEmpty()) {
             throw new ContentAddressableStorageNotFoundException("The Object" + objectId +
@@ -403,7 +412,9 @@ public class Swift extends ContentAddressableStorageAbstract {
         }
         result.setType(containerName.split("_")[1]);
         result.setObjectName(objectId);
-        result.setDigest(object.get().getMetadata().get(X_OBJECT_META_DIGEST));
+        result.setDigest(object.get().getMetadata().entrySet().stream()
+            .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST)).map(Map.Entry::getValue).findFirst()
+            .orElse(null));
         result.setFileSize(object.get().getSizeInBytes());
         result.setLastModifiedDate(object.get().getLastModified().toString());
 
@@ -452,7 +463,8 @@ public class Swift extends ContentAddressableStorageAbstract {
             }
 
             List<? extends SwiftObject> swiftObjects =
-                getObjectStorageService().list(containerName, objectListOptions);
+                getObjectStorageService().list(containerName, objectListOptions,
+                    enrichHeadersRequestWithVitamCookie(new HashMap<>()));
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -512,7 +524,8 @@ public class Swift extends ContentAddressableStorageAbstract {
             }
 
             List<? extends SwiftObject> swiftObjects =
-                getObjectStorageService().list(containerName, objectListOptions);
+                getObjectStorageService().list(containerName, objectListOptions,
+                    enrichHeadersRequestWithVitamCookie(new HashMap<>()));
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -540,7 +553,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         return new VitamSwiftObjectStorageService(this.osClient);
     }
 
-        private RetryableParameters getRetryableParameters() {
+    private RetryableParameters getRetryableParameters() {
         return new RetryableParameters(this.swiftNbRetries, this.swiftWaitingTimeInMilliseconds,
             this.swiftWaitingTimeInMilliseconds, this.swiftRandomRangeSleepInMilliseconds,
             TimeUnit.MILLISECONDS, VitamLogLevel.ERROR);
@@ -549,4 +562,21 @@ public class Swift extends ContentAddressableStorageAbstract {
     public Supplier<OSClient> getOsClient() {
         return osClient;
     }
+
+    private Map<String, String> enrichHeadersRequestWithVitamCookie(Map<String, String> headers) {
+        if (getConfiguration().getEnableCustomHeaders() == null) {
+            LOGGER.debug("The vitam enable custom header property used by offers is not filled!");
+        } else if (getConfiguration().getEnableCustomHeaders()) {
+            LOGGER.debug("The vitam enable custom header used by offers is enabled!");
+            if(getConfiguration().getCustomHeaders()== null || getConfiguration().getCustomHeaders().isEmpty()){
+                LOGGER.warn("No vitam custom headers have been filled!");
+            } else {
+                getConfiguration().getCustomHeaders().forEach(cookie ->headers.put(cookie.getKey(), cookie.getValue()));
+            }
+        } else {
+            LOGGER.debug("The vitam enable custom header property used by offers is disabled!");
+        }
+        return headers;
+    }
+
 }

@@ -153,15 +153,9 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query) throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> linkedCheckTraceability(JsonNode query) throws InvalidParseOperationException {
         return ClientMockResultHelper.checkOperationTraceability();
-    }
-
-    @Override
-    public RequestResponse<JsonNode> linkedCheckTraceability(JsonNode query) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        return null;
     }
 
     @Override

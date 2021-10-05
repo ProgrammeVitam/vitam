@@ -410,11 +410,29 @@
   {
     "path": "_computedInheritedRules.StorageRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
     "path": "_computedInheritedRules.StorageRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.StorageRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.StorageRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.StorageRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -428,11 +446,29 @@
   {
     "path": "_computedInheritedRules.AppraisalRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
     "path": "_computedInheritedRules.AppraisalRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AppraisalRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.AppraisalRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AppraisalRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -446,11 +482,29 @@
   {
     "path": "_computedInheritedRules.DisseminationRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
     "path": "_computedInheritedRules.DisseminationRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.DisseminationRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.DisseminationRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.DisseminationRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -464,11 +518,29 @@
   {
     "path": "_computedInheritedRules.AccessRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
     "path": "_computedInheritedRules.AccessRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AccessRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.AccessRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AccessRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -482,11 +554,29 @@
   {
     "path": "_computedInheritedRules.HoldRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
     "path": "_computedInheritedRules.HoldRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.HoldRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.HoldRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.HoldRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -500,11 +590,29 @@
   {
     "path": "_computedInheritedRules.ReuseRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
     "path": "_computedInheritedRules.ReuseRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.ReuseRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.ReuseRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.ReuseRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
@@ -518,11 +626,29 @@
   {
     "path": "_computedInheritedRules.ClassificationRule.EndDates",
     "type": "object",
-    "indexed": true,
+    "indexed": false,
     "cardinality": "one"
   },
   {
     "path": "_computedInheritedRules.ClassificationRule.MaxEndDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.ClassificationRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_computedInheritedRules.ClassificationRule.Rules.Rule",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.ClassificationRule.Rules.EndDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"

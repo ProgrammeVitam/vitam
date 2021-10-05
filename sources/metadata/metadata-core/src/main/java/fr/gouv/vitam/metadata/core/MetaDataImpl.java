@@ -124,6 +124,7 @@ import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.Sum;
 import org.elasticsearch.search.aggregations.metrics.ValueCount;
 
@@ -162,7 +163,7 @@ public class MetaDataImpl {
 
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
-    public static final int MAX_TERMS_SIZE_FOR_AGGREGATION = 1000000;
+    public static final int MAX_PRECISION_THRESHOLD = 40000;
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
@@ -548,11 +549,11 @@ public class MetaDataImpl {
                 String opi = operationBucket.getKeyAsString();
                 Nested versionResult = operationBucket.getAggregations().get("version");
                 Filter versionOperationResult = versionResult.getAggregations().get("versionOperation");
-                Terms gotCountResult = versionOperationResult.getAggregations().get("gotCount");
+                Cardinality gotCountResult = versionOperationResult.getAggregations().get("gotCount");
                 Sum binaryObjectSizeResult = versionOperationResult.getAggregations().get("binaryObjectSize");
                 ValueCount binaryObjectCountResult = versionOperationResult.getAggregations().get("binaryObjectCount");
 
-                long gotCount = gotCountResult.getBuckets().size();
+                long gotCount = gotCountResult.getValue();
                 long binaryObjectSize = (long) binaryObjectSizeResult.getValue();
                 long binaryObjectCount = binaryObjectCountResult.getValue();
                 if (opi.equals(operationId)) {
@@ -575,8 +576,8 @@ public class MetaDataImpl {
     }
 
     private AggregationBuilder aggregationForObjectGroupAccessionRegisterByOperationId(String operationId) {
-        AggregationBuilder gotCountAgg = AggregationBuilders.terms("gotCount")
-            .field("_id").size(MAX_TERMS_SIZE_FOR_AGGREGATION);
+        AggregationBuilder gotCountAgg = AggregationBuilders.cardinality("gotCount")
+            .field("_qualifiers.versions.DataObjectGroupId").precisionThreshold(MAX_PRECISION_THRESHOLD);
         AggregationBuilder binaryObjectSizeAgg = AggregationBuilders.sum("binaryObjectSize")
             .field("_qualifiers.versions.Size");
         AggregationBuilder binaryObjectCountAgg = AggregationBuilders.count("binaryObjectCount")

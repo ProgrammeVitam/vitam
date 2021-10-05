@@ -71,8 +71,7 @@ vitam_offers:
     swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
     # swiftDomain : domaine OpenStack dans lequel l'utilisateur est enregistré
     swiftDomain: domaine
-    # swiftUser : identifiant de l'utilisateur
-    swiftUser: utilisateur
+    # swiftUser: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
     # swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
     # swiftProjectName : nom du projet openstack
     swiftProjectName: monTenant
@@ -105,6 +104,12 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
+    # Enable / Disable use of vitam custom headers for offer requests
+    enableCustomHeaders: false
+    # List of vitam custom headers used by offer requests
+    #customHeaders:
+    #  - key: 'Cookie'
+    #    value: 'Origin=vitam'
 ################################################################################
   offer-s3-1:
     # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
@@ -162,7 +167,7 @@ vitam_offers:
   #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
   #    swiftDomain: domain
-  #    swiftUser: user
+  #    swiftUser: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   # THIS PART IS ONLY FOR CLEANING (and mandatory for this use case)
   #    swiftProjectId: related to OS_PROJECT_ID
@@ -172,7 +177,7 @@ vitam_offers:
   #    provider: openstack-swift-v3
   #    swiftKeystoneAuthUrl: https://keystone/v3
   #    swiftDomain: domaine
-  #    swiftUser: user
+  #    swiftUser: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftProjectName: monTenant
   #    projectName: monTenant
@@ -189,3 +194,7 @@ vitam_offers:
   #    Time (in seconds) to renew a token before expiration occurs
   #    swiftHardRenewTokenDelayBeforeExpireTime: 60
   #    swiftSoftRenewTokenDelayBeforeExpireTime: 300
+  #    enableCustomHeaders: false
+  #    customHeaders:
+  #      - key: 'Cookie'
+  #        value: 'Origin=vitam'

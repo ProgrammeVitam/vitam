@@ -175,10 +175,6 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
-        // Mock AccessInternal response for check TRACEABILITY operation request
-        when(accessInternalClient.checkTraceabilityOperation(JsonHandler.getFromString(request)))
-            .thenReturn(ClientMockResultHelper.checkOperationTraceability());
-
         // Mock AccessInternal response for download TRACEABILITY operation request
         when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID))
             .thenReturn(ClientMockResultHelper.getObjectStream());

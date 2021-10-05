@@ -13,14 +13,30 @@
             "MaxEndDate": "2025-01-01",
             "EndDates": {
               "DIS-00001": "2025-01-01"
-            }
+            },
+            "Rules": [
+              {
+                "Rule": "DIS-00001",
+                "EndDate": "2025-01-01"
+              }
+            ]
           },
           "AccessRule": {
             "MaxEndDate": "2025-01-01",
             "EndDates": {
               "ACC-00003": "2025-01-01",
               "ACC-00002": "2024-01-01"
-            }
+            },
+            "Rules": [
+              {
+                "Rule": "ACC-00003",
+                "EndDate": "2025-01-01"
+              },
+              {
+                "Rule": "ACC-00002",
+                "EndDate": "2024-01-01"
+              }
+            ]
           },
           "ReuseRule": {
           },
@@ -32,14 +48,30 @@
             "ClassificationReassessingDate": ["2016-06-03"],
             "EndDates": {
               "CLASS-00001": "2026-06-03"
-            }
+            },
+            "Rules": [
+              {
+                "Rule": "CLASS-00001",
+                "EndDate": "2026-06-03"
+              }
+            ]
           },
           "HoldRule": {
             "MaxEndDate": "2010-01-01",
             "EndDates": {
               "HOL-00001": "2001-01-01",
               "HOL-00002": "2010-01-01"
-            }
+            },
+            "Rules": [
+              {
+                "Rule": "HOL-00001",
+                "EndDate": "2001-01-01"
+              },
+              {
+                "Rule": "HOL-00002",
+                "EndDate": "2010-01-01"
+              }
+            ]
           },
           "NeedAuthorization": [ true ],
           "indexationDate": "2019-06-28",
