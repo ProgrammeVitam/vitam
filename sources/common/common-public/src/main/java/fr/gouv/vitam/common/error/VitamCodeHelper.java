@@ -27,10 +27,11 @@
 
 package fr.gouv.vitam.common.error;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.gouv.vitam.common.ParametersChecker;
 
 /**
  * Helper to get error message or VitamCode from Service, Domain and item or from error code
@@ -239,10 +240,7 @@ public class VitamCodeHelper {
      * @return the vitam code in String
      */
     public static String getCode(VitamCode vitamCode) {
-        return new StringBuilder()
-            .append(vitamCode.getService().getCode())
-            .append(vitamCode.getDomain().getCode())
-            .append(vitamCode.getItem()).toString();
+        return vitamCode.getService().getCode() + vitamCode.getDomain().getCode() + vitamCode.getItem();
     }
 
     /**
@@ -265,8 +263,21 @@ public class VitamCodeHelper {
      * @param description the description
      * @return the vitamError
      */
-    public static VitamError toVitamError(VitamCode vitamCode, String description) {
-        return new VitamError(VitamCodeHelper.getCode(vitamCode))
+    public static VitamError<JsonNode> toVitamError(VitamCode vitamCode, String description) {
+        return toVitamError(vitamCode, description, JsonNode.class);
+    }
+
+    /**
+     * Transform a vitamCode to a VitamError with the given description
+     *
+     * @param vitamCode the vitamCode
+     * @param description the description
+     * @param clasz the class type
+     * @return the vitamError
+     */
+    public static <T> VitamError<T> toVitamError(VitamCode vitamCode, String description,
+        @SuppressWarnings("unused") Class<T> clasz) {
+        return new VitamError<T>(VitamCodeHelper.getCode(vitamCode))
             .setContext(vitamCode.getService().getName())
             .setState(vitamCode.getDomain().getName())
             .setHttpCode(vitamCode.getStatus().getStatusCode())

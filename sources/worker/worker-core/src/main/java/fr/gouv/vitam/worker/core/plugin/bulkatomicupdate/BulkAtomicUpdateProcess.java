@@ -365,7 +365,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
                 return;
             }
         }
-        VitamError error = VitamError.getFromJsonNode(updateResult);
+        VitamError<JsonNode> error = VitamError.getFromJsonNode(updateResult);
         buildReport(workerParameters, ERROR_METADATA_UPDATE.name(), KO, error.getDescription(), item);
         item.setStatus(
             buildItemStatus(getPluginId(), KO, EventDetails.of(error.getDescription())));

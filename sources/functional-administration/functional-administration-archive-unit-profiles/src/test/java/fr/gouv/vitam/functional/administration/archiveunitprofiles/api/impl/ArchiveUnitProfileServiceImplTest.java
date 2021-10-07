@@ -116,7 +116,7 @@ public class ArchiveUnitProfileServiceImplTest {
     public static void setUpBeforeClass() throws Exception {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
 
         dbImpl =
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
@@ -141,7 +141,7 @@ public class ArchiveUnitProfileServiceImplTest {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
             indexManager);
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            esClient, Arrays.asList(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE));
+            esClient, Collections.singletonList(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE));
 
     }
 
@@ -179,9 +179,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
@@ -196,9 +196,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_missing_identifier.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
         verifyZeroInteractions(functionalBackupService);
@@ -211,7 +211,7 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_missing_schema.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
@@ -226,11 +226,11 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_invalid_schema.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
         final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        List<VitamError> errors = ((VitamError) response).getErrors();
+        List<VitamError<ArchiveUnitProfileModel>> errors = ((VitamError<ArchiveUnitProfileModel>) response).getErrors();
         assertThat(errors.get(0).getDescription().equals(
             "The field ControlSchema is not a json schema")).isTrue();
         assertThat(errors.get(0).getMessage().equals(
@@ -246,9 +246,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_duplicate_identifier.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
     }
@@ -260,11 +260,11 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_duplicate_name.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
     }
 
     @Test
@@ -274,19 +274,19 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
 
         final List<ArchiveUnitProfileModel> profileModelList2 =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response2 = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList2);
+        final RequestResponse<ArchiveUnitProfileModel> response2 = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList2);
 
-        assertThat(response2.isOk());
+        assertThat(response2.isOk()).isTrue();
     }
 
     @Test
@@ -297,9 +297,9 @@ public class ArchiveUnitProfileServiceImplTest {
 
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
@@ -346,9 +346,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
@@ -365,7 +365,7 @@ public class ArchiveUnitProfileServiceImplTest {
         assertThat(one).isNotNull();
         assertThat(one.getName()).isEqualTo(acm.getName());
         assertThat(one.getTenant()).isNotNull();
-        assertThat(one.getTenant()).isEqualTo(Integer.valueOf(TENANT_ID));
+        assertThat(one.getTenant()).isEqualTo(TENANT_ID);
     }
 
     /**
@@ -382,9 +382,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
@@ -412,9 +412,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_with_schema.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
@@ -434,9 +434,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
@@ -464,9 +464,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
@@ -494,12 +494,12 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("aup_without_identifier_slave_mode.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The field Identifier is mandatory");
-        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO");
+        assertThat(((VitamError<ArchiveUnitProfileModel>) response).getErrors().get(0).getDescription()).isEqualTo("The field Identifier is mandatory");
+        assertThat(((VitamError<ArchiveUnitProfileModel>) response).getErrors().get(0).getMessage()).isEqualTo("IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO");
         verifyZeroInteractions(functionalBackupService);
 
     }
@@ -512,9 +512,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("aup_without_identifier_master_mode.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
@@ -532,9 +532,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
@@ -552,9 +552,9 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
-                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
                 });
-        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
             (RequestResponseOK<ArchiveUnitProfileModel>) response;
