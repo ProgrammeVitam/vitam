@@ -579,7 +579,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             updateMultiQuery.addRoots(idUnit);
             RequestResponse<JsonNode> response = client.updateUnitbyId(updateMultiQuery.getFinalUpdate(), idUnit);
             if (!response.isOk() && response instanceof VitamError) {
-                VitamError error = (VitamError) response;
+                VitamError<JsonNode> error = (VitamError<JsonNode>) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR, error.getMessage(),
                     error);
             }
@@ -649,7 +649,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
 
             if (!result.isOk()) {
-                VitamError error = (VitamError) result;
+                VitamError<JsonNode> error = (VitamError<JsonNode>) result;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR, error.getMessage(),
                     error);
             } else if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
@@ -768,7 +768,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> response = client.updateUnits(updateMultiQuery.getFinalUpdate());
 
             if (!response.isOk() && response instanceof VitamError) {
-                VitamError error = (VitamError) response;
+                VitamError<JsonNode> error = (VitamError<JsonNode>) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR, error.getMessage(),
                     error);
             }
@@ -823,7 +823,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> response = client.revertUnits(revertUpdateOptions);
 
             if (!response.isOk() && response instanceof VitamError) {
-                VitamError error = (VitamError) response;
+                VitamError<JsonNode> error = (VitamError<JsonNode>) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_REVERT_UPDATE_ERROR, error.getMessage(),
                     error);
             }
@@ -891,7 +891,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> response = client.updateUnitsRules(massUpdateUnitRuleRequest);
 
             if (!response.isOk() && response instanceof VitamError) {
-                VitamError error = (VitamError) response;
+                VitamError<JsonNode> error = (VitamError<JsonNode>) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR, error.getMessage(),
                     error);
             }
@@ -945,7 +945,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> response = client.bulkAtomicUpdateUnits(updateQueriesJson);
 
             if (!response.isOk() && response instanceof VitamError) {
-                VitamError error = (VitamError) response;
+                VitamError<JsonNode> error = (VitamError<JsonNode>) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_BULK_ATOMIC_UPDATE_ERROR, error.getMessage(),
                     error);
             }
@@ -1177,15 +1177,15 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     @Deprecated
-    private VitamError getErrorEntity(Status status, String message) {
+    private VitamError<JsonNode> getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+        return new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
-    private InputStream getErrorStream(VitamError vitamError) {
+    private InputStream getErrorStream(VitamError<JsonNode> vitamError) {
         try {
             return JsonHandler.writeToInpustream(vitamError);
         } catch (InvalidParseOperationException e) {
@@ -1194,9 +1194,9 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private Response buildErrorFromError(VitamCode vitamCode, String message, VitamError oldVitamError) {
+    private Response buildErrorFromError(VitamCode vitamCode, String message, VitamError<JsonNode> oldVitamError) {
         LOGGER.info("Description: " + message);
-        VitamError newVitamError = new VitamError(VitamCodeHelper.getCode(vitamCode))
+        VitamError<JsonNode> newVitamError = new VitamError<JsonNode>(VitamCodeHelper.getCode(vitamCode))
             .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
             .setMessage(vitamCode.getMessage()).setDescription(message);
 

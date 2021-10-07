@@ -188,19 +188,19 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     }
 
     @Override
-    public RequestResponseOK traceabilityLfcUnit() {
+    public RequestResponseOK<String> traceabilityLfcUnit() {
         LOGGER.debug("calling traceability LFC unit");
         final List<String> resultAsJson = new ArrayList<>();
         resultAsJson.add(GUID_EXAMPLE);
-        return new RequestResponseOK().addAllResults(resultAsJson);
+        return new RequestResponseOK<String>().addAllResults(resultAsJson);
     }
 
     @Override
-    public RequestResponseOK traceabilityLfcObjectGroup() {
+    public RequestResponseOK<String> traceabilityLfcObjectGroup() {
         LOGGER.debug("calling traceability LFC ObjectGroup");
         final List<String> resultAsJson = new ArrayList<>();
         resultAsJson.add(GUID_EXAMPLE);
-        return new RequestResponseOK().addAllResults(resultAsJson);
+        return new RequestResponseOK<String>().addAllResults(resultAsJson);
     }
 
     @Override

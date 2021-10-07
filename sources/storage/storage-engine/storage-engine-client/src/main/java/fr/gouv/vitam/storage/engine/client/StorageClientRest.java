@@ -65,6 +65,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import org.apache.commons.lang.BooleanUtils;
 
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -105,6 +106,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
     private static final String INTERNAL_SERVER_ERROR = "Internal Server Error:";
 
+    private static final GenericType<List<String>> LIST_STRING_TYPE = new GenericType<>() {
+    };
+
     StorageClientRest(StorageClientFactory factory) {
         super(factory);
     }
@@ -142,7 +146,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
         try (Response response = make(request)) {
             check(response);
-            return handleCommonResponseStatus(response).readEntity(ArrayList.class);
+            return handleCommonResponseStatus(response).readEntity(LIST_STRING_TYPE);
         } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
@@ -568,7 +572,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+    public RequestResponseOK<JsonNode> copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
         String destination, String strategyId)
         throws StorageServerClientException, InvalidParseOperationException {
 
@@ -591,7 +595,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
+    public RequestResponseOK<JsonNode> create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
         Long inputStreamSize,
         List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException {

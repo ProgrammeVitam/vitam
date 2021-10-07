@@ -110,7 +110,7 @@ public class OntologyResource {
 
         try (OntologyService ontologyService =
             new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
-            RequestResponse requestResponse = ontologyService.importOntologies(forceUpdate, ontologyModelList);
+            RequestResponse<OntologyModel> requestResponse = ontologyService.importOntologies(forceUpdate, ontologyModelList);
 
             if (!requestResponse.isOk()) {
                 return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
@@ -121,11 +121,11 @@ public class OntologyResource {
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage())).build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage())).build();
         }
     }
 
@@ -154,7 +154,7 @@ public class OntologyResource {
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -183,11 +183,11 @@ public class OntologyResource {
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
@@ -196,17 +196,15 @@ public class OntologyResource {
      *
      * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
-    private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode())
-            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
-            .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    private VitamError<OntologyModel> getErrorEntity(Status status, String message) {
+        String aMessage = (message != null && !message.trim().isEmpty()) ?
+            message :
+            (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError<OntologyModel>(String.valueOf(status.getStatusCode())).setHttpCode(status.getStatusCode())
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE).setState("ko").setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
 }

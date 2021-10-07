@@ -494,7 +494,7 @@ public class GriffinService {
     }
 
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
-        throws ReferentialException, BadRequestException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException {
 
         DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, GRIFFIN);
 

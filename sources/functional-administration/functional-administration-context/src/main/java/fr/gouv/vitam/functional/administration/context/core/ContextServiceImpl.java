@@ -201,7 +201,7 @@ public class ContextServiceImpl implements ContextService {
         manager.logStarted();
 
         final List<ContextModel> contextsListToPersist = new ArrayList<>();
-        final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+        final VitamError<ContextModel> error = new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         ArrayNode contextsToPersist = JsonHandler.createArrayNode();
@@ -217,7 +217,7 @@ public class ContextServiceImpl implements ContextService {
                 }
                 // if a contract have an id
                 if (cm.getId() != null) {
-                    error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
+                    error.addToErrors(new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
                         ContextRejectionCause.rejectIdNotAllowedInCreate(cm.getName()).getReason()));
                     continue;
                 }
@@ -248,7 +248,7 @@ public class ContextServiceImpl implements ContextService {
                         manager.checkEmptyIdentifierSlaveModeValidator().validate(cm);
                     for (ContextRejectionCause result : results) {
                         error.addToErrors(
-                            new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                            new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                                 .setMessage(EMPTY_REQUIRED_FIELD)
                                 .setDescription(result.getReason()).setState(StatusCode.KO.name()));
                     }
@@ -341,24 +341,24 @@ public class ContextServiceImpl implements ContextService {
             if (!exist(finalDelete)) {
                 manager.logValidationError("Context not found : " + contextId, CONTEXTS_DELETE_EVENT, DELETE_KO);
                 return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(),
-                    "Delete context error : " + contextId, StatusCode.KO)
+                    "Delete context error : " + contextId)
                     .setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             }
 
             if (internalSecurityClient.contextIsUsed(contextId) && !forceDelete) {
                 manager.logValidationError("Delete context error : " + contextId, CONTEXTS_DELETE_EVENT, DELETE_KO);
                 return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(),
-                    "Delete context error : " + contextId, StatusCode.KO)
+                    "Delete context error : " + contextId)
                     .setHttpCode(Response.Status.FORBIDDEN.getStatusCode())
                     .setMessage(DELETE_KO);
             }
 
-            RequestResponseOK response = new RequestResponseOK<>();
+            RequestResponseOK<ContextModel> response = new RequestResponseOK<>();
 
             DbRequestResult result =
                 mongoAccess.deleteDocument(finalDelete, FunctionalAdminCollections.CONTEXT);
 
-            response.addResult(new DbRequestResult(result))
+            response.addAllResults(result.getDocuments(Context.class, ContextModel.class))
                 .setTotal(result.getTotal())
                 .setHttpCode(Response.Status.NO_CONTENT.getStatusCode());
 
@@ -381,14 +381,14 @@ public class ContextServiceImpl implements ContextService {
             // logbook error event
             manager.logValidationError(err, CONTEXTS_DELETE_EVENT, DELETE_KO);
 
-            return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage(),
-                StatusCode.KO)
+            return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage()
+            )
                 .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .setMessage(DELETE_KO);
         } catch (final Exception e) {
             LOGGER.error(e);
-            final VitamError error =
-                getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Context delete error", StatusCode.KO)
+            final VitamError<ContextModel> error =
+                getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Context delete error")
                     .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
             final String err = "Delete context error > " + e.getMessage();
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
@@ -405,11 +405,7 @@ public class ContextServiceImpl implements ContextService {
         DbRequestResult result = mongoAccess.findDocuments(finalSelect, FunctionalAdminCollections.CONTEXT);
         final List<ContextModel> list =
             result.getDocuments(Context.class, ContextModel.class);
-        if (list.isEmpty()) {
-            return false;
-        }
-
-        return true;
+        return !list.isEmpty();
     }
 
     @Override
@@ -417,8 +413,8 @@ public class ContextServiceImpl implements ContextService {
         throws VitamException {
         ParametersChecker.checkParameter(UPDATE_CONTEXT_MANDATORY_PARAMETER, queryDsl);
         SanityChecker.checkJsonAll(queryDsl);
-        final VitamError error =
-            getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Context update error", StatusCode.KO)
+        final VitamError<ContextModel> error =
+            getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Context update error")
                 .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final ContextModel contextModel = findOneContextById(id);
@@ -439,7 +435,7 @@ public class ContextServiceImpl implements ContextService {
                 for (String accessContractId : permissionModel.getAccessContract()) {
                     if (!manager.checkIdentifierOfAccessContract(accessContractId, tenantId)) {
                         error.addToErrors(
-                            new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                            new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                                 .setDescription(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + accessContractId)
                                 .setMessage(UPDATE_UNKNOWN_VALUE)
                         );
@@ -449,7 +445,7 @@ public class ContextServiceImpl implements ContextService {
                 for (String ingestContractId : permissionModel.getIngestContract()) {
                     if (!manager.checkIdentifierOfIngestContract(ingestContractId, tenantId)) {
                         error.addToErrors(
-                            new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                            new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                                 .setDescription(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + ingestContractId)
                                 .setMessage(UPDATE_UNKNOWN_VALUE)
                         );
@@ -468,7 +464,7 @@ public class ContextServiceImpl implements ContextService {
         }
 
         String diff = null;
-        RequestResponseOK response = new RequestResponseOK<>();
+        RequestResponseOK<ContextModel> response = new RequestResponseOK<>();
 
         final JsonNode actionNode = queryDsl.get(BuilderToken.GLOBAL.ACTION.exactToken());
         for (final JsonNode fieldToSet : actionNode) {
@@ -483,7 +479,7 @@ public class ContextServiceImpl implements ContextService {
         try {
             DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT);
 
-            response.addResult(new DbRequestResult(result))
+            response.addAllResults(result.getDocuments(Context.class, ContextModel.class))
                 .setTotal(result.getTotal())
                 .setQuery(queryDsl)
                 .setHttpCode(Response.Status.OK.getStatusCode());
@@ -523,8 +519,8 @@ public class ContextServiceImpl implements ContextService {
             // logbook error event 
             manager.logValidationError(err, CONTEXTS_UPDATE_EVENT, UPDATE_KO);
 
-            return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage(),
-                StatusCode.KO)
+            return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage()
+            )
                 .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .setMessage(UPDATE_KO);
         } catch (final Exception e) {
@@ -545,8 +541,8 @@ public class ContextServiceImpl implements ContextService {
         return response;
     }
 
-    private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, "Context", statusCode);
+    private VitamError<ContextModel> getVitamError(String vitamCode, String error) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, "Context", StatusCode.KO, ContextModel.class);
     }
 
     @Override
@@ -561,10 +557,10 @@ public class ContextServiceImpl implements ContextService {
     private final static class ContextManager {
         private final GUID eip;
         private final LogbookOperationsClient logbookClient;
-        private ContractService<AccessContractModel> accessContract;
-        private ContractService<IngestContractModel> ingestContract;
-        private SecurityProfileService securityProfileService;
-        private Map<ContextValidator, String> validators;
+        private final ContractService<AccessContractModel> accessContract;
+        private final ContractService<IngestContractModel> ingestContract;
+        private final SecurityProfileService securityProfileService;
+        private final Map<ContextValidator, String> validators;
 
         public ContextManager(LogbookOperationsClient logbookClient,
             ContractService<AccessContractModel> accessContract,
@@ -576,7 +572,7 @@ public class ContextServiceImpl implements ContextService {
             this.ingestContract = ingestContract;
             this.securityProfileService = securityProfileService;
             // Init validator
-            validators = new HashMap<ContextValidator, String>() {{
+            validators = new HashMap<>() {{
                 put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
                 put(securityProfileIdentifierValidator(), SECURITY_PROFILE_NOT_FOUND);
                 put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
@@ -585,7 +581,7 @@ public class ContextServiceImpl implements ContextService {
             }};
         }
 
-        public boolean validateContext(ContextModel context, VitamError error)
+        public boolean validateContext(ContextModel context, VitamError<ContextModel> error)
             throws ReferentialException, InvalidParseOperationException {
             for (final ContextValidator validator : validators.keySet()) {
                 final List<ContextRejectionCause> validatorErrors = validator.validate(context);
@@ -593,7 +589,7 @@ public class ContextServiceImpl implements ContextService {
                     for (ContextRejectionCause validatorError : validatorErrors) {
                         // there is a validation error on this context
                         /* context is valid, add it to the list to persist */
-                        error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                        error.addToErrors(new VitamError<ContextModel>(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                             .setMessage(validators.get(validator))
                             .setDescription(validatorError.getReason())
                             .setState(StatusCode.KO.name()));
@@ -835,7 +831,7 @@ public class ContextServiceImpl implements ContextService {
                 Optional<SecurityProfileModel> securityProfileModel =
                     securityProfileService.findOneByIdentifier(context.getSecurityProfileIdentifier());
 
-                if (!securityProfileModel.isPresent()) {
+                if (securityProfileModel.isEmpty()) {
                     return Collections.singletonList(ContextValidator.ContextRejectionCause
                         .invalidSecurityProfile(context.getSecurityProfileIdentifier()));
                 } else {
@@ -855,7 +851,7 @@ public class ContextServiceImpl implements ContextService {
             return (context) -> {
                 if (ParametersChecker.isNotEmpty(context.getIdentifier())) {
                     final Bson clause = eq(Context.IDENTIFIER, context.getIdentifier());
-                    final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
+                    final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().countDocuments(clause) > 0;
                     if (exist) {
                         return Collections.singletonList(ContextValidator.ContextRejectionCause
                             .rejectDuplicatedInDatabase(context.getIdentifier()));

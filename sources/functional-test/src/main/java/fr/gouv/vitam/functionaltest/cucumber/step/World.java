@@ -63,6 +63,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class World {
     /**
      * Named operation ids
      */
-    private Map<String, String> namedOperationIds = new HashMap();
+    private final Map<String, String> namedOperationIds = new HashMap<>();
 
     /**
      * DSL query
@@ -111,7 +112,7 @@ public class World {
     /**
      * Map of operations ids by testSet
      */
-    private static Map<String, String> operationIdsByTestSet = new HashMap<>();
+    private static final Map<String, String> operationIdsByTestSet = new HashMap<>();
 
     /**
      * Logbook service
@@ -161,7 +162,7 @@ public class World {
     /**
      * base path of all the feature
      */
-    private String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
+    private final String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
 
     /**
      * initialization of client
@@ -431,9 +432,8 @@ public class World {
     }
 
     private void configuration() {
-        File confFile = null;
         try {
-            confFile = PropertiesUtils.findFile(TNR_CONF);
+            File confFile = PropertiesUtils.findFile(TNR_CONF);
             tnrClientConfiguration = PropertiesUtils.readYaml(confFile, TnrClientConfiguration.class);
             SanityChecker.checkParameter(baseDirectory);
         } catch (IOException | InvalidParseOperationException e) {
@@ -447,12 +447,13 @@ public class World {
      */
     private void purgeData() {
         try (IhmRecetteClient ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient()) {
-            tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
+            tnrClientConfiguration.getTenantsTest().forEach((i) -> {
                 try {
                     ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
                 } catch (VitamException e) {
                     // FAIL WHEN unable purge ?
-                    LOGGER.error("Unable purge data " + i.toString() + " on tenant: " + i + e.getStackTrace());
+                    LOGGER.error("Unable purge data " + i.toString() + " on tenant: " + i +
+                        Arrays.toString(e.getStackTrace()));
                 }
             });
         }
