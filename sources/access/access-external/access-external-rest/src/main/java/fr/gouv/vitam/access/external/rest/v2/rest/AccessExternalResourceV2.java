@@ -26,10 +26,11 @@
  */
 package fr.gouv.vitam.access.external.rest.v2.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -116,9 +117,9 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     public Response exportDIP(DipRequest dipRequest) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(dipRequest.getDslRequest());
-            SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
+            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
             validator.validate(dipRequest.getDslRequest());
-            RequestResponse response = client.exportByUsageFilter(ExportRequest.from(dipRequest));
+            RequestResponse<JsonNode> response = client.exportByUsageFilter(ExportRequest.from(dipRequest));
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {
