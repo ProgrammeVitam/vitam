@@ -54,6 +54,8 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -61,7 +63,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
@@ -87,7 +91,7 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        File objectGroupsToCheck = handler.getNewLocalFile("OBJECT_GROUP_TO_CHECK.jsonL");
+        File objectGroupsToCheck = handler.getNewLocalFile("OBJECT_GROUP_TO_CHECK.jsonl");
 
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient();
             FileOutputStream outputStream = new FileOutputStream(objectGroupsToCheck);
@@ -101,8 +105,7 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(metadataClient, select);
             SpliteratorIterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
-            JsonNode previousElement = null;
-            List<String> elementIds = new ArrayList<>();
+            MultiValuedMap<String,String> unitsByObjectId = new HashSetValuedHashMap<>();
             while (iterator.hasNext()) {
                 JsonNode element = iterator.next();
 
@@ -111,17 +114,14 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
                     continue;
                 }
 
-                elementIds.add(element.get(VitamFieldsHelper.id()).asText());
-
-                if (iterator.hasNext() && (previousElement == null || objectValue.equals(previousElement.get(VitamFieldsHelper.object())))) {
-                    previousElement = element;
-                    continue;
-                }
-
-                JsonLineModel jsonLine = toJsonLineDistribution(element, usageVersion, elementIds);
-                writeLines(jsonLine, writer);
-                elementIds.clear();
+                unitsByObjectId.put(objectValue.asText(), element.get(VitamFieldsHelper.id()).asText());
             }
+
+            for (Map.Entry<String, Collection<String>> entry : unitsByObjectId.asMap().entrySet()) {
+                JsonLineModel jsonLine = toJsonLineDistribution(entry.getKey(), usageVersion, entry.getValue());
+                writeLines(jsonLine, writer);
+            }
+
         } catch (Exception e) {
             LOGGER.error(e);
             return buildItemStatus(HANDLER_ID, KO, EventDetails.of("Creation of distribution file error."));
@@ -139,13 +139,13 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
         }
     }
 
-    private JsonLineModel toJsonLineDistribution(JsonNode info, String usageVersion, List<String> elementIds) throws InvalidParseOperationException {
+    private JsonLineModel toJsonLineDistribution(String objectId, String usageVersion, Collection<String> elementIds) throws InvalidParseOperationException {
         ObjectNode objectNode = createObjectNode();
         objectNode.set("unitIds", JsonHandler.toJsonNode(elementIds));
         objectNode.put("usageVersion", usageVersion);
 
         JsonLineModel model = new JsonLineModel();
-        model.setId(info.get(VitamFieldsHelper.object()).asText());
+        model.setId(objectId);
         model.setParams(objectNode);
         model.setDistribGroup(null);
         return model;
