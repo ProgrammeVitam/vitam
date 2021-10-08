@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -74,7 +75,6 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
-import fr.gouv.vitam.utils.SecurityProfilePermissions;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -105,7 +105,30 @@ import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.*;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.COMPUTEINHERITEDRULES_ACTION;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.COMPUTEINHERITEDRULES_DELETE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.DELETE_GOT_VERSIONS;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.DIPEXPORT_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.DIPEXPORT_ID_DIP_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ELIMINATION_ACTION;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.ELIMINATION_ANALYSIS;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.OBJECTS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.PRESERVATION_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.RECLASSIFICATION_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.REVERT_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.STORAGEACCESSLOG_READ_BINARY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSFERS_CREATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSFERS_ID_SIP_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSFERS_REPLY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITSWITHINHERITEDRULES_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_BULK_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_OBJECTS_READ_BINARY;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_OBJECTS_READ_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_READ_JSON;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_RULES_UPDATE;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_UPDATE;
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 
 @Path("/access-external/v1")
@@ -127,7 +150,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private static final String REQUEST_RESOURCES_DOES_NOT_EXISTS = "Request resources does not exits";
     private static final String WRITING_PERMISSIONS_INVALID = "Writing permission invalid";
     private static final String ERROR_ON_PRESERVATION = "Error on preservation request";
-    private static final String ERROR_ON_AUDIT = "Error when running data consistency audit";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final AccessInternalClientFactory accessInternalClientFactory;
@@ -248,7 +270,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     public Response exportDIP(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse response = client.exportDIP(queryJson);
+            RequestResponse<JsonNode> response = client.exportDIP(queryJson);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {
@@ -277,7 +299,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(transferRequest.getDslRequest());
 
-            RequestResponse response = client.exportByUsageFilter(ExportRequest.from(transferRequest));
+            RequestResponse<JsonNode> response = client.exportByUsageFilter(ExportRequest.from(transferRequest));
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {
@@ -347,7 +369,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("Missing reclassification request", queryJson);
 
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            RequestResponse response = client.reclassification(queryJson);
+            RequestResponse<JsonNode> response = client.reclassification(queryJson);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {
@@ -393,7 +415,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
 
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            RequestResponse response = client.startEliminationAnalysis(eliminationRequestBody);
+            RequestResponse<JsonNode> response = client.startEliminationAnalysis(eliminationRequestBody);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {
@@ -439,7 +461,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
 
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            RequestResponse response = client.startEliminationAction(eliminationRequestBody);
+            RequestResponse<JsonNode> response = client.startEliminationAction(eliminationRequestBody);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {
@@ -785,17 +807,20 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Revert an update of archive units with json query.
      *
-     * @param queryJson the revert_update query (null not allowed)
+     * @param revertUpdateOptions the revert_update query (null not allowed)
      */
     @POST
     @Path("/revert/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = REVERT_UPDATE, description = "Restauration des metadonnées essentielles")
-    public Response revertUpdateUnits(JsonNode queryJson) {
+    public Response revertUpdateUnits(RevertUpdateOptions revertUpdateOptions) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            RequestResponse<JsonNode> response = client.revertUnits(queryJson);
+            SanityChecker.checkJsonAll(revertUpdateOptions.getDslRequest());
+            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
+            validator.validate(revertUpdateOptions.getDslRequest());
+            RequestResponse<JsonNode> response = client.revertUnits(revertUpdateOptions);
 
             if (!response.isOk() && response instanceof VitamError) {
                 VitamError error = (VitamError) response;
@@ -803,14 +828,14 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     error);
             }
             return Response.status(Status.OK).entity(response).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | ValidationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_REVERT_UPDATE_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
-        } catch (final AccessInternalClientServerException e) {
+        } catch (final AccessInternalClientServerException | IOException e) {
             LOGGER.error("Internal request error ", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
@@ -1110,7 +1135,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             final Response response =
-                client.getObject(idObjectGroup, xQualifier, Integer.valueOf(xVersion), unitId);
+                client.getObject(idObjectGroup, xQualifier, Integer.parseInt(xVersion), unitId);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(GlobalDataRest.X_QUALIFIER, xQualifier);
             headers.put(GlobalDataRest.X_VERSION, xVersion);

@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
@@ -250,7 +251,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> revertUnits(JsonNode queryJson) {
+    public RequestResponse<JsonNode> revertUnits(RevertUpdateOptions revertUpdateOptions) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
