@@ -280,6 +280,10 @@ public class VitamTestHelper {
        return doIngest(tenantId,zip, DEFAULT_WORKFLOW, ProcessAction.RESUME,StatusCode.STARTED);
     }
 
+    public static String doIngest(int tenantId, InputStream is) throws VitamException {
+        return doIngest(tenantId, is, DEFAULT_WORKFLOW, ProcessAction.RESUME, StatusCode.STARTED);
+    }
+
     public static String doIngestNext(int tenantId, String zip) throws VitamException {
        return doIngest(tenantId,zip, DEFAULT_WORKFLOW, ProcessAction.NEXT, StatusCode.STARTED);
     }
