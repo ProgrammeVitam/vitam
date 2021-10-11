@@ -1668,6 +1668,9 @@
                   "format": "strict_date_optional_time"
                 }
               }
+            },
+            "FinalAction": {
+              "type": "keyword"
             }
           }
         },
@@ -1737,6 +1740,9 @@
                   "format": "strict_date_optional_time"
                 }
               }
+            },
+            "FinalAction": {
+              "type": "keyword"
             }
           }
         },
