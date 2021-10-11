@@ -438,6 +438,12 @@
     "cardinality": "one"
   },
   {
+    "path": "_computedInheritedRules.StorageRule.FinalAction",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_computedInheritedRules.AppraisalRule",
     "type": "object",
     "indexed": true,
@@ -470,6 +476,12 @@
   {
     "path": "_computedInheritedRules.AppraisalRule.Rules.EndDate",
     "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_computedInheritedRules.AppraisalRule.FinalAction",
+    "type": "keyword",
     "indexed": true,
     "cardinality": "one"
   },
