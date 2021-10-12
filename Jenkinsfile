@@ -96,7 +96,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             environment {
@@ -140,7 +140,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             environment {
@@ -197,7 +197,7 @@ pipeline {
                         branch "master_*"
                         branch "master"
                         branch "PR*" // do not try to update on github status
-                        tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                        tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                     }
                 }
             }
@@ -332,7 +332,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             // when {
@@ -368,7 +368,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             // when {
@@ -395,7 +395,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             // when {
@@ -415,7 +415,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             // when {
@@ -457,7 +457,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             // when {
@@ -511,7 +511,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
             }
             steps {
@@ -526,7 +526,7 @@ pipeline {
 //                    branch "develop*"
 //                    branch "master_*"
 //                    branch "master"
-//                    tag pattern: "^[1-9]+[0-9]*\\.[0-9]+\\.[0-9]+(\\-[0-9]+){0,1}\$", comparator: "REGEXP"
+//                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
 //                }
 //            }
 //            steps {
