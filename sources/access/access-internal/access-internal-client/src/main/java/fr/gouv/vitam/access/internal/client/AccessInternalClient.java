@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
@@ -402,7 +403,7 @@ public interface AccessInternalClient extends MockOrRestClient {
     RequestResponse<JsonNode> startTransferReplyWorkflow(InputStream transferReply)
         throws AccessInternalClientServerException;
 
-    RequestResponse<JsonNode> revertUnits(JsonNode queryJson)
+    RequestResponse<JsonNode> revertUnits(RevertUpdateOptions revertUpdateOptions)
         throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
         NoWritingPermissionException;
 }
