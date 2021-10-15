@@ -35,6 +35,7 @@ import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuil
 import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
+import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
@@ -63,6 +64,7 @@ public class ElasticsearchFacetResultHelper {
                 facetResult.setBuckets(extractBucketRangeAggregation(aggregation));
                 break;
             case StringTerms.NAME:
+            case LongTerms.NAME:
                 facetResult.setBuckets(extractBucketTermsAggregation(aggregation));
                 break;
             case FiltersAggregationBuilder.NAME:
@@ -86,8 +88,7 @@ public class ElasticsearchFacetResultHelper {
     private static List<FacetBucket> extractBucketFiltersAggregation(Aggregation aggregation) {
         List<? extends Filters.Bucket> buckets = ((Filters) aggregation).getBuckets();
         List<FacetBucket> facetBuckets = new ArrayList<>();
-        buckets.stream()
-            .forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
+        buckets.forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
         return facetBuckets;
     }
 
@@ -100,8 +101,7 @@ public class ElasticsearchFacetResultHelper {
     private static List<FacetBucket> extractBucketTermsAggregation(Aggregation aggregation) {
         List<? extends Bucket> buckets = ((Terms) aggregation).getBuckets();
         List<FacetBucket> facetBuckets = new ArrayList<>();
-        buckets.stream()
-            .forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
+        buckets.forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
         return facetBuckets;
     }
 
@@ -130,8 +130,7 @@ public class ElasticsearchFacetResultHelper {
     private static List<FacetBucket> extractBucketRangeAggregation(Aggregation aggregation) {
         List<? extends Range.Bucket> buckets = ((Range) aggregation).getBuckets();
         List<FacetBucket> facetBuckets = new ArrayList<>();
-        buckets.stream()
-            .forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
+        buckets.forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
         return facetBuckets;
     }
 }

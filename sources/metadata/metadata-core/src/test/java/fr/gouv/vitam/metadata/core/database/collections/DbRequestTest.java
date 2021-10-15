@@ -221,6 +221,10 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST_ES_7 =
         "{$query: [ { $match : { 'Description' : 'OK' } } ]," +
             "$facets : [ { $name : 'filtersFacet',  $filters: { $query_filters: [ {$name:'has_desc_level', $query : { $exists : 'DescriptionLevel' } }]} } ] }";
+    private static final String REQUEST_SELECT_TEST_ES_8 =
+        "{$query: [ { $match : { 'Description' : 'OK' } } ]," +
+            "$facets : [ { $name : 'has_validComputedInheritedRules',  $terms: { $field: '#validComputedInheritedRules', \"$order\" : \"ASC\", \"$size\" : 100 } }] }";
+
     private static final String REQUEST_INSERT_TEST_ES_1_TENANT_1 =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaabaq\", " +
             "\"#tenant\": 1, " +
@@ -232,7 +236,8 @@ public class DbRequestTest {
             "\"Description\": \"description est OK\"," +
             "\"DescriptionLevel\": \"Item\"," +
             "\"EndDate\": \"2050-12-30\"," +
-            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
+            "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] },"+
+            "\"#validComputedInheritedRules\": \"true\"}";
     private static final String REQUEST_INSERT_TEST_ES_2 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
@@ -1798,6 +1803,20 @@ public class DbRequestTest {
         assertEquals("filtersFacet", facetResult7.getName());
         FacetBucket bucket7 = facetResult7.getBuckets().get(0);
         assertEquals(1, bucket7.getCount());
+
+        final JsonNode selectRequest8 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_8);
+        final SelectParserMultiple selectParser8 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser8.parse(selectRequest8);
+        LOGGER.debug("SelectParser: {}", selectRequest8);
+        final Result resultSelect8 = dbRequest.execRequest(selectParser8, Collections.emptyList());
+        assertEquals(1, resultSelect8.nbResult);
+        assertEquals(1, resultSelect8.facetResult.size());
+
+        List<FacetBucket> buckets = ((FacetResult) resultSelect8.facetResult.get(0)).getBuckets();
+        assertEquals(1, buckets.size());
+        assertEquals("true", buckets.get(0).getValue());
+        assertEquals(1, buckets.get(0).getCount());
+
 
         InsertMultiQuery insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots(UUID2);
