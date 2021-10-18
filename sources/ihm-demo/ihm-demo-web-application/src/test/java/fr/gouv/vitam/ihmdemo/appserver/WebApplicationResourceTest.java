@@ -57,6 +57,9 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
@@ -83,21 +86,24 @@ import org.mockito.Mockito;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -154,7 +160,6 @@ public class WebApplicationResourceTest {
     private DslQueryHelper dslQueryHelper;
     private PaginationHelper paginationHelper;
     private IngestExternalClientFactory ingestExternalClientFactory;
-    private AccessExternalClientFactory accessExternalClientFactory;
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -185,7 +190,7 @@ public class WebApplicationResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         try {
             application.stop();
         } catch (Exception e) {
@@ -198,7 +203,8 @@ public class WebApplicationResourceTest {
     public void initStaticMock() {
         userInterfaceTransactionManager = BusinessApplicationTest.getUserInterfaceTransactionManager();
         adminExternalClientFactory = BusinessApplicationTest.getAdminExternalClientFactory();
-        accessExternalClientFactory = BusinessApplicationTest.getAccessExternalClientFactory();
+        AccessExternalClientFactory accessExternalClientFactory =
+            BusinessApplicationTest.getAccessExternalClientFactory();
         ingestExternalClientFactory = BusinessApplicationTest.getIngestExternalClientFactory();
         paginationHelper = BusinessApplicationTest.getPaginationHelper();
         dslQueryHelper = BusinessApplicationTest.getDslQueryHelper();
@@ -264,7 +270,7 @@ public class WebApplicationResourceTest {
 
     private Map<String, String> createActiveMapForUpdateCommonContract() {
         String now = LocalDateUtil.now().toString();
-        Map<String, String> parameters = new HashMap<String, String>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(STATUS_FIELD_QUERY, "ACTIVE");
         parameters.put(LAST_UPDATE_FIELD_QUERY, now);
         parameters.put(ACTIVATION_DATE_FIELD_QUERY, now);
@@ -274,14 +280,13 @@ public class WebApplicationResourceTest {
 
     private void initializeAdminExternalClientMock()
         throws InvalidParseOperationException, AccessExternalClientException {
-        final RequestResponse mockResponse = mock(RequestResponse.class);
+        final RequestResponse<?> mockResponse = mock(RequestResponse.class);
         final AdminExternalClient adminExternalClient = mock(AdminExternalClient.class);
         Mockito.when(adminExternalClientFactory.getClient()).thenReturn(adminExternalClient);
 
         JsonNode jsonNode = JsonHandler.createObjectNode();
-        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(any());
-        Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract(eq(new VitamContext(TENANT_ID)),
+        doReturn("Atr").when(mockResponse).getHeaderString(any());
+        doReturn(mockResponse).when(adminExternalClient).updateAccessContract(eq(new VitamContext(TENANT_ID)),
             eq("azercdsqsdf"), eq(jsonNode));
     }
 
@@ -292,12 +297,12 @@ public class WebApplicationResourceTest {
         initializeAdminExternalClientMock();
         final Map<String, String> parameters = createActiveMapForUpdateCommonContract();
         String jsonObject = JsonHandler.unprettyPrint(parameters);
-        final ResponseBody response =
-            given().contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
-                .body(jsonObject).cookie(COOKIE).expect()
-                .statusCode(Status.OK.getStatusCode()).when()
-                .post("/accesscontracts/azercdsqsdf").getBody();
+
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(jsonObject).cookie(COOKIE).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/accesscontracts/azercdsqsdf");
     }
 
     @Test
@@ -305,27 +310,26 @@ public class WebApplicationResourceTest {
         initializeAdminExternalClientMock();
         final Map<String, String> parameters = createActiveMapForUpdateCommonContract();
         String jsonObject = JsonHandler.unprettyPrint(parameters);
-        final ResponseBody response =
-            given().contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
-                .body(jsonObject).cookie(COOKIE).expect()
-                .statusCode(Status.OK.getStatusCode()).when()
-                .post("/contracts/azercdsqsdf").getBody();
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(jsonObject).cookie(COOKIE).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/contracts/azercdsqsdf").getBody();
     }
 
 
     @Test
-    public void givenManagementContractTestUpdate() throws InvalidParseOperationException, AccessExternalClientException {
+    public void givenManagementContractTestUpdate()
+        throws InvalidParseOperationException, AccessExternalClientException {
 
         initializeAdminExternalClientMock();
         final Map<String, String> parameters = createActiveMapForUpdateCommonContract();
         String jsonObject = JsonHandler.unprettyPrint(parameters);
-        final ResponseBody response =
-                given().contentType(ContentType.JSON)
-                        .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
-                        .body(jsonObject).cookie(COOKIE).expect()
-                        .statusCode(Status.OK.getStatusCode()).when()
-                        .post("/managementcontracts/azercdsqsdf").getBody();
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(jsonObject).cookie(COOKIE).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/managementcontracts/azercdsqsdf").getBody();
     }
 
     @Test
@@ -401,7 +405,6 @@ public class WebApplicationResourceTest {
             .when().post("/archivesearch/units");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testArchiveSearchResultAccessExternalClientServerException() throws Exception {
         final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
@@ -419,7 +422,6 @@ public class WebApplicationResourceTest {
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testArchiveSearchResultRemainingExceptions() throws Exception {
         final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
@@ -442,7 +444,7 @@ public class WebApplicationResourceTest {
     public void testGetArchiveUnitDetails() throws Exception {
 
         final Map<String, String> searchCriteriaMap = new HashMap<>();
-        searchCriteriaMap.put(dslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
@@ -467,7 +469,7 @@ public class WebApplicationResourceTest {
 
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         // searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-        searchCriteriaMap.put(dslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
@@ -479,12 +481,11 @@ public class WebApplicationResourceTest {
             .get("/archivesearch/unit/1");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsAccessExternalClientServerException() throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-        searchCriteriaMap.put(dslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
@@ -501,12 +502,11 @@ public class WebApplicationResourceTest {
             .get("/archivesearch/unit/1");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsNotFoundError()
         throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
-        searchCriteriaMap.put(dslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
@@ -514,7 +514,7 @@ public class WebApplicationResourceTest {
             .thenReturn(preparedDslQuery);
 
         when(userInterfaceTransactionManager.getArchiveUnitDetails(any(), any(), any()))
-            .thenReturn(new VitamError("vitam_code").setHttpCode(Status.NOT_FOUND.getStatusCode()));
+            .thenReturn(new VitamError<JsonNode>("vitam_code").setHttpCode(Status.NOT_FOUND.getStatusCode()));
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID).cookie(COOKIE)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -523,12 +523,11 @@ public class WebApplicationResourceTest {
             .get("/archivesearch/unit/1");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsRemainingExceptions() throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-        searchCriteriaMap.put(dslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
         when(dslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
@@ -565,8 +564,9 @@ public class WebApplicationResourceTest {
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
         final Map<String, JsonNode> updateRules = new HashMap<>();
+
         when(dslQueryHelper.createUpdateByIdDSLQuery(updateCriteriaMap, updateRules))
-            .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
+            .thenThrow(InvalidParseOperationException.class);
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.JSON).body(UPDATE).cookie(COOKIE).expect()
@@ -576,19 +576,18 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testUploadSipOK() throws Exception {
-        final RequestResponse<Void> mockResponse = mock(RequestResponse.class);
+        final RequestResponse<?> mockResponse = mock(RequestResponse.class);
         final IngestExternalClient ingestClient = mock(IngestExternalClient.class);
         when(ingestExternalClientFactory.getClient()).thenReturn(ingestClient);
 
-        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(any());
-        Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(ingestClient).ingest(any(), any(), any(), any());
+        doReturn("Atr").when(mockResponse).getHeaderString(any());
+        doReturn(mockResponse).when(ingestClient).ingest(any(), any(), any(), any());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
         IOUtils.toByteArray(stream);
 
-        final ResponseBody s = given()
+        final ResponseBody<?> s = given()
             .headers(WebApplicationResource.X_CHUNK_OFFSET, "1", WebApplicationResource.X_SIZE_TOTAL, "1")
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.BINARY)
@@ -599,18 +598,17 @@ public class WebApplicationResourceTest {
             .post("/ingest/upload").getBody();
 
         final JsonNode firstRequestId = JsonHandler.getFromString(s.asString());
-        assertTrue(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText() != null);
+        assertNotNull(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText());
     }
 
     @Test
     public void testUploadSipMultipleChunkOK() throws Exception {
-        final RequestResponse mockResponse = mock(RequestResponse.class);
+        final RequestResponse<?> mockResponse = mock(RequestResponse.class);
         final IngestExternalClient ingestClient = mock(IngestExternalClient.class);
         when(ingestExternalClientFactory.getClient()).thenReturn(ingestClient);
 
-        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(any());
-        Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(ingestClient).ingest(any(), any(), any(), any());
+        doReturn("Atr").when(mockResponse).getHeaderString(any());
+        doReturn(mockResponse).when(ingestClient).ingest(any(), any(), any(), any());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
@@ -621,7 +619,7 @@ public class WebApplicationResourceTest {
         InputStream stream3 = new ByteArrayInputStream(content, 2097152, 3145728);
         InputStream stream4 = new ByteArrayInputStream(content, 3145728, 4194304);
         InputStream stream5 = new ByteArrayInputStream(content, 4194304, 5000000);
-        final ResponseBody s1 = given()
+        final ResponseBody<?> s1 = given()
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "0")
             .contentType(ContentType.BINARY)
@@ -631,7 +629,7 @@ public class WebApplicationResourceTest {
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
         final JsonNode firstRequestId = JsonHandler.getFromString(s1.asString());
-        assertTrue(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText() != null);
+        assertNotNull(firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText());
         String reqId = firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText();
         File temporarySipFile = PropertiesUtils.fileFromTmpFolder(reqId);
         given()
@@ -678,7 +676,7 @@ public class WebApplicationResourceTest {
         // Cannot check uploaded file for certain since it might be already deleted
         try {
             byte[] finalContent = IOUtils.toByteArray(new FileInputStream(temporarySipFile));
-            assertTrue(Arrays.equals(content, finalContent));
+            assertArrayEquals(content, finalContent);
         } catch (IOException e) {
             // Ignore since file wad deleted before test
         }
@@ -846,7 +844,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = mock(AdminExternalClient.class);
         when(adminExternalClientFactory.getClient()).thenReturn(adminClient);
         when(adminClient.checkFormats(any(), any()))
-            .thenReturn(Response.ok().build());
+            .thenReturn(ok().build());
         when(dslQueryHelper.createSingleQueryDSL(any()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
@@ -866,8 +864,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testNotFoundGetArchiveObjectGroup() throws Exception {
-        VitamError vitamError =
-            new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getItem())
+        VitamError<JsonNode> vitamError =
+            new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getItem())
                 .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage())
                 .setState(StatusCode.KO.name())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
@@ -956,7 +954,7 @@ public class WebApplicationResourceTest {
         when(userInterfaceTransactionManager.getObjectAsInputStream(argumentCaptor.capture(), anyString(),
             anyString(), anyInt(), anyString(), any(), any()))
             .then(o -> {
-                argumentCaptor.getValue().resume(Response.ok().build());
+                argumentCaptor.getValue().resume(ok().build());
                 return true;
             });
 
@@ -975,7 +973,7 @@ public class WebApplicationResourceTest {
         when(userInterfaceTransactionManager.getObjectAsInputStream(argumentCaptor.capture(), anyString(),
             anyString(), anyInt(), anyString(), any(), any()))
             .then(o -> {
-                argumentCaptor.getValue().resume(Response.status(Status.NOT_FOUND).build());
+                argumentCaptor.getValue().resume(status(Status.NOT_FOUND).build());
                 return true;
             });
 
@@ -1017,9 +1015,8 @@ public class WebApplicationResourceTest {
                 "/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void testUnitTreeOk() throws InvalidCreateOperationException, VitamException {
+    public void testUnitTreeOk() throws VitamException {
         when(
             userInterfaceTransactionManager.searchUnits(any(), any()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -1030,7 +1027,6 @@ public class WebApplicationResourceTest {
             .post("/archiveunit/tree");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testUnitTreeWithAccessExternalClientServerException()
         throws Exception {
@@ -1044,7 +1040,6 @@ public class WebApplicationResourceTest {
             .post("/archiveunit/tree");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testUnitTreeWithAccessExternalClientNotFoundException()
         throws Exception {
@@ -1202,7 +1197,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetUnitLifeCycleByIdOk() throws Exception {
-        final RequestResponseOK result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN);
+        final RequestResponseOK<LogbookLifecycle> result =
+            RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN, LogbookLifecycle.class);
         when(userInterfaceTransactionManager.selectUnitLifeCycleById(any(), any()))
             .thenReturn(result);
 
@@ -1213,7 +1209,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetObjectGroupLifeCycleByIdOk() throws Exception {
-        final RequestResponseOK result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN);
+        final RequestResponseOK<LogbookLifecycle> result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN, LogbookLifecycle.class);
         when(userInterfaceTransactionManager.selectObjectGroupLifeCycleById(any(), any()))
             .thenReturn(result);
 
@@ -1249,7 +1245,6 @@ public class WebApplicationResourceTest {
             .get("/logbookunitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetObjectGroupLifeCycleByIdWithBadRequestWhenVitamClientException()
         throws Exception {
@@ -1263,7 +1258,6 @@ public class WebApplicationResourceTest {
             .get("/logbookobjectslifecycles/" + FAKE_OBG_LF_ID);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetOjectGroupLifeCycleByIdWithInternalServerErrorWhenUnknownException()
         throws Exception {
@@ -1294,8 +1288,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSerachFundsRegisterNotFound() throws Exception {
-        VitamError vitamError =
-            new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
+        VitamError<AccessionRegisterSummaryModel> vitamError =
+            new VitamError<AccessionRegisterSummaryModel>(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
                 .setMessage(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
                 .setState(StatusCode.KO.name())
                 .setContext(ADMIN_EXTERNAL_MODULE)
@@ -1361,7 +1355,7 @@ public class WebApplicationResourceTest {
         throws Exception {
         final IngestExternalClient ingestClient = mock(IngestExternalClient.class);
         when(ingestExternalClientFactory.getClient()).thenReturn(ingestClient);
-        Mockito.doReturn(ClientMockResultHelper.getObjectStream()).when(ingestClient).downloadObjectAsync(
+        doReturn(ClientMockResultHelper.getObjectStream()).when(ingestClient).downloadObjectAsync(
             any(), any(),
             any());
 
@@ -1375,12 +1369,12 @@ public class WebApplicationResourceTest {
             .when().get(INGEST_URI + "/1/unknown")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        VitamError error = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, "NOT FOUND");
+        VitamError<JsonNode> error = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, "NOT FOUND");
         AbstractMockClient.FakeInboundResponse fakeResponse =
             new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<>());
 
-        Mockito.doReturn(fakeResponse).when(ingestClient).downloadObjectAsync(
+        doReturn(fakeResponse).when(ingestClient).downloadObjectAsync(
             any(), any(),
             any());
         RestAssured.given()
@@ -1439,7 +1433,7 @@ public class WebApplicationResourceTest {
 
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream("token.tsp");
-        String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
+        String encodedTimeStampToken = IOUtils.toString(tokenFile, StandardCharsets.UTF_8);
         String timestampExtractMap = "{timestamp: \"" + encodedTimeStampToken + "\"}";
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .contentType(ContentType.JSON).body(timestampExtractMap).expect()
@@ -1514,7 +1508,8 @@ public class WebApplicationResourceTest {
             .get("/agencies/id");
 
         when(adminExternalClient.findAgencyByID(any(), any()))
-            .thenReturn(VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, "NOT FOUND"));
+            .thenReturn(
+                VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, "NOT FOUND", AgenciesModel.class));
 
         // find agencies by Id
         given().contentType(ContentType.JSON)
@@ -1526,7 +1521,8 @@ public class WebApplicationResourceTest {
 
 
         when(adminExternalClient.findAgencyByID(any(), any()))
-            .thenReturn(VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, "BAD REQUEST"));
+            .thenReturn(
+                VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, "BAD REQUEST", AgenciesModel.class));
 
         // find agencies by Id
         given().contentType(ContentType.JSON)
@@ -1596,12 +1592,12 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetAdminTenant() {
-
-        final ResponseBody response =
+        final ResponseBody<?> response =
             given().contentType(ContentType.JSON)
                 .expect()
                 .statusCode(Status.OK.getStatusCode()).when()
                 .get("/admintenant").getBody();
+
         assertEquals("1", response.print());
     }
 }

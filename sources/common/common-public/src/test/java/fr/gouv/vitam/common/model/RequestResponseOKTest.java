@@ -26,47 +26,41 @@
  */
 package fr.gouv.vitam.common.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static java.util.Objects.requireNonNullElse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RequestResponseOKTest {
 
-    private ArrayNode results;
     private JsonNode query;
 
     private static final String ERROR_JSON =
@@ -84,15 +78,14 @@ public class RequestResponseOKTest {
 
     @Test
     public final void testRequestResponseOKConstructor() {
-        final RequestResponseOK requestResponseOK = new RequestResponseOK();
+        final RequestResponseOK<JsonNode> requestResponseOK = new RequestResponseOK<>();
         assertThat(requestResponseOK.getQuery()).isEmpty();
         assertThat(requestResponseOK.getResults()).isNullOrEmpty();
     }
 
     @Test
     public final void testSetRequestResponseOKAttributes()
-        throws JsonProcessingException, IOException {
-        results = JsonHandler.createArrayNode();
+        throws IOException {
 
         ObjectTest objectTest = new ObjectTest();
         objectTest.addResult("One");
@@ -103,9 +96,10 @@ public class RequestResponseOKTest {
 
         final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json);
-        final RequestResponseOK requestResponseOK = new RequestResponseOK(query);
-        requestResponseOK.addAllResults(new ArrayList());
-        requestResponseOK.addAllFacetResults(Arrays.asList(new FacetResult("mgt_facet", Arrays.asList(bucket))));
+        final RequestResponseOK<ObjectTest> requestResponseOK = new RequestResponseOK<>(query);
+        requestResponseOK.addAllResults(new ArrayList<>());
+        requestResponseOK.addAllFacetResults(Collections.singletonList(new FacetResult("mgt_facet",
+            Collections.singletonList(bucket))));
         requestResponseOK.setHttpCode(Status.OK.getStatusCode());
         assertThat(requestResponseOK.getQuery()).isNotEmpty();
         assertThat(requestResponseOK.getResults()).isNotNull().isEmpty();
@@ -114,8 +108,10 @@ public class RequestResponseOKTest {
             OK_JSON_FACET,
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
-            final RequestResponseOK copy =
-                JsonHandler.getFromString(JsonHandler.unprettyPrint(requestResponseOK), RequestResponseOK.class);
+            final RequestResponseOK<ObjectTest> copy =
+                JsonHandler.getFromStringAsTypeReference(JsonHandler.unprettyPrint(requestResponseOK),
+                    new TypeReference<>() {
+                    });
             assertEquals(requestResponseOK.getQuery(), copy.getQuery());
         } catch (final InvalidParseOperationException e) {
             fail("should not failed");
@@ -137,8 +133,10 @@ public class RequestResponseOKTest {
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
-            final RequestResponseOK copy =
-                JsonHandler.getFromString(JsonHandler.unprettyPrint(requestResponseOK), RequestResponseOK.class);
+            final RequestResponseOK<ObjectTest> copy =
+                JsonHandler.getFromStringAsTypeReference(JsonHandler.unprettyPrint(requestResponseOK),
+                    new TypeReference<>() {
+                    });
             assertEquals(requestResponseOK.getQuery(), copy.getQuery());
         } catch (final InvalidParseOperationException e) {
             fail("should not failed");
@@ -148,7 +146,7 @@ public class RequestResponseOKTest {
 
     @Test(expected = IllegalArgumentException.class)
     public final void testRequestResponseOKAddNull() {
-        final RequestResponseOK requestResponseOK = new RequestResponseOK();
+        final RequestResponseOK<JsonNode> requestResponseOK = new RequestResponseOK<>();
         requestResponseOK.addAllResults(null);
     }
 
@@ -166,8 +164,7 @@ public class RequestResponseOKTest {
     }
 
     @Test
-    public void testFromResponse() throws InvalidParseOperationException {
-        results = JsonHandler.createArrayNode();
+    public void testFromResponse() throws InvalidParseOperationException, InvalidFormatException {
 
         ObjectTest objectTest = new ObjectTest();
         objectTest.addResult("One");
@@ -177,25 +174,25 @@ public class RequestResponseOKTest {
         final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = JsonHandler.getFromString(json);
 
-        final RequestResponseOK<ObjectTest> requestResponseOK = new RequestResponseOK();
+        final RequestResponseOK<ObjectTest> requestResponseOK = new RequestResponseOK<>();
         requestResponseOK.setQuery(query);
         requestResponseOK.addAllResults(Lists.newArrayList());
 
         Response response =
             getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
-        RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+        RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
         assertEquals(OK_JSON, JsonHandler.unprettyPrint(requestResponse));
         assertTrue(requestResponse.isOk());
         response = getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
         requestResponse = RequestResponse.parseRequestResponseOk(response);
         assertEquals(OK_JSON, JsonHandler.unprettyPrint(requestResponse));
 
-        final VitamError error = new VitamError("0");
+        final VitamError<JsonNode> error = new VitamError<>("0");
         error.setMessage("message");
         error.setDescription("description");
         error.setState("state");
         error.setContext("context");
-        error.addAllErrors(Collections.singletonList(new VitamError("1")));
+        error.addAllErrors(Collections.singletonList(new VitamError<>("1")));
         response = getOutboundResponse(Status.BAD_REQUEST, error.toString(), MediaType.APPLICATION_JSON, null);
         requestResponse = RequestResponse.parseFromResponse(response);
         assertEquals(ERROR_JSON, JsonHandler.unprettyPrint(requestResponse));
@@ -207,8 +204,8 @@ public class RequestResponseOKTest {
         response = getOutboundResponse(Status.BAD_GATEWAY, null, MediaType.APPLICATION_JSON, null);
         requestResponse = RequestResponse.parseFromResponse(response);
         assertTrue(requestResponse instanceof VitamError);
-        assertEquals(Status.BAD_GATEWAY.getStatusCode(), ((VitamError) requestResponse).getHttpCode());
-        assertEquals("", ((VitamError) requestResponse).getCode());
+        assertEquals(Status.BAD_GATEWAY.getStatusCode(), requestResponse.getHttpCode());
+        assertEquals("", ((VitamError<JsonNode>) requestResponse).getCode());
         assertFalse(requestResponse.isOk());
 
         // Bad response
@@ -230,11 +227,7 @@ public class RequestResponseOKTest {
         }
         final Response response = mock(Response.class);
         when(response.getStatus()).thenReturn(status.getStatusCode());
-        if (entity == null) {
-            when(response.readEntity(any(Class.class))).thenReturn("");
-        } else {
-            when(response.readEntity(any(Class.class))).thenReturn(entity);
-        }
+        when(response.readEntity(ArgumentMatchers.<Class<Object>>any())).thenReturn(requireNonNullElse(entity, ""));
         boolean contentTypeFound = false;
         if (!Strings.isNullOrEmpty(contentType)) {
             when(response.getHeaderString(HttpHeaders.CONTENT_TYPE)).thenReturn(contentType);

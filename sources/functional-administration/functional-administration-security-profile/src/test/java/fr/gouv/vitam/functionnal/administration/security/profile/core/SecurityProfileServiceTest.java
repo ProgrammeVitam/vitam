@@ -134,10 +134,10 @@ public class SecurityProfileServiceTest {
                 new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                         Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
                     indexManager),
-                Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
+            Collections.singletonList(FunctionalAdminCollections.SECURITY_PROFILE));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList, indexManager);
     }
 
@@ -146,7 +146,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
 
         final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         VitamConfiguration.setTenants(tenants);
@@ -174,7 +174,8 @@ public class SecurityProfileServiceTest {
 
     @After
     public void afterTest() {
-        FunctionalAdminCollectionsTestUtils.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
+        FunctionalAdminCollectionsTestUtils.afterTest(
+            Collections.singletonList(FunctionalAdminCollections.SECURITY_PROFILE));
         securityProfileService.close();
     }
 
@@ -206,7 +207,7 @@ public class SecurityProfileServiceTest {
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_missing_name.json");
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        final RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
 
@@ -220,10 +221,10 @@ public class SecurityProfileServiceTest {
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_unknown_permission.json");
         final List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        final RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("Au moins une permission n'existe pas.");
+        assertThat(((VitamError<SecurityProfileModel>) response).getErrors().get(0).getMessage()).isEqualTo("Au moins une permission n'existe pas.");
 
         verifyNoMoreInteractions(functionalBackupService);
     }
@@ -236,7 +237,7 @@ public class SecurityProfileServiceTest {
             "security_profile_ok_duplicate_names_accepted.json");
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
-        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        final RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
     }
@@ -250,7 +251,7 @@ public class SecurityProfileServiceTest {
 
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
-        RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
     }
@@ -264,7 +265,7 @@ public class SecurityProfileServiceTest {
 
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {});
-        RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
 
@@ -281,7 +282,7 @@ public class SecurityProfileServiceTest {
 
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
 
@@ -298,7 +299,7 @@ public class SecurityProfileServiceTest {
 
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
     }
@@ -312,7 +313,7 @@ public class SecurityProfileServiceTest {
         List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
         JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         final RequestResponseOK<SecurityProfileModel> responseCast = (RequestResponseOK<SecurityProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -330,7 +331,7 @@ public class SecurityProfileServiceTest {
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok_full_access.json");
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        final RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
     }
@@ -343,7 +344,7 @@ public class SecurityProfileServiceTest {
             PropertiesUtils.getResourceFile("security_profile_ko_permissions_with_full_access_mode.json");
         final List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        final RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
     }
@@ -378,7 +379,7 @@ public class SecurityProfileServiceTest {
         RequestResponse<SecurityProfileModel> createResponse =
             securityProfileService.createSecurityProfiles(securityProfileModelList);
 
-        assertThat(createResponse.isOk());
+        assertThat(createResponse.isOk()).isTrue();
         final RequestResponseOK<SecurityProfileModel> createResponseCast =
             (RequestResponseOK<SecurityProfileModel>) createResponse;
         assertThat(createResponseCast.getResults()).hasSize(2);
@@ -541,7 +542,7 @@ public class SecurityProfileServiceTest {
         RequestResponse<SecurityProfileModel> updatedSecurityProfileResponse =
                 securityProfileService.updateSecurityProfile(securityProfileModel.get().getIdentifier(), queryDslForUpdate);
         assertThat(updatedSecurityProfileResponse.isOk()).isFalse();
-        assertThat(((VitamError) updatedSecurityProfileResponse).getErrors().get(0).getMessage()).isEqualTo("Au moins une permission n'existe pas.");
+        assertThat(((VitamError<SecurityProfileModel>) updatedSecurityProfileResponse).getErrors().get(0).getMessage()).isEqualTo("Au moins une permission n'existe pas.");
         // Retry finding security profiles
         final Optional<SecurityProfileModel> securityProfileModel2 =
                 securityProfileService.findOneByIdentifier(identifier);
@@ -568,7 +569,7 @@ public class SecurityProfileServiceTest {
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok.json");
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeReference(securityProfileFiles,new TypeReference<>() {});
-        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+        final RequestResponse<SecurityProfileModel> response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         final RequestResponseOK<SecurityProfileModel> responseCast = (RequestResponseOK<SecurityProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);

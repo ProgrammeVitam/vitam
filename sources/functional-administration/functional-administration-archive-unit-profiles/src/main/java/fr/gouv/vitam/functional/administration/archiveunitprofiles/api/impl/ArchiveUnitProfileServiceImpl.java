@@ -188,9 +188,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         final Set<String> profileIdentifiers = new HashSet<>();
         ArrayNode archiveProfilesToPersist;
 
-        final VitamError error =
+        final VitamError<ArchiveUnitProfileModel> error =
             getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_FILE_IMPORT_ERROR.getItem(),
-                "Global create archive unit profile error", StatusCode.KO).setHttpCode(
+                "Global create archive unit profile error").setHttpCode(
                 Response.Status.BAD_REQUEST.getStatusCode());
 
         try {
@@ -200,7 +200,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 // if a profile have and id
                 if (null != aupm.getId()) {
                     error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                        RejectionCause.rejectIdNotAllowedInCreate(aupm.getName()).getReason(), StatusCode.KO));
+                        RejectionCause.rejectIdNotAllowedInCreate(aupm.getName()).getReason()));
                     continue;
                 }
 
@@ -209,7 +209,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     if (profileIdentifiers.contains(aupm.getIdentifier())) {
                         error.addToErrors(
                             getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                                "Duplicate archive unit profiles (ID)", StatusCode.KO)
+                                "Duplicate archive unit profiles (ID)")
                                 .setMessage(
                                     "Archive unit profile identifier " + aupm.getIdentifier() +
                                         " already exists in the json"));
@@ -234,7 +234,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
 
                 checkSchema.ifPresent(t -> {
-                        VitamError vitamError = new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                        VitamError<ArchiveUnitProfileModel> vitamError = new VitamError<ArchiveUnitProfileModel>(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                             .setDescription(checkSchema.get().getReason())
                             .setMessage(ArchiveUnitProfileManager.INVALID_JSON_SCHEMA)
                             .setState(StatusCode.KO.name());
@@ -253,9 +253,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
 
                     result.ifPresent(t -> {
-
-                        VitamError vitamError =
-                            new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                        VitamError<ArchiveUnitProfileModel> vitamError =
+                            new VitamError<ArchiveUnitProfileModel>(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                                 .setMessage(ArchiveUnitProfileManager.EMPTY_REQUIRED_FIELD)
                                 .setDescription(result.get().getReason())
                                 .setState(StatusCode.KO.name());
@@ -270,7 +269,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getDescription())
+                    error.getErrors().stream().map(VitamError::getDescription)
                         .collect(Collectors.joining(","));
                 manager.logValidationError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, errorsDetails,
                     error.getErrors().get(0).getMessage());
@@ -287,9 +286,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     List<String> schemaFields =
                         SchemaValidationUtils.extractFieldsFromSchema(aupm.getControlSchema());
                     if (checkOntology) {
-                        schemaFields.forEach((k) -> {
-                            validateFieldInSchemaAgainstOntology(ontologyModelMap, k, error);
-                        });
+                        schemaFields.forEach((k) -> validateFieldInSchemaAgainstOntology(ontologyModelMap, k, error));
                     }
                     aupm.setFields(schemaFields);
                 }
@@ -312,7 +309,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getDescription())
+                    error.getErrors().stream().map(VitamError::getDescription)
                         .collect(Collectors.joining(","));
                 manager.logValidationError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, errorsDetails,
                     error.getErrors().get(0).getMessage());
@@ -338,13 +335,13 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             manager.logValidationError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, err,
                 ArchiveUnitProfileManager.IMPORT_KO);
 
-            return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), e.getMessage(),
-                StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), e.getMessage()
+            ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (final Exception e) {
             final String err =
-                new StringBuilder("Import archive unit profiles error : ").append(e.getMessage()).toString();
+                "Import archive unit profiles error : " + e.getMessage();
             manager.logFatalError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, err);
-            return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_FILE_IMPORT_ERROR.getItem(), err, StatusCode.KO)
+            return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_FILE_IMPORT_ERROR.getItem(), err)
                 .setHttpCode(
                     Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
@@ -365,11 +362,11 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     }
 
     @Override
-    public RequestResponse updateArchiveUnitProfile(String id, JsonNode queryDsl) throws VitamException {
+    public RequestResponse<ArchiveUnitProfileModel> updateArchiveUnitProfile(String id, JsonNode queryDsl) throws VitamException {
         final ArchiveUnitProfileModel profileModel = findByIdentifier(id);
         if (profileModel == null) {
             return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                ARCHIVE_UNIT_PROFILE_NOT_FOUND, StatusCode.KO)
+                ARCHIVE_UNIT_PROFILE_NOT_FOUND)
                 .setHttpCode(Response.Status.NOT_FOUND.getStatusCode())
                 .setMessage(ArchiveUnitProfileManager.UPDATE_AUP_NOT_FOUND);
         }
@@ -385,13 +382,13 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(),
                 "Update query dsl must be an object and not null", ArchiveUnitProfileManager.UPDATE_KO);
             return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                "Update query dsl must be an object and not null : " + profileModel.getIdentifier(), StatusCode.KO)
+                "Update query dsl must be an object and not null : " + profileModel.getIdentifier())
                 .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .setMessage(ArchiveUnitProfileManager.UPDATE_KO);
         }
 
-        final VitamError error = getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-            "Update archive unit profile error : " + profileModel.getIdentifier(), StatusCode.KO)
+        final VitamError<ArchiveUnitProfileModel> error = getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
+            "Update archive unit profile error : " + profileModel.getIdentifier())
             .setHttpCode(
                 Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -442,7 +439,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             } catch (InvalidParseOperationException e) {
                 LOGGER.error(e);
                 error
-                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                    .addToErrors(new VitamError<ArchiveUnitProfileModel>(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                         .setDescription("The archive unit profile name contains bad fields in its schema")
                         .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
             }
@@ -450,7 +447,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
-                error.getErrors().stream().map(c -> c.getDescription()).collect(Collectors.joining(","));
+                error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
             manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), errorsDetails,
                 error.getErrors().get(0).getMessage());
 
@@ -470,8 +467,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), err,
                     ArchiveUnitProfileManager.UPDATE_KO);
 
-                return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), e.getMessage(),
-                    StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), e.getMessage()
+                ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
             }
 
             List<String> diff = updateDiffs.get(profileModel.getId());
@@ -493,7 +490,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         } catch (final Exception e) {
             LOGGER.error(e);
             final String err =
-                new StringBuilder("Update archive unit profile error : ").append(e.getMessage()).toString();
+                "Update archive unit profile error : " + e.getMessage();
             manager.logFatalError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), err);
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
                 .setDescription(err)
@@ -503,7 +500,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         }
 
         manager.logSuccess(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), wellFormedJson);
-        return new RequestResponseOK().setHttpCode(Response.Status.OK.getStatusCode());
+        return new RequestResponseOK<ArchiveUnitProfileModel>().setHttpCode(Response.Status.OK.getStatusCode());
     }
 
     @Override
@@ -545,13 +542,13 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
      * @param field        the field to check
      * @param value        the calue to check
      */
-    private void validateUpdateAction(ArchiveUnitProfileModel profileModel, final VitamError error, final String field,
+    private void validateUpdateAction(ArchiveUnitProfileModel profileModel, final VitamError<ArchiveUnitProfileModel> error, final String field,
         final JsonNode value, ArchiveUnitProfileManager manager) {
         if (ArchiveUnitProfile.STATUS.equals(field)) {
             if (!(ArchiveUnitProfileStatus.ACTIVE.name().equals(value.asText()) ||
                 ArchiveUnitProfileStatus.INACTIVE.name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                    ARCHIVE_UNIT_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE + value.asText(), StatusCode.KO)
+                    ARCHIVE_UNIT_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE + value.asText())
                     .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                     .setMessage(ArchiveUnitProfileManager.UPDATE_VALUE_NOT_IN_ENUM));
             }
@@ -562,7 +559,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 manager.createJsonSchemaValidator()
                     .validate(new ArchiveUnitProfileModel().setControlSchema(value.asText()));
             checkSchema.ifPresent(t -> error
-                .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                .addToErrors(new VitamError<ArchiveUnitProfileModel>(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                     .setDescription(checkSchema.get().getReason())
                     .setMessage(ArchiveUnitProfileManager.UPDATE_KO)));
         }
@@ -570,7 +567,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         if (ArchiveUnitProfileModel.TAG_IDENTIFIER.equals(field)) {
             if (!value.isTextual()) {
                 error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                    ARCHIVE_UNIT_PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText(), StatusCode.KO)
+                    ARCHIVE_UNIT_PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText())
                     .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                     .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
             } else if (!profileModel.getIdentifier().equals(value.asText())) {
@@ -578,8 +575,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     .validate(new ArchiveUnitProfileModel().setIdentifier(value.asText()));
                 if (validateIdentifier.isPresent()) {
                     error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                        ARCHIVE_UNIT_PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText(),
-                        StatusCode.KO)
+                        ARCHIVE_UNIT_PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText()
+                    )
                         .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                         .setMessage(ArchiveUnitProfileManager.UPDATE_DUPLICATE_IN_DATABASE));
                 }
@@ -592,7 +589,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
                 manager.createJsonSchemaValidator().validate(profileModel);
             checkSchema.ifPresent(t -> error
-                .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                .addToErrors(new VitamError<ArchiveUnitProfileModel>(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                     .setDescription(checkSchema.get().getReason())
                     .setMessage(ArchiveUnitProfileManager.UPDATE_KO)));
 
@@ -600,7 +597,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             final Optional<ArchiveUnitProfileValidator.RejectionCause> checkUsedJsonSchema =
                 manager.createCheckUsedJsonSchema().validate(profileModel);
             checkUsedJsonSchema.ifPresent(t -> error
-                .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                .addToErrors(new VitamError<ArchiveUnitProfileModel>(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
                     .setDescription(checkUsedJsonSchema.get().getReason())
                     .setMessage(ArchiveUnitProfileManager.UPDATE_KO)));
         }
@@ -617,8 +614,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         }
     }
 
-    private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, "ArchiveUnitProfile", statusCode);
+    private VitamError<ArchiveUnitProfileModel> getVitamError(String vitamCode, String error) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, "ArchiveUnitProfile", StatusCode.KO, ArchiveUnitProfileModel.class);
     }
 
 
@@ -641,10 +638,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             final RequestResponseOK<OntologyModel> ontologyModelResponse =
                 result.getRequestResponseOK(queryDsl, Ontology.class, OntologyModel.class);
             List<OntologyModel> ontologyModelList = ontologyModelResponse.getResults();
-            Map<String, OntologyModel> ontologyModelMap =
-                ontologyModelList.stream().collect(Collectors.toMap(OntologyModel::getIdentifier,
-                    c -> c));
-            return ontologyModelMap;
+            return ontologyModelList.stream().collect(Collectors.toMap(OntologyModel::getIdentifier,
+                c -> c));
         }
     }
 
@@ -657,13 +652,10 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
      * @param error
      */
     private void validateFieldInSchemaAgainstOntology(Map<String, OntologyModel> ontologyMap,
-        final String field, final VitamError error) {
+        final String field, final VitamError<ArchiveUnitProfileModel> error) {
         if (!ontologyMap.containsKey(field)) {
             error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
-                RejectionCause.rejectMissingFieldInOntology(field).getReason(), StatusCode.KO));
+                RejectionCause.rejectMissingFieldInOntology(field).getReason()));
         }
-
-
     }
-
 }

@@ -640,7 +640,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse findGriffin(JsonNode dslQuery) {
+    public RequestResponse<GriffinModel> findGriffin(JsonNode dslQuery) {
         throw new IllegalStateException("Cannot be used");
     }
 

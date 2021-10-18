@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -112,7 +111,7 @@ public class PreservationResource {
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
 
         return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError(getCode(vitamCode))
+            .entity(new RequestResponseError().setError(new VitamError<JsonNode>(getCode(vitamCode))
                 .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
                 .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString() + message)
             .build();
@@ -129,7 +128,7 @@ public class PreservationResource {
 
             return Response.status(Status.OK).entity(requestResponse).build();
 
-        } catch (InvalidParseOperationException | BadRequestException e) {
+        } catch (InvalidParseOperationException e) {
             LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
@@ -150,7 +149,7 @@ public class PreservationResource {
 
             return Response.status(Status.OK).entity(requestResponse).build();
 
-        } catch (InvalidParseOperationException | BadRequestException e) {
+        } catch (InvalidParseOperationException e) {
             LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
