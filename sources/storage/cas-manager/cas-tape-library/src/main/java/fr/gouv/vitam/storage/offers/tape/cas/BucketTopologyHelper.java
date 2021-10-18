@@ -246,6 +246,10 @@ public class BucketTopologyHelper {
         return new HashSet<>(this.containerToFileBucketMap.values());
     }
 
+    public boolean isValidFileBucketId(String fileBucketId) {
+        return this.fileBucketToBucketMap.containsKey(fileBucketId);
+    }
+
     public Set<String> listContainerNames(String fileBucketId) {
         return this.containerToFileBucketMap.entrySet().stream()
             .filter(entry -> entry.getValue().equals(fileBucketId))

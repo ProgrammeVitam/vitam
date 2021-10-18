@@ -55,7 +55,7 @@ public class BucketTopologyHelperTest {
             .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-empty-tenant.conf"))
             .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-missing-tenants."))
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-missing-tenants.conf"))
             .isInstanceOf(Exception.class);
         assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-null-tenant.conf"))
             .isInstanceOf(Exception.class);
@@ -172,5 +172,19 @@ public class BucketTopologyHelperTest {
             .getResourcePath(s), TapeLibraryTopologyConfiguration.class);
 
         return new BucketTopologyHelper(configuration);
+    }
+
+    @Test
+    public void isValidFileBucketId() throws Exception {
+
+        // Given
+        BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
+
+        // When / Then
+        assertThat(bucketTopologyHelper.isValidFileBucketId("test-metadata")).isTrue();
+        assertThat(bucketTopologyHelper.isValidFileBucketId("prod-default")).isTrue();
+        assertThat(bucketTopologyHelper.isValidFileBucketId("test-unknown")).isFalse();
+        assertThat(bucketTopologyHelper.isValidFileBucketId("")).isFalse();
+        assertThat(bucketTopologyHelper.isValidFileBucketId(null)).isFalse();
     }
 }
