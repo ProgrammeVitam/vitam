@@ -1310,7 +1310,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try (Response response = make(request)) {
             checkWithSpecificException(response);
 
-            return JsonHandler.<RequestResponseOK<OntologyModel>>getFromString(response.readEntity(String.class), RequestResponse.class,
+            return JsonHandler.<RequestResponseOK<OntologyModel>>getFromString(response.readEntity(String.class), RequestResponseOK.class,
                 OntologyModel.class);
         } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
