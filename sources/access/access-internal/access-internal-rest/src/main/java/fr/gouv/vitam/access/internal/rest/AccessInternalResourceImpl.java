@@ -1386,11 +1386,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Init logbook operation
             final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDReader.getGUID(operationId),
-                Contexts.REVERT_ESSENTIAL_METDATA.getEventType(),
+                Contexts.REVERT_ESSENTIAL_METADATA.getEventType(),
                 GUIDReader.getGUID(operationId),
                 LogbookTypeProcess.MASS_UPDATE,
                 STARTED,
-                VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METDATA.getEventType(), STARTED), GUIDReader.getGUID(operationId));
+                VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED), GUIDReader.getGUID(operationId));
 
 
             // Add access contract rights
@@ -1409,14 +1409,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // compress file to backup
             OperationContextMonitor
                 .compressInWorkspace(workspaceClientFactory, operationId,
-                    Contexts.REVERT_ESSENTIAL_METDATA.getLogbookTypeProcess(),
+                    Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
                     OperationContextMonitor.OperationContextFileName);
 
-            processingClient.initVitamProcess(operationId, Contexts.REVERT_ESSENTIAL_METDATA.name());
+            processingClient.initVitamProcess(operationId, Contexts.REVERT_ESSENTIAL_METADATA.name());
 
             RequestResponse<ItemStatus> requestResponse =
                 processingClient
-                    .executeOperationProcess(operationId, Contexts.REVERT_ESSENTIAL_METDATA.name(), RESUME.getValue());
+                    .executeOperationProcess(operationId, Contexts.REVERT_ESSENTIAL_METADATA.name(), RESUME.getValue());
             return requestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException | InvalidGuidOperationException |

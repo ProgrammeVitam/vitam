@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin.bulkatomicupdate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
@@ -118,12 +117,13 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  * batch report<br>
  */
 public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
+    public static final String BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME = "BULK_ATOMIC_UPDATE_UNITS";
+    public static final String ORIGINAL_QUERY_ROOT_KEY = "originQuery";
+    public static final String QUERY_INDEX_KEY = "queryIndex";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
     private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
-    public static final String BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME = "BULK_ATOMIC_UPDATE_UNITS";
-    private static final String ORIGINAL_QUERY_ROOT_KEY = "originQuery";
-    private static final String QUERY_INDEX_KEY = "queryIndex";
 
     /**
      * METADATA_UPDATE_BATCH_SIZE
@@ -135,6 +135,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
     private final StorageClientFactory storageClientFactory;
     private final BatchReportClientFactory batchReportClientFactory;
 
+    @SuppressWarnings("unused")
     public BulkAtomicUpdateProcess() {
         this(
             MetaDataClientFactory.getInstance(),
@@ -144,7 +145,6 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         );
     }
 
-    @VisibleForTesting
     public BulkAtomicUpdateProcess(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory lfcClientFactory,
         StorageClientFactory storageClientFactory, BatchReportClientFactory batchReportClientFactory) {
@@ -164,10 +164,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        try (MetaDataClient mdClient = metaDataClientFactory.getClient();
-            LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
-            StorageClient storageClient = storageClientFactory.getClient();
-            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+        try {
 
             Iterator<List<String>> unitsIterator =
                 Iterators.partition(workerParameters.getObjectNameList().iterator(), METADATA_UPDATE_BATCH_SIZE);
@@ -176,9 +173,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             int batchOffset = 0;
             while (unitsIterator.hasNext()) {
                 List<String> bulkUnits = unitsIterator.next();
-                itemsStatus.addAll(
-                    executeBulk(workerParameters, handler, mdClient, lfcClient, storageClient, batchReportClient,
-                        bulkUnits, batchOffset));
+                itemsStatus.addAll(executeBulk(workerParameters, handler, bulkUnits, batchOffset));
                 batchOffset += METADATA_UPDATE_BATCH_SIZE;
             }
 
@@ -189,12 +184,13 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         }
     }
 
-    private List<ItemStatus> executeBulk(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient,
-        LogbookLifeCyclesClient lfcClient,
-        StorageClient storageClient, BatchReportClient batchReportClient, List<String> bulkUnits, int batchOffset)
+    private List<ItemStatus> executeBulk(WorkerParameters workerParameters, HandlerIO handler, List<String> bulkUnits, int batchOffset)
         throws BadRequestException, ProcessingException {
 
-        try {
+        try(MetaDataClient mdClient = metaDataClientFactory.getClient();
+            LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
+            StorageClient storageClient = storageClientFactory.getClient();
+            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             // Retrieve each unitId, and each query, from params
             BulkAtomicUpdateQueryProcessBulk processBulk = new BulkAtomicUpdateQueryProcessBulk();
             List<JsonNode> queries = workerParameters.getObjectMetadataList();
@@ -346,7 +342,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             item.getUnitId(),
             key,
             reportStatus,
-            String.format("%s.%s", BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, reportStatus),
+            String.format("%s.%s", getPluginId(), reportStatus),
             message
         );
         item.setReportEntry(entry);
@@ -360,16 +356,20 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         if (RequestResponse.isRequestResponseOk(updateResult)) {
             RequestResponseOK<UpdateUnit> responseOK =
                 RequestResponseOK.getFromJsonNode(updateResult, UpdateUnit.class);
-            // There is only one change per request
-            ItemStatus itemStatus = postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient, item,
-                responseOK.getFirstResult());
-            item.setStatus(itemStatus);
-        } else {
-            VitamError error = VitamError.getFromJsonNode(updateResult);
-            buildReport(workerParameters, ERROR_METADATA_UPDATE.name(), KO, error.getDescription(), item);
-            item.setStatus(
-                buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, KO, EventDetails.of(error.getDescription())));
+            UpdateUnit updateUnit = responseOK.getFirstResult();
+            if (updateUnit != null) {
+                // There is only one change per request
+                ItemStatus itemStatus = postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient, item,
+                    updateUnit);
+                item.setStatus(itemStatus);
+                return;
+            }
         }
+        VitamError error = VitamError.getFromJsonNode(updateResult);
+        buildReport(workerParameters, ERROR_METADATA_UPDATE.name(), KO, error.getDescription(), item);
+        item.setStatus(
+            buildItemStatus(getPluginId(), KO, EventDetails.of(error.getDescription())));
+
     }
 
     private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient,
@@ -390,7 +390,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         buildReport(workerParameters, key, status, message, item);
 
         if (KO.equals(status) || FATAL.equals(status)) {
-            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, status, EventDetails.of(message));
+            return buildItemStatus(getPluginId(), status, EventDetails.of(message));
         }
 
         if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
@@ -401,18 +401,18 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
                         unitId));
                     storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
                         unitId + ".json");
-                    return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, OK,
+                    return buildItemStatus(getPluginId(), OK,
                         EventDetails.of("Bulk atomic update OK"));
                 }
             } catch (VitamException e) {
                 LOGGER.error(e);
-                return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, FATAL,
+                return buildItemStatus(getPluginId(), FATAL,
                     EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
             }
         }
         
         if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
-            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, WARNING,
+            return buildItemStatus(getPluginId(), WARNING,
                     EventDetails.of("Bulk atomic update WARNING"));
         }
 
@@ -420,11 +420,11 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             writeLfcToMongo(lfcClient, workerParameters, unitId, diff);
         } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
             LOGGER.error(e);
-            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, FATAL,
+            return buildItemStatus(getPluginId(), FATAL,
                 EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(e);
-            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, KO,
+            return buildItemStatus(getPluginId(), KO,
                 EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
         }
 
@@ -433,9 +433,13 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
                 unitId + ".json");
         } catch (VitamException e) {
             LOGGER.error(e);
-            return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, FATAL,
+            return buildItemStatus(getPluginId(), FATAL,
                 EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
         }
-        return buildItemStatus(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME, OK, EventDetails.of("Bulk atomic update OK"));
+        return buildItemStatus(getPluginId(), OK, EventDetails.of("Bulk atomic update OK"));
+    }
+
+    protected String getPluginId() {
+        return BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME;
     }
 }

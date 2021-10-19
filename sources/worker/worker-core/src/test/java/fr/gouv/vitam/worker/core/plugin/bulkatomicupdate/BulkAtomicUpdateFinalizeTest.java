@@ -74,8 +74,9 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateFinalize.JSONL_EXTENSION;
-import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateFinalize.WORKSPACE_REPORT_URI;
+
+import static fr.gouv.vitam.worker.core.plugin.CommonReportService.JSONL_EXTENSION;
+import static fr.gouv.vitam.worker.core.plugin.CommonReportService.WORKSPACE_REPORT_URI;
 import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateProcess.BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;

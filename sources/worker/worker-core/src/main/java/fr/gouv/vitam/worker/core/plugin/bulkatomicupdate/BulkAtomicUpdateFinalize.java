@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2021)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -24,83 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.worker.core.plugin.bulkatomicupdate;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.OperationSummary;
-import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
-import org.apache.commons.lang3.StringUtils;
+import fr.gouv.vitam.worker.core.plugin.UpdateUnitFinalize;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkAtomicUpdateProcess.BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME;
 import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.PrepareBulkAtomicUpdate.PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-/**
- * Generate the report :<br>
- * - compute data from batch-report<br>
- * - store the report file<br>
- * - clean the batch-report data<br>
- */
-public class BulkAtomicUpdateFinalize extends ActionHandler {
-
-    static final String JSONL_EXTENSION = ".jsonl";
-    static final String WORKSPACE_REPORT_URI = "report.jsonl";
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BulkAtomicUpdateFinalize.class);
+public class BulkAtomicUpdateFinalize extends UpdateUnitFinalize {
 
     private static final String BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME = "BULK_ATOMIC_UPDATE_FINALIZE";
-    private static final String DETAILS = " Detail= ";
-
-    private final BatchReportClientFactory batchReportClientFactory;
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private final StorageClientFactory storageClientFactory;
 
     public BulkAtomicUpdateFinalize() {
         this(
@@ -113,136 +65,11 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
     private BulkAtomicUpdateFinalize(BatchReportClientFactory batchReportClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         StorageClientFactory storageClientFactory) {
-        this.batchReportClientFactory = batchReportClientFactory;
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        this.storageClientFactory = storageClientFactory;
+        super(batchReportClientFactory, logbookOperationsClientFactory, storageClientFactory);
     }
-
+    
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
-        try {
-            ReportResults reportResult = storeReportToWorkspace(param, handler);
-
-            storeReportToOffers(param);
-
-            cleanupReport(param);
-
-            if (reportResult == null) {
-                return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, WARNING,
-                    EventDetails
-                        .of("BulkAtomicUpdate report generation WARNING. Vitam results are absent, seems to be not logbook events..."));
-            }
-
-            if (reportResult.getNbKo() != 0 || reportResult.getNbWarning() != 0) {
-                return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, WARNING,
-                    EventDetails
-                        .of("BulkAtomicUpdate report generation WARNING. Some update operations have a KO or WARNING status."));
-            }
-
-            if (reportResult.getTotal() == 0 || reportResult.getNbOk() == 0) {
-                return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, KO,
-                    EventDetails.of("BulkAtomicUpdate report generation KO. No update done."));
-            }
-
-            return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, OK,
-                EventDetails.of("BulkAtomicUpdate report generation OK."));
-
-        } catch (LogbookClientException | VitamClientInternalException | StorageNotFoundClientException |
-            StorageServerClientException | StorageAlreadyExistsClientException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return buildItemStatus(BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME, FATAL,
-                EventDetails.of("Client error when generating report."));
-        }
-    }
-
-    private ReportResults storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, InvalidParseOperationException, LogbookClientException,
-        VitamClientInternalException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-            if (handler.isExistingFileInWorkspace(WORKSPACE_REPORT_URI)) {
-                // Report already generated (idempotency)
-                JsonNode report = handler.getJsonFromWorkspace(WORKSPACE_REPORT_URI);
-                return JsonHandler.getFromJsonNode(report, Report.class).getReportSummary().getVitamResults();
-            }
-
-            Report reportInfo = generateReport(param);
-            batchReportClient.storeReportToWorkspace(reportInfo);
-            return reportInfo.getReportSummary().getVitamResults();
-        }
-    }
-
-    private Report generateReport(WorkerParameters param)
-        throws InvalidParseOperationException, LogbookClientException {
-
-        LogbookOperation logbook = getLogbookInformation(param);
-        OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());
-        ReportSummary reportSummary = getReport(logbook);
-        // Agregate status of logbook operations when ko occurs
-        if (reportSummary.getVitamResults() != null && reportSummary.getVitamResults().getNbKo() > 0 &&
-            WARNING.name().equals(param.getWorkflowStatusKo())) {
-            operationSummary.setOutcome(operationSummary.getOutcome().replace(KO.name(), param.getWorkflowStatusKo()));
-            operationSummary
-                .setOutDetail(operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo()));
-        }
-        JsonNode context = JsonHandler.createObjectNode();
-        return new Report(operationSummary, reportSummary, context);
-    }
-
-    private void storeReportToOffers(WorkerParameters param)
-        throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
-            ObjectDescription description = new ObjectDescription();
-            description.setWorkspaceContainerGUID(param.getContainerName());
-            description.setWorkspaceObjectURI(WORKSPACE_REPORT_URI);
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.REPORT,
-                param.getContainerName() + JSONL_EXTENSION, description);
-        }
-    }
-
-    private void cleanupReport(WorkerParameters param) throws VitamClientInternalException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.cleanupReport(param.getContainerName(), BULK_UPDATE_UNIT);
-        }
-    }
-
-    private LogbookOperation getLogbookInformation(WorkerParameters params)
-        throws InvalidParseOperationException, LogbookClientException {
-        try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
-            JsonNode response = logbookClient.selectOperationById(params.getContainerName());
-            RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
-            return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
-        }
-    }
-
-    private OperationSummary getOperationSummary(LogbookOperation logbook, String processId)
-        throws InvalidParseOperationException {
-        List<LogbookEventOperation> events = logbook.getEvents();
-        LogbookEventOperation lastEvent = events.get(events.size() - 2);
-
-        JsonNode rSI = StringUtils.isNotBlank(logbook.getRightsStatementIdentifier())
-            ? JsonHandler.getFromString(logbook.getRightsStatementIdentifier())
-            : JsonHandler.createObjectNode();
-
-        JsonNode evDetData = Objects.isNull(lastEvent.getEvDetData())
-            ? JsonHandler.createObjectNode()
-            : JsonHandler.getFromString(lastEvent.getEvDetData());
-
-        return new OperationSummary(
-            VitamThreadUtils.getVitamSession().getTenantId(),
-            processId,
-            lastEvent.getEvType(),
-            lastEvent.getOutcome(),
-            lastEvent.getOutDetail(),
-            lastEvent.getOutMessg(),
-            rSI,
-            evDetData
-        );
-    }
-
-    private ReportSummary getReport(LogbookOperation logbook) {
+    protected ReportSummary getReport(LogbookOperation logbook) {
         Optional<LogbookEventOperation> logbookEventPrepare = logbook.getEvents().stream()
             .filter(e -> e.getEvType().startsWith(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME))
             .reduce((a, b) -> b);
@@ -276,21 +103,24 @@ public class BulkAtomicUpdateFinalize extends ActionHandler {
         return new ReportSummary(startDate, endDate, BULK_UPDATE_UNIT, results, null);
     }
 
-    private Map<StatusCode, Integer> getStatusStatistic(LogbookEvent logbookEvent) {
-        String outMessg = logbookEvent.getOutMessg();
-        if (StringUtils.isBlank(outMessg)) {
-            return Collections.emptyMap();
-        }
-        String[] splitedMessage = outMessg.split(DETAILS);
-        if (splitedMessage.length != 2) {
-            return Collections.emptyMap();
-        }
-        return Stream.of(splitedMessage)
-            .reduce((first, second) -> second)
-            .map(last -> Stream.of(last.split("\\s"))
-                .filter(StringUtils::isNotBlank)
-                .collect(
-                    Collectors.toMap(s -> StatusCode.valueOf(s.split(":")[0]), s -> Integer.valueOf(s.split(":")[1]))))
-            .orElse(Collections.emptyMap());
+    @Override
+    protected String getPluginId() {
+        return BULK_ATOMIC_UPDATE_FINALIZE_PLUGIN_NAME;
     }
+
+    @Override
+    protected String getUpdateType() {
+        return "BulkAtomicUpdate";
+    }
+
+    @Override
+    protected String getUpdateActionKey() {
+        return BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME;
+    }
+
+    @Override
+    protected ReportType getReportType() {
+        return BULK_UPDATE_UNIT;
+    }
+
 }
