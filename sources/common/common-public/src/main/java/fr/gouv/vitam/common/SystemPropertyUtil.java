@@ -26,13 +26,13 @@
  */
 package fr.gouv.vitam.common;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Properties;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * A collection of utility methods to retrieve and parse the values of the Java system properties.
@@ -70,7 +70,7 @@ public final class SystemPropertyUtil {
      * Re-retrieves all system properties so that any post-launch properties updates are retrieved.
      */
     public static void refresh() {
-        Properties newProps = null;
+        Properties newProps = new Properties();
         try {
             newProps = System.getProperties();
         } catch (final SecurityException e) {
@@ -78,7 +78,6 @@ public final class SystemPropertyUtil {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             SysErrLogger.FAKE_LOGGER.syserr(
                 "Unable to retrieve the system properties; default values will be used: " + e.getMessage());
-            newProps = new Properties();
         }
 
         synchronized (PROPS) {
@@ -127,7 +126,7 @@ public final class SystemPropertyUtil {
      * @return True if the key is contained
      * @throws IllegalArgumentException key null
      */
-    public static final boolean contains(final String key) {
+    public static boolean contains(final String key) {
         ParametersChecker.checkParameter("Key", key);
         return PROPS.containsKey(key);
     }
@@ -140,7 +139,7 @@ public final class SystemPropertyUtil {
      * @return the property value or {@code null}
      * @throws IllegalArgumentException key null
      */
-    public static final String get(final String key) {
+    public static String get(final String key) {
         return get(key, null);
     }
 
@@ -152,10 +151,9 @@ public final class SystemPropertyUtil {
      * @return the property value or {@code null}
      * @throws IllegalArgumentException key null
      */
-    public static final String getNoCheck(final String key) {
+    public static String getNoCheck(final String key) {
         ParametersChecker.checkParameter("Key", key);
-        final String value = PROPS.getProperty(key);
-        return value;
+        return PROPS.getProperty(key);
     }
 
     /**
@@ -168,7 +166,7 @@ public final class SystemPropertyUtil {
      *         not allowed.
      * @throws IllegalArgumentException key null
      */
-    public static final String get(final String key, final String def) {
+    public static String get(final String key, final String def) {
         ParametersChecker.checkParameter("Key", key);
         String value = PROPS.getProperty(key);
         if (value == null) {
@@ -478,9 +476,7 @@ public final class SystemPropertyUtil {
      */
     public static void clear(String key) {
         ParametersChecker.checkParameter("Key", key);
-        if (PROPS.containsKey(key)) {
-            PROPS.remove(key);
-        }
+        PROPS.remove(key);
         System.clearProperty(key);
         refresh();
     }
@@ -535,23 +531,19 @@ public final class SystemPropertyUtil {
                 // ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (os.indexOf("win") >= 0) {
+            if (os.contains("win")) {
                 m_os = Platform.WINDOWS;
                 // Windows
-            }
-            if (os.indexOf("mac") >= 0) {
+            } else if (os.contains("mac")) {
                 m_os = Platform.MAC;
                 // Mac
-            }
-            if (os.indexOf("nux") >= 0) {
+            } else if (os.contains("nux")) {
                 m_os = Platform.UNIX;
                 // Linux
-            }
-            if (os.indexOf("nix") >= 0) {
+            } else if (os.contains("nix")) {
                 m_os = Platform.UNIX;
                 // Unix
-            }
-            if (os.indexOf("sunos") >= 0) {
+            } else if (os.contains("sunos")) {
                 m_os = Platform.SOLARIS;
                 // Solaris
             }
