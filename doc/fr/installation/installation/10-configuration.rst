@@ -49,6 +49,7 @@ Pour chaque type de `host`, indiquer le(s) serveur(s) défini(s), pour chaque fo
 
 Fichier ``vitam_security.yml``
 -------------------------------
+.. _VitamSecurityAnchor:
 
 La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory|``group_vars/all/vitam_security.yml``, comme suit :
 
