@@ -41,7 +41,7 @@ import java.nio.file.Files;
  * Helper for Streaming to output one InputStream or File in non async mode
  */
 public class VitamStreamingOutput implements StreamingOutput, VitamAutoCloseable {
-    private InputStream inputStream = null;
+    private InputStream inputStream;
     private final File file;
     private final boolean toDelete;
 
