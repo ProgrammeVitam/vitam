@@ -122,20 +122,20 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$filter\": {} }";
     private static final String ELIMINATION_QUERY =
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
-    
-    
-    
+
+
+
     private static final String BULK_ATOMIC_UPDATE_VALID = "{ \"queries\" : [ { "
             + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
             + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
-    
+
     private static final String BULK_ATOMIC_UPDATE_INVALID = "{ \"queries\" : [ { "
-            + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
-            + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
-            + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
-    
-    private static String good_id = "goodId";
-    private static String bad_id = "badId";
+        + "\"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ],  "
+        + "\"$filter\" : { \"$orderby\" : { \"#id\":1 } },"
+        + "\"$action\": [ { \"$set\": { \"Title\": \"Titre test\" } } ]  } ] }";
+
+    private static final String good_id = "goodId";
+    private static final String bad_id = "badId";
 
     private static final String QUERY_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], " +
         " \"$filter\" : { \"$orderby\" : { \"#id\":1 } }," +
@@ -452,7 +452,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
 
         when(accessInternalClient.selectUnits(selectMultiQuery.getFinalSelect()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(SELECT_RETURN)));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(SELECT_RETURN)));
 
         given()
             .contentType(ContentType.JSON)
@@ -822,7 +822,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testAccessUnits() throws Exception {
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Multiple Query DSL Validator Ok
         given()
             .contentType(ContentType.JSON)
@@ -853,7 +853,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testHttpOverrideAccessUnits() throws Exception {
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -1104,7 +1104,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testOkSelectUnits() throws Exception {
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Query Validation Ok
         JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE);
         given()
@@ -1215,10 +1215,10 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final JsonNode result = JsonHandler.getFromString(BODY_TEST_SINGLE);
         when(accessInternalClient.selectObjectbyId(any(), anyString()))
-            .thenReturn(new RequestResponseOK().addResult(result));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(result));
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
         when(accessInternalClient.selectUnits(any()))
-                .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(resultObjectReturn));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
@@ -1439,7 +1439,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(resultObjectReturn));
 
         when(accessInternalClient.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenReturn(response);
@@ -1595,7 +1595,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         when(accessInternalClient.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
         when(accessInternalClient.selectUnits(any()))
-            .thenReturn(new RequestResponseOK().addResult(objectGroup));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(objectGroup));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE, "GET")
@@ -1698,7 +1698,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     public void testAccessUnitsWithInheritedRules() throws Exception {
         reset(accessInternalClient);
         when(accessInternalClient.selectUnitsWithInheritedRules(any()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Multiple Query DSL Validator Ok
         given()
             .contentType(ContentType.JSON)
@@ -1730,7 +1730,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     public void testHttpOverrideAccessUnitsWithInheritedRules() throws Exception {
         reset(accessInternalClient);
         when(accessInternalClient.selectUnitsWithInheritedRules(any()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -1853,7 +1853,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testOkSelectUnitsWithInheritedRules() throws Exception {
         when(accessInternalClient.selectUnitsWithInheritedRules(any()))
-            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Query Validation Ok
         JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE);
         given()
@@ -1957,7 +1957,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testStartEliminationAnalysis_OK() throws Exception {
         when(accessInternalClient.startEliminationAnalysis(any()))
-            .thenReturn(new RequestResponseOK().setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -1973,7 +1973,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testStartEliminationAnalysis_InvalidRequest() throws Exception {
         when(accessInternalClient.startEliminationAnalysis(any()))
-            .thenReturn(new RequestResponseOK().setHttpCode(200));
+            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
 
         // Query with projection
         given()
@@ -2024,12 +2024,12 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_OK() throws Exception {
-             
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
-            .thenReturn(new RequestResponseOK().setHttpCode(202));
+            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(202));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -2040,10 +2040,10 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_Unauthorized() throws Exception {
-        
+
        when(accessInternalClient.bulkAtomicUpdateUnits(any()))
            .thenThrow(AccessUnauthorizedException.class);
        given()
@@ -2056,10 +2056,10 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
            .then()
            .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
-    
+
     @Test
     public void testBulkAtomicUpdate_InternalServerError() throws Exception {
-             
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenThrow(AccessInternalClientServerException.class);
         given()
@@ -2097,7 +2097,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .post("/units/bulk")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         when(accessInternalClient.bulkAtomicUpdateUnits(any()))
             .thenThrow(InvalidParseOperationException.class);
        given()
