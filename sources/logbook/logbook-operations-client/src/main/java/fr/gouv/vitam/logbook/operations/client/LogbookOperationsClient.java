@@ -203,7 +203,7 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws LogbookClientServerException
      * @throws InvalidParseOperationException
      */
-    RequestResponseOK traceabilityLfcUnit() throws LogbookClientServerException, InvalidParseOperationException;
+    RequestResponseOK<String> traceabilityLfcUnit() throws LogbookClientServerException, InvalidParseOperationException;
 
     /**
      * Starts Object Group logbook lifecycle traceability
@@ -212,7 +212,7 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws LogbookClientServerException
      * @throws InvalidParseOperationException
      */
-    RequestResponseOK traceabilityLfcObjectGroup() throws LogbookClientServerException, InvalidParseOperationException;
+    RequestResponseOK<String> traceabilityLfcObjectGroup() throws LogbookClientServerException, InvalidParseOperationException;
 
     /**
      * Check life cycle traceability status (unit  / got)

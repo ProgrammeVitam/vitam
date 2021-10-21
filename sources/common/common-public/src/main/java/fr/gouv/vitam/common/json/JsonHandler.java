@@ -31,13 +31,14 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -105,7 +106,7 @@ public final class JsonHandler {
         OBJECT_MAPPER_UNPRETTY = buildObjectMapper();
         OBJECT_MAPPER_UNPRETTY.disable(SerializationFeature.INDENT_OUTPUT);
         OBJECT_MAPPER_LOWER_CAMEL_CASE = buildObjectMapper();
-        OBJECT_MAPPER_LOWER_CAMEL_CASE.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
+        OBJECT_MAPPER_LOWER_CAMEL_CASE.setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
         OBJECT_MAPPER_LOWER_CAMEL_CASE.disable(SerializationFeature.INDENT_OUTPUT);
     }
 
@@ -113,10 +114,10 @@ public final class JsonHandler {
         // Empty constructor
     }
 
-    private static final ObjectMapper buildObjectMapper() {
+    private static ObjectMapper buildObjectMapper() {
         final ObjectMapper objectMapper = new ObjectMapper(JSONFACTORY);
         objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
 
         // Replace objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
         objectMapper.configOverride(Map.class)
@@ -126,7 +127,6 @@ public final class JsonHandler {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, true);
         objectMapper.configure(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED,
             false);
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
@@ -134,7 +134,7 @@ public final class JsonHandler {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         objectMapper.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true);
-        objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
+        objectMapper.configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), true);
         // For upgrade of Jackson libs (see https://github.com/FasterXML/jackson-databind/issues/1744)
         objectMapper.setDateFormat(new StdDateFormat().withColonInTimeZone(false));
 
@@ -144,21 +144,21 @@ public final class JsonHandler {
     /**
      * @return the current factory
      */
-    public static final JsonNodeFactory getFactory() {
+    public static JsonNodeFactory getFactory() {
         return OBJECT_MAPPER.getNodeFactory();
     }
 
     /**
      * @return an empty ObjectNode
      */
-    public static final ObjectNode createObjectNode() {
+    public static ObjectNode createObjectNode() {
         return OBJECT_MAPPER.createObjectNode();
     }
 
     /**
      * @return an empty ArrayNode
      */
-    public static final ArrayNode createArrayNode() {
+    public static ArrayNode createArrayNode() {
         return OBJECT_MAPPER.createArrayNode();
     }
 
@@ -167,7 +167,7 @@ public final class JsonHandler {
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final JsonNode getFromString(final String value)
+    public static JsonNode getFromString(final String value)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value", value);
@@ -191,7 +191,7 @@ public final class JsonHandler {
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final void validate(final String value)
+    public static void validate(final String value)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value", value);
@@ -211,7 +211,7 @@ public final class JsonHandler {
      * @return JsonGenerator
      * @throws IOException IOException
      */
-    public static final JsonGenerator createJsonGenerator(OutputStream os) throws IOException {
+    public static JsonGenerator createJsonGenerator(OutputStream os) throws IOException {
         return JSONFACTORY.createGenerator(os);
     }
 
@@ -231,7 +231,7 @@ public final class JsonHandler {
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final JsonNode getFromFile(final File file)
+    public static JsonNode getFromFile(final File file)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File", file);
@@ -258,7 +258,7 @@ public final class JsonHandler {
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final JsonNode getFromInputStream(final InputStream stream)
+    public static JsonNode getFromInputStream(final InputStream stream)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream", stream);
@@ -276,7 +276,7 @@ public final class JsonHandler {
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final JsonNode getFromInputStream(final InputStream stream1, final InputStream stream2)
+    public static JsonNode getFromInputStream(final InputStream stream1, final InputStream stream2)
         throws InvalidParseOperationException {
         ParametersChecker.checkParameter("InputStream 1", stream1);
 
@@ -322,7 +322,7 @@ public final class JsonHandler {
      * @return the object of type clasz
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromString(final String value, final Class<T> clasz)
+    public static <T> T getFromString(final String value, final Class<T> clasz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value or class", value, clasz);
@@ -385,7 +385,7 @@ public final class JsonHandler {
      * @return the object of type clasz
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromString(final String value, final Class<T> clasz, Class<?> parameterClazz)
+    public static <T> T getFromString(final String value, final Class<?> clasz, Class<?> parameterClazz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value, class or parameterClazz", value, clasz, parameterClazz);
@@ -403,7 +403,7 @@ public final class JsonHandler {
      * @return the object of type clasz
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromStringLowerCamelCase(final String value, final Class<T> clasz)
+    public static <T> T getFromStringLowerCamelCase(final String value, final Class<T> clasz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value or class", value, clasz);
@@ -418,7 +418,7 @@ public final class JsonHandler {
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final JsonNode getFromBytes(final byte[] value)
+    public static JsonNode getFromBytes(final byte[] value)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value", value);
@@ -434,7 +434,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromFile(File file, Class<T> clasz)
+    public static <T> T getFromFile(File file, Class<T> clasz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File or class", file, clasz);
@@ -450,7 +450,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromFileAsTypeReference(File file, TypeReference<T> valueTypeRef)
+    public static <T> T getFromFileAsTypeReference(File file, TypeReference<T> valueTypeRef)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File or class", file, valueTypeRef);
@@ -470,7 +470,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromFileLowerCamelCase(File file, Class<T> clasz)
+    public static <T> T getFromFileLowerCamelCase(File file, Class<T> clasz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File or class", file, clasz);
@@ -486,7 +486,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromJsonNode(JsonNode jsonNode, Class<T> clazz)
+    public static <T> T getFromJsonNode(JsonNode jsonNode, Class<T> clazz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
@@ -496,7 +496,7 @@ public final class JsonHandler {
         }
     }
 
-    public static final <T> T getFromJsonNode(final JsonNode jsonNode, final Class<T> clasz, Class<?> parameterClazz)
+    public static <T> T getFromJsonNode(final JsonNode jsonNode, final Class<?> clasz, Class<?> parameterClazz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value, class or parameterClazz", jsonNode, clasz, parameterClazz);
@@ -514,7 +514,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromJsonNodeLowerCamelCase(JsonNode jsonNode, Class<T> clasz)
+    public static <T> T getFromJsonNodeLowerCamelCase(JsonNode jsonNode, Class<T> clasz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clasz);
@@ -535,7 +535,7 @@ public final class JsonHandler {
         }
     }
 
-    public static final <T> List<T> getFromJsonNodeList(List<JsonNode> jsonNodes, Class<T> clazz)
+    public static <T> List<T> getFromJsonNodeList(List<JsonNode> jsonNodes, Class<T> clazz)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("JsonNode or class", jsonNodes, clazz);
@@ -569,7 +569,7 @@ public final class JsonHandler {
      * @return the Json representation of the object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final JsonNode toJsonNode(final Object object)
+    public static JsonNode toJsonNode(final Object object)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter(OBJECT, object);
@@ -584,7 +584,7 @@ public final class JsonHandler {
      * @return the Json representation of the object (shall be prettyPrint)
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final String writeAsString(final Object object)
+    public static String writeAsString(final Object object)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter(OBJECT, object);
@@ -628,7 +628,7 @@ public final class JsonHandler {
      * @param file to write object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final void writeAsFile(final Object object, File file)
+    public static void writeAsFile(final Object object, File file)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("object or file", object, file);
@@ -643,7 +643,7 @@ public final class JsonHandler {
      * @param outputStream the output stream
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final void writeAsOutputStream(final Object object, OutputStream outputStream)
+    public static void writeAsOutputStream(final Object object, OutputStream outputStream)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("object or file", object, outputStream);
@@ -659,7 +659,7 @@ public final class JsonHandler {
      * @return the InputStream for this object
      * @throws InvalidParseOperationException
      */
-    public static final InputStream writeToInpustream(final Object object) throws InvalidParseOperationException {
+    public static InputStream writeToInpustream(final Object object) throws InvalidParseOperationException {
         return new ByteArrayInputStream(writeAsString(object).getBytes(StandardCharsets.UTF_8));
     }
 
@@ -670,7 +670,7 @@ public final class JsonHandler {
      * @param nodes to check
      * @throws IllegalArgumentException if nodes are null or empty
      */
-    public static final void checkNullOrEmpty(final String message, final JsonNode... nodes) {
+    public static void checkNullOrEmpty(final String message, final JsonNode... nodes) {
         if (nodes != null) {
             for (final JsonNode jsonNode : nodes) {
                 if (jsonNode == null || jsonNode.size() == 0) {
@@ -690,7 +690,7 @@ public final class JsonHandler {
      * @return the couple property name and property value
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final Entry<String, JsonNode> checkUnicity(final String nodeName,
+    public static Entry<String, JsonNode> checkUnicity(final String nodeName,
         final JsonNode node)
         throws InvalidParseOperationException {
         if (node == null || node.isMissingNode()) {
@@ -723,7 +723,7 @@ public final class JsonHandler {
      * @return the couple property name and property value
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final Entry<String, JsonNode> checkLaxUnicity(final String nodeName,
+    public static Entry<String, JsonNode> checkLaxUnicity(final String nodeName,
         final JsonNode node)
         throws InvalidParseOperationException {
         if (node == null || node.isMissingNode()) {
@@ -767,7 +767,7 @@ public final class JsonHandler {
      * @return the corresponding HashMap
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final Map<String, Object> getMapFromString(final String value)
+    public static Map<String, Object> getMapFromString(final String value)
         throws InvalidParseOperationException {
         if (value != null && !value.isEmpty()) {
             Map<String, Object> info;
@@ -792,7 +792,7 @@ public final class JsonHandler {
      * @return the corresponding HashMap
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final Map<String, String> getMapStringFromString(final String value)
+    public static Map<String, String> getMapStringFromString(final String value)
         throws InvalidParseOperationException {
         if (value != null && !value.isEmpty()) {
             Map<String, String> info;
@@ -1098,7 +1098,7 @@ public final class JsonHandler {
      * @return the byte[]
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final byte[] writeValueAsBytes(JsonNode json)
+    public static byte[] writeValueAsBytes(JsonNode json)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("json", json);

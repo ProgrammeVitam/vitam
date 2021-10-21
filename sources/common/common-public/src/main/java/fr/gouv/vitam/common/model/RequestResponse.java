@@ -30,7 +30,9 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -40,7 +42,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,7 +93,7 @@ public abstract class RequestResponse<T> {
 
 
     @JsonIgnore
-    public RequestResponse addHeader(String key, String value) {
+    public RequestResponse<T> addHeader(String key, String value) {
         this.vitamHeaders.put(key, value);
         return this;
     }
@@ -162,6 +163,7 @@ public abstract class RequestResponse<T> {
     public static RequestResponse<JsonNode> parseFromResponse(Response response) throws IllegalStateException {
         return parseFromResponse(response, JsonNode.class);
     }
+
     /**
      * Parser the response for a RequestResponse object.<br/>
      * <br/>
@@ -173,12 +175,14 @@ public abstract class RequestResponse<T> {
      * @throws IllegalStateException if the response cannot be parsed to one of the two model
      */
     @JsonIgnore
-    public static <T> RequestResponse<T> parseFromResponse(Response response, Class clazz) throws IllegalStateException {
+    public static <T> RequestResponse<T> parseFromResponse(Response response, Class<T> clazz)
+        throws IllegalStateException {
         final String result = response.readEntity(String.class);
         if (result != null && !result.isEmpty()) {
             if (result.contains("$hits")) {
                 try {
-                    final RequestResponseOK ret = JsonHandler.getFromString(result, RequestResponseOK.class, clazz);
+                    final RequestResponse<T> ret =
+                        RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(result), clazz);
                     return ret.parseHeadersFromResponse(response);
                 } catch (final InvalidParseOperationException e) {
                     // Issue, trying RequestResponseOK model
@@ -186,16 +190,17 @@ public abstract class RequestResponse<T> {
                 }
             } else if (result.contains("httpCode")) {
                 try {
-                    final VitamError error = JsonHandler.getFromString(result, VitamError.class);
+                    final VitamError<T> error = JsonHandler.getFromStringAsTypeReference(result, new TypeReference<>() {
+                    });
                     return error.parseHeadersFromResponse(response);
-                } catch (final InvalidParseOperationException e) {
+                } catch (final InvalidParseOperationException | InvalidFormatException e) {
                     // Issue, while trying VitamError model
                     LOGGER.warn("Issue while decoding VitamError", e);
                 }
             }
             throw new IllegalStateException("Cannot parse the response");
         }
-        return new VitamError("UnknownCode").setCode("").setHttpCode(response.getStatus())
+        return VitamError.newVitamError(clazz).setCode("").setHttpCode(response.getStatus())
             .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
     }
 
@@ -205,10 +210,24 @@ public abstract class RequestResponse<T> {
      * @throws InvalidParseOperationException if JsonNode parse exception occurred
      */
     @JsonIgnore
-    public static RequestResponseOK parseRequestResponseOk(Response response) throws InvalidParseOperationException {
-        final RequestResponseOK ret = JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
+    @SuppressWarnings("unused")
+    public static <T> RequestResponseOK<T> parseRequestResponseOk(Response response, Class<T> clasz)
+        throws InvalidParseOperationException {
+        final RequestResponseOK<T> ret =
+            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(response.readEntity(String.class)), clasz);
         ret.parseHeadersFromResponse(response);
         return ret;
+    }
+
+    /**
+     * @param response to parse in RequestResponse
+     * @return the RequestResponseOk
+     * @throws InvalidParseOperationException if JsonNode parse exception occurred
+     */
+    @JsonIgnore
+    public static RequestResponseOK<JsonNode> parseRequestResponseOk(Response response)
+        throws InvalidParseOperationException {
+        return RequestResponse.parseRequestResponseOk(response, JsonNode.class);
     }
 
     /**
@@ -217,15 +236,29 @@ public abstract class RequestResponse<T> {
      * @throws InvalidParseOperationException if JsonNode parse exception occurred
      */
     @JsonIgnore
-    public static VitamError parseVitamError(Response response) throws InvalidParseOperationException {
-        final VitamError error =JsonHandler.getFromString(response.readEntity(String.class), VitamError.class);
+    @SuppressWarnings("unused")
+    public static <T> VitamError<T> parseVitamError(Response response, Class<T> clasz)
+        throws InvalidParseOperationException {
+        final VitamError<T> error =
+            VitamError.getFromJsonNode(JsonHandler.getFromString(response.readEntity(String.class)), clasz);
         error.parseHeadersFromResponse(response);
         return error;
+    }
+
+    /**
+     * @param response to parse in RequestResponse
+     * @return the VitamError
+     * @throws InvalidParseOperationException if JsonNode parse exception occurred
+     */
+    @JsonIgnore
+    public static VitamError<JsonNode> parseVitamError(Response response) throws InvalidParseOperationException {
+        return VitamError.parseVitamError(response, JsonNode.class);
     }
 
 
     /**
      * Check if the JsonNode is a RequestResponse and OK
+     *
      * @param requestResponseAsJsonNode as request response as a JsonNode
      * @return true if JsonNode contains httpCode as 2xx or 3xx, false if httpCode as 4xx or 5xx
      * @throws IllegalStateException if JsonNode is not a valid instance of requestResponse
@@ -236,14 +269,14 @@ public abstract class RequestResponse<T> {
             int httpCode = requestResponseAsJsonNode.get("httpCode").asInt();
             Status.Family family = Status.Family.familyOf(httpCode);
             switch (family) {
-            case SUCCESSFUL:
-            case REDIRECTION:
-                return true;
-            case CLIENT_ERROR:
-            case SERVER_ERROR:
-                return false;
-            default:
-                break;
+                case SUCCESSFUL:
+                case REDIRECTION:
+                    return true;
+                case CLIENT_ERROR:
+                case SERVER_ERROR:
+                    return false;
+                default:
+                    break;
             }
         }
         throw new IllegalStateException("Response is not a valid instance of RequestResponse");
@@ -251,6 +284,7 @@ public abstract class RequestResponse<T> {
 
     /**
      * transform a RequestResponse to a standard response
+     *
      * @return Response
      */
     public abstract Response toResponse();

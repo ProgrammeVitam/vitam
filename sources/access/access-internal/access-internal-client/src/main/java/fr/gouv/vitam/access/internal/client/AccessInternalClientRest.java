@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.internal.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -596,7 +597,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> revertUnits(RevertUpdateOptions revertUpdateOptions)
         throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
-        NoWritingPermissionException {
+        NoWritingPermissionException, InvalidFormatException {
         Response response = null;
         try  {
             response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/revert/units").withBody(revertUpdateOptions, BLANK_DSL).withJson());

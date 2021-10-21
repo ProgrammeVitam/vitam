@@ -847,7 +847,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<PreservationScenarioModel> findPreservation(JsonNode dslQuery)
         throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException;
 
-    RequestResponse findGriffin(JsonNode dslQuery)
+    RequestResponse<GriffinModel> findGriffin(JsonNode dslQuery)
         throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException;
 
 
