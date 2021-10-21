@@ -1990,7 +1990,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
 
             String id = GUIDFactory.newGUID().getId();
-            tmpFile = new File(VitamConfiguration.getVitamTmpFolder(), id);
+            tmpFile = PropertiesUtils.fileFromTmpFolder(id);
 
             try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
                 JsonLineWriter jsonLineWriter = new JsonLineWriter(fileOutputStream)
