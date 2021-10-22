@@ -11,7 +11,7 @@
 - name: Get filesystem offers
   set_fact:
     fs_offers: "{{ fs_offers | default([]) + [item.key] }}"
-  loop: "{{ lookup('dict', vitam_offers) }}"
+  loop: "{{ lookup('dict', vitam_offers, wantlist=True) }}"
   loop_control:
     label: "{{ item.key }}"
   when: "'filesystem' in item.value.provider"
