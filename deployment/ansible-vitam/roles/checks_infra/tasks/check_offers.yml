@@ -3,7 +3,7 @@
 - name: Get S3 offers
   set_fact:
     s3_offers: "{{ s3_offers | default([]) + [item.key] }}"
-  loop: "{{ lookup('dict', vitam_offers) }}"
+  loop: "{{ lookup('dict', vitam_offers, wantlist=True) }}"
   loop_control:
     label: "{{ item.key }}"
   when: "'s3' in item.value.provider"
@@ -11,7 +11,7 @@
 - name: Get Swift offers
   set_fact:
     swift_offers: "{{ swift_offers | default([]) + [item.key] }}"
-  loop: "{{ lookup('dict', vitam_offers) }}"
+  loop: "{{ lookup('dict', vitam_offers, wantlist=True) }}"
   loop_control:
     label: "{{ item.key }}"
   when: "'swift' in item.value.provider"
@@ -19,18 +19,18 @@
 - name: Set S3 URL
   set_fact:
     s3_url: "{{ [item.value.s3Endpoint] }}"
-  loop: "{{ lookup('dict', vitam_offers) }}"
+  loop: "{{ lookup('dict', vitam_offers, wantlist=True) }}"
   loop_control:
     label: "{{ item.key }}"
-  when: offer_conf is defined and offer_conf in s3_offers and item.key == offer_conf
+  when: s3_offers is defined and offer_conf is defined and offer_conf in s3_offers and item.key == offer_conf
 
 - name: Set Swift URL
   set_fact:
     swift_url: "{{ [item.value.swiftUrl] }}"
-  loop: "{{ lookup('dict', vitam_offers) }}"
+  loop: "{{ lookup('dict', vitam_offers, wantlist=True) }}"
   loop_control:
     label: "{{ item.key }}"
-  when: offer_conf is defined and offer_conf in swift_offers and item.key == offer_conf
+  when: swift_offers is defined and offer_conf is defined and offer_conf in swift_offers and item.key == offer_conf
 
 - name: Test S3 offers
   wait_for:
@@ -57,19 +57,19 @@
 - name: Update report in case of error for S3
   set_fact:
     checks_infra_report: "{{ checks_infra_report + [ 'Offers: [ERROR] The S3 offer {{ offer_conf }} is not reachable' ] }}"
-  when: offer_conf is defined and offer_conf in s3_offers and check_s3 is failed
+  when: s3_offers is defined and offer_conf is defined and offer_conf in s3_offers and check_s3 is failed
 
 - name: Update report in case of error for Swift
   set_fact:
     checks_infra_report: "{{ checks_infra_report + [ 'Offers: [ERROR] The Swift offer {{ offer_conf }} is not reachable' ] }}"
-  when: offer_conf is defined and offer_conf in swift_offers and check_swift is failed
+  when: swift_offers is defined and offer_conf is defined and offer_conf in swift_offers and check_swift is failed
 
 - name: Update report in case of success for S3
   set_fact:
     checks_infra_report: "{{ checks_infra_report + [ 'Offers: [OK] The S3 offer {{ offer_conf }} is reachable' ] }}"
-  when: offer_conf is defined and offer_conf in s3_offers and check_s3 is success
+  when: s3_offers is defined and offer_conf is defined and offer_conf in s3_offers and check_s3 is success
 
 - name: Update report in case of success for Swift
   set_fact:
     checks_infra_report: "{{ checks_infra_report + [ 'Offers: [OK] The Swift offer {{ offer_conf }} is reachable' ] }}"
-  when: offer_conf is defined and offer_conf in swift_offers and check_swift is success
+  when: swift_offers is defined and offer_conf is defined and offer_conf in swift_offers and check_swift is success
