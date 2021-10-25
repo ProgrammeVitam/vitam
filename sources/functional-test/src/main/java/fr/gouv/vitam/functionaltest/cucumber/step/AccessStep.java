@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.model.administration.PermissionModel;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.utils.JsonSorter;
@@ -668,7 +669,6 @@ public class AccessStep {
             Fail.fail("request selectObjects return an error: " + vitamError.getCode());
         }
     }
-
     @Then("^la catégorie contient une règle (.*) héritée depuis l'unité (.*) avec pour métadonnées$")
     public void check_rule_metadata(String ruleId, String unitTitle, DataTable dataTable) throws Throwable {
 
