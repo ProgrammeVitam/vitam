@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -117,7 +117,7 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     public Response exportDIP(DipRequest dipRequest) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(dipRequest.getDslRequest());
-            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
+            SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(dipRequest.getDslRequest());
             RequestResponse<JsonNode> response = client.exportByUsageFilter(ExportRequest.from(dipRequest));
             if (response.isOk()) {
@@ -137,11 +137,11 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     }
 
     @Deprecated
-    private VitamError getErrorEntity(Status status, String message) {
+    private VitamError<JsonNode> getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+        return new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }
