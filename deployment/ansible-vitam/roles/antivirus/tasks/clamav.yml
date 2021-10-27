@@ -51,6 +51,18 @@
     mode: 0644
   notify:
     - restart clamav
+  when: ansible_os_family == "RedHat"
+
+- name: apply custom config file for clamAV
+  template:
+    src: clamav/scan.conf.j2
+    dest: /etc/clamav/clamd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart clamav
+  when: ansible_os_family == "Debian"
 
 - name: Enable logrotate for clamAV
   template:
