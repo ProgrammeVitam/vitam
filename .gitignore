@@ -36,3 +36,5 @@ deployment/environments/backups
 vitam-conf-dev/conf/offer3/default-storage.conf
 cucumber-reports
 
+.run
+.gradle

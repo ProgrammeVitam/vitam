@@ -60,6 +60,7 @@ localhost
 ##### Zone applicative
 
 [zone_applicative:children]
+hosts_collect
 hosts_ingest_internal
 hosts_processing
 hosts_batch_report
@@ -71,6 +72,9 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+
+[hosts_collect]
+localhost
 
 [hosts_security_internal]
 localhost

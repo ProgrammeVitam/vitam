@@ -237,6 +237,14 @@ vitam:
         baseuri: "batchreport"
         https_enabled: false
         secret_platform: "false"
+    collect:
+        vitam_component: collect
+        host: "collect.service.{{ consul_domain }}"
+        port_service: 8030
+        port_admin: 28030
+        baseuri: "collect"
+        https_enabled: false
+        secret_platform: "true"
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
