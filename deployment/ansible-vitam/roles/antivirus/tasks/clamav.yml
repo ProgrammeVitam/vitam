@@ -51,7 +51,6 @@
     mode: 0644
   notify:
     - restart clamav
-  when: ansible_os_family == "RedHat"
 
 - name: apply custom config file for clamAV
   template:
