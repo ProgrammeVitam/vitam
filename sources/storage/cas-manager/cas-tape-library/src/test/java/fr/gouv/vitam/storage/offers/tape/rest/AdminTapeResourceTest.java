@@ -126,7 +126,7 @@ public class AdminTapeResourceTest {
         // Wait until writeOrder will be processed
         Thread.sleep(2000);
 
-        assertThat(queueCollection.count()).isEqualTo(1);
+        assertThat(queueCollection.countDocuments()).isEqualTo(1);
 
         archiveReference = archiveReferentialRepository.find(objectId);
 

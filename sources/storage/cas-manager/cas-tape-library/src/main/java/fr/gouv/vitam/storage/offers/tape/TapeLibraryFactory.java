@@ -86,6 +86,7 @@ public class TapeLibraryFactory {
 
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
     private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
+    private static final long MB_BYTES = 1_000_000L;
 
     private final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers = new ConcurrentHashMap<>();
     private TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage;
@@ -129,9 +130,9 @@ public class TapeLibraryFactory {
 
         ArchiveCacheStorage archiveCacheStorage = new ArchiveCacheStorage(
             configuration.getCachedTarStorageFolder(), bucketTopologyHelper,
-            configuration.getCachedTarMaxStorageSpaceInMB() * 1_000_000L,
-            configuration.getCachedTarEvictionStorageSpaceThresholdInMB() * 1_000_000L,
-            configuration.getCachedTarSafeStorageSpaceThresholdInMB() * 1_000_000L
+            configuration.getCachedTarMaxStorageSpaceInMB() * MB_BYTES,
+            configuration.getCachedTarEvictionStorageSpaceThresholdInMB() * MB_BYTES,
+            configuration.getCachedTarSafeStorageSpaceThresholdInMB() * MB_BYTES
         );
 
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(

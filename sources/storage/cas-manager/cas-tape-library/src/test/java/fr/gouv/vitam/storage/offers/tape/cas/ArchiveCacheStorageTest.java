@@ -286,6 +286,7 @@ public class ArchiveCacheStorageTest {
         verifyFilesState(instance, FILE_BUCKET_3, "tarId6", true, true, false);
     }
 
+    @Test
     public void testInitialization_givenFullCacheFolderAndNonExpirableFileBucketWhenCacheInitializedThenBackgroundCacheEvictionDeletesOldestExpirableArchives()
         throws Exception {
 
@@ -976,7 +977,7 @@ public class ArchiveCacheStorageTest {
             .isInstanceOf(IllegalArgumentException.class);
     }
 
-    private File createArchiveFileInCache(String fileBucketId, String filename, int size) throws IOException {
+    private void createArchiveFileInCache(String fileBucketId, String filename, int size) throws IOException {
 
         File fileBucketFolder = new File(tempFolder.getRoot(), fileBucketId);
         FileUtils.forceMkdir(fileBucketFolder);
@@ -987,8 +988,6 @@ public class ArchiveCacheStorageTest {
         logicalSleep();
         Files.setAttribute(file.toPath(), "lastAccessTime",
             FileTime.from(LocalDateUtil.now().toInstant(ZoneOffset.UTC)));
-
-        return file;
     }
 
     private File createTmpArchiveFile(int size) throws IOException {

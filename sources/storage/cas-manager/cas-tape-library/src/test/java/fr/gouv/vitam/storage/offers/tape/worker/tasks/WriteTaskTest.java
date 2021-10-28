@@ -1137,8 +1137,7 @@ public class WriteTaskTest {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         String file = getTarFileName();
-        String wrongFilePath = FAKE_FILE_PATH;
-        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, wrongFilePath, 10L, FAKE_DIGEST, file,
+        WriteOrder writeOrder = new WriteOrder(FAKE_BUCKET, FAKE_FILE_BUCKET_ID, FAKE_FILE_PATH, 10L, FAKE_DIGEST, file,
             QueueMessageType.WriteOrder);
 
         WriteTask writeTask =

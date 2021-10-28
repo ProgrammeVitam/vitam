@@ -68,7 +68,9 @@ public class BucketTopologyHelper {
 
     public BucketTopologyHelper(TapeLibraryTopologyConfiguration configuration) {
 
-        Map<String, FileBucketConfiguration> fileBuckets = validateFileBuckets(configuration);
+        Map<String, FileBucketConfiguration> fileBuckets = getFileBucketsConfigurationOrDefault(configuration);
+        validateFileBuckets(fileBuckets);
+
         validateBucketConfiguration(configuration);
 
         Map<String, List<Integer>> buckets = configuration.getBuckets()
@@ -139,18 +141,13 @@ public class BucketTopologyHelper {
         return bucket + "-" + fileBucket;
     }
 
-    private Map<String, FileBucketConfiguration> validateFileBuckets(TapeLibraryTopologyConfiguration configuration)
-        throws VitamRuntimeException {
+    private Map<String, FileBucketConfiguration> getFileBucketsConfigurationOrDefault(
+        TapeLibraryTopologyConfiguration configuration) {
 
         if (configuration == null) {
-            throw new VitamRuntimeException("Invalid conf. Missing bucket topology configuration");
+            throw new VitamRuntimeException("Invalid conf. Missing file-bucket topology configuration");
         }
 
-        /*
-         * Validate file buckets :
-         *   - Named file buckets with distinct & non empty data categories
-         *   - Default empty file bucket
-         */
         Map<String, FileBucketConfiguration> fileBuckets = configuration.getFileBuckets();
 
         // Default file bucket configuration
@@ -168,12 +165,25 @@ public class BucketTopologyHelper {
                     .setKeepForeverInCache(true)
             );
         }
+        return fileBuckets;
+    }
+
+    private void validateFileBuckets(Map<String, FileBucketConfiguration> fileBuckets)
+        throws VitamRuntimeException {
+
+        /*
+         * Validate file buckets :
+         *   - Named file buckets with distinct & non-empty data categories
+         *   - Check reserved file bucket names (`backup-db` is reserved)
+         *   - Default empty file bucket
+         *   - keepForeverInCache presence
+         */
 
         if (fileBuckets.isEmpty()) {
             throw new VitamRuntimeException("Invalid conf. File buckets must not be null");
         }
 
-        if(fileBuckets.containsKey(BACKUP_FILE_BUCKET)) {
+        if (fileBuckets.containsKey(BACKUP_FILE_BUCKET)) {
             throw new VitamRuntimeException("Reserved " + BACKUP_FILE_BUCKET + " file bucket");
         }
 
@@ -226,7 +236,6 @@ public class BucketTopologyHelper {
                 }
             }
         }
-        return fileBuckets;
     }
 
     private void validateBucketConfiguration(TapeLibraryTopologyConfiguration configuration)
@@ -234,7 +243,7 @@ public class BucketTopologyHelper {
 
         /*
          * Validate bucket :
-         *   - buckets must be distinct sets & non empty
+         *   - buckets must be distinct sets & non-empty
          *   - all tenants should map to a bucket
          */
         Map<String, TapeLibraryBucketConfiguration> buckets = configuration.getBuckets();
@@ -262,7 +271,7 @@ public class BucketTopologyHelper {
             throw new VitamRuntimeException("Duplicates found in file bucket configuration");
         }
 
-        if(buckets.containsKey(BACKUP_BUCKET)) {
+        if (buckets.containsKey(BACKUP_BUCKET)) {
             throw new VitamRuntimeException("Reserved " + BACKUP_BUCKET + " bucket");
         }
 

@@ -69,7 +69,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     private final Map<Integer, OptimisticDriveResourceStatus> optimisticDriveResourceStatusMap =
         new ConcurrentHashMap<>();
-    private final ArchiveCacheStorage archiveCacheStorage;
 
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
@@ -83,7 +82,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
             .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
                 archiveReferentialRepository, readRequestReferentialRepository, driveTape,
                 archiveCacheStorage);
-        this.archiveCacheStorage = archiveCacheStorage;
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
@@ -92,7 +90,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
                     this, archiveReferentialRepository, readRequestReferentialRepository,
                     driveTape.get(driveEntry.getKey()), inputTarPath,
-                    forceOverrideNonEmptyCartridges, this.archiveCacheStorage);
+                    forceOverrideNonEmptyCartridges, archiveCacheStorage);
             workers.add(tapeDriveWorker);
         }
     }
@@ -280,12 +278,12 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         // TODO: 28/03/19 parallelism (parallel drive by bucket)
         Set<String> activeBuckets =
             Stream.concat(
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
 
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
-            )
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
+                )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -299,11 +297,11 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
         Set<String> activeTapeCodes =
             Stream.concat(
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
-            )
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
+                )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
