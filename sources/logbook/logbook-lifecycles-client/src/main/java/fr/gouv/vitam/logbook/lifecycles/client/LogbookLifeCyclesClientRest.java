@@ -239,7 +239,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         );
         Response response = null;
         try {
-            response = make(post().withPath(uri).withJson().withBody(JsonHandler.toJsonNode(request), "Request cannot be null."));
+            response = make(post().withPath(uri).withOctetAccept().withJsonContentType()
+                .withBody(JsonHandler.toJsonNode(request), "Request cannot be null."));
             check(response);
             String contentLengthHeader = response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName());
             if(contentLengthHeader == null) {

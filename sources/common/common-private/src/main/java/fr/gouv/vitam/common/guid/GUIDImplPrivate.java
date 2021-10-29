@@ -61,7 +61,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Where nnnnn is a number between 0 and 2^22 (4194304).
  *
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY,
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS,
     property = "@class")
 final class GUIDImplPrivate extends GUIDImpl {
     private static final VitamLogger LOGGER =
@@ -179,7 +179,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @param worm True if Worm GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    GUIDImplPrivate(final int objectTypeId, final int tenantId, final int platformId,
+    GUIDImplPrivate(final int objectTypeId, final int tenantId, final long platformId,
         final boolean worm) {
         super();
         if (objectTypeId < 0 || objectTypeId > 0xFF) {
@@ -223,7 +223,7 @@ final class GUIDImplPrivate extends GUIDImpl {
         guid[HEADER_POS + 1] = (byte) (objectTypeId & 0xFF);
 
         // 4 bytes - 2 bits = Domain (30)
-        int value = tenantId;
+        long value = tenantId;
         guid[TENANT_POS + 3] = (byte) (value & 0xFF);
         value >>>= BYTE_SIZE;
         guid[TENANT_POS + 2] = (byte) (value & 0xFF);
@@ -301,23 +301,19 @@ final class GUIDImplPrivate extends GUIDImpl {
 
     // inspired from Netty DefaultChannelId and
     // http://stackoverflow.com/questions/35842/how-can-a-java-program-get-its-own-process-id
-    private static final ClassLoader getSystemClassLoader() {
+    private static ClassLoader getSystemClassLoader() {
         if (System.getSecurityManager() == null) {
             return ClassLoader.getSystemClassLoader();
         } else {
-            return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-                @Override
-                public ClassLoader run() {
-                    return ClassLoader.getSystemClassLoader();
-                }
-            });
+            return AccessController.doPrivileged(
+                (PrivilegedAction<ClassLoader>) ClassLoader::getSystemClassLoader);
         }
     }
 
     /**
      * @return the JVM Process ID
      */
-    static final int jvmProcessId() {
+    static int jvmProcessId() {
         // Note: may fail in some JVM implementations
         // something like '<pid>@<hostname>', at least in SUN / Oracle JVMs
         try {

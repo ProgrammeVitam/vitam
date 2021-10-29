@@ -56,8 +56,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.AfterClass;
@@ -342,7 +342,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
         @POST
         @Path("/raw/unitlifecycles/bylastpersisteddate")
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getRawUnitLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
             return mock.post();
@@ -450,7 +450,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
         @POST
         @Path("/raw/objectgrouplifecycles/bylastpersisteddate")
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getRawObjectGroupLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
             return mock.post();
