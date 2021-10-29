@@ -244,5 +244,17 @@
     "type": "keyword",
     "cardinality": "one",
     "indexed": true
+  },
+  {
+    "path": "obIdIn",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Comment",
+    "type": "text",
+    "cardinality": "many",
+    "indexed": true
   }
 ]

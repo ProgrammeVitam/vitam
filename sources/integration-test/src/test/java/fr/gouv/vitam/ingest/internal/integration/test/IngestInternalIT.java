@@ -210,6 +210,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail.OPI;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -607,10 +608,16 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // when ingest then the list of accession register details is not empty
             try (AdminManagementClient mgtClient = AdminManagementClientFactory.getInstance().getClient()) {
+                Select selectQuery = new Select();
+                selectQuery.setQuery(QueryHelper.eq(OPI, operationGuid.getId()));
                 RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailModelRequestResponseOK =
                     (RequestResponseOK<AccessionRegisterDetailModel>) mgtClient
-                        .getAccessionRegisterDetail(new Select().getFinalSelect());
-                assertThat(accessionRegisterDetailModelRequestResponseOK.getResults().size()).isNotZero();
+                        .getAccessionRegisterDetail(selectQuery.getFinalSelect());
+                List<AccessionRegisterDetailModel> accesRegisterDetailResults =
+                    accessionRegisterDetailModelRequestResponseOK.getResults();
+                assertThat(accesRegisterDetailResults.size()).isNotZero();
+                assertThat(accesRegisterDetailResults.get(0).getComment()).contains("This is a comment");
+                assertEquals("vitam",accesRegisterDetailResults.get(0).getObIdIn());
             }
 
         } catch (final Exception e) {

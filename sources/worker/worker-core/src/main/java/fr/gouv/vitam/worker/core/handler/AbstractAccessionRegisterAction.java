@@ -94,6 +94,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         String legalStatus = null;
         String archivalAgreement = null;
         String archivalProfile = null;
+        String messageIdentifier = null;
+        List<String> comment;
 
         public String getOriginatingAgency() {
             return originatingAgency;
@@ -144,6 +146,22 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
 
         public void setArchivalProfile(String archivalProfile) {
             this.archivalProfile = archivalProfile;
+        }
+
+        public String getMessageIdentifier() {
+            return messageIdentifier;
+        }
+
+        public void setMessageIdentifier(String messageIdentifier) {
+            this.messageIdentifier = messageIdentifier;
+        }
+
+        public List<String> getComment() {
+            return comment;
+        }
+
+        public void setComment(List<String> comment) {
+            this.comment = comment;
         }
     }
 
@@ -358,6 +376,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             .setAcquisitionInformation(accessionRegisterInfo.getAcquisitionInformation())
             .setLegalStatus(accessionRegisterInfo.getLegalStatus())
             .setArchivalProfile(accessionRegisterInfo.getArchivalProfile())
+            .setObIdIn(accessionRegisterInfo.getMessageIdentifier())
+            .setComment(accessionRegisterInfo.getComment())
             .setEndDate(updateDate)
             .setLastUpdate(updateDate)
             .setStartDate(updateDate)

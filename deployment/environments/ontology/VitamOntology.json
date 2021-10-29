@@ -2140,12 +2140,24 @@
   {
     "Identifier": "Comment",
     "SedaField": "Comment",
-    "Description": "Mapping : format-es-mapping.json",
+    "Description": "Mapping : format-es-mapping.json / accessionregisterdetail-es-mapping.json",
     "Type": "TEXT",
     "Origin": "INTERNAL",
     "ShortName": "Commentaire",
     "Collections": [
-      "FileFormat"
+      "FileFormat",
+      "AccessionRegisterDetail"
+    ]
+  },
+  {
+    "Identifier": "obIdIn",
+    "SedaField": "MessageIdentifier",
+    "Description": "Mapping : accessionregisterdetail-es-mapping.json",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Object identifier income",
+    "Collections": [
+      "AccessionRegisterDetail"
     ]
   },
   {

@@ -12,6 +12,12 @@
     "ArchivalProfile": {
       "type": "keyword"
     },
+    "obIdIn": {
+      "type": "text"
+    },
+    "Comment": {
+      "type": "text"
+    },
     "AcquisitionInformation": {
       "type": "text"
     },

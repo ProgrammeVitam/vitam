@@ -492,7 +492,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             accessRegisterDetailModel.get(0).get("Opc").toString());
 
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals(ELIMINATION_ACCESSION_REGISTER_DETAIL, accessRegisterDetailModel, excludeFields);
 
         // Check Accession Register Summary
@@ -653,7 +654,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertNotEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("transfer/reply/accession_register_detail.json", accessRegisterDetailModel, excludeFields);
 
         // Check Accession Register Summary
@@ -777,7 +779,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertNotEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("transfer/reply/accession_register_detail_complex_test.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -826,7 +829,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail_no_cleanup.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -883,7 +887,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail_no_cleanup.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -957,7 +962,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertNotEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -1041,7 +1047,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertNotEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -1118,7 +1125,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail_3_no_cleanup.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -1194,7 +1202,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail_2_no_cleanup.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -1308,7 +1317,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertNotEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", accessRegisterDetailModel,
             excludeFields);
 
@@ -1394,7 +1404,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertNotEquals(accessRegisterDetailModel.get(0).get("Opi").toString(),
             accessRegisterDetailModel.get(0).get("Opc").toString());
         List<String> excludeFields = Lists
-            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds",
+                "obIdIn","Comment");
         assertJsonEquals("ingestCleanup/accession_register_detail.json", accessRegisterDetailModel,
             excludeFields);
 

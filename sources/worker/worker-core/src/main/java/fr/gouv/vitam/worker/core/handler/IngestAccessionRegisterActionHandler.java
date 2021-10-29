@@ -26,58 +26,34 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.google.common.base.Strings;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Accession Register Handler
  */
 public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegisterAction {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestAccessionRegisterActionHandler.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(IngestAccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private static final int SEDA_PARAMETERS_RANK = 0;
 
@@ -89,7 +65,7 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
     }
 
     IngestAccessionRegisterActionHandler(MetaDataClientFactory metaDataClientFactory,
-                                         AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory) {
         super(metaDataClientFactory, adminManagementClientFactory);
     }
 
@@ -100,7 +76,8 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
     }
 
     @Override
-    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
+    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler,
+        AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
         checkMandatoryIOParameter(handler);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Params: " + params);
@@ -108,12 +85,15 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
 
 
         final JsonNode sedaParameters =
-                JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK))
-                        .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+            JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK))
+                .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
 
-        if (sedaParameters != null) {
-            final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
-            if (dataObjectNode != null) {
+        if (sedaParameters == null) {
+            throw new ProcessingException("No ArchiveTransfer found");
+        }
+
+        final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+        if (dataObjectNode != null) {
 
                 final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                 if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
@@ -147,13 +127,28 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
                 throw new ProcessingException("No DataObjectPackage found");
             }
 
-            final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
-            if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
-                accessionRegisterInfo.setArchivalAgreement(archivalArchivalAgreement.asText());
-            }
-        } else {
-            throw new ProcessingException("No ArchiveTransfer found");
+        final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+        if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
+            accessionRegisterInfo.setArchivalAgreement(archivalArchivalAgreement.asText());
         }
+
+        final JsonNode messageIdentifier = sedaParameters.get(SedaConstants.TAG_MESSAGE_IDENTIFIER);
+        if (messageIdentifier != null && !Strings.isNullOrEmpty(messageIdentifier.asText())) {
+            accessionRegisterInfo.setMessageIdentifier(messageIdentifier.asText());
+        }
+
+        final JsonNode comment = sedaParameters.get(SedaConstants.TAG_COMMENT);
+        if (!(comment instanceof NullNode || comment == null)) {
+            List<String> resultedComments = new ArrayList<>();
+            if (comment instanceof ArrayNode) {
+                resultedComments.addAll(JsonHandler.getFromJsonNode(comment, new TypeReference<>() {
+                }));
+            } else if (!Strings.isNullOrEmpty(comment.asText())) {
+                resultedComments.add(comment.asText());
+            }
+            accessionRegisterInfo.setComment(resultedComments);
+        }
+
     }
 
     @Override

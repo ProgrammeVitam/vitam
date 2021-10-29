@@ -64,6 +64,15 @@
     "ArchivalProfile": {
       "type": "string"
     },
+    "obIdIn": {
+      "type": "string"
+    },
+    "Comment": {
+      "type": "array",
+      "items": {
+        "type": "string"
+       }
+    },
     "ArchivalAgreement": {
       "type": "string"
     },
