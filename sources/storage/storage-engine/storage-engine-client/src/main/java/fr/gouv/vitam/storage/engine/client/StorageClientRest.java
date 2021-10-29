@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -43,6 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -74,6 +77,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
@@ -93,6 +97,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE =
         "Object's description workspace's URI must have a valid value";
     private static final String GUID_MUST_HAVE_A_VALID_VALUE = "GUID must have a valid value";
+    private static final String REQUIRED_ACCESS_REQUEST_ID = "Access Request id is required";
+    private static final String REQUIRED_ACCESS_REQUEST_IDS = "Access Request ids are required";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
     private static final String TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE =
         "Type of storage object must have a valid value";
@@ -128,7 +134,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -150,7 +155,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -180,7 +184,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -213,7 +216,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -233,7 +235,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -268,7 +269,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -297,7 +297,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (VitamClientInternalException | StorageAlreadyExistsClientException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -328,7 +327,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -362,7 +360,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -527,7 +524,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 RequestResponse.parseFromResponse(response, StorageLogBackupResult.class);
             return (RequestResponseOK<StorageLogBackupResult>) result;
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
         }
     }
@@ -546,7 +542,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 RequestResponse.parseFromResponse(response, StorageLogBackupResult.class);
             return (RequestResponseOK<StorageLogBackupResult>) result;
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
         }
     }
@@ -566,13 +561,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 RequestResponse.parseFromResponse(response, StorageLogTraceabilityResult.class);
             return (RequestResponseOK<StorageLogTraceabilityResult>) result;
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
         }
     }
 
     @Override
-    public RequestResponseOK<JsonNode> copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+    public RequestResponseOK<JsonNode> copyObjectToOneOfferAnother(String objectId, DataCategory category,
+        String source,
         String destination, String strategyId)
         throws StorageServerClientException, InvalidParseOperationException {
 
@@ -589,13 +584,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             check(response);
             return RequestResponse.parseRequestResponseOk(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
         }
     }
 
     @Override
-    public RequestResponseOK<JsonNode> create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
+    public RequestResponseOK<JsonNode> create(String strategyId, String objectId, DataCategory category,
+        InputStream inputStream,
         Long inputStreamSize,
         List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException {
@@ -616,7 +611,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             check(response);
             return RequestResponse.parseRequestResponseOk(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new StorageServerClientException("Internal Server Error", e);
         }
     }
@@ -636,11 +630,11 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withBody(new OfferLogRequest(offset, limit, order))
             .withJson();
         try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, OfferLog.class);
         } catch (VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         }
     }
@@ -659,7 +653,107 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
+        List<String> objectNames) throws StorageServerClientException {
+
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, dataCategory);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectNames);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectNames.toArray(String[]::new));
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamRequestBuilder request = post()
+            .withPath("/access-request/" + dataCategory.name())
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
+            .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
+            .withJson()
+            .withBody(objectNames);
+
+        try (Response response = make(request)) {
+            check(response);
+            if (response.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
+                LOGGER.debug("No access request required");
+                return Optional.empty();
+            }
+
+            RequestResponseOK<String> accessRequestCreationResponse
+                = (RequestResponseOK<String>) RequestResponse.parseFromResponse(response, String.class);
+            String accessRequestId = accessRequestCreationResponse.getFirstResult();
+            if (accessRequestId == null) {
+                throw new StorageServerClientException("Null accessRequestId");
+            }
+            LOGGER.debug("Access request created: {}", accessRequestId);
+            return Optional.of(accessRequestId);
+
+        } catch (VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            throw new StorageServerClientException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
+        List<String> accessRequestIds) throws StorageServerClientException {
+
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(REQUIRED_ACCESS_REQUEST_IDS, accessRequestIds);
+        ParametersChecker.checkParameter(REQUIRED_ACCESS_REQUEST_IDS, accessRequestIds.toArray(String[]::new));
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamRequestBuilder request = get()
+            .withPath("/access-request/statuses")
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
+            .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
+            .withJson()
+            .withBody(accessRequestIds);
+
+        try (Response response = make(request)) {
+            check(response);
+            RequestResponseOK<Map<String, AccessRequestStatus>> accessRequestCreationResponse
+                = JsonHandler.getFromInputStreamAsTypeReference(response.readEntity(InputStream.class),
+                new TypeReference<>() {
+                });
+            Map<String, AccessRequestStatus> accessRequestStatuses = accessRequestCreationResponse.getFirstResult();
+            LOGGER.debug("Access request statuses: {}", accessRequestStatuses);
+            return accessRequestStatuses;
+
+        } catch (VitamClientInternalException | InvalidParseOperationException | InvalidFormatException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            throw new StorageServerClientException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
+        throws StorageServerClientException {
+
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(REQUIRED_ACCESS_REQUEST_ID, accessRequestId);
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamRequestBuilder request = VitamRequestBuilder.delete()
+            .withPath("/access-request/" + accessRequestId)
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
+            .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
+            .withHeaderIgnoreNull(GlobalDataRest.X_OFFER, offerId)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
+            LOGGER.debug("Access request deleted successfully");
+
+        } catch (VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             throw new StorageServerClientException(errorMessage, e);
         }
     }

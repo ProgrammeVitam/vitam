@@ -27,13 +27,17 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 
 public class TapeLibraryObjectReferentialId {
 
-    @JsonProperty("containerName")
+    public static final String CONTAINER_NAME = "containerName";
+    public static final String OBJECT_NAME = "objectName";
+
+    @JsonProperty(CONTAINER_NAME)
     private String containerName;
 
-    @JsonProperty("objectName")
+    @JsonProperty(OBJECT_NAME)
     private String objectName;
 
     public TapeLibraryObjectReferentialId() {
@@ -61,5 +65,21 @@ public class TapeLibraryObjectReferentialId {
     public TapeLibraryObjectReferentialId setObjectName(String objectName) {
         this.objectName = objectName;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        TapeLibraryObjectReferentialId that = (TapeLibraryObjectReferentialId) o;
+        return Objects.equal(containerName, that.containerName) &&
+            Objects.equal(objectName, that.objectName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(containerName, objectName);
     }
 }

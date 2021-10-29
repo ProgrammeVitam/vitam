@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.alert.AlertService;
@@ -84,61 +83,62 @@ public class ArchiveCacheStorage {
 
     private final Path cacheDirectory;
     private final BucketTopologyHelper bucketTopologyHelper;
-    private final LRUCache<ArchiveFileEntry> lruCache;
+    private final LRUCache<ArchiveCacheEntry> lruCache;
+    private final ArchiveCacheEvictionController archiveCacheEvictionController;
 
     /**
      * @param cacheDirectory the cache storage directory
      * @param bucketTopologyHelper bucket topology helper
+     * @param archiveCacheEvictionController controller of archive cache eviction.
      * @param maxStorageSpace max capacity (in bytes) that cannot be exceeded by archive cache.
      * @param evictionStorageSpaceThreshold : storage space capacity (in bytes) that triggers background delete of old unused archive files
      * @param safeStorageSpaceThreshold safe storage space capacity level (in bytes). When enough storage space is available, background cache delete process ends.
      * @throws IllegalPathException if provided cache directory contains unsafe or illegal archive names.
      * @throws IOException if an I/O error is thrown when accessing disk.
      */
-    public ArchiveCacheStorage(String cacheDirectory, BucketTopologyHelper bucketTopologyHelper, long maxStorageSpace,
+    public ArchiveCacheStorage(String cacheDirectory, BucketTopologyHelper bucketTopologyHelper,
+        ArchiveCacheEvictionController archiveCacheEvictionController, long maxStorageSpace,
         long evictionStorageSpaceThreshold, long safeStorageSpaceThreshold)
         throws IllegalPathException, IOException {
-        this(cacheDirectory, bucketTopologyHelper, maxStorageSpace, evictionStorageSpaceThreshold,
-            safeStorageSpaceThreshold, VitamThreadPoolExecutor.getDefaultExecutor(), new AlertServiceImpl());
+        this(cacheDirectory, bucketTopologyHelper, archiveCacheEvictionController, maxStorageSpace,
+            evictionStorageSpaceThreshold, safeStorageSpaceThreshold, VitamThreadPoolExecutor.getDefaultExecutor(),
+            new AlertServiceImpl()
+        );
     }
 
     @VisibleForTesting
-    ArchiveCacheStorage(String cacheDirectory, BucketTopologyHelper bucketTopologyHelper, long maxStorageSpace,
+    ArchiveCacheStorage(String cacheDirectory, BucketTopologyHelper bucketTopologyHelper,
+        ArchiveCacheEvictionController archiveCacheEvictionController, long maxStorageSpace,
         long evictionStorageSpaceThreshold, long safeStorageSpaceThreshold,
         Executor executor, AlertService alertService)
         throws IllegalPathException, IOException {
+        this.archiveCacheEvictionController = archiveCacheEvictionController;
 
         // Sanity check
         this.cacheDirectory = SafeFileChecker.checkSafeDirPath(cacheDirectory).toPath();
         this.bucketTopologyHelper = bucketTopologyHelper;
-
 
         // Create / initialize LRU cache using current directory file listing
         this.lruCache = createLRUCache(maxStorageSpace, evictionStorageSpaceThreshold, safeStorageSpaceThreshold,
             this::fileEvictionJudgeFactory, executor, alertService);
     }
 
-    private LRUCacheEvictionJudge<ArchiveFileEntry> fileEvictionJudgeFactory() {
+    private LRUCacheEvictionJudge<ArchiveCacheEntry> fileEvictionJudgeFactory() {
 
         LOGGER.warn("Preparing archive cache eviction. Max capacity {}MB, Current usage: {}/{} MB",
             this.lruCache.getCurrentCapacity() / 1_000_000L, this.lruCache.getMaxCapacity() / 1_000_000L);
 
-        // FIXME : Implement archive locking later
-        return (archiveFileEntry) -> {
-            boolean keepFileBucketIdForeverInCache =
-                bucketTopologyHelper.keepFileBucketIdForeverInCache(archiveFileEntry.getFileBucketId());
-            return !keepFileBucketIdForeverInCache;
-        };
+        return archiveCacheEvictionController.computeEvictionJudge();
     }
 
-    private LRUCache<ArchiveFileEntry> createLRUCache(long maxCapacity, long evictionCapacity, long safeCapacity,
-        Supplier<LRUCacheEvictionJudge<ArchiveFileEntry>> archiveEvictionJudgeFactory, Executor evictionExecutor,
+    private LRUCache<ArchiveCacheEntry> createLRUCache(long maxCapacity, long evictionCapacity, long safeCapacity,
+        Supplier<LRUCacheEvictionJudge<ArchiveCacheEntry>> archiveEvictionJudgeFactory, Executor evictionExecutor,
         AlertService alertService) throws IllegalPathException, IOException {
 
         // Directory structure is {cacheDirectory}/{fileBucketId}/{tarId}
         // Initialize cache with maxDepth = 2 for sub-directory/file listing
         try (Stream<Path> pathStream = Files.walk(this.cacheDirectory, 2)) {
-            Stream<LRUCacheEntry<ArchiveFileEntry>> initialFileCacheEntries = pathStream
+            Stream<LRUCacheEntry<ArchiveCacheEntry>> initialFileCacheEntries = pathStream
                 .filter(this::filterNonRegularFiles)
                 .peek(this::checkNonRootFile)
                 .peek(this::checkFileSafety)
@@ -167,21 +167,21 @@ public class ArchiveCacheStorage {
         Path filePath = checkSafeDirPath(fileBucketId, tarId);
 
         // Check file existence
-        ArchiveFileEntry archiveFileEntry = new ArchiveFileEntry(fileBucketId, tarId);
-        if (this.lruCache.containsEntry(archiveFileEntry)) {
-            throw new IllegalArgumentException("Archive '" + archiveFileEntry + "' already exists in cache.");
+        ArchiveCacheEntry archiveCacheEntry = new ArchiveCacheEntry(fileBucketId, tarId);
+        if (this.lruCache.containsEntry(archiveCacheEntry)) {
+            throw new IllegalArgumentException("Archive '" + archiveCacheEntry + "' already exists in cache.");
         }
-        if (this.lruCache.isReservedEntry(archiveFileEntry)) {
-            throw new IllegalArgumentException("Reservation for file '" + archiveFileEntry + "' already exists.");
+        if (this.lruCache.isReservedEntry(archiveCacheEntry)) {
+            throw new IllegalArgumentException("Reservation for file '" + archiveCacheEntry + "' already exists.");
         }
         if (Files.exists(filePath)) {
-            throw new IllegalArgumentException("File '" + archiveFileEntry + "' already exists on storage directory "
+            throw new IllegalArgumentException("File '" + archiveCacheEntry + "' already exists on storage directory "
                 + this.cacheDirectory);
         }
 
         // Append file to cache
         Instant currentTimestamp = getCurrentInstant();
-        this.lruCache.reserveEntry(new LRUCacheEntry<>(archiveFileEntry, fileSize, currentTimestamp));
+        this.lruCache.reserveEntry(new LRUCacheEntry<>(archiveCacheEntry, fileSize, currentTimestamp));
     }
 
     public void moveArchiveToCache(Path initialFilePath, String fileBucketId, String tarId)
@@ -204,16 +204,16 @@ public class ArchiveCacheStorage {
         }
 
         // Ensure file is reserved in cache
-        ArchiveFileEntry archiveFileEntry = new ArchiveFileEntry(fileBucketId, tarId);
-        if (!this.lruCache.isReservedEntry(archiveFileEntry)) {
-            throw new IllegalArgumentException("File " + archiveFileEntry + " is not reserved in cache");
+        ArchiveCacheEntry archiveCacheEntry = new ArchiveCacheEntry(fileBucketId, tarId);
+        if (!this.lruCache.isReservedEntry(archiveCacheEntry)) {
+            throw new IllegalArgumentException("File " + archiveCacheEntry + " is not reserved in cache");
         }
 
         // Check file size
-        LRUCacheEntry<ArchiveFileEntry> reservedEntry = this.lruCache.getReservedEntry(archiveFileEntry);
+        LRUCacheEntry<ArchiveCacheEntry> reservedEntry = this.lruCache.getReservedEntry(archiveCacheEntry);
         long fileSize = Files.size(initialFilePath);
         if (reservedEntry.getWeight() != fileSize) {
-            throw new IllegalArgumentException("File '" + archiveFileEntry + "' size " + fileSize
+            throw new IllegalArgumentException("File '" + archiveCacheEntry + "' size " + fileSize
                 + " does not match reserved file capacity " + reservedEntry.getWeight());
         }
 
@@ -223,8 +223,8 @@ public class ArchiveCacheStorage {
 
         // Append file to cache with last timestamp
         Instant currentTimestamp = getCurrentInstant();
-        this.lruCache.updateEntryAccessTimestamp(archiveFileEntry, currentTimestamp);
-        this.lruCache.confirmReservation(archiveFileEntry);
+        this.lruCache.updateEntryAccessTimestamp(archiveCacheEntry, currentTimestamp);
+        this.lruCache.confirmReservation(archiveCacheEntry);
     }
 
     public void cancelReservedArchive(String fileBucketId, String tarId) {
@@ -234,13 +234,13 @@ public class ArchiveCacheStorage {
         ParametersChecker.checkParameter("Missing tarId", tarId);
 
         // Check reservation
-        ArchiveFileEntry archiveFileEntry = new ArchiveFileEntry(fileBucketId, tarId);
-        if (!this.lruCache.isReservedEntry(archiveFileEntry)) {
-            throw new IllegalArgumentException("File " + archiveFileEntry + " is not reserved in cache");
+        ArchiveCacheEntry archiveCacheEntry = new ArchiveCacheEntry(fileBucketId, tarId);
+        if (!this.lruCache.isReservedEntry(archiveCacheEntry)) {
+            throw new IllegalArgumentException("File " + archiveCacheEntry + " is not reserved in cache");
         }
 
         // Cancel reservation
-        this.lruCache.cancelReservation(archiveFileEntry);
+        this.lruCache.cancelReservation(archiveCacheEntry);
     }
 
     public Optional<FileInputStream> tryReadArchive(String fileBucketId, String tarId)
@@ -258,9 +258,9 @@ public class ArchiveCacheStorage {
             Optional<FileInputStream> inputStream = Optional.of(new FileInputStream(cachedFilePath.toFile()));
 
             // Update access timestamp
-            ArchiveFileEntry archiveFileEntry = new ArchiveFileEntry(fileBucketId, tarId);
-            LOGGER.debug("Access to file " + archiveFileEntry);
-            this.lruCache.updateEntryAccessTimestamp(archiveFileEntry, getCurrentInstant());
+            ArchiveCacheEntry archiveCacheEntry = new ArchiveCacheEntry(fileBucketId, tarId);
+            LOGGER.debug("Access to file " + archiveCacheEntry);
+            this.lruCache.updateEntryAccessTimestamp(archiveCacheEntry, getCurrentInstant());
 
             return inputStream;
         } catch (FileNotFoundException e) {
@@ -275,9 +275,9 @@ public class ArchiveCacheStorage {
         ParametersChecker.checkParameter("Missing fileBucketId", fileBucketId);
         ParametersChecker.checkParameter("Missing tarId", tarId);
 
-        ArchiveFileEntry archiveFileEntry = new ArchiveFileEntry(fileBucketId, tarId);
+        ArchiveCacheEntry archiveCacheEntry = new ArchiveCacheEntry(fileBucketId, tarId);
 
-        return this.lruCache.containsEntry(archiveFileEntry);
+        return this.lruCache.containsEntry(archiveCacheEntry);
     }
 
     public boolean isArchiveReserved(String fileBucketId, String tarId) {
@@ -286,9 +286,9 @@ public class ArchiveCacheStorage {
         ParametersChecker.checkParameter("Missing fileBucketId", fileBucketId);
         ParametersChecker.checkParameter("Missing tarId", tarId);
 
-        ArchiveFileEntry archiveFileEntry = new ArchiveFileEntry(fileBucketId, tarId);
+        ArchiveCacheEntry archiveCacheEntry = new ArchiveCacheEntry(fileBucketId, tarId);
 
-        return this.lruCache.isReservedEntry(archiveFileEntry);
+        return this.lruCache.isReservedEntry(archiveCacheEntry);
     }
 
     public long getMaxStorageSpace() {
@@ -366,75 +366,37 @@ public class ArchiveCacheStorage {
         }
     }
 
-    private LRUCacheEntry<ArchiveFileEntry> createFileCacheEntry(Path filePath) {
+    private LRUCacheEntry<ArchiveCacheEntry> createFileCacheEntry(Path filePath) {
         try {
             String fileBucketId = filePath.getParent().getFileName().toString();
             String tarId = filePath.getFileName().toString();
             BasicFileAttributes attr = Files.readAttributes(filePath, BasicFileAttributes.class);
             Instant lastAccessTime = attr.lastAccessTime().toInstant();
             long size = attr.size();
-            return new LRUCacheEntry<>(new ArchiveFileEntry(fileBucketId, tarId), size, lastAccessTime);
+            return new LRUCacheEntry<>(new ArchiveCacheEntry(fileBucketId, tarId), size, lastAccessTime);
         } catch (IOException e) {
             // Wrap as RuntimeException
             throw new UncheckedIOException(e);
         }
     }
 
-    private void evictFileListener(ArchiveFileEntry archiveFileEntry) {
+    private void evictFileListener(ArchiveCacheEntry archiveCacheEntry) {
         try {
             // No need for SafeFileChecker checks since filename have been checked when added to cache.
 
             // Delete file
-            LOGGER.info("Deleting unused archive {}/{}", archiveFileEntry.fileBucketId, archiveFileEntry.getTarId());
+            LOGGER.info("Deleting unused archive {}/{}", archiveCacheEntry.getFileBucketId(),
+                archiveCacheEntry.getTarId());
             Path filePath =
-                this.cacheDirectory.resolve(archiveFileEntry.getFileBucketId()).resolve(archiveFileEntry.getTarId());
+                this.cacheDirectory.resolve(archiveCacheEntry.getFileBucketId()).resolve(archiveCacheEntry.getTarId());
             Files.delete(filePath);
         } catch (IOException e) {
-            LOGGER.warn("Could not delete file {}/{}" + archiveFileEntry.getFileBucketId() + "/" +
-                archiveFileEntry.getTarId() + " from " + this.cacheDirectory, e);
+            LOGGER.warn("Could not delete file {}/{}" + archiveCacheEntry.getFileBucketId() + "/" +
+                archiveCacheEntry.getTarId() + " from " + this.cacheDirectory, e);
         }
     }
 
     private Instant getCurrentInstant() {
         return LocalDateUtil.now().toInstant(ZoneOffset.UTC);
-    }
-
-    private static class ArchiveFileEntry {
-        private final String fileBucketId;
-        private final String tarId;
-
-        public ArchiveFileEntry(String fileBucketId, String tarId) {
-            this.fileBucketId = fileBucketId;
-            this.tarId = tarId;
-        }
-
-        public String getFileBucketId() {
-            return fileBucketId;
-        }
-
-        public String getTarId() {
-            return tarId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-            ArchiveFileEntry archiveFileEntry = (ArchiveFileEntry) o;
-            return Objects.equal(fileBucketId, archiveFileEntry.fileBucketId) &&
-                Objects.equal(tarId, archiveFileEntry.tarId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(fileBucketId, tarId);
-        }
-
-        @Override
-        public String toString() {
-            return fileBucketId + "/" + tarId;
-        }
     }
 }

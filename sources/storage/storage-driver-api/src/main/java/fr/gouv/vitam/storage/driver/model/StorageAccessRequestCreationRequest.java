@@ -24,12 +24,23 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.cas;
+package fr.gouv.vitam.storage.driver.model;
 
-import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
+import java.util.List;
 
-public interface ReadRequestReferentialCleaner {
-    long cleanUp() throws ReadRequestReferentialException;
+/**
+ * AccessRequest creation request for async offer (tape library storage)
+ */
+public class StorageAccessRequestCreationRequest extends StorageRequest {
 
-    void invalidate(String readOrderRequestId) throws ReadRequestReferentialException;
+    private final List<String> objectNames;
+
+    public StorageAccessRequestCreationRequest(Integer tenantId, String type, List<String> objectNames) {
+        super(tenantId, type);
+        this.objectNames = objectNames;
+    }
+
+    public List<String> getObjectNames() {
+        return objectNames;
+    }
 }

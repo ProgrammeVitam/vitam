@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
@@ -38,7 +39,6 @@ import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
-import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -47,7 +47,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 /**
  * Default offer service interface define offer methods
@@ -81,24 +81,22 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * create read order (asynchronous read from tape to local FS) for the given @containerName and objects list.
-     * Return read order ID
+     * Create access request (asynchronous read from tape to local FS) for the given @containerName and objects list.
+     * Return access request id
      *
      * @param containerName the container containing the object
-     * @param objectsIds the objects ids
-     * @return readOrder entity
+     * @param objectIds the objects ids
+     * @return acess request id
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
      * @throws ContentAddressableStorageException thrown when a server error occurs
      */
-    Optional<TapeReadRequestReferentialEntity>  createReadOrderRequest(String containerName, List<String> objectsIds)
+    String createAccessRequest(String containerName, List<String> objectIds)
         throws ContentAddressableStorageException;
 
-    Optional<TapeReadRequestReferentialEntity> getReadOrderRequest(String readRequestID)
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestId)
         throws ContentAddressableStorageException;
 
-
-
-    void removeReadOrderRequest(String readRequestID)
+    void removeAccessRequest(String accessRequestId)
         throws ContentAddressableStorageException;
 
     /**
@@ -185,6 +183,7 @@ public interface DefaultOfferService {
 
     /**
      * List container objects
+     *
      * @param containerName the container name
      * @param objectListingListener a listener to which are reported found object entries
      * @throws IOException

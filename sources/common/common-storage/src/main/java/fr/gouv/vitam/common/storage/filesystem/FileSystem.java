@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
@@ -53,6 +54,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -72,16 +74,6 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     @Override
     public void closeContext() {
         context.close();
-    }
-
-    @Override
-    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
-        throw new UnsupportedOperationException("Operation not supported");
-    }
-
-    @Override
-    public void removeReadOrderRequest(String readRequestID) {
-        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override

@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Interface Storage Distribution for Storage Operations
@@ -210,7 +212,8 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category, String offerId)
+    Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
+        String offerId)
         throws StorageException;
 
     /**
@@ -281,4 +284,15 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageException if any unwanted technical issue happens
      */
     Map<String, StorageStrategy> getStrategies() throws StorageException;
+
+    Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
+        List<String> objectsNames)
+        throws StorageException;
+
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
+        List<String> accessRequestIds)
+        throws StorageException;
+
+    void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
+        throws StorageException;
 }

@@ -55,13 +55,14 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -83,6 +84,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -340,16 +342,6 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
-        throw new UnsupportedOperationException("Operation not supported");
-    }
-
-    @Override
-    public void removeReadOrderRequest(String readRequestID) {
-        throw new UnsupportedOperationException("Operation not supported");
-    }
-
-    @Override
     public void deleteObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         LOGGER.debug(String.format("Delete object %s from container %s", objectName, containerName));
@@ -552,7 +544,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
      *
      * @param containerName vitam container name
      * @return bucket name valid according to s3 API specification
-     * @see https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html
+     * @see <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html">Bucket restrictions and limitations</a>
      */
     public String generateBucketName(String containerName) {
         String bucketName = containerName.replaceAll("[^A-Za-z0-9]", ".").toLowerCase();

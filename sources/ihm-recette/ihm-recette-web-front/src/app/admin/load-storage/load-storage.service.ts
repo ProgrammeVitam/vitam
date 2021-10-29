@@ -5,7 +5,7 @@ import {Observable} from 'rxjs/Observable';
 @Injectable()
 export class LoadStorageService {
   DOWNLOAD_API = 'download';
-  READ_ORDER_API = 'readorder';
+  ACCESS_REQUEST_API = 'access-request';
   UPLOAD_API = 'replaceObject';
   DELETE_API = 'deleteObject';
 
@@ -15,15 +15,19 @@ export class LoadStorageService {
     return this.resourcesService.get(`${this.DOWNLOAD_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'blob');
   }
 
-  createReadOrderRequest(fileName, category, strategyId, offerId): Observable<any> {
-    return this.resourcesService.post(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'json');
+  createAccessRequest(fileName, category, strategyId, offerId): Observable<any> {
+    return this.resourcesService.post(`${this.ACCESS_REQUEST_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'json');
   }
 
-  getReadOrderRequest(readOrderId, strategyId, offerId): Observable<any> {
-    return this.resourcesService.get(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${readOrderId}`, null, 'json');
+  checkAccessRequestStatus(accessRequestId, strategyId, offerId): Observable<any> {
+    return this.resourcesService.get(`${this.ACCESS_REQUEST_API}/${strategyId}/${offerId}/${accessRequestId}`, null, 'json');
   }
 
-  uploadFile(newFile, fileName, size, category, strategyId ,offerId): Observable<any> {
+  deleteAccessRequest(accessRequestId, strategyId, offerId): Observable<any> {
+    return this.resourcesService.delete(`${this.ACCESS_REQUEST_API}/${strategyId}/${offerId}/${accessRequestId}`, null);
+  }
+
+  uploadFile(newFile, fileName, size, category, strategyId, offerId): Observable<any> {
     return this.resourcesService.post(`${this.UPLOAD_API}/${category}/${strategyId}/${offerId}/${fileName}/${size}`, null, newFile)
   }
 

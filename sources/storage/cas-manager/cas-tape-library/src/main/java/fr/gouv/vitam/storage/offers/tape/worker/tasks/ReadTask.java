@@ -41,17 +41,15 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
-import fr.gouv.vitam.storage.engine.common.model.TarLocation;
+import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.exception.AccessRequestReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
-import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 
 import java.io.IOException;
@@ -83,7 +81,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     private final TapeLibraryService tapeLibraryService;
     private final TapeCatalogService tapeCatalogService;
-    private final ReadRequestReferentialRepository readRequestReferentialRepository;
+    private final AccessRequestManager accessRequestManager;
     private final ReadOrder readOrder;
     private final String MSG_PREFIX;
 
@@ -94,19 +92,18 @@ public class ReadTask implements Future<ReadWriteResult> {
     protected AtomicBoolean done = new AtomicBoolean(false);
 
     public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService,
-        TapeCatalogService tapeCatalogService, ReadRequestReferentialRepository readRequestReferentialRepository,
+        TapeCatalogService tapeCatalogService, AccessRequestManager accessRequestManager,
         ArchiveCacheStorage archiveCacheStorage) {
         ParametersChecker.checkParameter("WriteOrder param is required.", readOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
-        ParametersChecker
-            .checkParameter("ReadRequestReferentialRepository param is required.", readRequestReferentialRepository);
+        ParametersChecker.checkParameter("AccessRequestManager param is required.", accessRequestManager);
         ParametersChecker.checkParameter("archiveCacheStorage param is required.", archiveCacheStorage);
         this.readOrder = readOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeLibraryService = tapeLibraryService;
         this.tapeCatalogService = tapeCatalogService;
-        this.readRequestReferentialRepository = readRequestReferentialRepository;
+        this.accessRequestManager = accessRequestManager;
         this.archiveCacheStorage = archiveCacheStorage;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeLibraryService.getLibraryIdentifier(),
             tapeLibraryService.getDriveIndex());
@@ -166,7 +163,6 @@ public class ReadTask implements Future<ReadWriteResult> {
                     // Drive UP, Order Ready
                 case KO_ON_WRITE_TO_FS:
                 case KO_ON_MOVE_TO_CACHE:
-                case KO_ON_UPDATE_READ_REQUEST_REPOSITORY:
                 case TAPE_LOCATION_CONFLICT_ON_LOAD:
                 case TAPE_NOT_FOUND_IN_CATALOG:
                 case KO_TAPE_IS_OUTSIDE:
@@ -211,12 +207,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                 copyFileFromTapeToCache();
             }
 
-            // Update DB
-            String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(readOrder.getFileName(), ".");
-            readRequestReferentialRepository
-                .updateReadRequests(
-                    tarFileIdWithoutExtension,
-                    TarLocation.DISK);
+            updateAccessRequestStatus();
 
         } catch (IOException | IllegalPathException | IllegalStateException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
@@ -225,14 +216,6 @@ public class ReadTask implements Future<ReadWriteResult> {
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                 " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) +
                 " : Error when writing TAR on file system ", e, ReadWriteErrorCode.KO_ON_WRITE_TO_FS);
-        } catch (ReadRequestReferentialException e) {
-            LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
-                e);
-            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) +
-                " : Error when updating read request in repository ", e,
-                ReadWriteErrorCode.KO_ON_UPDATE_READ_REQUEST_REPOSITORY);
         }
     }
 
@@ -341,5 +324,15 @@ public class ReadTask implements Future<ReadWriteResult> {
         updates.put(TapeCatalog.PREVIOUS_LOCATION, workerCurrentTape.getPreviousLocation());
         updates.put(TapeCatalog.CURRENT_LOCATION, workerCurrentTape.getCurrentLocation());
         tapeCatalogService.update(workerCurrentTape.getId(), updates);
+    }
+
+    private void updateAccessRequestStatus() {
+        try {
+            this.accessRequestManager.updateAccessRequestWhenArchiveReady(readOrder.getFileName());
+        } catch (AccessRequestReferentialException e) {
+            // LOG and continue (non-blocking error, AccessRequestManager will fixup access request statuses periodically if needed).
+            LOGGER.warn(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                " Failed to update access requests in DB for archiveId" + readOrder.getFileName(), e);
+        }
     }
 }

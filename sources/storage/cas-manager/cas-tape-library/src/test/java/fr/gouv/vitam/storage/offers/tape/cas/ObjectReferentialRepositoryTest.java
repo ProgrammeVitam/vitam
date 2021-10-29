@@ -47,17 +47,23 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 public class ObjectReferentialRepositoryTest {
 
-    public static final String TAPE_OBJECT_REFERENTIAL_COLLECTION =
+    private static final String TAPE_OBJECT_REFERENTIAL_COLLECTION =
         OfferCollections.TAPE_OBJECT_REFERENTIAL.getName() + GUIDFactory.newGUID().getId();
+    private static final int BULK_SIZE = 10;
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_OBJECT_REFERENTIAL_COLLECTION);
@@ -68,7 +74,7 @@ public class ObjectReferentialRepositoryTest {
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         objectReferentialRepository = new ObjectReferentialRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(TAPE_OBJECT_REFERENTIAL_COLLECTION));
+            .getCollection(TAPE_OBJECT_REFERENTIAL_COLLECTION), BULK_SIZE);
     }
 
     @After
@@ -113,7 +119,7 @@ public class ObjectReferentialRepositoryTest {
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
 
         TapeObjectReferentialEntity tapeObjectReferentialEntity1Version2 = JsonHandler.getFromString(
-            JsonHandler.unprettyPrint(tapeObjectReferentialEntity1), TapeObjectReferentialEntity.class)
+                JsonHandler.unprettyPrint(tapeObjectReferentialEntity1), TapeObjectReferentialEntity.class)
             .setSize(20L)
             .setDigest("digest2")
             .setStorageId("storageId2")
@@ -168,23 +174,23 @@ public class ObjectReferentialRepositoryTest {
     }
 
     @Test
-    public void bulkFindNotExisting() throws ObjectReferentialException {
+    public void bulkFindEmptyList() throws ObjectReferentialException {
         // Given
 
         // When
         List<TapeObjectReferentialEntity> tapeObjectReferentialEntities =
-            objectReferentialRepository.bulkFind("container",
-                ImmutableSet.of("objectName1", "objectName2", "objectName3"));
+            objectReferentialRepository.bulkFind("container", emptySet());
 
         // Then
         assertThat(tapeObjectReferentialEntities).isEmpty();
     }
 
     @Test
-    public void bulkFindExisting() throws ObjectReferentialException {
+    public void bulkFindSmallDataSet() throws ObjectReferentialException {
 
         // Given
-        for (int i = 0; i < 5; i++) {
+        int nbEntries = 6;
+        for (int i = 0; i < nbEntries; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
@@ -196,16 +202,47 @@ public class ObjectReferentialRepositoryTest {
         // When
         List<TapeObjectReferentialEntity> tapeObjectReferentialEntities =
             objectReferentialRepository.bulkFind("container",
-                ImmutableSet.of("objectName1", "objectName2", "objectName3"));
+                IntStream.range(0, 8).mapToObj(i -> "objectName" + i).collect(Collectors.toSet()));
 
         // Then
-        assertThat(tapeObjectReferentialEntities).extracting(
-            entity -> entity.getId().getObjectName(),
-            TapeObjectReferentialEntity::getDigest).containsExactlyInAnyOrder(
-            tuple("objectName1", "digest1"),
-            tuple("objectName2", "digest2"),
-            tuple("objectName3", "digest3")
-        );
+        assertThat(tapeObjectReferentialEntities.size()).isLessThan(BULK_SIZE);
+        assertThat(tapeObjectReferentialEntities).hasSize(nbEntries);
+        assertThat(tapeObjectReferentialEntities)
+            .extracting(entity -> entity.getId().getObjectName(), TapeObjectReferentialEntity::getDigest)
+            .containsExactlyInAnyOrderElementsOf(
+                IntStream.range(0, nbEntries).mapToObj(i -> tuple("objectName" + i, "digest" + i))
+                    .collect(Collectors.toList())
+            );
+    }
+
+    @Test
+    public void bulkFindLargeDataSet() throws ObjectReferentialException {
+
+        // Given
+        int nbEntries = 21;
+        for (int i = 0; i < nbEntries; i++) {
+            objectReferentialRepository.insertOrUpdate(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId("container", "objectName" + i),
+                    10L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
+                ));
+        }
+
+        // When
+        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities =
+            objectReferentialRepository.bulkFind("container",
+                IntStream.range(0, 25).mapToObj(i -> "objectName" + i).collect(Collectors.toSet()));
+
+        // Then
+        assertThat(tapeObjectReferentialEntities.size()).isGreaterThan(BULK_SIZE);
+        assertThat(tapeObjectReferentialEntities).hasSize(nbEntries);
+        assertThat(tapeObjectReferentialEntities)
+            .extracting(entity -> entity.getId().getObjectName(), TapeObjectReferentialEntity::getDigest)
+            .containsExactlyInAnyOrderElementsOf(
+                IntStream.range(0, nbEntries).mapToObj(i -> tuple("objectName" + i, "digest" + i))
+                    .collect(Collectors.toList())
+            );
     }
 
     @Test
@@ -362,6 +399,83 @@ public class ObjectReferentialRepositoryTest {
             objectReferentialRepository.find("container", "objectName1");
 
         assertThat(tapeObjectReferentialEntity.isPresent()).isFalse();
+    }
+
+    @Test
+    public void selectArchiveIdsByObjectIdsSmallDataSet() throws ObjectReferentialException {
+        // Given
+        for (int i = 0; i < 3; i++) {
+            objectReferentialRepository.insertOrUpdate(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId("container", "objectName" + i),
+                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
+                ));
+        }
+        for (int i = 3; i < 6; i++) {
+            objectReferentialRepository.insertOrUpdate(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId("container", "objectName" + i),
+                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
+                    new TapeLibraryTarObjectStorageLocation(List.of(
+                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 0, 40, "digest-tar-" + i + "-1"),
+                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 40, 40, "digest-tar-" + i + "-1"),
+                        new TarEntryDescription("tarId" + i + "-2", "storageId" + i, 0, 20, "digest-tar-" + i + "-2")
+                    )), "date1-" + i, "date2-" + i
+                ));
+        }
+
+        // When
+        Set<String> archiveIds = objectReferentialRepository.selectArchiveIdsByObjectIds(
+            IntStream.range(0, 10)
+                .mapToObj(i -> new TapeLibraryObjectReferentialId("container", "objectName" + i))
+                .iterator());
+
+        // Then
+        assertThat(archiveIds).containsExactlyInAnyOrder(
+            "tarId3-1", "tarId3-2", "tarId4-1", "tarId4-2", "tarId5-1", "tarId5-2");
+    }
+
+    @Test
+    public void selectArchiveIdsByObjectIdsLargeDataSet() throws ObjectReferentialException {
+        // Given
+        int nbInputFileObjects = 33;
+        int nbOnTarObjects = 33;
+        for (int i = 0; i < nbInputFileObjects; i++) {
+            objectReferentialRepository.insertOrUpdate(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId("container", "objectName" + i),
+                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
+                ));
+        }
+        for (int i = nbInputFileObjects; i < nbInputFileObjects + nbOnTarObjects; i++) {
+            objectReferentialRepository.insertOrUpdate(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId("container", "objectName" + i),
+                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
+                    new TapeLibraryTarObjectStorageLocation(List.of(
+                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 0, 40, "digest-tar-" + i + "-1"),
+                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 40, 40, "digest-tar-" + i + "-1"),
+                        new TarEntryDescription("tarId" + i + "-2", "storageId" + i, 0, 20, "digest-tar-" + i + "-2")
+                    )), "date1-" + i, "date2-" + i
+                ));
+        }
+
+        // When
+        Set<String> archiveIds = objectReferentialRepository.selectArchiveIdsByObjectIds(
+            IntStream.range(0, nbInputFileObjects + nbOnTarObjects + 10)
+                .mapToObj(i -> new TapeLibraryObjectReferentialId("container", "objectName" + i))
+                .iterator());
+
+        // Then
+        assertThat(nbInputFileObjects).isGreaterThan(BULK_SIZE);
+        assertThat(nbOnTarObjects).isGreaterThan(BULK_SIZE);
+        assertThat(archiveIds).containsExactlyInAnyOrderElementsOf(
+            IntStream.range(nbInputFileObjects, nbInputFileObjects + nbOnTarObjects)
+                .mapToObj(i -> List.of("tarId" + i + "-1", "tarId" + i + "-2"))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
     }
 
     private TapeObjectReferentialEntity createObjectReferentialEntity() {

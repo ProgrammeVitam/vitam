@@ -32,7 +32,9 @@ import java.util.List;
 
 public class TapeLibraryTarObjectStorageLocation extends TapeLibraryObjectStorageLocation {
 
-    @JsonProperty("tarEntries")
+    public static final String TAR_ENTRIES = "tarEntries";
+
+    @JsonProperty(TAR_ENTRIES)
     private List<TarEntryDescription> tarEntries;
 
     public TapeLibraryTarObjectStorageLocation() {

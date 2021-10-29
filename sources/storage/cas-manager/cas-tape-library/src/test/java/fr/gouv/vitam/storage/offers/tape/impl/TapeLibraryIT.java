@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
@@ -42,13 +41,9 @@ import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
-import fr.gouv.vitam.storage.engine.common.model.TarLocation;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
+import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
-import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialCleaner;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
@@ -76,16 +71,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * To be able to run test :
@@ -94,12 +84,13 @@ import static org.mockito.Mockito.when;
  * - Ensure user belongs to "tape" group to be able to invoke mt & mtx commands
  * - Remove @Ignore annotation locally
  * - Hint, to set up locally a VTL, the vitam/vtl-utils repository can be used.
+ * /!\ WARNING : This test will erase all tapes
  */
 @Ignore("Will not work if no tape library connected with a good configuration file")
 public class TapeLibraryIT {
     public static final String OFFER_TAPE_TEST_CONF = "offer-tape-test.conf";
     public static final long TIMEOUT_IN_MILLISECONDS = 60000L;
-    public static final Integer SLOT_INDEX = 10;
+    public static final Integer SLOT_INDEX = 3;
     public static final Integer DRIVE_INDEX = 2;
 
     @ClassRule
@@ -113,6 +104,8 @@ public class TapeLibraryIT {
 
     private static TapeLibraryFactory tapeLibraryFactory;
     private static TapeLibraryConfiguration configuration;
+    private static AccessRequestManager accessRequestManager;
+    private static ArchiveCacheStorage archiveCacheStorage;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -128,7 +121,8 @@ public class TapeLibraryIT {
         configuration.setCachedTarStorageFolder(tempFolderRule.newFolder().getAbsolutePath());
         tapeLibraryFactory = TapeLibraryFactory.getInstance();
         tapeLibraryFactory.initialize(configuration, mongoRule.getMongoDatabase());
-
+        accessRequestManager = tapeLibraryFactory.getAccessRequestManager();
+        archiveCacheStorage = tapeLibraryFactory.getArchiveCacheStorage();
         eraseAllTapes();
     }
 
@@ -523,12 +517,6 @@ public class TapeLibraryIT {
             Assertions.assertThat(response.isOK()).isTrue();
 
             // read file from tape with given position
-            ReadRequestReferentialRepository readRequestReferentialRepository = new ReadRequestReferentialRepository(
-                mongoRule.getMongoDatabase()
-                    .getCollection(
-                        OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName() + "_" + GUIDFactory.newGUID().getId())
-            );
-
             TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoRule.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_CATALOG.getName()));
 
@@ -537,46 +525,19 @@ public class TapeLibraryIT {
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
                 List.of(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 
-            String readRequestId = GUIDFactory.newGUID().getId();
-
-            Map<String, TarLocation> tarLocations = new HashMap<>();
-            tarLocations.put("testtar", TarLocation.TAPE);
-            tarLocations.put("testtar_2", TarLocation.TAPE);
-
-            TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity =
-                new TapeReadRequestReferentialEntity(readRequestId, "fakeContainer",
-                    tarLocations, Lists.newArrayList());
-
-            readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
-            Optional<TapeReadRequestReferentialEntity> actual = readRequestReferentialRepository.find(readRequestId);
-
-            Assertions.assertThat(actual).isPresent();
-            assertThat(actual.get().isCompleted()).isFalse();
-
-            ReadRequestReferentialCleaner readRequestReferentialCleaner = mock(ReadRequestReferentialCleaner.class);
-            when(readRequestReferentialCleaner.cleanUp()).thenReturn(1L);
-
-            BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
-            ArchiveCacheStorage archiveCacheStorage = new ArchiveCacheStorage(configuration.getCachedTarStorageFolder(),
-                bucketTopologyHelper, configuration.getCachedTarMaxStorageSpaceInMB() * 1_000_000L,
-                configuration.getCachedTarEvictionStorageSpaceThresholdInMB() * 1_000_000L,
-                configuration.getCachedTarSafeStorageSpaceThresholdInMB() * 1_000_000L);
-
             ReadTask readTask1 =
                 new ReadTask(
                     new ReadOrder(tapeCode, 0, "testtar.tar", "bucket", "test-objects", 10_240L),
                     workerCurrentTape,
                     new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
-                    readRequestReferentialRepository,
-                    archiveCacheStorage);
+                    accessRequestManager, archiveCacheStorage);
 
             ReadTask readTask2 =
                 new ReadTask(
                     new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket", "test-objects", 6_144L),
                     workerCurrentTape,
                     new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
-                    readRequestReferentialRepository,
-                    archiveCacheStorage);
+                    accessRequestManager, archiveCacheStorage);
 
             // Classical read
             ReadWriteResult result1 = readTask1.get();
@@ -643,16 +604,6 @@ public class TapeLibraryIT {
 
             assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar.tar").orElseThrow())
                 .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar.tar"));
-
-            // Assert ReadRequestReferentialRepository
-            actual = readRequestReferentialRepository.find(readRequestId);
-
-            Assertions.assertThat(actual).isPresent();
-            tapeReadRequestReferentialEntity = actual.get();
-
-            assertThat(tapeReadRequestReferentialEntity.getTarLocations().get("testtar")).isEqualTo(TarLocation.DISK);
-            assertThat(tapeReadRequestReferentialEntity.getTarLocations().get("testtar_2")).isEqualTo(TarLocation.DISK);
-            assertThat(tapeReadRequestReferentialEntity.isCompleted()).isTrue();
 
         } finally {
             try {
