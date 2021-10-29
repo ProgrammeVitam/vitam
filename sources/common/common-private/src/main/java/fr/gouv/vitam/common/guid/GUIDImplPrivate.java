@@ -179,7 +179,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @param worm True if Worm GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    GUIDImplPrivate(final int objectTypeId, final int tenantId, final long platformId,
+    GUIDImplPrivate(final int objectTypeId, final int tenantId, final int platformId,
         final boolean worm) {
         super();
         if (objectTypeId < 0 || objectTypeId > 0xFF) {
@@ -190,7 +190,7 @@ final class GUIDImplPrivate extends GUIDImpl {
             throw new IllegalArgumentException(
                 "DomainId must be between 0 and 2^30-1: " + tenantId);
         }
-        if (platformId < 0 || platformId > 0x7FFFFFFF) {
+        if (platformId < 0) {
             throw new IllegalArgumentException(
                 "PlatformId must be between 0 and 2^31-1: " + platformId);
         }
@@ -223,7 +223,7 @@ final class GUIDImplPrivate extends GUIDImpl {
         guid[HEADER_POS + 1] = (byte) (objectTypeId & 0xFF);
 
         // 4 bytes - 2 bits = Domain (30)
-        long value = tenantId;
+        int value = tenantId;
         guid[TENANT_POS + 3] = (byte) (value & 0xFF);
         value >>>= BYTE_SIZE;
         guid[TENANT_POS + 2] = (byte) (value & 0xFF);
