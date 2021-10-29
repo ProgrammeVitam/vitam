@@ -5,5 +5,19 @@
       {"id" : "default", "referent": true},
       {"id" : "default2"}
     ]
+  },
+  {
+    "id" : "sync_and_async_storage",
+    "offers" : [
+      {"id" : "default", "referent": true},
+      {"id" : "myTapeOffer1"}
+    ]
+  },
+  {
+    "id" : "async_and_async_storage",
+    "offers" : [
+      {"id" : "myTapeOffer1", "referent": true},
+      {"id" : "myTapeOffer2"}
+    ]
   }
 ]

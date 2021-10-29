@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.retryable.DelegateRetry;
@@ -66,6 +67,7 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageGetBulkMetadataRequest;
@@ -151,7 +153,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 // TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
     private static final String DEFAULT_SIZE_WHEN_UNKNOWN = "1000000";
-    private static final int DELETE_TIMEOUT = 120000;
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     private static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
@@ -183,8 +184,6 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String ERROR_ENCOUNTERED_IS = "Error encountered is ";
     private static final String INTERRUPTED_AFTER_TIMEOUT_ON_OFFER_ID = "Interrupted after timeout on offer ID ";
     private static final String NO_NEED_TO_RETRY = ", no need to retry";
-    private static final String TIMEOUT_ON_OFFER_ID = "Timeout on offer ID ";
-    private static final String OBJECT_NOT_DELETED = "Object not deleted: ";
     private static final String ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY =
         "Error with the storage: object not found. Take next offer in strategy (by priority)";
     private static final String ERROR_WITH_THE_STORAGE_TAKE_THE_NEXT_OFFER_IN_THE_STRATEGY_BY_PRIORITY =
@@ -431,8 +430,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                         dataContext.getObjectId(), digestType.getName(),
                         offerInputStream);
                 futureMap.put(offerIdString,
-                    executor.submit(new TransferThread(tenantId, requestId, driver, offerReference, request, globalDigest,
-                        size)));
+                    executor.submit(
+                        new TransferThread(tenantId, requestId, driver, offerReference, request, globalDigest,
+                            size)));
                 rank++;
             }
         } catch (StorageException e) {
@@ -537,6 +537,113 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public Map<String, StorageStrategy> getStrategies() throws StorageException {
         return STRATEGY_PROVIDER.getStorageStrategies();
+    }
+
+    @Override
+    public Optional<String> createAccessRequestIfRequired(String strategyId, String optionalOfferId,
+        DataCategory dataCategory, List<String> objectsNames) throws StorageException {
+
+        OfferReference offerReference = selectOffer(strategyId, optionalOfferId);
+
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
+        if (!offer.isAsyncRead()) {
+
+            LOGGER.debug("Offer {} is synchronous, no access request required", offer.getId());
+            return Optional.empty();
+        }
+
+        if (objectsNames.isEmpty()) {
+            LOGGER.debug("No access request required. Empty objectsNames");
+            return Optional.empty();
+        }
+
+        LOGGER.debug("Offer {} is asynchronous, creating access request", offer.getId());
+        final Driver driver = retrieveDriverInternal(offerReference.getId());
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            String accessRequestId = connection.createAccessRequest(new StorageAccessRequestCreationRequest(
+                VitamThreadUtils.getVitamSession().getTenantId(),
+                dataCategory.getFolder(),
+                objectsNames));
+
+            LOGGER.debug("AccessRequestId '{}' created for asynchronous offer {}", accessRequestId, offer.getId());
+            return Optional.of(accessRequestId);
+
+        } catch (StorageDriverException | RuntimeException e) {
+            throw new StorageTechnicalException("Could not create AccessRequest", e);
+        }
+    }
+
+    @Override
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String optionalOfferId,
+        List<String> accessRequestIds) throws StorageException {
+
+        OfferReference offerReference = selectOffer(strategyId, optionalOfferId);
+
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
+        if (!offer.isAsyncRead()) {
+            throw new StorageInconsistentStateException(
+                "Expected offer " + offerReference.getId() + " to be asynchronous.");
+        }
+
+        LOGGER.debug("Checking access request ids for offer {}", offerReference.getId());
+        final Driver driver = retrieveDriverInternal(offerReference.getId());
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            Map<String, AccessRequestStatus> accessRequestStatuses = connection.checkAccessRequestStatuses(
+                accessRequestIds, VitamThreadUtils.getVitamSession().getTenantId());
+
+            LOGGER.debug("Access request statuses {}", accessRequestStatuses);
+            return accessRequestStatuses;
+
+        } catch (StorageDriverException | RuntimeException e) {
+            throw new StorageTechnicalException("Could not check access request ids", e);
+        }
+    }
+
+    @Override
+    public void removeAccessRequest(String strategyId, String optionalOfferId, String accessRequestId)
+        throws StorageException {
+
+        OfferReference offerReference = selectOffer(strategyId, optionalOfferId);
+
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
+        if (!offer.isAsyncRead()) {
+            throw new StorageInconsistentStateException(
+                "Expected offer " + offerReference.getId() + " to be asynchronous.");
+        }
+
+        LOGGER.debug("Deleting access request id {} from offer {}", accessRequestId, offerReference.getId());
+        final Driver driver = retrieveDriverInternal(offerReference.getId());
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            connection.removeAccessRequest(accessRequestId, VitamThreadUtils.getVitamSession().getTenantId());
+
+            LOGGER.debug("Access request removed successfully {}", accessRequestId);
+
+        } catch (StorageDriverException | RuntimeException e) {
+            throw new StorageTechnicalException("Could not remove access request " + accessRequestId, e);
+        }
+    }
+
+    private OfferReference selectOffer(String strategyId, String optionalOfferId)
+        throws StorageTechnicalException, StorageNotFoundException, StorageDriverNotFoundException {
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
+        // Retrieve strategy data
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
+        OfferReference offerReference;
+        if (optionalOfferId != null) {
+            // Select provided offerId
+            offerReference = storageStrategy.getOffers().stream()
+                .filter(offerRef -> optionalOfferId.equals(offerRef.getId()))
+                .findFirst()
+                .orElseThrow(() -> new StorageDriverNotFoundException(
+                    "No active offer found with Id '" + optionalOfferId + "' in strategy " + strategyId));
+        } else {
+            // No provided offerId, use referent offer
+            offerReference = chooseReferentOffer(storageStrategy);
+        }
+        return offerReference;
     }
 
     private StorageLogbookParameters sendDataToOffers(StreamAndInfo streamAndInfo,
@@ -1490,8 +1597,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         Map<String, CompletableFuture<List<StorageBulkMetadataResultEntry>>> completableFutures = new HashMap<>();
         for (String offerId : offerIds) {
             CompletableFuture<List<StorageBulkMetadataResultEntry>> objectInformationCompletableFuture =
-                CompletableFuture.supplyAsync(() -> getBatchObjectInformation(type, tenantId, objectIds, driverByOfferId.get(offerId),
-                    storageOfferByOfferId.get(offerId)));
+                CompletableFuture.supplyAsync(
+                    () -> getBatchObjectInformation(type, tenantId, objectIds, driverByOfferId.get(offerId),
+                        storageOfferByOfferId.get(offerId)));
             completableFutures.put(offerId, objectInformationCompletableFuture);
         }
 
@@ -1511,7 +1619,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
 
             return offerDigestsByObjectId.keySet().stream()
-                .map(objectId -> new BatchObjectInformationResponse(type, objectId, offerDigestsByObjectId.get(objectId) ))
+                .map(objectId -> new BatchObjectInformationResponse(type, objectId,
+                    offerDigestsByObjectId.get(objectId)))
                 .collect(Collectors.toList());
 
         } catch (InterruptedException | ExecutionException e) {

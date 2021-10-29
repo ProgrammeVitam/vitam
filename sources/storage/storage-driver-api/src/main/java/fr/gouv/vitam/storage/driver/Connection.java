@@ -29,10 +29,12 @@ package fr.gouv.vitam.storage.driver;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -50,6 +52,9 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a connection to the distant storage offer service that is provided by the driver when calling the connect
@@ -89,27 +94,42 @@ public interface Connection extends AutoCloseable {
     StorageGetResult getObject(StorageObjectRequest request) throws StorageDriverException;
 
     /**
-     * Asynchronous retrieve an object from the storage offer based on criterias defined in request argument.
+     * Create an access request for retrieving objects from asynchronous storage offer.
      *
-     * @param request the request to send. It contains informations needed to retrieve a given object.
-     * @return a result that may contains metadatas as well as the binary file
+     * @param request the request to send. It contains information needed to prepare a given object.
+     * @return an AccessRequestId that can be used to check the status of the AccessRequest, and to remove it
      * @throws StorageDriverException if any problem occurs during request
      * @throws IllegalArgumentException if request is wrong
      */
-    RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(StorageObjectRequest request)
+    String createAccessRequest(StorageAccessRequestCreationRequest request)
         throws StorageDriverException;
-
-    RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(String readOrderRequestId, int tenant)
-        throws StorageDriverException;
-
-    void removeReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException;
 
     /**
-     * Put the object file into the storage offer based on criterias defined in request argument and underlaying
+     * Check access request statuses of asynchronous offer.
+     *
+     * @param accessRequestIds the accessRequestIds whose status is to be checked
+     * @return a Map of of {@code AccessRequestStatus} by access request Id
+     * @throws StorageDriverException if any problem occurs during request
+     */
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant)
+        throws StorageDriverException;
+
+    /**
+     * Removes (cancel / delete) and access request for an asynchronous offer.
+     * Does nothing is access request id does not exist (idempotency)
+     *
+     * @param tenant the tenant Id
+     * @param accessRequestId the accessRequestId to remove
+     * @throws StorageDriverException if any problem occurs during request
+     */
+    void removeAccessRequest(String accessRequestId, int tenant) throws StorageDriverException;
+
+    /**
+     * Put the object file into the storage offer based on criteria defined in request argument and underlying
      * connection parameters.
      *
-     * @param request the request to send. It may contains informations needed to store the file.
-     * @return a result that may contains metadatas or statistics about the object put operation.
+     * @param request the request to send. It may contain information needed to store the file.
+     * @return a result that may contain metadata or statistics about the object put operation.
      * @throws StorageDriverException if any problem occurs during request
      */
 

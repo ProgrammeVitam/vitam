@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -76,6 +77,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -297,4 +299,20 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         return requestResponseOK;
     }
 
+    @Override
+    public Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
+        List<String> objectNames) {
+        throw new  UnsupportedOperationException("Not Implemented");
+    }
+
+    @Override
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
+        List<String> accessRequestIds) {
+        throw new  UnsupportedOperationException("Not Implemented");
+    }
+
+    @Override
+    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId) {
+        throw new  UnsupportedOperationException("Not Implemented");
+    }
 }

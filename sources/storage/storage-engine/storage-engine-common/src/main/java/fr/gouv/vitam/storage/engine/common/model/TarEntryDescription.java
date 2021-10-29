@@ -30,19 +30,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TarEntryDescription {
 
-    @JsonProperty("tarFileId")
+    public static final String TAR_FILE_ID = "tarFileId";
+    public static final String ENTRY_NAME = "entryName";
+    public static final String START_POS = "startPos";
+    public static final String SIZE = "size";
+    public static final String DIGEST = "digest";
+
+    @JsonProperty(TAR_FILE_ID)
     private String tarFileId;
 
-    @JsonProperty("entryName")
+    @JsonProperty(ENTRY_NAME)
     private String entryName;
 
-    @JsonProperty("startPos")
+    @JsonProperty(START_POS)
     private long startPos;
 
-    @JsonProperty("size")
+    @JsonProperty(SIZE)
     private long size;
 
-    @JsonProperty("digest")
+    @JsonProperty(DIGEST)
     private String digestValue;
 
     public TarEntryDescription() {

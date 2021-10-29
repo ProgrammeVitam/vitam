@@ -27,24 +27,25 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
@@ -59,8 +60,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class StorageService {
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
@@ -70,9 +72,7 @@ public class StorageService {
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String OBJECT_ID_IS_MANDATORY = "Object id is mandatory";
     private static final String CATEGORY_IS_MANDATORY = "Category is mandatory";
-    private static final String EXPORT_ID_IS_MANDATORY = "Export id is mandatory";
-
-
+    private static final String ACCESS_REQUEST_ID_IS_MANDATORY = "Access request id is mandatory";
 
     /**
      * Constructs the service with a given configuration
@@ -104,52 +104,23 @@ public class StorageService {
             .setDescription(message);
     }
 
-    private VitamError buildError(VitamCode vitamCode) {
-        return buildError(vitamCode, vitamCode.getMessage());
-    }
+    public RequestResponse<String> createAccessRequest(Integer tenantId, String strategyId,
+        String offerId, String objectId, DataCategory category)
+        throws StorageTechnicalException, StorageNotFoundException {
 
-    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenantId, String strategyId,
-        String offerId,
-        String objectId,
-        DataCategory category) {
         checkStoreDataParams(strategyId, objectId, category);
 
-        List<OfferReference> offerReferences;
-        try {
-            offerReferences = getOffersReferences(strategyId);
-        } catch (StorageNotFoundException | StorageTechnicalException e) {
-            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
-        }
+        Driver driver = getDriver(strategyId, offerId, true);
+        try (Connection connection = driver.connect(offerId)) {
+            StorageAccessRequestCreationRequest storageAccessRequestCreationRequest
+                = new StorageAccessRequestCreationRequest(tenantId, category.getFolder(),
+                Collections.singletonList(objectId));
 
-        if (offerReferences == null || offerReferences.isEmpty()) {
-            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
-        }
+            String accessRequestId = connection.createAccessRequest(storageAccessRequestCreationRequest);
+            return new RequestResponseOK<String>()
+                .setHttpCode(Status.OK.getStatusCode())
+                .addResult(accessRequestId);
 
-        List<StorageOffer> storageOffers = offerReferences.stream()
-            .map(StorageService::getStorageOffer)
-            .filter(StorageOffer::isAsyncRead) // Only tape offer
-            .filter(o -> o.getId().equals(offerId))
-            .collect(Collectors.toList());
-
-        if (storageOffers.isEmpty()) {
-            LOGGER.error("No AsyncRead and enabled offer found");
-            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, "No AsyncRead and enabled offer found");
-        }
-
-        StorageOffer storageOffer = storageOffers.iterator().next();
-        final Driver driver;
-        try {
-            driver = retrieveDriverInternal(storageOffer.getId());
-        } catch (StorageTechnicalException e) {
-            LOGGER.error("Error while get driver", e);
-            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, "Error while get driver");
-        }
-
-
-        try (Connection connection = driver.connect(storageOffer.getId())) {
-            StorageObjectRequest getObjectRequest = new StorageObjectRequest(tenantId, category.getFolder(), objectId);
-
-            return connection.createReadOrderRequest(getObjectRequest);
         } catch (StorageDriverException e) {
             return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
         }
@@ -159,30 +130,11 @@ public class StorageService {
         String strategyId,
         String offerId,
         String objectId) throws StorageTechnicalException, StorageDriverException, StorageNotFoundException {
-        ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, objectId);
+        ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_MANDATORY, objectId);
 
-        List<OfferReference> offerReferences;
-        offerReferences = getOffersReferences(strategyId);
+        final Driver driver = getDriver(strategyId, offerId, false);
 
-
-        if (offerReferences == null || offerReferences.isEmpty()) {
-            throw new StorageTechnicalException("No offer found");
-        }
-
-        List<StorageOffer> storageOffers = offerReferences.stream()
-            .map(StorageService::getStorageOffer)
-            .filter(o -> o.getId().equals(offerId))
-            .collect(Collectors.toList());
-
-        if (storageOffers.isEmpty()) {
-            LOGGER.error("No enabled offer found");
-            throw new StorageTechnicalException("No enabled offer found");
-        }
-
-        StorageOffer storageOffer = storageOffers.iterator().next();
-        final Driver driver = retrieveDriverInternal(storageOffer.getId());
-
-        try (Connection connection = driver.connect(storageOffer.getId())) {
+        try (Connection connection = driver.connect(offerId)) {
             final StorageObjectRequest request = new StorageObjectRequest(tenantId, dataCategory.getFolder(), objectId);
             return new VitamAsyncInputStreamResponse(
                 connection.getObject(request).getObject(),
@@ -190,52 +142,59 @@ public class StorageService {
         }
     }
 
-    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenantId, String strategyId,
-        String offerId,
-        String readOrderRequestIt) {
-        ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, readOrderRequestIt);
+    public RequestResponse<AccessRequestStatus> checkAccessRequestStatus(Integer tenantId, String strategyId,
+        String offerId, String accessRequestId) throws StorageTechnicalException, StorageNotFoundException {
+        ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_MANDATORY, accessRequestId);
 
-        List<OfferReference> offerReferences;
-        try {
-            offerReferences = getOffersReferences(strategyId);
-        } catch (StorageNotFoundException | StorageTechnicalException e) {
-            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
-        }
+        Driver driver = getDriver(strategyId, offerId, true);
 
-        if (offerReferences == null || offerReferences.isEmpty()) {
-            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
-        }
+        try (Connection connection = driver.connect(offerId)) {
+            Map<String, AccessRequestStatus> accessRequestStatusMap =
+                connection.checkAccessRequestStatuses(List.of(accessRequestId), tenantId);
 
-        List<StorageOffer> storageOffers = offerReferences.stream()
-            .map(StorageService::getStorageOffer)
-            .filter(StorageOffer::isAsyncRead) // Only tape offer
-            .filter(o -> o.getId().equals(offerId))
-            .collect(Collectors.toList());
-
-        if (storageOffers.isEmpty()) {
-            LOGGER.error("No AsyncRead and enabled offer found");
-            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, "No AsyncRead and enabled offer found");
-        }
-
-
-
-        StorageOffer storageOffer = storageOffers.iterator().next();
-        final Driver driver;
-        try {
-            driver = retrieveDriverInternal(storageOffer.getId());
-        } catch (StorageTechnicalException e) {
-            LOGGER.error("Error while get driver", e);
-            return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, "Error while get driver");
-        }
-
-        try (Connection connection = driver.connect(storageOffer.getId())) {
-            return connection.getReadOrderRequest(readOrderRequestIt, tenantId);
+            return new RequestResponseOK<AccessRequestStatus>()
+                .setHttpCode(Status.OK.getStatusCode())
+                .addResult(accessRequestStatusMap.get(accessRequestId));
         } catch (StorageDriverException e) {
             return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
         }
     }
 
-    private Driver retrieveDriverInternal(String offerId) throws StorageTechnicalException {
+    public RequestResponse<AccessRequestStatus> removeAccessRequest(Integer tenantId, String strategyId,
+        String offerId, String accessRequestId) throws StorageTechnicalException, StorageNotFoundException {
+        ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_MANDATORY, accessRequestId);
+
+        Driver driver = getDriver(strategyId, offerId, true);
+
+        try (Connection connection = driver.connect(offerId)) {
+            connection.removeAccessRequest(accessRequestId, tenantId);
+
+            return new RequestResponseOK<AccessRequestStatus>()
+                .setHttpCode(Status.OK.getStatusCode());
+        } catch (StorageDriverException e) {
+            return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
+        }
+    }
+
+    private Driver getDriver(String strategyId, String offerId, boolean mustBeAsyncDriver)
+        throws StorageTechnicalException, StorageNotFoundException {
+        List<OfferReference> offerReferences = getOffersReferences(strategyId);
+
+        if (offerReferences == null || offerReferences.isEmpty()) {
+            throw new StorageTechnicalException("No offer found in strategy " + strategyId);
+        }
+
+        StorageOffer storageOffers = offerReferences.stream()
+            .map(StorageService::getStorageOffer)
+            .filter(o -> o.getId().equals(offerId))
+            .findFirst()
+            .orElseThrow(
+                () -> new StorageTechnicalException("No such offer " + offerId + " in strategy " + strategyId));
+
+        if (mustBeAsyncDriver && !storageOffers.isAsyncRead()) {
+            throw new StorageTechnicalException("Offer " + offerId + " does not support AsyncRead");
+        }
+
         try {
             return DriverManager.getDriverFor(offerId);
         } catch (final StorageDriverNotFoundException exc) {
@@ -258,7 +217,7 @@ public class StorageService {
         }
 
         final List<OfferReference> offerReferences = new ArrayList<>();
-        if (storageStrategy != null && !storageStrategy.getOffers().isEmpty()) {
+        if (!storageStrategy.getOffers().isEmpty()) {
             // TODO P1 : this code will be changed in the future to handle
             // priority (not in current US scope) and copy
             offerReferences.addAll(storageStrategy.getOffers());

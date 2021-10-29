@@ -26,13 +26,7 @@
  */
 package fr.gouv.vitam.storage.engine.common.referential;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -46,6 +40,15 @@ import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * File system implementation of the storage strategy and storage offer provider
@@ -205,7 +208,7 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
                         .filter(OfferReference::isReferent)
                         .filter(OfferReference::isEnabled)
                         .count() > 1)
-                .map(storageStrategy -> storageStrategy.getId())
+                .map(StorageStrategy::getId)
                 .collect(Collectors.toSet());
         if (!invalidStrategies.isEmpty()) {
             throw new IllegalArgumentException(String.format(OTHER_STRATEGY_TOO_MANY_REFERENT_OFFER_MSG, String.join(",", invalidStrategies)));
@@ -217,7 +220,7 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
         }
 
         storageStrategies = storageStrategiesList.stream().collect(Collectors.toMap(StorageStrategy::getId, storageStrategy -> storageStrategy));
-        storageStrategies.values().forEach(strategy -> strategy.postInit());
+        storageStrategies.values().forEach(StorageStrategy::postInit);
 
     }
 
@@ -230,27 +233,14 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
                 .getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME), StorageOffer[].class);
         storageOffers = new HashMap<>();
 
-        // ensure that no offer is defined in strategy is reference and async
         for (StorageOffer offer : storageOffersArray) {
 
-            boolean isReferent = storageStrategies.values().stream()
-                    .filter(strategy -> strategy.isStorageOfferReferent(offer.getId()))
-                    .filter(strategy -> strategy.isStorageOfferEnabled(offer.getId()))
-                    .count() >= 1;
-
-
-            if (offer.isAsyncRead() && isReferent) {
-                throw new IllegalArgumentException("Offer (" + offer.getId() +
-                        ") is 'referent' and 'asyncRead'. Referent offer mustn't be asyncRead");
-            }
-
-            boolean isEnabled = storageStrategies.values().stream()
-                    .filter(strategy -> strategy.isStorageOfferEnabled(offer.getId()))
-                    .count() >= 1;
+            boolean isEnabled =
+                storageStrategies.values().stream().anyMatch(strategy -> strategy.isStorageOfferEnabled(offer.getId()));
 
             offer.setEnabled(isEnabled);
             storageOffers.put(offer.getId(), offer);
-            storageStrategies.values().forEach(strategy -> strategy.postInit());
+            storageStrategies.values().forEach(StorageStrategy::postInit);
         }
 
     }

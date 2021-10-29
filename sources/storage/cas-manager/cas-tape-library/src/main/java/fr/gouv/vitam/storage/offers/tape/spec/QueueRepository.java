@@ -44,6 +44,8 @@ public interface QueueRepository {
 
     void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException;
 
+    void tryCancelIfNotStarted(List<QueryCriteria> criteria) throws QueueException;
+
     long remove(String queueMessageId) throws QueueException;
 
     /**

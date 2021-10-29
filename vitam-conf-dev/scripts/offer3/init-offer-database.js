@@ -14,5 +14,3 @@ db.CompactedOfferLog.dropIndex( { "Container": 1, "SequenceStart": 1, "SequenceE
 
 // For migration
 db.OfferLog.dropIndex( { "Container" : 1, "Sequence" : 1 } )
-
-// TODO Tape collections : TapeArchiveReferential, TapeCatalog, TapeObjectReferential, TapeQueueMessage

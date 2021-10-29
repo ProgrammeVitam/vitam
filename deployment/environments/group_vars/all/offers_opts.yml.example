@@ -160,6 +160,17 @@ vitam_offers:
       cachedTarMaxStorageSpaceInMB: 1_000_000
       cachedTarEvictionStorageSpaceThresholdInMB: 800_000
       cachedTarSafeStorageSpaceThresholdInMB: 700_000
+      # Maximum objects to fetch by access request. Cannot exceed 100_000.
+      maxAccessRequestSize: 10_000
+      # Expiration delay & unit of ready access requests (access request whose all objects are available on disk). After expiration, objects are no more guaranteed to be available on disk.
+      readyAccessRequestExpirationDelay: 30
+      readyAccessRequestExpirationUnit: DAYS
+      # Purge delay & unit of ready access requests (access request whose all objects are available on disk). After timeout, the access request is deleted.
+      readyAccessRequestPurgeDelay: 60
+      readyAccessRequestPurgeUnit: DAYS
+      # Background access request cleanup task interval delay & unit
+      accessRequestCleanupTaskIntervalDelay: 15
+      accessRequestCleanupTaskIntervalUnit: MINUTES
       useSudo: false
     topology:
       buckets:

@@ -36,12 +36,14 @@ import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
@@ -59,7 +61,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.IOUtils;
@@ -72,6 +73,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -226,20 +228,42 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(StorageObjectRequest request)
-            throws StorageDriverException {
-            return new RequestResponseOK<>();
+        public String createAccessRequest(StorageAccessRequestCreationRequest request) {
+            if (this.offerId.equals("myTapeOffer1")) {
+                return "myAccessRequestId1";
+            }
+            if (this.offerId.equals("myTapeOffer2")) {
+                return "myAccessRequestId2";
+            }
+            throw new IllegalStateException(
+                "createAccessRequest should not be invoked with sync offer '" + this.offerId + "'");
         }
 
         @Override
-        public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(String readOrderRequestId,
-            int tenant) throws StorageDriverException {
-            return new RequestResponseOK<>();
+        public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant) {
+            if (this.offerId.equals("myTapeOffer1")) {
+                return accessRequestIds.stream().collect(Collectors.toMap(
+                    accessRequestId -> accessRequestId,
+                    accessRequestId -> AccessRequestStatus.READY
+                ));
+            }
+            if (this.offerId.equals("myTapeOffer2")) {
+                return accessRequestIds.stream().collect(Collectors.toMap(
+                    accessRequestId -> accessRequestId,
+                    accessRequestId -> AccessRequestStatus.NOT_READY
+                ));
+            }
+            throw new IllegalStateException(
+                "checkAccessRequestStatuses should not be invoked with sync offer '" + this.offerId + "'");
         }
 
         @Override
-        public void removeReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException {
-            //Empty
+        public void removeAccessRequest(String accessRequestId, int tenant) {
+            if (this.offerId.equals("myTapeOffer1") || this.offerId.equals("myTapeOffer2")) {
+                return;
+            }
+            throw new IllegalStateException(
+                "removeAccessRequest should not be invoked with sync offer '" + this.offerId + "'");
         }
 
         @Override

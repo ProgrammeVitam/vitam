@@ -103,34 +103,34 @@ public class FileBucketTarCreatorBootstrapRecovery {
         }
 
         // Map storage ids to object names
-        Map<String, String> storageIdToObjectIdMap = storageIds.stream()
+        Map<String, String> storageIdToObjectNameMap = storageIds.stream()
             .collect(toMap(
                 storageId -> storageId,
                 LocalFileUtils::storageIdToObjectName
             ));
-        HashSet<String> objectNames = new HashSet<>(storageIdToObjectIdMap.values());
+        HashSet<String> objectNames = new HashSet<>(storageIdToObjectNameMap.values());
 
         // Find objects in object referential (bulk)
         List<TapeObjectReferentialEntity> objectReferentialEntities =
             this.objectReferentialRepository.bulkFind(containerName,
                 objectNames);
 
-        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
+        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectNameMap =
             objectReferentialEntities.stream()
                 .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
 
         // Process storage ids
         for (String storageId : storageIds) {
-            String objectName = storageIdToObjectIdMap.get(storageId);
+            String objectName = storageIdToObjectNameMap.get(storageId);
 
-            if (!objectReferentialEntityByObjectIdMap.containsKey(objectName)) {
+            if (!objectReferentialEntityByObjectNameMap.containsKey(objectName)) {
                 // Not found in DB -> Log & delete file
                 LOGGER.warn("Incomplete file " + storageId + ". Will be deleted");
                 this.basicFileStorage.deleteFile(containerName, storageId);
             } else {
 
                 TapeObjectReferentialEntity objectReferentialEntity =
-                    objectReferentialEntityByObjectIdMap.get(objectName);
+                    objectReferentialEntityByObjectNameMap.get(objectName);
 
                 if (!storageId.equals(objectReferentialEntity.getStorageId())) {
                     // Not found in DB -> Log & delete file
