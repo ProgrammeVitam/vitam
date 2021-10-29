@@ -1,7 +1,7 @@
 version: "3.4"
 services:
   mongo:
-    image: library/mongo:4.2.5
+    image: library/mongo:5.0.9
     ports:
       - "27017:27017"
     volumes:

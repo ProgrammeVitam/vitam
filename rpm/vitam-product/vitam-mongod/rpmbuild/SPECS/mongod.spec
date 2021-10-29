@@ -1,5 +1,5 @@
 Name:          vitam-mongod
-Version:       4.2
+Version:       5.0
 Release:       1%{?dist}
 Summary:       Service files for Vitam mongod cluster configuration nodes
 Group:         Applications/Databases
@@ -11,7 +11,7 @@ Source0:       vitam-mongod.service
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      mongodb-org >= 4.2.1
+Requires:      mongodb-org >= 5.0.9
 Requires:      vitam-user-vitamdb
 
 %description
@@ -44,6 +44,8 @@ rm -rf %{buildroot}
 %doc
 
 %changelog
+* Mon Jun 14 2022 Bumped to 5.0.9 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
+* Fri Oct 29 2021 Bumped to 5.0.3 ongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
 * Fri Jun 7 2019 Bumped to 4.0.10 ongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
 * Mon Nov 5 2018 Bumped to 4.0.3 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
 * Mon Aug 27 2018 Bumped to 4.0.1 mongo version French Prime minister Office/SGMAP/DINSIC/Vitam Programm <contact.vitam@culture.gouv.fr>
