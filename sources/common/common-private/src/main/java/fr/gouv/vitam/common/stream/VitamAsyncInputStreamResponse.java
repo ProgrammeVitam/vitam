@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -88,11 +89,7 @@ public class VitamAsyncInputStreamResponse extends Response {
         inputStream = new VitamAsyncInputStream(response);
         status = (Status) response.getStatusInfo();
         MediaType rmediaType = response.getMediaType();
-        if (rmediaType == null) {
-            this.mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
-        } else {
-            this.mediaType = rmediaType;
-        }
+        this.mediaType = Objects.requireNonNullElse(rmediaType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         this.response = Response.status(status).type(mediaType).entity(inputStream).build();
     }
 
@@ -104,11 +101,7 @@ public class VitamAsyncInputStreamResponse extends Response {
     public VitamAsyncInputStreamResponse(Response response, Status status, MediaType mediaType) {
         inputStream = new VitamAsyncInputStream(response);
         this.status = status;
-        if (mediaType == null) {
-            this.mediaType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
-        } else {
-            this.mediaType = mediaType;
-        }
+        this.mediaType = Objects.requireNonNullElse(mediaType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         this.response = Response.status(status).type(mediaType).entity(inputStream).build();
     }
 
@@ -157,7 +150,7 @@ public class VitamAsyncInputStreamResponse extends Response {
      * @param response
      * @return the default map
      */
-    public static final Map<String, String> getDefaultMapFromResponse(Response response) {
+    public static Map<String, String> getDefaultMapFromResponse(Response response) {
         Map<String, String> headers = new HashMap<>();
         MediaType mediaType = response.getMediaType();
         String mediaTypeString = MediaType.APPLICATION_OCTET_STREAM;

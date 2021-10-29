@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -60,9 +61,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.IllegalPathException;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
@@ -114,6 +117,7 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -124,20 +128,25 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1191,39 +1200,33 @@ public class LogbookResource extends ApplicationStatusResource {
      * Export raw unit life cycles by request
      *
      * @param request the request
-     * @return a list of unit lifeCycles
+     * @return a streamed list of unit lifeCycles
      */
     @POST
     @Path("/raw/unitlifecycles/bylastpersisteddate")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportRawUnitLifecyclesByLastPersistedDate(
-        RawLifecycleByLastPersistedDateRequest request) {
-
-        int softLimit = request.getLimit() + OVERFLOW_LIMIT;
+    public Response exportRawUnitLifecyclesByLastPersistedDate(RawLifecycleByLastPersistedDateRequest request) {
         File file = null;
+        int softLimit = request.getLimit() + OVERFLOW_LIMIT;
         try (CloseableIterator<JsonNode> lfcIterator = logbookLifeCycle.getRawUnitLifecyclesByLastPersistedDate(
             request.getStartDate(), request.getEndDate(), softLimit)) {
 
             file = exportLifecyclesToTempFile(request.getLimit(), lfcIterator);
-            VitamStreamingOutput streamingOutput = new VitamStreamingOutput(file, true);
-            return Response
-                .status(Status.OK)
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), Long.toString(file.length()))
-                .entity(streamingOutput)
-                .build();
+
+            Map<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), Long.toString(file.length()));
+
+            return new VitamAsyncInputStreamResponse(new FileInputStream(file),
+                Status.OK, headers);
 
         } catch (final Exception exc) {
             FileUtils.deleteQuietly(file);
             LOGGER.error(exc);
-            Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            FileUtils.deleteQuietly(file);
         }
     }
 
@@ -1839,39 +1842,31 @@ public class LogbookResource extends ApplicationStatusResource {
      * Export raw object group life cycles by request
      *
      * @param request the request
-     * @return a list of unit lifeCycles
+     * @return a streamed list of unit lifeCycles
      */
     @POST
     @Path("/raw/objectgrouplifecycles/bylastpersisteddate")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportRawObjectGroupLifecyclesByLastPersistedDate(
-        RawLifecycleByLastPersistedDateRequest request) {
-
+    public Response exportRawObjectGroupLifecyclesByLastPersistedDate(RawLifecycleByLastPersistedDateRequest request) {
         int softLimit = request.getLimit() + OVERFLOW_LIMIT;
         File file = null;
         try (CloseableIterator<JsonNode> lfcIterator = logbookLifeCycle.getRawObjectGroupLifecyclesByLastPersistedDate(
             request.getStartDate(), request.getEndDate(), softLimit)) {
 
             file = exportLifecyclesToTempFile(request.getLimit(), lfcIterator);
-            VitamStreamingOutput streamingOutput = new VitamStreamingOutput(file, true);
-            return Response
-                .status(Status.OK)
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), Long.toString(file.length()))
-                .entity(streamingOutput)
-                .build();
+            Map<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), Long.toString(file.length()));
+
+            return new VitamAsyncInputStreamResponse(new FileInputStream(file),
+                Status.OK, headers);
 
         } catch (final Exception exc) {
-            FileUtils.deleteQuietly(file);
             LOGGER.error(exc);
-            Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()))
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            FileUtils.deleteQuietly(file);
         }
     }
 
@@ -1964,7 +1959,7 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .entity(new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(LOGBOOK)
                     .setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
@@ -1974,7 +1969,7 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .entity(new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(LOGBOOK)
                     .setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
@@ -1983,18 +1978,15 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
+    @Nonnull
     private File exportLifecyclesToTempFile(int limit, CloseableIterator<JsonNode> lfcIterator)
         throws IOException {
-
-        File tmpFile = null;
         try {
+            File tmpFile = SafeFileChecker
+                .checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), GUIDFactory.newGUID().getId());
 
-            String id = GUIDFactory.newGUID().getId();
-            tmpFile = PropertiesUtils.fileFromTmpFolder(id);
-
-            try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
-                JsonLineWriter jsonLineWriter = new JsonLineWriter(fileOutputStream)
-            ) {
+            try (OutputStream fileOutputStream = new FileOutputStream(tmpFile);
+                JsonLineWriter jsonLineWriter = new JsonLineWriter(fileOutputStream)) {
 
                 // Export entries until no more items OR max limit reached
                 String maxLastPersistedDate = null;
@@ -2026,9 +2018,8 @@ public class LogbookResource extends ApplicationStatusResource {
             }
 
             return tmpFile;
-        } catch (IOException e) {
-            FileUtils.deleteQuietly(tmpFile);
-            throw e;
+        } catch (IllegalPathException e) {
+            throw new VitamRuntimeException(e);
         }
     }
 
