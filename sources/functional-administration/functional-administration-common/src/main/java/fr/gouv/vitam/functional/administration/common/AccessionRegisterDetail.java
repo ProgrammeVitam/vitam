@@ -65,6 +65,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     public static final String OPERATION_IDS = "OperationIds";
     public static final String EVENTS = "Events";
     public static final String TENANT = "_tenant";
+    private static final String OB_ID_IN = "obIdIn";
+    private static final String COMMENT = "Comment";
 
     /**
      * Empty Constructor
@@ -229,6 +231,16 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail setLastUpdate(String lastUpdate) {
         append(LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
+        return this;
+    }
+
+    public AccessionRegisterDetail setObIdIn(String obIdIn) {
+        append(OB_ID_IN, obIdIn);
+        return this;
+    }
+
+    public AccessionRegisterDetail setComment(List<String> comment) {
+        append(COMMENT, comment);
         return this;
     }
 

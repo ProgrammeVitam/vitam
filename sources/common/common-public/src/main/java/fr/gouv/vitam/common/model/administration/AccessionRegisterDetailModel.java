@@ -58,6 +58,9 @@ public class AccessionRegisterDetailModel {
     public static final String ARCHIVAL_PROFILE = "ArchivalProfile";
     public static final String EVENTS = "Events";
     public static final String OPERATION_IDS = "OperationIds";
+    private static final String OB_ID_IN = "obIdIn";
+    private static final String COMMENT = "Comment";
+
     /**
      * unique id
      */
@@ -190,6 +193,12 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty(OPERATION_IDS)
     private List<String> operationsIds;
+
+    @JsonProperty(OB_ID_IN)
+    private String obIdIn;
+
+    @JsonProperty(COMMENT)
+    private List<String> comment;
 
 
 
@@ -580,6 +589,24 @@ public class AccessionRegisterDetailModel {
 
     public AccessionRegisterDetailModel setArchivalProfile(String archivalProfile) {
         this.archivalProfile = archivalProfile;
+        return this;
+    }
+
+    public String getObIdIn() {
+        return obIdIn;
+    }
+
+    public AccessionRegisterDetailModel setObIdIn(String obIdIn) {
+        this.obIdIn = obIdIn;
+        return this;
+    }
+
+    public List<String> getComment() {
+        return comment;
+    }
+
+    public AccessionRegisterDetailModel setComment(List<String> comment) {
+        this.comment = comment;
         return this;
     }
 }
