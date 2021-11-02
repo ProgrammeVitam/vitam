@@ -34,6 +34,10 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static java.lang.String.format;
@@ -62,10 +66,54 @@ public class LogbookInternalStep {
                     world.getLogbookOperationsClient().traceability(Collections.singletonList(world.getTenantId()));
 
                 String operationId = response.getResults().get(0).getOperationId();
-                world.setOperationId(operationId);                
+                world.setOperationId(operationId);
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
             } catch (Exception e) {
-                fail("should not produce an exception ", e);
+                throw new CompletionException(e);
+            }
+        });
+    }
+
+    /**
+     * call vitam to generate a secured logbook
+     *
+     */
+    @When("^je génère un journal des cycles de vie des unités archivistiques sécurisé")
+    public void generate_secured_lfc_unit() {
+        runInVitamThread(() -> {
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
+                RequestResponseOK<String> response =
+                    world.getLogbookOperationsClient().traceabilityLfcUnit();
+
+                String operationId = response.getResults().get(0);
+                world.setOperationId(operationId);
+                assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
+    }
+
+    /**
+     * call vitam to generate a secured logbook
+     *
+     */
+    @When("^je génère un journal des cycles de vie des groupes d'objets sécurisé")
+    public void generate_secured_lfc_objectgroup() {
+        runInVitamThread(() -> {
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
+                RequestResponseOK<String> response =
+                    world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
+
+                String operationId = response.getResults().get(0);
+                world.setOperationId(operationId);
+                assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+            } catch (Exception e) {
+                throw new CompletionException(e);
             }
         });
     }
@@ -74,12 +122,11 @@ public class LogbookInternalStep {
      * @param r runnable
      */
     private void runInVitamThread(Runnable r) {
-        Thread thread = VitamThreadFactory.getInstance().newThread(r);
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> task = CompletableFuture.runAsync(r, executorService).exceptionally((e) -> {
+            fail("should not produce an exception ", e);
+            return null;
+        });
+        task.join();
     }
 }

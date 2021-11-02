@@ -160,6 +160,12 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
+    public RequestResponse<JsonNode> checkTraceabilityOperations(VitamContext vitamContext, JsonNode query)
+        throws InvalidParseOperationException {
+        return ClientMockResultHelper.checkOperationTraceability();
+    }
+
+    @Override
     public Response downloadTraceabilityOperationFile(VitamContext vitamContext,
         String operationId)
         throws AccessExternalClientServerException {
@@ -512,7 +518,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode queryDsl) {
+    public RequestResponse<JsonNode> evidenceAudit(VitamContext vitamContext, JsonNode queryDsl) {
         return ClientMockResultHelper.getEvidenceAudit(Status.OK.getStatusCode());
     }
 

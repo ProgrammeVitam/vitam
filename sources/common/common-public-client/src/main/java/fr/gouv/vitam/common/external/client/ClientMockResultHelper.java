@@ -574,8 +574,8 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
-        RequestResponseOK responseOK = new RequestResponseOK();
+    public static RequestResponse<JsonNode> createReponse(String s) throws InvalidParseOperationException {
+        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -795,7 +795,7 @@ public class ClientMockResultHelper {
     /**
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse checkOperationTraceability() throws InvalidParseOperationException {
+    public static RequestResponse<JsonNode> checkOperationTraceability() throws InvalidParseOperationException {
         return createReponse(TRACEABILITY_OPERATION);
     }
 
@@ -831,8 +831,8 @@ public class ClientMockResultHelper {
     }
 
 
-    public static RequestResponse<ProfileModel> getEvidenceAudit(int statusCode) {
-        return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
+    public static RequestResponse<JsonNode> getEvidenceAudit(int statusCode) {
+        return new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode()).setHttpCode(statusCode);
     }
 
 

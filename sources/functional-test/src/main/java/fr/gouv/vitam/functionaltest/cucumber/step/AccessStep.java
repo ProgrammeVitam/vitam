@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.utils.JsonSorter;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.io.IOUtils;
@@ -89,8 +90,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -140,7 +144,6 @@ public class AccessStep {
 
     private final World world;
 
-    private Status auditStatus;
     private static String savedUnit;
     private RequestResponse<?> requestResponse;
 
@@ -1188,115 +1191,101 @@ public class AccessStep {
         checkOperationStatus(eliminationOperationId, StatusCode.valueOf(status));
     }
 
-    @When("^je veux faire un audit sur (.*) des objets par service producteur \"([^\"]*)\"$")
-    public void je_lance_l_audit_en_service_producteur(String action, String originatingAgnecy) throws Throwable {
-        String QUERY = null;
-        auditStatus = null;
-        if (action.equals("l'existence")) {
-            QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"originatingagency\",objectId:\"" +
-                originatingAgnecy +
-                "\"}";
-        } else if (action.equals("l'intégrité")) {
-            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"originatingagency\",objectId:\"" +
-                originatingAgnecy +
-                "\"}";
-        }
-
-        JsonNode auditOption = JsonHandler.getFromString(QUERY);
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-            .setApplicationSessionId(world.getApplicationSessionId());
-
-        RequestResponse response = world.getAdminClient().launchAudit(vitamContext, auditOption);
-        assertThat(response.isOk()).isTrue();
-        auditStatus = Status.ACCEPTED;
-    }
-
-    @When("^je veux faire un audit sur (.*) des objets par tenant (\\d+)$")
-    public void je_veux_faire_l_audit_des_objets_de_tenant(String action, int tenant) throws Throwable {
-        String QUERY = null;
-        auditStatus = null;
-        if (action.equals("l'existence")) {
-            QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"tenant\",objectId:\"" + tenant + "\"}";
-        } else if (action.equals("l'intégrité")) {
-            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"tenant\",objectId:\"" + tenant + "\"}";
-        }
-
-        JsonNode auditOption = JsonHandler.getFromString(QUERY);
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-            .setApplicationSessionId(world.getApplicationSessionId());
-
-        RequestResponse response = world.getAdminClient().launchAudit(vitamContext, auditOption);
-        assertThat(response.isOk()).isTrue();
-        auditStatus = Status.ACCEPTED;
-    }
-
-    @When("^je veux faire un audit sur (.*) des objets liés aux unités archivistiques de la requête$")
-    public void je_veux_faire_l_audit_des_objets_par_requete(String action) throws Throwable {
-        auditStatus = null;
-        JsonNode query = JsonHandler.getFromString(world.getQuery());
-        ObjectNode auditOption = JsonHandler.createObjectNode();
-        if (action.equals("l'existence")) {
-            auditOption.put("auditActions", "AUDIT_FILE_EXISTING");
-        } else if (action.equals("l'intégrité")) {
-            auditOption.put("auditActions", "AUDIT_FILE_INTEGRITY");
-        }
-        auditOption.put("auditType", "dsl");
-        auditOption.set("query", query);
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-            .setApplicationSessionId(world.getApplicationSessionId());
-
-        RequestResponse response = world.getAdminClient().launchAudit(vitamContext, auditOption);
-        assertThat(response.isOk()).isTrue();
-        auditStatus = Status.ACCEPTED;
-    }
-
-    @Then("^le réultat de l'audit est succès$")
-    public void le_réultat_de_l_audit_est_succès() throws Throwable {
-        assertThat(auditStatus.getStatusCode()).isEqualTo(202);
-    }
-
-    @When("^je réalise un audit de traçabilité de la requete$")
-    public void unit_traceability_audit() throws Throwable {
-
-        JsonNode queryFromString = JsonHandler.getFromString(world.getQuery());
-
-        // Run unit traceability audit
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-            .setApplicationSessionId(world.getApplicationSessionId());
-        RequestResponse requestResponse = world.getAdminClient().evidenceAudit(vitamContext, queryFromString);
-
-
-        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-
-        world.setOperationId(operationId);
-        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-
-        boolean process_timeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
-        if (!process_timeout) {
-            fail("Sip processing not finished. Timeout exceeded.");
-        }
-    }
-
 
     @When("^on lance la traçabilité des journaux de cycles de vie des unités archivistiques$")
     public void unit_lfc_traceability() {
         runInVitamThread(() -> {
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+            String operationId;
 
-            RequestResponseOK<String> requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcUnit();
-            checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
+            RequestResponseOK<String> response = world.getLogbookOperationsClient().traceabilityLfcUnit();
+
+            if (response.getResults().isEmpty()) {
+                LOGGER.info("no need to run traceability");
+                RequestResponse<JsonNode> logbookResponse =
+                    world.getLogbookOperationsClient()
+                        .getLastOperationByType(Contexts.UNIT_LFC_TRACEABILITY.getEventType());
+                if (!logbookResponse.isOk()) {
+                    fail("no traceability operation found");
+                    return;
+                }
+                RequestResponseOK<JsonNode> logbook = (RequestResponseOK<JsonNode>) logbookResponse;
+                if (logbook.getFirstResult() == null) {
+                    fail("no traceability operation found");
+                    return;
+                }
+
+                operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
+            } else {
+                checkTraceabilityLfcResponseOKOrWarn(response);
+
+                operationId = response.getResults().get(0);
+            }
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         });
     }
 
     @When("^on lance la traçabilité des journaux de cycles de vie des groupes d'objets$")
     public void objectgroup_lfc_traceability() {
         runInVitamThread(() -> {
+            String operationId;
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-            RequestResponseOK<String> requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
-            checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
+            RequestResponseOK<String> response = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
+
+            if (response.getResults().isEmpty()) {
+                LOGGER.info("no need to run traceability");
+                RequestResponse<JsonNode> logbookResponse =
+                    world.getLogbookOperationsClient()
+                        .getLastOperationByType(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
+                if (!logbookResponse.isOk()) {
+                    fail("no traceability operation found");
+                    return;
+                }
+                RequestResponseOK<JsonNode> logbook = (RequestResponseOK<JsonNode>) logbookResponse;
+                if (logbook.getFirstResult() == null) {
+                    fail("no traceability operation found");
+                    return;
+                }
+
+                operationId = logbook.getFirstResult().get(VitamFieldsHelper.id()).asText();
+            }else {
+                checkTraceabilityLfcResponseOKOrWarn(response);
+
+                operationId = response.getResults().get(0);
+            }
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         });
+    }
+
+    @When("^je lance la vérification des journaux de sécurisation$")
+    public void linked_check_traceability() throws VitamException {
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+        String query = world.getQuery();
+        JsonNode jsonNode = JsonHandler.getFromString(query);
+
+        RequestResponse<JsonNode> response = world.getAdminClient().checkTraceabilityOperations(vitamContext, jsonNode);
+
+
+        assertThat(response.isOk()).isTrue();
+
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("dip processing not finished. Timeout exceeded.");
+        }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
     @When("^que l'ingest date d'au moins (\\d+) secondes$")
@@ -1331,13 +1320,12 @@ public class AccessStep {
             if (remainingDurationToSleep > 0) {
                 LOGGER.warn("Logbook is not old enough... Waiting " + remainingDurationToSleep + " seconds");
                 TimeUnit.SECONDS.sleep(remainingDurationToSleep);
-                LOGGER.warn("Tt should be old enough for traceability");
+                LOGGER.warn("Ingest should be old enough for traceability");
             }
-
         });
     }
 
-    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK requestResponseOK) throws VitamException {
+    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK<String> requestResponseOK) throws VitamException {
         assertThat(requestResponseOK.isOk()).isTrue();
 
         final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -1375,27 +1363,18 @@ public class AccessStep {
      * @param
      */
     private void runInVitamThread(MyRunnable r) {
-
-        AtomicReference<Throwable> exception = new AtomicReference<>();
-
-        Thread thread = VitamThreadFactory.getInstance().newThread(() -> {
+        ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+        CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
             try {
                 r.run();
-            } catch (Throwable e) {
-                exception.set(e);
+            } catch (Exception e) {
+                throw new CompletionException(e);
             }
+        }, executorService).exceptionally((e) -> {
+            fail("Test failed with error", e);
+            return null;
         });
-
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        if (exception.get() != null) {
-            fail("Test failed with error", exception.get());
-        }
+        task.join();
     }
 
     @When("^je lance l'opération de reclassification$")
@@ -1425,6 +1404,6 @@ public class AccessStep {
     }
 
     public interface MyRunnable {
-        void run() throws Throwable;
+        void run() throws Exception;
     }
 }

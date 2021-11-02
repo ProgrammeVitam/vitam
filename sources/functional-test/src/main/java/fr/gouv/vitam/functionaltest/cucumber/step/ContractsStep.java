@@ -111,12 +111,12 @@ public class ContractsStep {
     private String contractType;
 
     /**
-     * define a sip
+     * define a contract json file
      *
-     * @param fileName name of a sip
+     * @param fileName name of contract json file
      */
     @Given("^un contract nommé (.*)$")
-    public void a_sip_named(String fileName) {
+    public void a_contract_json_named(String fileName) {
         this.fileName = fileName;
     }
 
@@ -319,6 +319,11 @@ public class ContractsStep {
     public void search_contracts(String type, String name)
         throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException,
         VitamClientException {
+        this.setModel(retriveContract(type, name));
+    }
+
+    private JsonNode retriveContract(String type, String name)
+        throws InvalidCreateOperationException, VitamClientException, InvalidParseOperationException {
         AdminCollections collection = AdminCollections.valueOf(type);
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
@@ -340,12 +345,10 @@ public class ContractsStep {
                 List<JsonNode> accessContracts =
                     ((RequestResponseOK<AccessContractModel>) accessResponse).getResultsAsJsonNodes();
 
-                if (!accessContracts.isEmpty()) {
-                    this.setModel(accessContracts.get(0));
-                } else {
-                    this.setModel(null);
+                if (accessContracts != null && !accessContracts.isEmpty()) {
+                    return accessContracts.get(0);
                 }
-                break;
+                return null;
             case INGEST_CONTRACTS:
                 RequestResponse<IngestContractModel> ingestResponse =
                     world.getAdminClient().findIngestContracts(
@@ -358,12 +361,10 @@ public class ContractsStep {
                 List<JsonNode> ingestContracts =
                     ((RequestResponseOK<IngestContractModel>) ingestResponse).getResultsAsJsonNodes();
 
-                if (!ingestContracts.isEmpty()) {
-                    this.setModel(ingestContracts.get(0));
-                } else {
-                    this.setModel(null);
+                if (ingestContracts != null && !ingestContracts.isEmpty()) {
+                    return ingestContracts.get(0);
                 }
-                break;
+                return null;
             case MANAGEMENT_CONTRACTS:
                 RequestResponse<ManagementContractModel> managementResponse =
                     world.getAdminClient().findManagementContracts(
@@ -377,12 +378,10 @@ public class ContractsStep {
                 List<JsonNode> managementContracts =
                     ((RequestResponseOK<ManagementContractModel>) managementResponse).getResultsAsJsonNodes();
 
-                if (!managementContracts.isEmpty()) {
-                    this.setModel(managementContracts.get(0));
-                } else {
-                    this.setModel(null);
+                if (managementContracts != null && !managementContracts.isEmpty()) {
+                    return managementContracts.get(0);
                 }
-                break;
+                return null;
             default:
                 throw new VitamClientException("Contract type not valid");
         }
@@ -464,5 +463,31 @@ public class ContractsStep {
 
         final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
+    }
+
+    /**
+     * check if contract are imported or import them
+     *
+     * @param contractNames  list of contract's name to verify
+     * @param type contract type
+     * @param fileName contract json file
+     * @throws Exception
+     */
+    @Then("^le[s]? contract[s]? (.*) de type (.*) (?:définie|définies) dans le fichier (.*)$")
+    public void verify_contrat_or_import(List<String> contractNames, String type, String fileName)
+        throws Exception {
+        boolean shouldImport = false;
+        for (String contractName : contractNames) {
+            JsonNode jsonNode = retriveContract(type, contractName);
+            if(jsonNode == null) {
+                shouldImport = true;
+                break;
+            }
+        }
+
+        if(shouldImport) {
+            a_contract_json_named(fileName);
+            upload_contract(type);
+        }
     }
 }

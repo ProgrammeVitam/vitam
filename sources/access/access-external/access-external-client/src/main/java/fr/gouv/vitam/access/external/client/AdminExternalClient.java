@@ -443,10 +443,21 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws AccessExternalClientServerException
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
+     * @Deprecated use checkTraceabilityOperations instead.
      */
     @Deprecated
     RequestResponse checkTraceabilityOperation(VitamContext vitamContext, JsonNode query)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
+
+    /**
+     * @param vitamContext the vitam context
+     * @param query DSL query to select traceability operations to verify
+     * @throws AccessExternalClientServerException
+     * @throws InvalidParseOperationException
+     * @Deprecated use checkTraceabilityOperations instead.
+     */
+    RequestResponse<JsonNode> checkTraceabilityOperations(VitamContext vitamContext, JsonNode query)
+        throws AccessExternalClientServerException, InvalidParseOperationException;
 
     /**
      * Download the traceability operation file according to operationId
@@ -841,7 +852,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return RequestResponse
      * @throws VitamClientException The Exception
      */
-    RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode queryDsl)
+    RequestResponse<JsonNode> evidenceAudit(VitamContext vitamContext, JsonNode queryDsl)
         throws VitamClientException;
 
     /**

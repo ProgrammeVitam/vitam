@@ -354,7 +354,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public Optional<LogbookOperation> findLastOperationByType(String operationType)
         throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException {
         final Select select = new Select();
-        final Query type = QueryHelper.eq(LogbookEvent.EV_TYPE_PROC, operationType);
+        final Query type = QueryHelper.eq(LogbookEvent.EV_TYPE, operationType);
         select.setQuery(type);
         select.addOrderByDescFilter(LogbookEvent.EV_DATE_TIME);
         select.setLimitFilter(0, 1);
