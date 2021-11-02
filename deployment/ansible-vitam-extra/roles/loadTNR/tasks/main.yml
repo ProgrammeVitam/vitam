@@ -51,7 +51,7 @@
   when: stat_result.stat.exists
 
 - name: launch TNR
-  shell: java -Dlogback.configurationFile="{{ TNR_conf }}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{ TNR_lib }}/functional-test-*.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} -p fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:{{ report_dir }}/report_{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day}}_{{ ansible_date_time.hour}}{{ ansible_date_time.minute}}{{ ansible_date_time.second}}.json {{ TNR_dir }}
+  shell: java -Dlogback.configurationFile="{{ TNR_conf }}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{ TNR_lib }}/functional-test-*.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} -p fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:{{ report_dir }}/report_{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day}}_{{ ansible_date_time.hour}}{{ ansible_date_time.minute}}{{ ansible_date_time.second}}.json -p html:{{ report_dir }}/cucumber-reports {{ TNR_dir }}
   become_user: "{{ vitam_defaults.users.vitam }}"
   ignore_errors: true
   args:
