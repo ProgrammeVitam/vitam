@@ -54,7 +54,7 @@ public final class LocalFileUtils {
     }
 
     public static String createStorageId(String objectName) {
-        return objectName + SEPARATOR + GUIDFactory.newGUID().toString();
+        return objectName + SEPARATOR + GUIDFactory.newGUID();
     }
 
     public static String storageIdToObjectName(String storageId) {
@@ -101,7 +101,7 @@ public final class LocalFileUtils {
 
     public static String createTarId(LocalDateTime now) {
         return LocalDateUtil.getDateTimeFormatterForFileNames().format(now) + SEPARATOR
-            + UUID.randomUUID().toString() + TAR_EXTENSION;
+            + UUID.randomUUID() + TAR_EXTENSION;
     }
 
     public static String archiveFileNameRelativeToInputArchiveStorageFolder(String fileBucket, String archiveId) {

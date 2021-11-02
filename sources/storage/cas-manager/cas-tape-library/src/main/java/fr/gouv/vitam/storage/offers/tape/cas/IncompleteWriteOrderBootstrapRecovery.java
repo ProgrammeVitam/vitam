@@ -26,38 +26,55 @@
  */
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.io.FileUtils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+public class IncompleteWriteOrderBootstrapRecovery {
 
-public final class TarTestHelper {
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(IncompleteWriteOrderBootstrapRecovery.class);
 
-    public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-        throws IOException {
+    private final String tmpTarOutputStorageFolder;
 
-        Digest digest = new Digest(DigestType.SHA512);
-        OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
-        readEntryAtPos(tarFilePath, entryDescription, digestOutputStream);
-        String tarEntryDigest = digest.digestHex();
-        assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
+    public IncompleteWriteOrderBootstrapRecovery(
+        String tmpTarOutputStorageFolder) {
+        this.tmpTarOutputStorageFolder = tmpTarOutputStorageFolder;
     }
 
-    public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-        throws IOException {
+    public void initializeOnBootstrap() {
+        try {
+            // Tmp output storage folder should be emptied, but not deleted
+            Path tmpTarOutputStoragePath = Paths.get(tmpTarOutputStorageFolder);
+            if (!tmpTarOutputStoragePath.toFile().exists()) {
+                emptyDirectoryContent(tmpTarOutputStoragePath);
+            }
+        } catch (Exception e) {
+            throw new VitamRuntimeException("Could not reschedule tar files to copy on tape", e);
+        }
+    }
 
-        try (FileInputStream tarFileInputStream = new FileInputStream(tarFilePath.toFile());
-            InputStream is = TarHelper.readEntryAtPos(tarFileInputStream, entryDescription)) {
-            IOUtils.copy(is, outputStream);
+    private void emptyDirectoryContent(Path path) throws IOException {
+
+        try (Stream<Path> fileStream = Files.list(path)) {
+            fileStream.forEach(subPath -> {
+                try {
+                    LOGGER.warn("Deleting tmp file " + subPath.toFile().getAbsolutePath());
+                    FileUtils.forceDelete(subPath.toFile());
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
         }
     }
 }

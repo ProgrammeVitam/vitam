@@ -51,12 +51,15 @@ s3TrustStorePassword: {{ password_truststore }}
 tapeLibraryConfiguration:
   inputFileStorageFolder: "{{ vitam_folder_data }}/offer/inputFiles"
   inputTarStorageFolder: "{{ vitam_folder_data }}/offer/inputTars"
-  outputTarStorageFolder: "{{ vitam_folder_data }}/offer/outputTars"
+  tmpTarOutputStorageFolder: "{{ vitam_folder_data }}/offer/tmpTarOutput"
+  cachedTarStorageFolder: "{{ vitam_folder_data }}/offer/cachedTars"
   maxTarEntrySize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarEntrySize"] | default(100000) }}
   maxTarFileSize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarFileSize"] | default(1000000) }}
   useSudo: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["useSudo"] | default('false') }}
   forceOverrideNonEmptyCartridges: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["forceOverrideNonEmptyCartridges"] | default('false') }}
-  archiveRetentionCacheTimeoutInMinutes: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["archiveRetentionCacheTimeoutInMinutes"] | default(30) }}
+  cachedTarMaxStorageSpaceInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarMaxStorageSpaceInMB"] }}
+  cachedTarEvictionStorageSpaceThresholdInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarEvictionStorageSpaceThresholdInMB"] }}
+  cachedTarSafeStorageSpaceThresholdInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarSafeStorageSpaceThresholdInMB"] }}
 
   topology:
     buckets:

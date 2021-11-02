@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
 
     public static final String BUCKET = "bucket";
+    public static final String FILE_BUCKET_ID = "fileBucketId";
     public static final String FILE_PATH = "filePath";
     public static final String SIZE = "size";
     public static final String DIGEST = "digest";
@@ -41,6 +42,9 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
 
     @JsonProperty(BUCKET)
     private String bucket;
+
+    @JsonProperty(FILE_BUCKET_ID)
+    private String fileBucketId;
 
     @JsonProperty(FILE_PATH)
     private String filePath;
@@ -58,20 +62,12 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.WriteOrder);
     }
 
-    public WriteOrder(String bucket, String filePath, long size, String digest, String archiveId) {
-        this();
-        this.bucket = bucket;
-        this.filePath = filePath;
-        this.size = size;
-        this.digest = digest;
-        this.archiveId = archiveId;
-    }
-
-    public WriteOrder(String bucket, String filePath, long size, String digest, String archiveId,
+    public WriteOrder(String bucket, String fileBucketId, String filePath, long size, String digest, String archiveId,
         QueueMessageType queueMessageType) {
         this();
         this.setMessageType(queueMessageType);
         this.bucket = bucket;
+        this.fileBucketId = fileBucketId;
         this.filePath = filePath;
         this.size = size;
         this.digest = digest;
@@ -85,6 +81,15 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
     public WriteOrder setBucket(String bucket) {
         ParametersChecker.checkParameter("bucket is required", bucket);
         this.bucket = bucket;
+        return this;
+    }
+
+    public String getFileBucketId() {
+        return fileBucketId;
+    }
+
+    public WriteOrder setFileBucketId(String fileBucketId) {
+        this.fileBucketId = fileBucketId;
         return this;
     }
 

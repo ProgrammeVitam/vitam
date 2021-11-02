@@ -24,40 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.cas;
+package fr.gouv.vitam.common.storage.tapelibrary;
 
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Path;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+public class FileBucketConfiguration {
 
-public final class TarTestHelper {
+    /**
+     * List of DataCategory folders. Must be empty for default file bucket
+     */
+    @JsonProperty("dataCategories")
+    private List<String> dataCategories;
 
-    public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-        throws IOException {
+    /**
+     * Is file bucket archives should be stored forever in cache (never evicted).
+     */
+    @JsonProperty("keepForeverInCache")
+    private Boolean keepForeverInCache;
 
-        Digest digest = new Digest(DigestType.SHA512);
-        OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
-        readEntryAtPos(tarFilePath, entryDescription, digestOutputStream);
-        String tarEntryDigest = digest.digestHex();
-        assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
+    public FileBucketConfiguration() {
+        // Default constructor for serialization
     }
 
-    public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-        throws IOException {
+    public List<String> getDataCategories() {
+        return dataCategories;
+    }
 
-        try (FileInputStream tarFileInputStream = new FileInputStream(tarFilePath.toFile());
-            InputStream is = TarHelper.readEntryAtPos(tarFileInputStream, entryDescription)) {
-            IOUtils.copy(is, outputStream);
-        }
+    public FileBucketConfiguration setDataCategories(List<String> dataCategories) {
+        this.dataCategories = dataCategories;
+        return this;
+    }
+
+    public Boolean getKeepForeverInCache() {
+        return keepForeverInCache;
+    }
+
+    public FileBucketConfiguration setKeepForeverInCache(Boolean keepForeverInCache) {
+        this.keepForeverInCache = keepForeverInCache;
+        return this;
     }
 }

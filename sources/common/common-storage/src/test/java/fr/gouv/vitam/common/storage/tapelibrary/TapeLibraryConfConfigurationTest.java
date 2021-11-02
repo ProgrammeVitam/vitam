@@ -36,8 +36,6 @@ import java.util.Iterator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-// FIXME: 04/04/19 fix this tests after merge
-@Ignore("To be fixed")
 public class TapeLibraryConfConfigurationTest {
 
     public static final String OFFER_TAPE_TEST_CONF = "offer-tape-test.conf";
@@ -51,46 +49,26 @@ public class TapeLibraryConfConfigurationTest {
         assertThat(configuration).isNotNull();
 
         assertThat(configuration.getTapeLibraries()).isNotEmpty();
-        assertThat(configuration.getTapeLibraries().keySet()).hasSize(2);
-        assertThat(configuration.getTapeLibraries().keySet()).contains("TAPE_LIB_1", "TAPE_LIB_2");
-        assertThat(configuration.getTapeLibraries().values()).hasSize(2);
+        assertThat(configuration.getTapeLibraries()).hasSize(1);
+        assertThat(configuration.getTapeLibraries().keySet()).containsExactly("TAPE_LIB_1");
         Iterator<TapeLibraryConf> tapeLibraryIt = configuration.getTapeLibraries().values().iterator();
 
 
         TapeLibraryConf tapeLibraryConf = tapeLibraryIt.next();
-        assertThat(tapeLibraryConf.getRobots()).hasSize(2);
+        assertThat(tapeLibraryConf.getRobots()).hasSize(1);
         assertThat(tapeLibraryConf.getDrives()).hasSize(4);
 
         assertThat(tapeLibraryConf.getRobots())
             .extracting("device")
-            .contains("/dev/sg3", "/dev/sg4");
+            .containsExactly("/dev/tape/by-id/scsi-1QUANTUM_B4D282EF285E4365BBA90000");
 
         assertThat(tapeLibraryConf.getDrives())
             .extracting("device", "mtPath", "ddPath", "tarPath", "timeoutInMilliseconds")
-            .contains(
-                tuple("/dev/nst1", "/bin/mt", "/bin/dd", "/bin/tar", 60000L),
-                tuple("/dev/nst2", "mt", "dd", "tar", 40000L),
-                tuple("/dev/nst3", "mt", "dd", "tar", 20000L),
-                tuple("/dev/nst4", "mt", "dd", "tar", 60000L)
+            .containsExactly(
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800001-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L),
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800002-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L),
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800003-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L),
+                tuple("/dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800004-nst", "/bin/mt", "/bin/dd", "/bin/tar", 3600000L)
             );
-
-
-        tapeLibraryConf = tapeLibraryIt.next();
-        assertThat(tapeLibraryConf.getRobots()).hasSize(2);
-        assertThat(tapeLibraryConf.getDrives()).hasSize(4);
-
-        assertThat(tapeLibraryConf.getRobots())
-            .extracting("device")
-            .contains("/dev/sg5", "/dev/sg6");
-
-        assertThat(tapeLibraryConf.getDrives())
-            .extracting("device", "mtPath", "ddPath", "tarPath", "timeoutInMilliseconds")
-            .contains(
-                tuple("/dev/nst5", "mt", "dd", "tar", 60000L),
-                tuple("/dev/nst6", "mt", "dd", "tar", 60000L),
-                tuple("/dev/nst7", "mt", "dd", "tar", 60000L),
-                tuple("/dev/nst8", "mt", "dd", "tar", 60000L)
-            );
-
     }
 }

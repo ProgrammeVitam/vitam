@@ -27,13 +27,14 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
@@ -42,31 +43,23 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLoca
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
-import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
-import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
-import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -78,11 +71,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class TapeLibraryContentAddressableStorageTest {
@@ -112,24 +107,30 @@ public class TapeLibraryContentAddressableStorageTest {
     private TapeCatalogService tapeCatalogService;
 
     @Mock
-    private ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+    private ArchiveCacheStorage archiveCacheStorage;
+
+    @Mock
+    private BucketTopologyHelper bucketTopologyHelper;
 
     private BasicFileStorage basicFileStorage;
 
     private TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage;
-
-    private String outputTarsPath;
 
     @Before
     public void initialize() throws Exception {
 
         basicFileStorage = spy(new BasicFileStorage(temporaryFolder.newFolder("inputFiles").getAbsolutePath()));
 
-        outputTarsPath = temporaryFolder.newFolder("outputTars").getAbsolutePath();
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
                 archiveReferentialRepository, readRequestReferentialRepository, fileBucketTarCreatorManager,
-                readWriteQueueRepository, tapeCatalogService, outputTarsPath, archiveOutputRetentionPolicy);
+                readWriteQueueRepository, tapeCatalogService, archiveCacheStorage,
+                bucketTopologyHelper);
+    }
+
+    @After
+    public void cleanup() {
+        verifyNoMoreInteractions(bucketTopologyHelper);
     }
 
     @Test
@@ -141,7 +142,7 @@ public class TapeLibraryContentAddressableStorageTest {
         tapeLibraryContentAddressableStorage.createContainer("container");
 
         // Then
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository, bucketTopologyHelper,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -154,7 +155,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         // Then
         assertThat(existingContainer).isTrue();
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -205,7 +206,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getDigestValue()).isEqualTo(digest);
         assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getDigestAlgorithm()).isEqualTo("SHA-512");
 
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
 
         assertThat(basicFileStorage.readFile("containerName", storageId.get())).hasSameContentAs(
@@ -229,7 +230,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(idArgumentCaptor.getValue().getContainerName()).isEqualTo("containerName");
         assertThat(idArgumentCaptor.getValue().getObjectName()).isEqualTo("objectName");
 
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -250,7 +251,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(idArgumentCaptor.getValue().getContainerName()).isEqualTo("containerName");
         assertThat(idArgumentCaptor.getValue().getObjectName()).isEqualTo("objectName");
 
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -268,7 +269,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(existingObject).isFalse();
 
         verify(objectReferentialRepository).find("containerName", "objectName");
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -286,7 +287,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(existingObject).isTrue();
 
         verify(objectReferentialRepository).find("containerName", "objectName");
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -303,7 +304,7 @@ public class TapeLibraryContentAddressableStorageTest {
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         verify(objectReferentialRepository).find("containerName", "objectName");
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -323,7 +324,7 @@ public class TapeLibraryContentAddressableStorageTest {
         // Then
         assertThat(digest).isEqualTo("digest");
         verify(objectReferentialRepository).find("containerName", "objectName");
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -354,7 +355,7 @@ public class TapeLibraryContentAddressableStorageTest {
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         verify(objectReferentialRepository).find("0_unit", "objectName");
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -380,7 +381,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(objectMetadata.getLastModifiedDate()).isEqualTo("date1");
 
         verify(objectReferentialRepository).find("0_unit", "objectName");
-        Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
+        verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
             archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
@@ -391,17 +392,12 @@ public class TapeLibraryContentAddressableStorageTest {
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
         // When / Then
-        assertThatThrownBy(() -> {
-            tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener);
-        })
+        assertThatThrownBy(() -> tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener))
             .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
-    public void createReadOrderOK()
-        throws ObjectReferentialException, IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, URISyntaxException, TapeCatalogException,
-        ReadRequestReferentialException, ArchiveReferentialException {
+    public void createReadOrderOK() throws Exception {
         // Given
         String tapeCode = "VIT002L6";
         int fileSize = 6;
@@ -409,7 +405,7 @@ public class TapeLibraryContentAddressableStorageTest {
         TapeLibraryObjectReferentialId objectReferentialId =
             new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
         TapeLibraryTarObjectStorageLocation tarObjectStorageLocation = new TapeLibraryTarObjectStorageLocation(
-            Arrays.asList(
+            List.of(
                 new TarEntryDescription(
                     tarId,
                     "0_object/aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq-aeaaaaaaaaecntv2ab5meallrz6w2eaaaaaq-0",
@@ -429,48 +425,57 @@ public class TapeLibraryContentAddressableStorageTest {
                 null)
         );
 
-        Files.copy(PropertiesUtils.getResourcePath("tar/" + tarId), Paths.get(outputTarsPath + "/" + tarId));
+        doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doReturn(false).when(archiveCacheStorage).containsArchive("test-objects", tarId);
 
-        // When / Then
         TapeCatalog tape = new TapeCatalog();
         tape.setCode(tapeCode);
         tape.setBucket("bucket");
-        ArgumentCaptor<List<QueryCriteria>> captor = ArgumentCaptor.forClass(List.class);
 
-        when(tapeCatalogService.find(captor.capture())).thenReturn(Arrays.asList(tape));
-        when(objectReferentialRepository.find(anyString(), anyString())).thenReturn(objectReferentialEntity);
-        when(archiveReferentialRepository.find(anyString())).thenReturn(tarReferentialEntity);
+        when(tapeCatalogService.find(any())).thenReturn(List.of(tape));
+        when(objectReferentialRepository.find("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"))
+            .thenReturn(objectReferentialEntity);
+        when(archiveReferentialRepository.find(tarId)).thenReturn(tarReferentialEntity);
 
+        // When
         String readOrderId = tapeLibraryContentAddressableStorage
-            .createReadOrderRequest("0_object", Arrays.asList("aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"));
+            .createReadOrderRequest("0_object", List.of("aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"));
+
+        // Then
         assertThat(readOrderId).isNotNull();
 
+        ArgumentCaptor<TapeReadRequestReferentialEntity> readRequestArgumentCaptor =
+            ArgumentCaptor.forClass(TapeReadRequestReferentialEntity.class);
+        verify(readRequestReferentialRepository).insert(readRequestArgumentCaptor.capture());
+
         TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity =
-            mock(TapeReadRequestReferentialEntity.class);
-        when(tapeReadRequestReferentialEntity.isCompleted()).thenReturn(true);
+            readRequestArgumentCaptor.getValue();
+        assertThat(tapeReadRequestReferentialEntity.getRequestId()).isEqualTo(readOrderId);
+        assertThat(tapeReadRequestReferentialEntity.getContainerName()).isEqualTo("0_object");
 
-        when(readRequestReferentialRepository.find(eq(readOrderId)))
-            .thenReturn(Optional.of(tapeReadRequestReferentialEntity));
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
+        ArgumentCaptor<QueueMessageEntity> queueMessageEntityArgumentCaptor =
+            ArgumentCaptor.forClass(QueueMessageEntity.class);
+        verify(readWriteQueueRepository).addIfAbsent(any(), queueMessageEntityArgumentCaptor.capture());
 
-        }
+        ReadOrder readOrder = (ReadOrder) queueMessageEntityArgumentCaptor.getValue();
+        assertThat(readOrder.getBucket()).isEqualTo("bucket");
+        assertThat(readOrder.getFileBucketId()).isEqualTo("test-objects");
+        assertThat(readOrder.getSize()).isEqualTo(5120L);
+        assertThat(readOrder.getTapeCode()).isEqualTo(tapeCode);
+        assertThat(readOrder.getFilePosition()).isEqualTo(248);
 
-        assertThat(readRequestReferentialRepository.find(readOrderId).get().isCompleted()).isTrue();
+        verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
     }
 
     @Test
-    public void getObjectWith1SegmentsOK() throws ObjectReferentialException, IOException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        ArchiveReferentialException {
+    public void getObjectWith1SegmentsOK() throws Exception {
         // Given
         int fileSize = 6;
         String tarId = "20190625115513038-406fceff-2c4f-475c-898f-493331756eda.tar";
         TapeLibraryObjectReferentialId objectReferentialId =
             new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
         TapeLibraryTarObjectStorageLocation tarObjectStorageLocation = new TapeLibraryTarObjectStorageLocation(
-            Arrays.asList(
+            List.of(
                 new TarEntryDescription(
                     tarId,
                     "0_object/aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq-aeaaaaaaaaecntv2ab5meallrz6w2eaaaaaq-0",
@@ -490,7 +495,9 @@ public class TapeLibraryContentAddressableStorageTest {
                 null)
         );
 
-        Files.copy(PropertiesUtils.getResourcePath("tar/" + tarId), Paths.get(outputTarsPath + "/" + tarId));
+        doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId).toFile())))
+            .when(archiveCacheStorage).tryReadArchive("test-objects", tarId);
 
         // When / Then
         when(objectReferentialRepository.find(anyString(), anyString())).thenReturn(objectReferentialEntity);
@@ -501,12 +508,12 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(fileSize);
         assertThat(IOUtils.toString(response.getInputStream(), StandardCharsets.UTF_8.name())).isEqualTo("test 1");
+
+        verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
     }
 
     @Test
-    public void getObjectWith2SegmentsOK()
-        throws ObjectReferentialException, IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ArchiveReferentialException {
+    public void getObjectWith2SegmentsOK() throws Exception {
         // Given
         int fileSize = 6;
         String tarId = "20190702131434269-84970e20-402d-4a88-b1df-ae05281ec7e6.tar";
@@ -539,7 +546,9 @@ public class TapeLibraryContentAddressableStorageTest {
                 null)
         );
 
-        Files.copy(PropertiesUtils.getResourcePath("tar/" + tarId), Paths.get(outputTarsPath + "/" + tarId));
+        doReturn("test-objects").when(bucketTopologyHelper).getFileBucketFromContainerName("0_object");
+        doAnswer(args -> Optional.of(new FileInputStream(PropertiesUtils.getResourcePath("tar/" + tarId).toFile())))
+            .when(archiveCacheStorage).tryReadArchive("test-objects", tarId);
 
         // When / Then
         when(objectReferentialRepository.find(anyString(), anyString())).thenReturn(objectReferentialEntity);
@@ -550,5 +559,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(fileSize);
         assertThat(IOUtils.toString(response.getInputStream(), StandardCharsets.UTF_8.name())).isEqualTo("test 2");
+
+        verify(bucketTopologyHelper, atLeastOnce()).getFileBucketFromContainerName("0_object");
     }
 }

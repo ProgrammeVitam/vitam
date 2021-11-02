@@ -45,12 +45,14 @@ public class TapeDriveManager implements TapeDriveService {
     private final TapeReadWriteService ddReadWriteService;
     private final TapeDriveCommandService tapeDriveCommandService;
 
-    public TapeDriveManager(TapeDriveConf tapeDriveConf, String inputDirectory, String outputDirectory) {
+    public TapeDriveManager(TapeDriveConf tapeDriveConf, String inputDirectory, String tmpTarOutputStorageFolder) {
         ParametersChecker.checkParameter("TapeDriveConf param is required", tapeDriveConf);
+        ParametersChecker.checkParameter("inputDirectory param is required", inputDirectory);
+        ParametersChecker.checkParameter("tmpTarOutputStorageFolder param is required", tmpTarOutputStorageFolder);
         this.tapeDriveConf = tapeDriveConf;
         ProcessExecutor processExecutor = ProcessExecutor.getInstance();
         this.ddReadWriteService =
-            new DdTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
+            new DdTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, tmpTarOutputStorageFolder);
         this.tapeDriveCommandService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
     }
 

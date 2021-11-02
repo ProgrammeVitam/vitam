@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
@@ -40,7 +39,6 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlotType;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -62,7 +60,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,13 +74,6 @@ public class TapeCatalogServiceImplTest {
 
     @InjectMocks
     private TapeCatalogServiceImpl tapeCatalogService;
-
-    @After
-    public void after() {
-        reset(tapeCatalogRepository);
-    }
-
-
 
     @Test
     public void test_create_tape_ok() throws TapeCatalogException {

@@ -28,7 +28,7 @@ package fr.gouv.vitam.cas.container.builder;
 
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.cas.container.swift.OpenstackSwift;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
@@ -81,7 +81,8 @@ public class StoreContextBuilder {
      */
     public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration,
         MongoDatabase mongoDatabase)
-        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
+        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException,
+        IllegalPathException {
 
         if (StorageProvider.SWIFT_AUTH_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
             // TODO: keep keystone V1 authent ? No openstack4j keystone V1 authentication implementation, so we have

@@ -38,7 +38,7 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
@@ -69,7 +69,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     private final Map<Integer, OptimisticDriveResourceStatus> optimisticDriveResourceStatusMap =
         new ConcurrentHashMap<>();
-    private final ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
 
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
@@ -77,13 +76,12 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         ReadRequestReferentialRepository readRequestReferentialRepository,
         TapeLibraryPool tapeLibraryPool,
         Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges,
-        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy) {
+        ArchiveCacheStorage archiveCacheStorage) {
 
         ParametersChecker
             .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
                 archiveReferentialRepository, readRequestReferentialRepository, driveTape,
-                archiveOutputRetentionPolicy);
-        this.archiveOutputRetentionPolicy = archiveOutputRetentionPolicy;
+                archiveCacheStorage);
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
@@ -92,7 +90,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
                     this, archiveReferentialRepository, readRequestReferentialRepository,
                     driveTape.get(driveEntry.getKey()), inputTarPath,
-                    forceOverrideNonEmptyCartridges, this.archiveOutputRetentionPolicy);
+                    forceOverrideNonEmptyCartridges, archiveCacheStorage);
             workers.add(tapeDriveWorker);
         }
     }
@@ -198,20 +196,20 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
             order = selectWriteOrderByBucket(driveWorker.getCurrentTape().getBucket());
 
-            if (!order.isPresent()) {
+            if (order.isEmpty()) {
                 order = selectReadOrderByTapeCode(driveWorker.getCurrentTape().getCode());
             }
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectWriteOrderExcludingActiveBuckets();
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectOrder(QueueMessageType.WriteOrder);
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectReadOrderExcludingTapeCodes();
         }
 
@@ -224,7 +222,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         Optional<? extends ReadWriteOrder> order = selectOrder(QueueMessageType.WriteBackupOrder);
 
         // If no write backup order then we take any other write order
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             return selectReadWriteOrderWithWritePriority(driveWorker);
         }
 
@@ -240,20 +238,20 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
             order = selectReadOrderByTapeCode(driveWorker.getCurrentTape().getCode());
 
-            if (!order.isPresent()) {
+            if (order.isEmpty()) {
                 order = selectWriteOrderByBucket(driveWorker.getCurrentTape().getBucket());
             }
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectReadOrderExcludingTapeCodes();
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectWriteOrderExcludingActiveBuckets();
         }
 
-        if (!order.isPresent()) {
+        if (order.isEmpty()) {
             order = selectOrder(QueueMessageType.WriteOrder);
         }
 
@@ -280,12 +278,12 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         // TODO: 28/03/19 parallelism (parallel drive by bucket)
         Set<String> activeBuckets =
             Stream.concat(
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
 
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
-            )
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
+                )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
@@ -299,11 +297,11 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
         Set<String> activeTapeCodes =
             Stream.concat(
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
-                this.optimisticDriveResourceStatusMap.values().stream()
-                    .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
-            )
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
+                    this.optimisticDriveResourceStatusMap.values().stream()
+                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
+                )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 

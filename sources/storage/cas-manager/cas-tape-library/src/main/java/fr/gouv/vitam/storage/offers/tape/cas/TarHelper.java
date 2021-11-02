@@ -32,53 +32,46 @@ import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.CloseShieldInputStream;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 public final class TarHelper {
 
-    public static InputStream readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
+    /**
+     * Gets an input stream for a specific tar entry.
+     * Entry size & entry name & digest are validated to ensure data coherence.
+     *
+     * @param fileInputStream file input stream of the tar file to read from. It is NOT closed by this method and must closed by caller.
+     * @param entryDescription the tar entry description (file position, size, digest...)
+     * @return Tar entry input stream. Closing this input streams does NOT close inner fileInputStream.
+     * @throws IOException if any IO error occurs
+     */
+    public static InputStream readEntryAtPos(FileInputStream fileInputStream, TarEntryDescription entryDescription)
         throws IOException {
 
-        SeekableByteChannel seekableByteChannel = null;
-        InputStream inputStream = null;
+        // Seek to entry start position. Do not close channel since it will close the FileInputStream
+        fileInputStream.getChannel().position(entryDescription.getStartPos());
 
-        try {
-            seekableByteChannel = Files.newByteChannel(tarFilePath, StandardOpenOption.READ);
-            seekableByteChannel.position(entryDescription.getStartPos());
+        TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
+            new CloseShieldInputStream(fileInputStream));
 
-            inputStream = Channels.newInputStream(seekableByteChannel);
-            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
-
-            ArchiveEntry tarEntry = tarArchiveInputStream.getNextEntry();
-            if (!tarEntry.getName().equals(entryDescription.getEntryName())) {
-                throw new IOException(
-                    "Tar entry name conflict. Expected '" + entryDescription.getEntryName() + "', found '" +
-                        tarEntry.getName() + "'");
-            }
-            if (tarEntry.getSize() != entryDescription.getSize()) {
-                throw new IOException(
-                    "Tar entry size conflict. Expected '" + entryDescription.getSize() + "', found '" +
-                        tarEntry.getSize() + "'");
-            }
-
-            return new ExactDigestValidatorInputStream(
-                new ExactSizeInputStream(tarArchiveInputStream, entryDescription.getSize()),
-                VitamConfiguration.getDefaultDigestType(), entryDescription.getDigestValue());
-
-        } catch (IOException | RuntimeException e) {
-            // Close streams if and only if exception occurred
-            IOUtils.closeQuietly(seekableByteChannel);
-            IOUtils.closeQuietly(inputStream);
-            // Rethrow original exception
-            throw e;
+        ArchiveEntry tarEntry = tarArchiveInputStream.getNextEntry();
+        if (!tarEntry.getName().equals(entryDescription.getEntryName())) {
+            throw new IOException(
+                "Tar entry name conflict. Expected '" + entryDescription.getEntryName() + "', found '" +
+                    tarEntry.getName() + "'");
         }
+        if (tarEntry.getSize() != entryDescription.getSize()) {
+            throw new IOException(
+                "Tar entry size conflict. Expected '" + entryDescription.getSize() + "', found '" +
+                    tarEntry.getSize() + "'");
+        }
+
+        return new ExactDigestValidatorInputStream(
+            new ExactSizeInputStream(tarArchiveInputStream, entryDescription.getSize()),
+            VitamConfiguration.getDefaultDigestType(), entryDescription.getDigestValue());
     }
 }

@@ -29,9 +29,9 @@ package fr.gouv.vitam.storage.offers.tape.worker;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -41,18 +41,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,8 +61,10 @@ import static org.mockito.Mockito.when;
 public class TapeDriveWorkerTest {
 
     @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private TapeRobotPool tapeRobotPool;
@@ -80,7 +83,7 @@ public class TapeDriveWorkerTest {
     private TapeCatalogService tapeCatalogService;
 
     @Mock
-    private ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+    private ArchiveCacheStorage archiveCacheStorage;
 
     @Spy
     private TapeDriveOrderConsumer tapeDriveOrderConsumer;
@@ -88,16 +91,13 @@ public class TapeDriveWorkerTest {
     @Mock
     private TapeDriveConf tapeDriveConf;
 
+    private File inputTarDir;
+
     @Before
     public void setUp() throws Exception {
-        reset(tapeRobotPool);
-        reset(tapeDriveService);
-        reset(tapeCatalogService);
-        reset(tapeDriveOrderConsumer);
-        reset(tapeDriveConf);
-        reset(archiveReferentialRepository);
-        reset(archiveOutputRetentionPolicy);
         when(tapeDriveService.getTapeDriveConf()).thenReturn(tapeDriveConf);
+
+        inputTarDir = temporaryFolder.newFolder("inputTars");
     }
 
     @After
@@ -108,12 +108,12 @@ public class TapeDriveWorkerTest {
     public void test_constructor() {
         new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
             archiveReferentialRepository, readRequestReferentialRepository, null,
-            "/tmp", false, archiveOutputRetentionPolicy);
+            inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
 
         try {
             new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                archiveReferentialRepository, readRequestReferentialRepository, null, "/tmp", false,
-                archiveOutputRetentionPolicy);
+                archiveReferentialRepository, readRequestReferentialRepository, null, inputTarDir.getAbsolutePath(),
+                false, archiveCacheStorage);
             Assertions.fail("Should fail tapeRobotPool required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -121,48 +121,53 @@ public class TapeDriveWorkerTest {
 
         try {
             new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer,
-                archiveReferentialRepository, readRequestReferentialRepository, null, "/tmp", false,
-                archiveOutputRetentionPolicy);
+                archiveReferentialRepository, readRequestReferentialRepository, null, inputTarDir.getAbsolutePath(),
+                false, archiveCacheStorage);
             Assertions.fail("Should fail tapeDriveService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer, archiveReferentialRepository, readRequestReferentialRepository,
-                null, "/tmp", false, archiveOutputRetentionPolicy);
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer,
+                archiveReferentialRepository, readRequestReferentialRepository,
+                null, inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
             Assertions.fail("Should fail tapeCatalogService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, archiveReferentialRepository, readRequestReferentialRepository,
-                null, "/tmp", false, archiveOutputRetentionPolicy);
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, archiveReferentialRepository,
+                readRequestReferentialRepository,
+                null, inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, readRequestReferentialRepository, null,
-                "/tmp", false, archiveOutputRetentionPolicy);
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null,
+                readRequestReferentialRepository, null,
+                inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
             Assertions.fail("Should fail archiveReferentialRepository required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, archiveReferentialRepository, null, null,
-                    "/tmp", false, archiveOutputRetentionPolicy);
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, null, null,
+                inputTarDir.getAbsolutePath(), false, archiveCacheStorage);
             Assertions.fail("Should fail readRequestReferentialRepository required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, archiveReferentialRepository, readRequestReferentialRepository, null,
-                "/tmp", false, null);
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
+                archiveReferentialRepository, readRequestReferentialRepository, null,
+                inputTarDir.getAbsolutePath(), false, null);
             Assertions.fail("Should fail archiveOutputRetentionPolicy required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -181,7 +186,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, readRequestReferentialRepository, null, null, 1000, false,
-                archiveOutputRetentionPolicy);
+                archiveCacheStorage);
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
         tapeDriveWorker.stop();
@@ -195,7 +200,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, readRequestReferentialRepository, null, null, 100, false,
-                archiveOutputRetentionPolicy);
+                archiveCacheStorage);
 
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(20);
@@ -218,7 +223,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, readRequestReferentialRepository, null, null, 1000, false,
-                archiveOutputRetentionPolicy);
+                archiveCacheStorage);
         when(tapeDriveConf.getIndex()).thenReturn(1);
         when(tapeDriveOrderConsumer.consume(eq(tapeDriveWorker))).thenAnswer(o -> {
             Thread.sleep(5);
@@ -239,7 +244,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, readRequestReferentialRepository, null, null, 1000, false,
-                archiveOutputRetentionPolicy);
+                archiveCacheStorage);
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(5);
@@ -260,7 +265,7 @@ public class TapeDriveWorkerTest {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 archiveReferentialRepository, readRequestReferentialRepository, null, null, 1000, false,
-                archiveOutputRetentionPolicy);
+                archiveCacheStorage);
 
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {

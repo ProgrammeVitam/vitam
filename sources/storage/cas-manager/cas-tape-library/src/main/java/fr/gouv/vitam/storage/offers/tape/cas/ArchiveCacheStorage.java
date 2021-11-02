@@ -89,9 +89,9 @@ public class ArchiveCacheStorage {
     /**
      * @param cacheDirectory the cache storage directory
      * @param bucketTopologyHelper bucket topology helper
-     * @param maxStorageSpace max capacity that cannot be exceeded by archive cache.
-     * @param evictionStorageSpaceThreshold : triggers background delete of old unused archive files
-     * @param safeStorageSpaceThreshold safe storage space level. When enough storage space is available, background cache delete process ends.
+     * @param maxStorageSpace max capacity (in bytes) that cannot be exceeded by archive cache.
+     * @param evictionStorageSpaceThreshold : storage space capacity (in bytes) that triggers background delete of old unused archive files
+     * @param safeStorageSpaceThreshold safe storage space capacity level (in bytes). When enough storage space is available, background cache delete process ends.
      * @throws IllegalPathException if provided cache directory contains unsafe or illegal archive names.
      * @throws IOException if an I/O error is thrown when accessing disk.
      */
@@ -124,7 +124,11 @@ public class ArchiveCacheStorage {
             this.lruCache.getCurrentCapacity() / 1_000_000L, this.lruCache.getMaxCapacity() / 1_000_000L);
 
         // FIXME : Implement archive locking later
-        return (archiveFileEntry) -> true;
+        return (archiveFileEntry) -> {
+            boolean keepFileBucketIdForeverInCache =
+                bucketTopologyHelper.keepFileBucketIdForeverInCache(archiveFileEntry.getFileBucketId());
+            return !keepFileBucketIdForeverInCache;
+        };
     }
 
     private LRUCache<ArchiveFileEntry> createLRUCache(long maxCapacity, long evictionCapacity, long safeCapacity,

@@ -28,23 +28,26 @@ package fr.gouv.vitam.common.storage.tapelibrary;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
 import java.util.Map;
 
 public class TapeLibraryTopologyConfiguration {
 
     @JsonProperty("fileBuckets")
-    private Map<String, List<String>> fileBuckets = null;
+    private Map<String, FileBucketConfiguration> fileBuckets = null;
 
     @JsonProperty("buckets")
     private Map<String, TapeLibraryBucketConfiguration> buckets = null;
 
-    public Map<String, List<String>> getFileBuckets() {
+    public TapeLibraryTopologyConfiguration() {
+        // Default constructor for serialization
+    }
+
+    public Map<String, FileBucketConfiguration> getFileBuckets() {
         return fileBuckets;
     }
 
     public TapeLibraryTopologyConfiguration setFileBuckets(
-        Map<String, List<String>> fileBuckets) {
+        Map<String, FileBucketConfiguration> fileBuckets) {
         this.fileBuckets = fileBuckets;
         return this;
     }

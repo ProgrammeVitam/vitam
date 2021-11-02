@@ -24,40 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.cas;
+package fr.gouv.vitam.storage.offers.tape.exception;
 
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
+public class BackupWriteException extends Exception {
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-public final class TarTestHelper {
-
-    public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-        throws IOException {
-
-        Digest digest = new Digest(DigestType.SHA512);
-        OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
-        readEntryAtPos(tarFilePath, entryDescription, digestOutputStream);
-        String tarEntryDigest = digest.digestHex();
-        assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
+    public BackupWriteException(Throwable cause) {
+        super(cause);
     }
 
-    public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-        throws IOException {
-
-        try (FileInputStream tarFileInputStream = new FileInputStream(tarFilePath.toFile());
-            InputStream is = TarHelper.readEntryAtPos(tarFileInputStream, entryDescription)) {
-            IOUtils.copy(is, outputStream);
-        }
+    public BackupWriteException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

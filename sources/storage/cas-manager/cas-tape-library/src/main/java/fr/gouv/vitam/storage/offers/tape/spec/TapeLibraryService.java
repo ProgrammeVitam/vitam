@@ -31,14 +31,13 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 
-import java.io.File;
-
 public interface TapeLibraryService {
 
     String TAPE_MSG = " [Tape] : ";
     String TAPE_LABEL = "tape-Label-";
 
-    void goToPosition(TapeCatalog tape, Integer position, ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException;
+    void goToPosition(TapeCatalog tape, Integer position, ReadWriteErrorCode readWriteErrorCode)
+        throws ReadWriteException;
 
     void write(String filePath, long writtenBytes, TapeCatalog tape) throws ReadWriteException;
 
@@ -54,10 +53,9 @@ public interface TapeLibraryService {
 
     String getLibraryIdentifier();
 
-    String getOutputDirectory();
+    String getTmpOutputDirectory();
 
     /**
-     *
      * @param tape
      * @param forceOverrideNonEmptyCartridges
      * @return true to inform that update tape catalog is needed, false else

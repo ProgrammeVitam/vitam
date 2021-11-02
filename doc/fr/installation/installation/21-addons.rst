@@ -394,7 +394,8 @@ Exemple:
 La description "tapeLibraryConfiguration" débute par la définition des répertoires de stockage ainsi que le paramétrage des `tars`.
 * **inputFileStorageFolder** Répertoire où seront stockés les objets à intégrer à l'OF
 * **inputTarStorageFolder** Répertoire où seront générés et stockés les `tars` avant transfert sur bandes
-* **outputTarStorageFolder** Répertoire où seront rapatriés les `tars` depuis les bandes.
+* **tmpTarOutputStorageFolder** Répertoire temporaire où seront rapatriés les `tars` depuis les bandes durant leur écriture.
+* **cachedTarStorageFolder** Répertoire de cache de où seront stockées une copie disque des `tars` archivés sur bandes.
 * **MaxTarEntrySize** Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
 * **maxTarFileSize** Taile maximale des `tars` à constituer, en octets.
 * **forceOverrideNonEmptyCartridge** Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*
@@ -409,7 +410,8 @@ Exemple:
 
         inputFileStorageFolder: "/vitam/data/offer/offer/inputFiles"
         inputTarStorageFolder: "/vitam/data/offer/offer/inputTars"
-        outputTarStorageFolder: "/vitam/data/offer/offer/outputTars"
+        tmpTarOutputStorageFolder: "/vitam/data/offer/offer/tmpTarOutput"
+        cachedTarStorageFolder: "/vitam/data/offer/offer/cachedTars"
         maxTarEntrySize: 10000000
         maxTarFileSize: 10000000000
         ForceOverrideNonEmptyCartridge: False

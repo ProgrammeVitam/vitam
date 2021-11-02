@@ -36,11 +36,11 @@ import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.storage.engine.common.model.EntryType;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
-import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
+import fr.gouv.vitam.storage.offers.tape.exception.BackupWriteException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -86,7 +86,7 @@ public class BackupFileStorage {
     }
 
     public void writeFile(String uniqueFileName, InputStream in)
-        throws QueueProcessingException {
+        throws BackupWriteException {
 
         LOGGER.debug("Write backup file :" + uniqueFileName);
 
@@ -101,15 +101,12 @@ public class BackupFileStorage {
             finalizeBackupFile(uniqueFileName, sizedInputStream.getSize(), digest.digestHex());
 
         } catch (IOException | RuntimeException ex) {
-
-            throw new QueueProcessingException(QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
-                "An error occurred while copying backup file to disk", ex);
-
+            throw new BackupWriteException("An error occurred while copying backup file to disk", ex);
         }
     }
 
     private ExtendedFileOutputStream createBackupFile(String uniqueFileName)
-        throws QueueProcessingException, IOException {
+        throws BackupWriteException, IOException {
 
         Path currentArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName);
         Path currentTmpArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName + LocalFileUtils.TMP_EXTENSION);
@@ -127,8 +124,7 @@ public class BackupFileStorage {
                 LocalDateUtil.now().toString());
             archiveReferentialRepository.insert(tarReferentialEntity);
         } catch (ArchiveReferentialException ex) {
-            throw new QueueProcessingException(QueueProcessingException.RetryPolicy.RETRY,
-                "Could not create a new archive file", ex);
+            throw new BackupWriteException("Could not create a new archive file in DB", ex);
         }
 
         return new ExtendedFileOutputStream(currentTmpArchiveFilePath, true);
@@ -149,6 +145,7 @@ public class BackupFileStorage {
         // Schedule tar for copy on tape
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
+            this.fileBucketId,
             LocalFileUtils
                 .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, uniqueFileName),
             size,
