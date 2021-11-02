@@ -185,7 +185,7 @@ public class ManifestBuilder implements AutoCloseable {
         final AccessContractModel accessContract = accessContractModel;
 
         List<QualifiersModel> qualifiersToRemove;
-        if (!accessContract.isEveryDataObjectVersion()) {
+        if (Boolean.FALSE.equals(accessContract.isEveryDataObjectVersion())) {
             qualifiersToRemove = objectGroup.getQualifiers().stream()
                 .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
                 .collect(Collectors.toList());

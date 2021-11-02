@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ArchiveUnitDto implements Serializable {
@@ -104,5 +105,34 @@ public class ArchiveUnitDto implements Serializable {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ArchiveUnitDto that = (ArchiveUnitDto) o;
+        return Objects.equals(id, that.id) && Objects.equals(content, that.content) &&
+            Objects.equals(parentUnit, that.parentUnit) &&
+            Objects.equals(transactionId, that.transactionId) &&
+            Objects.equals(objectGroupDto, that.objectGroupDto);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, content, parentUnit, transactionId, objectGroupDto);
+    }
+
+    @Override
+    public String toString() {
+        return "ArchiveUnitDto{" +
+            "id='" + id + '\'' +
+            ", content=" + content +
+            ", parentUnit='" + parentUnit + '\'' +
+            ", transactionId='" + transactionId + '\'' +
+            ", objectGroupDto='" + objectGroupDto + '\'' +
+            '}';
     }
 }

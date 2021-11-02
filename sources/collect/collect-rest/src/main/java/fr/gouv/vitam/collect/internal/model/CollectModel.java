@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -63,7 +64,7 @@ public class CollectModel {
     }
 
     public Set<String> getIdGots() {
-        if(null == idGots){
+        if (null == idGots){
             return new HashSet<>();
         }
         return idGots;
@@ -71,5 +72,28 @@ public class CollectModel {
 
     public void setIdGots(Set<String> idGots) {
         this.idGots = idGots;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        CollectModel that = (CollectModel) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "CollectModel{" +
+            "id='" + id + '\'' +
+            ", idGots=" + idGots +
+            '}';
     }
 }

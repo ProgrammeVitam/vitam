@@ -49,8 +49,8 @@ public class CollectService {
     /**
      * create a collect model
      *
-     * @param collectModel
-     * @throws InvalidParseOperationException
+     * @param collectModel collection model to create
+     * @throws InvalidParseOperationException exception thrown in case of error
      */
     public void createCollect(CollectModel collectModel) throws InvalidParseOperationException {
       collectRepository.createCollect(collectModel);
@@ -59,12 +59,12 @@ public class CollectService {
     /**
      * return collection according to id
      *
-     * @param id
-     * @return
-     * @throws InvalidParseOperationException
+     * @param id model id to find
+     * @return Optional<CollectModel>
+     * @throws InvalidParseOperationException exception thrown in case of error
      */
-    public Optional<CollectModel> findCollect(String id)
-            throws InvalidParseOperationException {
+    public Optional<CollectModel> findCollect(String id) throws InvalidParseOperationException {
+        LOGGER.debug("Collect id to find : {}", id);
         return collectRepository.findCollect(id);
     }
 
@@ -73,8 +73,9 @@ public class CollectService {
     }
 
     public String createRequestId() {
-        return GUIDFactory.newRequestIdGUID(0).getId();
-        //return UUID.randomUUID().toString();
+        String id = GUIDFactory.newRequestIdGUID(0).getId();
+        LOGGER.debug("Generated Request Id : {}", id);
+        return id;
     }
 
     public GUID createRequestIdVitamFormat(){

@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ObjectGroupDto implements Serializable {
@@ -66,4 +67,26 @@ public class ObjectGroupDto implements Serializable {
         this.fileInfo = fileInfo;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ObjectGroupDto that = (ObjectGroupDto) o;
+        return Objects.equals(id, that.id) && Objects.equals(fileInfo, that.fileInfo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, fileInfo);
+    }
+
+    @Override
+    public String toString() {
+        return "ObjectGroupDto{" +
+            "id='" + id + '\'' +
+            ", fileInfo=" + fileInfo +
+            '}';
+    }
 }

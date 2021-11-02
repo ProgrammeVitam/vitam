@@ -40,12 +40,13 @@ import org.bson.conversions.Bson;
 
 import java.util.Optional;
 
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * repository for identity certificate entities  management in mongo.
  */
-public class CollectRepository{
+public class CollectRepository {
 
     public static final String COLLECT_COLLECTION = "Collect";
 
@@ -63,20 +64,19 @@ public class CollectRepository{
     /**
      * create a collect model
      *
-     * @param collectModel
-     * @throws InvalidParseOperationException
+     * @param collectModel collect model to create
+     * @throws InvalidParseOperationException exception thrown in case of error
      */
     public void createCollect(CollectModel collectModel) throws InvalidParseOperationException {
         String json = JsonHandler.writeAsString(collectModel);
         collectCollection.insertOne(Document.parse(json));
     }
 
-
     /**
      * replace a collect model
      *
-     * @param collectModel
-     * @throws InvalidParseOperationException
+     * @param collectModel collect model to replace
+     * @throws InvalidParseOperationException exception thrown in case of error
      */
     public void replaceCollect(CollectModel collectModel) throws InvalidParseOperationException {
         String json = JsonHandler.writeAsString(collectModel);
@@ -87,14 +87,12 @@ public class CollectRepository{
     /**
      * return collection according to id
      *
-     * @param id
-     * @return
-     * @throws InvalidParseOperationException
+     * @param id collect id to find
+     * @return Optional<CollectModel>
+     * @throws InvalidParseOperationException exception thrown in case of error
      */
-    public Optional<CollectModel> findCollect(String id)
-        throws InvalidParseOperationException {
-        FindIterable<Document> models =
-            collectCollection.find(Filters.eq("Id", id));
+    public Optional<CollectModel> findCollect(String id) throws InvalidParseOperationException {
+        FindIterable<Document> models = collectCollection.find(Filters.eq("Id", id));
         Document first = models.first();
         if (first == null) {
             return Optional.empty();

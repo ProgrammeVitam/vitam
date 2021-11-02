@@ -83,7 +83,7 @@ public class GenerateSipService {
 
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
     static final String CONTENT = "Content";
-    private MetaDataClientFactory metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
+    private final MetaDataClientFactory metaDataClientFactory = MetaDataClientFactory.getInstance(MetadataType.COLLECT);
     private final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance(WorkspaceType.COLLECT);
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenerateSipService.class);
     private static final String MANIFEST_FILE_NAME = "manifest.xml";

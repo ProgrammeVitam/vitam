@@ -58,24 +58,28 @@ public class CollectMain {
     }
 
     public static void main(String[] args) {
+
+        if (args == null || args.length == 0) {
+            LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+            throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                CONF_FILE_NAME));
+        }
+
+        CollectMain collectMain = new CollectMain(args[0]);
+
         try {
-            if (args == null || args.length == 0) {
-                LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
-            }
-            CollectMain storageMain = new CollectMain(args[0]);
-            // Not useful for Storage but instantiate here VitamServiceRegistry if needed
-            // VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
-            // And the register needed dependencies
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
             serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
-
-            storageMain.startAndJoin();
-        } catch (Exception e) {
+            collectMain.startAndJoin();
+        } catch (VitamApplicationServerException | InterruptedException e) {
             LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
                 e.getMessage(), e);
-
+            try {
+                collectMain.stop();
+            } catch (VitamApplicationServerException ex) {
+                LOGGER.error("Error when trying to stop Collect application: \n {}", e);
+                ex.printStackTrace();
+            }
             System.exit(1);
         }
     }
