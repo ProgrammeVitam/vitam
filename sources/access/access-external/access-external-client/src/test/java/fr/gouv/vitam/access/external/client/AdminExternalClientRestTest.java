@@ -514,7 +514,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (InputStream fileContracts = PropertiesUtils.getResourceAsStream(filename)) {
             ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
             List<Object> res = new ArrayList<>();
-            array.forEach(res::add);
+            array.forEach(e -> res.add(e));
             return res;
         }
     }
@@ -529,7 +529,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             RequestResponse resp =
                 client.createIngestContracts(new VitamContext(TENANT_ID), new FakeInputStream(0));
             Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
-            Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (resp.getHttpCode()));
+            Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
         }
     }
 
@@ -675,7 +675,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void findAllFormatsThenReturnOk() throws VitamClientException {
+    public void findAllFormatsThenReturnOk() throws InvalidParseOperationException, VitamClientException {
 
         when(mock.get()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
@@ -683,10 +683,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             RequestResponse<FileFormatModel> resp =
                 client.findFormats(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode());
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
-            RequestResponseOK<FileFormatModel> responseOK = (RequestResponseOK<FileFormatModel>) resp;
-            assertThat(responseOK.getResults()).hasSize(1);
-            assertThat(responseOK.getFirstResult()).isNotNull();
-            assertThat(responseOK.getFirstResult().getPuid()).isEqualTo("x-fmt/20");
+            assertThat(((RequestResponseOK<FileFormatModel>) resp).getResults()).hasSize(1);
+            assertThat(((RequestResponseOK<FileFormatModel>) resp).getFirstResult().getPuid()).isEqualTo("x-fmt/20");
         }
     }
 
@@ -826,7 +824,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
                 .entity(ClientMockResultHelper.getProfiles(Status.CREATED.getStatusCode()))
                 .build());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
-            InputStream fileProfiles = PropertiesUtils.getResourceAsStream("contracts_access_ok.json")) {
+            InputStream fileProfiles = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");) {
             RequestResponse resp = client.createProfiles(new VitamContext(TENANT_ID), fileProfiles);
             Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
             Assert.assertTrue((resp.isOk()));
@@ -844,7 +842,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             RequestResponse resp =
                 client.createProfiles(new VitamContext(TENANT_ID), new FakeInputStream(0));
             Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
-            Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (resp.getHttpCode()));
+            Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
         }
     }
 
@@ -1157,7 +1155,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
                 .header(GlobalDataRest.X_CONTEXT_ID, "Fake").build());
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse<ItemStatus> resp = client.getOperationProcessStatus(new VitamContext(0), ID);
-            assertTrue(resp.isOk());
+            assertEquals(true, resp.isOk());
             ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) resp).getResults().get(0);
             assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
             assertEquals(Status.OK, itemStatus.getGlobalStatus().getEquivalentHttpStatus());
@@ -1417,7 +1415,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             RequestResponse resp =
                 client.importOntologies(true, new VitamContext(TENANT_ID), new FakeInputStream(0));
             Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
-            Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (resp.getHttpCode()));
+            Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
         }
     }
 

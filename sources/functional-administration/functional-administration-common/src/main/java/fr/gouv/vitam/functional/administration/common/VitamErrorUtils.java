@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.model.StatusCode;
 
@@ -42,31 +41,13 @@ public class VitamErrorUtils {
      * @param state the status code
      * @return VitamError
      */
-    public static VitamError<JsonNode> getVitamError(String vitamCode, String description, String collection, StatusCode state) {
-        return new VitamError<JsonNode>(vitamCode).setMessage(collection + " service error").setState(state.name())
+    public static VitamError getVitamError(String vitamCode, String description, String collection, StatusCode state) {
+        return new VitamError(vitamCode).setMessage(collection + " service error").setState(state.name())
             .setContext("FunctionalModule-" + collection).setDescription(description);
     }
 
-    /**
-     * @param vitamCode   the code of vitam error
-     * @param description the description message error
-     * @param collection  the name of the collection
-     * @param state the status code
-     * @param clasz the vitam error sub class
-     * @return VitamError
-     */
-    public static <T> VitamError<T> getVitamError(String vitamCode, String description, String collection, StatusCode state, Class<T> clasz) {
-        return new VitamError<T>(vitamCode).setMessage(collection + " service error").setState(state.name())
-            .setContext("FunctionalModule-" + collection).setDescription(description);
-    }
-
-    public static VitamError<JsonNode> getVitamErrorWithMessage(String vitamCode, String description, String collection, StatusCode state, String message) {
-        return new VitamError<JsonNode>(vitamCode).setMessage(message).setState(state.name())
+    public static VitamError getVitamErrorWithMessage(String vitamCode, String description, String collection, StatusCode state, String message) {
+        return new VitamError(vitamCode).setMessage(message).setState(state.name())
                 .setContext("FunctionalModule-" + collection).setDescription(description);
-    }
-
-    public static <T> VitamError<T> getVitamErrorWithMessage(String vitamCode, String description, String collection, StatusCode state, String message, Class<T> clasz) {
-        return new VitamError<T>(vitamCode).setMessage(message).setState(state.name())
-            .setContext("FunctionalModule-" + collection).setDescription(description);
     }
 }

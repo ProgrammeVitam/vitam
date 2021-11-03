@@ -46,6 +46,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -92,7 +93,7 @@ public class PrepareStorageStrategiesPluginTest {
     }
 
     @Test
-    public void shouldCreateStrategiesOutput() throws ProcessingException,
+    public void shouldCreateStrategiesOutput() throws ContentAddressableStorageServerException, ProcessingException,
             IOException, InvalidParseOperationException {
 
         // Given
@@ -118,8 +119,7 @@ public class PrepareStorageStrategiesPluginTest {
 
         JsonNode strategies = JsonHandler.getFromInputStream(new FileInputStream(files.get("StorageInfo/strategies.json")));
         assertThat(strategies).isNotNull();
-        List<StorageStrategy> strategiesFileResults = JsonHandler.getFromJsonNode(strategies, new TypeReference<>() {
-        });
+        List<StorageStrategy> strategiesFileResults = JsonHandler.getFromJsonNode(strategies, new TypeReference<List<StorageStrategy>>() { });
         assertThat(strategiesFileResults.size()).isEqualTo(1);
         assertThat(strategiesFileResults.get(0)).isNotNull();
         assertThat(strategiesFileResults.get(0).getId()).isEqualTo("default");
@@ -127,7 +127,8 @@ public class PrepareStorageStrategiesPluginTest {
     }
 
     @Test
-    public void shouldFailFromStrategyRetrievalException() throws ProcessingException, StorageServerClientException {
+    public void shouldFailFromStrategyRetrievalException() throws ContentAddressableStorageServerException, ProcessingException,
+            InvalidParseOperationException, StorageServerClientException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
@@ -144,14 +145,14 @@ public class PrepareStorageStrategiesPluginTest {
     }
 
     @Test
-    public void shouldFailFromStrategyRetrievalKO() throws ProcessingException, StorageServerClientException {
+    public void shouldFailFromStrategyRetrievalKO() throws ContentAddressableStorageServerException, ProcessingException,
+            InvalidParseOperationException, StorageServerClientException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        when(storageClient.getStorageStrategies()).thenReturn(
-            VitamCodeHelper.toVitamError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, "error", StorageStrategy.class));
+        when(storageClient.getStorageStrategies()).thenReturn(VitamCodeHelper.toVitamError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, "error"));
 
         // When
         ItemStatus itemStatus = prepareStorageStrategiesPlugin.execute(workerParameters, handler);

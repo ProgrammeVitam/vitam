@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.common.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -51,14 +51,14 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
     }
 
     @Override
-    public AdminStatusMessage adminStatus() {
+    public AdminStatusMessage adminStatus() throws VitamClientException {
         VitamRequestBuilder request = VitamRequestBuilder.get()
             .withBaseUrl(adminUrl)
             .withPath(STATUS_URL)
             .withJsonAccept()
             .withChunckedMode(true);
         try (Response response = makeSpecifyingUrl(request)) {
-            Status status = response.getStatusInfo().toEnum();
+            Response.Status status = response.getStatusInfo().toEnum();
             AdminStatusMessage message;
             if (response.hasEntity()) {
                 message = response.readEntity(AdminStatusMessage.class);
@@ -78,8 +78,8 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
     }
 
     @Override
-    public VitamError<JsonNode> adminAutotest() {
-        VitamError<JsonNode> message = new VitamError<JsonNode>("000000")
+    public VitamError adminAutotest() throws VitamClientException {
+        VitamError message = new VitamError("000000")
             .setContext(StringUtils.getClassName(this.getClientFactory()))
             .setDescription(Status.SERVICE_UNAVAILABLE.getReasonPhrase())
             .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
@@ -93,9 +93,9 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             .withChunckedMode(true);
 
         try (Response response = makeSpecifyingUrl(request)) {
-            Status status = response.getStatusInfo().toEnum();
+            Response.Status status = response.getStatusInfo().toEnum();
             if (response.hasEntity()) {
-                message = VitamError.getFromJsonNode(JsonHandler.getFromString(response.readEntity(String.class)));
+                message = response.readEntity(VitamError.class);
             }
             if (status == Status.OK || status == Status.SERVICE_UNAVAILABLE) {
                 return message;

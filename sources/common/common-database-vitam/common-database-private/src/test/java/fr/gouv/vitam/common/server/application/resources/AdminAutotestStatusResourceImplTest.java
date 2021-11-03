@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.server.application.resources;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -63,8 +62,6 @@ import java.util.Set;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
@@ -81,20 +78,21 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
             COLLECTION_NAME);
 
-    private static final TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
+    private static TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
 
     public static VitamServerTestRunner
         vitamServerTestRunner =
         new VitamServerTestRunner(AdminAutotestStatusResourceImplTest.class, factory);
 
     private final static String HOST_NAME = "127.0.0.1";
-    private static final JunitHelper junitHelper = JunitHelper.getInstance();
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
 
     private static int fakePort;
 
     private static ElasticsearchNode elasticsearchNode;
     private static MongoDbAccess databaseMd;
-    private static final VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
+    private static ElasticsearchAccess databaseEs;
+    private static VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -103,7 +101,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         elasticsearchNode = new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort());
         nodes.add(elasticsearchNode);
-        ElasticsearchAccess databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
         fakePort = junitHelper.findAvailablePort();
         MongoClient mongoClient = new MongoClient(new ServerAddress(
@@ -186,14 +184,14 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         int realKO = 0;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             final AdminStatusMessage message = clientAdmin.adminStatus();
-            assertTrue(message.getStatus());
-            final VitamError<JsonNode> error = clientAdmin.adminAutotest();
+            assertEquals(true, message.getStatus());
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.OK.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (final VitamError<JsonNode> sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -217,14 +215,14 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
-            assertTrue(message.getStatus());
-            final VitamError<JsonNode> error = clientAdmin.adminAutotest();
+            assertEquals(true, message.getStatus());
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (final VitamError<JsonNode> sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -246,14 +244,14 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
-            assertTrue(message.getStatus());
-            final VitamError<JsonNode> error = clientAdmin.adminAutotest();
+            assertEquals(true, message.getStatus());
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (final VitamError<JsonNode> sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -277,14 +275,14 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
-            assertTrue(message.getStatus());
-            final VitamError<JsonNode> error = clientAdmin.adminAutotest();
+            assertEquals(true, message.getStatus());
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             int nbOK = 0;
             int nbKO = 0;
             int nbUbknown = 0;
-            for (final VitamError<JsonNode> sub : error.getErrors()) {
+            for (final VitamError sub : error.getErrors()) {
                 if (sub.getHttpCode() == Status.SERVICE_UNAVAILABLE.getStatusCode()) {
                     nbKO++;
                 } else if (sub.getHttpCode() == Status.OK.getStatusCode()) {
@@ -304,8 +302,8 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
-            assertFalse(message.getStatus());
-            final VitamError<JsonNode> error = clientAdmin.adminAutotest();
+            assertEquals(false, message.getStatus());
+            final VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             assertEquals(0, error.getErrors().size());

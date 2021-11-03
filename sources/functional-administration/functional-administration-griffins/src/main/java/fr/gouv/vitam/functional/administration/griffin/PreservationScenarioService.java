@@ -109,9 +109,9 @@ public class PreservationScenarioService {
     private static final String SCENARIO_REPORT = "SCENARIO_REPORT";
     private static final String UND_TENANT = "_tenant";
 
-    private final MongoDbAccessReferential mongoDbAccess;
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private final FunctionalBackupService functionalBackupService;
+    private MongoDbAccessReferential mongoDbAccess;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private FunctionalBackupService functionalBackupService;
 
     PreservationScenarioService(MongoDbAccessReferential mongoDbAccess,
         FunctionalBackupService functionalBackupService,
@@ -507,7 +507,7 @@ public class PreservationScenarioService {
     }
 
     public RequestResponse<PreservationScenarioModel> findPreservationScenario(JsonNode queryDsl)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, BadRequestException, InvalidParseOperationException {
 
         DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, PRESERVATION_SCENARIO);
 

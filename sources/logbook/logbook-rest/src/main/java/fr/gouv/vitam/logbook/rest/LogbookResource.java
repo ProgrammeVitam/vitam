@@ -1959,7 +1959,7 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(LOGBOOK)
                     .setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
@@ -1969,7 +1969,7 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(LOGBOOK)
                     .setState("code_vitam")
                     .setMessage(status.getReasonPhrase())
