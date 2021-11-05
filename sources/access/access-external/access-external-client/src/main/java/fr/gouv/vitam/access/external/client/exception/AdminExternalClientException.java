@@ -33,9 +33,9 @@ import javax.ws.rs.core.Response.Status;
 
 public class AdminExternalClientException extends VitamClientException {
     private final Status status;
-    private final VitamError<?> vitamError;
+    private final VitamError vitamError;
 
-    public <T> AdminExternalClientException(String message, Status status, VitamError<?> vitamError) {
+    public AdminExternalClientException(String message, Status status, VitamError vitamError) {
         super(message);
         this.status = status;
         this.vitamError = vitamError;
@@ -45,8 +45,7 @@ public class AdminExternalClientException extends VitamClientException {
         return status;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> VitamError<T> getVitamError() {
-        return ((VitamError<T>) vitamError);
+    public VitamError getVitamError() {
+        return vitamError;
     }
 }

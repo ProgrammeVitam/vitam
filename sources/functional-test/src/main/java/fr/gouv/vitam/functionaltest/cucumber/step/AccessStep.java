@@ -35,6 +35,7 @@ import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -113,7 +114,7 @@ public class AccessStep {
     private static final String INHERITED_RULES = "InheritedRules";
 
     private static final String UNIT_GUID = "UNIT_GUID";
-    private static final String CONTRACT_WITH_LINK = "[{" +
+    private static String CONTRACT_WITH_LINK = "[{" +
         "\"Identifier\":\"contrat_de_rattachement_TNR\"," +
         "\"Name\":\"contrat_de_rattachement_TNR\"," +
         "\"Description\":\"Rattachant les SIP à une AU\"," +
@@ -138,11 +139,11 @@ public class AccessStep {
 
     private List<FacetResult> facetResults;
 
-    private final World world;
+    private World world;
 
     private Status auditStatus;
     private static String savedUnit;
-    private RequestResponse<?> requestResponse;
+    private RequestResponse requestResponse;
 
     public AccessStep(World world) {
         this.world = world;
@@ -360,8 +361,9 @@ public class AccessStep {
      * @param field field name
      * @param numResult number of the result in results
      * @return value if found or null
+     * @throws Throwable
      */
-    private String getValueFromResult(String field, int numResult) {
+    private String getValueFromResult(String field, int numResult) throws Throwable {
 
         List<JsonNode> results = world.getResults();
         if (results.size() < numResult) {
@@ -376,9 +378,10 @@ public class AccessStep {
      * check if the number of result is OK
      *
      * @param numberOfResult number of result.
+     * @throws Throwable
      */
     @Then("^le nombre de résultat est (\\d+)$")
-    public void number_of_result_are(int numberOfResult) {
+    public void number_of_result_are(int numberOfResult) throws Throwable {
         assertThat(world.getResults()).hasSize(numberOfResult);
     }
 
@@ -776,11 +779,11 @@ public class AccessStep {
         }
 
         if (unitJson == null) {
-            return Fail.fail("No such unit with id '" + unitGuid + "' (title: " + unitTitle + ") in result set");
+            Fail.fail("No such unit with id '" + unitGuid + "' (title: " + unitTitle + ") in result set");
         }
 
         if (!unitJson.has(INHERITED_RULES)) {
-            return Fail.fail("Expected inherited rules definition");
+            Fail.fail("Expected inherited rules definition");
         }
 
         return unitJson.get(INHERITED_RULES);
@@ -883,7 +886,7 @@ public class AccessStep {
             RequestResponseOK<JsonNode> objectGroupsResponseOK = new RequestResponseOK<>();
             for (JsonNode unitResult : unitResults) {
                 // search object group on unit
-                RequestResponse<JsonNode> responseObjectGroup =
+                RequestResponse responseObjectGroup =
                     world.getAccessClient().selectObjectMetadatasByUnitId(
                         new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                             .setApplicationSessionId(world.getApplicationSessionId()),
@@ -896,7 +899,7 @@ public class AccessStep {
                         objectGroupsResponseOK.addAllResults(objectGroupResults);
                     }
                 } else {
-                    VitamError<JsonNode> vitamError = (VitamError<JsonNode>) responseObjectGroup;
+                    VitamError vitamError = (VitamError) responseObjectGroup;
                     Fail.fail("request selectObject return an error: " + vitamError.getCode());
                 }
             }
@@ -918,7 +921,7 @@ public class AccessStep {
     public void search_archive_unit_object_group(String title) throws Throwable {
         String unitId = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
             world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), title);
-        RequestResponse<JsonNode> responseObjectGroup =
+        RequestResponse responseObjectGroup =
             world.getAccessClient().selectObjectMetadatasByUnitId(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
@@ -928,7 +931,7 @@ public class AccessStep {
             world.setResults(results);
 
         } else {
-            VitamError<JsonNode> vitamError = (VitamError<JsonNode>) responseObjectGroup;
+            VitamError vitamError = (VitamError) responseObjectGroup;
             Fail.fail("request selectObject return an error: " + vitamError.getCode());
         }
     }
@@ -1045,7 +1048,7 @@ public class AccessStep {
     public void search_in_admin_collection(String collection) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         AdminCollections adminCollection = AdminCollections.valueOf(collection);
-        RequestResponse<?> requestResponse;
+        RequestResponse requestResponse;
         switch (adminCollection) {
             case FORMATS:
                 requestResponse = world.getAdminClient().findFormats(
@@ -1112,17 +1115,19 @@ public class AccessStep {
         }
 
         if (requestResponse != null && requestResponse.isOk()) {
-            List<JsonNode> results = ((RequestResponseOK<?>) requestResponse).getResultsAsJsonNodes();
+            List results = ((RequestResponseOK) requestResponse).getResultsAsJsonNodes();
             world.setResults(results);
         } else if (requestResponse != null) {
-            VitamError<?> vitamError = (VitamError<?>) requestResponse;
+            VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request findDocuments return an error: " + vitamError.getCode());
         } else {
             Fail.fail("Collection not found " + collection);
         }
     }
 
-    private String get_contract_id_by_name(String name) throws InvalidParseOperationException, VitamClientException {
+    private String get_contract_id_by_name(String name)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException,
+        VitamClientException {
 
         String QUERY = "{\"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"" + name +
             "\"}}]},\"$filter\":{},\"$projection\":{}}";
@@ -1284,7 +1289,7 @@ public class AccessStep {
         runInVitamThread(() -> {
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-            RequestResponseOK<String> requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcUnit();
+            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcUnit();
             checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
         });
     }
@@ -1294,7 +1299,7 @@ public class AccessStep {
         runInVitamThread(() -> {
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-            RequestResponseOK<String> requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
+            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
             checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
         });
     }
@@ -1304,24 +1309,16 @@ public class AccessStep {
         runInVitamThread(() -> {
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-            RequestResponse<LogbookOperation> requestResponse =
+            RequestResponse requestResponse =
                 world.getLogbookService().getLogbookOperation(world.getAccessClient(), world.getTenantId(),
                     world.getContractId(), world.getApplicationSessionId(), world.getOperationId());
 
             if (!(requestResponse instanceof RequestResponseOK)) {
                 fail("could not retrieve logbook operation for " + world.getOperationId());
-                return;
             }
-
             RequestResponseOK<LogbookOperation> logbookResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
             LogbookOperation master = logbookResponseOK.getFirstResult();
-
-            if (master == null) {
-                fail("could not retrieve logbook operation for " + world.getOperationId());
-                return;
-            }
-
             LogbookEventOperation lastEvent = Iterables.getLast(master.getEvents());
             int elapsed = (int) Duration.between(
                 LocalDateUtil.parseMongoFormattedDate(lastEvent.getEvDateTime()),
@@ -1333,7 +1330,6 @@ public class AccessStep {
                 TimeUnit.SECONDS.sleep(remainingDurationToSleep);
                 LOGGER.warn("Tt should be old enough for traceability");
             }
-
         });
     }
 

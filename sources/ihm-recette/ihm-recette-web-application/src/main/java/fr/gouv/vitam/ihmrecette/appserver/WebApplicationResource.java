@@ -86,7 +86,6 @@ import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResu
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -178,9 +177,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private final PaginationHelper paginationHelper;
     private final DslQueryHelper dslQueryHelper;
     private final StorageService storageService;
-    private final ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
-    private final List<String> secureMode;
-    private final FunctionalAdminAdmin functionalAdminAdmin;
+    private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
+    private List<String> secureMode;
+    private FunctionalAdminAdmin functionalAdminAdmin;
 
     /**
      * Constructor
@@ -408,8 +407,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     }
 
-    private VitamError<JsonNode> buildError(VitamCode vitamCode, String message) {
-        return new VitamError<JsonNode>(VitamCodeHelper.getCode(vitamCode))
+    private VitamError buildError(VitamCode vitamCode, String message) {
+        return new VitamError(VitamCodeHelper.getCode(vitamCode))
             .setContext(vitamCode.getService().getName())
             .setHttpCode(vitamCode.getStatus().getStatusCode())
             .setState(vitamCode.getDomain().getName())
@@ -518,7 +517,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             VitamContext context = new VitamContext(TENANT_ID);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
 
-            final RequestResponse<LogbookOperation> logbookOperationResult = userInterfaceTransactionManager
+            final RequestResponse logbookOperationResult = userInterfaceTransactionManager
                 .selectOperationbyId(operationId, context);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
@@ -593,7 +592,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
-            RequestResponseOK<String> result;
+            RequestResponseOK result;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
                 result = logbookOperationsClient.traceabilityLfcUnit();
@@ -648,7 +647,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final StorageClient storageClient =
             StorageClientFactory.getInstance().getClient()) {
-            RequestResponseOK<StorageLogTraceabilityResult> result;
+            RequestResponseOK result;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 result = storageClient.storageLogTraceability(Collections.singletonList(Integer.parseInt(xTenantId)));
@@ -677,9 +676,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @CookieParam("JSESSIONID") String sessionId,
         String options) {
-        if (!"GET".equalsIgnoreCase(xhttpOverride)) {
+        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
             final Status status = Status.PRECONDITION_FAILED;
-            VitamError<JsonNode> vitamError = new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(
+            VitamError vitamError = new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(
                 IHM_RECETTE).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
             return Response.status(status).entity(vitamError).build();
         }
@@ -704,13 +703,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (final AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance()
                 .getClient()) {
-                RequestResponse<JsonNode> response =
+                RequestResponse response =
                     accessExternalClient.reclassification(getVitamContext(request), query);
-                if (response instanceof RequestResponseOK) {
+                if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response)
                         .header(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID)).build();
                 }
-                if (response instanceof VitamError) {
+                if (response != null && response instanceof VitamError) {
                     LOGGER.error(response.toString());
                     return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
                 }
@@ -742,20 +741,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String options) {
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
         final String xTenantId = request.getHeader(GlobalDataRest.X_TENANT_ID);
+        Integer tenantId = null;
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        int tenantId = Integer.parseInt(xTenantId);
-        String requestId;
-        RequestResponse<LogbookOperation> result;
-        OffsetBasedPagination pagination;
+        String requestId = null;
+        RequestResponse result = null;
+        OffsetBasedPagination pagination = null;
 
         try {
             Enumeration<String> headersReqId = request.getHeaders(IhmWebAppHeader.REQUEST_ID.name());
             while (headersReqId.hasMoreElements()) {
                 SanityChecker.checkParameter(headersReqId.nextElement());
             }
+            tenantId = Integer.parseInt(xTenantId);
             // VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             pagination = new OffsetBasedPagination(request);
         } catch (final VitamException e) {
@@ -763,11 +763,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).build();
         }
         final List<String> requestIds = Collections.list(request.getHeaders(IhmWebAppHeader.REQUEST_ID.name()));
-        if (!requestIds.isEmpty()) {
+        if (requestIds != null && !requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination), LogbookOperation.class);
+                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination));
 
                 return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
@@ -793,7 +793,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
                 paginationHelper.setResult(sessionId, result.toJsonNode());
                 // pagination
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(result.toJsonNode(), pagination), LogbookOperation.class);
+                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(result.toJsonNode(), pagination));
 
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
@@ -823,11 +823,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookResultById(@PathParam("idOperation") String operationId,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         try {
+            Integer tenantId = null;
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
-            int tenantId = Integer.parseInt(xTenantId);
+            tenantId = Integer.parseInt(xTenantId);
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
             final RequestResponse<LogbookOperation> result =
@@ -956,10 +957,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse<AccessContractModel> response =
                     adminClient.findAccessContracts(getVitamContext(request), query);
-                if (response instanceof RequestResponseOK) {
+                if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
-                if (response instanceof VitamError) {
+                if (response != null && response instanceof VitamError) {
                     LOGGER.error(response.toString());
                     return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
                 }
@@ -979,8 +980,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         JsonNode criteria) {
         String requestId;
 
-        RequestResponse<?> result;
-        OffsetBasedPagination pagination;
+        RequestResponse result;
+        OffsetBasedPagination pagination = null;
         String requestMethod = request.getHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);
         String requestedCollection = request.getHeader(X_REQUESTED_COLLECTION);
         String objectID = request.getHeader(X_OBJECT_ID);
@@ -998,7 +999,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         final List<String> requestIds = Collections.list(request.getHeaders(IhmWebAppHeader.REQUEST_ID.name()));
 
-        if (!requestIds.isEmpty()) {
+        if (requestIds != null && !requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
@@ -1107,8 +1108,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                             }
                         }
                     } else {
-                        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance()
-                            .getClient()) {
+                        try (AdminExternalClient adminExternalClient =
+                            AdminExternalClientFactory.getInstance().getClient();) {
                             if (requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
@@ -1338,35 +1339,35 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.OK).entity(result).build();
             } catch (final InvalidParseOperationException | IllegalArgumentException e) {
                 LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.GLOBAL_EMPTY_QUERY.getItem())
+                VitamError vitamError = new VitamError(VitamCode.GLOBAL_EMPTY_QUERY.getItem())
                     .setHttpCode(Status.BAD_REQUEST.getStatusCode())
                     .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
                     .setMessage(Status.BAD_REQUEST.getReasonPhrase()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessExternalClientServerException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getItem())
+                VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getItem())
                     .setHttpCode(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getStatus().getStatusCode())
                     .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getMessage()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
+                VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
                     .setHttpCode(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getStatus().getStatusCode())
                     .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
                     .setMessage(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getMessage()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessUnauthorizedException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
+                VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
                     .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
                     .setContext(ACCESS_EXTERNAL_MODULE).setState(Status.UNAUTHORIZED.name())
                     .setMessage(Status.UNAUTHORIZED.getReasonPhrase()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                VitamError vitamError = new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
                     .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
                     .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
                     .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase()).setDescription(e.getMessage());
@@ -1377,7 +1378,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private Integer getTenantId(HttpServletRequest request) {
         // TODO Error check ? Throw error or put tenant Id 0
-        int tenantId = 0;
+        Integer tenantId = 0;
         String tenantIdHeader = request.getHeader(GlobalDataRest.X_TENANT_ID);
         if (tenantIdHeader != null) {
             try {
@@ -1392,12 +1393,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private String getContractId(HttpServletRequest request) {
         // TODO Error check ? Throw error or put tenant Id 0
-        return request.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID);
+        String contractId = request.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID);
+        return contractId;
     }
 
     private AdminCollections existsInAdminCollections(String valueToCheck) {
         try {
-            return AdminCollections.valueOf(valueToCheck);
+            AdminCollections requestedAdminCollection = AdminCollections.valueOf(valueToCheck);
+            return requestedAdminCollection;
         } catch (IllegalArgumentException e) {
             return null;
         }

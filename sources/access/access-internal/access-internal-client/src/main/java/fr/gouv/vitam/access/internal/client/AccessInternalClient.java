@@ -27,7 +27,6 @@
 package fr.gouv.vitam.access.internal.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
@@ -406,5 +405,5 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     RequestResponse<JsonNode> revertUnits(RevertUpdateOptions revertUpdateOptions)
         throws AccessInternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException,
-        NoWritingPermissionException, InvalidFormatException;
+        NoWritingPermissionException;
 }

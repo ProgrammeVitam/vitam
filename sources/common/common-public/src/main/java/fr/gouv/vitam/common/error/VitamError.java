@@ -41,7 +41,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -53,7 +52,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 /**
  * VitamError class
  */
-public class VitamError<T> extends RequestResponse<T> {
+public class VitamError extends RequestResponse {
 
 
     @JsonProperty("code")
@@ -68,7 +67,7 @@ public class VitamError<T> extends RequestResponse<T> {
     private String description;
     @JsonProperty("errors")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<VitamError<T>> errors;
+    private List<VitamError> errors;
 
     protected VitamError() {
         // For Json builder
@@ -83,17 +82,13 @@ public class VitamError<T> extends RequestResponse<T> {
         this.code = code;
         errors = new ArrayList<>();
     }
-
-    public static <T> VitamError<T> newVitamError(Class<T> clasz) {
-        return new VitamError<>();
-    }
     
     /**
      * @param code of error as integer
      * @return the VitamError object with the code is setted
      */
     @JsonSetter("code")
-    public VitamError<T> setCode(String code) {
+    public VitamError setCode(String code) {
         this.code = code;
         return this;
     }
@@ -103,7 +98,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return this
      */
     @Override
-    public VitamError<T> setHttpCode(int httpCode) {
+    public VitamError setHttpCode(int httpCode) {
         super.setHttpCode(httpCode);
         return this;
     }
@@ -114,7 +109,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the VitamError object with the context is setted
      */
     @JsonSetter("context")
-    public VitamError<T> setContext(String context) {
+    public VitamError setContext(String context) {
         ParametersChecker.checkParameter("context is a mandatory parameter", context);
         this.context = context;
         return this;
@@ -125,7 +120,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the VitamError object with the error state is setted
      */
     @JsonSetter("state")
-    public VitamError<T> setState(String state) {
+    public VitamError setState(String state) {
         ParametersChecker.checkParameter("state is a mandatory parameter", state);
         this.state = state;
         return this;
@@ -136,7 +131,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the VitamError object with the error message is setted
      */
     @JsonSetter("message")
-    public VitamError<T> setMessage(String message) {
+    public VitamError setMessage(String message) {
         ParametersChecker.checkParameter("message is a mandatory parameter", message);
         this.message = message;
         return this;
@@ -147,7 +142,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the VitamError object with the description error is setted
      */
     @JsonSetter("description")
-    public VitamError<T> setDescription(String description) {
+    public VitamError setDescription(String description) {
         ParametersChecker.checkParameter("description is a mandatory parameter", description);
         this.description = description;
         return this;
@@ -158,7 +153,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the VitamError object with the list of errors is setted
      */
     @JsonSetter("errors")
-    public VitamError<T> addAllErrors(List<VitamError<T>> errors) {
+    public VitamError addAllErrors(List<VitamError> errors) {
         ParametersChecker.checkParameter("errors list is a mandatory parameter", errors);
         if (this.errors == null) {
             this.errors = errors;
@@ -174,7 +169,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the VitamError object with the list of errors is setted
      */
     @JsonIgnore
-    public VitamError<T> addToErrors(VitamError<T> error) {
+    public VitamError addToErrors(VitamError error) {
         ParametersChecker.checkParameter("error is a mandatory parameter", error);
         if (errors == null) {
             errors = new ArrayList<>();
@@ -228,7 +223,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the errors list of the VitamError object
      */
     @JsonGetter("errors")
-    public List<VitamError<T>> getErrors() {
+    public List<VitamError> getErrors() {
         return errors;
     }
 
@@ -237,19 +232,8 @@ public class VitamError<T> extends RequestResponse<T> {
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException if parse JsonNode node exception occurred
      */
-    public static <T> VitamError<T> getFromJsonNode(JsonNode node, Class<T> clasz) throws InvalidParseOperationException {
-        return JsonHandler.getFromJsonNode(node, new TypeReference<>() {
-        });
-    }
-
-    /**
-     * @param node of vitam error in format JsonNode
-     * @return the corresponding VitamError
-     * @throws InvalidParseOperationException if parse JsonNode node exception occurred
-     */
-    public static VitamError<JsonNode> getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
-        return JsonHandler.getFromJsonNode(node, new TypeReference<>() {
-        });
+    public static VitamError getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
+        return JsonHandler.getFromJsonNode(node, VitamError.class);
     }
 
     /**

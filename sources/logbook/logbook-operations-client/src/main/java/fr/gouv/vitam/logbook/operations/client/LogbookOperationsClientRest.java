@@ -220,22 +220,22 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public RequestResponseOK<String> traceabilityLfcUnit() throws LogbookClientServerException, InvalidParseOperationException {
+    public RequestResponseOK traceabilityLfcUnit() throws LogbookClientServerException, InvalidParseOperationException {
         return traceabilityLFC("/lifecycles/units/traceability");
     }
 
     @Override
-    public RequestResponseOK<String> traceabilityLfcObjectGroup()
+    public RequestResponseOK traceabilityLfcObjectGroup()
         throws LogbookClientServerException, InvalidParseOperationException {
         return traceabilityLFC("/lifecycles/objectgroups/traceability");
     }
 
-    private RequestResponseOK<String> traceabilityLFC(String traceabilityUri)
+    private RequestResponseOK traceabilityLFC(String traceabilityUri)
         throws LogbookClientServerException, InvalidParseOperationException {
         try (Response response = make(
             post().withPath(traceabilityUri).withHeader(X_TENANT_ID, getTenantParameter()).withJsonAccept())) {
             check(response);
-            return RequestResponse.parseRequestResponseOk(response, String.class);
+            return RequestResponse.parseRequestResponseOk(response);
         } catch (LogbookClientNotFoundException | VitamClientInternalException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }

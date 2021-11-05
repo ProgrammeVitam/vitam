@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -327,7 +328,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public JsonNode getAgencies(JsonNode query) throws ReferentialException, InvalidParseOperationException {
+    public JsonNode getAgencies(JsonNode query)
+        throws ReferentialException, InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
 
         VitamRequestBuilder request = get()
@@ -727,7 +729,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     String msgErr = "Error while download profile file : " + profileMetadataId;
                     final RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
                     if (!requestResponse.isOk()) {
-                        VitamError<JsonNode> error = (VitamError<JsonNode>) requestResponse;
+                        VitamError error = (VitamError) requestResponse;
                         msgErr = error.getDescription();
                     }
                     throw new ProfileNotFoundException(msgErr);
@@ -1251,8 +1253,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<OntologyModel> importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
-        throws AdminManagementClientServerException {
+    public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The ontology json is mandatory", ontologyModelList);
 
         VitamRequestBuilder request = post()
@@ -1263,7 +1265,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseFromResponse(response, OntologyModel.class);
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
@@ -1310,8 +1312,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try (Response response = make(request)) {
             checkWithSpecificException(response);
 
-            return JsonHandler.<RequestResponseOK<OntologyModel>>getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                OntologyModel.class);
+            @SuppressWarnings("unchecked")
+            RequestResponseOK<OntologyModel> resp =
+                getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    OntologyModel.class);
+
+            return resp;
         } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1380,7 +1386,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse getAccessionRegisterSymbolic(Integer tenant,
+    public RequestResponse<List<AccessionRegisterSymbolicModel>> getAccessionRegisterSymbolic(Integer tenant,
         JsonNode queryDsl)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("Tenant is mandatory.", tenant);
@@ -1393,7 +1399,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolic.class);
+            return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolicModel.class);
         } catch (final VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
@@ -1446,7 +1452,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
+        throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException {
 
         VitamRequestBuilder request = get()
             .withPath("/griffin")
@@ -1457,8 +1463,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             check(response);
 
             String entity = response.readEntity(String.class);
+            @SuppressWarnings("unchecked")
+            RequestResponseOK<GriffinModel> requestResponseOK =
+                getFromString(entity, RequestResponseOK.class, GriffinModel.class);
 
-            return JsonHandler.<RequestResponseOK<GriffinModel>>getFromString(entity, RequestResponseOK.class, GriffinModel.class);
+            return requestResponseOK;
         } catch (VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
@@ -1472,8 +1481,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
             RequestResponse<GriffinModel> requestResponse = findGriffin(queryDsl);
 
-            if (((RequestResponseOK<GriffinModel>) requestResponse).getResults() == null ||
-                ((RequestResponseOK<GriffinModel>) requestResponse).getResults().isEmpty()) {
+            if (((RequestResponseOK) requestResponse).getResults() == null ||
+                ((RequestResponseOK) requestResponse).getResults().isEmpty()) {
                 throw new ReferentialNotFoundException("Griffin not found ");
             }
             return requestResponse;

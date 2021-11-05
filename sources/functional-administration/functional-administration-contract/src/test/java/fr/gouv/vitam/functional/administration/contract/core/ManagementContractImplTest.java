@@ -123,7 +123,7 @@ public class ManagementContractImplTest {
     private ContractService<ManagementContractModel> managementContractService;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
@@ -280,8 +280,8 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
@@ -296,14 +296,14 @@ public class ManagementContractImplTest {
         // Then
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(5);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription()).contains("Identifier")
-            .contains("mandatory");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(5);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).contains("Identifier")
+                .contains("mandatory");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -327,8 +327,8 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
@@ -344,11 +344,11 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).contains("Import management contracts error >");
-        assertThat(response.getStatus()).isEqualTo(500);
-        assertThat(response.getHttpCode())
-            .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getDescription()).contains("Import management contracts error >");
+        assertThat(((VitamError) response).getStatus()).isEqualTo(500);
+        assertThat(((VitamError) response).getHttpCode())
+                .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -370,14 +370,14 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
 
         DbRequestResult dbRequestResultMock = mock(DbRequestResult.class);
-        when(dbRequestResultMock.getCount()).thenReturn(1L);
+        when(dbRequestResultMock.getCount()).thenReturn(1l);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(dbRequestResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
@@ -388,14 +388,14 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(5);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.IDENTIFIER_DUPLICATION.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getDescription())
-            .isEqualTo("The contract IdentifierMC3 already exists in database");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(5);
+        assertThat(((VitamError) response).getErrors().get(2).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.IDENTIFIER_DUPLICATION.KO");
+        assertThat(((VitamError) response).getErrors().get(2).getDescription())
+                .isEqualTo("The contract IdentifierMC3 already exists in database");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -434,14 +434,14 @@ public class ManagementContractImplTest {
         // Then
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("The field Name is mandatory");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("The field Name is mandatory");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -464,8 +464,8 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_invalid_date.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
@@ -479,14 +479,14 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("The field CreationDate is mandatory");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("The field CreationDate is mandatory");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -509,8 +509,8 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
         contractModelList.get(0).setId("guid_fake");
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
@@ -525,14 +525,14 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("ManagementContract service error");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("Id must be null when creating contracts (mcContract1)");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("ManagementContract service error");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("Id must be null when creating contracts (mcContract1)");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -559,8 +559,8 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_strategies_not_found.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
@@ -575,22 +575,22 @@ public class ManagementContractImplTest {
         // Then
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(3);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getDescription()).isEqualTo(
-            "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getDescription()).isEqualTo(
-            "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(3);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
+        assertThat(((VitamError) response).getErrors().get(1).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
+                "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
+        assertThat(((VitamError) response).getErrors().get(2).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo(
+                "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -615,8 +615,8 @@ public class ManagementContractImplTest {
         final File fileContracts = PropertiesUtils
                 .getResourceFile("contracts_management_ko_strategies_missing_referent.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
@@ -631,18 +631,18 @@ public class ManagementContractImplTest {
         // Then
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(2);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription()).isEqualTo(
-            "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getDescription()).isEqualTo(
-            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(2);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+                "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
+        assertThat(((VitamError) response).getErrors().get(1).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -666,8 +666,8 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
@@ -683,14 +683,14 @@ public class ManagementContractImplTest {
         // Then
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription()).isEqualTo(
-            "Exception while validating contract (mcContract1), Error checking storage : storage technical error");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+                "Exception while validating contract (mcContract1), Error checking storage : storage technical error");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -714,8 +714,8 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
         final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-            new TypeReference<>() {
-            });
+                new TypeReference<List<ManagementContractModel>>() {
+                });
 
         when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
                 eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(false);
@@ -732,11 +732,11 @@ public class ManagementContractImplTest {
         // Then
         assertThat(response.isOk()).isFalse();
 
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).contains("Import management contracts error >");
-        assertThat(response.getStatus()).isEqualTo(400);
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getDescription()).contains("Import management contracts error >");
+        assertThat(((VitamError) response).getStatus()).isEqualTo(400);
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -769,16 +769,15 @@ public class ManagementContractImplTest {
         update.addActions(updateName, updateStorageUnit, updateStorageObjectGroup, updateStorageObject);
 
         DbRequestResult updateResult = new DbRequestResult();
-        updateResult.setCount(1L);
-        updateResult.setDiffs(Collections.singletonMap("mc_guid",
-            Collections.singletonList("Name: +New Name -Old Name")));
+        updateResult.setCount(1l);
+        updateResult.setDiffs(Collections.singletonMap("mc_guid", Arrays.asList("Name: +New Name -Old Name")));
         when(mongoAccess.updateData(any(JsonNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(updateResult);
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
@@ -821,7 +820,7 @@ public class ManagementContractImplTest {
         update.addActions(updateName);
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(0L);
+        when(findResultMock.getCount()).thenReturn(0l);
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -832,19 +831,19 @@ public class ManagementContractImplTest {
         // Then
         verify(mongoAccess, times(0)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).isEqualTo("Management contract update error");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat((response).getHttpCode()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getMessage()).isEqualTo("ManagementContract service error");
+        assertThat(((VitamError) response).getDescription()).isEqualTo("Management contract update error");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
 
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.CONTRACT_NOT_FOUND.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("Management contract not foundIdentifierMC1");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat((response).getHttpCode()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.CONTRACT_NOT_FOUND.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("Management contract not foundIdentifierMC1");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -853,9 +852,9 @@ public class ManagementContractImplTest {
         // Given
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -868,11 +867,11 @@ public class ManagementContractImplTest {
         verify(logbookOperationsClient, never()).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, never()).update(logbookOperationParametersCaptor.capture());
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription()).isEqualTo("Management contract update error");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getMessage()).isEqualTo("ManagementContract service error");
+        assertThat(((VitamError) response).getDescription()).isEqualTo("Management contract update error");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -886,9 +885,9 @@ public class ManagementContractImplTest {
         update.addActions(updateName);
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -899,14 +898,14 @@ public class ManagementContractImplTest {
         // Then
         verify(mongoAccess, times(0)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.NOT_IN_ENUM.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("The management contract status must be ACTIVE or INACTIVE but not FAKE_STATUS");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(1);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.NOT_IN_ENUM.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("The management contract status must be ACTIVE or INACTIVE but not FAKE_STATUS");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -938,9 +937,9 @@ public class ManagementContractImplTest {
         update.addActions(updateStorageUnit, updateStorageObjectGroup, updateStorageObject);
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
@@ -951,22 +950,22 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(3);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getDescription()).isEqualTo(
-            "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getDescription()).isEqualTo(
-            "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(3);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
+        assertThat(((VitamError) response).getErrors().get(1).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
+                "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
+        assertThat(((VitamError) response).getErrors().get(2).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo(
+                "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -996,9 +995,9 @@ public class ManagementContractImplTest {
         update.addActions(updateStorageUnit, updateStorageObjectGroup);
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
@@ -1009,18 +1008,18 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(2);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription()).isEqualTo(
-            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getDescription()).isEqualTo(
-            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(2);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
+        assertThat(((VitamError) response).getErrors().get(1).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -1045,9 +1044,9 @@ public class ManagementContractImplTest {
         String update = "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"default-not-found-unit\", \"ObjectGroupStrategy\" : \"default-not-found-got\", \"ObjectStrategy\" : \"default-not-found-object\" } } } ] }";
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
@@ -1058,22 +1057,22 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(3);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription())
-            .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getDescription()).isEqualTo(
-            "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(2).getDescription()).isEqualTo(
-            "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(3);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription())
+                .isEqualTo("Storage Strategy (default-not-found-unit) not found for the field Storage.UnitStrategy");
+        assertThat(((VitamError) response).getErrors().get(1).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
+                "Storage Strategy (default-not-found-got) not found for the field Storage.ObjectGroupStrategy");
+        assertThat(((VitamError) response).getErrors().get(2).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo(
+                "Storage Strategy (default-not-found-object) not found for the field Storage.ObjectStrategy");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -1098,9 +1097,9 @@ public class ManagementContractImplTest {
         String update = "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"fake-invalid-md\", \"ObjectGroupStrategy\" : \"fake-object\" } } } ] }";
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
@@ -1111,18 +1110,18 @@ public class ManagementContractImplTest {
 
         // Then
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().size()).isEqualTo(2);
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(0).getDescription()).isEqualTo(
-            "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getMessage())
-            .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors().get(1).getDescription()).isEqualTo(
-            "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getErrors().size()).isEqualTo(2);
+        assertThat(((VitamError) response).getErrors().get(0).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
+        assertThat(((VitamError) response).getErrors().get(1).getMessage())
+                .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
+                "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -1153,9 +1152,9 @@ public class ManagementContractImplTest {
                 .thenThrow(new ReferentialException("error data update"));
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -1167,13 +1166,13 @@ public class ManagementContractImplTest {
         verify(mongoAccess, times(1)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
 
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription())
-            .isEqualTo("Update management contract error > error data update");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode())
-            .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getMessage()).isEqualTo("ManagementContract service error");
+        assertThat(((VitamError) response).getDescription())
+                .isEqualTo("Update management contract error > error data update");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode())
+                .isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -1204,9 +1203,9 @@ public class ManagementContractImplTest {
                 .thenThrow(new SchemaValidationException("mongo schema error"));
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -1218,12 +1217,11 @@ public class ManagementContractImplTest {
         verify(mongoAccess, times(1)).updateData(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
 
         assertThat(response.isOk()).isFalse();
-        assertThat(((VitamError<ManagementContractModel>) response).getErrors()).isNotNull();
-        assertThat(((VitamError<ManagementContractModel>) response).getMessage()).isEqualTo("ManagementContract service error");
-        assertThat(((VitamError<ManagementContractModel>) response).getDescription())
-            .isEqualTo("Update management contract error > mongo schema error");
-        assertThat(((VitamError<ManagementContractModel>) response).getState()).isEqualTo("KO");
-        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(((VitamError) response).getErrors()).isNotNull();
+        assertThat(((VitamError) response).getMessage()).isEqualTo("ManagementContract service error");
+        assertThat(((VitamError) response).getDescription()).isEqualTo("Update management contract error > mongo schema error");
+        assertThat(((VitamError) response).getState()).isEqualTo("KO");
+        assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verify(logbookOperationsClient, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClient, times(1)).update(logbookOperationParametersCaptor.capture());
@@ -1249,11 +1247,11 @@ public class ManagementContractImplTest {
         select.setQuery(QueryHelper.eq("Name", "mcContract1"));
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
-            eq(ManagementContractModel.class)))
-            .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                .addAllResults(Collections.singletonList(getManagementContract("IdentifierMC1"))));
+                eq(ManagementContractModel.class)))
+                .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -1287,13 +1285,13 @@ public class ManagementContractImplTest {
 
         // Given
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.singletonList(getManagementContract("IdentifierMC1")));
+                .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
-            eq(ManagementContractModel.class)))
-            .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                .addAllResults(Collections.singletonList(getManagementContract("IdentifierMC1"))));
+                eq(ManagementContractModel.class)))
+                .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -1311,13 +1309,13 @@ public class ManagementContractImplTest {
 
         // Given
         DbRequestResult findResultMock = mock(DbRequestResult.class);
-        when(findResultMock.getCount()).thenReturn(1L);
+        when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getDocuments(ManagementContract.class, ManagementContractModel.class))
-            .thenReturn(Collections.emptyList());
+                .thenReturn(Arrays.asList());
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
-            eq(ManagementContractModel.class)))
-            .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                .addAllResults(Collections.singletonList(getManagementContract("IdentifierMC1"))));
+                eq(ManagementContractModel.class)))
+                .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 

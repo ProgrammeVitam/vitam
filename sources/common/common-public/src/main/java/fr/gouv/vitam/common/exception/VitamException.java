@@ -33,11 +33,11 @@ import fr.gouv.vitam.common.error.VitamError;
  */
 public class VitamException extends Exception {
 
-    private VitamError<?> vitamError;
+    private VitamError vitamError;
 
     private static final long serialVersionUID = 1939529482757363926L;
 
-    public VitamException(VitamError<?> vitamError) {
+    public VitamException(VitamError vitamError) {
         this.vitamError = vitamError;
     }
 
@@ -63,12 +63,11 @@ public class VitamException extends Exception {
         super(message, cause);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> VitamError<T> getVitamError() {
-        return (VitamError<T>) vitamError;
+    public VitamError getVitamError() {
+        return vitamError;
     }
 
-    public void setVitamError(VitamError<?> vitamError) {
+    public void setVitamError(VitamError vitamError) {
         this.vitamError = vitamError;
     }
 }

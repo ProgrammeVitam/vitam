@@ -34,8 +34,6 @@ package fr.gouv.vitam.functional.administration.common;
  import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
  import org.bson.Document;
 
- import javax.annotation.Nonnull;
-
 public class PreservationScenario extends VitamDocument<PreservationScenario> {
 
     public PreservationScenario(JsonNode content) {
@@ -73,7 +71,6 @@ public class PreservationScenario extends VitamDocument<PreservationScenario> {
         return this;
     }
 
-    @Nonnull
     public PreservationScenarioModel toModel() {
         try {
             return BsonHelper.fromDocumentToObject(this, PreservationScenarioModel.class);

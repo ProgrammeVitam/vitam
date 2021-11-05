@@ -437,8 +437,9 @@ public class PreservationPreparationPlugin extends ActionHandler {
         select.setQuery(in(TAG_IDENTIFIER, allGriffinIdentifiers.toArray(new String[0])));
         ObjectNode finalSelect = select.getFinalSelect();
 
-        RequestResponse<GriffinModel> griffinResponse = adminManagementClient.findGriffin(finalSelect);
+        RequestResponse griffinResponse = adminManagementClient.findGriffin(finalSelect);
 
+        @SuppressWarnings("unchecked")
         List<GriffinModel> griffinModels = ((RequestResponseOK<GriffinModel>) griffinResponse).getResults();
 
         if (griffinModels == null || griffinModels.isEmpty()) {
