@@ -80,6 +80,7 @@ import java.util.stream.Stream;
 public class ArchiveCacheStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveCacheStorage.class);
+    private static final long MB_TO_BYTES = 1_000_000L;
 
     private final Path cacheDirectory;
     private final BucketTopologyHelper bucketTopologyHelper;
@@ -125,8 +126,8 @@ public class ArchiveCacheStorage {
 
     private LRUCacheEvictionJudge<ArchiveCacheEntry> fileEvictionJudgeFactory() {
 
-        LOGGER.warn("Preparing archive cache eviction. Max capacity {}MB, Current usage: {}/{} MB",
-            this.lruCache.getCurrentCapacity() / 1_000_000L, this.lruCache.getMaxCapacity() / 1_000_000L);
+        LOGGER.warn("Preparing archive cache eviction. Max capacity {}MB, Current usage: {}MB",
+            this.lruCache.getMaxCapacity() / MB_TO_BYTES, this.lruCache.getCurrentCapacity() / MB_TO_BYTES);
 
         return archiveCacheEvictionController.computeEvictionJudge();
     }

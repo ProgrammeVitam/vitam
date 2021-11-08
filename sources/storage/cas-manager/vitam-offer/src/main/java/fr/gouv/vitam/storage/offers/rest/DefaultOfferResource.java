@@ -371,6 +371,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 .setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
 
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
@@ -395,7 +398,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             defaultOfferService.removeAccessRequest(accessRequestId);
 
             return Response.status(Status.OK).build();
-
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());

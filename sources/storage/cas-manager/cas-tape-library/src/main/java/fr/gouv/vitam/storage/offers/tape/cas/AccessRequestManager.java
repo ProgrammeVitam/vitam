@@ -29,13 +29,17 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import com.google.common.util.concurrent.Uninterruptibles;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeAccessRequestReferentialEntity;
@@ -55,6 +59,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -77,7 +82,10 @@ public class AccessRequestManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessRequestManager.class);
     private static final int MAX_ACCESS_REQUEST_SIZE = 100_000;
-    public static final int MAX_RETRIES = 3;
+    private static final int MAX_RETRIES = 3;
+    private static final int GUID_SIZE = 36;
+    private static final char SEPARATOR = '_';
+    private static final int SEPARATOR_SIZE = 1;
 
     private final ObjectReferentialRepository objectReferentialRepository;
     private final ArchiveReferentialRepository archiveReferentialRepository;
@@ -173,7 +181,7 @@ public class AccessRequestManager {
                 = getUnavailableArchivesOnDiskForObjects(containerName, objectNames);
 
             // Commit Access Request
-            String readRequestId = GUIDFactory.newGUID().getId();
+            String accessRequestId = generateAccessRequestId();
             List<String> unavailableArchiveIds = unavailableArchivesOnDisk.stream()
                 .map(TapeArchiveReferentialEntity::getArchiveId)
                 .collect(Collectors.toList());
@@ -184,7 +192,7 @@ public class AccessRequestManager {
             String purgeDate = unavailableArchiveIds.isEmpty() ? computePurgeDate(now) : null;
 
             TapeAccessRequestReferentialEntity accessRequest = new TapeAccessRequestReferentialEntity(
-                readRequestId, containerName, objectNames, creationDate, readyDate, expirationDate, purgeDate,
+                accessRequestId, containerName, objectNames, creationDate, readyDate, expirationDate, purgeDate,
                 unavailableArchiveIds, 0);
             this.accessRequestReferentialRepository.insert(accessRequest);
 
@@ -193,7 +201,7 @@ public class AccessRequestManager {
             List<ReadOrder> readOrders = createReadOrders(containerName, unavailableArchivesOnDisk);
             addReadOrdersToQueue(readOrders);
 
-            return readRequestId;
+            return accessRequestId;
 
 
         } catch (AccessRequestReferentialException | QueueException | ArchiveReferentialException | ObjectReferentialException e) {
@@ -203,6 +211,10 @@ public class AccessRequestManager {
 
     public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
         throws ContentAddressableStorageException {
+
+        for (String accessRequestId : accessRequestIds) {
+            checkAccessRequestIdFormat(accessRequestId);
+        }
 
         try {
 
@@ -243,6 +255,9 @@ public class AccessRequestManager {
 
     public void removeAccessRequest(String accessRequestId)
         throws ContentAddressableStorageException {
+
+        checkAccessRequestIdFormat(accessRequestId);
+
         try {
             Optional<TapeAccessRequestReferentialEntity> deletedAccessRequest =
                 accessRequestReferentialRepository.deleteAndGet(accessRequestId);
@@ -578,5 +593,57 @@ public class AccessRequestManager {
     private String computePurgeDate(LocalDateTime now) {
         return LocalDateUtil.getFormattedDateForMongo(
             now.plus(this.accessRequestPurgeDelay, this.accessRequestPurgeUnit.toChronoUnit()));
+    }
+
+    /**
+     * Generates a new random Access Request Id
+     * Access Request Id format is {GUID}_{tenant}
+     *
+     * @return the Access Request Id
+     */
+    public static String generateAccessRequestId() {
+        return GUIDFactory.newGUID().getId() + SEPARATOR + VitamThreadUtils.getVitamSession().getTenantId();
+    }
+
+    /***
+     * Validates an Access Request Id format
+     * Expected format is {GUID}_{tenant}
+     *
+     * @param accessRequestId the Access Request Id to check
+     * @throws IllegalArgumentException if Access Request format is invalid
+     */
+    public static void checkAccessRequestIdFormat(String accessRequestId)
+        throws IllegalArgumentException {
+
+        if (StringUtils.isEmpty(accessRequestId)) {
+            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'. Null or empty.");
+        }
+        if (accessRequestId.length() <= GUID_SIZE + SEPARATOR_SIZE) {
+            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'.");
+        }
+        if (accessRequestId.charAt(GUID_SIZE) != SEPARATOR) {
+            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'");
+        }
+
+        // Parse / validate GUID format
+        try {
+            GUIDReader.getGUID(accessRequestId.substring(0, GUID_SIZE));
+        } catch (InvalidGuidOperationException e) {
+            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'", e);
+        }
+
+        // Parse / validate tenant suffix
+        int accessRequestTenant;
+        try {
+            accessRequestTenant = Integer.parseInt(accessRequestId.substring(GUID_SIZE + SEPARATOR_SIZE));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'", e);
+        }
+
+        // Check access request tenant, except when current session tenant != adminTenant)
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        if (tenantId != VitamConfiguration.getAdminTenant() && accessRequestTenant != tenantId) {
+            throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'. Illegal tenant.");
+        }
     }
 }
