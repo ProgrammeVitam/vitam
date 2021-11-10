@@ -30,7 +30,10 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.DomainName;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -65,7 +68,7 @@ import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.NonUpdatableContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -277,9 +280,13 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
             return new VitamAsyncInputStreamResponse(objectContent.getInputStream(),
                 Status.OK, responseHeader);
-        } catch (final ContentAddressableStorageNotFoundException | UnavailableFileException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
+        } catch (final ContentAddressableStorageUnavailableDataFromAsyncOfferException e) {
+            LOGGER.warn(e);
+            return buildCustomErrorResponse(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER,
+                e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
@@ -700,5 +707,17 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     .setMessage(vitamCode.getMessage())
                     .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
             .toString()).build();
+    }
+
+    private Response buildCustomErrorResponse(CustomVitamHttpStatusCode customStatusCode, String message) {
+        return Response.status(customStatusCode.getStatusCode())
+            .entity(new RequestResponseError().setError(
+                    new VitamError(customStatusCode.toString())
+                        .setContext(ServiceName.STORAGE.getName())
+                        .setHttpCode(customStatusCode.getStatusCode())
+                        .setState(DomainName.STORAGE.getName())
+                        .setMessage(customStatusCode.getMessage())
+                        .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
+                .toString()).build();
     }
 }

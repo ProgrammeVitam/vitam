@@ -47,6 +47,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -127,7 +128,7 @@ public class ChecksSecureTraceabilityDataHashesPlugin extends ActionHandler {
             updateReport(param, handler,
                 (report) -> report.setMessage(result.getMessage()).setSecuredHash(eventDigest.digestHex()));
             return result;
-        } catch (InvalidParseOperationException | StorageServerClientException | StorageNotFoundException | IOException e) {
+        } catch (InvalidParseOperationException | StorageServerClientException | StorageNotFoundException | IOException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new ProcessingException(e);
         }
     }

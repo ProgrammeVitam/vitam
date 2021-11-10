@@ -53,6 +53,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.collections4.iterators.ArrayIterator;
@@ -101,7 +102,8 @@ public class ReferentialAuditService {
 
     public void runAudit(String collectionName, int tenant)
         throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageNotFoundClientException, BadRequestException, AuditVitamException {
+        StorageNotFoundClientException, BadRequestException, AuditVitamException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         FunctionalAdminCollections collection = FunctionalAdminCollections.getFromValue(collectionName);
 
         if (Objects.isNull(collection)) {
@@ -135,7 +137,8 @@ public class ReferentialAuditService {
     private void verifyCoherence(List<String> offerIds, ArrayNode documentsInDB, ObjectEntry next,
         Map<String, String> mapOfHashes,
         String collectionName, int tenant)
-        throws StorageNotFoundException, StorageServerClientException, AuditVitamException {
+        throws StorageNotFoundException, StorageServerClientException, AuditVitamException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             boolean hasUniqueHash = (new HashSet<>(mapOfHashes.values())).size() == 1;

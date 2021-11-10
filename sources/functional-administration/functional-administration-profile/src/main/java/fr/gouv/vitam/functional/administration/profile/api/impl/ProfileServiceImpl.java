@@ -84,6 +84,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
@@ -456,7 +457,7 @@ public class ProfileServiceImpl implements ProfileService {
             headers.put(HttpHeaders.CONTENT_DISPOSITION, "filename=" + profileMetadata.getPath());
             return new VitamAsyncInputStreamResponse(response,
                 Status.OK, headers);
-        } catch (final StorageServerClientException e) {
+        } catch (final StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new ReferentialException(e);
         } catch (final StorageNotFoundException e) {
             throw new ProfileNotFoundException(e);

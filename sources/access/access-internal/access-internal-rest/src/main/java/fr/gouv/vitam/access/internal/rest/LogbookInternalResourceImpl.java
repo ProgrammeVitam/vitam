@@ -86,6 +86,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -468,7 +469,7 @@ public class LogbookInternalResourceImpl {
                 return Response.status(status).build();
             }
 
-        } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
+        } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorStream(INTERNAL_SERVER_ERROR, e.getMessage())).build();

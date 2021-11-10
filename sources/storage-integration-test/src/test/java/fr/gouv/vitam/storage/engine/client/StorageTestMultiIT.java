@@ -53,6 +53,7 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -722,7 +723,7 @@ public class StorageTestMultiIT {
                     LOGGER.error("Error: " + status.getReasonPhrase());
                     return false;
                 }
-            } catch (StorageServerClientException | StorageNotFoundException e) {
+            } catch (StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
                 LOGGER.error("Size: " + size, e);
                 return false;
             } finally {

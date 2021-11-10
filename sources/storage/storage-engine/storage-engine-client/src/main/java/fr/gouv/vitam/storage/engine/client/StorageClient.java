@@ -40,6 +40,7 @@ import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -179,7 +180,8 @@ public interface StorageClient extends BasicClient {
      * exist
      */
     Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
-        throws StorageServerClientException, StorageNotFoundException;
+        throws StorageServerClientException, StorageNotFoundException,
+        StorageUnavailableDataFromAsyncOfferClientException;
 
     Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
         AccessLogInfoModel logInfo)
@@ -265,9 +267,10 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException StorageServerClientException
      */
-    RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
+    RequestResponseOK copyObjectFromOfferToOffer(String objectId, DataCategory category, String source,
         String destination, String strategyId)
-        throws StorageServerClientException, InvalidParseOperationException;
+        throws StorageServerClientException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException;
 
     /**
      * @param strategyId strategyId

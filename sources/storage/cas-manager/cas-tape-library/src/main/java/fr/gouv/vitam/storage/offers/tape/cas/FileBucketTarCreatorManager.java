@@ -29,10 +29,12 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -117,5 +119,17 @@ public class FileBucketTarCreatorManager {
 
         FileBucketTarCreator fileBucketTarCreator = fileBucketTarCreatorMap.get(fileBucket);
         fileBucketTarCreator.addToQueue(inputFileToProcessMessage);
+    }
+
+    public boolean containsTar(String fileBucketId, String tarId) {
+
+        FileBucketTarCreator fileBucketTarCreator = fileBucketTarCreatorMap.get(fileBucketId);
+        return fileBucketTarCreator.containsTar(tarId);
+    }
+
+    public Optional<FileInputStream> tryReadTar(String fileBucketId, String tarId) {
+
+        FileBucketTarCreator fileBucketTarCreator = fileBucketTarCreatorMap.get(fileBucketId);
+        return fileBucketTarCreator.tryReadTar(tarId);
     }
 }

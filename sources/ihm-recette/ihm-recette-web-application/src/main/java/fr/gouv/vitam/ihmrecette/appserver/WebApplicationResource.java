@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -86,11 +88,13 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.TenantLogbookOperationTraceabilityResult;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -403,10 +407,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 .download(VitamThreadUtils.getVitamSession().getTenantId(), DataCategory.valueOf(dataType), strategyId,
                     offerId, uid);
         } catch (StorageTechnicalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
+        } catch (StorageDriverUnavailableDataFromAsyncOfferException e) {
+            LOGGER.error("No active access request found", e);
+            return buildCustomError(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER, e.getMessage());
         } catch (StorageDriverException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, e.getMessage()).toResponse();
         } catch (StorageNotFoundException e) {
+            LOGGER.warn("Not found", e);
             return buildError(VitamCode.STORAGE_NOT_FOUND, e.getMessage()).toResponse();
         }
 
@@ -419,6 +429,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
             .setState(vitamCode.getDomain().getName())
             .setMessage(vitamCode.getMessage())
             .setDescription(message);
+    }
+
+    private Response buildCustomError(CustomVitamHttpStatusCode customStatusCode, String message) {
+        return Response.status(customStatusCode.getStatusCode())
+            .entity(new RequestResponseError().setError(
+                    new VitamError(customStatusCode.toString())
+                        .setContext(IHM_RECETTE)
+                        .setHttpCode(customStatusCode.getStatusCode())
+                        .setMessage(customStatusCode.getMessage())
+                        .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
+                .toString()).build();
     }
 
     /**
@@ -439,6 +460,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     DataCategory.valueOf(dataType))
                 .toResponse();
         } catch (StorageTechnicalException | StorageNotFoundException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
         }
     }
@@ -461,6 +483,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 .toResponse();
 
         } catch (StorageTechnicalException | StorageNotFoundException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
         }
     }
@@ -483,6 +506,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return readOrderRequest.toResponse();
 
         } catch (StorageTechnicalException | StorageNotFoundException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
         }
     }
@@ -960,6 +984,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("Storage error was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } catch (StorageUnavailableDataFromAsyncOfferClientException e) {
+            LOGGER.error("No active access request found", e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                buildCustomError(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER, e.getMessage()));
         } catch (VitamClientException e) {
             LOGGER.error("Vitam Client NOT FOUND Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());

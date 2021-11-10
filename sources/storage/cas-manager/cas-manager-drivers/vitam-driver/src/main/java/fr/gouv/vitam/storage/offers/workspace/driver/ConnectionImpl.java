@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
@@ -134,28 +136,34 @@ public class ConnectionImpl extends AbstractConnection {
             case CREATED:
             case OK:
                 return;
-            case INTERNAL_SERVER_ERROR:
-                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
             case NOT_FOUND:
-                LOGGER.error(status.getReasonPhrase());
                 throw new StorageDriverNotFoundException(getDriverName(), status.getReasonPhrase());
             case PRECONDITION_FAILED:
-                LOGGER.error("Precondition failed");
                 throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
             case BAD_REQUEST:
-                LOGGER.error(BAD_REQUEST_ERROR_MESSAGE);
                 throw new StorageDriverPreconditionFailedException(getDriverName(), BAD_REQUEST_ERROR_MESSAGE);
             case SERVICE_UNAVAILABLE:
-                LOGGER.error(status.getReasonPhrase());
                 throw new StorageDriverServiceUnavailableException(getDriverName(), status.getReasonPhrase());
             case CONFLICT:
-                LOGGER.error(status.getReasonPhrase());
                 throw new StorageDriverConflictException(getDriverName(), status.getReasonPhrase());
+            case INTERNAL_SERVER_ERROR:
             default:
-                LOGGER.error(status.getReasonPhrase());
                 throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
         }
+    }
+
+    private void checkCustomResponseStatusForUnavailableDataFromAsyncOffer(Response response)
+        throws StorageDriverException {
+        CustomVitamHttpStatusCode customStatusCode = CustomVitamHttpStatusCode.fromStatusCode(response.getStatus());
+        if (customStatusCode == null) {
+            return;
+        }
+        if (customStatusCode == CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER) {
+            throw new StorageDriverUnavailableDataFromAsyncOfferException(getDriverName(),
+                "Access to async offer requires valid access request");
+        }
+        throw new StorageDriverException(getDriverName(),
+            "Unexpected status code received: " + response.getStatus(), false);
     }
 
     @Override
@@ -205,6 +213,7 @@ public class ConnectionImpl extends AbstractConnection {
         Response response = null;
         try {
             response = make(requestbuilder);
+            checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
             checkStorageException(response);
             return new StorageGetResult(request.getTenantId(), request.getType(), request.getGuid(), response);
         } catch (final VitamClientInternalException e) {
@@ -259,8 +268,9 @@ public class ConnectionImpl extends AbstractConnection {
         try (Response response = make(request)) {
             checkStorageException(response);
             RequestResponseOK<Map<String, AccessRequestStatus>> objectRequestResponseOK =
-                JsonHandler.getFromInputStreamAsTypeReference(response.readEntity(InputStream.class), new TypeReference<>() {
-                });
+                JsonHandler.getFromInputStreamAsTypeReference(response.readEntity(InputStream.class),
+                    new TypeReference<>() {
+                    });
             return objectRequestResponseOK.getFirstResult();
         } catch (final VitamClientInternalException | InvalidParseOperationException | InvalidFormatException e) {
             throw new StorageDriverException(getDriverName(), true, e);

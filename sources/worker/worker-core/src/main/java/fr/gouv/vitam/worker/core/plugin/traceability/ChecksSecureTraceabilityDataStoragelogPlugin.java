@@ -51,6 +51,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -197,8 +198,7 @@ public class ChecksSecureTraceabilityDataStoragelogPlugin extends ActionHandler 
             }
 
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK);
-        } catch (InvalidParseOperationException | IOException | StorageServerClientException | StorageNotFoundClientException |
-            StorageNotFoundException e) {
+        } catch (InvalidParseOperationException | IOException | StorageServerClientException | StorageNotFoundClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new ProcessingException(e);
         }
 

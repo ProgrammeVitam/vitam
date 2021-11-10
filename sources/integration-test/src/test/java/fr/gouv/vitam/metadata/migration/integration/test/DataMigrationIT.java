@@ -51,9 +51,7 @@ import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -74,13 +72,12 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -112,20 +109,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
-import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
-import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class DataMigrationIT extends VitamRuleRunner {
@@ -318,7 +311,8 @@ public class DataMigrationIT extends VitamRuleRunner {
     }
 
     private void checkStoredUnit(JsonNode unit, JsonNode lfc)
-        throws StorageNotFoundException, StorageServerClientException {
+        throws StorageNotFoundException, StorageServerClientException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
@@ -339,30 +333,9 @@ public class DataMigrationIT extends VitamRuleRunner {
         }
     }
 
-    private void checkStoredObjectGroup(JsonNode og, JsonNode lfc)
-        throws StorageNotFoundException, StorageServerClientException {
-
-        MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(og);
-
-        JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(og, lfc);
-
-        InputStream expectedStoredDocument = CanonicalJsonFormatter.serialize(docWithLfc);
-
-        javax.ws.rs.core.Response response = null;
-        try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
-            response =
-                client.getContainerAsync("default", og.get(MetadataDocument.ID).asText() + JSON_EXTENSION,
-                    DataCategory.OBJECTGROUP, AccessLogUtils.getNoLogAccessLog());
-            InputStream storedInputStream = response.readEntity(InputStream.class);
-
-            assertThat(storedInputStream).hasSameContentAs(expectedStoredDocument);
-        } finally {
-            StreamUtils.consumeAnyEntityAndClose(response);
-        }
-    }
-
     private void checkReport(String operationId, List<JsonNode> units, List<JsonNode> objectGroups)
-        throws StorageNotFoundException, StorageServerClientException, InvalidParseOperationException {
+        throws StorageNotFoundException, StorageServerClientException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         javax.ws.rs.core.Response response = null;
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
@@ -432,18 +405,6 @@ public class DataMigrationIT extends VitamRuleRunner {
                 RequestResponseOK.getFromJsonNode(result);
             return fromJsonNode.getResults();
         }
-    }
-
-    private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {
-
-        waitOperation(operationGuid);
-
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid, TENANT_ID);
-
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(expectedStatusCode, processWorkflow.getStatus());
     }
 
     private String getBasicAuthnToken() {

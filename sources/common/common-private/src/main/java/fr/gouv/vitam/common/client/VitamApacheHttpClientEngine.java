@@ -322,8 +322,6 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 }
             }
 
-            final Response.StatusType status = Response.Status.fromStatusCode(response.getStatusLine().getStatusCode());
-
             final ClientResponse responseContext = new ClientResponse(((ClientInvocation) clientInvocation).getClientConfiguration(), RESTEasyTracingLogger.empty()) {
                 InputStream stream = getNativeInputStream(response);
 
@@ -370,7 +368,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 }
             };
             responseContext.setProperties(((ClientInvocation) clientInvocation).getMutableProperties());
-            responseContext.setStatus(status.getStatusCode());
+            responseContext.setStatus(response.getStatusLine().getStatusCode());
             responseContext.setHeaders(extractHeaders(response));
             responseContext.setClientConfiguration(((ClientInvocation) clientInvocation).getClientConfiguration());
             return responseContext;

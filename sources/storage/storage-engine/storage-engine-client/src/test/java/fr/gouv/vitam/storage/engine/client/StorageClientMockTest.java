@@ -31,9 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -50,8 +48,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
@@ -114,7 +110,7 @@ public class StorageClientMockTest {
 
 
     @Test
-    public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {
+    public void getContainerObjectTest() throws Exception {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
         final InputStream stream = client.getContainerAsync("strategyId", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog())

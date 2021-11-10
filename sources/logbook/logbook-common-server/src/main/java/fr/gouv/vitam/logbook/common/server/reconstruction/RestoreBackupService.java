@@ -42,6 +42,7 @@ import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -133,7 +134,7 @@ public class RestoreBackupService {
             logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
             logbookBackupModel.setOffset(offset);
             return logbookBackupModel;
-        } catch (StorageServerClientException | InvalidParseOperationException e) {
+        } catch (StorageServerClientException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             StreamUtils.closeSilently(inputStream);

@@ -31,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -60,7 +59,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -195,7 +193,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_unit_model_when_loading_unit_and_storage_returns_file()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         when(storageClientFactory.getClient().getContainerAsync(STRATEGY_UNIT, "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
@@ -217,7 +215,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_got_model_when_loading_got_and_storage_returns_file()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.OBJECTGROUP, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
@@ -239,7 +237,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_metadata()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
@@ -257,7 +255,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_lfc()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(
@@ -275,7 +273,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
-        throws StorageServerClientException, StorageNotFoundException {
+        throws Exception {
         // given
         when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenThrow(new StorageServerClientException("storage error"));
@@ -288,7 +286,7 @@ public class RestoreBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_throw_VitamRuntimeException_when_loading_and_storage_returns_invalid_file()
-        throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
+        throws Exception {
         // given
         when(storageClientFactory.getClient().getContainerAsync(VitamConfiguration.getDefaultStrategy(), "100.json", DataCategory.UNIT, AccessLogUtils.getNoLogAccessLog()))
             .thenReturn(

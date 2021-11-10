@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -55,6 +56,7 @@ import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -426,7 +428,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             default:
                 final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();
-                LOGGER.error(log);
                 throw new StorageServerClientException(log);
         }
     }
@@ -434,7 +435,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public Response getContainerAsync(String strategyId, String objectName, DataCategory type,
         AccessLogInfoModel logInfo)
-        throws StorageServerClientException, StorageNotFoundException {
+        throws StorageServerClientException, StorageNotFoundException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, objectName);
         VitamRequestBuilder request = get()
@@ -446,6 +448,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withAccept(MediaType.APPLICATION_OCTET_STREAM_TYPE);
         try {
             Response response = make(request);
+            checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
             return handleCommonResponseStatus(response);
         } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
             final String errorMessage =
@@ -455,6 +458,19 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (StorageNotFoundClientException e) {
             throw new StorageNotFoundException(e);
         }
+    }
+
+    private void checkCustomResponseStatusForUnavailableDataFromAsyncOffer(Response response)
+        throws StorageUnavailableDataFromAsyncOfferClientException, StorageServerClientException {
+        CustomVitamHttpStatusCode customStatusCode = CustomVitamHttpStatusCode.fromStatusCode(response.getStatus());
+        if (customStatusCode == null) {
+            return;
+        }
+        if (customStatusCode == CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER) {
+            throw new StorageUnavailableDataFromAsyncOfferClientException(
+                "Access to async offer requires valid access request");
+        }
+        throw new StorageServerClientException(customStatusCode.toString());
     }
 
     @Override
@@ -566,10 +582,11 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK<JsonNode> copyObjectToOneOfferAnother(String objectId, DataCategory category,
+    public RequestResponseOK<JsonNode> copyObjectFromOfferToOffer(String objectId, DataCategory category,
         String source,
         String destination, String strategyId)
-        throws StorageServerClientException, InvalidParseOperationException {
+        throws StorageServerClientException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
 
         VitamRequestBuilder request = post()
             .withPath(COPY + objectId)
@@ -581,6 +598,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withHeader(GlobalDataRest.X_DATA_CATEGORY, category.name())
             .withJsonAccept();
         try (Response response = make(request)) {
+            checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
             check(response);
             return RequestResponse.parseRequestResponseOk(response);
         } catch (final VitamClientInternalException e) {

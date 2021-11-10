@@ -95,6 +95,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -771,7 +772,9 @@ public class PreservationIT extends VitamRuleRunner {
         return getFromFileAsTypeReference(resourceFile, GRIFFIN_MODELS_TYPE);
     }
 
-    private GriffinReport getGriffinReport(StorageClient storageClient, String requestId) throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException {
+    private GriffinReport getGriffinReport(StorageClient storageClient, String requestId)
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), requestId + ".json", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
         return getFromInputStream((InputStream) response.getEntity(), GriffinReport.class);
     }

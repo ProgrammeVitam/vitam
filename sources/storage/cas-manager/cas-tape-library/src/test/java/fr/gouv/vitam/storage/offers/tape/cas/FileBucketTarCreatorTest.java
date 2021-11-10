@@ -51,6 +51,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -61,6 +62,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.storage.offers.tape.cas.TarTestHelper.checkEntryAtPos;
@@ -406,6 +408,75 @@ public class FileBucketTarCreatorTest {
                 .isEqualTo(tarFilePath.toAbsolutePath());
         }
         verifyNoMoreInteractions(writeOrderCreator);
+    }
+
+    @Test
+    public void testReadTarAndCheckExistence() throws Exception {
+
+        // Given
+
+        // Populate
+        String bucketId = "test";
+        String fileBucketId = "test-metadata";
+
+        Path fileBucketStoragePath =
+            LocalFileUtils.fileBuckedInputFilePath(inputTarStoragePath.toString(), fileBucketId);
+        Files.createDirectories(fileBucketStoragePath);
+
+        FileBucketTarCreator fileBucketTarCreator = new FileBucketTarCreator(
+            basicFileStorage, objectReferentialRepository, archiveReferentialRepository,
+            writeOrderCreator, bucketId, fileBucketId, 60,
+            TimeUnit.SECONDS, inputTarStoragePath.toString(),
+            10_000, 45_000);
+
+        Digest digest = new Digest(DigestType.SHA512);
+        String unitGuidStorageId1 =
+            basicFileStorage.writeFile("0_unit", "unitGuid1", digest.getDigestInputStream(new NullInputStream(60_000L)),
+                60_000L);
+        fileBucketTarCreator.processMessage(
+            new InputFileToProcessMessage("0_unit", "obj1", unitGuidStorageId1, 60_000, digest.digestHex(), "SHA-512"));
+
+        ArgumentCaptor<TapeArchiveReferentialEntity> tarReferentialEntityArgumentCaptor =
+            ArgumentCaptor.forClass(TapeArchiveReferentialEntity.class);
+        verify(archiveReferentialRepository, times(2))
+            .insert(tarReferentialEntityArgumentCaptor.capture());
+        verifyNoMoreInteractions(archiveReferentialRepository);
+        List<TapeArchiveReferentialEntity> tapeArchiveReferentialEntities
+            = tarReferentialEntityArgumentCaptor.getAllValues();
+
+        // Ensure 1 sealed tar (ready_on_disk) & 1 temp file (building_on_disk)
+        String sealedTar1 = tapeArchiveReferentialEntities.get(0).getArchiveId();
+        String tmpTarId2 = tapeArchiveReferentialEntities.get(1).getArchiveId();
+
+        assertThat(inputTarStoragePath.resolve(fileBucketId).resolve(sealedTar1)).exists();
+        assertThat(inputTarStoragePath.resolve(fileBucketId).resolve(sealedTar1 + ".tmp")).doesNotExist();
+
+        assertThat(inputTarStoragePath.resolve(fileBucketId).resolve(tmpTarId2)).doesNotExist();
+        assertThat(inputTarStoragePath.resolve(fileBucketId).resolve(tmpTarId2 + ".tmp")).exists();
+
+        // When
+        boolean tar1Exists = fileBucketTarCreator.containsTar(sealedTar1);
+        boolean tar2Exists = fileBucketTarCreator.containsTar(tmpTarId2);
+        boolean unknownTarExists = fileBucketTarCreator.containsTar("unknown");
+
+        Optional<FileInputStream> tar1InputStream = fileBucketTarCreator.tryReadTar(sealedTar1);
+        Optional<FileInputStream> tar2InputStream = fileBucketTarCreator.tryReadTar(tmpTarId2);
+        Optional<FileInputStream> unknownTarInputStream = fileBucketTarCreator.tryReadTar("unknown");
+
+        // Then
+        assertThat(tar1Exists).isTrue();
+        assertThat(tar2Exists).isTrue();
+        assertThat(unknownTarExists).isFalse();
+
+        assertThat(tar1InputStream).isPresent();
+        assertThat(tar1InputStream.get()).hasSameContentAs(
+            new FileInputStream(inputTarStoragePath.resolve(fileBucketId).resolve(sealedTar1).toFile()));
+
+        assertThat(tar2InputStream).isPresent();
+        assertThat(tar2InputStream.get()).hasSameContentAs(
+            new FileInputStream(inputTarStoragePath.resolve(fileBucketId).resolve(tmpTarId2 + ".tmp").toFile()));
+
+        assertThat(unknownTarInputStream).isEmpty();
     }
 
     private static class ObjectToWrite {

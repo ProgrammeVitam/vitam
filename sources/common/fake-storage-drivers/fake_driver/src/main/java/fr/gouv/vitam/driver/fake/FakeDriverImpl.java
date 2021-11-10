@@ -34,15 +34,18 @@ import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
@@ -67,6 +70,7 @@ import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -222,9 +226,15 @@ public class FakeDriverImpl extends AbstractDriver {
         @Override
         public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
 
+            if(this.offerId.equals("myTapeOffer1") && objectRequest.getGuid().equals("MyUnavailableFromAsyncOfferObjectId")) {
+                throw new StorageDriverUnavailableDataFromAsyncOfferException("any", "msg");
+            }
+
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "4");
             return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
                 new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, headers));
         }
 
         @Override
@@ -316,7 +326,7 @@ public class FakeDriverImpl extends AbstractDriver {
 
         @Override
         public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) throws StorageDriverException {
-            return new StorageMetadataResult(null);
+            return new StorageMetadataResult(new StorageMetadataResult(request.getGuid(), request.getType(), "digest", 1234L, "now", "now"));
         }
 
         @Override

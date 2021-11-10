@@ -24,19 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.workspace.api.exception;
+package fr.gouv.vitam.storage.offers.tape.cas;
 
-public class UnavailableFileException extends RuntimeException {
+public interface LockHandle {
 
-    public UnavailableFileException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public UnavailableFileException(Throwable cause) {
-        super(cause);
-    }
-
-    public UnavailableFileException(String message) {
-        super(message);
-    }
+    void release();
 }

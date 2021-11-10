@@ -173,7 +173,7 @@ public class TapeLibraryFactory {
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
                 archiveReferentialRepository, accessRequestManager, fileBucketTarCreatorManager,
-                archiveCacheStorage, bucketTopologyHelper);
+                archiveCacheStorage, archiveCacheEvictionController, bucketTopologyHelper);
 
         // Start AccessRequest expiration handler
         accessRequestManager.startExpirationHandler();

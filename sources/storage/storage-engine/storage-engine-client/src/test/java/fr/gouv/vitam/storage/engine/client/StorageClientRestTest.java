@@ -26,12 +26,14 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -51,6 +53,7 @@ import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -240,6 +243,22 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
             return expectedResponse.get();
+        }
+
+        @Path("/copy/{id_object}")
+        @POST
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response copy(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+            @PathParam("id_object") String objectId) {
+
+            assertThat(headers.getHeaderString(GlobalDataRest.X_TENANT_ID)).isNotNull();
+            assertThat(headers.getHeaderString(GlobalDataRest.X_CONTENT_DESTINATION)).isNotNull();
+            assertThat(headers.getHeaderString(GlobalDataRest.X_CONTENT_SOURCE)).isNotNull();
+            assertThat(headers.getHeaderString(GlobalDataRest.X_STRATEGY_ID)).isNotNull();
+            assertThat(headers.getHeaderString(GlobalDataRest.X_DATA_CATEGORY)).isNotNull();
+            assertThat(objectId).isNotNull();
+
+            return expectedResponse.post();
         }
 
         @POST
@@ -598,6 +617,16 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     }
 
     @RunWithCustomExecutor
+    @Test
+    public void failsGetContainerObjectExecutionWhenUnavailableDataFromAsyncOffer() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        assertThatThrownBy(() ->
+        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
+            .isInstanceOf(StorageUnavailableDataFromAsyncOfferClientException.class);
+    }
+
+    @RunWithCustomExecutor
     @Test(expected = StorageServerClientException.class)
     public void failsGetContainerObjectExecutionWhenInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -624,6 +653,44 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void failsCopyObjectExecutionWhenPreconditionFailed() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThatThrownBy( () -> client.copyObjectFromOfferToOffer( "guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer", "strategyId"))
+            .isInstanceOf(StorageServerClientException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void failsCopyObjectExecutionWhenUnavailableDataFromAsyncOffer() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+        assertThatThrownBy( () -> client.copyObjectFromOfferToOffer( "guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer", "strategyId"))
+            .isInstanceOf(StorageUnavailableDataFromAsyncOfferClientException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void failsCopyObjectExecutionWhenInternalServerError() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        assertThatThrownBy( () -> client.copyObjectFromOfferToOffer( "guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer", "strategyId"))
+            .isInstanceOf(StorageServerClientException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void successCopyObjectExecutionWhenFound() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(new RequestResponseOK<>().setHttpCode(200).toResponse());
+        RequestResponseOK<JsonNode> jsonNodeRequestResponseOK =
+            client.copyObjectFromOfferToOffer("guid", DataCategory.OBJECT, "sourceOffer", "destinationOffer",
+                "strategyId");
+        assertNotNull(jsonNodeRequestResponseOK);
     }
 
     @RunWithCustomExecutor
@@ -856,7 +923,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void createAccessRequestIfRequiredWithServerErrorThenException() throws Exception {
+    public void createAccessRequestIfRequiredWithServerErrorThenException() {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
@@ -911,7 +978,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void removeAccessRequestOK() throws Exception {
+    public void removeAccessRequestOK() {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
@@ -924,7 +991,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void removeAccessRequestOKWithServerErrorThenException() throws Exception {
+    public void removeAccessRequestOKWithServerErrorThenException() {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);

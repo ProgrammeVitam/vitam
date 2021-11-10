@@ -58,6 +58,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -250,14 +251,15 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
             // map iterator (line -> id)
             return CloseableIteratorUtils.map(lineGenericIterator, JsonLineModel::getId);
 
-        } catch (StorageServerClientException | StorageNotFoundException | UncheckedIOException | InvalidParseOperationException e) {
+        } catch (StorageServerClientException | StorageNotFoundException | UncheckedIOException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
             StreamUtils.closeSilently(inputStream);
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load transfer report", e);
         }
     }
 
     private InputStream loadTransferReport(String transferRequestId)
-        throws StorageNotFoundException, StorageServerClientException {
+        throws StorageNotFoundException, StorageServerClientException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = this.storageClientFactory.getClient()) {
             return new VitamAsyncInputStream(storageClient
                 .getContainerAsync(VitamConfiguration.getDefaultStrategy(), transferRequestId + ".jsonl",

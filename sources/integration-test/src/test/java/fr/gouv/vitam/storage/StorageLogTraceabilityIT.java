@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.storage;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -60,11 +59,11 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageFileNameHelper;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.collections4.IteratorUtils;
@@ -86,12 +85,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -104,8 +101,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
-    public static final TypeReference<JsonNode> TYPE_REFERENCE = new TypeReference<>() {
-    };
     public static final String STRATEGY_ID = "default";
     @ClassRule
     public static VitamServerRunner runner =
@@ -410,7 +405,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
     }
 
     private void downloadZip(String fileName, File folder) throws IOException, StorageNotFoundException,
-        StorageServerClientException {
+        StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response containerAsync = storageClient
                 .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName,
