@@ -56,6 +56,8 @@ public enum VitamCode {
 
     GLOBAL_INVALID_DSL(ServiceName.VITAM, DomainName.BUSINESS, "01", Status.BAD_REQUEST, "Dsl query is not valid."),
 
+    UNAUTHORIZED_PARAMETER_DSL(ServiceName.VITAM, DomainName.BUSINESS, "02", Status.BAD_REQUEST, "DSL parameter is unauthorized."),
+
     INTERNAL_SECURITY_UNAUTHORIZED(ServiceName.VITAM, DomainName.SECURITY, "00", Status.UNAUTHORIZED,
         "Internal Security Filter Unauthorized"),
 

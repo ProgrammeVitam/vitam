@@ -27,8 +27,8 @@
 package fr.gouv.vitam.access.external.rest;
 
 import fr.gouv.vitam.access.external.rest.v2.rest.AccessExternalResourceV2;
-import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
@@ -37,17 +37,18 @@ import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
+import static fr.gouv.vitam.access.external.rest.AccessExternalResourceTest.ACCESS_CONF;
 import static org.mockito.Mockito.mock;
 
 public class BusinessApplicationTest extends Application {
@@ -79,31 +80,36 @@ public class BusinessApplicationTest extends Application {
     }
 
     public void prepare() {
-        SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
-        SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(ACCESS_CONF)) {
+            final AccessExternalConfiguration configuration =
+                PropertiesUtils.readYaml(yamlIS, AccessExternalConfiguration.class);
+            SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
+            SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
 
-        final AccessExternalResource accessExternalResource =
-            new AccessExternalResource(secureEndpointRegistry, accessInternalClientFactory);
-        final AccessExternalResourceV2 accessExternalResourceV2 =
-            new AccessExternalResourceV2(secureEndpointRegistry, accessInternalClientFactory);
-        final LogbookExternalResource logbookExternalResource =
-            new LogbookExternalResource(accessInternalClientFactory);
-        final AdminManagementExternalResource adminManagementExternalResource =
-            new AdminManagementExternalResource(vitamStatusService, secureEndpointRegistry,
-                adminManagementClientFactory, ingestInternalClientFactory, accessInternalClientFactory);
+            final AccessExternalResource accessExternalResource =
+                new AccessExternalResource(secureEndpointRegistry, accessInternalClientFactory, configuration);
+            final AccessExternalResourceV2 accessExternalResourceV2 =
+                new AccessExternalResourceV2(secureEndpointRegistry, accessInternalClientFactory, configuration);
+            final LogbookExternalResource logbookExternalResource =
+                new LogbookExternalResource(accessInternalClientFactory);
+            final AdminManagementExternalResource adminManagementExternalResource =
+                new AdminManagementExternalResource(vitamStatusService, secureEndpointRegistry,
+                    adminManagementClientFactory, ingestInternalClientFactory, accessInternalClientFactory);
 
-        singletons = new HashSet<>();
-        singletons.addAll(commonBusinessApplication.getResources());
-        singletons.add(accessExternalResource);
-        singletons.add(accessExternalResourceV2);
-        singletons.add(logbookExternalResource);
-        singletons.add(adminManagementExternalResource);
-        singletons.add(new SanityCheckerCommonFilter());
-        singletons.add(new SanityDynamicFeature());
-        singletons.add(new HttpMethodOverrideFilter());
-        singletons.add(secureEndpointScanner);
-        singletons.add(new DslDynamicFeature());
-
+            singletons = new HashSet<>();
+            singletons.addAll(commonBusinessApplication.getResources());
+            singletons.add(accessExternalResource);
+            singletons.add(accessExternalResourceV2);
+            singletons.add(logbookExternalResource);
+            singletons.add(adminManagementExternalResource);
+            singletons.add(new SanityCheckerCommonFilter());
+            singletons.add(new SanityDynamicFeature());
+            singletons.add(new HttpMethodOverrideFilter());
+            singletons.add(secureEndpointScanner);
+            singletons.add(new DslDynamicFeature());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

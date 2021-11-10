@@ -27,7 +27,6 @@
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -75,12 +74,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -101,10 +98,8 @@ import static org.mockito.Mockito.when;
 
 
 public class AccessExternalResourceTest extends ResteasyTestApplication {
-    @Rule
-    public ExpectedException thrownException = ExpectedException.none();
 
-    private static final String ACCESS_CONF = "access-external-test.conf";
+    static final String ACCESS_CONF = "access-external-test.conf";
     // URI
     private static final String ACCESS_RESOURCE_URI = "access-external/v1";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
@@ -128,6 +123,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
     private static final String DELETE_GOT_VERSIONS_QUERY =
         "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}] }";
+    private static final String BODY_TEST_MULTIPLE_WITH_TRACK_TOTAL_HITS =
+        "{\"$query\": [{\"$eq\": {\"aa\" : \"vv\" }}], \"$projection\": {}, \"$filter\": {$track_total_hits:true}}";
 
 
 
@@ -1139,9 +1136,38 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
+    public void testOkSelectUnitsWithActivatedTrackTotalHits() throws Exception {
+        when(accessInternalClient.selectUnits(any()))
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
+        // Query Validation Ok
+        JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE_WITH_TRACK_TOTAL_HITS);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(queryNode)
+            .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
+        // Validation Ok
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_MULTIPLE))
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
+    }
+
+    @Test
     public void testhttpOverrideErrorsSelectUnits()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
 
         given()
             .contentType(ContentType.JSON)
@@ -1799,7 +1825,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testErrorsSelectUnitsWithInheritedRules()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
 
         given()
             .contentType(ContentType.JSON)
@@ -1890,7 +1916,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testhttpOverrideErrorsSelectUnitsWithInheritedRules()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
 
         given()
             .contentType(ContentType.JSON)

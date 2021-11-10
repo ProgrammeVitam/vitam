@@ -41,6 +41,7 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
     private boolean tenantFilter = false;
     private boolean enableXsrFilter = false;
     private boolean enableSession = false;
+    private boolean authorizeTrackTotalHits = false;
 
     /**
      * Vitam Basic authentication -> username & password
@@ -135,5 +136,13 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
     @Override
     public void setEnableSession(boolean enableSession) {
         this.enableSession = enableSession;
+    }
+
+    public boolean isAuthorizeTrackTotalHits() {
+        return authorizeTrackTotalHits;
+    }
+
+    public void setAuthorizeTrackTotalHits(boolean authorizeTrackTotalHits) {
+        this.authorizeTrackTotalHits = authorizeTrackTotalHits;
     }
 }

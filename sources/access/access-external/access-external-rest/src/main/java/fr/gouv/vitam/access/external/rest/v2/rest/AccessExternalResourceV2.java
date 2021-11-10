@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.external.rest.v2.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.external.rest.AccessExternalConfiguration;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -67,20 +68,24 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceV2.class);
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final AccessInternalClientFactory accessInternalClientFactory;
+    private final AccessExternalConfiguration configuration;
 
     /**
      * Constructor
      *
      * @param secureEndpointRegistry endpoint list registry
      */
-    public AccessExternalResourceV2(SecureEndpointRegistry secureEndpointRegistry) {
-        this(secureEndpointRegistry, AccessInternalClientFactory.getInstance());
+    public AccessExternalResourceV2(SecureEndpointRegistry secureEndpointRegistry,
+        AccessExternalConfiguration configuration) {
+        this(secureEndpointRegistry, AccessInternalClientFactory.getInstance(), configuration);
     }
 
     public AccessExternalResourceV2(SecureEndpointRegistry secureEndpointRegistry,
-        AccessInternalClientFactory accessInternalClientFactory) {
+        AccessInternalClientFactory accessInternalClientFactory,
+        AccessExternalConfiguration configuration) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.accessInternalClientFactory = accessInternalClientFactory;
+        this.configuration = configuration;
         LOGGER.debug("AccessExternalResourceV2 initialized");
     }
 
