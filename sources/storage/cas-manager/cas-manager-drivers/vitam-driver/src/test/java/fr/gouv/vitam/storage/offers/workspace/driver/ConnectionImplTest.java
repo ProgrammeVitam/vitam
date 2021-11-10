@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
@@ -84,10 +86,13 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -96,15 +101,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -259,6 +265,43 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response bulkPutObjects(@PathParam("type") DataCategory type, InputStream input) {
             return mock.put();
+        }
+
+        @POST
+        @Path("/access-request/{type}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createAccessRequest(@PathParam("type") DataCategory type, List<String> objectsIds,
+            @Context HttpHeaders headers) {
+            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            assertThat(xTenantId).isEqualTo("3");
+            assertThat(objectsIds).containsExactly("obj1", "obj2");
+            assertThat(type).isEqualTo(DataCategory.OBJECT);
+            return mock.post();
+        }
+
+        @GET
+        @Path("/access-request/statuses")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkAccessRequestStatuses(List<String> accessRequestIds, @Context HttpHeaders headers) {
+            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            assertThat(xTenantId).isEqualTo("3");
+            assertThat(accessRequestIds).containsExactly("accessRequestId1", "accessRequestId2");
+            return mock.get();
+        }
+
+        @DELETE
+        @Path("/access-request/{accessRequestId}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response removeAccessRequest(@PathParam("accessRequestId") String accessRequestId,
+            @Context HttpHeaders headers) {
+            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            assertThat(xTenantId).isEqualTo("3");
+            assertThat(accessRequestId).isEqualTo("accessRequestId1");
+
+            return mock.delete();
         }
 
         void consumeAndCloseStream(InputStream stream) {
@@ -1031,6 +1074,111 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         try (Connection connection = driver.connect(offer.getId())) {
             assertThatThrownBy(() -> connection.getBulkMetadata(request))
+                .isInstanceOf(StorageDriverException.class);
+        }
+    }
+
+    @Test
+    public void createAccessRequestOK() throws Exception {
+
+        // Given
+        StorageAccessRequestCreationRequest request = new StorageAccessRequestCreationRequest(
+            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
+        when(mock.post()).thenReturn(new RequestResponseOK<>()
+            .addResult("myAccessRequestId")
+            .setHttpCode(Status.CREATED.getStatusCode())
+            .toResponse());
+
+        // When
+        try (Connection connection = driver.connect(offer.getId())) {
+            String accessRequest = connection.createAccessRequest(request);
+
+            // Then
+            assertThat(accessRequest).isEqualTo("myAccessRequestId");
+        }
+    }
+
+    @Test
+    public void createAccessRequestWithServerErrorThenException() throws Exception {
+
+        // Given
+        StorageAccessRequestCreationRequest request = new StorageAccessRequestCreationRequest(
+            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
+
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        // When / Then
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            assertThatThrownBy(() -> connection.createAccessRequest(request))
+                .isInstanceOf(StorageDriverException.class);
+        }
+    }
+
+    @Test
+    public void checkAccessRequestStatusesOK() throws Exception {
+
+        // Given
+        when(mock.get()).thenReturn(new RequestResponseOK<>()
+            .addResult(Map.of(
+                "accessRequestId1", AccessRequestStatus.NOT_FOUND,
+                "accessRequestId2", AccessRequestStatus.READY
+            ))
+            .setHttpCode(Status.OK.getStatusCode())
+            .toResponse());
+
+        // When
+        try (Connection connection = driver.connect(offer.getId())) {
+            Map<String, AccessRequestStatus> accessRequestStatuses
+                = connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3);
+
+            // Then
+            assertThat(accessRequestStatuses).isEqualTo(Map.of(
+                "accessRequestId1", AccessRequestStatus.NOT_FOUND,
+                "accessRequestId2", AccessRequestStatus.READY
+            ));
+        }
+    }
+
+    @Test
+    public void checkAccessRequestStatusesWithServerErrorThenException() throws Exception {
+
+        // Given
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        // When / Then
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            assertThatThrownBy(
+                () -> connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3))
+                .isInstanceOf(StorageDriverException.class);
+        }
+    }
+
+    @Test
+    public void removeAccessRequestOK() throws Exception {
+
+        // Given
+        when(mock.delete()).thenReturn(Response.status(Status.OK).build());
+
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            // When / Then
+            assertThatCode(() -> connection.removeAccessRequest("accessRequestId1", 3))
+                .doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    public void removeAccessRequestOKWithServerErrorThenException() throws Exception {
+
+        // Given
+        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        // When / Then
+        try (Connection connection = driver.connect(offer.getId())) {
+
+            assertThatThrownBy(() -> connection.removeAccessRequest("accessRequestId1", 3))
                 .isInstanceOf(StorageDriverException.class);
         }
     }

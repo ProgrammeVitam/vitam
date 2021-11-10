@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.storage.tapelibrary;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class TapeLibraryConfiguration {
 
@@ -81,6 +82,41 @@ public class TapeLibraryConfiguration {
      * Override non empty cartridges before label creation
      */
     private boolean forceOverrideNonEmptyCartridges = false;
+
+    /**
+     * Max objects in access request (Max authorized value is 100_000, otherwise, we might exceed mongodb 16MB max doc size)
+     */
+    private int maxAccessRequestSize;
+
+    /**
+     * Expiration delay for ready access requests.
+     */
+    private int readyAccessRequestExpirationDelay;
+
+    /**
+     * Expiration unit for ready access requests
+     */
+    private TimeUnit readyAccessRequestExpirationUnit;
+
+    /**
+     * Purge delay for ready access requests.
+     */
+    private int readyAccessRequestPurgeDelay;
+
+    /**
+     * Purge unit for ready access requests
+     */
+    private TimeUnit readyAccessRequestPurgeUnit;
+
+    /**
+     * Scheduling interval delay for cleanup job of access requests
+     */
+    private int accessRequestCleanupTaskIntervalDelay;
+
+    /**
+     * Scheduling interval unit for cleanup job of access requests
+     */
+    private TimeUnit accessRequestCleanupTaskIntervalUnit;
 
     /**
      * File bucket & bucket configuration
@@ -208,6 +244,73 @@ public class TapeLibraryConfiguration {
     public TapeLibraryConfiguration setCachedTarSafeStorageSpaceThresholdInMB(
         Long cachedTarSafeStorageSpaceThresholdInMB) {
         this.cachedTarSafeStorageSpaceThresholdInMB = cachedTarSafeStorageSpaceThresholdInMB;
+        return this;
+    }
+
+    public int getMaxAccessRequestSize() {
+        return maxAccessRequestSize;
+    }
+
+    public TapeLibraryConfiguration setMaxAccessRequestSize(int maxAccessRequestSize) {
+        this.maxAccessRequestSize = maxAccessRequestSize;
+        return this;
+    }
+
+    public int getReadyAccessRequestExpirationDelay() {
+        return readyAccessRequestExpirationDelay;
+    }
+
+    public TapeLibraryConfiguration setReadyAccessRequestExpirationDelay(int readyAccessRequestExpirationDelay) {
+        this.readyAccessRequestExpirationDelay = readyAccessRequestExpirationDelay;
+        return this;
+    }
+
+    public TimeUnit getReadyAccessRequestExpirationUnit() {
+        return readyAccessRequestExpirationUnit;
+    }
+
+    public TapeLibraryConfiguration setReadyAccessRequestExpirationUnit(
+        TimeUnit readyAccessRequestExpirationUnit) {
+        this.readyAccessRequestExpirationUnit = readyAccessRequestExpirationUnit;
+        return this;
+    }
+
+    public int getReadyAccessRequestPurgeDelay() {
+        return readyAccessRequestPurgeDelay;
+    }
+
+    public TapeLibraryConfiguration setReadyAccessRequestPurgeDelay(int readyAccessRequestPurgeDelay) {
+        this.readyAccessRequestPurgeDelay = readyAccessRequestPurgeDelay;
+        return this;
+    }
+
+    public TimeUnit getReadyAccessRequestPurgeUnit() {
+        return readyAccessRequestPurgeUnit;
+    }
+
+    public TapeLibraryConfiguration setReadyAccessRequestPurgeUnit(
+        TimeUnit readyAccessRequestPurgeUnit) {
+        this.readyAccessRequestPurgeUnit = readyAccessRequestPurgeUnit;
+        return this;
+    }
+
+    public int getAccessRequestCleanupTaskIntervalDelay() {
+        return accessRequestCleanupTaskIntervalDelay;
+    }
+
+    public TapeLibraryConfiguration setAccessRequestCleanupTaskIntervalDelay(
+        int accessRequestCleanupTaskIntervalDelay) {
+        this.accessRequestCleanupTaskIntervalDelay = accessRequestCleanupTaskIntervalDelay;
+        return this;
+    }
+
+    public TimeUnit getAccessRequestCleanupTaskIntervalUnit() {
+        return accessRequestCleanupTaskIntervalUnit;
+    }
+
+    public TapeLibraryConfiguration setAccessRequestCleanupTaskIntervalUnit(
+        TimeUnit accessRequestCleanupTaskIntervalUnit) {
+        this.accessRequestCleanupTaskIntervalUnit = accessRequestCleanupTaskIntervalUnit;
         return this;
     }
 }

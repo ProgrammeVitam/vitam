@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.configuration.FunctionalAdminAdmin;
@@ -93,7 +94,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -352,7 +352,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/ingestcleanup/{operationId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response launchIngestCleanup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId, @PathParam("operationId") String operationId) {
+    public Response launchIngestCleanup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId,
+        @PathParam("operationId") String operationId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         // Hack to invoke the admin port of functional admin
@@ -361,9 +363,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ("http://%s:%s/adminmanagement/v1/invalidIngestCleanup/%s",
                 this.functionalAdminAdmin.getFunctionalAdminServerHost(),
                 this.functionalAdminAdmin.getFunctionalAdminServerPort(),
-            operationId)
+                operationId)
         );
-        String basicAuth = "Basic " + BaseXx.getBase64((this.functionalAdminAdmin.getAdminBasicAuth().getUserName()+":"+this.functionalAdminAdmin.getAdminBasicAuth().getPassword()).getBytes());
+        String basicAuth = "Basic " + BaseXx.getBase64(
+            (this.functionalAdminAdmin.getAdminBasicAuth().getUserName() + ":" +
+                this.functionalAdminAdmin.getAdminBasicAuth().getPassword()).getBytes());
 
         Invocation.Builder builder = target.request();
         Response response = builder.header("Content-Type", MediaType.APPLICATION_JSON)
@@ -418,40 +422,69 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Create read order (read object from tape to local FS) for the given offerId, dataType and uid.
+     * Create an access request for the given offerId, dataType and uid.
      */
     @POST
-    @Path("/readorder/{strategyId}/{offerId}/{dataType}/{uid}")
+    @Path("/access-request/{strategyId}/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createReadOrderRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response createAccessRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("strategyId") String strategyId,
         @PathParam("offerId") String offerId,
         @PathParam("dataType") String dataType,
         @PathParam("uid") String uid) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
-        RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest = storageService
-            .createReadOrderRequest(Integer.parseInt(xTenantId), strategyId, offerId, uid,
-                DataCategory.valueOf(dataType));
-
-        return readOrderRequest.toResponse();
+        try {
+            return storageService.createAccessRequest(Integer.parseInt(xTenantId), strategyId, offerId, uid,
+                    DataCategory.valueOf(dataType))
+                .toResponse();
+        } catch (StorageTechnicalException | StorageNotFoundException e) {
+            return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
+        }
     }
 
     /**
-     * Check if the read order @readOrder is completed.
+     * Check the status of the Access Request @accessRequestId.
      */
     @GET
-    @Path("/readorder/{strategyId}/{offerId}/{readOrderId}")
+    @Path("/access-request/{strategyId}/{offerId}/{accessRequestId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getReadOrderRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response checkAccessRequestStatus(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("strategyId") String strategyId,
         @PathParam("offerId") String offerId,
-        @PathParam("readOrderId") String readOrderId) {
+        @PathParam("accessRequestId") String accessRequestId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
-        RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest =
-            storageService.getReadOrderRequest(Integer.parseInt(xTenantId), strategyId, offerId, readOrderId);
-        return readOrderRequest.toResponse();
+        try {
+            return storageService.checkAccessRequestStatus(Integer.parseInt(xTenantId), strategyId, offerId,
+                    accessRequestId)
+                .toResponse();
+
+        } catch (StorageTechnicalException | StorageNotFoundException e) {
+            return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
+        }
+    }
+
+    /**
+     * Remove the access request @accessRequestId.
+     */
+    @DELETE
+    @Path("/access-request/{strategyId}/{offerId}/{accessRequestId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response removeAccessRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("strategyId") String strategyId,
+        @PathParam("offerId") String offerId,
+        @PathParam("accessRequestId") String accessRequestId) {
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+        try {
+            RequestResponse<AccessRequestStatus> readOrderRequest =
+                storageService.removeAccessRequest(Integer.parseInt(xTenantId), strategyId, offerId,
+                    accessRequestId);
+            return readOrderRequest.toResponse();
+
+        } catch (StorageTechnicalException | StorageNotFoundException e) {
+            return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
+        }
     }
 
     /**
@@ -679,8 +712,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String options) {
         if (!"GET".equalsIgnoreCase(xhttpOverride)) {
             final Status status = Status.PRECONDITION_FAILED;
-            VitamError<JsonNode> vitamError = new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(
-                IHM_RECETTE).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            VitamError<JsonNode> vitamError =
+                new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(
+                    IHM_RECETTE).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
             return Response.status(status).entity(vitamError).build();
         }
 
@@ -767,7 +801,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination), LogbookOperation.class);
+                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination),
+                    LogbookOperation.class);
 
                 return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
@@ -793,7 +828,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
                 paginationHelper.setResult(sessionId, result.toJsonNode());
                 // pagination
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(result.toJsonNode(), pagination), LogbookOperation.class);
+                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(result.toJsonNode(), pagination),
+                    LogbookOperation.class);
 
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
@@ -1345,31 +1381,35 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return vitamError.toResponse();
             } catch (final AccessExternalClientServerException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getItem())
-                    .setHttpCode(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getStatus().getStatusCode())
-                    .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
-                    .setMessage(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getMessage()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError =
+                    new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getItem())
+                        .setHttpCode(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getStatus().getStatusCode())
+                        .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
+                        .setMessage(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getMessage()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
-                    .setHttpCode(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getStatus().getStatusCode())
-                    .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
-                    .setMessage(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getMessage()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError =
+                    new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
+                        .setHttpCode(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getStatus().getStatusCode())
+                        .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
+                        .setMessage(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getMessage()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessUnauthorizedException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
-                    .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                    .setContext(ACCESS_EXTERNAL_MODULE).setState(Status.UNAUTHORIZED.name())
-                    .setMessage(Status.UNAUTHORIZED.getReasonPhrase()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError =
+                    new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
+                        .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                        .setContext(ACCESS_EXTERNAL_MODULE).setState(Status.UNAUTHORIZED.name())
+                        .setMessage(Status.UNAUTHORIZED.getReasonPhrase()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
-                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                    .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
-                    .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError =
+                    new VitamError<JsonNode>(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                        .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                        .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
+                        .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase()).setDescription(e.getMessage());
                 return vitamError.toResponse();
             }
         }

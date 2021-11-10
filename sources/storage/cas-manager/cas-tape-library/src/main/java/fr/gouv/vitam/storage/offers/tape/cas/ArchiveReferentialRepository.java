@@ -26,30 +26,46 @@
  */
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.UnmodifiableIterator;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import org.bson.Document;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class ArchiveReferentialRepository {
 
     private final MongoCollection<Document> collection;
+    private final int bulkSize;
 
     public ArchiveReferentialRepository(MongoCollection<Document> collection) {
+        this(collection, VitamConfiguration.getBatchSize());
+    }
+
+    @VisibleForTesting
+    ArchiveReferentialRepository(MongoCollection<Document> collection, int bulkSize) {
         this.collection = collection;
+        this.bulkSize = bulkSize;
     }
 
     public void insert(TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
@@ -59,7 +75,8 @@ public class ArchiveReferentialRepository {
             collection.insertOne(toBson(tapeArchiveReferentialEntity));
         } catch (MongoException ex) {
             throw new ArchiveReferentialException(
-                "Could not insert or update archive referential for id " + tapeArchiveReferentialEntity.getArchiveId(), ex);
+                "Could not insert or update archive referential for id " + tapeArchiveReferentialEntity.getArchiveId(),
+                ex);
         }
     }
 
@@ -70,7 +87,7 @@ public class ArchiveReferentialRepository {
 
         try {
             document = collection.find(
-                Filters.eq(TapeArchiveReferentialEntity.ID, archiveId))
+                    Filters.eq(TapeArchiveReferentialEntity.ID, archiveId))
                 .first();
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not find storage location by id " + archiveId, ex);
@@ -87,7 +104,40 @@ public class ArchiveReferentialRepository {
         }
     }
 
-    public void updateLocationToReadyOnDisk(String archiveId, long size, String digest) throws ArchiveReferentialException {
+    public List<TapeArchiveReferentialEntity> bulkFind(Set<String> archiveIds)
+        throws ArchiveReferentialException {
+
+        if (archiveIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<TapeArchiveReferentialEntity> result = new ArrayList<>();
+
+        // Process in bulk
+        UnmodifiableIterator<List<String>> archiveIdBulkIterator =
+            Iterators.partition(archiveIds.iterator(), bulkSize);
+        while (archiveIdBulkIterator.hasNext()) {
+
+            try (MongoCursor<Document> documents =
+                collection.find(Filters.in(TapeArchiveReferentialEntity.ID, archiveIdBulkIterator.next())).cursor()) {
+                documents.forEachRemaining(document -> {
+                        try {
+                            result.add(fromBson(document, TapeArchiveReferentialEntity.class));
+                        } catch (InvalidParseOperationException e) {
+                            throw new IllegalStateException(
+                                "Could not parse document from DB " + BsonHelper.stringify(document), e);
+                        }
+                    }
+                );
+            } catch (MongoException ex) {
+                throw new ArchiveReferentialException("Could not find storage location by ids", ex);
+            }
+        }
+        return result;
+    }
+
+    public void updateLocationToReadyOnDisk(String archiveId, long size, String digest)
+        throws ArchiveReferentialException {
         try {
             UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeArchiveReferentialEntity.ID, archiveId),
@@ -105,7 +155,8 @@ public class ArchiveReferentialRepository {
             );
 
             if (updateResult.getMatchedCount() != 1) {
-                throw new ArchiveReferentialException("Could not update storage location for " + archiveId + ". No such archiveId");
+                throw new ArchiveReferentialException(
+                    "Could not update storage location for " + archiveId + ". No such archiveId");
             }
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not update storage location for " + archiveId, ex);
@@ -129,7 +180,8 @@ public class ArchiveReferentialRepository {
             );
 
             if (updateResult.getMatchedCount() != 1) {
-                throw new ArchiveReferentialException("Could not update storage location for " + archiveId + ". No such archiveId");
+                throw new ArchiveReferentialException(
+                    "Could not update storage location for " + archiveId + ". No such archiveId");
             }
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not update storage location for " + archiveId, ex);

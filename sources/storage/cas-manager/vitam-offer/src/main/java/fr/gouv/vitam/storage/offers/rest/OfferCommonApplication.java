@@ -47,15 +47,12 @@ import fr.gouv.vitam.storage.offers.database.OfferLogAndCompactedOfferLogService
 import fr.gouv.vitam.storage.offers.database.OfferLogCompactionDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 
 import java.io.InputStream;
 
-import static fr.gouv.vitam.common.storage.constants.StorageProvider.TAPE_LIBRARY;
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.COMPACTED_OFFER_LOG;
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OFFER_LOG;
 import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.OFFER_SEQUENCE;
-import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.TAPE_READ_REQUEST_REFERENTIAL;
 import static fr.gouv.vitam.storage.offers.core.DefaultOfferService.STORAGE_CONF_FILE_NAME;
 
 public class OfferCommonApplication {
@@ -105,7 +102,7 @@ public class OfferCommonApplication {
             if (Strings.isNullOrEmpty(storageConfiguration.getStoragePath())) {
                 this.storageConfiguration
                     .setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
-            }else {
+            } else {
                 this.storageConfiguration
                     .setStoragePath(FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath()));
             }
@@ -113,17 +110,8 @@ public class OfferCommonApplication {
             this.contentAddressableStorage =
                 StoreContextBuilder.newStoreContext(this.storageConfiguration, mongoDatabase);
 
-            ReadRequestReferentialRepository readRepository =
-                TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())
-                    ?
-                    new ReadRequestReferentialRepository(
-                        mongoDatabase.getCollection(TAPE_READ_REQUEST_REFERENTIAL.getName()))
-                    :
-                    null;
-
             DefaultOfferServiceImpl defaultOfferServiceImpl = new DefaultOfferServiceImpl(
                 contentAddressableStorage,
-                readRepository,
                 offerLogCompactionDatabaseService,
                 offerDatabaseService,
                 offerSequenceDatabaseService,
@@ -134,7 +122,8 @@ public class OfferCommonApplication {
                 configuration.getBatchMetadataComputationTimeout()
             );
             // Decorate default offer service with a sanity check wrapper
-            this.defaultOfferService = new SanityCheckOfferServiceDecorator(defaultOfferServiceImpl, storageConfiguration);
+            this.defaultOfferService =
+                new SanityCheckOfferServiceDecorator(defaultOfferServiceImpl, storageConfiguration);
 
         } catch (Exception e) {
             LOGGER.error(e);

@@ -60,6 +60,13 @@ tapeLibraryConfiguration:
   cachedTarMaxStorageSpaceInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarMaxStorageSpaceInMB"] }}
   cachedTarEvictionStorageSpaceThresholdInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarEvictionStorageSpaceThresholdInMB"] }}
   cachedTarSafeStorageSpaceThresholdInMB: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["cachedTarSafeStorageSpaceThresholdInMB"] }}
+  maxAccessRequestSize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxAccessRequestSize"] }}
+  readyAccessRequestExpirationDelay: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["readyAccessRequestExpirationDelay"] }}
+  readyAccessRequestExpirationUnit: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["readyAccessRequestExpirationUnit"] }}
+  readyAccessRequestPurgeDelay: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["readyAccessRequestPurgeDelay"] }}
+  readyAccessRequestPurgeUnit: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["readyAccessRequestPurgeUnit"] }}
+  accessRequestCleanupTaskIntervalDelay: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["accessRequestCleanupTaskIntervalDelay"] }}
+  accessRequestCleanupTaskIntervalUnit: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["accessRequestCleanupTaskIntervalUnit"] }}
 
   topology:
     buckets:

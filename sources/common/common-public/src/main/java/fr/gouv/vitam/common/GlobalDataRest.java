@@ -73,16 +73,6 @@ public class GlobalDataRest {
     public static final String X_REQUEST_ID = "X-Request-Id";
 
     /**
-     * Header Parameter READ_REQUEST_ID
-     */
-    public static final String READ_REQUEST_ID = "Read-Request-Id";
-
-    /**
-     * X-Command header used on storage resources
-     */
-    public static final String X_COMMAND = "X-Command";
-
-    /**
      * X-Tenant-Id header used on REST request to identify the concerned tenant
      */
     public static final String X_TENANT_ID = "X-Tenant-Id";

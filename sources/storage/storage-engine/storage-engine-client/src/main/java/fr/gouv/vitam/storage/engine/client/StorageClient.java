@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
 import fr.gouv.vitam.storage.driver.model.StorageLogTraceabilityResult;
@@ -55,6 +56,7 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Storage Client interface
@@ -303,5 +305,42 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException
      */
     RequestResponse<StorageStrategy> getStorageStrategies() throws StorageServerClientException;
+
+    /**
+     * Create access request if target offer does not support synchronous read (tape library storage). If target offer
+     * supports synchronous read requests, then no access request is created.
+     *
+     * @param strategyId the target storage strategy identifier
+     * @param offerId the target offer identifier (Optional). If provided, the offerId must be a valid active offer of the specified strategy. Otherwise, the referent offer of strategy is used.
+     * @param dataCategory the data category of objects to which access is requested
+     * @param objectNames the object names/ids/guids to which access is requested
+     * @return an AccessRequestId if access request is required (async offer), otherwiser {@code Optional.empty()}
+     * @throws StorageServerClientException if any problem occurs during request
+     */
+    Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory, List<String> objectNames)
+        throws StorageServerClientException;
+
+    /**
+     * Check access request statuses of asynchronous offer.
+     *
+     * @param strategyId the target storage strategy identifier
+     * @param offerId the target offer identifier (Optional). If provided, the offerId must be a valid active offer of the specified strategy. Otherwise, the referent offer of strategy is used.
+     * @param accessRequestIds the accessRequestIds whose status is to be checked
+     * @return the statuses of provided access request ids
+     * @throws StorageServerClientException if any problem occurs during request
+     */
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId, List<String> accessRequestIds)
+        throws StorageServerClientException;
+
+    /**
+     * Removes (cancel / delete) and access request for an asynchronous offer.
+     * Does nothing is access request id does not exist (idempotency)
+     *
+     * @param strategyId the target storage strategy identifier
+     * @param offerId the target offer identifier (Optional). If provided, the offerId must be a valid active offer of the specified strategy. Otherwise, the referent offer of strategy is used.
+     * @param accessRequestId the accessRequestId to remove
+     * @throws StorageServerClientException if any problem occurs during request
+     */
+    void removeAccessRequest(String strategyId, String offerId, String accessRequestId) throws StorageServerClientException;
     
 }

@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -44,6 +46,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
@@ -90,6 +93,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -100,11 +104,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
@@ -739,7 +746,7 @@ public class StorageResourceTest {
     @Test
     public void getContainerInformationIllegalArgument() {
         given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
-            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_BAD_REQUEST).when().head().then()
+                VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_BAD_REQUEST).when().head().then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -788,7 +795,7 @@ public class StorageResourceTest {
     public void backupOperationPreconditionFailed() {
         given().header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON).when().post(STORAGE_BACKUP_OPERATION +
-            STORAGE_BACKUP_OPERATION_ID_URI, "id")
+                STORAGE_BACKUP_OPERATION_ID_URI, "id")
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -801,9 +808,9 @@ public class StorageResourceTest {
         objectDescription.setWorkspaceContainerGUID("fake");
 
         given().header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).header(VitamHttpHeader.STRATEGY_ID.getName(),
-            VitamConfiguration.getDefaultStrategy()).accept(MediaType.APPLICATION_JSON)
+                VitamConfiguration.getDefaultStrategy()).accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON).body(objectDescription).when().post(STORAGE_BACKUP_OPERATION +
-            STORAGE_BACKUP_OPERATION_ID_URI, "id")
+                STORAGE_BACKUP_OPERATION_ID_URI, "id")
             .then().statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -869,6 +876,340 @@ public class StorageResourceTest {
     private static VitamStarter buildTestServer() {
         return new VitamStarter(StorageConfiguration.class, "storage-engine.conf",
             BusinessApplicationInner.class, AdminApplication.class);
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredSynchronousOffer() throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "SyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "OfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode());
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredAsynchronousOffer()
+        throws InvalidParseOperationException, InvalidFormatException {
+        InputStream inputStream = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asInputStream();
+        RequestResponseOK<String> response = JsonHandler.getFromInputStreamAsTypeReference(inputStream,
+            new TypeReference<>() {
+            });
+        assertThat(response.getResults()).containsExactly("accessRequestIdOfTapeOfferId");
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredDefaultStrategyOffer()
+        throws InvalidParseOperationException, InvalidFormatException {
+        InputStream inputStream = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asInputStream();
+        RequestResponseOK<String> response = JsonHandler.getFromInputStreamAsTypeReference(inputStream,
+            new TypeReference<>() {
+            });
+        assertThat(response.getResults()).containsExactly("accessRequestIdOfDefaultStrategyOffer");
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredWithInternalServerError()
+        throws InvalidParseOperationException, InvalidFormatException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredWithNoTenant()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredWithNoStrategy()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(List.of("obj1", "obj2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredWithNoObjectIds() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredWithEmptyObjectIds()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(emptyList()))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void createAccessRequestIfRequiredWithNullObjectId()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("obj1", null)))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().post("/access-request/" + DataCategory.OBJECT.name())
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkAccessRequestsWithExplicitOfferId()
+        throws InvalidParseOperationException, InvalidFormatException {
+        InputStream inputStream = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asInputStream();
+        RequestResponseOK<Map<String, AccessRequestStatus>> response =
+            JsonHandler.getFromInputStreamAsTypeReference(inputStream,
+                new TypeReference<>() {
+                });
+        assertThat(response.getResults()).containsExactly(Map.of(
+            "accessRequestId1", AccessRequestStatus.NOT_READY,
+            "accessRequestId2", AccessRequestStatus.NOT_READY
+        ));
+    }
+
+    @Test
+    public void checkAccessRequestsWithDefaultStrategyOffer()
+        throws InvalidParseOperationException, InvalidFormatException {
+        InputStream inputStream = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asInputStream();
+        RequestResponseOK<Map<String, AccessRequestStatus>> response =
+            JsonHandler.getFromInputStreamAsTypeReference(inputStream,
+                new TypeReference<>() {
+                });
+        assertThat(response.getResults()).containsExactly(Map.of(
+            "accessRequestId1", AccessRequestStatus.READY,
+            "accessRequestId2", AccessRequestStatus.READY
+        ));
+    }
+
+    @Test
+    public void checkAccessRequestsWithInternalServerError()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void checkAccessRequestsWithMissingTenant()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkAccessRequestsWithMissingStrategy()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", "accessRequestId2")))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkAccessRequestsWithNoAccessRequestIds() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkAccessRequestsWithEmptyAccessRequestIds()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(emptyList()))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void checkAccessRequestsWithNullAccessRequestId()
+        throws InvalidParseOperationException {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .body(JsonHandler.writeToInpustream(Arrays.asList("accessRequestId1", null)))
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get("/access-request/statuses")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+
+    @Test
+    public void removeAccessRequestsWithExplicitOfferId() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().delete("/access-request/accessRequestId")
+            .then()
+            .statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void deleteAccessRequestWithDefaultStrategyOffer() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().delete("/access-request/accessRequestId")
+            .then()
+            .statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void removeAccessRequestWithInternalServerError() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "ERROR")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().delete("/access-request/accessRequestId")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void removeAccessRequestWithMissingTenant() {
+        given()
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), "AsyncStrategy")
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().delete("/access-request/accessRequestId")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void removeAccessRequestWithMissingStrategy() {
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.OFFER.getName(), "TapeOfferId")
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().delete("/access-request/accessRequestId")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     public static class BusinessApplicationInner extends Application {
@@ -1150,6 +1491,55 @@ public class StorageResourceTest {
                 strategies.put(VitamConfiguration.getDefaultStrategy(), mockStrategy);
                 return strategies;
             }
+        }
+
+        @Override
+        public Optional<String> createAccessRequestIfRequired(String strategyId, String offerId,
+            DataCategory dataCategory, List<String> objectsNames) throws StorageException {
+            if ("SyncStrategy".equals(strategyId)) {
+                return Optional.empty();
+            }
+
+            if ("AsyncStrategy".equals(strategyId)) {
+                if (offerId == null) {
+                    return Optional.of("accessRequestIdOfDefaultStrategyOffer");
+                }
+
+                return Optional.of("accessRequestIdOf" + offerId);
+            }
+
+            throw new StorageException("FATAL");
+        }
+
+        @Override
+        public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
+            List<String> accessRequestIds) throws StorageException {
+
+            if ("AsyncStrategy".equals(strategyId) && (offerId == null)) {
+                return accessRequestIds.stream().collect(Collectors.toMap(
+                    accessRequestId -> accessRequestId,
+                    accessRequestId -> AccessRequestStatus.READY
+                ));
+            }
+
+            if ("AsyncStrategy".equals(strategyId) && (offerId.equals("TapeOfferId"))) {
+                return accessRequestIds.stream().collect(Collectors.toMap(
+                    accessRequestId -> accessRequestId,
+                    accessRequestId -> AccessRequestStatus.NOT_READY
+                ));
+            }
+
+            throw new StorageException("FATAL");
+        }
+
+        @Override
+        public void removeAccessRequest(String strategyId, String offerId, String accessRequestId)
+            throws StorageException {
+
+            if ("AsyncStrategy".equals(strategyId)) {
+                return;
+            }
+            throw new StorageException("FATAL");
         }
     }
 

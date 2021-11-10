@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.time.LogicalClockRule;
+import fr.gouv.vitam.storage.offers.tape.cache.LRUCacheEvictionJudge;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.After;
@@ -100,6 +101,12 @@ public class ArchiveCacheStorageTest {
     private BucketTopologyHelper bucketTopologyHelper;
 
     @Mock
+    private ArchiveCacheEvictionController archiveCacheEvictionController;
+
+    @Mock
+    private LRUCacheEvictionJudge<ArchiveCacheEntry> evictionJudge;
+
+    @Mock
     private Executor evictionExecutor;
 
     private final AtomicBoolean failedExecutor = new AtomicBoolean(false);
@@ -133,6 +140,8 @@ public class ArchiveCacheStorageTest {
             }).start();
             return null;
         }).when(evictionExecutor).execute(any());
+
+         doReturn(evictionJudge).when(archiveCacheEvictionController).computeEvictionJudge();
     }
 
     @After
@@ -153,7 +162,7 @@ public class ArchiveCacheStorageTest {
 
         // When
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L);
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L);
 
         // Then
         assertThat(instance.getMaxStorageSpace()).isEqualTo(1_000_000L);
@@ -176,7 +185,7 @@ public class ArchiveCacheStorageTest {
 
         // When
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // Then
@@ -205,7 +214,7 @@ public class ArchiveCacheStorageTest {
 
         // When / Then
         assertThatThrownBy(() -> new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService))
             .isInstanceOf(IllegalStateException.class);
         verifyNoBackgroundEviction();
@@ -221,7 +230,7 @@ public class ArchiveCacheStorageTest {
 
         // When / Then
         assertThatThrownBy(() -> new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService))
             .isInstanceOf(IllegalStateException.class);
         verifyNoBackgroundEviction();
@@ -236,7 +245,7 @@ public class ArchiveCacheStorageTest {
 
         // When / Then
         assertThatThrownBy(() -> new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService))
             .isInstanceOf(IllegalPathException.class);
         verifyNoBackgroundEviction();
@@ -253,10 +262,11 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_1, "tarId4", 200_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId5", 200_000);
         createArchiveFileInCache(FILE_BUCKET_3, "tarId6", 200_000);
+        doReturn(true).when(evictionJudge).canEvictEntry(any());
 
         // When
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // Then
@@ -297,11 +307,13 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_1, "tarId4", 200_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId5", 200_000);
         createArchiveFileInCache(FILE_BUCKET_3, "tarId6", 200_000);
-        doReturn(true).when(bucketTopologyHelper).keepFileBucketIdForeverInCache(FILE_BUCKET_2);
+
+        doReturn(true).when(evictionJudge).canEvictEntry(any());
+        doReturn(false).when(evictionJudge).canEvictEntry(new ArchiveCacheEntry(FILE_BUCKET_2, "tarId2"));
 
         // When
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // Then
@@ -340,7 +352,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When
@@ -366,7 +378,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 200_000);
@@ -394,7 +406,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -419,7 +431,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -437,16 +449,18 @@ public class ArchiveCacheStorageTest {
     }
 
     @Test
-    public void testArchiveReservation_givenLowDiskSpaceWhenReservingArchiveThenArchiveReservedAndBackgroundCacheEvictionDeletesOldestArchives()
+    public void testArchiveReservation_givenLowDiskSpaceWhenReservingArchiveThenArchiveReservedAndBackgroundCacheEvictionDeletesOldestExpirableArchives()
         throws Exception {
 
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 200_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 200_000);
+        doReturn(true).when(evictionJudge).canEvictEntry(any());
+        doReturn(false).when(evictionJudge).canEvictEntry(new ArchiveCacheEntry(FILE_BUCKET_1, "tarId1"));
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When
@@ -466,8 +480,8 @@ public class ArchiveCacheStorageTest {
         // Then
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(600_000L);
 
-        verifyFilesState(instance, FILE_BUCKET_1, "tarId1", false, false, false);
-        verifyFilesState(instance, FILE_BUCKET_2, "tarId2", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_1, "tarId1", true, true, false);
+        verifyFilesState(instance, FILE_BUCKET_2, "tarId2", false, false, false);
         verifyFilesState(instance, FILE_BUCKET_3, "tarId3", true, true, false);
         verifyFilesState(instance, FILE_BUCKET_1, "tarId4", false, false, true);
     }
@@ -482,7 +496,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 200_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When
@@ -497,6 +511,7 @@ public class ArchiveCacheStorageTest {
         verifyFilesState(instance, FILE_BUCKET_1, "tarId4", false, false, false);
 
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString());
+        verifyNoBackgroundEviction();
     }
 
     @Test
@@ -509,7 +524,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -536,7 +551,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -557,7 +572,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When
@@ -582,7 +597,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -606,7 +621,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -631,7 +646,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -657,7 +672,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -683,7 +698,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -708,7 +723,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
@@ -735,7 +750,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -759,7 +774,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -784,7 +799,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
@@ -809,7 +824,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -832,7 +847,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000L);
@@ -858,7 +873,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 50_000L);
@@ -883,7 +898,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 50_000L);
@@ -904,7 +919,7 @@ public class ArchiveCacheStorageTest {
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When
@@ -921,9 +936,10 @@ public class ArchiveCacheStorageTest {
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 300_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
+        doReturn(true).when(evictionJudge).canEvictEntry(any());
 
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 50_000L);
@@ -955,7 +971,7 @@ public class ArchiveCacheStorageTest {
 
         // Given
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -969,7 +985,7 @@ public class ArchiveCacheStorageTest {
 
         // Given
         ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            1_000_000L, 800_000L, 700_000L,
+            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
             evictionExecutor, alertService);
 
         // When / Then
@@ -1026,6 +1042,7 @@ public class ArchiveCacheStorageTest {
 
     private void verifyNoBackgroundEviction() {
         verify(evictionExecutor, never()).execute(any());
+        verify(evictionJudge, never()).canEvictEntry(any());
     }
 
     private void logicalSleep() {
