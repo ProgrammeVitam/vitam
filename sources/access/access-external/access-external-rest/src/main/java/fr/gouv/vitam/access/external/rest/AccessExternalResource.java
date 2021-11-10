@@ -150,19 +150,23 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private static final String REQUEST_RESOURCES_DOES_NOT_EXISTS = "Request resources does not exits";
     private static final String WRITING_PERMISSIONS_INVALID = "Writing permission invalid";
     private static final String ERROR_ON_PRESERVATION = "Error on preservation request";
+    private static final String UNAUTHORIZED_DSL_PARAMETER = "DSL parameter is unauthorized";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final AccessInternalClientFactory accessInternalClientFactory;
+    private final AccessExternalConfiguration configuration;
 
-    AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
-        this(secureEndpointRegistry, AccessInternalClientFactory.getInstance());
+    AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry, AccessExternalConfiguration configuration) {
+        this(secureEndpointRegistry, AccessInternalClientFactory.getInstance(), configuration);
     }
 
     @VisibleForTesting
     AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry,
-        AccessInternalClientFactory accessInternalClientFactory) {
+        AccessInternalClientFactory accessInternalClientFactory,
+        AccessExternalConfiguration configuration) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.accessInternalClientFactory = accessInternalClientFactory;
+        this.configuration= configuration;
     }
 
     /**
@@ -214,9 +218,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> result = client.selectUnits(queryJson);
+            SelectMultipleSchemaValidator.checkAuthorizeTrackTotalHits(queryJson, configuration.isAuthorizeTrackTotalHits());
 
+            RequestResponse<JsonNode> result = client.selectUnits(queryJson);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -249,6 +255,13 @@ public class AccessExternalResource extends ApplicationStatusResource {
         } catch (BadRequestException e) {
             LOGGER.error(NO_SEARCH_QUERY, e);
             status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (ValidationException e) {
+            LOGGER.error(UNAUTHORIZED_DSL_PARAMETER, e);
+            status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))

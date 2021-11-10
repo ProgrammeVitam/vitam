@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.dsl.schema.Validator;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -74,6 +75,25 @@ public class SelectMultipleSchemaValidator implements DslValidator {
     public void validate(JsonNode dsl) throws ValidationException {
         Validator.validate(schema, "DSL", dsl);
         validateGraph(dsl);
+    }
+
+    /**
+     * Check if property track_total_hits is already authorized in order to use it in DSL filter
+     * @param queryJson
+     * @param configAuthorizeTrackTotalHits
+     * @throws ValidationException
+     */
+    public static void checkAuthorizeTrackTotalHits(JsonNode queryJson, boolean configAuthorizeTrackTotalHits) throws
+        ValidationException {
+        JsonNode dslAuthorizeTrackTotalHits = JsonHandler.getNodeByPath(queryJson,
+            BuilderToken.GLOBAL.FILTER.exactToken() + "." + BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken(),
+            false);
+        if (dslAuthorizeTrackTotalHits != null && dslAuthorizeTrackTotalHits.asBoolean() &&
+            !configAuthorizeTrackTotalHits) {
+            throw new ValidationException(
+                VitamCodeHelper.toVitamError(VitamCode.UNAUTHORIZED_PARAMETER_DSL,
+                    BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken() + " is not authorized!"));
+        }
     }
 
     /**

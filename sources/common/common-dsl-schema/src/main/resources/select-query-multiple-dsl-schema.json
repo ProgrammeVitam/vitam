@@ -355,6 +355,15 @@
         },
         "optional": true,
         "hint": "Sorts on result"
+      },
+      "$track_total_hits": {
+        "format": "enum",
+        "values": [
+          true,
+          false
+        ],
+        "optional": true,
+        "hint": "Should scale ES results precision or not"
       }
     }
   },
