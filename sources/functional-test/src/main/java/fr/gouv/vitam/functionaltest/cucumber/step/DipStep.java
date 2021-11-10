@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.apache.commons.collections.EnumerationUtils;
@@ -63,7 +62,7 @@ import java.util.concurrent.TimeUnit;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Java6Assertions.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 public class DipStep {
 

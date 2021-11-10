@@ -232,7 +232,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
 
     @Override
-    public Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
+    public Response checkRulesFile(InputStream stream) throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         VitamRequestBuilder request = post()
             .withPath(RULESMANAGER_CHECK_URL)
@@ -259,7 +259,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public Response checkAgenciesFile(InputStream stream)
-        throws FileRulesException, AdminManagementClientServerException {
+        throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         VitamRequestBuilder request = post()
             .withPath(AGENCIESMANAGER_CHECK_URL)
@@ -1037,23 +1037,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    private RequestResponse<JsonNode> getJsonNodeRequestResponse(JsonNode options, String auditUri)
-        throws AdminManagementClientServerException {
-
-        VitamRequestBuilder request = post()
-            .withPath(auditUri)
-            .withBody(options)
-            .withJson();
-
-        try (Response response = make(request)) {
-            check(response);
-            return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
-        }
-    }
-
     @Override
     public RequestResponse<JsonNode> launchReferentialAudit(AuditReferentialOptions auditReferentialOptions)
         throws AdminManagementClientServerException {
@@ -1214,7 +1197,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<JsonNode> evidenceAudit(JsonNode query) throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The query is mandatory", query);
 
-        return getJsonNodeRequestResponse(query, EVIDENCE_AUDIT_URI);
+        VitamRequestBuilder request = post()
+            .withPath(AdminManagementClientRest.EVIDENCE_AUDIT_URI)
+            .withBody(query)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
     }
 
     @Override

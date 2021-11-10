@@ -82,6 +82,7 @@ import java.io.InputStream;
 import static fr.gouv.vitam.access.external.api.AccessExtAPI.ACCESSION_REGISTERS_API;
 import static fr.gouv.vitam.access.external.api.AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
 import static fr.gouv.vitam.access.external.api.AccessExtAPI.OPERATIONS_API;
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.TRACEABILITY_API;
 import static fr.gouv.vitam.access.external.api.AdminCollections.ACCESSION_REGISTERS_SYMBOLIC;
 import static fr.gouv.vitam.access.external.api.AdminCollections.TRACEABILITY;
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACTION;
@@ -457,6 +458,26 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (AdminExternalClientException e) {
             LOGGER.error(e);
             return e.getVitamError()
+                .setMessage(ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage());
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> checkTraceabilityOperations(VitamContext vitamContext,
+        JsonNode query) throws AccessExternalClientServerException {
+        VitamRequestBuilder request = post()
+            .withPath(TRACEABILITY_API + "/linkedchecks")
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(query)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientServerException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.<JsonNode>getVitamError()
                 .setMessage(ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage());
         }
     }
@@ -1215,7 +1236,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
 
         String message = String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(), fromStatusCode(response.getStatus()).getReasonPhrase());
-        VitamError vitamError = new VitamError(message)
+        VitamError<JsonNode> vitamError = new VitamError<JsonNode>(message)
             .setDescription(message)
             .setHttpCode(status.getStatusCode())
             .setMessage(message)
