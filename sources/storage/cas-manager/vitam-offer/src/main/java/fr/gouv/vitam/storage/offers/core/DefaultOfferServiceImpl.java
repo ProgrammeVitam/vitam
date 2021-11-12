@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -59,11 +58,14 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.offers.database.OfferLogAndCompactedOfferLogService;
 import fr.gouv.vitam.storage.offers.database.OfferLogCompactionDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
 import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -76,7 +78,6 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -95,6 +96,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     private final ContentAddressableStorage defaultStorage;
 
+    private final ReadRequestReferentialRepository readRequestReferentialRepository;
     private final OfferLogCompactionDatabaseService offerLogCompactionDatabaseService;
     private final OfferLogDatabaseService offerDatabaseService;
     private final OfferSequenceDatabaseService offerSequenceDatabaseService;
@@ -106,6 +108,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     public DefaultOfferServiceImpl(
         ContentAddressableStorage defaultStorage,
+        ReadRequestReferentialRepository readRequestReferentialRepository,
         OfferLogCompactionDatabaseService offerLogCompactionDatabaseService,
         OfferLogDatabaseService offerDatabaseService,
         OfferSequenceDatabaseService offerSequenceDatabaseService,
@@ -115,6 +118,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         int maxBatchThreadPoolSize, int batchMetadataComputationTimeout) {
 
         this.defaultStorage = defaultStorage;
+        this.readRequestReferentialRepository = readRequestReferentialRepository;
         this.offerLogCompactionDatabaseService = offerLogCompactionDatabaseService;
         this.offerDatabaseService = offerDatabaseService;
         this.offerSequenceDatabaseService = offerSequenceDatabaseService;
@@ -149,49 +153,56 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public String createAccessRequest(String containerName, List<String> objectsIds)
+    public Optional<TapeReadRequestReferentialEntity> createReadOrderRequest(String containerName,
+        List<String> objectsIds)
         throws ContentAddressableStorageException {
 
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            throw new ContentAddressableStorageException("Access request is enabled only on tape library offer");
+            throw new ContentAddressableStorageException("Read order is enabled only on tape library offer");
         }
 
-        Stopwatch stopwatch = Stopwatch.createStarted();
+        Stopwatch times = Stopwatch.createStarted();
         try {
-            return defaultStorage.createAccessRequest(containerName, objectsIds);
+            String readRequestID = defaultStorage.createReadOrderRequest(containerName, objectsIds);
+
+            try {
+                return readRequestReferentialRepository.find(readRequestID);
+            } catch (ReadRequestReferentialException e) {
+                LOGGER.error(e);
+                return Optional.empty();
+            }
         } finally {
-            log(stopwatch, containerName, "CREATE_ACCESS_REQUEST");
+            log(times, containerName, "ASYNC_GET_OBJECT");
         }
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
+    public Optional<TapeReadRequestReferentialEntity> getReadOrderRequest(String readRequestID)
         throws ContentAddressableStorageException {
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            throw new ContentAddressableStorageException("Access request is enabled only on tape library offer");
+            throw new ContentAddressableStorageException("Read order is enabled only on tape library offer");
         }
-
-        Stopwatch stopwatch = Stopwatch.createStarted();
         try {
-            return defaultStorage.checkAccessRequestStatuses(accessRequestIds);
-        } finally {
-            log(stopwatch, "CHECK_ACCESS_REQUEST", "CHECK_ACCESS_REQUEST");
+            return readRequestReferentialRepository.find(readRequestID);
+        } catch (ReadRequestReferentialException e) {
+            LOGGER.error(e);
+            return Optional.empty();
         }
     }
 
     @Override
-    public void removeAccessRequest(String accessRequestId)
+    public void removeReadOrderRequest(String readRequestID)
         throws ContentAddressableStorageException {
 
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            throw new ContentAddressableStorageException("Access request is enabled only on tape library offer");
+            throw new ContentAddressableStorageException("Read order is enabled only on tape library offer");
         }
 
-        Stopwatch stopwatch = Stopwatch.createStarted();
+        Stopwatch times = Stopwatch.createStarted();
         try {
-            defaultStorage.removeAccessRequest(accessRequestId);
+            defaultStorage.removeReadOrderRequest(readRequestID);
         } finally {
-            log(stopwatch, accessRequestId, "REMOVE_ACCESS_REQUEST");
+            log(times, readRequestID, "REMOVE_READ_ORDER_REQUEST");
         }
     }
 
@@ -203,7 +214,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         String digest = writeObject(containerName, objectId, objectPart, type, size, digestType);
 
-        // Write offer log even if non-updatable object already existed in CAS to ensure offer log is written if not yet
+        // Write offer log even if non updatable object already existed in CAS to ensure offer log is written if not yet
         // logged (idempotency)
         logObjectWriteInOfferLog(containerName, objectId);
 
@@ -328,7 +339,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             } finally {
 
                 if (!entries.isEmpty()) {
-                    // Write offer logs even if non-updatable object already existed in CAS to ensure offer log is
+                    // Write offer logs even if non updatable object already existed in CAS to ensure offer log is
                     // written if not yet logged (idempotency)
                     List<String> storedObjectIds =
                         entries.stream().map(StorageBulkPutResultEntry::getObjectId).collect(Collectors.toList());
@@ -547,9 +558,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
 
         // If not enough entries, then fetch next entries from new records
-        // CAUTION : We need to double-check OfferLog + CompactedOfferLog to avoid concurrent offer log compaction :
+        // CAUTION : We need to double check OfferLog + CompactedOfferLog to avoid concurrent offer log compaction :
         //  - If we only fetch from OfferLog, we might miss entries that have just been compacted concurrently
-        //  - If we fetch from both OfferLog & CompactedOfferLog, we might get duplicates (non-transactional update)
+        //  - If we fetch from both OfferLog & CompactedOfferLog, we might get duplicates (non transactional update)
         // So we fetch both collections & merge results
         List<OfferLog> nextOfferLogs = offerDatabaseService.getAscendingOfferLogsBy(
             containerName, nextOffset, remainingLimit);

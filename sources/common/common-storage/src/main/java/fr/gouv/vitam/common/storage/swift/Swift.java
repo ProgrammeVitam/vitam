@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.retryable.RetryableOnException;
@@ -342,6 +341,16 @@ public class Swift extends ContentAddressableStorageAbstract {
         return retryableOnException.exec(() ->
             getObjectStorageService().download(containerName, objectName,
                 enrichHeadersRequestWithVitamCookie(new HashMap<>())));
+    }
+
+    @Override
+    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public void removeReadOrderRequest(String readRequestID) {
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override

@@ -31,16 +31,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
-    property = TapeLibraryObjectStorageLocation.TYPE)
+    property = "type")
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = TapeLibraryInputFileObjectStorageLocation.class, name = TapeLibraryObjectStorageLocation.INPUT_FILE),
-    @JsonSubTypes.Type(value = TapeLibraryTarObjectStorageLocation.class, name = TapeLibraryObjectStorageLocation.TAR)
+    @JsonSubTypes.Type(value = TapeLibraryInputFileObjectStorageLocation.class, name = "input_file"),
+    @JsonSubTypes.Type(value = TapeLibraryTarObjectStorageLocation.class, name = "tar")
 })
 public abstract class TapeLibraryObjectStorageLocation {
-
-    public static final String TYPE = "type";
-    public static final String INPUT_FILE = "input_file";
-    public static final String TAR = "tar";
 
     public TapeLibraryObjectStorageLocation() {
         // Empty constructor for deserialization

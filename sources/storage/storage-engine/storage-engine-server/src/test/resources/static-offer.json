@@ -14,22 +14,6 @@
     }
   },
   {
-    "id" : "myTapeOffer1",
-    "baseUrl" : "http://workspaceOfferService",
-    "asyncRead": true,
-    "parameters" : {
-      "user" : "bob"
-    }
-  },
-  {
-    "id" : "myTapeOffer2",
-    "baseUrl" : "http://workspaceOfferService",
-    "asyncRead": true,
-    "parameters" : {
-      "user" : "bob"
-    }
-  },
-  {
     "id" : "DriverManagerTestoffer1",
     "baseUrl" : "http://workspaceOfferService",
     "parameters" : {
