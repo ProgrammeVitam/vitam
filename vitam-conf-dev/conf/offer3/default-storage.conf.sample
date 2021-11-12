@@ -12,13 +12,6 @@ tapeLibraryConfiguration:
   cachedTarMaxStorageSpaceInMB: 1000
   cachedTarEvictionStorageSpaceThresholdInMB: 800
   cachedTarSafeStorageSpaceThresholdInMB: 700
-  maxAccessRequestSize: 10_000
-  readyAccessRequestExpirationDelay: 30
-  readyAccessRequestExpirationUnit: MINUTES
-  readyAccessRequestPurgeDelay: 60
-  readyAccessRequestPurgeUnit: MINUTES
-  accessRequestCleanupTaskIntervalDelay: 15
-  accessRequestCleanupTaskIntervalUnit: MINUTES
 
   topology:
     buckets:

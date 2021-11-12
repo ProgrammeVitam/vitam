@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntryWriter;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -60,15 +59,16 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.NonUpdatableContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.openstack4j.api.exceptions.ConnectionException;
 
 import javax.validation.constraints.NotNull;
@@ -101,7 +101,7 @@ import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.buildCont
 
 @Path("/offer/v1")
 @ApplicationPath("webresources")
-@Tag(name = "Default-Offer")
+@Tag(name="Default-Offer")
 public class DefaultOfferResource extends ApplicationStatusResource {
 
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
@@ -287,9 +287,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     }
 
     /**
-     * Create access request (asynchronous read from tape to local FS) for the given @type and objects ids list.
+     * Create read order (asynchronous read from tape to local FS) for the given @type and objects ids list.
      * <p>
-     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
+     * HEADER X-Tenant-Id (mandatory) : tenant's identifier HEADER "X-type" (optional) : data (dfault) or digest
      * </p>
      *
      * @param type Object type
@@ -298,10 +298,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * @return response
      */
     @POST
-    @Path("/access-request/{type}")
+    @Path("/readorder/{type}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createAccessRequest(@PathParam("type") DataCategory type, List<String> objectsIds,
+    public Response createReadOrderRequest(@PathParam("type") DataCategory type, List<String> objectsIds,
         @Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
@@ -321,12 +321,19 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
 
             final String containerName = buildContainerName(type, xTenantId);
-            String accessRequestId = defaultOfferService.createAccessRequest(containerName, objectsIds);
+            Optional<TapeReadRequestReferentialEntity>
+                createReadOrderRequest = defaultOfferService.createReadOrderRequest(containerName, objectsIds);
 
-            return new RequestResponseOK<>()
-                .addResult(accessRequestId)
-                .setHttpCode(Status.CREATED.getStatusCode())
-                .toResponse();
+            if (createReadOrderRequest.isPresent()) {
+                final RequestResponseOK<TapeReadRequestReferentialEntity> responseOK = new RequestResponseOK<>();
+                responseOK.addResult(createReadOrderRequest.get())
+                    .addHeader(GlobalDataRest.READ_REQUEST_ID, createReadOrderRequest.get().getRequestId())
+                    .setHttpCode(Status.CREATED.getStatusCode());
+
+                return responseOK.toResponse();
+            } else {
+                return buildErrorResponse(VitamCode.STORAGE_CREATE_READ_ORDER_ERROR, "Not read order request created");
+            }
 
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
@@ -338,39 +345,46 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     }
 
     /**
-     * Check access request statuses by identifiers
+     * Get read order request
      * <p>
-     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
+     * HEADER X-Tenant-Id (mandatory) : tenant's identifier HEADER "X-type" (optional) : data (dfault) or digest
      * </p>
      *
-     * @param accessRequestIds the list of access request ids
+     * @param readOrderRequestId the read request ID
      * @return response
      */
     @GET
-    @Path("/access-request/statuses")
+    @Path("/readorder/{readOrderRequestId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkAccessRequestStatuses(List<String> accessRequestIds, @Context HttpHeaders headers) {
+    public Response getReadOrderRequest(@PathParam("readOrderRequestId") String readOrderRequestId,
+        @Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
-            ParametersChecker.checkParameter("Missing accessRequestId", accessRequestIds);
-            ParametersChecker.checkParameter("Missing accessRequestId", accessRequestIds.toArray(String[]::new));
-            for (String accessRequestId : accessRequestIds) {
-                SanityChecker.checkParameter(accessRequestId);
-            }
+            SanityChecker.checkParameter(readOrderRequestId);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            Map<String, AccessRequestStatus> accessRequestStatus =
-                defaultOfferService.checkAccessRequestStatuses(accessRequestIds);
+            Optional<TapeReadRequestReferentialEntity>
+                createReadOrderRequest = defaultOfferService.getReadOrderRequest(readOrderRequestId);
 
-            return new RequestResponseOK<>()
-                .addResult(accessRequestStatus)
-                .setHttpCode(Status.OK.getStatusCode())
-                .toResponse();
+            if (createReadOrderRequest.isPresent()) {
+                final RequestResponseOK<TapeReadRequestReferentialEntity> responseOK = new RequestResponseOK<>();
+                responseOK.addResult(createReadOrderRequest.get())
+                    .addHeader(GlobalDataRest.READ_REQUEST_ID, createReadOrderRequest.get().getRequestId())
+                    .setHttpCode(Status.OK.getStatusCode());
 
+                return responseOK.toResponse();
+            } else {
+                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND,
+                    "Read order request (" + readOrderRequestId + ") not found");
+            }
+
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
@@ -379,23 +393,26 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
 
     @DELETE
-    @Path("/access-request/{accessRequestId}")
+    @Path("/readorder/{readOrderRequestId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeAccessRequest(@PathParam("accessRequestId") String accessRequestId,
+    public Response removeReadOrderRequest(@PathParam("readOrderRequestId") String readOrderRequestId,
         @Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
-            SanityChecker.checkParameter(accessRequestId);
+            SanityChecker.checkParameter(readOrderRequestId);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            defaultOfferService.removeAccessRequest(accessRequestId);
+            defaultOfferService.removeReadOrderRequest(readOrderRequestId);
 
-            return Response.status(Status.OK).build();
+            return Response.status(Status.ACCEPTED).header(GlobalDataRest.READ_REQUEST_ID, readOrderRequestId).build();
 
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
@@ -688,12 +705,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
         return Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
-                new VitamError(VitamCodeHelper.getCode(vitamCode))
-                    .setContext(vitamCode.getService().getName())
-                    .setHttpCode(vitamCode.getStatus().getStatusCode())
-                    .setState(vitamCode.getDomain().getName())
-                    .setMessage(vitamCode.getMessage())
-                    .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
+            new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName())
+                .setHttpCode(vitamCode.getStatus().getStatusCode())
+                .setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage())
+                .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
             .toString()).build();
     }
 }

@@ -36,11 +36,11 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Driver;
@@ -56,7 +56,6 @@ import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformation
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
@@ -90,7 +89,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -153,8 +152,6 @@ public class StorageDistributionImplTest {
         list.add(1);
 
         folder.create();
-
-        // /!\ WARNING : Configuration is currently loaded from static resources (src/test/resources) & use "spi loaded" driver name fr.gouv.vitam.driver.fake.FakeDriverImpl
         StorageLog storageLogService =
             StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
@@ -775,145 +772,8 @@ public class StorageDistributionImplTest {
 
     @RunWithCustomExecutor
     @Test
-    public void getStorageStrategiesOk() throws StorageException {
-
-        // Given : nothing configuration loaded from static resources
-
-        // When :
-        Map<String, StorageStrategy> strategies = customDistribution.getStrategies();
-
-        // Then
-        assertThat(strategies).containsOnlyKeys("default", "sync_and_async_storage", "async_and_async_storage");
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createAccessRequestIfRequiredWithSyncOffer() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When
-        Optional<String> accessRequestId =
-            customDistribution.createAccessRequestIfRequired("default", "default", DataCategory.OBJECT,
-                List.of("obj1", "obj2"));
-
-        // Then
-        assertThat(accessRequestId).isEmpty();
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createAccessRequestIfRequiredWithDefaultReferentSyncOffer() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When
-        Optional<String> accessRequestId =
-            customDistribution.createAccessRequestIfRequired("sync_and_async_storage", null, DataCategory.OBJECT,
-                List.of("obj1", "obj2"));
-
-        // Then
-        assertThat(accessRequestId).isEmpty();
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createAccessRequestIfRequiredWithAsyncOffer() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When
-        Optional<String> accessRequestId =
-            customDistribution.createAccessRequestIfRequired("async_and_async_storage", "myTapeOffer2",
-                DataCategory.OBJECT, List.of("obj1", "obj2"));
-
-        // Then
-        assertThat(accessRequestId).isPresent();
-        assertThat(accessRequestId.get()).isEqualTo("myAccessRequestId2");
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createAccessRequestIfRequiredWithDefaultReferenceAsyncOffer() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When
-        Optional<String> accessRequestId =
-            customDistribution.createAccessRequestIfRequired("async_and_async_storage", null, DataCategory.OBJECT,
-                List.of("obj1", "obj2"));
-
-        // Then
-        assertThat(accessRequestId).isPresent();
-        assertThat(accessRequestId.get()).isEqualTo("myAccessRequestId1");
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void checkAccessRequestStatusesWithSyncOfferThenKO() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When / Then
-        assertThatThrownBy(() -> customDistribution.checkAccessRequestStatuses("default", "default",
-            List.of("accessRequestId1", "accessRequestId2")))
-            .isInstanceOf(StorageException.class);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void checkAccessRequestStatusesWithDefaultReferentSyncOfferThenKO() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When / Then
-        assertThatThrownBy(() -> customDistribution.checkAccessRequestStatuses("sync_and_async_storage", null,
-            List.of("accessRequestId1", "accessRequestId2")))
-            .isInstanceOf(StorageException.class);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void checkAccessRequestStatusesWithAsyncOfferThenOK() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When
-        Map<String, AccessRequestStatus> accessRequestStatuses =
-            customDistribution.checkAccessRequestStatuses("async_and_async_storage", "myTapeOffer2",
-                List.of("accessRequestId1", "accessRequestId2"));
-
-        // Then
-        assertThat(accessRequestStatuses).isEqualTo(Map.of(
-            "accessRequestId1", AccessRequestStatus.NOT_READY,
-            "accessRequestId2", AccessRequestStatus.NOT_READY
-        ));
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void checkAccessRequestStatusesWithDefaultReferenceAsyncOfferThenOK() throws Exception {
-
-        // Given (cf. configuration in static resources & FakeConnectionImpl driver)
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        // When
-        Map<String, AccessRequestStatus> accessRequestStatuses =
-            customDistribution.checkAccessRequestStatuses("async_and_async_storage", null,
-                List.of("accessRequestId1", "accessRequestId2"));
-
-        // Then
-        assertThat(accessRequestStatuses).isEqualTo(Map.of(
-            "accessRequestId1", AccessRequestStatus.READY,
-            "accessRequestId2", AccessRequestStatus.READY
-        ));
+    public void getStorageStrategiesOk() {
+        assertThatCode(() -> customDistribution.getStrategies()).doesNotThrowAnyException();
     }
 
     @Test

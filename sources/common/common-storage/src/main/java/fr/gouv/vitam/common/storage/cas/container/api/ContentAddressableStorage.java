@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.storage.cas.container.api;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The ContentAddressableStorage interface.
@@ -95,39 +93,28 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Create an access request for objects (asynchronous read from tape to local FS).
-     * Return access request identifier
+     * Create read order (asynchronous read from tape to local FS) for the given objects representing the data at location containerName/objectId.
+     * Return read order entity
+     * <p>
      *
      * @param containerName container where this exists.
-     * @param objectNames list of objects names for which access is requested
-     * @return access request identifier
+     * @param objectsIds list of the fully qualified name relative to the container.
+     * @return read order request id
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    default String createAccessRequest(String containerName, List<String> objectNames)
-        throws ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supported");
-    }
+    String createReadOrderRequest(String containerName, List<String> objectsIds)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Checks status of access requests by id.
+     * Purge all read request id to cleanup local FS
+     * <p>
      *
-     * @param accessRequestIds the identifiers of the access requests to check
-     * @return {@code AccessRequestStatus} representing access request status
+     * @param readRequestID the read request ID.
      */
-    default Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
-        throws ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supported");
-    }
-
-    /**
-     * Delete access request.
-     * Ignored if no access request found (not exists, expired or already canceled).
-     *
-     * @param accessRequestId the identifier of the access request to cancel.
-     */
-    default void removeAccessRequest(String accessRequestId)
-        throws ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supported");
-    }
+    void removeReadOrderRequest(String readRequestID)
+        throws ContentAddressableStorageServerException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName

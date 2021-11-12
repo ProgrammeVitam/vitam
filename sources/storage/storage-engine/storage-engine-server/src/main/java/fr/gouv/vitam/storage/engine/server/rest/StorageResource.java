@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -47,7 +49,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.ObjectEntryWriter;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -125,7 +126,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.ARCHIVAL_TRANSFER_REPLY;
 import static fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl.NORMAL_ORIGIN;
@@ -507,7 +507,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
         return Response.status(Status.OK).entity(
-                new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
+            new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
             .build();
     }
 
@@ -2037,170 +2037,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return Response.status(Status.OK).entity(entity).build();
         } catch (final StorageException exc) {
             LOGGER.error(exc);
-            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-        }
-    }
-
-    /**
-     * Create access request if target offer does not support synchronous read (tape library storage). If target offer
-     * supports synchronous read requests, then no access request is created.
-     *
-     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
-     * HEADER X-Strategy-Id (mandatory) : storage strategy
-     * HEADER X-Offer (optional) : offer id. If not specified, referent offer of the strategy is used.
-     *
-     * @param objectsNames objects for which access is requested
-     * @param headers http header
-     * @return HTTP 20O-OK with accessRequestId is access request created, HTTP 204-NO_CONTENT if no access request required
-     */
-    @POST
-    @Path("/access-request/{dataCategory}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createAccessRequestIfRequired(@PathParam("dataCategory") DataCategory dataCategory,
-        List<String> objectsNames, @Context HttpHeaders headers) {
-
-        try {
-            VitamCode vitamCode =
-                checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID, VitamHttpHeader.STRATEGY_ID);
-            if (vitamCode != null) {
-                return buildErrorResponse(vitamCode);
-            }
-            try {
-                ParametersChecker.checkParameter("Data category is required", dataCategory);
-                ParametersChecker.checkParameter("ObjectsNames are required", objectsNames);
-                ParametersChecker.checkParameter("ObjectsNames are required", objectsNames.toArray(String[]::new));
-            } catch (IllegalArgumentException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-            }
-
-            if (objectsNames.isEmpty()) {
-                LOGGER.error("Empty objectsNames");
-                return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
-            }
-
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            String offerId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)
-                .stream().findFirst().orElse(null);
-
-            Optional<String> accessRequestId = distribution.createAccessRequestIfRequired(
-                strategyId, offerId, dataCategory, objectsNames);
-
-            if (accessRequestId.isEmpty()) {
-                LOGGER.debug("No access request required. Offer is not Async");
-                return Response.noContent().build();
-            }
-            LOGGER.info("Access request created " + accessRequestId.get());
-            return new RequestResponseOK<String>()
-                .addResult(accessRequestId.get())
-                .setHttpCode(Status.OK.getStatusCode())
-                .toResponse();
-
-        } catch (Exception e) {
-            LOGGER.error(e);
-            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-        }
-    }
-
-    /**
-     * Check access request statuses of asynchronous offer.
-     *
-     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
-     * HEADER X-Strategy-Id (mandatory) : storage strategy
-     * HEADER X-Offer (optional) : offer id. If not specified, referent offer of the strategy is used.
-     *
-     * @param accessRequestIds accessRequestIds whose status is to be checked
-     * @param headers http header
-     * @return HTTP 20O-OK with the AccessRequestStatus for each access request id
-     */
-    @GET
-    @Path("/access-request/statuses")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response checkAccessRequestStatuses(List<String> accessRequestIds, @Context HttpHeaders headers) {
-
-        try {
-            VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID,
-                VitamHttpHeader.STRATEGY_ID);
-            if (vitamCode != null) {
-                return buildErrorResponse(vitamCode);
-            }
-
-            try {
-                ParametersChecker.checkParameter("AccessRequestIds are required", accessRequestIds);
-                ParametersChecker.checkParameter("AccessRequestIds are required",
-                    accessRequestIds.toArray(String[]::new));
-            } catch (IllegalArgumentException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-            }
-            if (accessRequestIds.isEmpty()) {
-                LOGGER.error("Missing access request Ids");
-                return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
-            }
-
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            String offerId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)
-                .stream().findFirst().orElse(null);
-
-            Map<String, AccessRequestStatus> accessRequestStatuses = distribution.checkAccessRequestStatuses(
-                strategyId, offerId, accessRequestIds);
-
-            LOGGER.debug("Access request statuses " + accessRequestStatuses);
-            return new RequestResponseOK<Map<String, AccessRequestStatus>>()
-                .addResult(accessRequestStatuses)
-                .setHttpCode(Status.OK.getStatusCode())
-                .toResponse();
-
-        } catch (Exception e) {
-            LOGGER.error(e);
-            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-        }
-    }
-
-    /**
-     * Remove access request from asynchronous offer.
-     *
-     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
-     * HEADER X-Strategy-Id (mandatory) : storage strategy
-     * HEADER X-Offer (optional) : offer id. If not specified, referent offer of the strategy is used.
-     *
-     * @param accessRequestId the accessRequestId to be removed
-     * @param headers http header
-     * @return HTTP 20O-OK with the AccessRequestStatus for each access request id
-     */
-    @DELETE
-    @Path("/access-request/{accessRequestId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response removeAccessRequest(@PathParam("accessRequestId") String accessRequestId,
-        @Context HttpHeaders headers) {
-
-        try {
-            VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID,
-                VitamHttpHeader.STRATEGY_ID);
-            if (vitamCode != null) {
-                return buildErrorResponse(vitamCode);
-            }
-
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            String offerId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER)
-                .stream().findFirst().orElse(null);
-            try {
-                ParametersChecker.checkParameter("AccessRequestId is required", accessRequestId);
-            } catch (IllegalArgumentException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-            }
-
-            distribution.removeAccessRequest(strategyId, offerId, accessRequestId);
-
-            LOGGER.info("Access request removed successfully " + accessRequestId);
-            return Response.accepted().build();
-
-        } catch (Exception e) {
-            LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
     }

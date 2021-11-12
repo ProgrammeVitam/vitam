@@ -10,7 +10,7 @@ import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.serv
 import {Title} from '@angular/platform-browser';
 
 class FileData {
-  constructor(public file: string, public category: string, strategyId: String, offerId: String ) { }
+  constructor(public file: string, public category: string, strategyId:String, offerId:String ) { }
 }
 
 const breadcrumb: BreadcrumbElement[] = [
@@ -34,21 +34,17 @@ export class LoadStorageComponent extends PageComponent {
   dataState = 'KO';
 
   fileUpload: File;
-  accessRequestError: any;
+  readOrderRequestError: any;
   displayErrorInitImport = false;
   displayGetError = false;
   displayAsyncGetMessage = false;
-  displayAsyncGetMessageKo = false;
-  displayAccessRequestStatus = false;
-  displayAccessRequestStatusKo = false;
-  accessRequestId: any;
-  accessRequestStatus: any;
-  displayDeleteError = false;
+  displayExportStatusOK = false;
+  displayExportStatusInprogressOrKo = false;
+  readOrderRequest: any;
+  displayDeleteError =false;
   displayMessageDelete = false ;
   displayErrorImport = false;
   displaySuccessImport = false;
-  displayRemoveAccessRequestDone = false;
-  displayRemoveAccessRequestError = false;
 
   selectedStrategy: any = {};
 
@@ -77,7 +73,7 @@ export class LoadStorageComponent extends PageComponent {
   }
 
   getStrategies() {
-    return this.resourcesService.get('strategies', new HttpHeaders().set('X-Tenant-Id', this.tenant)).subscribe(
+    return this.resourcesService.get("strategies",new HttpHeaders().set('X-Tenant-Id', this.tenant)).subscribe(
       (response) => {
         this.strategyList = response.map(
           (strategy) => {
@@ -88,7 +84,7 @@ export class LoadStorageComponent extends PageComponent {
     )
   }
 
-  selectStrategy() {
+  selectStrategy(){
     this.strategyId = this.selectedStrategy.id;
     this.offerList = this.selectedStrategy.offers.map(
       (offer) => {
@@ -123,59 +119,51 @@ export class LoadStorageComponent extends PageComponent {
     );
   }
 
-  createAccessRequest() {
+  exportObject() {
 
     if (!this.fileName || !this.category || !this.tenant || !this.strategyId || !this.offerId) {
       this.error = true;
       return;
     }
 
+    this.dataState = 'RUNNING';
+
     this.savedData = new FileData(this.fileName, this.category, this.strategyId, this.offerId);
 
-    this.loadStorageService.createAccessRequest(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
+    this.loadStorageService.createReadOrderRequest(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
-        this.accessRequestId = response.$results[0];
+        this.readOrderRequest = response.$results[0];
         this.displayAsyncGetMessage = true;
+        this.dataState = 'OK';
       }, (error) => {
         delete this.savedData;
-        this.accessRequestError = error.error;
-        this.displayAsyncGetMessageKo = true;
+        this.readOrderRequestError = error.error;
+        this.dataState = 'KO';
+        this.displayGetError = true;
       }
     );
   }
 
-  checkAccessResponseStatus() {
+  checkExportStatus() {
 
-    if (!this.accessRequestId || !this.tenant || !this.strategyId ) {
+    if (!this.fileName || !this.tenant || !this.strategyId ) {
       this.error = true;
       return;
     }
 
-    this.loadStorageService.checkAccessRequestStatus(this.accessRequestId, this.strategyId, this.offerId).subscribe(
+    this.dataState = 'RUNNING';
+
+    this.loadStorageService.getReadOrderRequest(this.fileName, this.strategyId, this.offerId).subscribe(
      (response) => {
-        this.accessRequestStatus = response.$results[0];
-        this.displayAccessRequestStatus = true;
+        this.readOrderRequest = response.$results[0];
+        this.displayExportStatusOK = true;
+        this.dataState = 'OK';
       }, (error) => {
         delete this.savedData;
-        this.accessRequestError = error.error;
-        this.displayAccessRequestStatusKo = true;
+        this.readOrderRequestError = error.error;
+        this.dataState = 'KO';
+        this.displayExportStatusInprogressOrKo = true;
       }
-    );
-  }
-
-  deleteAccessRequest() {
-
-    if (!this.tenant || !this.strategyId || !this.offerId) {
-      this.error = true;
-      return;
-    }
-    this.loadStorageService.deleteAccessRequest(this.category, this.strategyId, this.offerId).subscribe(
-        (response) => {
-          this.displayRemoveAccessRequestDone = true;
-        }, (error) => {
-          this.accessRequestError = error.error;
-          this.displayRemoveAccessRequestError = true;
-        }
     );
   }
 
@@ -217,8 +205,7 @@ export class LoadStorageComponent extends PageComponent {
 
   uploadFile() {
 
-    this.loadStorageService.uploadFile(this.fileUpload, this.fileName, this.fileUpload.size, this.category, this.strategyId, this.offerId)
-        .subscribe(
+    this.loadStorageService.uploadFile(this.fileUpload, this.fileName,this.fileUpload.size, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
         delete this.fileUpload;
         this.displaySuccessImport = true;

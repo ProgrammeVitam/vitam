@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
@@ -72,7 +71,6 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -191,6 +189,16 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageException(
                 "I/O error on retrieving object " + objectName + " in the container " + containerName, e);
         }
+    }
+
+    @Override
+    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public void removeReadOrderRequest(String readRequestID) {
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override

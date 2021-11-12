@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.common.collection;
 
-import fr.gouv.vitam.storage.engine.common.model.TapeAccessRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.CompactedOfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
@@ -34,6 +33,7 @@ import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 
 public enum OfferCollections {
     /*
@@ -50,7 +50,7 @@ public enum OfferCollections {
     TAPE_QUEUE_MESSAGE(QueueMessageEntity.class, "TapeQueueMessage"),
     TAPE_OBJECT_REFERENTIAL(TapeObjectReferentialEntity.class, "TapeObjectReferential"),
     TAPE_ARCHIVE_REFERENTIAL(TapeArchiveReferentialEntity.class, "TapeArchiveReferential"),
-    ACCESS_REQUEST_REFERENTIAL(TapeAccessRequestReferentialEntity.class, "TapeAccessRequestReferential");
+    TAPE_READ_REQUEST_REFERENTIAL(TapeReadRequestReferentialEntity.class, "TapeReadRequestReferential");
 
     private final Class<?> clazz;
     private String name;

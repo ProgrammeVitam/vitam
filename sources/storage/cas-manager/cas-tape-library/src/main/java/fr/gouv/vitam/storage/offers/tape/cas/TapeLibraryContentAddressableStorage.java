@@ -29,12 +29,14 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
@@ -44,7 +46,11 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.ExactDigestValidatorInputStream;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
+import fr.gouv.vitam.storage.engine.common.model.FileInTape;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
@@ -52,23 +58,38 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectStorageLocatio
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
+import fr.gouv.vitam.storage.engine.common.model.TarLocation;
 import fr.gouv.vitam.storage.engine.common.utils.ContainerUtils;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
@@ -80,8 +101,10 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     private final BasicFileStorage basicFileStorage;
     private final ObjectReferentialRepository objectReferentialRepository;
     private final FileBucketTarCreatorManager fileBucketTarCreatorManager;
+    private final QueueRepository readWriteQueue;
     private final ArchiveReferentialRepository archiveReferentialRepository;
-    private final AccessRequestManager accessRequestManager;
+    private final ReadRequestReferentialRepository readRequestReferentialRepository;
+    private final TapeCatalogService tapeCatalogService;
     private final ArchiveCacheStorage archiveCacheStorage;
     private final BucketTopologyHelper bucketTopologyHelper;
 
@@ -89,15 +112,18 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         BasicFileStorage basicFileStorage,
         ObjectReferentialRepository objectReferentialRepository,
         ArchiveReferentialRepository archiveReferentialRepository,
-        AccessRequestManager accessRequestManager,
+        ReadRequestReferentialRepository readRequestReferentialRepository,
         FileBucketTarCreatorManager fileBucketTarCreatorManager,
+        QueueRepository readWriteQueue, TapeCatalogService tapeCatalogService,
         ArchiveCacheStorage archiveCacheStorage,
         BucketTopologyHelper bucketTopologyHelper) {
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
         this.archiveReferentialRepository = archiveReferentialRepository;
-        this.accessRequestManager = accessRequestManager;
+        this.readRequestReferentialRepository = readRequestReferentialRepository;
         this.fileBucketTarCreatorManager = fileBucketTarCreatorManager;
+        this.readWriteQueue = readWriteQueue;
+        this.tapeCatalogService = tapeCatalogService;
         this.archiveCacheStorage = archiveCacheStorage;
         this.bucketTopologyHelper = bucketTopologyHelper;
     }
@@ -256,21 +282,146 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     @Override
-    public String createAccessRequest(String containerName, List<String> objectsNames)
-        throws ContentAddressableStorageException {
-        return this.accessRequestManager.createAccessRequest(containerName, objectsNames);
+    public String createReadOrderRequest(String containerName, List<String> objectsIds)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity;
+        List<FileInTape> filesInTape = new ArrayList<>();
+        String readRequestId = GUIDFactory.newGUID().getId();
+
+        Map<String, TarLocation> tarLocationMap = new HashMap<>();
+        Set<String> archiveSet = new HashSet<>();
+        try {
+            for (String objectName : objectsIds) {
+
+                Optional<TapeObjectReferentialEntity> object =
+                    objectReferentialRepository.find(containerName, objectName);
+                if (object.isEmpty()) {
+                    throw new ContentAddressableStorageNotFoundException(
+                        ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
+                }
+
+                // Get TARs containing the object segments
+                TapeLibraryObjectStorageLocation location = object.get().getLocation();
+                if (!(location instanceof TapeLibraryTarObjectStorageLocation)) {
+                    // TODO: 15/07/19 object is in the local FS and not yet in TAR (throw exception or read it from local FS ?)
+                    throw new UnsupportedOperationException("Object stored in tar. Not implemented yet");
+                }
+
+                List<TarEntryDescription> tarEntryDescriptions =
+                    ((TapeLibraryTarObjectStorageLocation) location).getTarEntries();
+
+                if (tarEntryDescriptions == null || tarEntryDescriptions.isEmpty()) {
+                    throw new IllegalStateException(
+                        "empty TAR description for object : " + containerName + "/" + objectName);
+                }
+
+                for (TarEntryDescription o : tarEntryDescriptions) {
+                    // If Tar in cache then already in DISK. Access TAR in cache increase expire time
+                    archiveSet.add(o.getTarFileId());
+
+                    String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(o.getTarFileId(), ".");
+
+                    String fileBucketId =
+                        bucketTopologyHelper.getFileBucketFromContainerName(containerName);
+
+                    boolean existingArchiveInCache =
+                        archiveCacheStorage.containsArchive(fileBucketId, o.getTarFileId());
+                    if (existingArchiveInCache) {
+                        tarLocationMap.putIfAbsent(tarFileIdWithoutExtension, TarLocation.DISK);
+                    } else {
+                        tarLocationMap.putIfAbsent(tarFileIdWithoutExtension, TarLocation.TAPE);
+                    }
+                }
+
+
+                filesInTape.add(new FileInTape(objectName, object.get().getStorageId(), tarEntryDescriptions));
+            }
+
+            tapeReadRequestReferentialEntity =
+                new TapeReadRequestReferentialEntity(readRequestId, containerName, tarLocationMap, filesInTape);
+            readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
+
+            for (String tarId : archiveSet) {
+                Optional<TapeArchiveReferentialEntity> tapeLibraryTarReferentialEntity =
+                    archiveReferentialRepository.find(tarId);
+                if (tapeLibraryTarReferentialEntity.isEmpty()) {
+                    throw new IllegalStateException("TAR information not found for tarId : " + tarId);
+                }
+
+                TapeLibraryArchiveStorageLocation tarLocation = tapeLibraryTarReferentialEntity.get().getLocation();
+                if (!(tarLocation instanceof TapeLibraryOnTapeArchiveStorageLocation)) {
+                    throw new UnsupportedOperationException("Tar file is not yet on tape.");
+                }
+
+                String tarIdWithoutExtension = StringUtils.substringBeforeLast(tarId, ".");
+                if (tarLocationMap.get(tarIdWithoutExtension).equals(TarLocation.DISK)) {
+                    // Do not add read order task as TAR already exists in local FS
+                    continue;
+                }
+
+                // Create read orders
+                String tapeCode = ((TapeLibraryOnTapeArchiveStorageLocation) tarLocation).getTapeCode();
+                int filePosition = ((TapeLibraryOnTapeArchiveStorageLocation) tarLocation).getFilePosition();
+                long fileSize = tapeLibraryTarReferentialEntity.get().getSize();
+                String bucketId = getBucketByTapeCode(tapeCode);
+                String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
+                ReadOrder readOrder = new ReadOrder(tapeCode, filePosition, tarId, bucketId, fileBucketId, fileSize);
+
+                // add read orders to worker queue
+                readWriteQueue.addIfAbsent(
+                    Arrays.asList(
+                        new QueryCriteria(ReadOrder.FILE_NAME, tarId, QueryCriteriaOperator.EQ),
+                        new QueryCriteria(ReadOrder.MESSAGE_TYPE, QueueMessageType.ReadOrder.name(),
+                            QueryCriteriaOperator.EQ)),
+                    readOrder);
+            }
+
+        } catch (ObjectReferentialException | QueueException | ArchiveReferentialException | TapeCatalogException
+            | ReadRequestReferentialException e) {
+            throw new ContentAddressableStorageServerException(
+                "Error on reading from tape");
+        }
+
+        return tapeReadRequestReferentialEntity.getRequestId();
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
-        throws ContentAddressableStorageException {
-        return this.accessRequestManager.checkAccessRequestStatuses(accessRequestIds);
+    public void removeReadOrderRequest(String readRequestID)
+        throws ContentAddressableStorageServerException {
+
+        try {
+            Optional<TapeReadRequestReferentialEntity> readRequestEntity =
+                readRequestReferentialRepository.find(readRequestID);
+            if (readRequestEntity.isPresent()) {
+                readRequestReferentialRepository.invalidate(readRequestID);
+                // FIXME : Should we cancel read orders?
+            }
+        } catch (ReadRequestReferentialException e) {
+            throw new ContentAddressableStorageServerException(
+                "Error on removing read request order " + readRequestID);
+        }
     }
 
-    @Override
-    public void removeAccessRequest(String accessRequestId)
-        throws ContentAddressableStorageException {
-        this.accessRequestManager.removeAccessRequest(accessRequestId);
+    private String getBucketByTapeCode(String tapeCode) throws TapeCatalogException {
+
+        List<TapeCatalog> tapeCatalogs = tapeCatalogService.find(
+            Collections.singletonList(
+                new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))
+        );
+
+        if (CollectionUtils.isEmpty(tapeCatalogs)) {
+            throw new IllegalStateException("Unknown tape with code " + tapeCode);
+        }
+
+        if (tapeCatalogs.size() > 1) {
+            throw new IllegalStateException("Multiple tapes with same code " + tapeCode);
+        }
+
+        String bucket = tapeCatalogs.get(0).getBucket();
+        if (bucket == null) {
+            throw new IllegalStateException("Unknown bucket for tape with code " + tapeCode);
+        }
+        return bucket;
     }
 
     @Override

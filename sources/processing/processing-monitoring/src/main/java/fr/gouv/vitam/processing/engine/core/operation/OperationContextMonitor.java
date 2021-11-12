@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -40,6 +42,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Collections;
 
 public class OperationContextMonitor {
@@ -116,6 +120,23 @@ public class OperationContextMonitor {
             // The final step of the workflow will remove it
             // Save one call to the workspace ?! or the best is to save space ?!
 
+        } catch (Exception e) {
+            throw new OperationContextException(e);
+        }
+    }
+
+
+    public Response read(String strategy, String operationContainer, LogbookTypeProcess logbookTypeProcess)
+        throws OperationContextException, StorageNotFoundException {
+        ParametersChecker.checkParameter("All params are required", strategy, operationContainer, logbookTypeProcess);
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            String objectName = logbookTypeProcess.name() + "_" + operationContainer + ".zip";
+            final Response response = storageClient.getContainerAsync(strategy,
+                objectName, DataCategory.TMP, AccessLogUtils.getNoLogAccessLog());
+            return new VitamAsyncInputStreamResponse(response, Response.Status.OK,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (StorageNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new OperationContextException(e);
         }

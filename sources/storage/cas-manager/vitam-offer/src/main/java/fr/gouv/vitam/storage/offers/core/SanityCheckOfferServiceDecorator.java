@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.core;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
@@ -43,12 +42,13 @@ import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 /**
  * Path Sanity check wrapper around {@link DefaultOfferService}.
@@ -84,24 +84,26 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     }
 
     @Override
-    public String createAccessRequest(String containerName, List<String> objectIds)
-        throws ContentAddressableStorageException {
+    public Optional<TapeReadRequestReferentialEntity> createReadOrderRequest(String containerName,
+        List<String> objectIds) throws ContentAddressableStorageException {
 
         for (String objectId : objectIds) {
             checkSafeObjectPath(containerName, objectId);
         }
-        return innerService.createAccessRequest(containerName, objectIds);
+        return innerService.createReadOrderRequest(containerName, objectIds);
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds)
+    public Optional<TapeReadRequestReferentialEntity> getReadOrderRequest(String readRequestID)
         throws ContentAddressableStorageException {
-        return innerService.checkAccessRequestStatuses(accessRequestIds);
+
+        return innerService.getReadOrderRequest(readRequestID);
     }
 
     @Override
-    public void removeAccessRequest(String accessRequestId) throws ContentAddressableStorageException {
-        innerService.removeAccessRequest(accessRequestId);
+    public void removeReadOrderRequest(String readRequestID) throws ContentAddressableStorageException {
+
+        innerService.removeReadOrderRequest(readRequestID);
     }
 
     @Override

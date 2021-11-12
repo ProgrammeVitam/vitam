@@ -97,13 +97,13 @@ public class TarFileDigestVerifier {
             objectReferentialRepository.bulkFind(containerName, objectNames);
 
 
-        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectNameMap =
+        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
             objectReferentialEntities.stream()
                 .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
 
         for (EntryToCheck entryToCheck : entriesToCheck) {
             TapeObjectReferentialEntity objectReferentialEntity =
-                objectReferentialEntityByObjectNameMap.get(entryToCheck.objectName);
+                objectReferentialEntityByObjectIdMap.get(entryToCheck.objectName);
 
             if (objectReferentialEntity == null ||
                 !entryToCheck.storageId.equals(objectReferentialEntity.getStorageId())) {

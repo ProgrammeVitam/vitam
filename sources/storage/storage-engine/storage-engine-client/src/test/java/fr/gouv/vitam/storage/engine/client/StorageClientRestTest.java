@@ -26,47 +26,22 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
-import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
-import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -83,26 +58,49 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import fr.gouv.vitam.storage.driver.model.StorageLogBackupResult;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * StorageClientRest Test
@@ -119,8 +117,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     private static StorageClientFactory factory = StorageClientFactory.getInstance();
-    private static VitamServerTestRunner vitamServerTestRunner =
-        new VitamServerTestRunner(StorageClientRestTest.class, factory);
+    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(StorageClientRestTest.class, factory);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -270,54 +267,12 @@ public class StorageClientRestTest extends ResteasyTestApplication {
             @PathParam("folder") String folder, BulkObjectStoreRequest bulkObjectStoreRequest) {
             return expectedResponse.post();
         }
-
+        
         @GET
         @Path("/strategies")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getStorageStrategies() {
             return expectedResponse.get();
-        }
-
-        @POST
-        @Path("/access-request/{dataCategory}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response createAccessRequestIfRequired(@PathParam("dataCategory") DataCategory dataCategory,
-            List<String> objectsNames, @Context HttpHeaders headers) {
-            assertThat(headers.getHeaderString(GlobalDataRest.X_TENANT_ID)).isEqualTo("3");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_STRATEGY_ID)).isEqualTo("myStrategyId");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_OFFER)).isEqualTo("myOfferId");
-            assertThat(dataCategory).isEqualTo(DataCategory.OBJECT);
-            assertThat(objectsNames).containsExactly("obj1", "obj2");
-
-            return expectedResponse.post();
-        }
-
-        @GET
-        @Path("/access-request/statuses")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response checkAccessRequestStatuses(List<String> accessRequestIds, @Context HttpHeaders headers) {
-            assertThat(headers.getHeaderString(GlobalDataRest.X_TENANT_ID)).isEqualTo("3");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_STRATEGY_ID)).isEqualTo("myStrategyId");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_OFFER)).isEqualTo("myOfferId");
-            assertThat(accessRequestIds).containsExactly("accessRequestId1", "accessRequestId2");
-
-            return expectedResponse.get();
-        }
-
-        @DELETE
-        @Path("/access-request/{accessRequestId}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response removeAccessRequest(@PathParam("accessRequestId") String accessRequestId,
-            @Context HttpHeaders headers) {
-            assertThat(headers.getHeaderString(GlobalDataRest.X_TENANT_ID)).isEqualTo("3");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_STRATEGY_ID)).isEqualTo("myStrategyId");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_OFFER)).isEqualTo("myOfferId");
-            assertThat(accessRequestId).isEqualTo("accessRequestId1");
-
-            return expectedResponse.delete();
         }
     }
 
@@ -633,11 +588,9 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(
                 new RequestResponseOK<StorageLogBackupResult>()
-                    .addResult(
-                        new StorageLogBackupResult().setTenantId(0).setOperationId(GUIDFactory.newGUID().getId()))
-                    .addResult(
-                        new StorageLogBackupResult().setTenantId(1).setOperationId(GUIDFactory.newGUID().getId()))
-            ).build());
+                    .addResult(new StorageLogBackupResult().setTenantId(0).setOperationId(GUIDFactory.newGUID().getId()))
+                    .addResult(new StorageLogBackupResult().setTenantId(1).setOperationId(GUIDFactory.newGUID().getId()))
+                ).build());
         client.storageLogBackup(Arrays.asList(0, 1));
     }
 
@@ -686,12 +639,15 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
-    public void getOfferLogInternalServerError() {
+    public void getOfferLogInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).build());
-        assertThatThrownBy(() -> client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC))
-            .isInstanceOf(StorageServerClientException.class);
+        final RequestResponse<OfferLog> result =
+            client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
+        assertNotNull(result);
+        assertFalse(result.isOk());
+        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), result.getHttpCode());
     }
 
     @RunWithCustomExecutor
@@ -713,11 +669,11 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void bulkCreateFromWorkspaceOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).entity(
-            new BulkObjectStoreResponse(
-                Arrays.asList("offer1", "offer2"),
-                DigestType.SHA512.getName(),
-                ImmutableMap.of("ob1", "digest1", "ob2", "digest2"))
-        ).build());
+                new BulkObjectStoreResponse(
+                    Arrays.asList("offer1", "offer2"),
+                    DigestType.SHA512.getName(),
+                    ImmutableMap.of("ob1", "digest1", "ob2", "digest2"))
+            ).build());
         client.bulkStoreFilesFromWorkspace("idStrategy", getBulkObjectStoreRequest());
     }
 
@@ -803,136 +759,16 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     @Test
     public void getStrategiesOk() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity(new RequestResponseOK<StorageStrategy>()).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK).entity(new RequestResponseOK<StorageStrategy>()).build());
         client.getStorageStrategies();
     }
-
+    
     @RunWithCustomExecutor
     @Test(expected = StorageServerClientException.class)
     public void getStrategiesStorageServerClientException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
         client.getStorageStrategies();
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createAccessRequestIfRequiredWithAsyncOffer() throws Exception {
-
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(mock.post()).thenReturn(new RequestResponseOK<>()
-            .addResult("myAccessRequestId")
-            .setHttpCode(Status.CREATED.getStatusCode())
-            .toResponse());
-
-        // When
-        Optional<String> accessRequestId =
-            client.createAccessRequestIfRequired("myStrategyId", "myOfferId", DataCategory.OBJECT,
-                List.of("obj1", "obj2"));
-
-        // Then
-        assertThat(accessRequestId).isPresent();
-        assertThat(accessRequestId.get()).isEqualTo("myAccessRequestId");
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createAccessRequestIfRequiredWithSyncOffer() throws Exception {
-
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(mock.post()).thenReturn(Response.noContent().build());
-
-        // When
-        Optional<String> accessRequestId =
-            client.createAccessRequestIfRequired("myStrategyId", "myOfferId", DataCategory.OBJECT,
-                List.of("obj1", "obj2"));
-
-        // Then
-        assertThat(accessRequestId).isEmpty();
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createAccessRequestIfRequiredWithServerErrorThenException() throws Exception {
-
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-
-        // When / Then
-        assertThatThrownBy(() -> client.createAccessRequestIfRequired("myStrategyId", "myOfferId",
-            DataCategory.OBJECT, List.of("obj1", "obj2")))
-            .isInstanceOf(StorageServerClientException.class);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void checkAccessRequestStatusesOK() throws Exception {
-
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(mock.get()).thenReturn(new RequestResponseOK<>()
-            .addResult(Map.of(
-                "accessRequestId1", AccessRequestStatus.NOT_FOUND,
-                "accessRequestId2", AccessRequestStatus.READY
-            ))
-            .setHttpCode(Status.OK.getStatusCode())
-            .toResponse());
-
-        // When
-        Map<String, AccessRequestStatus> accessRequestStatuses =
-            client.checkAccessRequestStatuses("myStrategyId", "myOfferId",
-                List.of("accessRequestId1", "accessRequestId2"));
-
-        // Then
-        assertThat(accessRequestStatuses).isEqualTo(Map.of(
-            "accessRequestId1", AccessRequestStatus.NOT_FOUND,
-            "accessRequestId2", AccessRequestStatus.READY
-        ));
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void checkAccessRequestStatusesWithServerErrorThenException() {
-
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-
-        // When / Then
-        assertThatThrownBy(
-            () -> client.checkAccessRequestStatuses("myStrategyId", "myOfferId",
-                List.of("accessRequestId1", "accessRequestId2")))
-            .isInstanceOf(StorageServerClientException.class);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void removeAccessRequestOK() throws Exception {
-
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(mock.delete()).thenReturn(Response.status(Status.OK).build());
-
-        // When / Then
-        assertThatCode(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1"))
-            .doesNotThrowAnyException();
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void removeAccessRequestOKWithServerErrorThenException() throws Exception {
-
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-
-        // When / Then
-        assertThatThrownBy(() -> client.removeAccessRequest("myStrategyId", "myOfferId", "accessRequestId1"))
-            .isInstanceOf(StorageServerClientException.class);
     }
 
     private BulkObjectStoreRequest getBulkObjectStoreRequest() {
