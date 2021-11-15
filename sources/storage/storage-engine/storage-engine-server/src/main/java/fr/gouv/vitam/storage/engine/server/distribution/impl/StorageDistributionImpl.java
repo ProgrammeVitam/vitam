@@ -179,7 +179,6 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String OBJECT_ID_IS_MANDATORY = "Object id is mandatory";
     private static final String NO_MESSAGE_RETURNED = "No message returned";
     private static final String ERROR_ON_OFFER_ID = "Error on offer ID ";
-    private static final String INVALID_NUMBER_OF_COPY = "Invalid number of copy";
     private static final String CANNOT_CREATE_MULTIPLE_INPUT_STREAM = "Cannot create multipleInputStream";
     private static final String ERROR_ENCOUNTERED_IS = "Error encountered is ";
     private static final String INTERRUPTED_AFTER_TIMEOUT_ON_OFFER_ID = "Interrupted after timeout on offer ID ";
@@ -481,16 +480,10 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private List<StorageOffer> getStorageOffers(String strategyId)
         throws StorageTechnicalException, StorageNotFoundException {
-        // Retrieve strategy offersToCopyIn
-        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
 
-        if (storageStrategy == null) {
-            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
-
-        }
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
 
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
-
 
         return offerReferences.stream()
             .map(StorageDistributionImpl::apply)
@@ -530,7 +523,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     public List<String> getOfferIds(String strategyId) throws StorageException {
 
         // Retrieve strategy data
-        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
         return storageStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
     }
 
@@ -543,11 +536,11 @@ public class StorageDistributionImpl implements StorageDistribution {
     public Optional<String> createAccessRequestIfRequired(String strategyId, String optionalOfferId,
         DataCategory dataCategory, List<String> objectsNames) throws StorageException {
 
-        OfferReference offerReference = selectOffer(strategyId, optionalOfferId);
+        OfferReference offerReference = selectFirstOffer(strategyId, optionalOfferId);
 
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
-        if (!offer.isAsyncRead()) {
 
+        if (!offer.isAsyncRead()) {
             LOGGER.debug("Offer {} is synchronous, no access request required", offer.getId());
             return Optional.empty();
         }
@@ -578,7 +571,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String optionalOfferId,
         List<String> accessRequestIds) throws StorageException {
 
-        OfferReference offerReference = selectOffer(strategyId, optionalOfferId);
+        OfferReference offerReference = selectFirstOffer(strategyId, optionalOfferId);
 
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
         if (!offer.isAsyncRead()) {
@@ -605,7 +598,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     public void removeAccessRequest(String strategyId, String optionalOfferId, String accessRequestId)
         throws StorageException {
 
-        OfferReference offerReference = selectOffer(strategyId, optionalOfferId);
+        OfferReference offerReference = selectFirstOffer(strategyId, optionalOfferId);
 
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
         if (!offer.isAsyncRead()) {
@@ -626,24 +619,30 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private OfferReference selectOffer(String strategyId, String optionalOfferId)
+    private OfferReference selectFirstOffer(String strategyId, String optionalOfferId)
         throws StorageTechnicalException, StorageNotFoundException, StorageDriverNotFoundException {
+
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
-        // Retrieve strategy data
+
+        // Retrieve / check storage strategy
         StorageStrategy storageStrategy = checkStrategy(strategyId);
-        OfferReference offerReference;
-        if (optionalOfferId != null) {
-            // Select provided offerId
-            offerReference = storageStrategy.getOffers().stream()
+
+        // FIXME : #9031 : Unify offer selection
+
+        if (optionalOfferId == null) {
+            // As for now, select the "first" offer since getObject() uses offer lists in order
+            return storageStrategy.getOffers().stream()
+                .findFirst()
+                .orElseThrow(() -> new StorageDriverNotFoundException(
+                    "No active offer found in strategy " + strategyId));
+        } else {
+            // Select offer by id
+            return storageStrategy.getOffers().stream()
                 .filter(offerRef -> optionalOfferId.equals(offerRef.getId()))
                 .findFirst()
                 .orElseThrow(() -> new StorageDriverNotFoundException(
                     "No active offer found with Id '" + optionalOfferId + "' in strategy " + strategyId));
-        } else {
-            // No provided offerId, use referent offer
-            offerReference = chooseReferentOffer(storageStrategy);
         }
-        return offerReference;
     }
 
     private StorageLogbookParameters sendDataToOffers(StreamAndInfo streamAndInfo,
@@ -1232,11 +1231,10 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         List<StorageOffer> storageOffers = new ArrayList<>();
 
+
         if (StringUtils.isBlank(offerId)) {
 
-            // FIXME : Only select data from referent offer
-            //  Fetching data from non referent offers may resolve incomplete/old results (data read from incomplete
-            //  offer) OR might leaks performance problems for deleted/eliminated data (all offers will be queried)
+            // FIXME : #9031 : Unify offer selection algorithm
             final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
             List<StorageOffer> collect = offerReferences.stream()
@@ -1395,7 +1393,6 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         StorageStrategy storageStrategy = checkStrategy(strategyId);
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
-        // FIXME: 03/04/19 check asyncReadOffer
         List<String> offerReferencesIds = offerReferences.stream().map(OfferReference::getId)
             .collect(Collectors.toList());
         resultByOffer.putAll(offerIds.stream().filter(offer -> !offerReferencesIds.contains(offer))
