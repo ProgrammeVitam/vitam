@@ -115,6 +115,7 @@
         - metadata
         - identity
         - report
+        - collect
       no_log: "{{ hide_passwords_during_deploy }}"
       when: "mongo_cluster_name == 'mongo-data'"
       tags:
@@ -235,6 +236,7 @@
         - metadata
         - identity
         - report
+        - collect
       no_log: "{{ hide_passwords_during_deploy }}"
       when: "mongo_cluster_name == 'mongo-data'"
       tags:

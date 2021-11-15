@@ -26,18 +26,38 @@
  */
 package fr.gouv.vitam.collect.internal.server;
 
+import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.resource.TransactionResource;
+import fr.gouv.vitam.collect.internal.service.CollectService;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * module declaring business resource
  */
 public class BusinessApplication extends ConfigurationApplication {
     private final Set<Object> singletons;
+    private final CommonBusinessApplication commonBusinessApplication;
+    private String configurationFile;
 
     /**
      * Constructor
@@ -45,7 +65,27 @@ public class BusinessApplication extends ConfigurationApplication {
      * @param servletConfig
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
+        this.configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
         singletons = new HashSet<>();
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+            final CollectConfiguration configuration =
+                    PropertiesUtils.readYaml(yamlIS, CollectConfiguration.class);
+            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+            SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
+
+            CollectRepository collectRepository = new CollectRepository(mongoDbAccess);
+            CollectService collectService = new CollectService(collectRepository);
+            commonBusinessApplication = new CommonBusinessApplication();
+            singletons.addAll(commonBusinessApplication.getResources());
+            singletons.add(new InternalSecurityFilter());
+            singletons.add(new AuthorizationFilter());
+            singletons.add(new JsonParseExceptionMapper());
+            singletons.add(new ApplicationStatusResource());
+            singletons.add(new TransactionResource(collectService));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -36,7 +36,7 @@
         "interval": "{{ vitam_struct.consul_admin_check | default(consul_admin_check) }}s"
       }
 {% endif %}
-{% if (vitam_struct.vitam_component == vitam.security_internal.vitam_component) or (vitam_struct.vitam_component == vitam.collect.vitam_component)  %}
+{% if (vitam_struct.vitam_component == vitam.security_internal.vitam_component) %}
       ,{
         "name": "{{ vitam_struct.vitam_component }} : http business service check",
         "notes": "Status business : /status",

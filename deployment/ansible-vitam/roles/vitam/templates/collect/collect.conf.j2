@@ -1,3 +1,15 @@
+authentication: false
+
+# Configuration MongoDB
+mongoDbNodes:
+{% for host in groups['hosts_mongos_data'] %}
+- dbHost: {{ hostvars[host]['ip_service'] }}
+  dbPort: {{ mongodb.mongos_port }}
+{% endfor %}
+dbName: collect
+dbAuthentication: {{ mongodb.mongo_authentication }}
+dbUserName: {{ mongodb['mongo-data'].collect.user }}
+dbPassword: {{ mongodb['mongo-data'].collect.password }}
 
 jettyConfig: jetty-config.xml
 

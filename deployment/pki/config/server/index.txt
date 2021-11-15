@@ -108,3 +108,14 @@ V	99991231235959Z		010E	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.
 V	99991231235959Z		010F	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer.service.local.consul
 V	99991231235959Z		0110	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.local.consul
 V	99991231235959Z		0111	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.local.consul
+V	241109143327Z		0112	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.service.fulllocal.consul
+V	241109143329Z		0113	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.fulllocal.consul
+V	241109143331Z		0114	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer-fs-1.service.fulllocal.consul
+V	241109143332Z		0115	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.fulllocal.consul
+V	241109143334Z		0116	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.fulllocal.consul
+V	241109143535Z		0117	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.service.fulllocal.consul
+V	241109143537Z		0118	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.fulllocal.consul
+V	241109143539Z		0119	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer-fs-1.service.fulllocal.consul
+V	241109143542Z		011A	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.fulllocal.consul
+V	241109143544Z		011B	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.fulllocal.consul
+V	241109143545Z		011C	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=collect.service.fulllocal.consul

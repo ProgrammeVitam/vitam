@@ -242,6 +242,11 @@
     - vitam
   vars:
     vitam_struct: "{{ vitam.collect }}"
+    password_keystore: "{{ keystores.server.collect }}"
+    password_manager_keystore: "{{ keystores.server.collect }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
+    vitam_certificate_client_type: "external"
 
 - hosts: hosts_functional_administration
   gather_facts: no
