@@ -44,8 +44,13 @@ import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroup;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import org.assertj.core.api.Fail;
 
 import java.io.ByteArrayInputStream;
@@ -61,6 +66,7 @@ import java.util.concurrent.TimeUnit;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
@@ -114,7 +120,7 @@ public class PreservationStep {
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
 
             RequestResponse response =
-                world.getAdminClient().importPreservationScenario(vitamContext, inputStream, fileName);
+                    world.getAdminClient().importPreservationScenario(vitamContext, inputStream, fileName);
 
             final String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
@@ -158,7 +164,7 @@ public class PreservationStep {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         RequestResponse<PreservationScenarioModel> response =
-            world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
+                world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
 
         assertThat(response.getHttpCode()).isEqualTo(404);
     }
@@ -171,7 +177,7 @@ public class PreservationStep {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         RequestResponse<PreservationScenarioModel> response =
-            world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
+                world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
 
         assertThat(response.getHttpCode()).isEqualTo(200);
 
@@ -191,7 +197,7 @@ public class PreservationStep {
 
             RequestResponse<PreservationScenarioModel> scenarioList = world.getAdminClient().findPreservationScenario(vitamContext, queryDsl);
             List resultsAsJsonNodes = ((RequestResponseOK) scenarioList).getResultsAsJsonNodes();
-            if (!resultsAsJsonNodes.isEmpty()){
+            if (!resultsAsJsonNodes.isEmpty()) {
                 InputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
                 world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, EMPTY_JSON_FILE);
             }
@@ -221,12 +227,86 @@ public class PreservationStep {
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
         boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
 
         if (!processTimeout) {
-            fail("units update  processing not finished. Timeout exceeded.");
+            fail("preservation processing not finished. Timeout exceeded.");
         }
 
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
+
+
+    @When("^je lance la preservation du scénario (.*) pour l'usage d'entrée (.*) et pour l'usage de sortie (.*)$")
+    public void launchPreservation(String scenarioId, String usageEntree, String usageSortie) throws Exception {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+        String query = world.getQuery();
+
+        JsonNode queryNode = JsonHandler.getFromString(query);
+
+        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usageSortie, FIRST, usageEntree);
+        RequestResponse response = world.getAccessClient().launchPreservation(vitamContext, preservationRequest);
+
+        final String operationId = response.getHeaderString(X_REQUEST_ID);
+        world.setOperationId(operationId);
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean processTimeout = vitamPoolingClient
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+
+        if (!processTimeout) {
+            fail("preservation processing not finished. Timeout exceeded.");
+        }
+
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
+
+
+    @Then("^le type du binaire généré est un (.*) et de type (.*)$")
+    public void verifyIfTypeBinaryHasBeenGenerated(String qualifierParam, String type) throws InvalidParseOperationException {
+
+        ObjectGroupResponse objectGroupResponse = JsonHandler.getFromJsonNode(world.getResults().get(0), ObjectGroupResponse.class);
+
+        String opiPreservation = world.getOperationId();
+
+        Boolean versionExist = objectGroupResponse.getQualifiers()
+                .stream()
+                .filter(qualifier -> qualifierParam.equals(qualifier.getQualifier()))
+                .map(QualifiersModel::getVersions)
+                .flatMap(List::stream)
+                .anyMatch(version -> type.equals(version.getFormatIdentification().getMimeType())
+                        && version.getOpi().equals(opiPreservation));
+
+        world.setOperationId(objectGroupResponse.getOpi());
+
+        assertThat(versionExist).isEqualTo(true);
+    }
+
+    @Then("^Le fichier binaire du type du qualifier (.*) n'a pas été généré$")
+    public void verifyBinaryIfNotGenerated(String qualifierParam) throws InvalidParseOperationException {
+        ObjectGroupResponse objectGroupResponse = JsonHandler.getFromJsonNode(world.getResults().get(0), ObjectGroupResponse.class);
+
+        String opiPreservation = world.getOperationId();
+
+        Boolean versionExist = objectGroupResponse.getQualifiers()
+                .stream()
+                .filter(qualifier -> qualifierParam.equals(qualifier.getQualifier()))
+                .map(QualifiersModel::getVersions)
+                .flatMap(List::stream)
+                .anyMatch(version -> version.getOpi().equals(opiPreservation));
+
+        world.setOperationId(objectGroupResponse.getOpi());
+        assertThat(versionExist).isEqualTo(false);
+
+    }
+
+
+
+
+
 }
+
