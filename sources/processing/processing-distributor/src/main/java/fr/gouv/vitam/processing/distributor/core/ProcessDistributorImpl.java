@@ -599,13 +599,15 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         while (linesPeekIterator.hasNext()) {
 
-            int nextOffset = offset + globalBatchSize;
+            int maxOffset = offset + globalBatchSize;
             List<JsonLineModel> distributionList = new ArrayList<>();
-            for (int i = offset; i < nextOffset && linesPeekIterator.hasNext(); i++) {
+            int lastElementOffset = offset;
+            while (lastElementOffset < maxOffset && linesPeekIterator.hasNext()) {
 
                 JsonLineModel currentJsonLineModel = readJsonLineModelFromBufferFromString(linesPeekIterator.next());
 
                 distributionList.add(currentJsonLineModel);
+                lastElementOffset++;
 
                 JsonLineModel nextJsonLineModel = null;
 
@@ -669,7 +671,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              */
             List<String> remainingElements = getRemainingElements(workerTaskResults, itemStatus);
 
-            offset = getNextOffset(offset, nextOffset, remainingElements, itemStatus);
+            offset = getNextOffset(offset, lastElementOffset, remainingElements, itemStatus);
 
             // update && persist DistributorIndex if not Fatal
             DistributorIndex distributorIndex =
