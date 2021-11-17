@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -40,6 +42,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -49,6 +53,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
+import fr.gouv.vitam.storage.driver.model.StorageAccessRequestCreationRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -66,13 +71,13 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
-import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
@@ -92,7 +97,8 @@ public class ConnectionImpl extends AbstractConnection {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
     private static final String OBJECTS_PATH = "/objects";
-    private static final String READ_ORDER_PATH = "/readorder";
+    private static final String ACCESS_REQUEST_PATH = "/access-request";
+    private static final String ACCESS_REQUEST_STATUSES_PATH = "/access-request/statuses";
     private static final String LOGS_PATH = "/logs";
     private static final String METADATAS = "/metadatas";
 
@@ -106,7 +112,8 @@ public class ConnectionImpl extends AbstractConnection {
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
-    private static final String EXPORT_ID_IS_A_MANDATORY_PARAMETER = "Export id is a mandatory parameter";
+    private static final String ACCESS_REQUEST_ID_IS_A_MANDATORY_PARAMETER =
+        "Access Request Id is a mandatory parameter";
     private static final String BAD_REQUEST_ERROR_MESSAGE = "Bad request";
 
     /**
@@ -210,54 +217,63 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(StorageObjectRequest request)
+    public String createAccessRequest(StorageAccessRequestCreationRequest request)
         throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
-        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getObjectNames());
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER,
+            request.getObjectNames().toArray(String[]::new));
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
 
         VitamRequestBuilder requestBuilder = post()
-            .withPath(READ_ORDER_PATH + "/" + DataCategory.getByFolder(request.getType()))
+            .withPath(ACCESS_REQUEST_PATH + "/" + DataCategory.getByFolder(request.getType()))
             .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
-            .withBody(Collections.singletonList(request.getGuid()))
+            .withBody(request.getObjectNames())
             .withJson();
 
         try (Response response = make(requestBuilder)) {
             checkStorageException(response);
-            return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
+            RequestResponseOK<String> accessRequestCreationResponse
+                = (RequestResponseOK<String>) RequestResponse.parseFromResponse(response, String.class);
+            return accessRequestCreationResponse.getFirstResult();
         } catch (final VitamClientInternalException e) {
             throw new StorageDriverException(getDriverName(), true, e);
         }
     }
 
-
     @Override
-    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(String readOrderRequestId, int tenant)
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant)
         throws StorageDriverException {
-        ParametersChecker.checkParameter(EXPORT_ID_IS_A_MANDATORY_PARAMETER, readOrderRequestId);
+        ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_A_MANDATORY_PARAMETER, accessRequestIds);
+        ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_A_MANDATORY_PARAMETER,
+            accessRequestIds.toArray(String[]::new));
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenant);
 
         VitamRequestBuilder request = get()
-            .withPath(READ_ORDER_PATH + "/" + readOrderRequestId)
+            .withPath(ACCESS_REQUEST_STATUSES_PATH)
             .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
-            .withJsonAccept();
+            .withJson()
+            .withBody(accessRequestIds);
         try (Response response = make(request)) {
             checkStorageException(response);
-            return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
-        } catch (final VitamClientInternalException e) {
+            RequestResponseOK<Map<String, AccessRequestStatus>> objectRequestResponseOK =
+                JsonHandler.getFromInputStreamAsTypeReference(response.readEntity(InputStream.class), new TypeReference<>() {
+                });
+            return objectRequestResponseOK.getFirstResult();
+        } catch (final VitamClientInternalException | InvalidParseOperationException | InvalidFormatException e) {
             throw new StorageDriverException(getDriverName(), true, e);
         }
     }
 
     @Override
-    public void removeReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException {
-        ParametersChecker.checkParameter(EXPORT_ID_IS_A_MANDATORY_PARAMETER, readOrderRequestId);
+    public void removeAccessRequest(String accessRequestId, int tenant) throws StorageDriverException {
+        ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_A_MANDATORY_PARAMETER, accessRequestId);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenant);
 
         VitamRequestBuilder request = delete()
-            .withPath(READ_ORDER_PATH + "/" + readOrderRequestId)
+            .withPath(ACCESS_REQUEST_PATH + "/" + accessRequestId)
             .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
             .withJsonAccept();
 
@@ -454,7 +470,8 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException, StorageDriverNotFoundException {
+    public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request)
+        throws StorageDriverException, StorageDriverNotFoundException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());

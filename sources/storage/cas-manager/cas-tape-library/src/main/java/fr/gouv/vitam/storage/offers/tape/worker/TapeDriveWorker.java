@@ -43,9 +43,9 @@ import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -82,7 +82,7 @@ public class TapeDriveWorker implements Runnable {
 
     private final TapeCatalogService tapeCatalogService;
     private final ArchiveReferentialRepository archiveReferentialRepository;
-    private final ReadRequestReferentialRepository readRequestReferentialRepository;
+    private final AccessRequestManager accessRequestManager;
     private final AtomicBoolean stop = new AtomicBoolean(false);
     private final AtomicBoolean pause = new AtomicBoolean(false);
     private final boolean forceOverrideNonEmptyCartridges;
@@ -99,17 +99,16 @@ public class TapeDriveWorker implements Runnable {
         TapeCatalogService tapeCatalogService,
         TapeDriveOrderConsumer receiver,
         ArchiveReferentialRepository archiveReferentialRepository,
-        ReadRequestReferentialRepository readRequestReferentialRepository,
+        AccessRequestManager accessRequestManager,
         TapeCatalog currentTape,
         String inputTarPath, long sleepTime, boolean forceOverrideNonEmptyCartridges,
         ArchiveCacheStorage archiveCacheStorage) {
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService,
-                archiveReferentialRepository, readRequestReferentialRepository, tapeCatalogService,
-                receiver, archiveCacheStorage);
+                archiveReferentialRepository, accessRequestManager, tapeCatalogService, receiver, archiveCacheStorage);
 
         this.archiveReferentialRepository = archiveReferentialRepository;
-        this.readRequestReferentialRepository = readRequestReferentialRepository;
+        this.accessRequestManager = accessRequestManager;
         this.tapeCatalogService = tapeCatalogService;
         this.inputTarPath = inputTarPath;
         this.tapeRobotPool = tapeRobotPool;
@@ -140,12 +139,12 @@ public class TapeDriveWorker implements Runnable {
         TapeCatalogService tapeCatalogService,
         TapeDriveOrderConsumer receiver,
         ArchiveReferentialRepository archiveReferentialRepository,
-        ReadRequestReferentialRepository readRequestReferentialRepository,
+        AccessRequestManager accessRequestManager,
         TapeCatalog currentTape,
         String inputTarPath, boolean forceOverrideNonEmptyCartridges,
         ArchiveCacheStorage archiveCacheStorage) {
         this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, archiveReferentialRepository,
-            readRequestReferentialRepository, currentTape,
+            accessRequestManager, currentTape,
             inputTarPath, sleepTime, forceOverrideNonEmptyCartridges, archiveCacheStorage);
     }
 
@@ -203,7 +202,7 @@ public class TapeDriveWorker implements Runnable {
 
                     ReadWriteTask readWriteTask =
                         new ReadWriteTask(readWriteOrder, currentTape, tapeLibraryService,
-                            tapeCatalogService, archiveReferentialRepository, readRequestReferentialRepository,
+                            tapeCatalogService, archiveReferentialRepository, accessRequestManager,
                             inputTarPath,
                             forceOverrideNonEmptyCartridges, archiveCacheStorage);
                     readWriteResult = readWriteTask.get();

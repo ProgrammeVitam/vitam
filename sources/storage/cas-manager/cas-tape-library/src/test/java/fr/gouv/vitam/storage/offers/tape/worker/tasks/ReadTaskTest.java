@@ -35,11 +35,12 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveCacheStorage;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.AccessRequestReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
@@ -86,7 +87,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ReadTaskTest {
-
     public static final String FAKE_LIBRARY = "fakeLibrary";
     public static final String FAKE_TAPE_CODE = "fakeTapeCode";
     public static final Integer SLOT_INDEX = 1;
@@ -112,7 +112,7 @@ public class ReadTaskTest {
     private TapeCatalogService tapeCatalogService;
 
     @Mock
-    private ReadRequestReferentialRepository readRequestReferentialRepository;
+    private AccessRequestManager accessRequestManager;
 
     @Mock
     private TapeReadWriteService tapeReadWriteService;
@@ -156,30 +156,28 @@ public class ReadTaskTest {
 
         // Test constructors
         assertThatThrownBy(() -> new ReadTask(null, mock(TapeCatalog.class), mock(TapeLibraryServiceImpl.class),
-            mock(TapeCatalogService.class), mock(ReadRequestReferentialRepository.class),
-            archiveCacheStorage)
+            mock(TapeCatalogService.class), mock(AccessRequestManager.class), archiveCacheStorage)
         ).withFailMessage("read order is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class), null,
-            mock(TapeCatalogService.class), mock(ReadRequestReferentialRepository.class),
-            archiveCacheStorage)
+            mock(TapeCatalogService.class), mock(AccessRequestManager.class), archiveCacheStorage)
         ).withFailMessage("tape library service is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class),
-            mock(TapeLibraryServiceImpl.class), null, mock(ReadRequestReferentialRepository.class), archiveCacheStorage)
+            mock(TapeLibraryServiceImpl.class), null, mock(AccessRequestManager.class), archiveCacheStorage)
         ).withFailMessage("tape catalog service is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class),
             mock(TapeLibraryServiceImpl.class), mock(TapeCatalogService.class), null, archiveCacheStorage)
-        ).withFailMessage("read request repository is required")
+        ).withFailMessage("Archive storage manager is required")
             .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class),
             mock(TapeLibraryServiceImpl.class), mock(TapeCatalogService.class),
-            mock(ReadRequestReferentialRepository.class), null)
+            mock(AccessRequestManager.class), null)
         ).withFailMessage("Archive cache storage is required")
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -199,7 +197,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doAnswer(
             invocationOnMock -> {
@@ -211,8 +209,6 @@ public class ReadTaskTest {
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -245,6 +241,9 @@ public class ReadTaskTest {
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
         verify(archiveCacheStorage).moveArchiveToCache(eq(fileTest), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
         verifyNoMoreInteractions(archiveCacheStorage);
+
+        verify(accessRequestManager).updateAccessRequestWhenArchiveReady(fileName);
+        verifyNoMoreInteractions(accessRequestManager);
     }
 
     @Test
@@ -267,7 +266,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doAnswer(
             invocationOnMock -> {
@@ -279,8 +278,6 @@ public class ReadTaskTest {
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -328,6 +325,9 @@ public class ReadTaskTest {
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
         verify(archiveCacheStorage).moveArchiveToCache(eq(fileTest), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
         verifyNoMoreInteractions(archiveCacheStorage);
+
+        verify(accessRequestManager).updateAccessRequestWhenArchiveReady(fileName);
+        verifyNoMoreInteractions(accessRequestManager);
     }
 
     @Test
@@ -351,15 +351,13 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -388,7 +386,7 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
         assertThat(result.getCurrentTape()).isNull();
 
-        verifyZeroInteractions(archiveCacheStorage);
+        verifyZeroInteractions(archiveCacheStorage, accessRequestManager);
     }
 
     @Test
@@ -407,15 +405,13 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -444,7 +440,7 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
 
-        verifyZeroInteractions(archiveCacheStorage);
+        verifyZeroInteractions(archiveCacheStorage, accessRequestManager);
     }
 
     @Test
@@ -463,15 +459,13 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -497,7 +491,7 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
         assertThat(result.getCurrentTape()).isNull();
 
-        verifyZeroInteractions(archiveCacheStorage);
+        verifyZeroInteractions(archiveCacheStorage, accessRequestManager);
     }
 
     @Test
@@ -521,15 +515,13 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -556,7 +548,7 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
 
-        verifyZeroInteractions(archiveCacheStorage);
+        verifyZeroInteractions(archiveCacheStorage, accessRequestManager);
     }
 
 
@@ -581,15 +573,13 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -617,7 +607,7 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
 
-        verifyZeroInteractions(archiveCacheStorage);
+        verifyZeroInteractions(archiveCacheStorage, accessRequestManager);
     }
 
 
@@ -642,15 +632,13 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -680,7 +668,7 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
         assertThat(result.getCurrentTape()).isNotNull();
 
-        verifyZeroInteractions(archiveCacheStorage);
+        verifyZeroInteractions(archiveCacheStorage, accessRequestManager);
     }
 
 
@@ -704,15 +692,13 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
             .thenReturn(new TapeResponse(StatusCode.FATAL));
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -747,9 +733,8 @@ public class ReadTaskTest {
         verify(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
         verify(archiveCacheStorage).cancelReservedArchive(eq(FAKE_FILE_BUCKET_ID), eq(fileName));
-        verifyNoMoreInteractions(archiveCacheStorage);
+        verifyNoMoreInteractions(archiveCacheStorage, accessRequestManager);
     }
-
 
     @Test
     public void testReadTaskCurrentTapeIsNullAndEligibleTapeFound() throws Exception {
@@ -765,7 +750,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doAnswer(
             invocationOnMock -> {
@@ -777,8 +762,6 @@ public class ReadTaskTest {
         when(tapeDriveService.getDriveCommandService())
             .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
@@ -822,6 +805,9 @@ public class ReadTaskTest {
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
         verify(archiveCacheStorage).moveArchiveToCache(eq(fileTest), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
         verifyNoMoreInteractions(archiveCacheStorage);
+
+        verify(accessRequestManager).updateAccessRequestWhenArchiveReady(fileName);
+        verifyNoMoreInteractions(accessRequestManager);
     }
 
     @Test
@@ -840,7 +826,7 @@ public class ReadTaskTest {
 
         ReadTask readTask =
             new ReadTask(readOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                tapeCatalogService, readRequestReferentialRepository, archiveCacheStorage);
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doThrow(IllegalStateException.class).when(archiveCacheStorage).
@@ -866,6 +852,77 @@ public class ReadTaskTest {
         verifyNoMoreInteractions(archiveCacheStorage);
 
         verify(tapeReadWriteService, never()).readFromTape(any());
-        verifyZeroInteractions(tapeDriveCommandService);
+        verifyZeroInteractions(tapeDriveCommandService, accessRequestManager);
+    }
+
+    @Test
+    public void whenAccessRequestManagerUpdateFailureThenReadOrderCompletesSuccessfully() throws Exception {
+
+        // When
+        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
+        TapeCatalog tapeCatalog = new TapeCatalog()
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentPosition(FILE_POSITION)
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE));
+
+        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
+            FILE_SIZE);
+
+        ReadTask readTask =
+            new ReadTask(readOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+
+        doAnswer(
+            invocationOnMock -> {
+                fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+                return new TapeResponse(StatusCode.OK);
+            }
+        ).when(tapeReadWriteService).readFromTape(any());
+
+        when(tapeDriveService.getDriveCommandService())
+            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService().rewind())
+            .thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
+            .thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+
+        doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
+        doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
+        doAnswer(
+            args -> {
+                assertThat(fileTest).isNotNull();
+                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+                assertThat(fileTest).exists();
+                return null;
+            }
+        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+
+        doThrow(new AccessRequestReferentialException("prb")).when(accessRequestManager)
+            .updateAccessRequestWhenArchiveReady(fileName);
+
+        doAnswer(
+            invocationOnMock -> {
+                fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+                return new TapeResponse(StatusCode.OK);
+            }
+        ).when(tapeReadWriteService).readFromTape(any());
+
+        // When
+        ReadWriteResult result = readTask.get();
+
+
+        // Then
+        assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.COMPLETED);
+
+        verify(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
+        verify(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
+        verify(archiveCacheStorage).moveArchiveToCache(eq(fileTest), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        verifyNoMoreInteractions(archiveCacheStorage);
+
+        verify(accessRequestManager).updateAccessRequestWhenArchiveReady(fileName);
+        verifyNoMoreInteractions(accessRequestManager);
     }
 }

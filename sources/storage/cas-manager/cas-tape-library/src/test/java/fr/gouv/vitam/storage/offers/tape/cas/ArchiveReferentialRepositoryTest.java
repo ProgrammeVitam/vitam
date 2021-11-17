@@ -31,10 +31,10 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,16 +42,21 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static java.util.Collections.emptySet;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ArchiveReferentialRepositoryTest {
 
-    public static final String TAPE_TAR_REFERENTIAL_COLLECTION =
+    private static final String TAPE_TAR_REFERENTIAL_COLLECTION =
         OfferCollections.TAPE_ARCHIVE_REFERENTIAL.getName() + GUIDFactory.newGUID().getId();
+    private static final int BULK_SIZE = 10;
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_TAR_REFERENTIAL_COLLECTION);
@@ -62,7 +67,7 @@ public class ArchiveReferentialRepositoryTest {
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         archiveReferentialRepository = new ArchiveReferentialRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(TAPE_TAR_REFERENTIAL_COLLECTION));
+            .getCollection(TAPE_TAR_REFERENTIAL_COLLECTION), BULK_SIZE);
     }
 
     @After
@@ -140,6 +145,64 @@ public class ArchiveReferentialRepositoryTest {
     }
 
     @Test
+    public void bulkFindEmptyList() throws Exception {
+
+        // Given
+
+        // When
+        List<TapeArchiveReferentialEntity> tarReferentialEntities = archiveReferentialRepository.bulkFind(emptySet());
+
+        // Then
+        assertThat(tarReferentialEntities).isEmpty();
+    }
+
+    @Test
+    public void bulkFind() throws Exception {
+
+        // Given
+        int nbEntries = 6;
+        for (int i = 0; i < nbEntries; i++) {
+            archiveReferentialRepository.insert(new TapeArchiveReferentialEntity(
+                "tarId" + i, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), 10L, "digest" + i, "date" + i
+            ));
+        }
+
+        // When
+        List<TapeArchiveReferentialEntity> results = archiveReferentialRepository.bulkFind(
+            IntStream.range(0, 10).mapToObj(i -> "tarId" + i).collect(Collectors.toSet())
+        );
+
+        // Then
+        assertThat(results.size()).isLessThan(BULK_SIZE);
+        assertThat(results).hasSize(nbEntries);
+        assertThat(results).extracting(TapeArchiveReferentialEntity::getArchiveId).containsExactlyInAnyOrderElementsOf(
+            IntStream.range(0, nbEntries).mapToObj(i -> "tarId" + i).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void bulkFindLargeDataSet() throws Exception {
+
+        // Given
+        int nbEntries = 21;
+        for (int i = 0; i < nbEntries; i++) {
+            archiveReferentialRepository.insert(new TapeArchiveReferentialEntity(
+                "tarId" + i, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), 10L, "digest" + i, "date" + i
+            ));
+        }
+
+        // When
+        List<TapeArchiveReferentialEntity> results = archiveReferentialRepository.bulkFind(
+            IntStream.range(0, 25).mapToObj(i -> "tarId" + i).collect(Collectors.toSet())
+        );
+
+        // Then
+        assertThat(results.size()).isGreaterThan(BULK_SIZE);
+        assertThat(results).hasSize(nbEntries);
+        assertThat(results).extracting(TapeArchiveReferentialEntity::getArchiveId).containsExactlyInAnyOrderElementsOf(
+            IntStream.range(0, nbEntries).mapToObj(i -> "tarId" + i).collect(Collectors.toSet()));
+    }
+
+    @Test
     public void updateLocationToReadyOnDiskExisting() throws Exception {
 
         // Given
@@ -208,7 +271,8 @@ public class ArchiveReferentialRepositoryTest {
             TapeLibraryOnTapeArchiveStorageLocation.class);
         assertThat(((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getTapeCode())
             .isEqualTo("tapeCode");
-        assertThat(((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getFilePosition())
+        assertThat(
+            ((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getFilePosition())
             .isEqualTo(12);
         assertThat(tarReferentialEntity.get().getLastUpdateDate()).isNotEqualTo("date1");
     }

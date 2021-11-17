@@ -26,26 +26,19 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.queue;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Optional;
-
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -56,6 +49,14 @@ import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  *
@@ -84,32 +85,54 @@ public class QueueRepositoryImpl implements QueueRepository {
     public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException {
         try {
 
-            List<Bson> filters = new ArrayList<>();
-            for (QueryCriteria criterion : criteria) {
-                switch (criterion.getOperator()) {
-                    case EQ:
-                        filters.add(Filters.eq(criterion.getField(), criterion.getValue()));
-                        break;
-                    case GT:
-                        filters.add(Filters.gt(criterion.getField(), criterion.getValue()));
-                        break;
-                    case GTE:
-                        filters.add(Filters.gte(criterion.getField(), criterion.getValue()));
-                        break;
-                    case LT:
-                        filters.add(Filters.lt(criterion.getField(), criterion.getValue()));
-                        break;
-                    case LTE:
-                        filters.add(Filters.lte(criterion.getField(), criterion.getValue()));
-                        break;
-                }
-            }
+            List<Bson> filters = criteriaToMongoFilters(criteria);
 
-            if(collection.find(Filters.and(filters)).iterator().hasNext()) {
+            if (collection.find(Filters.and(filters)).iterator().hasNext()) {
                 LOGGER.warn("Message already in queue " + JsonHandler.unprettyPrint(queueMessageEntity));
             } else {
                 Document doc = Document.parse(JsonHandler.unprettyPrint(queueMessageEntity));
                 collection.insertOne(doc);
+            }
+
+        } catch (Exception e) {
+            throw new QueueException(e);
+        }
+    }
+
+    private List<Bson> criteriaToMongoFilters(List<QueryCriteria> criteria) {
+        List<Bson> filters = new ArrayList<>();
+        for (QueryCriteria criterion : criteria) {
+            switch (criterion.getOperator()) {
+                case EQ:
+                    filters.add(Filters.eq(criterion.getField(), criterion.getValue()));
+                    break;
+                case GT:
+                    filters.add(Filters.gt(criterion.getField(), criterion.getValue()));
+                    break;
+                case GTE:
+                    filters.add(Filters.gte(criterion.getField(), criterion.getValue()));
+                    break;
+                case LT:
+                    filters.add(Filters.lt(criterion.getField(), criterion.getValue()));
+                    break;
+                case LTE:
+                    filters.add(Filters.lte(criterion.getField(), criterion.getValue()));
+                    break;
+            }
+        }
+        return filters;
+    }
+
+    @Override
+    public void tryCancelIfNotStarted(List<QueryCriteria> criteria) throws QueueException {
+        try {
+
+            List<Bson> filters = criteriaToMongoFilters(criteria);
+            filters.add(Filters.ne(QueueMessageEntity.STATE, QueueState.RUNNING.getState()));
+
+            DeleteResult deleteResult = collection.deleteOne(and(filters));
+            if (deleteResult.getDeletedCount() != 1) {
+                LOGGER.warn("Message could not be cancelled. Already running?");
             }
 
         } catch (Exception e) {

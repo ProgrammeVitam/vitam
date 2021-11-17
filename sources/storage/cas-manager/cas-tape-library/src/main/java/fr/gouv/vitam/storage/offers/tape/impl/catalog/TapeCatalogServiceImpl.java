@@ -28,9 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -48,7 +46,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import org.apache.commons.lang3.NotImplementedException;
-import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.Arrays;
@@ -269,8 +266,13 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException {
+    public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) {
         // FIXME / TODO
+        throw new NotImplementedException("Not implemented for this service");
+    }
+
+    @Override
+    public void tryCancelIfNotStarted(List<QueryCriteria> criteria) {
         throw new NotImplementedException("Not implemented for this service");
     }
 
@@ -330,14 +332,5 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
         return tapeCatalogRepository.receive(inQuery, inUpdate, messageType, usePriority);
-    }
-
-    private Document toBson(Object object) {
-        return Document.parse(JsonHandler.unprettyPrint(object));
-    }
-
-    private <T> T fromBson(Document document, Class<T> clazz)
-        throws InvalidParseOperationException {
-        return BsonHelper.fromDocumentToObject(document, clazz);
     }
 }

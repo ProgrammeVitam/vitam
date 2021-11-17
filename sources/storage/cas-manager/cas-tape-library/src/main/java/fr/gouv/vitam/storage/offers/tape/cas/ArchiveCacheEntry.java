@@ -24,53 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.tape.exception;
+package fr.gouv.vitam.storage.offers.tape.cas;
 
-public enum ReadWriteErrorCode {
-    INTERNAL_ERROR_SERVER,
-    TAPE_NOT_FOUND_IN_CATALOG,
-    NO_EMPTY_SLOT_FOUND,
-    KO_TAPE_IS_OUTSIDE,
-    /**
-     * Previous location should not be a drive, but a slot or mailbox
-     * Current location should not be null
-     */
-    TAPE_LOCATION_CONFLICT_ON_LOAD,
-    TAPE_LOCATION_CONFLICT_ON_UNLOAD,
-    FILE_NOT_FOUND,
-    NULL_CURRENT_TAPE,
-    KO_DB_PERSIST,
-    KO_ON_LOAD_TAPE,
-    KO_ON_UNLOAD_TAPE,
-    KO_ON_WRITE_TO_TAPE, // TODO CloseIncident Tape
-    KO_ON_REWIND_TAPE,
-    KO_ON_REWIND_FSF_BSF_TAPE,
-    /**
-     * Tape is full
-     */
-    KO_ON_END_OF_TAPE,
+import com.google.common.base.Objects;
 
-    /**
-     * Ko on move to end of data according to file count of tape catalog
-     */
-    KO_ON_GOTO_FILE_COUNT,
+public class ArchiveCacheEntry {
+    private final String fileBucketId;
+    private final String tarId;
 
-    KO_ON_STATUS,
-    KO_ON_LOAD_THEN_STATUS,
-    KO_ON_UNLOAD_THEN_STATUS,
-    KO_UNKNOWN_CURRENT_POSITION,
-    KO_ON_READ_FROM_TAPE,
-    KO_LABEL_DISCORDING_NOT_EMPTY_TAPE,
-    KO_LABEL_DISCORDING,
-    KO_REWIND_BEFORE_FORCE_OVERRIDE_NON_EMPTY_TAPE,
-    KO_ON_READ_LABEL,
-    TAPE_LOCATION_UNKNOWN,
-    KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT,
-    KO_ON_GO_TO_POSITION,
-    KO_REWIND_BEFORE_UNLOAD_TAPE,
-    KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER,
-    KO_ON_WRITE_TO_FS,
-    KO_ON_MOVE_TO_CACHE,
-    KO_TAPE_IS_BUSY,
-    KO_TAPE_CONFLICT_STATE
+    public ArchiveCacheEntry(String fileBucketId, String tarId) {
+        this.fileBucketId = fileBucketId;
+        this.tarId = tarId;
+    }
+
+    public String getFileBucketId() {
+        return fileBucketId;
+    }
+
+    public String getTarId() {
+        return tarId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ArchiveCacheEntry archiveCacheEntry = (ArchiveCacheEntry) o;
+        return Objects.equal(fileBucketId, archiveCacheEntry.fileBucketId) &&
+            Objects.equal(tarId, archiveCacheEntry.tarId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(fileBucketId, tarId);
+    }
+
+    @Override
+    public String toString() {
+        return fileBucketId + "/" + tarId;
+    }
 }
