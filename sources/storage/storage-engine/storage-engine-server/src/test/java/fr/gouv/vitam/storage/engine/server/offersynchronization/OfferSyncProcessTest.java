@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
@@ -59,6 +60,7 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,9 +71,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -79,11 +83,15 @@ import static org.mockito.Mockito.verify;
 @RunWithCustomExecutor
 public class OfferSyncProcessTest {
 
+    private static final String STRATEGY = VitamConfiguration.getDefaultStrategy();
     private static final String SOURCE = "source";
     private static final String TARGET = "target";
     private static final DataCategory DATA_CATEGORY = DataCategory.UNIT;
     private static final int TENANT_ID = 2;
-    private static final String CONTAINER = "2_unit";
+    private static final String CONTAINER_1 = "2_unit";
+    private static final String CONTAINER_2 = "2_object";
+    public static final String ACCESS_REQUEST_1 = "accessRequest1";
+    public static final String ACCESS_REQUEST_2 = "accessRequest2";
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
@@ -91,7 +99,6 @@ public class OfferSyncProcessTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
 
     @Mock
     private RestoreOfferBackupService restoreOfferBackupService;
@@ -109,7 +116,6 @@ public class OfferSyncProcessTest {
     public static void beforeClass() {
         executorService = Executors.newFixedThreadPool(4, VitamThreadFactory.getInstance());
     }
-
 
     @AfterClass
     public static void afterClass() {
@@ -138,7 +144,7 @@ public class OfferSyncProcessTest {
                 .collect(Collectors.toList());
 
         }).when(restoreOfferBackupService).getListing(
-            eq(VitamConfiguration.getDefaultStrategy()), eq(SOURCE), eq(DATA_CATEGORY), any(), anyInt(), eq(Order.ASC));
+            eq(STRATEGY), eq(SOURCE), eq(DATA_CATEGORY), any(), anyInt(), eq(Order.ASC));
 
         doAnswer((args) -> {
 
@@ -150,7 +156,8 @@ public class OfferSyncProcessTest {
             return Response.ok(data).build();
 
         }).when(distribution)
-            .getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()),anyString(), anyString(), eq(DATA_CATEGORY),
+            .getContainerByCategory(eq(STRATEGY), anyString(), anyString(),
+                eq(DATA_CATEGORY),
                 eq(SOURCE));
 
         doAnswer((args) -> {
@@ -162,7 +169,7 @@ public class OfferSyncProcessTest {
             return null;
 
         }).when(distribution)
-            .storeDataInOffers(eq(VitamConfiguration.getDefaultStrategy()), eq(OfferSyncProcess.OFFER_SYNC_ORIGIN),
+            .storeDataInOffers(eq(STRATEGY), eq(OfferSyncProcess.OFFER_SYNC_ORIGIN),
                 anyString(), eq(DATA_CATEGORY), eq(null),
                 eq(singletonList(TARGET)), any());
 
@@ -177,7 +184,7 @@ public class OfferSyncProcessTest {
             return null;
 
         }).when(distribution)
-            .deleteObjectInOffers(eq(VitamConfiguration.getDefaultStrategy()), any(), eq(singletonList(TARGET)));
+            .deleteObjectInOffers(eq(STRATEGY), any(), eq(singletonList(TARGET)));
     }
 
     @Test
@@ -186,11 +193,11 @@ public class OfferSyncProcessTest {
 
         // Given
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 10, 1, 1, 1);
+            distribution, 10, 1, 1, 1, 1);
 
         // When
         instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+            .synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY,
                 null);
 
         // Then
@@ -201,6 +208,7 @@ public class OfferSyncProcessTest {
             .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(),
                 any());
         verify(distribution, never()).deleteObjectInOffers(any(), any(), any());
+        verify(distribution, never()).createAccessRequestIfRequired(any(), any(), any(), any());
     }
 
     @Test
@@ -211,12 +219,12 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOffer();
 
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 1, 1, 1);
+            distribution, 100, 1, 1, 1, 1);
+        doReturn(Optional.empty()).when(distribution).createAccessRequestIfRequired(eq(STRATEGY), eq(SOURCE),
+            eq(DATA_CATEGORY), anyList());
 
         // When
-        instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
-                null);
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -228,6 +236,47 @@ public class OfferSyncProcessTest {
         verify(distribution, times(4))
             .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(), any());
         verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file4", "file6", "file2", "file3"));
+        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any());
+        verify(distribution, never()).removeAccessRequest(any(), any(), any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void synchronizeFromScratchSingleBatchAsyncOffer() throws Exception {
+
+        // Given
+        givenDataSetInSourceOffer();
+
+        OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
+            distribution, 100, 1, 1, 1, 1);
+        doReturn(Optional.of(ACCESS_REQUEST_1)).when(distribution)
+            .createAccessRequestIfRequired(eq(STRATEGY), eq(SOURCE),
+                eq(DATA_CATEGORY), anyList());
+        doReturn(
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.READY)
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+
+        // When
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, null);
+
+        // Then
+        assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
+        verifySynchronizationStatus(instance, null, 12L);
+
+        // First batch [sequence 1..12] :
+        //  - Written   : file2, file3, file4, file6
+        //  - Deleted   : file1, file5
+        verify(distribution, times(4))
+            .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(), any());
+        verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file4", "file6", "file2", "file3"));
+        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1);
     }
 
     @Test
@@ -238,11 +287,13 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOffer();
 
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 10, 1, 1, 1);
+            distribution, 10, 1, 1, 1, 1);
+        doReturn(Optional.empty()).when(distribution).createAccessRequestIfRequired(eq(STRATEGY), eq(SOURCE),
+            eq(DATA_CATEGORY), anyList());
 
         // When
         instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+            .synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY,
                 null);
 
         // Then
@@ -260,25 +311,83 @@ public class OfferSyncProcessTest {
         verify(distribution, times(4))
             .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(), any());
         verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file4", "file5", "file2", "file3"));
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file6"));
+        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any());
+        verify(distribution, never()).removeAccessRequest(any(), any(), any());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void synchronizeFromOffsetWithNewChanges() throws Exception {
+    public void synchronizeFromScratchMultiBatchAsyncOffer() throws Exception {
+
+        // Given
+        givenDataSetInSourceOffer();
+
+        OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
+            distribution, 10, 1, 1, 1, 1);
+        doReturn(Optional.of(ACCESS_REQUEST_1)).when(distribution).createAccessRequestIfRequired(
+            STRATEGY, SOURCE, DATA_CATEGORY, List.of("file4", "file5", "file2", "file3"));
+        doReturn(Optional.of(ACCESS_REQUEST_2)).when(distribution).createAccessRequestIfRequired(
+            STRATEGY, SOURCE, DATA_CATEGORY, List.of("file6"));
+        doReturn(
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.READY)
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+
+        doReturn(
+            Map.of(ACCESS_REQUEST_2, AccessRequestStatus.NOT_READY),
+            Map.of(ACCESS_REQUEST_2, AccessRequestStatus.READY)
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_2));
+
+        // When
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, null);
+
+        // Then
+        assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
+        verifySynchronizationStatus(instance, null, 12L);
+
+        // First batch [sequence 1..10] :
+        //  - Written   : file2, file3, file4
+        //  - Deleted   : file1
+        //  - Not found : file 5
+        // Second batch [sequence 11..12] :
+        //  - Written   : file6
+        //  - Deleted   : file5 (silently)
+
+        verify(distribution, times(4))
+            .storeDataInOffers(anyString(), anyString(), anyString(), any(), any(), any(), any());
+        verify(distribution, times(2)).deleteObjectInOffers(any(), any(), any());
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file4", "file5", "file2", "file3"));
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file6"));
+
+        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1);
+
+        verify(distribution, times(2)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_2));
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_2);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void synchronizeFromOffsetWithNewChanges() {
 
         /*
          * Synchronize part 1
          */
 
         // Given
-        givenDataSetInSourceOfferPart1();
+        givenDataSetInSourceOfferPart1(CONTAINER_1);
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 1, 1, 1);
+            distribution, 100, 1, 1, 1, 1);
 
         // When
-        instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
-                null);
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -289,12 +398,10 @@ public class OfferSyncProcessTest {
          */
 
         // Given
-        givenDataSetInSourceOfferPart2();
+        givenDataSetInSourceOfferPart2(CONTAINER_1);
 
         // When
-        instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
-                3L);
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, 3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, 12L);
@@ -303,21 +410,19 @@ public class OfferSyncProcessTest {
 
     @Test
     @RunWithCustomExecutor
-    public void synchronizeFromOffsetWithoutNewChanges() throws Exception {
+    public void synchronizeFromOffsetWithoutNewChanges() {
 
         /*
          * Synchronize part 1
          */
 
         // Given
-        givenDataSetInSourceOfferPart1();
+        givenDataSetInSourceOfferPart1(CONTAINER_1);
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 1, 1, 1);
+            distribution, 100, 1, 1, 1, 1);
 
         // When
-        instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
-                null);
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -330,15 +435,12 @@ public class OfferSyncProcessTest {
         // Given not updates
 
         // When
-        instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
-                3L);
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, DATA_CATEGORY, 3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, null);
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -346,7 +448,9 @@ public class OfferSyncProcessTest {
         // Given
         givenDataSetInSourceOffer();
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 1, 1, 1);
+            distribution, 100, 1, 1, 1, 1);
+        doReturn(Optional.empty()).when(distribution).createAccessRequestIfRequired(eq(STRATEGY), eq(SOURCE),
+            eq(DATA_CATEGORY), anyList());
 
         // When
         List<OfferPartialSyncItem> items = new ArrayList<>();
@@ -356,8 +460,7 @@ public class OfferSyncProcessTest {
         offerPartialSyncItem.setFilenames(Lists.newArrayList("file2", "file6", "file5"));
 
         items.add(offerPartialSyncItem);
-        instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items);
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, items);
 
         // Then
         assertThat(instance.isRunning()).isFalse();
@@ -387,15 +490,77 @@ public class OfferSyncProcessTest {
                 forClass(List.class).capture(), forClass(Response.class).capture());
 
         assertThat(fileName.getAllValues()).contains("file2", "file6");
-
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file2", "file6", "file5"));
+        verify(distribution, never()).checkAccessRequestStatuses(any(), any(), any());
+        verify(distribution, never()).removeAccessRequest(any(), any(), any());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void partial_synchronize_existing_and_delete_not_found_from_async_offer() throws StorageException {
+        // Given
+        givenDataSetInSourceOffer();
+        OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
+            distribution, 100, 1, 1, 1, 1);
+        doReturn(Optional.of(ACCESS_REQUEST_1)).when(distribution).createAccessRequestIfRequired(
+            STRATEGY, SOURCE, DATA_CATEGORY, List.of("file2", "file6", "file5"));
+        doReturn(
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.NOT_READY),
+            Map.of(ACCESS_REQUEST_1, AccessRequestStatus.READY)
+        ).when(distribution).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+
+        // When
+        List<OfferPartialSyncItem> items = new ArrayList<>();
+        OfferPartialSyncItem offerPartialSyncItem = new OfferPartialSyncItem();
+        offerPartialSyncItem.setContainer(DATA_CATEGORY.getCollectionName());
+        offerPartialSyncItem.setTenantId(TENANT_ID);
+        offerPartialSyncItem.setFilenames(Lists.newArrayList("file2", "file6", "file5"));
+
+        items.add(offerPartialSyncItem);
+        instance.synchronize(executorService, SOURCE, TARGET, STRATEGY, items);
+
+        // Then
+        assertThat(instance.isRunning()).isFalse();
+        assertThat(instance.getOfferSyncStatus().getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(instance.getOfferSyncStatus().getStartDate()).isNotNull();
+        assertThat(instance.getOfferSyncStatus().getEndDate()).isNotNull();
+        assertThat(instance.getOfferSyncStatus().getSourceOffer()).isEqualTo(SOURCE);
+        assertThat(instance.getOfferSyncStatus().getTargetOffer()).isEqualTo(TARGET);
+        assertThat(instance.getOfferSyncStatus().getRequestId())
+            .isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
+
+        assertThat(targetDataFiles).containsKeys("file2", "file6");
+
+        ArgumentCaptor<DataContext> contextArgumentCaptor = forClass(DataContext.class);
+        ArgumentCaptor<String> strategyCaptor = forClass(String.class);
+        ArgumentCaptor<List<String>> offersCaptor = forClass(List.class);
+        verify(distribution, times(1))
+            .deleteObjectInOffers(strategyCaptor.capture(), contextArgumentCaptor.capture(), offersCaptor.capture());
+        assertThat(contextArgumentCaptor.getValue().getObjectId()).isEqualTo("file5");
+
+
+        ArgumentCaptor<String> fileName = forClass(String.class);
+
+        verify(distribution, times(2))
+            .storeDataInOffers(forClass(String.class).capture(), forClass(String.class).capture(), fileName.capture(),
+                forClass(DataCategory.class).capture(), forClass(String.class).capture(),
+                forClass(List.class).capture(), forClass(Response.class).capture());
+
+        assertThat(fileName.getAllValues()).contains("file2", "file6");
+        verify(distribution, times(1)).createAccessRequestIfRequired(STRATEGY, SOURCE, DATA_CATEGORY,
+            List.of("file2", "file6", "file5"));
+
+        verify(distribution, times(3)).checkAccessRequestStatuses(STRATEGY, SOURCE, List.of(ACCESS_REQUEST_1));
+        verify(distribution, times(1)).removeAccessRequest(STRATEGY, SOURCE, ACCESS_REQUEST_1);
+    }
 
     @Test
     @RunWithCustomExecutor
     public void partial_synchronize_delete_in_target_files_not_in_source_offer() throws Exception {
         // Given
-        givenDataSetInSourceOfferPart1();
+        givenDataSetInSourceOfferPart1(CONTAINER_1);
         givenDataSetInTargetOffer();
 
         assertThat(targetDataFiles).hasSize(1);
@@ -403,7 +568,7 @@ public class OfferSyncProcessTest {
 
 
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 1, 1, 1);
+            distribution, 100, 1, 1, 1, 1);
 
         // When
         List<OfferPartialSyncItem> items = new ArrayList<>();
@@ -414,7 +579,7 @@ public class OfferSyncProcessTest {
 
         items.add(offerPartialSyncItem);
         instance
-            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items);
+            .synchronize(executorService, SOURCE, TARGET, STRATEGY, items);
 
         // Then
         assertThat(instance.isRunning()).isFalse();
@@ -447,39 +612,39 @@ public class OfferSyncProcessTest {
     }
 
     private void givenDataSetInSourceOffer() {
-        givenDataSetInSourceOfferPart1();
-        givenDataSetInSourceOfferPart2();
+        givenDataSetInSourceOfferPart1(CONTAINER_1);
+        givenDataSetInSourceOfferPart2(CONTAINER_1);
     }
 
-    private void givenDataSetInSourceOfferPart1() {
-        givenFileWriteOrder("file1", 1L, "data1".getBytes());
-        givenFileWriteOrder("file2", 2L, "data2".getBytes());
+    private void givenDataSetInSourceOfferPart1(String container) {
+        givenFileWriteOrder(container, "file1", 1L, "data1".getBytes());
+        givenFileWriteOrder(container, "file2", 2L, "data2".getBytes());
     }
 
     private void givenDataSetInTargetOffer() {
         targetDataFiles.put("file11", "data11".getBytes());
     }
 
-    private void givenDataSetInSourceOfferPart2() {
-        givenFileDeleteOrder("file1", 3L);
-        givenFileWriteOrder("file2", 4L, "data2-v2".getBytes());
-        givenFileWriteOrder("file3", 5L, "data3".getBytes());
-        givenFileWriteOrder("file2", 6L, "data2-v3".getBytes());
-        givenFileWriteOrder("file4", 7L, "data4".getBytes());
-        givenFileWriteOrder("file4", 8L, "data4-v2".getBytes());
-        givenFileWriteOrder("file2", 9L, "data2-v4".getBytes());
-        givenFileWriteOrder("file5", 10L, "data5".getBytes());
-        givenFileWriteOrder("file6", 11L, "data6".getBytes());
-        givenFileDeleteOrder("file5", 12L);
+    private void givenDataSetInSourceOfferPart2(String container) {
+        givenFileDeleteOrder("file1", 3L, container);
+        givenFileWriteOrder(container, "file2", 4L, "data2-v2".getBytes());
+        givenFileWriteOrder(container, "file3", 5L, "data3".getBytes());
+        givenFileWriteOrder(container, "file2", 6L, "data2-v3".getBytes());
+        givenFileWriteOrder(container, "file4", 7L, "data4".getBytes());
+        givenFileWriteOrder(container, "file4", 8L, "data4-v2".getBytes());
+        givenFileWriteOrder(container, "file2", 9L, "data2-v4".getBytes());
+        givenFileWriteOrder(container, "file5", 10L, "data5".getBytes());
+        givenFileWriteOrder(container, "file6", 11L, "data6".getBytes());
+        givenFileDeleteOrder("file5", 12L, container);
     }
 
-    private void givenFileWriteOrder(String filename, long sequence, byte[] bytes) {
-        sourceOfferLogs.add(new OfferLog(CONTAINER, filename, OfferLogAction.WRITE).setSequence(sequence));
+    private void givenFileWriteOrder(String container, String filename, long sequence, byte[] bytes) {
+        sourceOfferLogs.add(new OfferLog(container, filename, OfferLogAction.WRITE).setSequence(sequence));
         sourceDataFiles.put(filename, bytes);
     }
 
-    private void givenFileDeleteOrder(String filename, long sequence) {
-        sourceOfferLogs.add(new OfferLog(CONTAINER, filename, OfferLogAction.DELETE).setSequence(sequence));
+    private void givenFileDeleteOrder(String filename, long sequence, String container) {
+        sourceOfferLogs.add(new OfferLog(container, filename, OfferLogAction.DELETE).setSequence(sequence));
         sourceDataFiles.remove(filename);
     }
 

@@ -55,12 +55,12 @@ public class OfferSyncService implements AutoCloseable {
     private final RestoreOfferBackupService restoreOfferBackupService;
     private final StorageDistribution distribution;
     private final int bulkSize;
-    private final int offerSyncThreadPoolSize;
     private final int offerSyncNumberOfRetries;
     private final int offerSyncFirstAttemptWaitingTime;
     private final int offerSyncWaitingTime;
+    private final int offerSyncAccessRequestCheckWaitingTime;
 
-    private ExecutorService executor;
+    private final ExecutorService executor;
     private final AtomicReference<OfferSyncProcess> lastOfferSyncService = new AtomicReference<>(null);
 
     /**
@@ -74,7 +74,8 @@ public class OfferSyncService implements AutoCloseable {
             storageConfiguration.getOfferSyncThreadPoolSize(),
             storageConfiguration.getOfferSyncNumberOfRetries(),
             storageConfiguration.getOfferSyncFirstAttemptWaitingTime(),
-            storageConfiguration.getOfferSyncWaitingTime()
+            storageConfiguration.getOfferSyncWaitingTime(),
+            storageConfiguration.getOfferSyncAccessRequestCheckWaitingTime()
         );
     }
 
@@ -85,14 +86,14 @@ public class OfferSyncService implements AutoCloseable {
     OfferSyncService(
         RestoreOfferBackupService restoreOfferBackupService,
         StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries,
-        int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime) {
+        int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime, int offerSyncAccessRequestCheckWaitingTime) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
         this.bulkSize = bulkSize;
-        this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
         this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
         this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
         this.offerSyncWaitingTime = offerSyncWaitingTime;
+        this.offerSyncAccessRequestCheckWaitingTime = offerSyncAccessRequestCheckWaitingTime;
         this.executor = ExecutorUtils.createScalableBatchExecutorService(offerSyncThreadPoolSize);
     }
 
@@ -175,7 +176,7 @@ public class OfferSyncService implements AutoCloseable {
 
     OfferSyncProcess createOfferSyncProcess() {
         return new OfferSyncProcess(restoreOfferBackupService, distribution, bulkSize, offerSyncNumberOfRetries,
-            offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime);
+            offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime, offerSyncAccessRequestCheckWaitingTime);
     }
 
     void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId, DataCategory dataCategory,

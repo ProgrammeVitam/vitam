@@ -47,6 +47,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private int offerSyncNumberOfRetries = 3;
     private int offerSyncFirstAttemptWaitingTime = 15;
     private int offerSyncWaitingTime = 30;
+    private int offerSyncAccessRequestCheckWaitingTime = 10;
     private int storageLogBackupThreadPoolSize = 16;
     private int storageLogTraceabilityThreadPoolSize = 16;
 
@@ -229,6 +230,14 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     public void setOfferSyncWaitingTime(int offerSyncWaitingTime) {
         this.offerSyncWaitingTime = offerSyncWaitingTime;
+    }
+
+    public int getOfferSyncAccessRequestCheckWaitingTime() {
+        return offerSyncAccessRequestCheckWaitingTime;
+    }
+
+    public void setOfferSyncAccessRequestCheckWaitingTime(int offerSyncAccessRequestCheckWaitingTime) {
+        this.offerSyncAccessRequestCheckWaitingTime = offerSyncAccessRequestCheckWaitingTime;
     }
 
     public int getStorageLogBackupThreadPoolSize() {

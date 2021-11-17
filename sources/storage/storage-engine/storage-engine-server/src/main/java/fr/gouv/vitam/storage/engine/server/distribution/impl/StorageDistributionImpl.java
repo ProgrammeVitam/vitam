@@ -538,17 +538,17 @@ public class StorageDistributionImpl implements StorageDistribution {
     public Optional<String> createAccessRequestIfRequired(String strategyId, String optionalOfferId,
         DataCategory dataCategory, List<String> objectsNames) throws StorageException {
 
+        if (objectsNames.isEmpty()) {
+            LOGGER.debug("No access request required. Empty objectsNames");
+            return Optional.empty();
+        }
+
         OfferReference offerReference = selectFirstOffer(strategyId, optionalOfferId);
 
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId(), false);
 
         if (!offer.isAsyncRead()) {
             LOGGER.debug("Offer {} is synchronous, no access request required", offer.getId());
-            return Optional.empty();
-        }
-
-        if (objectsNames.isEmpty()) {
-            LOGGER.debug("No access request required. Empty objectsNames");
             return Optional.empty();
         }
 
