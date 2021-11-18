@@ -478,6 +478,16 @@ vitam:
         baseuri: "workspace"
         https_enabled: false
         secret_platform: "true"
+        context_path: "/workspace"
+    workspace_collect:
+        vitam_component: workspace-collect
+        host: "workspace-collect.service.{{ consul_domain }}"
+        port_service: 8291
+        port_admin: 28291
+        baseuri: "workspace-collect"
+        https_enabled: false
+        secret_platform: "true"
+        context_path: "/workspace-collect"
 
 # for functional-administration, manage master/slave tenant configuration
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#passage-des-identifiants-des-referentiels-en-mode-esclave

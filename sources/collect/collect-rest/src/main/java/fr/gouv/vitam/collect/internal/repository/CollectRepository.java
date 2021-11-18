@@ -78,7 +78,7 @@ public class CollectRepository{
     public Optional<CollectModel> findCollect(String id)
         throws InvalidParseOperationException {
         FindIterable<Document> models =
-            collectCollection.find(Filters.eq("id", id));
+            collectCollection.find(Filters.eq("Id", id));
         Document first = models.first();
         if (first == null) {
             return Optional.empty();

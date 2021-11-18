@@ -72,6 +72,7 @@ hosts_metadata
 hosts_functional_administration
 hosts_logbook
 hosts_workspace
+hosts_workspace_collect
 hosts_storage_engine
 hosts_security_internal
 
@@ -85,6 +86,9 @@ localhost
 localhost
 
 [hosts_workspace]
+localhost
+
+[hosts_workspace_collect]
 localhost
 
 [hosts_ingest_internal]

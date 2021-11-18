@@ -27,39 +27,80 @@
 package fr.gouv.vitam.collect.internal.resource;
 
 import fr.gouv.vitam.collect.internal.model.CollectModel;
+import fr.gouv.vitam.collect.internal.server.CollectConfiguration;
 import fr.gouv.vitam.collect.internal.service.CollectService;
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.Optional;
 
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.UNITS_ID_OBJECTS_READ_BINARY;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Path("/v1/transaction")
 public class TransactionResource {
     private CollectService collectService;
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private static final String FOLDER_SIP = "SIP";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionResource.class);
 
-    public TransactionResource(CollectService collectService) {
+    public TransactionResource(CollectService collectService, CollectConfiguration collectConfiguration) {
         this.collectService = collectService;
+        WorkspaceClientFactory.changeMode(collectConfiguration.getWorkspaceUrl());
+        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
     }
 
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = UNITS_ID_OBJECTS_READ_BINARY, description = "Télecharger un objet")
     public Response initTransaction() throws InvalidParseOperationException {
         String requestId = collectService.createRequestId();
         collectService.createCollect(new CollectModel(requestId));
         RequestResponseOK<String> transactionResponse = new RequestResponseOK<String>()
                 .addResult(requestId).setHttpCode(Response.Status.OK.getStatusCode());
-
         return Response.status(Response.Status.OK).entity(transactionResponse).build();
+    }
+
+
+    @Path("/{transactionId}/upload")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response upload(@PathParam("transactionId") String transactionId, InputStream uploadedInputStream) throws InvalidParseOperationException {
+        Optional<CollectModel> collectModel = collectService.findCollect(transactionId);
+        if (collectModel.isEmpty()){
+            LOGGER.debug("Unable to find transaction Id");
+            return Response.status(Response.Status.BAD_REQUEST).entity(null).build();
+        }
+        pushSipStreamToWorkspace(uploadedInputStream, collectModel.get().getId());
+        return Response.status(Response.Status.OK).entity(null).build();
+    }
+
+
+    public void pushSipStreamToWorkspace(final InputStream uploadedInputStream, String containerName) {
+
+        LOGGER.debug("Try to push stream to workspace...");
+        // call workspace
+        MediaType mediaType = CommonMediaType.valueOf("application/zip");
+        String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, FOLDER_SIP, archiveMimeType, uploadedInputStream);
+        } catch (ContentAddressableStorageException e) {
+            e.printStackTrace();
+        } finally {
+            StreamUtils.closeSilently(uploadedInputStream);
+        }
+        LOGGER.debug(" -> push stream to workspace finished");
     }
 }

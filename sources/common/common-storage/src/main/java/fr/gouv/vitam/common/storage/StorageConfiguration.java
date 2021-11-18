@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.storage;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 import fr.gouv.vitam.common.storage.swift.VitamCustomizedHeader;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
@@ -515,4 +516,10 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     public void setCustomHeaders(List<VitamCustomizedHeader> customHeaders) {
         this.customHeaders = customHeaders;
     }
+
+    @Override
+    public String getBaseUrl() {
+        return contextPath;
+    }
+
 }

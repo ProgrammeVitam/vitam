@@ -26,7 +26,31 @@
  */
 package fr.gouv.vitam.collect.internal.server;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
 public class CollectConfiguration extends DbConfigurationImpl {
+
+    private String workspaceUrl;
+    /**
+     * Must return the value of a 'workspaceUrl' attribute
+     *
+     * @return the workspaceUrl value
+     */
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
+
+    /**
+     * @param workspaceUrl the workspace Url to set
+     * @return this
+     * @throws IllegalArgumentException if workspaceUrl is null or empty
+     */
+    public CollectConfiguration setWorkspaceUrl(String workspaceUrl) {
+        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER,
+                workspaceUrl);
+        this.workspaceUrl = workspaceUrl;
+        return this;
+    }
 }

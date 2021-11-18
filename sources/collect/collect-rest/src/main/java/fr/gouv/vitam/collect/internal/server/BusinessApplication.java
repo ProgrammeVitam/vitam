@@ -82,7 +82,7 @@ public class BusinessApplication extends ConfigurationApplication {
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
             singletons.add(new ApplicationStatusResource());
-            singletons.add(new TransactionResource(collectService));
+            singletons.add(new TransactionResource(collectService, configuration));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

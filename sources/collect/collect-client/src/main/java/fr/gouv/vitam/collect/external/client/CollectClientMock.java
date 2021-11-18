@@ -24,31 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.model;
+package fr.gouv.vitam.collect.external.client;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.external.client.AbstractMockClient;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+
+import javax.ws.rs.core.Response;
+import java.util.UUID;
 
 /**
- * model for identity
+ * Collect Client implementation for integration tests
  */
-public class CollectModel {
+public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
-    @JsonProperty("Id")
-    private String id;
-
-    public CollectModel() {
-    }
-
-    public CollectModel(String requestId) {
-        this.id = requestId;
-    }
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    @Override
+    public RequestResponseOK<String> initTransaction() throws InvalidParseOperationException {
+        return new RequestResponseOK<String>()
+            .setHttpCode(Response.Status.OK.getStatusCode())
+            .addResult(UUID.randomUUID().toString());
     }
 }

@@ -24,31 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.model;
+package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 
-/**
- * model for identity
- */
-public class CollectModel {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @JsonProperty("Id")
-    private String id;
+public class CollectStep {
 
-    public CollectModel() {
+    private String transactionGuuid;
+    private final World world;
+
+    public CollectStep(World world) {
+        this.world = world;
     }
 
-    public CollectModel(String requestId) {
-        this.id = requestId;
+    @Given("^un utilisateur possédant le rôle (.*)$")
+    public void checkUserAcces(String access) {
+        //TODO : To complete after define Collect user access
+        //Nothing for the moment
     }
 
-
-    public String getId() {
-        return id;
+    @When("^j'initialise une transaction$")
+    public void initTransaction() throws InvalidParseOperationException {
+        RequestResponseOK<String> response = world.getCollectClient().initTransaction();
+        assertThat(response.isOk()).isTrue();
+        transactionGuuid = response.getFirstResult();
     }
 
-    public void setId(String id) {
-        this.id = id;
+    @Then("^le service de collecte me retourne le guuid de la transaction$")
+    public void checkTransactionGuuid() {
+        assertThat(transactionGuuid).isNotNull();
     }
 }

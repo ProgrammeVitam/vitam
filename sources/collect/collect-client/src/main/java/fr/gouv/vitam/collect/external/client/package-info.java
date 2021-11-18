@@ -24,31 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.model;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * model for identity
+ * Provides Collect client interface, factory and implementations.
  */
-public class CollectModel {
-
-    @JsonProperty("Id")
-    private String id;
-
-    public CollectModel() {
-    }
-
-    public CollectModel(String requestId) {
-        this.id = requestId;
-    }
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-}
+package fr.gouv.vitam.collect.external.client;
