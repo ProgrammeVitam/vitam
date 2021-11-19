@@ -161,8 +161,8 @@ public class ProcessDistributorImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        VitamConfiguration.setWorkerBulkSize(10);
-        VitamConfiguration.setDistributeurBatchSize(100);
+        VitamConfiguration.setWorkerBulkSize(16);
+        VitamConfiguration.setDistributeurBatchSize(800);
     }
 
     @Before
@@ -811,18 +811,18 @@ public class ProcessDistributorImplTest {
         assertThat(is).isNotNull();
         assertThat(is.getStatusMeter()).isNotNull();
 
-        int treatedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
-        AtomicLong processedElements = step.getElementProcessed();
-        assertThat(treatedElements).isEqualTo(processedElements.get());
+        int processedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
+        assertThat(processedElements).isEqualTo(step.getElementProcessed().get());
         // Why 10, because to execute in the file ingestLevelStack we have
         // "level_0" : [], Execute 0
         // "level_1" : [ "a" ], Execute 1
         // "level_2" : [ "a", "b" ], Execute 2
         // "level_3" : [ "a", "b", "c" ], Execute 3
         // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] when executing "d" we fire the cancel action so Execute 4 ("a","b","c","d")
-        // Total = 0 + 1 + 2 + 3 + 4 = 10
-        // Why is greater or equal to 10 ? because while we change PauseOrCancelAction, one or two more element can be treated
-        assertThat(processedElements.get()).isBetween(10L, 26L);
+        // Total = 0 + 1 + 2 + 3 + [at least 1, at most 20] = [7, 26]
+        // At least 1 item (the "d" task" that triggerred the cancel)
+        // At most 20 items (distributor batch size)
+        assertThat(processedElements).isBetween(7, 26);
     }
 
     private boolean matcher(DescriptionStep descriptionStep, String elementName) {
