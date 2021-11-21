@@ -430,8 +430,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             int nextOffset = Math.min(sizeList, offset + batchSize);
             List<String> subList = objectsList.subList(offset, nextOffset);
-            List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
-            List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
 
             /*
              * When server stop and in the batch of elements we have remaining elements (not yet processed)
@@ -448,8 +446,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 remainingElementsFromRecover.clear();
             }
 
-            prepareCurrentWorkerTaskAndCompletableLists(workerParameters, step, tenantId, requestId,
-                contractId, contextId, applicationId, bulkSize, subList, completableFutureList, currentWorkerTaskList);
+            List<WorkerTask> workerTaskList = createWorkerTasks(workerParameters, step, tenantId, requestId,
+                contractId, contextId, applicationId, bulkSize, subList);
+
+            List<CompletableFuture<ItemStatus>> completableFutureList =
+                scheduleWorkerTasks(workerParameters, workerTaskList);
 
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
@@ -463,7 +464,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                  * so we have to get the corresponding elements in order to execute them after restart
                  */
                 List<String> remainingElements = new ArrayList<>();
-                currentWorkerTaskList.forEach(e -> {
+                workerTaskList.forEach(e -> {
                     if (!e.isCompleted()) {
                         remainingElements.addAll(e.getObjectNameList());
                     }
@@ -626,9 +627,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             int nextOffset = offset + globalBatchSize;
             List<JsonLineModel> distributionList = new ArrayList<>();
-            List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
-            List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
-
             for (int i = offset; i < nextOffset && linesPeekIterator.hasNext(); i++) {
 
                 JsonLineModel currentJsonLineModel = readJsonLineModelFromBufferFromString(linesPeekIterator.next());
@@ -682,9 +680,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 remainingElementsFromRecover.clear();
             }
 
-            prepareCurrentWorkerTaskAndCompletableListsOnStream(workerParameters, step, tenantId, requestId, contractId,
-                contextId, applicationId, bulkSize, distributionList, completableFutureList,
-                currentWorkerTaskList);
+            List<WorkerTask> workerTaskList =
+                createWorkerTasksOnStream(workerParameters, step, tenantId, requestId, contractId,
+                    contextId, applicationId, bulkSize, distributionList);
+
+            List<CompletableFuture<ItemStatus>> completableFutureList =
+                scheduleWorkerTasks(workerParameters, workerTaskList);
 
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
@@ -698,7 +699,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                  * so we have to get the corresponding elements in order to execute them after restart
                  */
                 List<String> remainingElements = new ArrayList<>();
-                currentWorkerTaskList.forEach(e -> {
+                workerTaskList.forEach(e -> {
                     if (!e.isCompleted()) {
                         remainingElements.addAll(e.getObjectNameList());
                     }
@@ -752,14 +753,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private void prepareCurrentWorkerTaskAndCompletableLists(WorkerParameters workerParameters, Step step,
+    private List<WorkerTask> createWorkerTasks(WorkerParameters workerParameters, Step step,
         Integer tenantId, String requestId, String contractId, String contextId,
         String applicationId,
-        int bulkSize, List<String> subList, List<CompletableFuture<ItemStatus>> completableFutureList,
-        List<WorkerTask> currentWorkerTaskList) {
+        int bulkSize, List<String> subList) {
         int subOffset = 0;
         int subListSize = subList.size();
 
+        List<WorkerTask> workerTaskList = new ArrayList<>();
         while (subOffset < subListSize) {
             int nextSubOffset = Math.min(subListSize, subOffset + bulkSize);
 
@@ -774,21 +775,21 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
                     tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
 
-            currentWorkerTaskList.add(workerTask);
-            completableFutureList.add(prepare(workerTask, workerParameters.getLogbookTypeProcess()));
+            workerTaskList.add(workerTask);
 
             subOffset = nextSubOffset;
         }
+        return workerTaskList;
     }
 
-    private void prepareCurrentWorkerTaskAndCompletableListsOnStream(WorkerParameters workerParameters, Step step,
+    private List<WorkerTask> createWorkerTasksOnStream(WorkerParameters workerParameters, Step step,
         Integer tenantId, String requestId, String contractId, String contextId,
         String applicationId,
-        int bulkSize, List<JsonLineModel> distributionList, List<CompletableFuture<ItemStatus>> completableFutureList,
-        List<WorkerTask> currentWorkerTaskList) {
+        int bulkSize, List<JsonLineModel> distributionList) {
         int distribOffSet = 0;
         int distributionSize = distributionList.size();
 
+        List<WorkerTask> workerTaskList = new ArrayList<>();
         while (distribOffSet < distributionSize) {
             int nextDistributionOffset = Math.min(distributionSize, distribOffSet + bulkSize);
 
@@ -806,11 +807,22 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
                     tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
 
-            currentWorkerTaskList.add(workerTask);
-            completableFutureList.add(prepare(workerTask, workerParameters.getLogbookTypeProcess()));
+            workerTaskList.add(workerTask);
 
             distribOffSet = nextDistributionOffset;
         }
+        return workerTaskList;
+    }
+
+    private List<CompletableFuture<ItemStatus>> scheduleWorkerTasks(
+        WorkerParameters workerParameters, List<WorkerTask> workerTaskList) {
+        List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
+        for (WorkerTask workerTask : workerTaskList) {
+            CompletableFuture<ItemStatus> prepare =
+                prepare(workerTask, workerParameters.getLogbookTypeProcess());
+            completableFutureList.add(prepare);
+        }
+        return completableFutureList;
     }
 
     private CompletableFuture<ItemStatus> getItemStatusCompletableFuture(Step step,
