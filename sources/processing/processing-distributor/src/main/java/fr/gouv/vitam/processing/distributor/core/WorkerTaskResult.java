@@ -24,30 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.processing.common.model;
+package fr.gouv.vitam.processing.distributor.core;
 
-/**
- * Worker Task State enum
- */
-public enum WorkerTaskState {
-    /**
-     * Pending state
-     */
-    PENDING,
-    /**
-     * Pause state
-     */
-    PAUSE,
-    /**
-     * Cancel state
-     */
-    CANCEL,
-    /**
-     * Running state
-     */
-    RUNNING,
-    /**
-     * Completed state
-     */
-    COMPLETED
+import fr.gouv.vitam.common.model.ItemStatus;
+
+public class WorkerTaskResult {
+
+    private final WorkerTask workerTask;
+    private final ItemStatus itemStatus;
+    private final boolean isCompleted;
+
+    public WorkerTaskResult(WorkerTask workerTask, boolean isCompleted, ItemStatus itemStatus) {
+        this.itemStatus = itemStatus;
+        this.isCompleted = isCompleted;
+        this.workerTask = workerTask;
+    }
+
+    public ItemStatus getItemStatus() {
+        return itemStatus;
+    }
+
+    public WorkerTask getWorkerTask() {
+        return workerTask;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
 }

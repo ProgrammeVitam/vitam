@@ -124,11 +124,14 @@ public class WorkerTaskTest {
 
         when(workerClient.submitStep(eq(descriptionStep)))
             .thenReturn(new ItemStatus("item_ok").increment(StatusCode.OK));
-        ItemStatus itemStatus = task.get();
+        WorkerTaskResult workerTaskResult = task.get();
 
-        assertThat(itemStatus).isNotNull();
-        assertThat(itemStatus.getItemId()).isEqualTo("item_ok");
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(workerTaskResult).isNotNull();
+        assertThat(workerTaskResult.getItemStatus().getItemId()).isEqualTo("item_ok");
+        assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(workerTaskResult.isCompleted()).isTrue();
+        assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
+
     }
 
 

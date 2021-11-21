@@ -443,7 +443,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             List<WorkerTask> workerTaskList = createWorkerTasks(workerParameters, step, tenantId, requestId,
                 contractId, contextId, applicationId, bulkSize, subList);
 
-            List<ItemStatus> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
+            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
 
             final ItemStatus itemStatus = step.getStepResponses();
             updateStepItemStatusWithTaskResults(workerTaskResults, itemStatus);
@@ -453,11 +453,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              * so we have to get the corresponding elements in order to execute them after restart
              */
             List<String> remainingElements = new ArrayList<>();
-            workerTaskList.forEach(e -> {
-                if (!e.isCompleted()) {
-                    remainingElements.addAll(e.getObjectNameList());
+            for (WorkerTaskResult workerTaskResult : workerTaskResults) {
+                if (!workerTaskResult.isCompleted()) {
+                    remainingElements.addAll(workerTaskResult.getWorkerTask().getObjectNameList());
                 }
-            });
+            }
 
             if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
                 // We have to restart all the current offset
@@ -668,7 +668,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 createWorkerTasksOnStream(workerParameters, step, tenantId, requestId, contractId,
                     contextId, applicationId, bulkSize, distributionList);
 
-            List<ItemStatus> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
+            List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
 
             final ItemStatus itemStatus = step.getStepResponses();
             updateStepItemStatusWithTaskResults(workerTaskResults, itemStatus);
@@ -678,11 +678,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              * so we have to get the corresponding elements in order to execute them after restart
              */
             List<String> remainingElements = new ArrayList<>();
-            workerTaskList.forEach(e -> {
-                if (!e.isCompleted()) {
-                    remainingElements.addAll(e.getObjectNameList());
+            for (WorkerTaskResult workerTaskResult : workerTaskResults) {
+                if (!workerTaskResult.isCompleted()) {
+                    remainingElements.addAll(workerTaskResult.getWorkerTask().getObjectNameList());
                 }
-            });
+            }
 
             if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
                 remainingElements.clear();
@@ -775,20 +775,20 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return workerTaskList;
     }
 
-    private List<ItemStatus> executeWorkerTasks(WorkerParameters workerParameters,
+    private List<WorkerTaskResult> executeWorkerTasks(WorkerParameters workerParameters,
         List<WorkerTask> workerTaskList) throws ProcessingException {
 
-        List<CompletableFuture<ItemStatus>> completableFutureList =
+        List<CompletableFuture<WorkerTaskResult>> completableFutureList =
             scheduleWorkerTasks(workerParameters, workerTaskList);
 
         return awaitCompletion(completableFutureList);
     }
 
-    private List<CompletableFuture<ItemStatus>> scheduleWorkerTasks(
+    private List<CompletableFuture<WorkerTaskResult>> scheduleWorkerTasks(
         WorkerParameters workerParameters, List<WorkerTask> workerTaskList) {
-        List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
+        List<CompletableFuture<WorkerTaskResult>> completableFutureList = new ArrayList<>();
         for (WorkerTask workerTask : workerTaskList) {
-            CompletableFuture<ItemStatus> prepare =
+            CompletableFuture<WorkerTaskResult> prepare =
                 prepare(workerTask, workerParameters.getLogbookTypeProcess());
             completableFutureList.add(prepare);
         }
@@ -806,13 +806,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private void updateStepItemStatusWithTaskResults(List<ItemStatus> workerTaskResults, ItemStatus itemStatus) {
+    private void updateStepItemStatusWithTaskResults(List<WorkerTaskResult> workerTaskResults, ItemStatus itemStatus) {
 
         workerTaskResults.stream()
             // Do not compute PAUSE and CANCEL actions
-            .filter(result -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(result.getItemId()))
-            .filter(result -> !PauseOrCancelAction.ACTION_PAUSE.name().equals(result.getItemId()))
-            .forEach(itemStatus::setItemsStatus);
+            .filter(result -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(result.getItemStatus().getItemId()))
+            .filter(result -> !PauseOrCancelAction.ACTION_PAUSE.name().equals(result.getItemStatus().getItemId()))
+            .forEach(result -> itemStatus.setItemsStatus(result.getItemStatus()));
     }
 
 
@@ -826,13 +826,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private CompletableFuture<ItemStatus> prepare(WorkerTask task, LogbookTypeProcess logbookTypeProcess) {
+    private CompletableFuture<WorkerTaskResult> prepare(WorkerTask task, LogbookTypeProcess logbookTypeProcess) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {
 
             LOGGER.error("No WorkerFamilyManager found for : " + step.getWorkerGroupId());
-            return CompletableFuture.completedFuture(new ItemStatus(step.getStepName()).increment(StatusCode.FATAL));
+            return CompletableFuture.completedFuture(new WorkerTaskResult(
+                task, false, new ItemStatus(step.getStepName()).increment(StatusCode.FATAL)));
         }
 
         // Add metrics increment as new task created
@@ -863,20 +864,22 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     evDetDetail.put("Error", "Error occurred while handling step by the distributor");
                 }
 
-                return new ItemStatus(step.getStepName())
+                ItemStatus itemStatus = new ItemStatus(step.getStepName())
                     .setItemsStatus(step.getStepName(),
                         new ItemStatus(step.getStepName()).setEvDetailData(JsonHandler.unprettyPrint(evDetDetail))
                             .increment(StatusCode.FATAL));
+                return new WorkerTaskResult(task, false, itemStatus);
             })
-            .thenApply(is -> {
+            .thenApply(result -> {
                 //Do not update processed if pause or cancel occurs or if status is Fatal
-                if (StatusCode.UNKNOWN.equals(is.getGlobalStatus()) || StatusCode.FATAL.equals(is.getGlobalStatus())) {
-                    return is;
+                if (StatusCode.UNKNOWN.equals(result.getItemStatus().getGlobalStatus()) ||
+                    StatusCode.FATAL.equals(result.getItemStatus().getGlobalStatus())) {
+                    return result;
                 }
                 // update processed elements
                 ProcessStep processStep = (ProcessStep) step;
                 processStep.getElementProcessed().addAndGet(task.getObjectNameList().size());
-                return is;
+                return result;
             })
             .thenApply(is -> {
                 // Decrement as this task is completed
