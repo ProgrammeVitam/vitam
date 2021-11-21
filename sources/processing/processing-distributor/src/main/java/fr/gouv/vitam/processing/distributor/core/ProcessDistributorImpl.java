@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -753,64 +754,50 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private List<WorkerTask> createWorkerTasks(WorkerParameters workerParameters, Step step,
+    private List<WorkerTask> createWorkerTasks(
+        WorkerParameters workerParameters, Step step,
         Integer tenantId, String requestId, String contractId, String contextId,
         String applicationId,
         int bulkSize, List<String> subList) {
-        int subOffset = 0;
-        int subListSize = subList.size();
 
+        // Process by bulk
+        Iterator<List<String>> batchIterator = Iterators.partition(subList.iterator(), bulkSize);
+
+        // Create a worker task for each bulk
         List<WorkerTask> workerTaskList = new ArrayList<>();
-        while (subOffset < subListSize) {
-            int nextSubOffset = Math.min(subListSize, subOffset + bulkSize);
-
-            // split the list of items to be processed according to the capacity of the workers
-            List<String> newSubList = subList.subList(subOffset, nextSubOffset);
-
-            // prepare & instantiate the worker tasks
-            workerParameters.setObjectNameList(newSubList);
-
-            final WorkerTask workerTask =
-                new WorkerTask(
-                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
-
-            workerTaskList.add(workerTask);
-
-            subOffset = nextSubOffset;
-        }
+        batchIterator.forEachRemaining(objectNames -> {
+            WorkerParameters taskWorkerParams = ((DefaultWorkerParameters) workerParameters).newInstance();
+            taskWorkerParams.setObjectNameList(objectNames);
+            workerTaskList.add(new WorkerTask(
+                new DescriptionStep(step, taskWorkerParams),
+                tenantId, requestId, contractId, contextId, applicationId, workerClientFactory
+            ));
+        });
         return workerTaskList;
     }
 
-    private List<WorkerTask> createWorkerTasksOnStream(WorkerParameters workerParameters, Step step,
-        Integer tenantId, String requestId, String contractId, String contextId,
-        String applicationId,
-        int bulkSize, List<JsonLineModel> distributionList) {
-        int distribOffSet = 0;
-        int distributionSize = distributionList.size();
+    private List<WorkerTask> createWorkerTasksOnStream(
+        WorkerParameters workerParameters, Step step, Integer tenantId, String requestId, String contractId,
+        String contextId, String applicationId, int bulkSize, List<JsonLineModel> distributionList) {
 
+        // Process by bulk
+        Iterator<List<JsonLineModel>> batchIterator =
+            Iterators.partition(distributionList.iterator(), bulkSize);
+
+        // Create a worker task for each bulk
         List<WorkerTask> workerTaskList = new ArrayList<>();
-        while (distribOffSet < distributionSize) {
-            int nextDistributionOffset = Math.min(distributionSize, distribOffSet + bulkSize);
+        batchIterator.forEachRemaining(entryList -> {
+            WorkerParameters taskWorkerParams = ((DefaultWorkerParameters) workerParameters).newInstance();
+            taskWorkerParams.setObjectNameList(
+                entryList.stream().map(JsonLineModel::getId).collect(Collectors.toList()));
+            taskWorkerParams.setObjectMetadataList(
+                entryList.stream().map(JsonLineModel::getParams).collect(Collectors.toList()));
 
-            // split the list of items to be processed according to the capacity of the workers
-            List<JsonLineModel> newSubList = distributionList.subList(distribOffSet, nextDistributionOffset);
-
-            // prepare & instantiate the worker tasks
-            workerParameters
-                .setObjectNameList(newSubList.stream().map(JsonLineModel::getId).collect(Collectors.toList()));
-            workerParameters
-                .setObjectMetadataList(newSubList.stream().map(JsonLineModel::getParams).collect(Collectors.toList()));
-
-            final WorkerTask workerTask =
-                new WorkerTask(
-                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
-
-            workerTaskList.add(workerTask);
-
-            distribOffSet = nextDistributionOffset;
-        }
+            workerTaskList.add(new WorkerTask(
+                new DescriptionStep(step, taskWorkerParams),
+                tenantId, requestId, contractId, contextId, applicationId, workerClientFactory
+            ));
+        });
         return workerTaskList;
     }
 
