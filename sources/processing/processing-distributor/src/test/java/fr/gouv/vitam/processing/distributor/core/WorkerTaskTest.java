@@ -53,7 +53,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -118,7 +117,7 @@ public class WorkerTaskTest {
     @RunWithCustomExecutor
     @Test
     public void test_worker_task_get_ok() throws Exception {
-        DescriptionStep descriptionStep = getDescriptionStep("familyId");
+        DescriptionStep descriptionStep = getDescriptionStep();
 
         WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(WORKER_DESCRIPTION);
 
@@ -141,7 +140,7 @@ public class WorkerTaskTest {
     @RunWithCustomExecutor
     @Test(expected = WorkerUnreachableException.class)
     public void test_worker_task_get_then_WorkerUnreachableException() throws Exception {
-        DescriptionStep descriptionStep = getDescriptionStep("familyId");
+        DescriptionStep descriptionStep = getDescriptionStep();
 
         WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(WORKER_DESCRIPTION);
 
@@ -161,7 +160,7 @@ public class WorkerTaskTest {
     @RunWithCustomExecutor
     @Test(expected = WorkerExecutorException.class)
     public void test_worker_task_get_then_third_checkStatus_ok_thenWorkerExecutorException() throws Exception {
-        DescriptionStep descriptionStep = getDescriptionStep("familyId");
+        DescriptionStep descriptionStep = getDescriptionStep();
 
         WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(WORKER_DESCRIPTION);
 
@@ -181,7 +180,7 @@ public class WorkerTaskTest {
     @RunWithCustomExecutor
     @Test
     public void with_completable_feature_test_worker_task_get_then_WorkerUnreachableException() throws Exception {
-        DescriptionStep descriptionStep = getDescriptionStep("familyId");
+        DescriptionStep descriptionStep = getDescriptionStep();
 
         final WorkerTask task =
             new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
@@ -214,11 +213,11 @@ public class WorkerTaskTest {
         verify(workerClient, times(3)).checkStatus();
     }
 
-    private DescriptionStep getDescriptionStep(String familyId) {
+    private DescriptionStep getDescriptionStep() {
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
         params.setWorkerGUID(GUIDFactory.newGUID().getId());
         params.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
-        final Step step = new Step().setStepName("TEST").setWorkerGroupId(familyId);
+        final Step step = new Step().setStepName("TEST").setWorkerGroupId("familyId");
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         actions.add(action);

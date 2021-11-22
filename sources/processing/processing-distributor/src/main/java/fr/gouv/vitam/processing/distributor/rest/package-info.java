@@ -25,7 +25,6 @@
  * accept its terms.
  */
 /**
- * Provides rest resource implementation for the Processing Distributor module. 
- *
+ * Provides rest resource implementation for the Processing Distributor module.
  */
 package fr.gouv.vitam.processing.distributor.rest;

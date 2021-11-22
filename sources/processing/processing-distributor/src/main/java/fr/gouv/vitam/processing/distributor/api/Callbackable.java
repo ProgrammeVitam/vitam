@@ -27,18 +27,17 @@
 package fr.gouv.vitam.processing.distributor.api;
 
 
-/**
+/*
  * Interface for class having a Callback that must be called by async request at the end of execution
- * 
+ *
  * @param <T> generic type
  */
 public interface Callbackable<T> {
 
     /**
      * Must be called by async request at the end of execution
-     * 
+     *
      * @param returnArguments the arguments to be returned
-     * 
      */
     void callbackResponse(T returnArguments);
 }
