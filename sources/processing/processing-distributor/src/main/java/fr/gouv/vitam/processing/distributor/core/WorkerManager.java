@@ -55,13 +55,12 @@ import java.util.concurrent.ConcurrentMap;
  * WorkerManager class contains methods to manage workers
  */
 public class WorkerManager implements IWorkerManager {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerManager.class);
-
     /**
      * Default queue size
      */
     public static final int QUEUE_SIZE = 15;
-    private ConcurrentMap<String, WorkerFamilyManager> workersFamily;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerManager.class);
+    private final ConcurrentMap<String, WorkerFamilyManager> workersFamily;
 
 
     private WorkerClientFactory workerClientFactory = null;
@@ -122,12 +121,13 @@ public class WorkerManager implements IWorkerManager {
 
     @Override
     public void registerWorker(WorkerBean workerBean) throws IOException {
-        workersFamily.putIfAbsent(workerBean.getFamily(), new WorkerFamilyManager(workerBean.getFamily(), QUEUE_SIZE));
         workersFamily.compute(workerBean.getFamily(), (key, workerManager) -> {
+            if (workerManager == null) {
+                workerManager = new WorkerFamilyManager(workerBean.getFamily(), QUEUE_SIZE);
+            }
             workerManager.registerWorker(workerBean);
             return workerManager;
         });
-
         marshallToDB();
     }
 

@@ -26,6 +26,5 @@
  */
 /**
  * Provides API classes for the Processing Engine module
- *
  */
 package fr.gouv.vitam.processing.distributor;
