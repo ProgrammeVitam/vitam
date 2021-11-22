@@ -63,23 +63,14 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
     private static final String JSON_REGISTER =
         "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
-
+    private final static WorkerManager workerManager = new WorkerManager();
+    private static final VitamServerTestRunner vitamServerTestRunner =
+        new VitamServerTestRunner(ProcessDistributorResourceTest.class);
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
     @Rule
     public TempFolderRule tempFolderRule = new TempFolderRule();
-
-    private static VitamServerTestRunner vitamServerTestRunner =
-        new VitamServerTestRunner(ProcessDistributorResourceTest.class);
-
-    private final static WorkerManager workerManager = new WorkerManager();
-
-    @Override
-    public Set<Object> getResources() {
-        return Sets.newHashSet(new ProcessDistributorResource(workerManager));
-    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -92,6 +83,11 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
     @AfterClass
     public static void tearDownAfterClass() throws Throwable {
         vitamServerTestRunner.runAfter();
+    }
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new ProcessDistributorResource(workerManager));
     }
 
     @Test

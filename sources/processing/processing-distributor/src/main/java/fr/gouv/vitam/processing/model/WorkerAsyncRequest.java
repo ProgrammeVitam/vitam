@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.processing.model;
 
-import java.util.Set;
-import java.util.concurrent.Semaphore;
-
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.processing.distributor.api.Callbackable;
 import fr.gouv.vitam.worker.common.DescriptionStep;
+
+import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 /**
  * Class for manage the launch of an "async" request
@@ -47,11 +47,11 @@ public class WorkerAsyncRequest {
     private final VitamSession session;
     private final Set<WorkerAsyncRequest> currentRunningObjectsInStep;
     private final Semaphore waitingStepAllAsyncRequest;
-    
-    
+
+
     /**
      * Default constructor
-     * 
+     *
      * @param descriptionStep the step description
      * @param callingProcess the callback
      * @param currentRunningObjectsInStep the current object in step
@@ -59,9 +59,10 @@ public class WorkerAsyncRequest {
      * @param waitingStepAllAsyncRequest the waiting step
      * @param session the session id
      */
-    
+
     public WorkerAsyncRequest(DescriptionStep descriptionStep, Callbackable<WorkerAsyncResponse> callingProcess,
-        Set<WorkerAsyncRequest> currentRunningObjectsInStep, String queueId,Semaphore waitingStepAllAsyncRequest,VitamSession session) {
+        Set<WorkerAsyncRequest> currentRunningObjectsInStep, String queueId, Semaphore waitingStepAllAsyncRequest,
+        VitamSession session) {
         this.descriptionStep = descriptionStep;
         this.callingProcess = callingProcess;
         this.callerThread = Thread.currentThread();
@@ -73,7 +74,7 @@ public class WorkerAsyncRequest {
 
     /**
      * Arguments of the call
-     * 
+     *
      * @return the descriptionStep
      */
     public DescriptionStep getDescriptionStep() {
@@ -82,7 +83,7 @@ public class WorkerAsyncRequest {
 
     /**
      * call the callback at the end of the process
-     * 
+     *
      * @param workerAsyncResponse of type {@link WorkerAsyncResponse}
      */
     public void callCallback(WorkerAsyncResponse workerAsyncResponse) {
@@ -90,7 +91,6 @@ public class WorkerAsyncRequest {
     }
 
     /**
-     * 
      * @return the Thread of the callerThread (ex: to interrupt it)
      */
     public Thread getCallerThread() {

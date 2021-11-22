@@ -126,30 +126,44 @@ public class ProcessDistributorImplTest {
     private static final String FILE_WITH_GUIDS = "file_with_guids.jsonl";
     private static final String FILE_GUIDS_INVALID = "file_guids_invalid.jsonl";
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
-
+    private final static String operationId = "FakeOperationId";
+    private static final Integer TENANT = 0;
+    private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
+    private static final WorkerClient workerClient = mock(WorkerClient.class);
     @ClassRule
     public static TempFolderRule testFolder = new TempFolderRule();
-
+    private static ProcessDataManagement processDataManagement;
+    private static WorkspaceClientFactory workspaceClientFactory;
+    private static MetaDataClientFactory metaDataClientFactory;
+    private static IWorkerManager workerManager;
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    private final static String operationId = "FakeOperationId";
-    private static final Integer TENANT = 0;
     private WorkerParameters workerParameters;
-    private static ProcessDataManagement processDataManagement;
-    private static WorkspaceClientFactory workspaceClientFactory;
     private WorkspaceClient workspaceClient;
-    private static MetaDataClientFactory metaDataClientFactory;
     private MetaDataClient metaDataClient;
-    private static IWorkerManager workerManager;
     private ProcessDistributorImpl processDistributor;
     private ServerConfiguration serverConfiguration;
 
+    @BeforeClass
+    public static void tearUpBeforeClass() throws Exception {
+        VitamConfiguration.setWorkerBulkSize(1);
+        final WorkerBean workerBean =
+            new WorkerBean("DefaultWorker", "DefaultWorker", 2, "status",
+                new WorkerRemoteConfiguration("localhost", 8999));
+        workerBean.setWorkerId("FakeWorkerId");
 
-    private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
-    private static final WorkerClient workerClient = mock(WorkerClient.class);
+        when(workerClientFactory.getClient()).thenReturn(workerClient);
+        workerManager = new WorkerManager(workerClientFactory);
+        workerManager.registerWorker(workerBean);
 
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        VitamConfiguration.setWorkerBulkSize(10);
+        VitamConfiguration.setDistributeurBatchSize(100);
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -194,26 +208,6 @@ public class ProcessDistributorImplTest {
                 new ItemStatus("ItemId")
                     .setMessage("message")
                     .increment(statusCode));
-    }
-
-    @BeforeClass
-    public static void tearUpBeforeClass() throws Exception {
-        VitamConfiguration.setWorkerBulkSize(1);
-        final WorkerBean workerBean =
-            new WorkerBean("DefaultWorker", "DefaultWorker", 2, "status",
-                new WorkerRemoteConfiguration("localhost", 8999));
-        workerBean.setWorkerId("FakeWorkerId");
-
-        when(workerClientFactory.getClient()).thenReturn(workerClient);
-        workerManager = new WorkerManager(workerClientFactory);
-        workerManager.registerWorker(workerBean);
-
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        VitamConfiguration.setWorkerBulkSize(10);
-        VitamConfiguration.setDistributeurBatchSize(100);
     }
 
     /**
@@ -285,17 +279,12 @@ public class ProcessDistributorImplTest {
     }
 
     private ProcessStep getStep(DistributionKind distributionKind, String distributorElement) {
-        return getStep("FakeStepId", "FakeStepName", distributionKind, distributorElement,
-            ProcessBehavior.NOBLOCKING, null);
+        return getStep(distributionKind, distributorElement,
+            null);
     }
 
-    private ProcessStep getStep(DistributionKind distributionKind, String distributorElement, Integer bulkSize) {
-        return getStep("FakeStepId", "FakeStepName", distributionKind, distributorElement,
-            ProcessBehavior.NOBLOCKING, bulkSize);
-    }
-
-    private ProcessStep getStep(String stepId, String stepName, DistributionKind distributionKind,
-        String distributorElement, ProcessBehavior processBehavior, Integer bulkSize) {
+    private ProcessStep getStep(DistributionKind distributionKind,
+        String distributorElement, Integer bulkSize) {
 
         final Distribution distribution = new Distribution();
         distribution.setKind(distributionKind);
@@ -304,10 +293,10 @@ public class ProcessDistributorImplTest {
         distribution.setBulkSize(bulkSize);
 
         final Step step = new Step();
-        step.setStepName(stepName);
+        step.setStepName("FakeStepName");
         step.setDistribution(distribution);
-        step.setBehavior(processBehavior);
-        return new ProcessStep(step, new AtomicLong(0), new AtomicLong(0), stepId);
+        step.setBehavior(ProcessBehavior.NOBLOCKING);
+        return new ProcessStep(step, new AtomicLong(0), new AtomicLong(0), "FakeStepId");
     }
 
     /**
@@ -660,7 +649,7 @@ public class ProcessDistributorImplTest {
 
                 long actualSize = Math.min(file.length() - startOffset, actualMaxSize);
 
-                MultivaluedHashMap headers = new MultivaluedHashMap();
+                MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
                 headers.add(X_CHUNK_LENGTH, actualSize);
                 headers.add(X_CONTENT_LENGTH, file.length());
                 return new AbstractMockClient.FakeInboundResponse(Response.Status.OK,
@@ -768,7 +757,7 @@ public class ProcessDistributorImplTest {
         // "level_3" : [ "a", "b", "c" ], Execute 3
         // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",..., "t"] Execute batchSize = 20
         // Total = 0 + 1 + 2 + 3 + 20 = 26
-        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(10,26);
+        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(10, 26);
     }
 
 
@@ -801,7 +790,7 @@ public class ProcessDistributorImplTest {
         // "level_3" : [ "a", "b", "c" ], Execute 3
         // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] Execute batchSize = 20
         // Total = 0 + 1 + 2 + 3 + 20 = 26
-        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(10,26);
+        assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(10, 26);
     }
 
     @Test
@@ -809,7 +798,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeCancelOK() throws Exception {
 
         final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
-        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
+        ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
         givenWorkspaceClientReturnsFileContent(ingestLevelStack, any(), any());
 
         when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d"))))
@@ -823,7 +812,7 @@ public class ProcessDistributorImplTest {
         assertThat(is.getStatusMeter()).isNotNull();
 
         int treatedElements = is.getStatusMeter().stream().mapToInt(o -> o).sum();
-        AtomicLong processedElements = ((ProcessStep) step).getElementProcessed();
+        AtomicLong processedElements = step.getElementProcessed();
         assertThat(treatedElements).isEqualTo(processedElements.get());
         // Why 10, because to execute in the file ingestLevelStack we have
         // "level_0" : [], Execute 0
@@ -833,7 +822,7 @@ public class ProcessDistributorImplTest {
         // "level_4" : [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",...] when executing "d" we fire the cancel action so Execute 4 ("a","b","c","d")
         // Total = 0 + 1 + 2 + 3 + 4 = 10
         // Why is greater or equal to 10 ? because while we change PauseOrCancelAction, one or two more element can be treated
-        assertThat(processedElements.get()).isBetween(10L,26L);
+        assertThat(processedElements.get()).isBetween(10L, 26L);
     }
 
     private boolean matcher(DescriptionStep descriptionStep, String elementName) {
