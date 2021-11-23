@@ -75,7 +75,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -299,7 +299,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (BadRequestException e) {
             throw new FileRulesException(e);
         } catch (ForbiddenClientException e) {
-            throw new FileRulesImportInProgressException(e);
+            throw new ReferentialImportInProgressException(e);
         } catch (DatabaseConflictException e) {
             throw new DatabaseConflictException("Collection input conflic");
         }

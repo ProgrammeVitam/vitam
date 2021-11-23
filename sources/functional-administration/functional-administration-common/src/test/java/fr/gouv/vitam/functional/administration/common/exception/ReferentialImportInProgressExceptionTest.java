@@ -26,18 +26,21 @@
  */
 package fr.gouv.vitam.functional.administration.common.exception;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Test;
 
+public class ReferentialImportInProgressExceptionTest {
 
-public class FileRulesImportInProgressExceptionTest {
+    private static final String EXCEPTION_MESSAGE = "test";
+
     @Test
     public final void testFileRulesImportInProgressException() {
-        assertEquals("", new FileRulesImportInProgressException("").getMessage());
-        assertEquals("test", new FileRulesImportInProgressException("test").getMessage());
-        assertNotNull(new FileRulesImportInProgressException(new Exception()).getCause());
-        assertNotNull(new FileRulesImportInProgressException("test", new Exception()).getCause());
+        assertEquals("", new ReferentialImportInProgressException("").getMessage());
+        assertEquals(EXCEPTION_MESSAGE, new ReferentialImportInProgressException(EXCEPTION_MESSAGE).getMessage());
+        assertNotNull(new ReferentialImportInProgressException(new Exception()).getCause());
+        assertNotNull(new ReferentialImportInProgressException(EXCEPTION_MESSAGE, new Exception()).getCause());
     }
 }

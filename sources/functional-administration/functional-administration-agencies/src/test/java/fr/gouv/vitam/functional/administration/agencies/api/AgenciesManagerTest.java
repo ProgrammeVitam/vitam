@@ -26,20 +26,20 @@
  */
 package fr.gouv.vitam.functional.administration.agencies.api;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.functional.administration.agencies.api.AgenciesService.AGENCIES_IMPORT_EVENT;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
@@ -50,10 +50,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AgenciesManagerTest {
 
     private static final Integer TENANT_ID = 0;
+    private static final String TEST_FILENAME = "test.json";
+    private static LogbookOperationsClientFactory logbookOperationsClientFactory;
     private static LogbookOperationsClient logbookOperationsClient;
 
     @Rule
@@ -61,8 +64,10 @@ public class AgenciesManagerTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
+        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         logbookOperationsClient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
     }
 
     @Test
@@ -71,13 +76,13 @@ public class AgenciesManagerTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
+
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
-        AgenciesManager manager =
-            new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(TENANT_ID), false);
+        LogbookAgenciesImportManager manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
         // When
-        manager.logStarted(AGENCIES_IMPORT_EVENT);
+        manager.logStarted(GUIDFactory.newOperationLogbookGUID(TENANT_ID), AGENCIES_IMPORT_EVENT);
 
         // Then
         verify(logbookOperationsClient).create(captor.capture());
@@ -97,10 +102,10 @@ public class AgenciesManagerTest {
 
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
-        AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0), false);
+        LogbookAgenciesImportManager manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
         // When
-        manager.logFinish("test.json");
+        manager.logFinishSuccess(GUIDFactory.newOperationLogbookGUID(TENANT_ID), TEST_FILENAME, StatusCode.OK);
 
         //THEN
         verify(logbookOperationsClient, times(1)).update(captor.capture());
@@ -110,9 +115,9 @@ public class AgenciesManagerTest {
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("OK");
 
-        manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0), true);
+        manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
-        manager.logFinish("test.json");
+        manager.logFinishSuccess(GUIDFactory.newOperationLogbookGUID(TENANT_ID), TEST_FILENAME, StatusCode.WARNING);
 
         verify(logbookOperationsClient, times(2)).update(captor.capture());
 
@@ -134,10 +139,11 @@ public class AgenciesManagerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
-        AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0));
+        LogbookAgenciesImportManager
+            manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
         //When
-        manager.logError("ErorMessage", null);
+        manager.logError(GUIDFactory.newOperationLogbookGUID(TENANT_ID), "ErorMessage", null);
         verify(logbookOperationsClient).update(captor.capture());
         LogbookOperationParameters log = captor.getValue();
         //Then
@@ -154,10 +160,11 @@ public class AgenciesManagerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
-        AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0));
+        LogbookAgenciesImportManager
+            manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
         //When
-        manager.logError("ErorMessage", "DELETION");
+        manager.logError(GUIDFactory.newOperationLogbookGUID(TENANT_ID), "ErorMessage", "DELETION");
         verify(logbookOperationsClient).update(captor.capture());
         LogbookOperationParameters log = captor.getValue();
         //Then
@@ -166,6 +173,4 @@ public class AgenciesManagerTest {
         assertThat(log.getParameterValue(outcome)).isEqualTo("KO");
         assertThat(log.getParameterValue(outcomeDetail)).isEqualTo(AGENCIES_IMPORT_EVENT + ".DELETION.KO");
     }
-
-
 }

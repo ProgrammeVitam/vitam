@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.BufferedReader;
@@ -40,7 +41,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
 /**
@@ -225,5 +228,22 @@ public final class FileUtil {
             FileChannel.open(path, StandardOpenOption.WRITE)) {
             fileChannel.force(true);
         }
+    }
+
+
+    public static File convertInputStreamToFile(InputStream stream, String filename, String extension)
+        throws IOException, IllegalPathException {
+        try {
+            final File file = FileUtil.createFileInTempDirectoryWithPathCheck(filename, extension);
+            Files.copy(stream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return file;
+        } finally {
+            StreamUtils.closeSilently(stream);
+        }
+    }
+
+    public static File convertInputStreamToFile(InputStream rulesStream, String filename)
+        throws IOException, IllegalPathException {
+        return convertInputStreamToFile(rulesStream, filename, "tmp");
     }
 }

@@ -23,7 +23,6 @@
         <module>functional-administration-context</module>
         <module>functional-administration-agencies</module>
         <module>functional-administration-security-profile</module>
-        <module>functional-administration-agencies-contracts</module>
         <module>functional-administration-archive-unit-profiles</module>
         <module>functional-administration-ontologies</module>
         <module>functional-administration-griffins</module>

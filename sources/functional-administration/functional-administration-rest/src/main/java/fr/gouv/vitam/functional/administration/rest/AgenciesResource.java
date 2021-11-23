@@ -28,14 +28,15 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -43,6 +44,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.functional.administration.agencies.api.AgenciesImportResult;
 import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
@@ -63,6 +65,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -83,28 +86,16 @@ public class AgenciesResource {
     private static final String AGENCIES_FILES_IS_MANDATORY_PATAMETER =
         "The json input of agency is mandatory";
 
-    private final MongoDbAccessAdminImpl mongoAccess;
-    private final FunctionalBackupService functionalBackupService;
-    private final CachedOntologyLoader agenciesOntologyLoader;
-    private final VitamCounterService vitamCounterService;
+    private final AgenciesService agenciesService;
 
-    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, CachedOntologyLoader agenciesOntologyLoader) {
-        this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
-        this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
-        this.agenciesOntologyLoader = agenciesOntologyLoader;
-        LOGGER.debug("init Admin Management Resource server");
+    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
+        this(mongoAccess, vitamCounterService, new FunctionalBackupService(vitamCounterService));
     }
 
     @VisibleForTesting
-    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService, CachedOntologyLoader agenciesOntologyLoader) {
-        this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
-        this.functionalBackupService = functionalBackupService;
-        this.agenciesOntologyLoader = agenciesOntologyLoader;
+    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+        FunctionalBackupService functionalBackupService) {
+        this.agenciesService = new AgenciesService(mongoAccess, vitamCounterService, functionalBackupService);
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -115,12 +106,11 @@ public class AgenciesResource {
     public Response importAgencies(@Context HttpHeaders headers,InputStream inputStream, @Context UriInfo uri) {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
 
-        try (AgenciesService agencies = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService, this.agenciesOntologyLoader)) {
+        try {
 
             String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
 
-            RequestResponse<AgenciesModel> requestResponse = agencies.importAgencies(inputStream,filename);
+            RequestResponse<AgenciesModel> requestResponse = agenciesService.importAgencies(inputStream,filename);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -166,10 +156,9 @@ public class AgenciesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAgencies(JsonNode queryDsl) {
-        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService, this.agenciesOntologyLoader)) {
+        try {
             SanityChecker.checkJsonAll(queryDsl);
-            final DbRequestResult agenciesModelList = agencyService.findAgencies(queryDsl);
+            final DbRequestResult agenciesModelList = agenciesService.findAgencies(queryDsl);
             RequestResponseOK<AgenciesModel> reponse =
                 agenciesModelList.getRequestResponseOK(queryDsl, Agencies.class, AgenciesModel.class);
             return Response.status(Status.OK).entity(reponse).build();
@@ -196,20 +185,12 @@ public class AgenciesResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response checkAgenciesFile(InputStream agencyStream) {
         ParametersChecker.checkParameter("agenciessStream is a mandatory parameter", agencyStream);
-        return downloadErrorReport(agencyStream);
-    }
 
-    /**
-     * async Download Report
-     *
-     * @param document the document to check
-     */
-    private Response downloadErrorReport(InputStream document) {
-        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService, this.agenciesOntologyLoader)) {
-            agenciesService.checkFile(document);
-            InputStream errorReportInputStream =
-                agenciesService.generateErrorReport();
+        try {
+            File file = FileUtil.convertInputStreamToFile(agencyStream, GUIDFactory.newGUID().getId());
+            agenciesService.parseFile(file);
+            InputStream errorReportInputStream = agenciesService
+                .generateErrorReport(new AgenciesImportResult());
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
@@ -220,17 +201,16 @@ public class AgenciesResource {
         }
     }
 
+
+
     /**
      * Handle Generation of the report in case of exception
      *
      * @return response
      */
     private Response handleGenerateReport() {
-        InputStream errorReportInputStream;
-        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService, this.agenciesOntologyLoader)) {
-            errorReportInputStream =
-                agenciesService.generateErrorReport();
+        try {
+            InputStream errorReportInputStream = agenciesService.generateErrorReport(new AgenciesImportResult());
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
