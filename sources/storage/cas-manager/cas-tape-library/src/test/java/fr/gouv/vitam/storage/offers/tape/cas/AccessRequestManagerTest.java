@@ -28,7 +28,12 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.storage.engine.common.model.EntryType;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
@@ -50,6 +55,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageBadRequest
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -68,9 +74,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager.checkAccessRequestIdFormat;
+import static fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager.generateAccessRequestId;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -84,7 +93,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+@RunWithCustomExecutor
 public class AccessRequestManagerTest {
+
+    private static final int TENANT_ID = 0;
+    private static final int ADMIN_TENANT = 1;
+
     private static final String CONTAINER_1 = "0_object";
     private static final String CONTAINER_2 = "1_unit";
 
@@ -99,6 +113,10 @@ public class AccessRequestManagerTest {
 
     @Rule
     public LogicalClockRule logicalClock = new LogicalClockRule();
+
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     ObjectReferentialRepository objectReferentialRepository;
@@ -126,6 +144,9 @@ public class AccessRequestManagerTest {
         doReturn(FILE_BUCKET_2).when(bucketTopologyHelper).getFileBucketFromContainerName(CONTAINER_2);
         doReturn(BUCKET_1).when(bucketTopologyHelper).getBucketFromFileBucket(FILE_BUCKET_1);
         doReturn(BUCKET_2).when(bucketTopologyHelper).getBucketFromFileBucket(FILE_BUCKET_2);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamConfiguration.setAdminTenant(ADMIN_TENANT);
     }
 
     @After
@@ -179,6 +200,7 @@ public class AccessRequestManagerTest {
 
         // Then
         assertThat(accessRequestId).isNotNull();
+        checkAccessRequestIdFormat(accessRequestId);
 
         ArgumentCaptor<TapeAccessRequestReferentialEntity> accessRequestReferentialEntityArgumentCaptor =
             ArgumentCaptor.forClass(TapeAccessRequestReferentialEntity.class);
@@ -263,6 +285,7 @@ public class AccessRequestManagerTest {
 
         // Then
         assertThat(accessRequestId).isNotNull();
+        checkAccessRequestIdFormat(accessRequestId);
 
         ArgumentCaptor<TapeAccessRequestReferentialEntity> accessRequestReferentialEntityArgumentCaptor =
             ArgumentCaptor.forClass(TapeAccessRequestReferentialEntity.class);
@@ -333,6 +356,7 @@ public class AccessRequestManagerTest {
 
         // Then
         assertThat(accessRequestId).isNotNull();
+        checkAccessRequestIdFormat(accessRequestId);
 
         ArgumentCaptor<TapeAccessRequestReferentialEntity> accessRequestReferentialEntityArgumentCaptor =
             ArgumentCaptor.forClass(TapeAccessRequestReferentialEntity.class);
@@ -413,34 +437,79 @@ public class AccessRequestManagerTest {
         // Given
         logicalClock.freezeTime();
 
+        String accessRequest1 = generateAccessRequestId();
+        String accessRequest2 = generateAccessRequestId();
+        String accessRequest3 = generateAccessRequestId();
+        String unknownAccessRequestId = generateAccessRequestId();
         doReturn(List.of(
             // Non-ready access request
-            new TapeAccessRequestReferentialEntity("accessRequest1", CONTAINER_1,
+            new TapeAccessRequestReferentialEntity(accessRequest1, CONTAINER_1,
                 List.of("obj1"), getNowMinusMinutes(30), null, null, null, List.of("tarId1"), 0),
 
             // Ready access request
-            new TapeAccessRequestReferentialEntity("accessRequest2", CONTAINER_2,
+            new TapeAccessRequestReferentialEntity(accessRequest2, CONTAINER_2,
                 List.of("obj2"), getNowMinusMinutes(30), getNowMinusMinutes(20), getNowPlusMinutes(10),
                 getNowPlusMinutes(40), List.of(), 1),
 
             // Expired access request
-            new TapeAccessRequestReferentialEntity("accessRequest3", CONTAINER_2,
+            new TapeAccessRequestReferentialEntity(accessRequest3, CONTAINER_2,
                 List.of("obj3"), getNowMinusMinutes(50), getNowMinusMinutes(40), getNowMinusMinutes(10),
                 getNowPlusMinutes(20), List.of(), 1)
         )).when(accessRequestReferentialRepository)
-            .findByRequestIds(Set.of("accessRequest1", "accessRequest2", "accessRequest3", "unknown"));
+            .findByRequestIds(Set.of(accessRequest1, accessRequest2, accessRequest3, unknownAccessRequestId));
 
         // When
         Map<String, AccessRequestStatus> accessRequestStatuses = instance.checkAccessRequestStatuses(
-            List.of("accessRequest1", "accessRequest2", "accessRequest3", "unknown"));
+            List.of(accessRequest1, accessRequest2, accessRequest3, unknownAccessRequestId));
 
         // Then
         assertThat(accessRequestStatuses).isEqualTo(Map.of(
-            "accessRequest1", AccessRequestStatus.NOT_READY,
-            "accessRequest2", AccessRequestStatus.READY,
-            "accessRequest3", AccessRequestStatus.EXPIRED,
-            "unknown", AccessRequestStatus.NOT_FOUND
+            accessRequest1, AccessRequestStatus.NOT_READY,
+            accessRequest2, AccessRequestStatus.READY,
+            accessRequest3, AccessRequestStatus.EXPIRED,
+            unknownAccessRequestId, AccessRequestStatus.NOT_FOUND
         ));
+
+        verify(accessRequestReferentialRepository).findByRequestIds(anySet());
+    }
+
+    @Test
+    public void givenExistingAccessRequestFromOtherTenantWhenCheckAccessRequestStatusThenKO() {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        String accessRequest1 = generateAccessRequestId();
+
+        // When / Then
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertThatThrownBy(() -> instance.checkAccessRequestStatuses(List.of(accessRequest1)))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(accessRequestReferentialRepository);
+    }
+
+    @Test
+    public void givenExistingAccessRequestFromNonAdminTenantWhenCheckAccessRequestStatusesWithAdminTenantThenOK()
+        throws Exception {
+
+        // Given
+        logicalClock.freezeTime();
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String accessRequest1 = generateAccessRequestId();
+        doReturn(List.of(
+            // Non-ready access request
+            new TapeAccessRequestReferentialEntity(accessRequest1, CONTAINER_1,
+                List.of("obj1"), getNowMinusMinutes(30), null, null, null, List.of("tarId1"), 0)
+        )).when(accessRequestReferentialRepository).findByRequestIds(Set.of(accessRequest1));
+
+        // When
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        Map<String, AccessRequestStatus> accessRequestStatuses = instance.checkAccessRequestStatuses(
+            List.of(accessRequest1));
+
+        // Then
+        assertThat(accessRequestStatuses).isEqualTo(Map.of(
+            accessRequest1, AccessRequestStatus.NOT_READY));
 
         verify(accessRequestReferentialRepository).findByRequestIds(anySet());
     }
@@ -450,13 +519,14 @@ public class AccessRequestManagerTest {
         throws Exception {
 
         // Given
-        doReturn(Optional.empty()).when(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        String accessRequest = generateAccessRequestId();
+        doReturn(Optional.empty()).when(accessRequestReferentialRepository).deleteAndGet(accessRequest);
 
         // When
-        instance.removeAccessRequest("accessRequest");
+        instance.removeAccessRequest(accessRequest);
 
         // Then
-        verify(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        verify(accessRequestReferentialRepository).deleteAndGet(accessRequest);
         verifyNoMoreInteractions(accessRequestReferentialRepository, readWriteQueue);
     }
 
@@ -465,17 +535,62 @@ public class AccessRequestManagerTest {
         throws Exception {
 
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        String accessRequest = generateAccessRequestId();
         doReturn(Optional.of(
-            new TapeAccessRequestReferentialEntity("accessRequest", CONTAINER_2,
+            new TapeAccessRequestReferentialEntity(accessRequest, CONTAINER_2,
                 List.of("obj2"), getNowMinusMinutes(30), getNowMinusMinutes(20), getNowPlusMinutes(10),
                 getNowPlusMinutes(40), List.of(), 1)
-        )).when(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        )).when(accessRequestReferentialRepository).deleteAndGet(accessRequest);
 
         // When
-        instance.removeAccessRequest("accessRequest");
+        instance.removeAccessRequest(accessRequest);
 
         // Then
-        verify(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        verify(accessRequestReferentialRepository).deleteAndGet(accessRequest);
+        verifyNoMoreInteractions(accessRequestReferentialRepository, readWriteQueue);
+    }
+
+    @Test
+    public void givenAccessRequestFromOtherTenantWhenRemoveAccessRequestThenKO()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        String accessRequest = generateAccessRequestId();
+        doReturn(Optional.of(
+            new TapeAccessRequestReferentialEntity(accessRequest, CONTAINER_2,
+                List.of("obj2"), getNowMinusMinutes(30), getNowMinusMinutes(20), getNowPlusMinutes(10),
+                getNowPlusMinutes(40), List.of(), 1)
+        )).when(accessRequestReferentialRepository).deleteAndGet(accessRequest);
+
+        // When / Then
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertThatThrownBy( () -> instance.removeAccessRequest(accessRequest))
+            .isInstanceOf(IllegalArgumentException.class);
+
+        verifyNoMoreInteractions(accessRequestReferentialRepository, readWriteQueue);
+    }
+
+    @Test
+    public void givenAccessRequestFromNonAdminTenantWhenRemoveAccessRequestWithAdminTenantThenOK()
+        throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String accessRequest = generateAccessRequestId();
+        doReturn(Optional.of(
+            new TapeAccessRequestReferentialEntity(accessRequest, CONTAINER_1,
+                List.of("obj2"), getNowMinusMinutes(30), getNowMinusMinutes(20), getNowPlusMinutes(10),
+                getNowPlusMinutes(40), List.of(), 1)
+        )).when(accessRequestReferentialRepository).deleteAndGet(accessRequest);
+
+        // When
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        instance.removeAccessRequest(accessRequest);
+
+        // Then
+        verify(accessRequestReferentialRepository).deleteAndGet(accessRequest);
         verifyNoMoreInteractions(accessRequestReferentialRepository, readWriteQueue);
     }
 
@@ -484,19 +599,20 @@ public class AccessRequestManagerTest {
         throws Exception {
 
         // Given
+        String accessRequest = generateAccessRequestId();
         doReturn(Optional.of(
-            new TapeAccessRequestReferentialEntity("accessRequest1", CONTAINER_1,
+            new TapeAccessRequestReferentialEntity(accessRequest, CONTAINER_1,
                 List.of("obj1"), getNowMinusMinutes(30), null, null, null, List.of("tarId1"), 0)
-        )).when(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        )).when(accessRequestReferentialRepository).deleteAndGet(accessRequest);
 
         doReturn(emptySet())
             .when(accessRequestReferentialRepository).excludeArchiveIdsStillRequiredByAccessRequests(Set.of("tarId1"));
 
         // When
-        instance.removeAccessRequest("accessRequest");
+        instance.removeAccessRequest(accessRequest);
 
         // Then
-        verify(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        verify(accessRequestReferentialRepository).deleteAndGet(accessRequest);
         verify(accessRequestReferentialRepository).excludeArchiveIdsStillRequiredByAccessRequests(Set.of("tarId1"));
         verifyNoMoreInteractions(accessRequestReferentialRepository, readWriteQueue);
     }
@@ -506,10 +622,11 @@ public class AccessRequestManagerTest {
         throws Exception {
 
         // Given
+        String accessRequest = generateAccessRequestId();
         doReturn(Optional.of(
-            new TapeAccessRequestReferentialEntity("accessRequest1", CONTAINER_1,
+            new TapeAccessRequestReferentialEntity(accessRequest, CONTAINER_1,
                 List.of("obj1"), getNowMinusMinutes(30), null, null, null, List.of("tarId1"), 0)
-        )).when(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        )).when(accessRequestReferentialRepository).deleteAndGet(accessRequest);
 
         doReturn(Set.of("tarId1"))
             .when(accessRequestReferentialRepository).excludeArchiveIdsStillRequiredByAccessRequests(Set.of("tarId1"));
@@ -518,10 +635,10 @@ public class AccessRequestManagerTest {
             .when(accessRequestReferentialRepository).findByUnavailableArchiveId("tarId1");
 
         // When
-        instance.removeAccessRequest("accessRequest");
+        instance.removeAccessRequest(accessRequest);
 
         // Then
-        verify(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        verify(accessRequestReferentialRepository).deleteAndGet(accessRequest);
         verify(accessRequestReferentialRepository).excludeArchiveIdsStillRequiredByAccessRequests(Set.of("tarId1"));
         verify(readWriteQueue).tryCancelIfNotStarted(anyList());
         verify(accessRequestReferentialRepository).findByUnavailableArchiveId("tarId1");
@@ -533,16 +650,19 @@ public class AccessRequestManagerTest {
         throws Exception {
 
         // Given
+
+        String accessRequest1 = generateAccessRequestId();
         doReturn(Optional.of(
-            new TapeAccessRequestReferentialEntity("accessRequest1", CONTAINER_1,
+            new TapeAccessRequestReferentialEntity(accessRequest1, CONTAINER_1,
                 List.of("obj1"), getNowMinusMinutes(30), null, null, null, List.of("tarId1"), 0)
-        )).when(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        )).when(accessRequestReferentialRepository).deleteAndGet(accessRequest1);
 
         doReturn(Set.of("tarId1"))
             .when(accessRequestReferentialRepository).excludeArchiveIdsStillRequiredByAccessRequests(Set.of("tarId1"));
 
+        String accessRequest2 = generateAccessRequestId();
         doReturn(List.of(
-            new TapeAccessRequestReferentialEntity("accessRequest2", CONTAINER_1,
+            new TapeAccessRequestReferentialEntity(accessRequest2, CONTAINER_1,
                 List.of("obj1"), now(), null, null, null, List.of("tarId1"), 0)
         )).when(accessRequestReferentialRepository).findByUnavailableArchiveId("tarId1");
 
@@ -551,10 +671,10 @@ public class AccessRequestManagerTest {
         ).when(archiveReferentialRepository).find("tarId1");
 
         // When
-        instance.removeAccessRequest("accessRequest");
+        instance.removeAccessRequest(accessRequest1);
 
         // Then
-        verify(accessRequestReferentialRepository).deleteAndGet("accessRequest");
+        verify(accessRequestReferentialRepository).deleteAndGet(accessRequest1);
         verify(accessRequestReferentialRepository).excludeArchiveIdsStillRequiredByAccessRequests(Set.of("tarId1"));
         verify(readWriteQueue).tryCancelIfNotStarted(anyList());
         verify(accessRequestReferentialRepository).findByUnavailableArchiveId("tarId1");
@@ -583,11 +703,12 @@ public class AccessRequestManagerTest {
         throws Exception {
 
         // Given
+        String accessRequest = generateAccessRequestId();
         CountDownLatch timerExecuted = new CountDownLatch(1);
         doAnswer(args -> {
             timerExecuted.countDown();
             return List.of(
-                new TapeAccessRequestReferentialEntity("accessRequest", CONTAINER_2,
+                new TapeAccessRequestReferentialEntity(accessRequest, CONTAINER_1,
                     List.of("obj2"), getNowMinusMinutes(30), getNowMinusMinutes(20), getNowPlusMinutes(10),
                     getNowPlusMinutes(40), List.of(), 1)
             );
@@ -612,14 +733,17 @@ public class AccessRequestManagerTest {
         // Given
         logicalClock.freezeTime();
 
+        String accessRequestId1 = generateAccessRequestId();
         TapeAccessRequestReferentialEntity accessRequest1 =
-            new TapeAccessRequestReferentialEntity("accessRequest1", CONTAINER_2, List.of("obj1"),
+            new TapeAccessRequestReferentialEntity(accessRequestId1, CONTAINER_1, List.of("obj1"),
                 getNowMinusMinutes(30), null, null, null, List.of("tarId1", "tarId2"), 0);
+        String accessRequestId2 = generateAccessRequestId();
         TapeAccessRequestReferentialEntity accessRequest2 =
-            new TapeAccessRequestReferentialEntity("accessRequest2", CONTAINER_2, List.of("obj2"),
+            new TapeAccessRequestReferentialEntity(accessRequestId2, CONTAINER_1, List.of("obj2"),
                 getNowMinusMinutes(20), null, null, null, List.of("tarId2"), 0);
+        String accessRequestId3 = generateAccessRequestId();
         TapeAccessRequestReferentialEntity accessRequest3 =
-            new TapeAccessRequestReferentialEntity("accessRequest3", CONTAINER_2, List.of("obj3"),
+            new TapeAccessRequestReferentialEntity(accessRequestId3, CONTAINER_1, List.of("obj3"),
                 getNowMinusMinutes(20), null, null, null, List.of("tarId1", "tarId3"), 0);
 
         CountDownLatch timerExecuted = new CountDownLatch(1);
@@ -631,9 +755,9 @@ public class AccessRequestManagerTest {
         doReturn(List.of(accessRequest1, accessRequest2)).when(accessRequestReferentialRepository)
             .findByUnavailableArchiveId("tarId2");
 
-        doReturn(false).when(archiveCacheStorage).containsArchive(FILE_BUCKET_2, "tarId1");
-        doReturn(true).when(archiveCacheStorage).containsArchive(FILE_BUCKET_2, "tarId2");
-        doReturn(false).when(archiveCacheStorage).containsArchive(FILE_BUCKET_2, "tarId3");
+        doReturn(false).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId1");
+        doReturn(true).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId2");
+        doReturn(false).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, "tarId3");
 
         doReturn(true).when(accessRequestReferentialRepository).updateAccessRequest(any(), anyInt());
 
@@ -704,11 +828,13 @@ public class AccessRequestManagerTest {
         // Given
         logicalClock.freezeTime();
 
+        String accessRequestId1 = generateAccessRequestId();
         TapeAccessRequestReferentialEntity accessRequest1 =
-            new TapeAccessRequestReferentialEntity("accessRequest1", CONTAINER_2, List.of("obj1"),
+            new TapeAccessRequestReferentialEntity(accessRequestId1, CONTAINER_1, List.of("obj1"),
                 getNowMinusMinutes(30), null, null, null, List.of("tarId1", "tarId2"), 0);
+        String accessRequestId2 = generateAccessRequestId();
         TapeAccessRequestReferentialEntity accessRequest2 =
-            new TapeAccessRequestReferentialEntity("accessRequest2", CONTAINER_2, List.of("obj2"),
+            new TapeAccessRequestReferentialEntity(accessRequestId2, CONTAINER_1, List.of("obj2"),
                 getNowMinusMinutes(20), null, null, null, List.of("tarId2"), 0);
         doReturn(List.of(accessRequest1, accessRequest2))
             .when(accessRequestReferentialRepository).findByUnavailableArchiveId("tarId2");
@@ -759,8 +885,9 @@ public class AccessRequestManagerTest {
         logicalClock.freezeTime();
 
         // V0 of access request
+        String accessRequestId1 = generateAccessRequestId();
         TapeAccessRequestReferentialEntity accessRequest1V0 =
-            new TapeAccessRequestReferentialEntity("accessRequest1", CONTAINER_2, List.of("obj1"),
+            new TapeAccessRequestReferentialEntity(accessRequestId1, CONTAINER_1, List.of("obj1"),
                 getNowMinusMinutes(30), null, null, null, List.of("tarId1", "tarId2"), 0);
         doReturn(List.of(accessRequest1V0))
             .when(accessRequestReferentialRepository).findByUnavailableArchiveId("tarId2");
@@ -775,7 +902,7 @@ public class AccessRequestManagerTest {
                 accessRequest1V0.getObjectNames(), accessRequest1V0.getCreationDate(), null, null, null,
                 List.of("tarId2"), 1);
         doReturn(Optional.of(accessRequest1V1)).when(accessRequestReferentialRepository)
-            .findByRequestId("accessRequest1");
+            .findByRequestId(accessRequestId1);
 
         // When
         instance.updateAccessRequestWhenArchiveReady("tarId2");
@@ -783,7 +910,7 @@ public class AccessRequestManagerTest {
         // Then
         verify(accessRequestReferentialRepository).findByUnavailableArchiveId("tarId2");
 
-        verify(accessRequestReferentialRepository).findByRequestId("accessRequest1");
+        verify(accessRequestReferentialRepository).findByRequestId(accessRequestId1);
 
         ArgumentCaptor<TapeAccessRequestReferentialEntity> updatedAccessRequestsArgumentCaptor =
             ArgumentCaptor.forClass(TapeAccessRequestReferentialEntity.class);
@@ -795,7 +922,7 @@ public class AccessRequestManagerTest {
         TapeAccessRequestReferentialEntity updatedAccessRequest2 =
             updatedAccessRequestsArgumentCaptor.getAllValues().get(1);
 
-        assertThat(firstUpdate.getRequestId()).isEqualTo("accessRequest1");
+        assertThat(firstUpdate.getRequestId()).isEqualTo(accessRequestId1);
         assertThat(firstUpdate.getObjectNames()).isEqualTo(List.of("obj1"));
         assertThat(firstUpdate.getCreationDate()).isEqualTo(accessRequest1V0.getCreationDate());
         assertThat(firstUpdate.getReadyDate()).isNull();
@@ -804,7 +931,7 @@ public class AccessRequestManagerTest {
         assertThat(firstUpdate.getUnavailableArchiveIds()).containsExactlyInAnyOrder("tarId1");
         assertThat(firstUpdate.getVersion()).isEqualTo(1);
 
-        assertThat(updatedAccessRequest2.getRequestId()).isEqualTo("accessRequest1");
+        assertThat(updatedAccessRequest2.getRequestId()).isEqualTo(accessRequestId1);
         assertThat(updatedAccessRequest2.getObjectNames()).isEqualTo(List.of("obj1"));
         assertThat(updatedAccessRequest2.getCreationDate()).isEqualTo(accessRequest1V0.getCreationDate());
         assertThat(updatedAccessRequest2.getReadyDate()).isEqualTo(now());
