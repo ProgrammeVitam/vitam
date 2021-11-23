@@ -54,6 +54,7 @@ documentation:
     description: |
       Requête qui retourne des résultats contenant des Unités d'archives.
       La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+      Afin d'avoir une précision exacte sur le nombre de résultats de retournés, il faut utiliser la propriété "$track_total_hits : true" qui devrait être pré-autorisée en amont au niveau de la configuration.
 
       Permissions requises:
         - units:read

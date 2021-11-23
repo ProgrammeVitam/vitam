@@ -367,7 +367,8 @@ types:
           ],
           "$filter": {
             "$limit": 100,
-            "$offset": 50
+            "$offset": 50,
+            "$track_total_hits": false
           },
           "$projection": {
             "$fields": { "myField1": 1, "myField2.mySubField": 1 }

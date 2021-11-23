@@ -41,7 +41,7 @@ Dans le cas contraire (cas où l'objet existe dans les autres offres), il faudra
 .. note:: Cette procédure doit être lancée une seule fois, et pour chaque offre Swift V2/V3, APRES upgrade Vitam.
 
 
-Migrations des unités achivestiques
+Migrations des unités archivistiques
 -----------------------------------
 
 La migration des données est réalisée en exécutant la commande suivante (sur le site primaire uniquement, dans le cas d'une installation multi-sites) :
@@ -56,4 +56,29 @@ L'indexation des champs dynamiques, créés au niveau des régles de gestion hé
 
 .. note:: Durant la migration, il est fortement recommandé de ne pas procéder à des versements de données.
 
+Augmenter la précision sur le nombre de résultats retournés dépassant 10000
+--------------------------------------------------------------------------
 
+Suite à une évolution d'ElasticSearch ( à partir de la version 7.6 ), le nombre maximum de résultats retournés est limité à 10000. Ceci est dû à la haute consommation de ressources de ce calcul, qui est parfois inutile au niveau de la réponse.
+En cas de besoin pour avoir le nombre exact de résultats retournés, il faut, en premier temps, activer le paramètre nommé ``authorizeTrackTotalHits`` qui existe au niveau du fichier de configuration ``access-external.conf``. Ensuite, si l'API de recherche
+utilise le type d'entrée de DSL "SELECT_MULTIPLE", il faut ajouter ``$track_total_hits : true`` au niveau de la partie "filter" de la requête d'entrée.
+Ci-dessous, un exemple de requête d'entrée :
+
+.. code-block:: json
+
+    {
+      "$roots": [],
+      "$query": [
+       {
+         "$match": {
+            "Title": "héritage"
+         }
+       }
+      ],
+      "$filter": {
+        "$offset": 0,
+        "$limit": 100,
+        "$track_total_hits": true
+      },
+      "$projection": {}
+    }
