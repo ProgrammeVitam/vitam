@@ -78,7 +78,6 @@ import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.security.IllegalPathException;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
@@ -97,7 +96,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteE
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesIllegalDurationModeUpdateException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
@@ -133,7 +132,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -172,7 +170,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private static final String RULE_DURATION_EXCEED = "Rule Duration Exceed";
     private static final String CSV = ".csv";
 
-    private static final String TMP = "tmp";
     private static final String UPDATE_DATE = "UpdateDate";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
 
@@ -247,7 +244,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
         checkConcurrentImportOperation(filename, eip);
 
-        File file = convertInputStreamToFile(rulesFileStream, CSV);
+        File file = FileUtil.convertInputStreamToFile(rulesFileStream, GUIDFactory.newGUID().getId(), CSV);
         try {
 
             Map<String, FileRulesModel> rulesFromFile = processRuleParsing(
@@ -308,13 +305,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     }
 
     private void checkConcurrentImportOperation(String filename, GUID eip)
-        throws FileRulesException, InvalidParseOperationException, FileRulesImportInProgressException,
+        throws FileRulesException, InvalidParseOperationException, ReferentialImportInProgressException,
         LogbookClientException {
         if (logbookRuleImportManager.isImportOperationInProgress()) {
             this.logbookRuleImportManager
                 .updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_IMPORT_IN_PROCESS, eip);
             this.logbookRuleImportManager.updateStpImportRulesLogbookOperation(eip, StatusCode.KO, filename);
-            throw new FileRulesImportInProgressException(RULES_PROCESS_IMPORT_ALREADY_EXIST);
+            throw new ReferentialImportInProgressException(RULES_PROCESS_IMPORT_ALREADY_EXIST);
         }
     }
 
@@ -902,17 +899,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 return duration;
             default:
                 return 0;
-        }
-    }
-
-    private File convertInputStreamToFile(InputStream rulesStream, String extension)
-        throws IOException, IllegalPathException {
-        try {
-            final File csvFile = FileUtil.createFileInTempDirectoryWithPathCheck(TMP, extension);
-            Files.copy(rulesStream, csvFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            return csvFile;
-        } finally {
-            StreamUtils.closeSilently(rulesStream);
         }
     }
 

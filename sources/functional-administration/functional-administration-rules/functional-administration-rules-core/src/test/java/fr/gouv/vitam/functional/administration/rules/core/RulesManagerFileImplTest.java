@@ -68,7 +68,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvExce
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesReadException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
@@ -423,7 +423,7 @@ public class RulesManagerFileImplTest {
      * Warning : To avoid error on import rules (actually cannot update) and to be able to test each case, the tenant ID
      * is changed for each call.
      */
-    @Test(expected = FileRulesImportInProgressException.class)
+    @Test(expected = ReferentialImportInProgressException.class)
     @RunWithCustomExecutor
     public void testImportInProgess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(3);
