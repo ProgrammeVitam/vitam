@@ -446,7 +446,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
 
             final ItemStatus itemStatus = step.getStepResponses();
-            updateStepItemStatusWithTaskResults(workerTaskResults, itemStatus);
+            updateStepWithTaskResults(workerTaskResults, step);
 
             /*
              * As pause can occur on not started WorkerTask,
@@ -661,7 +661,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             List<WorkerTaskResult> workerTaskResults = executeWorkerTasks(workerParameters, workerTaskList);
 
             final ItemStatus itemStatus = step.getStepResponses();
-            updateStepItemStatusWithTaskResults(workerTaskResults, itemStatus);
+            updateStepWithTaskResults(workerTaskResults, step);
 
             /*
              * As pause can occur on not started WorkerTask,
@@ -681,7 +681,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
             updatePersistedDistributorIndexIfNotFatal(operationId, offset, distributorIndex, itemStatus,
                 AN_EXCEPTION_HAS_BEEN_THROWN_WHEN_TRYING_TO_PERSIST_DISTRIBUTOR_INDEX);
-
 
             checkCancelledOrPaused(step);
 
@@ -788,13 +787,23 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private void updateStepItemStatusWithTaskResults(List<WorkerTaskResult> workerTaskResults, ItemStatus itemStatus) {
+    private void updateStepWithTaskResults(List<WorkerTaskResult> workerTaskResults, Step step) {
 
+        // Update global step item status
         workerTaskResults.stream()
             // Do not compute PAUSE and CANCEL actions
             .filter(result -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(result.getItemStatus().getItemId()))
             .filter(result -> !PauseOrCancelAction.ACTION_PAUSE.name().equals(result.getItemStatus().getItemId()))
-            .forEach(result -> itemStatus.setItemsStatus(result.getItemStatus()));
+            .forEach(result -> step.getStepResponses().setItemsStatus(result.getItemStatus()));
+
+        // Update stats (used by tests only)
+        int processedElements = workerTaskResults.stream()
+            //Do not update processed if pause or cancel occurs or if status is Fatal
+            .filter(result -> !StatusCode.UNKNOWN.equals(result.getItemStatus().getGlobalStatus()))
+            .filter(result -> !StatusCode.FATAL.equals(result.getItemStatus().getGlobalStatus()))
+            .mapToInt(result -> result.getWorkerTask().getObjectNameList().size())
+            .sum();
+        ((ProcessStep) step).getElementProcessed().addAndGet(processedElements);
     }
 
     private List<String> getRemainingElements(List<WorkerTaskResult> workerTaskResults, ItemStatus itemStatus) {
@@ -877,17 +886,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                         new ItemStatus(step.getStepName()).setEvDetailData(JsonHandler.unprettyPrint(evDetDetail))
                             .increment(StatusCode.FATAL));
                 return new WorkerTaskResult(task, false, itemStatus);
-            })
-            .thenApply(result -> {
-                //Do not update processed if pause or cancel occurs or if status is Fatal
-                if (StatusCode.UNKNOWN.equals(result.getItemStatus().getGlobalStatus()) ||
-                    StatusCode.FATAL.equals(result.getItemStatus().getGlobalStatus())) {
-                    return result;
-                }
-                // update processed elements
-                ProcessStep processStep = (ProcessStep) step;
-                processStep.getElementProcessed().addAndGet(task.getObjectNameList().size());
-                return result;
             })
             .thenApply(is -> {
                 // Decrement as this task is completed
