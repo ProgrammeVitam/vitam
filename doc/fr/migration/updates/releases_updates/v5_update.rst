@@ -1,6 +1,19 @@
 Notes et procédures spécifiques V5
 ##################################
 
+Contournement d'un problème induit par la montée de version logstash
+--------------------------------------------------------------------
+
+Suite à la montée de version du composant logstash, il est constaté un problème durant la phase de montée de version (exécution du script vitam.yml)  dans certains contextes d'usage.
+Un correctif est en cours d'élaboration, mais pour sécuriser le processus, il est recommandé de réaliser les opérations suivantes manuellement sur le serveur logtstash AVANT de mettre en oeuvre le processus de montée de version:
+
+
+.. code-block:: bash
+
+    sudo mkdir -p /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-4.3.1/patterns
+    sudo chown -R logstash:logstash /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-patterns-core-4.3.1/
+
+
 Migrations offres Swift V2 & V3 en cas de présence d'objets très volumineux (4Go+)
 ----------------------------------------------------------------------------------
 
@@ -52,7 +65,9 @@ ou, si vault_pass.txt n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_v5.yml --ask-vault-pass``
 
-L'indexation des champs dynamiques, créés au niveau des régles de gestion héritées, et précisément au niveau de la propriété ``endDates`` est rendue inactive. Il faudrait ainsi réindexer toutes les unités archivitiques.
+L'indexation des champs dynamiques, créés au niveau des régles de gestion héritées, et précisément au niveau de la propriété ``endDates`` est rendue inactive. Il faut ainsi réindexer toutes les unités archivitiques après le passage du script de migration.
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass``
 
 .. note:: Durant la migration, il est fortement recommandé de ne pas procéder à des versements de données.
 
