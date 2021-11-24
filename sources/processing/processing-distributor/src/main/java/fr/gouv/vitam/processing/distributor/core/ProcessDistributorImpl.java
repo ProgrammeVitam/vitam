@@ -452,19 +452,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              * As pause can occur on not started WorkerTask,
              * so we have to get the corresponding elements in order to execute them after restart
              */
-            List<String> remainingElements = new ArrayList<>();
-            for (WorkerTaskResult workerTaskResult : workerTaskResults) {
-                if (!workerTaskResult.isCompleted()) {
-                    remainingElements.addAll(workerTaskResult.getWorkerTask().getObjectNameList());
-                }
-            }
+            List<String> remainingElements = getRemainingElements(workerTaskResults, itemStatus);
 
-            if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                // We have to restart all the current offset
-                remainingElements.clear();
-            } else if (remainingElements.isEmpty()) {
-                offset = nextOffset;
-            }
+            offset = getNextOffset(offset, nextOffset, remainingElements, itemStatus);
 
             DistributorIndex distributorIndex =
                 new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
@@ -677,18 +667,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              * As pause can occur on not started WorkerTask,
              * so we have to get the corresponding elements in order to execute them after restart
              */
-            List<String> remainingElements = new ArrayList<>();
-            for (WorkerTaskResult workerTaskResult : workerTaskResults) {
-                if (!workerTaskResult.isCompleted()) {
-                    remainingElements.addAll(workerTaskResult.getWorkerTask().getObjectNameList());
-                }
-            }
+            List<String> remainingElements = getRemainingElements(workerTaskResults, itemStatus);
 
-            if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
-                remainingElements.clear();
-            } else if (remainingElements.isEmpty()) {
-                offset = nextOffset;
-            }
+            offset = getNextOffset(offset, nextOffset, remainingElements, itemStatus);
+
             // update && persist DistributorIndex if not Fatal
             DistributorIndex distributorIndex =
                 new DistributorIndex(ProcessDistributor.NOLEVEL, offset, itemStatus, requestId, step.getId(),
@@ -789,7 +771,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         List<CompletableFuture<WorkerTaskResult>> completableFutureList = new ArrayList<>();
         for (WorkerTask workerTask : workerTaskList) {
             CompletableFuture<WorkerTaskResult> prepare =
-                prepare(workerTask, workerParameters.getLogbookTypeProcess());
+                scheduleTask(workerTask, workerParameters.getLogbookTypeProcess());
             completableFutureList.add(prepare);
         }
         return completableFutureList;
@@ -815,6 +797,29 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             .forEach(result -> itemStatus.setItemsStatus(result.getItemStatus()));
     }
 
+    private List<String> getRemainingElements(List<WorkerTaskResult> workerTaskResults, ItemStatus itemStatus) {
+
+        if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+            // We have to restart all the current offset
+            return Collections.emptyList();
+        }
+
+        return workerTaskResults.stream()
+            .filter(workerTaskResult -> !workerTaskResult.isCompleted())
+            .flatMap(workerTaskResult -> workerTaskResult.getWorkerTask().getObjectNameList().stream())
+            .collect(Collectors.toList());
+    }
+
+    private int getNextOffset(int currentOffset, int nextOffset, List<String> remainingElements,
+        ItemStatus itemStatus) {
+
+        // Do not move offset if some tasks have not been completed (FATAL/PAUSE)
+        if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal() || !remainingElements.isEmpty()) {
+            return currentOffset;
+        }
+
+        return nextOffset;
+    }
 
     private void checkCancelledOrPaused(Step step) {
         switch (step.getPauseOrCancelAction()) {
@@ -826,7 +831,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private CompletableFuture<WorkerTaskResult> prepare(WorkerTask task, LogbookTypeProcess logbookTypeProcess) {
+    private CompletableFuture<WorkerTaskResult> scheduleTask(WorkerTask task, LogbookTypeProcess logbookTypeProcess) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {
@@ -841,6 +846,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             .labels(wmf.getFamily(), logbookTypeProcess.name(), step.getStepName())
             .inc();
 
+        // /!\ CAUTION :
+        // WorkerFamilyManager is backed by a limited blocking queue (why?).
+        // CompletableFuture.supplyAsync() method might block caller thread if queue is full
         return CompletableFuture
             .supplyAsync(task, wmf)
             .exceptionally((completionException) -> {
