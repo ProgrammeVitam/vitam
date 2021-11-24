@@ -200,7 +200,7 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_fileglob:
     - "{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/*"
-  no_log: "{{ hide_passwords_during_deploy }}"
+  #no_log: "{{ hide_passwords_during_deploy }}"
   tags:
     - update_vitam_configuration
   notify:

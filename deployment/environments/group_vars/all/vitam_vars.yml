@@ -374,6 +374,32 @@ vitam:
         #### Audit data consistency MongoDB-ES ####
         isDataConsistencyAuditRunnable: false
         dataConsistencyAuditOplogMaxSize: 100
+        context_path: "/metadata"
+    metadata_collect:
+        vitam_component: metadata-collect
+        host: "metadata-collect.service.{{ consul_domain }}"
+        port_service: 8290
+        port_admin: 28290
+        baseuri: "metadata-collect"
+        https_enabled: false
+        secret_platform: "true"
+        cluster_name: "{{ elasticsearch.data.cluster_name }}"
+        # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+        archiveUnitProfileCacheMaxEntries: 100
+        archiveUnitProfileCacheTimeoutInSeconds: 300
+        # Schema validator cache settings (max entries in cache & retention timeout in seconds)
+        schemaValidatorCacheMaxEntries: 100
+        schemaValidatorCacheTimeoutInSeconds: 300
+        # DIP cleanup delay (in minutes)
+        dipTimeToLiveInMinutes: 10080 # 7 days
+        criticalDipTimeToLiveInMinutes: 1440 # 1 day
+        transfersSIPTimeToLiveInMinutes: 10080 # 7 days
+        workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
+        elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata-collect/mapping" # Directory of elasticsearch metadata mapping
+        #### Audit data consistency MongoDB-ES ####
+        isDataConsistencyAuditRunnable: false
+        dataConsistencyAuditOplogMaxSize: 100
+        context_path: "/metadata-collect"
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"

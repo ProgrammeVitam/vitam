@@ -18,5 +18,6 @@
 		<module>metadata-rest</module>
 		<module>metadata-client</module>
         <module>metadata-audit</module>
+		<module>metadata-rest-collect</module>
     </modules>
 </project>

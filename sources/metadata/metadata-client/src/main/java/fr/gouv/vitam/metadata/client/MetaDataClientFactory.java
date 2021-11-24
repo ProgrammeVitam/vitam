@@ -26,14 +26,14 @@
  */
 package fr.gouv.vitam.metadata.client;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Metadata client factory
@@ -42,14 +42,14 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "metadata-client.conf";
-    private static final String RESOURCE_PATH = "/metadata/v1";
 
-    private static final MetaDataClientFactory META_DATA_CLIENT_FACTORY = new MetaDataClientFactory();
+    private static final MetaDataClientFactory META_DATA_CLIENT_FACTORY = new MetaDataClientFactory("/metadata/v1");
+    private static final MetaDataClientFactory META_DATA_COLLECT_CLIENT_FACTORY = new MetaDataClientFactory("/metadata-collect/v1");
 
-    private MetaDataClientFactory() {
+    private MetaDataClientFactory(String resourcePath) {
         // All requests from client are SMALL, but responses from server could be Huge
         // So Chunked mode inactive on client side
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), resourcePath, false);
     }
 
     /**
@@ -80,7 +80,9 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
      * @param configuration null for MOCK
      */
     public static void changeMode(ClientConfiguration configuration) {
-        getInstance().initialisation(configuration, getInstance().getResourcePath());
+        for (MetadataType type: MetadataType.values()) {
+            getInstance(type).initialisation(configuration, getInstance(type).getResourcePath());
+        }
     }
 
     /**
@@ -89,7 +91,16 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
      * @return the factory instance
      */
     public static MetaDataClientFactory getInstance() {
-        return META_DATA_CLIENT_FACTORY;
+        return getInstance(MetadataType.VITAM);
+    }
+
+    public static MetaDataClientFactory getInstance(MetadataType metadataType) {
+        if(metadataType == MetadataType.VITAM) {
+            return META_DATA_CLIENT_FACTORY;
+        } else if(metadataType == MetadataType.COLLECT) {
+            return META_DATA_COLLECT_CLIENT_FACTORY;
+        }
+        return null;
     }
 
     @Override

@@ -39,6 +39,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
@@ -83,5 +84,10 @@ public class CollectServiceTest {
         // Then
         then(collectRepository).should()
                 .findCollect(idCollect);
+    }
+
+    @Test
+    public void sdfsfs() {
+        System.out.println(UUID.randomUUID().toString());
     }
 }

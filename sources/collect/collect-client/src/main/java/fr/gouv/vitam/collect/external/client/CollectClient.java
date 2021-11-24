@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.collect.external.client;
 
+import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -40,8 +42,18 @@ public interface CollectClient extends MockOrRestClient {
      *
      * Consume and produce MediaType.APPLICATION_JSON
      *
-     * @return RequestResponse<String> guid created for the transaction
+     * @return RequestResponse<TransactionDto> guid created for the transaction
      * @throws InvalidParseOperationException exception occurs when parse operation failed
      */
-    RequestResponseOK<String> initTransaction() throws InvalidParseOperationException;
+    RequestResponseOK<TransactionDto> initTransaction() throws InvalidParseOperationException;
+
+    /**
+     * Upload Archive Unit
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return RequestResponse<ArchiveUnitDto> Archive Unit saved
+     * @throws InvalidParseOperationException exception occurs when parse operation failed
+     */
+    RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, ArchiveUnitDto archiveUnitDto) throws InvalidParseOperationException;
 }

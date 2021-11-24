@@ -24,52 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.dto;
-
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
-
-import javax.ws.rs.core.Response;
-import java.util.Map;
-
+package fr.gouv.vitam.workspace.client;
 
 /**
- * Access RequestResponseOK class contains list of results<br>
- * default results : is an empty list (immutable)
- *
- * @param <T> Type of results
+ * Workspace Enum for choosing which type to call by the factory client
  */
-public final class ResponseOK<T> extends RequestResponse<T> {
-
-    private String result;
-
-    public String getResult() {
-        return result;
-    }
-
-    public void setResult(String result) {
-        this.result = result;
-    }
-
-    public ResponseOK<T> setHttpCode(int httpCode) {
-        super.setHttpCode(httpCode);
-        return this;
-    }
-
-    /**
-     * transform a RequestResponse to a standard response
-     *
-     * @return Response
-     */
-    @Override
-    public Response toResponse() {
-        final Response.ResponseBuilder resp = Response.status(getStatus()).entity(JsonHandler.unprettyPrint(this));
-        final Map<String, String> vitamHeaders = getVitamHeaders();
-        for (final String key : vitamHeaders.keySet()) {
-            resp.header(key, getHeaderString(key));
-        }
-
-        unSetVitamHeaders();
-        return resp.build();
-    }
+public enum WorkspaceType {
+    VITAM,
+    COLLECT;
 }

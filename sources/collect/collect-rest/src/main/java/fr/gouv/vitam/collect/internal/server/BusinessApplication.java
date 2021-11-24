@@ -30,6 +30,7 @@ import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.collect.internal.repository.CollectRepository;
+import fr.gouv.vitam.collect.internal.service.TransactionService;
 import fr.gouv.vitam.collect.internal.resource.TransactionResource;
 import fr.gouv.vitam.collect.internal.service.CollectService;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -57,12 +58,12 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 public class BusinessApplication extends ConfigurationApplication {
     private final Set<Object> singletons;
     private final CommonBusinessApplication commonBusinessApplication;
-    private String configurationFile;
+    private final String configurationFile;
 
     /**
      * Constructor
      *
-     * @param servletConfig
+     * @param servletConfig servletConfig
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         this.configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
@@ -76,13 +77,16 @@ public class BusinessApplication extends ConfigurationApplication {
 
             CollectRepository collectRepository = new CollectRepository(mongoDbAccess);
             CollectService collectService = new CollectService(collectRepository);
+            TransactionService
+                transactionService = new TransactionService(collectService, configuration);
             commonBusinessApplication = new CommonBusinessApplication();
+
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new InternalSecurityFilter());
             singletons.add(new AuthorizationFilter());
             singletons.add(new JsonParseExceptionMapper());
             singletons.add(new ApplicationStatusResource());
-            singletons.add(new TransactionResource(collectService, configuration));
+            singletons.add(new TransactionResource(collectService, transactionService));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,0 +1,211 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>fr.gouv.vitam</groupId>
+		<artifactId>metadata</artifactId>
+		<version>5.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>metadata-rest-collect</artifactId>
+	<name>metadata Rest Collect</name>
+	<properties>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
+		<unix.name>metadata-collect</unix.name>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>metadata-rest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+
+		<plugins>
+			<plugin>
+				<!-- Dependency manipulation (copy, unpack) and analysis. -->
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-config-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/conf/sysconfig</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/conf</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<!-- Debian -->
+					<execution>
+						<id>copy-debian-controlFiles</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/control</outputDirectory>
+							<overwrite>true</overwrite>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/deb/control</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-systemd-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/systemd</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/systemd</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-script-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/script</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/script</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>fr.gouv.vitam.metadata.rest.MetadataMain</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<configuration>
+					<disabled>false</disabled>
+					<license>CeCILL 2.1</license>
+					<distribution>Vitam Project</distribution>
+					<group>Application/Archiving</group>
+					<packager>Vitam Package Team</packager>
+					<defineStatements/>
+					<targetOS>linux</targetOS>
+					<requires>
+						<require>systemd</require>
+						<require>${jdk.version.rpm}</require>
+						<require>vitam-user-${unix.user}</require>
+					</requires>
+					<defaultDirmode>750</defaultDirmode>
+					<defaultFilemode>640</defaultFilemode>
+					<defaultUsername>${unix.user}</defaultUsername>
+					<defaultGroupname>${unix.group}</defaultGroupname>
+					<mappings>
+						<mapping>
+							<directory>/vitam/lib/${unix.name}</directory>
+							<artifact/>
+							<dependency/>
+						</mapping>
+						<mapping>
+							<directory>/vitam/conf/${unix.name}</directory>
+							<sources>
+								<source>
+									<location>${project.build.directory}/conf</location>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<directory>/vitam/script/${unix.name}</directory>
+							<!-- OMA : change to 750 and change directive if not correct
+														<defaultFileMode>640</defaultFileMode>
+							-->
+							<filemode>750</filemode>
+							<username>${unix.user}</username>
+							<groupname>${unix.user}</groupname>
+							<sources>
+								<source>
+									<location>${project.build.directory}/script</location>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<directory>/usr/lib/systemd/system/</directory>
+							<filemode>644</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directoryIncluded>false</directoryIncluded>
+							<sources>
+								<source>
+									<location>${project.build.directory}/systemd</location>
+								</source>
+							</sources>
+						</mapping>
+					</mappings>
+					<!-- Systemd hook scriptlets -->
+					<postinstallScriptlet>
+						<script>%systemd_post vitam-${unix.name}.service</script>
+					</postinstallScriptlet>
+					<preremoveScriptlet>
+						<script>%systemd_preun vitam-${unix.name}.service vitam-metadata-reconstruction.timer vitam-metadata-reconstruction.service vitam-metadata-store-graph.timer vitam-metadata-store-graph.service</script>
+					</preremoveScriptlet>
+					<postremoveScriptlet>
+						<script>%systemd_postun vitam-${unix.name}.service vitam-metadata-reconstruction.timer vitam-metadata-reconstruction.service vitam-metadata-store-graph.timer vitam-metadata-store-graph.service</script>
+					</postremoveScriptlet>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>

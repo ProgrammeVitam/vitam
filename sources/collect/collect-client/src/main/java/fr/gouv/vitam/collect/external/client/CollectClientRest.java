@@ -26,22 +26,60 @@
  */
 package fr.gouv.vitam.collect.external.client;
 
+import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+
+import javax.ws.rs.core.Response;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 /**
  * Collect Client implementation for production environment
  */
 public class CollectClientRest extends DefaultClient implements CollectClient {
+    private static final String TENANT_ID = "1";
 
     public CollectClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
     }
 
     @Override
-    public RequestResponseOK<String> initTransaction() throws InvalidParseOperationException {
+    public RequestResponseOK<TransactionDto> initTransaction()  {
+        try (Response response = make(post().withPath("").withHeader(X_TENANT_ID, TENANT_ID)
+                .withJson())) {
+            Response.Status status = response.getStatusInfo().toEnum();
+            if (SUCCESSFUL.equals(status.getFamily())) {
+                RequestResponse<TransactionDto> result =
+                        RequestResponse.parseFromResponse(response, TransactionDto.class);
+                return (RequestResponseOK<TransactionDto>) result;
+            }
+        } catch (VitamClientInternalException  e) {
+            return null;
+        }
+        return null;
+    }
+
+    @Override
+    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, ArchiveUnitDto archiveUnitDto) throws InvalidParseOperationException {
+//        try (Response response = make(post().withPath("/"+transactionId+"/archiveunits").withBody(archiveUnitDto).withHeader(X_TENANT_ID, TENANT_ID)
+//                .withJson())) {
+//            Response.Status status = response.getStatusInfo().toEnum();
+//            if (SUCCESSFUL.equals(status.getFamily())) {
+//                RequestResponse<TransactionDto> result =
+//                        RequestResponse.parseFromResponse(response, TransactionDto.class);
+//                return (RequestResponseOK<TransactionDto>) result;
+//            }
+//        } catch (VitamClientInternalException  e) {
+//            return null;
+//        }
         return null;
     }
 }

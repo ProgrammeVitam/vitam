@@ -1,5 +1,5 @@
 [Unit]
-Description=Workspace Rest
+Description=Collect Workspace Rest
 After=network.target
 After=syslog.target
 

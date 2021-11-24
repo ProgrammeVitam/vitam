@@ -67,6 +67,7 @@ hosts_batch_report
 hosts_worker
 hosts_access_internal
 hosts_metadata
+hosts_metadata_collect
 hosts_functional_administration
 hosts_logbook
 hosts_workspace
@@ -96,6 +97,9 @@ localhost
 localhost
 
 [hosts_metadata]
+localhost
+
+[hosts_metadata_collect]
 localhost
 
 [hosts_functional_administration]

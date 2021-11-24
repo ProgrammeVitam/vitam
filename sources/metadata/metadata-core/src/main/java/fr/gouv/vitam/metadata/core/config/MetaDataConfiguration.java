@@ -46,6 +46,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private String urlProcessing;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
+    private String contextPath;
 
     private int archiveUnitProfileCacheMaxEntries = 100;
     private int archiveUnitProfileCacheTimeoutInSeconds = 300;
@@ -91,6 +92,22 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
         this.elasticsearchExternalMetadataMappings = mappingLoader.getElasticsearchExternalMappings();
+    }
+
+    /**
+     * @return the contextPath
+     */
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    /**
+     * @param contextPath the contextPath to set
+     * @return this
+     */
+    public MetaDataConfiguration setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+        return this;
     }
 
     /**
@@ -295,5 +312,9 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public TimeToLiveConfiguration getTimeToLiveConfiguration() {
         return new TimeToLiveConfiguration(dipTimeToLiveInMinutes, criticalDipTimeToLiveInMinutes,
             transfersSIPTimeToLiveInMinutes);
+    }
+    @Override
+    public String getBaseUrl() {
+        return contextPath;
     }
 }

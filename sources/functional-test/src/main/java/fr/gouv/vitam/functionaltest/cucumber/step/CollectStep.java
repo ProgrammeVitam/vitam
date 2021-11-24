@@ -26,11 +26,17 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,6 +49,19 @@ public class CollectStep {
         this.world = world;
     }
 
+    /**
+     * define a query from a file to reuse it after
+     *
+     * @param queryFilename name of the file containing the query
+     * @throws Throwable
+     */
+    @When("^j'utilise le fichier de requête (.*)$")
+    public void i_use_the_following_file_query(String queryFilename) throws Throwable {
+        Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
+        String query = FileUtil.readFile(queryFile.toFile());
+        world.setQuery(query);
+    }
+
     @Given("^un utilisateur possédant le rôle (.*)$")
     public void checkUserAcces(String access) {
         //TODO : To complete after define Collect user access
@@ -51,13 +70,23 @@ public class CollectStep {
 
     @When("^j'initialise une transaction$")
     public void initTransaction() throws InvalidParseOperationException {
-        RequestResponseOK<String> response = world.getCollectClient().initTransaction();
+        RequestResponseOK<TransactionDto> response = world.getCollectClient().initTransaction();
         assertThat(response.isOk()).isTrue();
-        transactionGuuid = response.getFirstResult();
+        transactionGuuid = response.getFirstResult().getId();
     }
 
     @Then("^le service de collecte me retourne le guuid de la transaction$")
     public void checkTransactionGuuid() {
         assertThat(transactionGuuid).isNotNull();
     }
+
+    @When("^j'envoie une AU$")
+    public void uploadArchiveUnit() throws InvalidParseOperationException, JsonProcessingException {
+//        ObjectMapper mapper = new ObjectMapper();
+//        ArchiveUnitDto archiveUnitDto = mapper.readValue(world.getQuery(), ArchiveUnitDto.class);
+//        RequestResponseOK<TransactionDto> response = world.getCollectClient().uploadArchiveUnit(transactionGuuid, archiveUnitDto);
+//        assertThat(response.isOk()).isTrue();
+//        transactionGuuid = response.getFirstResult().getId();
+    }
+
 }

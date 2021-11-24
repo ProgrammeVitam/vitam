@@ -43,7 +43,7 @@ public class CollectClientFactory extends VitamClientFactory<CollectClient> {
     private static final CollectClientFactory COLLECT_CLIENT_FACTORY = new CollectClientFactory();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "collect-client.conf";
-    private static final String RESOURCE_PATH = "/collect/v1/transaction";
+    private static final String RESOURCE_PATH = "/v1/transactions";
 
     protected CollectClientFactory() {
         super(changeConfigurationFile(), RESOURCE_PATH);

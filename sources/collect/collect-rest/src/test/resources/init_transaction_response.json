@@ -7,8 +7,13 @@
     "size": 1
   },
   "$results": [
-    "082aba2d-817f-4e5f-8fa4-f12ba7d7642f"
+    {
+      "id": "082aba2d-817f-4e5f-8fa4-f12ba7d7642f"
+    }
   ],
-  "$facetResults": [],
-  "$context": {}
+  "$facetResults": [
+  ],
+  "$context": {
+  }
 }
+

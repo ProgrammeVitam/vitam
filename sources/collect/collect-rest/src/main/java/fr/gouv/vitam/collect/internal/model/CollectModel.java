@@ -29,7 +29,7 @@ package fr.gouv.vitam.collect.internal.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * model for identity
+ * Collect model
  */
 public class CollectModel {
 
@@ -42,7 +42,6 @@ public class CollectModel {
     public CollectModel(String requestId) {
         this.id = requestId;
     }
-
 
     public String getId() {
         return id;

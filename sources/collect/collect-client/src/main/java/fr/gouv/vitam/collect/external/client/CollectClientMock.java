@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.collect.external.client;
 
+import fr.gouv.vitam.collect.internal.dto.ArchiveUnitDto;
+import fr.gouv.vitam.collect.internal.dto.TransactionDto;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -39,9 +41,14 @@ import java.util.UUID;
 public class CollectClientMock extends AbstractMockClient implements CollectClient {
 
     @Override
-    public RequestResponseOK<String> initTransaction() throws InvalidParseOperationException {
-        return new RequestResponseOK<String>()
+    public RequestResponseOK<TransactionDto> initTransaction() throws InvalidParseOperationException {
+        return new RequestResponseOK<TransactionDto>()
             .setHttpCode(Response.Status.OK.getStatusCode())
-            .addResult(UUID.randomUUID().toString());
+            .addResult(new TransactionDto(UUID.randomUUID().toString()));
+    }
+
+    @Override
+    public RequestResponseOK<TransactionDto> uploadArchiveUnit(String transactionId, ArchiveUnitDto archiveUnitDto) throws InvalidParseOperationException {
+        return null;
     }
 }
