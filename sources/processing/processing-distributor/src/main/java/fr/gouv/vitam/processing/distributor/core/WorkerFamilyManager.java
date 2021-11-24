@@ -41,9 +41,9 @@ public class WorkerFamilyManager implements Executor {
 
     private final String family;
 
-    private BlockingQueue<Runnable> queue;
+    private final BlockingQueue<Runnable> queue;
 
-    private Map<String, WorkerExecutor> workers = new ConcurrentHashMap<>();
+    private final Map<String, WorkerExecutor> workers = new ConcurrentHashMap<>();
 
 
     public WorkerFamilyManager(String family, int queueSize) {
@@ -70,14 +70,13 @@ public class WorkerFamilyManager implements Executor {
     }
 
     /**
-     * @param workerId
+     * @param workerId the id of worker to unregister
      */
     public void unregisterWorker(String workerId) {
 
         final WorkerExecutor workerExecutor = workers.get(workerId);
         if (workerExecutor != null) {
             workerExecutor.stop();
-            // TODO wait the async stop to be effective
             workers.remove(workerId);
 
             CommonProcessingMetrics.REGISTERED_WORKERS.labels(family).dec();

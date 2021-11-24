@@ -52,14 +52,15 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static fr.gouv.vitam.processing.distributor.api.IWorkerManager.WORKER_DB_PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -88,20 +89,20 @@ public class WorkerManagerTest {
         }
     }
 
-    private static String registeredWorkerFile = "worker.db";
-    private WorkerManager workerManager;
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Rule
     public TempFolderRule testFolder = new TempFolderRule();
-
+    private WorkerManager workerManager;
     @Mock
     private WorkerClientFactory workerClientFactory;
 
     @Mock
     private WorkerClient workerClient;
+
+    private static void cleanWorkerDb() throws IOException {
+        Files.deleteIfExists(PropertiesUtils.fileFromDataFolder(WORKER_DB_PATH).toPath());
+    }
 
     @Before
     public void setup() throws Exception {
@@ -116,22 +117,15 @@ public class WorkerManagerTest {
     }
 
     @After
-    public void tearDownAfter() {
+    public void tearDownAfter() throws IOException {
         cleanWorkerDb();
-    }
-
-    private static void cleanWorkerDb() {
-        File WORKKER_DB_FILE = PropertiesUtils.fileFromDataFolder(registeredWorkerFile);
-        if (null != WORKKER_DB_FILE && WORKKER_DB_FILE.exists()) {
-            WORKKER_DB_FILE.delete();
-        }
     }
 
     @Test
     public void givenBigWorkerFamilyAndStepOfBigWorkflowRunningOn() throws Exception {
         final String familyId = "BigWorker";
         final String workerId = "NewWorkerId2";
-        DescriptionStep descriptionStep = getDescriptionStep(familyId);
+        DescriptionStep descriptionStep = getDescriptionStep();
 
         final WorkerTask task =
             new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
@@ -144,12 +138,12 @@ public class WorkerManagerTest {
         CompletableFuture.supplyAsync(task, workerFamilyManager).get();
     }
 
-    private DescriptionStep getDescriptionStep(String familyId) {
+    private DescriptionStep getDescriptionStep() {
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
         params.setWorkerGUID(GUIDFactory.newGUID().getId());
         params.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
-        final Step step = new Step().setStepName("TEST").setWorkerGroupId(familyId);
+        final Step step = new Step().setStepName("TEST").setWorkerGroupId("BigWorker");
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
         actions.add(action);
@@ -193,7 +187,7 @@ public class WorkerManagerTest {
         final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        assertTrue(workerManager.findWorkerBy(familyId) != null);
+        assertNotNull(workerManager.findWorkerBy(familyId));
     }
 
     @Test
@@ -201,7 +195,7 @@ public class WorkerManagerTest {
         final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
-        assertTrue(workerManager.findWorkerBy(familyId) != null);
+        assertNotNull(workerManager.findWorkerBy(familyId));
         workerManager.initialize();
     }
 

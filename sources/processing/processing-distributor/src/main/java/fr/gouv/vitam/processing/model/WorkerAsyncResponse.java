@@ -29,19 +29,19 @@ package fr.gouv.vitam.processing.model;
 import fr.gouv.vitam.common.model.ItemStatus;
 
 /**
- * Class for manage the launch of an "async" response 
+ * Class for manage the launch of an "async" response
  */
 public class WorkerAsyncResponse {
     private WorkerAsyncRequest workerAsyncRequest;
     private ItemStatus itemStatus;
-    
+
     /**
      * @param workerAsyncRequest of type {@link WorkerAsyncRequest }
-     * @param itemStatus the item status of request 
+     * @param itemStatus the item status of request
      */
-    public WorkerAsyncResponse(WorkerAsyncRequest workerAsyncRequest,ItemStatus itemStatus) {
-        this.itemStatus=itemStatus;
-        this.workerAsyncRequest=workerAsyncRequest;
+    public WorkerAsyncResponse(WorkerAsyncRequest workerAsyncRequest, ItemStatus itemStatus) {
+        this.itemStatus = itemStatus;
+        this.workerAsyncRequest = workerAsyncRequest;
     }
 
 
@@ -54,7 +54,6 @@ public class WorkerAsyncResponse {
 
     /**
      * @param ItemStatus the ItemStatus to set
-     *
      * @return this
      */
     public WorkerAsyncResponse setItemStatus(ItemStatus ItemStatus) {
@@ -73,7 +72,6 @@ public class WorkerAsyncResponse {
 
     /**
      * @param workerAsyncRequest the workerAsyncRequest to set
-     *
      * @return this
      */
     public WorkerAsyncResponse setWorkerAsyncRequest(WorkerAsyncRequest workerAsyncRequest) {

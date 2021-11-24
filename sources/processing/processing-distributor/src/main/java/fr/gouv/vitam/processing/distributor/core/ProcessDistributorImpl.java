@@ -127,8 +127,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Empty constructor
      *
-     * @param workerManager
-     * @param serverConfiguration
+     * @param workerManager a WorkerManager instance
+     * @param serverConfiguration distributor server configuration
      */
     public ProcessDistributorImpl(IWorkerManager workerManager, ServerConfiguration serverConfiguration) {
         this(workerManager, serverConfiguration, WorkspaceProcessDataManagement.getInstance(),
@@ -148,6 +148,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         ParametersChecker
             .checkParameter("Parameters are required.", workerManager, serverConfiguration, processDataManagement,
                 metaDataClientFactory, workspaceClientFactory);
+    }
+
+    private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
+        CompletableFuture<Void> allDoneFuture =
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        return allDoneFuture
+            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
     }
 
     /**
@@ -318,12 +325,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
      * Else if the returned boolean true, means we have already used the distibutorIndex,
      * Then in case of multi-level for the next level do not use the distributorIndex
      *
-     * @param workerParameters
-     * @param step
-     * @param objectsList
-     * @param tenantId
+     * @param workerParameters workParams of type {@link WorkerParameters}
+     * @param step the execution step
+     * @param objectsList a list of object used for distribution
+     * @param tenantId tenant used to run the step
      * @return return true if distributor index is used false else
-     * @throws ProcessingException
+     * @throws ProcessingException when storing or retrieving distributorIndex
      */
     private boolean distributeOnList(WorkerParameters workerParameters, Step step, String level,
         List<String> objectsList, boolean initFromDistributorIndex, Integer tenantId) throws ProcessingException {
@@ -515,12 +522,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Distribution on stream.
      *
-     * @param workerParameters workerParameters
-     * @param step step
-     * @param bufferedReader
-     * @param initFromDistributorIndex
-     * @param tenantId
-     * @return
+     * @param workerParameters workParams of type {@link WorkerParameters}
+     * @param step the execution step
+     * @param bufferedReader a stream used for distribution
+     * @param initFromDistributorIndex true to start from distributorIndex saved on workspace
+     * @param tenantId tenant used to run the step
      */
     private void distributeOnStream(WorkerParameters workerParameters, Step step,
         BufferedReader bufferedReader, boolean initFromDistributorIndex, Integer tenantId)
@@ -889,13 +895,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     .dec();
                 return is;
             });
-    }
-
-    private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
-        CompletableFuture<Void> allDoneFuture =
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        return allDoneFuture
-            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
     }
 
     @Override

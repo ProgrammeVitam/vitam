@@ -33,21 +33,20 @@ import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.worker.client.exception.WorkerExecutorException;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.stream.IntStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * manage one worker with n thread
  */
 public class WorkerExecutor implements Runnable {
-    private static final VitamLogger
-        LOGGER = VitamLoggerFactory.getInstance(WorkerExecutor.class);
-    private final InterruptSignal interruptSignal;
-    private BlockingQueue<Runnable> queue;
-    private WorkerBean workerBean;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerExecutor.class);
+    private final AtomicBoolean mustStop;
+    private final BlockingQueue<Runnable> queue;
+    private final WorkerBean workerBean;
 
     public WorkerExecutor(BlockingQueue<Runnable> queue, WorkerBean workerBean) {
         this.workerBean = workerBean;
-        this.interruptSignal = new InterruptSignal();
+        this.mustStop = new AtomicBoolean(false);
         this.queue = queue;
     }
 
@@ -55,15 +54,18 @@ public class WorkerExecutor implements Runnable {
     public void run() {
         try {
             WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(workerBean);
-            while (true) {
+            while (!mustStop.get()) {
                 Runnable task = queue.take();
+
+                // if current thread must stop, we add the taken task to the queue to be treated by another thread
+                if (mustStop.get()) {
+                    queue.add(task);
+                    break;
+                }
 
                 // Add metric on the number of tasks in the queue
                 CommonProcessingMetrics.WORKER_TASKS_IN_QUEUE.labels(workerBean.getFamily()).dec();
 
-                if (checkIfWorkerThreadIsAlive(task)) {
-                    break;
-                }
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Start task run on worker: " + workerBean.getName());
                 }
@@ -81,26 +83,11 @@ public class WorkerExecutor implements Runnable {
         }
     }
 
-    private boolean checkIfWorkerThreadIsAlive(Runnable task) throws InterruptedException {
-        if (task == interruptSignal) {
-            return true;
-        } else if (task instanceof InterruptSignal) {
-            queue.put(task);
-        }
-        return false;
-    }
-
     /**
      * send a message to notify all thread that the worker will be stop.
      */
     public void stop() {
-        IntStream.range(0, workerBean.getCapacity()).forEach((i) -> {
-            try {
-                queue.put(interruptSignal);
-            } catch (InterruptedException e) {
-                LOGGER.error("Error while stop executor :" + workerBean.getWorkerId(), e);
-            }
-        });
+        mustStop.set(true);
     }
 
     public WorkerBean getWorkerBean() {

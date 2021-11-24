@@ -52,7 +52,7 @@ import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 
 @Path("/processing/v1/worker_family")
-@Tag(name="Processing")
+@Tag(name = "Processing")
 public class ProcessDistributorResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
 
@@ -61,7 +61,7 @@ public class ProcessDistributorResource {
     /**
      * Constructor
      *
-     * @param workerManager
+     * @param workerManager a WorkerManager instance
      */
     public ProcessDistributorResource(IWorkerManager workerManager) {
         this.workerManager = workerManager;
