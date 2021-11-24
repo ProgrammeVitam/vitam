@@ -151,7 +151,7 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">localhost</Set>
+        <Set name="host">0.0.0.0</Set>
         <Set name="port">9104</Set>
 	<Set name="name">business</Set>
         <Set name="idleTimeout">
@@ -176,7 +176,7 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">localhost</Set>
+        <Set name="host">0.0.0.0</Set>
         <Set name="port">29104</Set>
 	<Set name="name">admin</Set>
         <Set name="idleTimeout">
