@@ -213,17 +213,6 @@ public class Step {
     }
 
     /**
-     * @return True if the step Must be Stopped
-     */
-    @JsonIgnore
-    public boolean shallStop() {
-        if (getStepResponses() != null) {
-            return getStepResponses().shallStop(isBlocking());
-        }
-        return false;
-    }
-
-    /**
      * @return True if this step is blocking
      */
     @JsonIgnore

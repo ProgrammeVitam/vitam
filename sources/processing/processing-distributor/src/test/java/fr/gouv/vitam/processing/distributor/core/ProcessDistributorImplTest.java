@@ -75,7 +75,6 @@ import org.apache.commons.io.input.BoundedInputStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -111,7 +110,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -128,14 +126,14 @@ public class ProcessDistributorImplTest {
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
     private final static String operationId = "FakeOperationId";
     private static final Integer TENANT = 0;
-    private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
-    private static final WorkerClient workerClient = mock(WorkerClient.class);
-    @ClassRule
-    public static TempFolderRule testFolder = new TempFolderRule();
-    private static ProcessDataManagement processDataManagement;
-    private static WorkspaceClientFactory workspaceClientFactory;
-    private static MetaDataClientFactory metaDataClientFactory;
-    private static IWorkerManager workerManager;
+    private final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
+    private final WorkerClient workerClient = mock(WorkerClient.class);
+    @Rule
+    public TempFolderRule testFolder = new TempFolderRule();
+    private ProcessDataManagement processDataManagement;
+    private WorkspaceClientFactory workspaceClientFactory;
+    private MetaDataClientFactory metaDataClientFactory;
+    private IWorkerManager workerManager;
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -146,17 +144,8 @@ public class ProcessDistributorImplTest {
     private ServerConfiguration serverConfiguration;
 
     @BeforeClass
-    public static void tearUpBeforeClass() throws Exception {
+    public static void tearUpBeforeClass() {
         VitamConfiguration.setWorkerBulkSize(1);
-        final WorkerBean workerBean =
-            new WorkerBean("DefaultWorker", "DefaultWorker", 2, "status",
-                new WorkerRemoteConfiguration("localhost", 8999));
-        workerBean.setWorkerId("FakeWorkerId");
-
-        when(workerClientFactory.getClient()).thenReturn(workerClient);
-        workerManager = new WorkerManager(workerClientFactory);
-        workerManager.registerWorker(workerBean);
-
     }
 
     @AfterClass
@@ -167,8 +156,14 @@ public class ProcessDistributorImplTest {
 
     @Before
     public void setUp() throws Exception {
-        reset(workerClient);
-        reset(workerClientFactory);
+
+        final WorkerBean workerBean =
+            new WorkerBean("DefaultWorker", "DefaultWorker", 2, "status",
+                new WorkerRemoteConfiguration("localhost", 8999));
+        workerBean.setWorkerId("FakeWorkerId");
+
+        workerManager = new WorkerManager(workerClientFactory);
+        workerManager.registerWorker(workerBean);
 
         when(workerClientFactory.getClient()).thenReturn(workerClient);
         workerParameters = WorkerParametersFactory.newWorkerParameters();

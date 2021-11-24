@@ -246,7 +246,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     final List<URI> objectsListUri =
                         JsonHandler.getFromStringAsTypeReference(
                             workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
-                                step.getDistribution().getElement())
+                                    step.getDistribution().getElement())
                                 .toJsonNode().get("$results").get(0).toString(),
                             LIST_URI_TYPE_REFERENCE);
                     for (URI uri : objectsListUri) {
@@ -362,7 +362,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
          *
          * In the current step in case of the multiple level,
          * if the current level is not equals to the level in the initFromDistributorIndex
-         * Then return false to passe to the next step
+         * Then return false to pass to the next step
          */
         if (initFromDistributorIndex) {
             try {
@@ -377,14 +377,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                     /*
                      * Handle the next level if the current level is not equals to the distributorIndex level
-                     * This mean that the current level is already treated
+                     * This mean that the current level is already processed
                      */
                     if (!distributorIndex.getLevel().equals(level)) {
                         return false;
                     }
 
                     /*
-                     * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                     * If all elements of the step are processed then response with the ItemStatus of the distributorIndex
                      */
                     if (distributorIndex.isLevelFinished()) {
                         step.setStepResponses(distributorIndex.getItemStatus());
@@ -434,11 +434,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
 
             /*
-             * When server stop and in the batch of elements we have remaining elements (not yet treated)
-             * Then after restart we treat only those not yet treated elements of this batch
-             * If all elements of the batch were treated,
+             * When server stop and in the batch of elements we have remaining elements (not yet processed)
+             * Then after restart we process only those not yet processed elements of this batch
+             * If all elements of the batch were processed,
              * then at this point, we are automatically in the new batch
-             * and we have to treat all elements of this batch
+             * and we have to process all elements of this batch
              */
             boolean emptyRemainingElements = remainingElementsFromRecover.isEmpty();
 
@@ -479,7 +479,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 DistributorIndex distributorIndex =
                     new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
 
-                // All elements of the current level are treated so finish it
+                // All elements of the current level are processed so finish it
                 if (offset >= sizeList && !itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
                     distributorIndex.setLevelFinished(true);
                 }
@@ -556,7 +556,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
          *
          * In the current step in case of the multiple level,
          * if the current level is not equals to the level in the initFromDistributorIndex
-         * Then return false to passe to the next step
+         * Then return false to pass to the next step
          */
 
 
@@ -572,7 +572,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     DistributorIndex distributorIndex = distributorIndexOptional.get();
 
                     /*
-                     * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
+                     * If all elements of the step are processed then response with the ItemStatus of the distributorIndex
                      */
                     if (distributorIndex.isLevelFinished()) {
                         step.setStepResponses(distributorIndex.getItemStatus());
@@ -664,11 +664,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
 
             /*
-             * When server stop and in the batch of elements we have remaining elements (not yet treated)
-             * Then after restart we treat only those not yet treated elements of this batch
-             * If all elements of the batch were treated,
+             * When server stop and in the batch of elements we have remaining elements (not yet processed)
+             * Then after restart we process only those not yet processed elements of this batch
+             * If all elements of the batch were processed,
              * then at this point, we are automatically in the new batch
-             * and we have to treat all elements of this batch
+             * and we have to process all elements of this batch
              */
             if (!remainingElementsFromRecover.isEmpty()) {
 
@@ -713,7 +713,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 DistributorIndex distributorIndex =
                     new DistributorIndex(ProcessDistributor.NOLEVEL, offset, itemStatus, requestId, step.getId(),
                         remainingElements);
-                // All elements of the current level are treated so finish it
+                // All elements of the current level are processed so finish it
                 if (!linesPeekIterator.hasNext() && !itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
                     distributorIndex.setLevelFinished(true);
                 }
@@ -735,12 +735,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     private void skipOffsetLines(BufferedReader bufferedReader, int offset) throws ProcessingException {
-        for (int i = 0; i < offset; i++) {
-            try {
+        try {
+            for (int i = 0; i < offset; i++) {
                 bufferedReader.readLine();
-            } catch (IOException e) {
-                throw new ProcessingException(e);
             }
+        } catch (IOException e) {
+            throw new ProcessingException(e);
         }
     }
 
