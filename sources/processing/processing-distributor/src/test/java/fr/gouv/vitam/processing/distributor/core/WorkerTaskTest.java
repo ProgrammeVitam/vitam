@@ -68,7 +68,6 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -105,9 +104,6 @@ public class WorkerTaskTest {
 
     @Before
     public void setup() throws Exception {
-        reset(workerClientFactory);
-        reset(workerClient);
-
         when(workerClientFactory.getClient()).thenReturn(workerClient);
 
         doNothing().when(workerClient).checkStatus();
@@ -128,11 +124,14 @@ public class WorkerTaskTest {
 
         when(workerClient.submitStep(eq(descriptionStep)))
             .thenReturn(new ItemStatus("item_ok").increment(StatusCode.OK));
-        ItemStatus itemStatus = task.get();
+        WorkerTaskResult workerTaskResult = task.get();
 
-        assertThat(itemStatus).isNotNull();
-        assertThat(itemStatus.getItemId()).isEqualTo("item_ok");
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(workerTaskResult).isNotNull();
+        assertThat(workerTaskResult.getItemStatus().getItemId()).isEqualTo("item_ok");
+        assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(workerTaskResult.isProcessed()).isTrue();
+        assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
+
     }
 
 
