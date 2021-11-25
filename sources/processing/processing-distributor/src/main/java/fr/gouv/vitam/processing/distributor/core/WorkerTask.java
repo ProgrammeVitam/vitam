@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.metrics.CommonProcessingMetrics;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
-import fr.gouv.vitam.processing.common.model.WorkerTaskState;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
@@ -53,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 // Task simulating a call to a worker
-public class WorkerTask implements Supplier<ItemStatus> {
+public class WorkerTask implements Supplier<WorkerTaskResult> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerTask.class);
 
     private final DescriptionStep descriptionStep;
@@ -62,10 +61,9 @@ public class WorkerTask implements Supplier<ItemStatus> {
     private final String contractId;
     private final String contextId;
     private final String applicationId;
-    private volatile WorkerTaskState workerTaskState = WorkerTaskState.PENDING;
 
-    private WorkerClientFactory workerClientFactory;
-    private Histogram.Timer taskWaitingTimeDuration;
+    private final WorkerClientFactory workerClientFactory;
+    private final Histogram.Timer taskWaitingTimeDuration;
 
     public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId,
         String contextId, String applicationId, WorkerClientFactory workerClientFactory) {
@@ -87,7 +85,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
     }
 
     @Override
-    public ItemStatus get() {
+    public WorkerTaskResult get() {
         if (null != taskWaitingTimeDuration) {
             taskWaitingTimeDuration.observeDuration();
         }
@@ -129,22 +127,23 @@ public class WorkerTask implements Supplier<ItemStatus> {
                     case ACTION_RUN:
                     case ACTION_RECOVER:
                     case ACTION_REPLAY:
-                        workerTaskState = WorkerTaskState.RUNNING;
-                        return callWorker(workerBean, workerClient);
+                        ItemStatus itemStatus = callWorker(workerBean, workerClient);
+                        return new WorkerTaskResult(this, true, itemStatus);
                     case ACTION_PAUSE:
                         // The current elements will be persisted in the distributorIndex in the remaining elements
-                        workerTaskState = WorkerTaskState.PAUSE;
-                        return new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
-                            .setItemsStatus(PauseOrCancelAction.ACTION_PAUSE.name(),
-                                new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
-                                    .increment(StatusCode.UNKNOWN));
+                        return new WorkerTaskResult(this, false,
+                            new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
+                                .setItemsStatus(PauseOrCancelAction.ACTION_PAUSE.name(),
+                                    new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
+                                        .increment(StatusCode.UNKNOWN))
+                        );
                     case ACTION_CANCEL:
-                        workerTaskState = WorkerTaskState.CANCEL;
-                        return new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
-                            .setItemsStatus(PauseOrCancelAction.ACTION_CANCEL.name(),
-                                new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
-                                    .increment(StatusCode.UNKNOWN));
-
+                        return new WorkerTaskResult(this, false,
+                            new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
+                                .setItemsStatus(PauseOrCancelAction.ACTION_CANCEL.name(),
+                                    new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
+                                        .increment(StatusCode.UNKNOWN))
+                        );
                     case ACTION_COMPLETE:
                         throw new WorkerExecutorException(workerBean.getWorkerId(),
                             "Step id: " + getStep().getId() + " and name :" + getStep().getStepName() +
@@ -185,9 +184,6 @@ public class WorkerTask implements Supplier<ItemStatus> {
         } catch (Exception e) {
             throw new WorkerExecutorException(workerBean.getWorkerId(), e);
         } finally {
-            if (!WorkerTaskState.PAUSE.equals(workerTaskState) && !WorkerTaskState.CANCEL.equals(workerTaskState)) {
-                workerTaskState = WorkerTaskState.COMPLETED;
-            }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER
                     .debug("End executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " +
@@ -229,9 +225,5 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
     public List<String> getObjectNameList() {
         return descriptionStep.getWorkParams().getObjectNameList();
-    }
-
-    public boolean isCompleted() {
-        return WorkerTaskState.COMPLETED.equals(workerTaskState);
     }
 }

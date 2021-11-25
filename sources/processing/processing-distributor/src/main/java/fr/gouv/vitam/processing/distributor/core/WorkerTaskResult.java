@@ -24,7 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-/**
- * Specific model class for the distributor
- */
-package fr.gouv.vitam.processing.model;
+package fr.gouv.vitam.processing.distributor.core;
+
+import fr.gouv.vitam.common.model.ItemStatus;
+
+public class WorkerTaskResult {
+
+    private final WorkerTask workerTask;
+    private final ItemStatus itemStatus;
+    private final boolean isProcessed;
+
+    public WorkerTaskResult(WorkerTask workerTask, boolean isProcessed, ItemStatus itemStatus) {
+        this.itemStatus = itemStatus;
+        this.isProcessed = isProcessed;
+        this.workerTask = workerTask;
+    }
+
+    public ItemStatus getItemStatus() {
+        return itemStatus;
+    }
+
+    public WorkerTask getWorkerTask() {
+        return workerTask;
+    }
+
+    public boolean isProcessed() {
+        return isProcessed;
+    }
+}
