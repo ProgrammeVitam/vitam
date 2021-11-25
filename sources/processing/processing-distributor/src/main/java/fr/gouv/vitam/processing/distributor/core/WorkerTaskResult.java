@@ -32,11 +32,11 @@ public class WorkerTaskResult {
 
     private final WorkerTask workerTask;
     private final ItemStatus itemStatus;
-    private final boolean isCompleted;
+    private final boolean isProcessed;
 
-    public WorkerTaskResult(WorkerTask workerTask, boolean isCompleted, ItemStatus itemStatus) {
+    public WorkerTaskResult(WorkerTask workerTask, boolean isProcessed, ItemStatus itemStatus) {
         this.itemStatus = itemStatus;
-        this.isCompleted = isCompleted;
+        this.isProcessed = isProcessed;
         this.workerTask = workerTask;
     }
 
@@ -48,7 +48,7 @@ public class WorkerTaskResult {
         return workerTask;
     }
 
-    public boolean isCompleted() {
-        return isCompleted;
+    public boolean isProcessed() {
+        return isProcessed;
     }
 }

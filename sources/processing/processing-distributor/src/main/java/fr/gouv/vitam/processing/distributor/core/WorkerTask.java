@@ -128,8 +128,7 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
                     case ACTION_RECOVER:
                     case ACTION_REPLAY:
                         ItemStatus itemStatus = callWorker(workerBean, workerClient);
-                        boolean isCompleted = !itemStatus.getGlobalStatus().isGreaterOrEqualToFatal();
-                        return new WorkerTaskResult(this, isCompleted, itemStatus);
+                        return new WorkerTaskResult(this, true, itemStatus);
                     case ACTION_PAUSE:
                         // The current elements will be persisted in the distributorIndex in the remaining elements
                         return new WorkerTaskResult(this, false,

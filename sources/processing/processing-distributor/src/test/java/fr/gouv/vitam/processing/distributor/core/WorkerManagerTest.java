@@ -66,7 +66,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class WorkerManagerTest {
@@ -143,7 +142,7 @@ public class WorkerManagerTest {
         assertThat(workerTaskResult).isNotNull();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
         assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(workerTaskResult.isCompleted()).isTrue();
+        assertThat(workerTaskResult.isProcessed()).isTrue();
     }
 
     private DescriptionStep getDescriptionStep() {
@@ -193,7 +192,7 @@ public class WorkerManagerTest {
         assertThat(workerTaskResult).isNotNull();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
         assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(workerTaskResult.isCompleted()).isTrue();
+        assertThat(workerTaskResult.isProcessed()).isTrue();
 
     }
 

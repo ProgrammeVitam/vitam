@@ -716,11 +716,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         int bulkSize, List<String> subList) {
 
         // Process by bulk
-        Iterator<List<String>> batchIterator = Iterators.partition(subList.iterator(), bulkSize);
+        Iterator<List<String>> distributionSubListBulkIterator = Iterators.partition(subList.iterator(), bulkSize);
 
         // Create a worker task for each bulk
         List<WorkerTask> workerTaskList = new ArrayList<>();
-        batchIterator.forEachRemaining(objectNames -> {
+        distributionSubListBulkIterator.forEachRemaining(objectNames -> {
             WorkerParameters taskWorkerParams = ((DefaultWorkerParameters) workerParameters).newInstance();
             taskWorkerParams.setObjectNameList(objectNames);
             workerTaskList.add(new WorkerTask(
@@ -769,9 +769,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         WorkerParameters workerParameters, List<WorkerTask> workerTaskList) {
         List<CompletableFuture<WorkerTaskResult>> completableFutureList = new ArrayList<>();
         for (WorkerTask workerTask : workerTaskList) {
-            CompletableFuture<WorkerTaskResult> prepare =
-                scheduleTask(workerTask, workerParameters.getLogbookTypeProcess());
-            completableFutureList.add(prepare);
+            CompletableFuture<WorkerTaskResult> scheduledTask =
+                scheduleTaskInExecutionBlockingQueue(workerTask, workerParameters.getLogbookTypeProcess());
+            completableFutureList.add(scheduledTask);
         }
         return completableFutureList;
     }
@@ -792,15 +792,15 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         // Update global step item status
         workerTaskResults.stream()
             // Do not compute PAUSE and CANCEL actions
-            .filter(result -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(result.getItemStatus().getItemId()))
-            .filter(result -> !PauseOrCancelAction.ACTION_PAUSE.name().equals(result.getItemStatus().getItemId()))
+            .filter(result -> !PauseOrCancelAction.ACTION_CANCEL.name().equals(result.getItemStatus().getItemId()) &&
+                !PauseOrCancelAction.ACTION_PAUSE.name().equals(result.getItemStatus().getItemId()))
             .forEach(result -> step.getStepResponses().setItemsStatus(result.getItemStatus()));
 
         // Update stats (used by tests only)
         int processedElements = workerTaskResults.stream()
             //Do not update processed if pause or cancel occurs or if status is Fatal
-            .filter(result -> !StatusCode.UNKNOWN.equals(result.getItemStatus().getGlobalStatus()))
-            .filter(result -> !StatusCode.FATAL.equals(result.getItemStatus().getGlobalStatus()))
+            .filter(result -> !StatusCode.UNKNOWN.equals(result.getItemStatus().getGlobalStatus()) &&
+                !StatusCode.FATAL.equals(result.getItemStatus().getGlobalStatus()))
             .mapToInt(result -> result.getWorkerTask().getObjectNameList().size())
             .sum();
         ((ProcessStep) step).getElementProcessed().addAndGet(processedElements);
@@ -814,7 +814,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
 
         return workerTaskResults.stream()
-            .filter(workerTaskResult -> !workerTaskResult.isCompleted())
+            .filter(workerTaskResult -> !workerTaskResult.isProcessed())
             .flatMap(workerTaskResult -> workerTaskResult.getWorkerTask().getObjectNameList().stream())
             .collect(Collectors.toList());
     }
@@ -840,7 +840,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
     }
 
-    private CompletableFuture<WorkerTaskResult> scheduleTask(WorkerTask task, LogbookTypeProcess logbookTypeProcess) {
+    private CompletableFuture<WorkerTaskResult> scheduleTaskInExecutionBlockingQueue(WorkerTask task,
+        LogbookTypeProcess logbookTypeProcess) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
         if (null == wmf) {

@@ -129,7 +129,7 @@ public class WorkerTaskTest {
         assertThat(workerTaskResult).isNotNull();
         assertThat(workerTaskResult.getItemStatus().getItemId()).isEqualTo("item_ok");
         assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(workerTaskResult.isCompleted()).isTrue();
+        assertThat(workerTaskResult.isProcessed()).isTrue();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
 
     }
